@@ -180,14 +180,14 @@ xf86RandR13VerifyPanningArea (xf86CrtcPtr crtc, int screenWidth, int screenHeigh
  */
 
 static void
-xf86ComputeCrtcPan (Bool sprite_transform_in_use,
+xf86ComputeCrtcPan (Bool transform_in_use,
 		    struct pixman_f_transform *m,
 		    double screen_x, double screen_y,
 		    double crtc_x, double crtc_y,
 		    int old_pan_x, int old_pan_y,
 		    int *new_pan_x, int *new_pan_y)
 {
-    if (sprite_transform_in_use) {
+    if (transform_in_use) {
 	/*
 	 * Given the current transform, M, the current position
 	 * on the Screen, S, and the desired position on the CRTC,
@@ -374,8 +374,8 @@ xf86RandR13Pan (xf86CrtcPtr crtc, int x, int y)
 	c.v[0] = x;
 	c.v[1] = y;
 	c.v[2] = 1.0;
-	if (crtc->sprite_transform_in_use) {
-	    pixman_f_transform_point(&crtc->f_screen_to_crtc, &c);
+	if (crtc->transform_in_use) {
+	    pixman_f_transform_point(&crtc->f_framebuffer_to_crtc, &c);
 	} else {
 	    c.v[0] -= crtc->x;
 	    c.v[1] -= crtc->y;
@@ -402,8 +402,8 @@ xf86RandR13Pan (xf86CrtcPtr crtc, int x, int y)
 	    }
 	}
 	if (panned)
-	    xf86ComputeCrtcPan (crtc->sprite_transform_in_use,
-				&crtc->f_screen_to_crtc,
+	    xf86ComputeCrtcPan (crtc->transform_in_use,
+				&crtc->f_framebuffer_to_crtc,
 				x, y, c.v[0], c.v[1],
 				newX, newY, &newX, &newY);
     }
@@ -414,7 +414,7 @@ xf86RandR13Pan (xf86CrtcPtr crtc, int x, int y)
      * XXX This computation only works when we do not have a transform
      * in use.
      */
-    if (!crtc->sprite_transform_in_use)
+    if (!crtc->transform_in_use)
     {
 	/* Validate against [xy]1 after [xy]2, to be sure that results are > 0 for [xy]1 > 0 */
 	if (crtc->panningTotalArea.x2 > crtc->panningTotalArea.x1) {
@@ -1732,20 +1732,6 @@ xf86RandR12ChangeGamma(int scrnIndex, Gamma gamma)
     return Success;
 }
 
-static void
-xf86RandR14SetCrtcSpriteTransform(ScreenPtr		pScreen,
-				  RRCrtcPtr		randr_crtc,
-				  struct pixman_f_transform *f_position_transform,
-				  struct pixman_f_transform *f_image_transform)
-{
-    xf86CrtcPtr		crtc = randr_crtc->devPrivate;
-
-    crtc->user_sprite_position_transform = *f_position_transform;
-    crtc->user_sprite_image_transform = *f_image_transform;
-    xf86CrtcRotateCursor(crtc);
-    xf86_reload_cursors(pScreen);
-}
-
 static Bool
 xf86RandR12EnterVT (int screen_index, int flags)
 {
@@ -1754,7 +1740,6 @@ xf86RandR12EnterVT (int screen_index, int flags)
     XF86RandRInfoPtr randrp  = XF86RANDRINFO(pScreen);
     rrScrPrivPtr     rp = rrGetScrPriv(pScreen);
     Bool	     ret;
-    int i;
 
     if (randrp->orig_EnterVT) {
 	pScrn->EnterVT = randrp->orig_EnterVT;
@@ -1766,6 +1751,7 @@ xf86RandR12EnterVT (int screen_index, int flags)
     }
 
     /* reload gamma */
+    int i;
     for (i = 0; i < rp->numCrtcs; i++)
 	xf86RandR12CrtcSetGamma(pScreen, rp->crtcs[i]);
 
@@ -1796,7 +1782,6 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     rp->rrSetConfig = NULL;
     pScrn->PointerMoved = xf86RandR12PointerMoved;
     pScrn->ChangeGamma = xf86RandR12ChangeGamma;
-    rp->rrSetCrtcSpriteTransform = xf86RandR14SetCrtcSpriteTransform;
 
     randrp->orig_EnterVT = pScrn->EnterVT;
     pScrn->EnterVT = xf86RandR12EnterVT;

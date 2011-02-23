@@ -345,7 +345,6 @@ struct _xf86Crtc {
     int		    filter_width; /* ABI 2 */
     int		    filter_height; /* ABI 2 */
     Bool	    transform_in_use;
-    Bool	    sprite_transform_in_use;
     RRTransformRec  transform; /* ABI 2 */
     Bool	    transformPresent; /* ABI 2 */
     RRTransformRec  desiredTransform; /* ABI 2 */
@@ -385,22 +384,6 @@ struct _xf86Crtc {
      * Clear the shadow
      */
     Bool	    shadowClear;
-
-    /**
-     * Sprite position transforms
-     */
-
-    /* Transform a screen coordinate to a crtc coordinate */
-    struct pixman_f_transform f_screen_to_crtc;
-
-    /* The user-specified portion of the screen to crtc conversion */
-    struct pixman_f_transform user_sprite_position_transform;
-
-    /* Transform a hardware cursor coordinate to a cursor coordinate */
-    struct pixman_f_transform f_crtc_to_cursor;
-
-    /* The user-specified portion of the cursor to hardware transform */
-    struct pixman_f_transform user_sprite_image_transform;
 };
 
 typedef struct _xf86OutputFuncs {
@@ -793,14 +776,6 @@ xf86CrtcSetOrigin (xf86CrtcPtr crtc, int x, int y);
  */
 extern _X_EXPORT Bool
 xf86CrtcRotate (xf86CrtcPtr crtc);
-
-
-/*
- * Update cursor transform matrices after user changes
- * This is just the cursor subset of xf86CrtcRotate
- */
-extern _X_EXPORT void
-xf86CrtcRotateCursor (xf86CrtcPtr crtc);
 
 /*
  * Clean up any rotation data, used when a crtc is turned off

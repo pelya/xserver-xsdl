@@ -20,7 +20,6 @@ librandr_la_SOURCES =	\
 	rrproperty.c	\
 	rrscreen.c	\
 	rrsdispatch.c	\
-	rrsprite.c	\
 	rrtransform.h	\
 	rrtransform.c
 

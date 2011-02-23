@@ -106,17 +106,12 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
     pixman_transform_init_identity (&crtc->crtc_to_framebuffer);
     pixman_f_transform_init_identity (&crtc->f_crtc_to_framebuffer);
     pixman_f_transform_init_identity (&crtc->f_framebuffer_to_crtc);
-    pixman_f_transform_init_identity (&crtc->f_screen_to_crtc);
-    pixman_f_transform_init_identity (&crtc->user_sprite_position_transform);
-    pixman_f_transform_init_identity (&crtc->f_crtc_to_cursor);
-    pixman_f_transform_init_identity (&crtc->user_sprite_image_transform);
     crtc->filter = NULL;
     crtc->params = NULL;
     crtc->nparams = 0;
     crtc->filter_width = 0;
     crtc->filter_height = 0;
     crtc->transform_in_use = FALSE;
-    crtc->sprite_transform_in_use = FALSE;
     crtc->transformPresent = FALSE;
     crtc->desiredTransformPresent = FALSE;
     memset (&crtc->bounds, '\0', sizeof (crtc->bounds));
