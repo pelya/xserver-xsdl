@@ -30,6 +30,7 @@
 #include <ptrveloc.h>
 #include <exevents.h>
 #include <X11/Xatom.h>
+#include <os.h>
 
 #include <xserver-properties.h>
 
@@ -68,9 +69,12 @@ SimpleSmoothProfile(DeviceIntPtr dev, DeviceVelocityPtr vel, float velocity,
 static PointerAccelerationProfileFunc
 GetAccelerationProfile(DeviceVelocityPtr vel, int profile_num);
 static BOOL
-InitializePredictableAccelerationProperties(DeviceIntPtr dev);
+InitializePredictableAccelerationProperties(DeviceIntPtr,
+                                            DeviceVelocityPtr,
+                                            PredictableAccelSchemePtr);
 static BOOL
-DeletePredictableAccelerationProperties(DeviceIntPtr dev);
+DeletePredictableAccelerationProperties(DeviceIntPtr,
+                                        PredictableAccelSchemePtr);
 
 /*#define PTRACCEL_DEBUGGING*/
 
@@ -86,7 +90,6 @@ DeletePredictableAccelerationProperties(DeviceIntPtr dev);
 
 /* some int which is not a profile number */
 #define PROFILE_UNINITIALIZE (-100)
-
 
 /**
  * Init DeviceVelocity struct so it should match the average case
@@ -125,17 +128,22 @@ FreeVelocityData(DeviceVelocityPtr vel){
  */
 Bool
 InitPredictableAccelerationScheme(DeviceIntPtr dev,
-				  ValuatorAccelerationPtr protoScheme) {
+                                  ValuatorAccelerationPtr protoScheme) {
     DeviceVelocityPtr vel;
     ValuatorAccelerationRec scheme;
+    PredictableAccelSchemePtr schemeData;
     scheme = *protoScheme;
     vel = calloc(1, sizeof(DeviceVelocityRec));
-    if (!vel)
-	return FALSE;
+    schemeData = calloc(1, sizeof(PredictableAccelSchemeRec));
+    if (!vel || !schemeData)
+        return FALSE;
     InitVelocityData(vel);
-    scheme.accelData = vel;
+    schemeData->vel = vel;
+    scheme.accelData = schemeData;
+    if (!InitializePredictableAccelerationProperties(dev, vel, schemeData))
+        return FALSE;
+    /* all fine, assign scheme to device */
     dev->valuator->accelScheme = scheme;
-    InitializePredictableAccelerationProperties(dev);
     return TRUE;
 }
 
@@ -146,14 +154,21 @@ InitPredictableAccelerationScheme(DeviceIntPtr dev,
 void
 AccelerationDefaultCleanup(DeviceIntPtr dev)
 {
-    /*sanity check*/
-    if( dev->valuator->accelScheme.AccelSchemeProc == acceleratePointerPredictable
-            && dev->valuator->accelScheme.accelData != NULL){
+    DeviceVelocityPtr vel = GetDevicePredictableAccelData(dev);
+    if (vel) {
+        /* the proper guarantee would be that we're not inside of
+         * AccelSchemeProc(), but that seems impossible. Schemes don't get
+         * switched often anyway.
+         */
+        OsBlockSignals();
         dev->valuator->accelScheme.AccelSchemeProc = NULL;
-        FreeVelocityData(dev->valuator->accelScheme.accelData);
+        FreeVelocityData(vel);
+        free(vel);
+        DeletePredictableAccelerationProperties(dev,
+            (PredictableAccelSchemePtr) dev->valuator->accelScheme.accelData);
         free(dev->valuator->accelScheme.accelData);
         dev->valuator->accelScheme.accelData = NULL;
-        DeletePredictableAccelerationProperties(dev);
+        OsReleaseSignals();
     }
 }
 
@@ -345,26 +360,34 @@ AccelInitScaleProperty(DeviceIntPtr dev, DeviceVelocityPtr vel)
     return XIRegisterPropertyHandler(dev, AccelSetScaleProperty, NULL, NULL);
 }
 
-BOOL
-InitializePredictableAccelerationProperties(DeviceIntPtr dev)
+static BOOL
+InitializePredictableAccelerationProperties(
+    DeviceIntPtr dev,
+    DeviceVelocityPtr  vel,
+    PredictableAccelSchemePtr schemeData)
 {
-    DeviceVelocityPtr  vel = GetDevicePredictableAccelData(dev);
-
+    int num_handlers = 4;
     if(!vel)
-	return FALSE;
+        return FALSE;
 
-    vel->prop_handlers[0] = AccelInitProfileProperty(dev, vel);
-    vel->prop_handlers[1] = AccelInitDecelProperty(dev, vel);
-    vel->prop_handlers[2] = AccelInitAdaptDecelProperty(dev, vel);
-    vel->prop_handlers[3] = AccelInitScaleProperty(dev, vel);
+    schemeData->prop_handlers = calloc(num_handlers, sizeof(long));
+    if (!schemeData->prop_handlers)
+        return FALSE;
+    schemeData->num_prop_handlers = num_handlers;
+    schemeData->prop_handlers[0] = AccelInitProfileProperty(dev, vel);
+    schemeData->prop_handlers[1] = AccelInitDecelProperty(dev, vel);
+    schemeData->prop_handlers[2] = AccelInitAdaptDecelProperty(dev, vel);
+    schemeData->prop_handlers[3] = AccelInitScaleProperty(dev, vel);
 
     return TRUE;
 }
 
 BOOL
-DeletePredictableAccelerationProperties(DeviceIntPtr dev)
+DeletePredictableAccelerationProperties(
+    DeviceIntPtr dev,
+    PredictableAccelSchemePtr scheme)
 {
-    DeviceVelocityPtr  vel;
+    DeviceVelocityPtr vel;
     Atom prop;
     int i;
 
@@ -378,10 +401,15 @@ DeletePredictableAccelerationProperties(DeviceIntPtr dev)
     XIDeleteDeviceProperty(dev, prop, FALSE);
 
     vel = GetDevicePredictableAccelData(dev);
-    for (i = 0; vel && i < NPROPS_PREDICTABLE_ACCEL; i++)
-	if (vel->prop_handlers[i])
-	    XIUnregisterPropertyHandler(dev, vel->prop_handlers[i]);
+    if (vel) {
+        for (i = 0; i < scheme->num_prop_handlers; i++)
+            if (scheme->prop_handlers[i])
+                XIUnregisterPropertyHandler(dev, scheme->prop_handlers[i]);
+    }
 
+    free(scheme->prop_handlers);
+    scheme->prop_handlers = NULL;
+    scheme->num_prop_handlers = 0;
     return TRUE;
 }
 
@@ -397,8 +425,7 @@ InitTrackers(DeviceVelocityPtr vel, int ntracker)
 	return;
     }
     free(vel->tracker);
-    vel->tracker = (MotionTrackerPtr)malloc(ntracker * sizeof(MotionTracker));
-    memset(vel->tracker, 0, ntracker * sizeof(MotionTracker));
+    vel->tracker = (MotionTrackerPtr)calloc(ntracker, sizeof(MotionTracker));
     vel->num_tracker = ntracker;
 }
 
@@ -1026,7 +1053,8 @@ GetDevicePredictableAccelData(
 	    acceleratePointerPredictable &&
 	dev->valuator->accelScheme.accelData != NULL){
 
-	return (DeviceVelocityPtr)dev->valuator->accelScheme.accelData;
+	return ((PredictableAccelSchemePtr)
+		dev->valuator->accelScheme.accelData)->vel;
     }
     return NULL;
 }

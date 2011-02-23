@@ -62,9 +62,6 @@ typedef struct _MotionTracker {
     int dir;        /* initial direction bitfield */
 } MotionTracker, *MotionTrackerPtr;
 
-/* number of properties for predictable acceleration */
-#define NPROPS_PREDICTABLE_ACCEL 4
-
 /**
  * Contains all data needed to implement mouse ballistics
  */
@@ -91,8 +88,17 @@ typedef struct _DeviceVelocityRec {
     struct {   /* to be able to query this information */
         int     profile_number;
     } statistics;
-    long    prop_handlers[NPROPS_PREDICTABLE_ACCEL];
 } DeviceVelocityRec, *DeviceVelocityPtr;
+
+/**
+ * contains the run-time data for the predictable scheme, that is, a
+ * DeviceVelocityPtr and the property handlers.
+ */
+typedef struct _PredictableAccelSchemeRec {
+    DeviceVelocityPtr vel;
+    long* prop_handlers;
+    int num_prop_handlers;
+} PredictableAccelSchemeRec, *PredictableAccelSchemePtr;
 
 extern _X_EXPORT void
 InitVelocityData(DeviceVelocityPtr vel);
