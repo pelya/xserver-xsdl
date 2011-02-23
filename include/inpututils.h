@@ -34,7 +34,7 @@
 struct _ValuatorMask {
     int8_t      last_bit; /* highest bit set in mask */
     uint8_t     mask[(MAX_VALUATORS + 7)/8];
-    int         valuators[MAX_VALUATORS]; /* valuator data */
+    double      valuators[MAX_VALUATORS]; /* valuator data */
 };
 
 extern void verify_internal_event(const InternalEvent *ev);

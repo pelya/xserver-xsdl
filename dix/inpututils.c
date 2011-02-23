@@ -514,7 +514,7 @@ valuator_mask_set(ValuatorMask *mask, int valuator, int data)
 int
 valuator_mask_get(const ValuatorMask *mask, int valuator)
 {
-    return mask->valuators[valuator];
+    return trunc(mask->valuators[valuator]);
 }
 
 /**
@@ -527,7 +527,7 @@ valuator_mask_unset(ValuatorMask *mask, int valuator)
         int i, lastbit = -1;
 
         ClearBit(mask->mask, valuator);
-        mask->valuators[valuator] = 0;
+        mask->valuators[valuator] = 0.0;
 
         for (i = 0; i <= mask->last_bit; i++)
             if (valuator_mask_isset(mask, i))
