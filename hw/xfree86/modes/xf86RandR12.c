@@ -659,12 +659,10 @@ xf86RandR12SetConfig (ScreenPtr		pScreen,
 
 static Bool
 xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
-			  CARD16	width,
-			  CARD16	height,
-			  CARD16	pixWidth,
-			  CARD16	pixHeight,
-			  CARD32	mmWidth,
-			  CARD32	mmHeight)
+			CARD16		width,
+			CARD16		height,
+			CARD32		mmWidth,
+			CARD32		mmHeight)
 {
     XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
     ScrnInfoPtr		pScrn = XF86SCRNINFO(pScreen);
@@ -672,8 +670,6 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     WindowPtr		pRoot = pScreen->root;
     PixmapPtr		pScrnPix;
     Bool		ret = FALSE;
-    Bool		pixSizeChanged = FALSE;
-    Bool		winSizeChanged = FALSE;
     int                 c;
 
     if (xf86RandR12Key) {
@@ -681,85 +677,46 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
         {
 	    randrp->virtualX = pScrn->virtualX;
 	    randrp->virtualY = pScrn->virtualY;
-	    pixSizeChanged = TRUE;
         }
     }
+    if (pRoot && pScrn->vtSema)
+	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, FALSE);
 
-    pScrnPix = (*pScreen->GetScreenPixmap)(pScreen);
-    if (pixWidth != pScrnPix->drawable.width ||
-	pixHeight != pScrnPix->drawable.height)
-	pixSizeChanged = TRUE;
-
-    if (width != pScreen->width || height != pScreen->height)
-	winSizeChanged = TRUE;
-
-    if (pixSizeChanged)
-    {
-	if (pRoot && pScrn->vtSema)
-	    (*pScrn->EnableDisableFBAccess) (pScreen->myNum, FALSE);
-
-	/* Let the driver update virtualX and virtualY */
-	if (!(*config->funcs->resize)(pScrn, pixWidth, pixHeight))
-	    goto finish;
-    }
+    /* Let the driver update virtualX and virtualY */
+    if (!(*config->funcs->resize)(pScrn, width, height))
+	goto finish;
 
     ret = TRUE;
-
-    if (winSizeChanged)
-    {
-	/* Update panning information */
-	for (c = 0; c < config->num_crtc; c++) {
-	    xf86CrtcPtr crtc = config->crtc[c];
-	    if (crtc->panningTotalArea.x2 > crtc->panningTotalArea.x1 ||
-		crtc->panningTotalArea.y2 > crtc->panningTotalArea.y1) {
-		if (crtc->panningTotalArea.x2 > crtc->panningTrackingArea.x1)
-		    crtc->panningTotalArea.x2 += width  - pScreen->width;
-		if (crtc->panningTotalArea.y2 > crtc->panningTrackingArea.y1)
-		    crtc->panningTotalArea.y2 += height - pScreen->height;
-		if (crtc->panningTrackingArea.x2 > crtc->panningTrackingArea.x1)
-		    crtc->panningTrackingArea.x2 += width  - pScreen->width;
-		if (crtc->panningTrackingArea.y2 > crtc->panningTrackingArea.y1)
-		    crtc->panningTrackingArea.y2 += height - pScreen->height;
-		xf86RandR13VerifyPanningArea (crtc, width, height);
-		xf86RandR13Pan (crtc, randrp->pointerX, randrp->pointerY);
-	    }
+    /* Update panning information */
+    for (c = 0; c < config->num_crtc; c++) {
+	xf86CrtcPtr crtc = config->crtc[c];
+	if (crtc->panningTotalArea.x2 > crtc->panningTotalArea.x1 ||
+	    crtc->panningTotalArea.y2 > crtc->panningTotalArea.y1) {
+	    if (crtc->panningTotalArea.x2 > crtc->panningTrackingArea.x1)
+		crtc->panningTotalArea.x2 += width  - pScreen->width;
+	    if (crtc->panningTotalArea.y2 > crtc->panningTrackingArea.y1)
+		crtc->panningTotalArea.y2 += height - pScreen->height;
+	    if (crtc->panningTrackingArea.x2 > crtc->panningTrackingArea.x1)
+		crtc->panningTrackingArea.x2 += width  - pScreen->width;
+	    if (crtc->panningTrackingArea.y2 > crtc->panningTrackingArea.y1)
+		crtc->panningTrackingArea.y2 += height - pScreen->height;
+	    xf86RandR13VerifyPanningArea (crtc, width, height);
+	    xf86RandR13Pan (crtc, randrp->pointerX, randrp->pointerY);
 	}
     }
 
     pScrnPix = (*pScreen->GetScreenPixmap)(pScreen);
-    pScreen->width = width;
-    pScreen->height = height;
-    if (pRoot)
-    {
-	BoxRec	box;
-
-	pRoot->drawable.width = width;
-	pRoot->drawable.height = height;
-	box.x1 = 0;
-	box.y1 = 0;
-	box.x2 = width;
-	box.y2 = height;
-	RegionInit(&pRoot->winSize, &box, 1);
-	RegionInit(&pRoot->borderSize, &box, 1);
-    }
-    pScrnPix->drawable.width = pixWidth;
-    pScrnPix->drawable.height = pixHeight;
+    pScreen->width = pScrnPix->drawable.width = width;
+    pScreen->height = pScrnPix->drawable.height = height;
     randrp->mmWidth = pScreen->mmWidth = mmWidth;
     randrp->mmHeight = pScreen->mmHeight = mmHeight;
 
-    if (winSizeChanged)
-    {
-	xf86SetViewport (pScreen, pScreen->width-1, pScreen->height-1);
-	xf86SetViewport (pScreen, 0, 0);
-    }
+    xf86SetViewport (pScreen, pScreen->width-1, pScreen->height-1);
+    xf86SetViewport (pScreen, 0, 0);
 
 finish:
-    if (pixSizeChanged)
-    {
-	if (pRoot && pScrn->vtSema)
-	    (*pScrn->EnableDisableFBAccess) (pScreen->myNum, TRUE);
-    }
-
+    if (pRoot && pScrn->vtSema)
+	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, TRUE);
 #if RANDR_12_INTERFACE
     if (xf86RandR12Key && pScreen->root && ret)
 	RRScreenSizeNotify (pScreen);
@@ -859,8 +816,6 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	pScreen->width  = width;
 	pScreen->height = height;
 	xf86RandR12ScreenSetSize (pScreen,
-				  width,
-				  height,
 				  width,
 				  height,
 				  mmWidth,

@@ -191,8 +191,6 @@ struct _rrOutput {
 typedef Bool (*RRScreenSetSizeProcPtr) (ScreenPtr	pScreen,
 					CARD16		width,
 					CARD16		height,
-					CARD16		pixWidth,
-					CARD16		pixHeight,
 					CARD32		mmWidth,
 					CARD32		mmHeight);
 					
@@ -480,8 +478,6 @@ extern _X_EXPORT Bool
 RRScreenSizeSet (ScreenPtr  pScreen,
 		 CARD16	    width,
 		 CARD16	    height,
-		 CARD16	    pixWidth,
-		 CARD16	    pixHeight,
 		 CARD32	    mmWidth,
 		 CARD32	    mmHeight);
 
