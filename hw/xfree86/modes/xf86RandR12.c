@@ -1797,7 +1797,6 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     pScrn->PointerMoved = xf86RandR12PointerMoved;
     pScrn->ChangeGamma = xf86RandR12ChangeGamma;
     rp->rrSetCrtcSpriteTransform = xf86RandR14SetCrtcSpriteTransform;
-    rp->rrSetCrtcConfigs = miRRSetCrtcConfigs;
 
     randrp->orig_EnterVT = pScrn->EnterVT;
     pScrn->EnterVT = xf86RandR12EnterVT;

@@ -22,9 +22,7 @@ librandr_la_SOURCES =	\
 	rrsdispatch.c	\
 	rrsprite.c	\
 	rrtransform.h	\
-	rrtransform.c	\
-	mirrcrtc.c
-
+	rrtransform.c
 
 if XINERAMA
 librandr_la_SOURCES += ${XINERAMA_SRCS}

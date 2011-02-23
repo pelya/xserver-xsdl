@@ -78,8 +78,6 @@ typedef struct _rrMode		RRModeRec, *RRModePtr;
 typedef struct _rrPropertyValue	RRPropertyValueRec, *RRPropertyValuePtr;
 typedef struct _rrProperty	RRPropertyRec, *RRPropertyPtr;
 typedef struct _rrCrtc		RRCrtcRec, *RRCrtcPtr;
-typedef struct _rrScreenConfig	RRScreenConfigRec, *RRScreenConfigPtr;
-typedef struct _rrCrtcConfig	RRCrtcConfigRec, *RRCrtcConfigPtr;
 typedef struct _rrOutput	RROutputRec, *RROutputPtr;
 
 struct _rrMode {
@@ -135,28 +133,6 @@ struct _rrCrtc {
     struct pict_f_transform f_inverse;
     struct pict_f_transform f_sprite_position;		/* crtc from screen */
     struct pict_f_transform f_sprite_image_inverse;	/* image from crtc */
-};
-
-struct _rrScreenConfig {
-    CARD16			screen_pixmap_width;
-    CARD16			screen_pixmap_height;
-    CARD16			screen_width;
-    CARD16			screen_height;
-    CARD32			mm_width;
-    CARD32			mm_height;
-};
-
-struct _rrCrtcConfig {
-    RRCrtcPtr			crtc;
-    int				x, y;
-    RRModePtr			mode;
-    Rotation			rotation;
-    int				numOutputs;
-    RROutputPtr			*outputs;
-    struct pict_f_transform	sprite_position_transform;
-    struct pict_f_transform	sprite_image_transform;
-    PixmapPtr			pixmap;
-    int				pixmap_x, pixmap_y;
 };
 
 struct _rrOutput {
@@ -275,11 +251,6 @@ typedef void (*RRGetCrtcSpriteTransformPtr) (ScreenPtr pScreen,
 					     struct pict_f_transform *position_transform,
 					     struct pict_f_transform *image_transform);
 
-typedef Bool (*RRSetCrtcConfigsPtr) (ScreenPtr screen,
-				     RRScreenConfigPtr screen_config,
-				     RRCrtcConfigPtr crtc_configs,
-				     int num_configs);
-
 typedef struct _rrScrPriv {
     /*
      * 'public' part of the structure; DDXen fill this in
@@ -305,7 +276,6 @@ typedef struct _rrScrPriv {
 #endif
     RRSetCrtcSpriteTransformPtr	rrSetCrtcSpriteTransform;
     RRGetCrtcSpriteTransformPtr	rrGetCrtcSpriteTransform;
-    RRSetCrtcConfigsPtr rrSetCrtcConfigs;
 
     /*
      * Private part of the structure; not considered part of the ABI
@@ -457,10 +427,6 @@ RRScreenSizeSet (ScreenPtr  pScreen,
 		 CARD16	    height,
 		 CARD32	    mmWidth,
 		 CARD32	    mmHeight);
-
-extern _X_EXPORT void
-RRScreenCurrentConfig(ScreenPtr screen,
-		      RRScreenConfigPtr screen_config);
 
 /*
  * Send ConfigureNotify event to root window when 'something' happens
@@ -705,38 +671,6 @@ extern _X_EXPORT void
 RRCrtcInitErrorValue (void);
 
 /*
- * Free a set of crtc configs and their attached output arrays
- */
-void
-RRFreeCrtcConfigs(RRCrtcConfigPtr configs, int num_configs);
-
-/*
- * Convert the current crtc configuration into an RRCrtcConfig
- */
-extern _X_EXPORT Bool
-RRCrtcCurrentConfig(RRCrtcPtr crtc,
-		    RRCrtcConfigPtr crtc_config);
-
-/*
- * Figure out whether the specific crtc_config can fit
- * within the screen_config
- */
-Bool
-RRScreenCoversCrtc(RRScreenConfigPtr screen_config,
-		   RRCrtcConfigPtr crtc_config,
-		   RRTransformPtr client_transform,
-		   XID *errorValue);
-
-/*
- * Set a screen and set of crtc configurations in one operation
- */
-Bool
-RRSetCrtcConfigs(ScreenPtr screen,
-		 RRScreenConfigPtr screen_config,
-		 RRCrtcConfigPtr crtc_configs,
-		 int num_configs);
-
-/*
  * Crtc dispatch
  */
 
@@ -760,9 +694,6 @@ ProcRRSetCrtcTransform (ClientPtr client);
 
 extern _X_EXPORT int
 ProcRRGetCrtcTransform (ClientPtr client);
-
-extern _X_EXPORT int
-ProcRRSetCrtcConfigs (ClientPtr client);
 
 int
 ProcRRGetPanning (ClientPtr client);
@@ -984,27 +915,6 @@ ProcRRGetCrtcSpriteTransform (ClientPtr client);
 extern _X_EXPORT void
 RRXineramaExtensionInit(void);
 #endif
-
-/* mirrcrtc.c */
-Bool
-miRRSetScreenConfig(ScreenPtr screen,
-		    RRScreenConfigPtr screen_config);
-
-Bool
-miRRSetCrtcConfig(RRCrtcConfigPtr crtc_config);
-
-Bool
-miRRDisableCrtc(RRCrtcPtr crtc);
-
-Bool
-miRRCheckDisableCrtc(RRScreenConfigPtr new_screen_config,
-		     RRCrtcConfigPtr old_crtc_config);
-
-Bool
-miRRSetCrtcConfigs(ScreenPtr screen,
-		   RRScreenConfigPtr screen_config,
-		   RRCrtcConfigPtr crtc_configs,
-		   int num_configs);
 
 #endif /* _RANDRSTR_H_ */
 
