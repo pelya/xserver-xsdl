@@ -134,9 +134,11 @@ InitPredictableAccelerationScheme(DeviceIntPtr dev,
 				  struct _ValuatorAccelerationRec* protoScheme);
 
 extern _X_INTERNAL void
-acceleratePointerPredictable(DeviceIntPtr dev, ValuatorMask* val, int evtime);
+acceleratePointerPredictable(DeviceIntPtr dev, ValuatorMask* val,
+                             CARD32 evtime);
 
 extern _X_INTERNAL void
-acceleratePointerLightweight(DeviceIntPtr dev, ValuatorMask* val, int evtime);
+acceleratePointerLightweight(DeviceIntPtr dev, ValuatorMask* val,
+                             CARD32 evtime);
 
 #endif  /* POINTERVELOCITY_H */

@@ -1072,7 +1072,7 @@ void
 acceleratePointerPredictable(
     DeviceIntPtr dev,
     ValuatorMask* val,
-    int evtime)
+    CARD32 evtime)
 {
     float fdx, fdy, tmp, mult; /* no need to init */
     int dx = 0, dy = 0, tmpi;
@@ -1151,7 +1151,7 @@ void
 acceleratePointerLightweight(
     DeviceIntPtr dev,
     ValuatorMask* val,
-    int ignored)
+    CARD32 ignored)
 {
     float mult = 0.0, tmpf;
     int dx = 0, dy = 0, tmpi;

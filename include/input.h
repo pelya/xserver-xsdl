@@ -145,7 +145,7 @@ typedef void (*DeviceUnwrapProc)(
 typedef void (*PointerAccelSchemeProc)(
     DeviceIntPtr /*device*/,
     ValuatorMask* /*valuators*/,
-    int /*evtime*/);
+    CARD32 /*evtime*/);
 
 typedef void (*DeviceCallbackProc)(
               DeviceIntPtr /*pDev*/);
