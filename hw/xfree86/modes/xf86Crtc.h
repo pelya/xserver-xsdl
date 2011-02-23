@@ -647,29 +647,6 @@ struct _xf86Output {
     INT16           initialBorder[4];
 };
 
-typedef enum _xf86SetConfigResponse {
-    xf86SetConfigFailed,		/* set_config failed */
-    xf86SetConfigChecked,		/* set_config validated the configuration */
-    xf86SetConfigDone,			/* set_config finished the work */
-} xf86SetConfigResponse;
-
-typedef struct _xf86CrtcSetConfig {
-    xf86CrtcPtr			crtc;
-    int				x, y;
-    DisplayModeRec		mode;
-    Rotation			rotation;
-    int				numOutputs;
-    xf86OutputPtr		*outputs;
-    struct pict_f_transform	sprite_position_transform;
-    struct pict_f_transform	sprite_image_transform;
-
-    /* Probably want some internal structure for the pixmap so that
-     * this can be set before the server is running
-     */
-    PixmapPtr			pixmap;
-    int				pixmap_x, pixmap_y;
-} xf86CrtcSetConfigRec, *xf86CrtcSetConfigPtr;
-
 typedef struct _xf86CrtcConfigFuncs {
     /**
      * Requests that the driver resize the screen.
@@ -687,12 +664,6 @@ typedef struct _xf86CrtcConfigFuncs {
     (*resize)(ScrnInfoPtr	scrn,
 	      int		width,
 	      int		height);
-
-    xf86SetConfigResponse
-    (*set_config) (ScrnInfoPtr		scrn,
-		   RRScreenConfigPtr	screen_config,
-		   xf86CrtcSetConfigPtr	crtc_configs,
-		   int			num_configs);
 } xf86CrtcConfigFuncsRec, *xf86CrtcConfigFuncsPtr;
 
 typedef void (*xf86_crtc_notify_proc_ptr) (ScreenPtr pScreen);
