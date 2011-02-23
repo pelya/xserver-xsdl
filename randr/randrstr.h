@@ -154,10 +154,8 @@ struct _rrCrtcConfig {
     Rotation			rotation;
     int				numOutputs;
     RROutputPtr			*outputs;
-    PictTransform		sprite_position_transform;
-    PictTransform		sprite_image_transform;
-    struct pict_f_transform	sprite_position_f_transform;
-    struct pict_f_transform	sprite_image_f_transform;
+    struct pict_f_transform	sprite_position_transform;
+    struct pict_f_transform	sprite_image_transform;
     PixmapPtr			pixmap;
     int				pixmap_x, pixmap_y;
 };

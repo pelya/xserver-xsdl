@@ -1819,8 +1819,8 @@ xf86RRConvertCrtcConfig(xf86CrtcSetConfigPtr	xf86_config,
 	return FALSE;
     for (o = 0; o < rr_config->numOutputs; o++)
 	xf86_config->outputs[o] = rr_config->outputs[o]->devPrivate;
-    xf86_config->sprite_position_transform = rr_config->sprite_position_f_transform;
-    xf86_config->sprite_image_transform = rr_config->sprite_image_f_transform;
+    xf86_config->sprite_position_transform = rr_config->sprite_position_transform;
+    xf86_config->sprite_image_transform = rr_config->sprite_image_transform;
     xf86_config->pixmap = rr_config->pixmap;
     xf86_config->pixmap_x = rr_config->pixmap_x;
     xf86_config->pixmap_y = rr_config->pixmap_y;

@@ -60,21 +60,14 @@ miRRSetCrtcConfig(RRCrtcConfigPtr crtc_config)
 	x = crtc_config->pixmap_x;
 	y = crtc_config->pixmap_y;
     }
-    if (!RRCrtcSet(crtc_config->crtc,
-		   crtc_config->mode,
-		   x,
-		   y,
-		   crtc_config->rotation,
-		   crtc_config->numOutputs,
-		   crtc_config->outputs,
-		   crtc_config->pixmap))
-	return FALSE;
-    RRCrtcSpriteTransformSet(crtc_config->crtc,
-			     &crtc_config->sprite_position_transform,
-			     &crtc_config->sprite_image_transform,
-			     &crtc_config->sprite_position_f_transform,
-			     &crtc_config->sprite_image_f_transform);
-    return TRUE;
+    return RRCrtcSet(crtc_config->crtc,
+		     crtc_config->mode,
+		     x,
+		     y,
+		     crtc_config->rotation,
+		     crtc_config->numOutputs,
+		     crtc_config->outputs,
+		     crtc_config->pixmap);
 }
 
 Bool
