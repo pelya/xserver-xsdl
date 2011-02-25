@@ -2376,6 +2376,46 @@ RecalculateMasterButtons(DeviceIntPtr slave)
 }
 
 /**
+ * Generate release events for all keys/button currently down on this
+ * device.
+ */
+static void
+ReleaseButtonsAndKeys(DeviceIntPtr dev)
+{
+    EventListPtr        eventlist = InitEventList(GetMaximumEventsNum());
+    ButtonClassPtr      b = dev->button;
+    KeyClassPtr         k = dev->key;
+    int                 i, j, nevents;
+
+    if (!eventlist) /* no release events for you */
+        return;
+
+    /* Release all buttons */
+    for (i = 0; b && i < b->numButtons; i++)
+    {
+        if (BitIsOn(b->down, i))
+        {
+            nevents = GetPointerEvents(eventlist, dev, ButtonRelease, i, 0, NULL);
+            for (j = 0; j < nevents; j++)
+                mieqProcessDeviceEvent(dev, (InternalEvent*)(eventlist+j)->event, NULL);
+        }
+    }
+
+    /* Release all keys */
+    for (i = 0; k && i < MAP_LENGTH; i++)
+    {
+        if (BitIsOn(k->down, i))
+        {
+            nevents = GetKeyboardEvents(eventlist, dev, KeyRelease, i);
+            for (j = 0; j < nevents; j++)
+                mieqProcessDeviceEvent(dev, (InternalEvent*)(eventlist+j)->event, NULL);
+        }
+    }
+
+    FreeEventList(eventlist, GetMaximumEventsNum());
+}
+
+/**
  * Attach device 'dev' to device 'master'.
  * Client is set to the client that issued the request, or NULL if it comes
  * from some internal automatic pairing.
@@ -2407,6 +2447,8 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         screen->DeviceCursorCleanup(dev, screen);
         free(dev->spriteInfo->sprite);
     }
+
+    ReleaseButtonsAndKeys(dev);
 
     oldmaster = dev->u.master;
     dev->u.master = master;
