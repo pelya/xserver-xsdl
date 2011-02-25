@@ -1565,7 +1565,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	int		    min_clock = 0;
 	int		    max_clock = 0;
 	double		    clock;
-	Bool		    add_default_modes = xf86ReturnOptValBool(output->options, OPTION_DEFAULT_MODES, TRUE);
+	Bool		    add_default_modes;
 	Bool		    debug_modes = config->debug_modes ||
 					  xf86Initialising;
 	enum det_monrec_source sync_source = sync_default;
@@ -1611,6 +1611,14 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	}
 	
 	output_modes = (*output->funcs->get_modes) (output);
+
+	/*
+	 * If the user has a preference, respect it.
+	 * Otherwise, don't second-guess the driver.
+	 */
+	if (!xf86GetOptValBool(output->options, OPTION_DEFAULT_MODES,
+			       &add_default_modes))
+	    add_default_modes = (output_modes == NULL);
 	
 	edid_monitor = output->MonInfo;
 	
