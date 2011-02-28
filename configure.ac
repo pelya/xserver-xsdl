@@ -626,7 +626,6 @@ AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF8
 AC_ARG_ENABLE(xace,           AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
 AC_ARG_ENABLE(xselinux,       AS_HELP_STRING([--enable-xselinux], [Build SELinux extension (default: disabled)]), [XSELINUX=$enableval], [XSELINUX=no])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity], [Build Security extension (default: disabled)]), [XCSECURITY=$enableval], [XCSECURITY=no])
-AC_ARG_ENABLE(xcalibrate,     AS_HELP_STRING([--enable-xcalibrate], [Build XCalibrate extension (default: disabled)]), [XCALIBRATE=$enableval], [XCALIBRATE=no])
 AC_ARG_ENABLE(tslib,          AS_HELP_STRING([--enable-tslib], [Build kdrive tslib touchscreen support (default: disabled)]), [TSLIB=$enableval], [TSLIB=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--enable-xf86bigfont], [Build XF86 Big Font extension (default: disabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=no])
@@ -779,7 +778,6 @@ DRIPROTO="xf86driproto >= 2.1.0"
 DRI2PROTO="dri2proto >= 2.3"
 XINERAMAPROTO="xineramaproto"
 BIGFONTPROTO="xf86bigfontproto >= 1.2.0"
-XCALIBRATEPROTO="xcalibrateproto"
 DGAPROTO="xf86dgaproto >= 2.0.99.1"
 GLPROTO="glproto >= 1.4.10"
 DMXPROTO="dmxproto >= 2.2.99.1"
@@ -1119,14 +1117,6 @@ AM_CONDITIONAL(DPMSExtension, [test "x$DPMSExtension" = xyes])
 if test "x$DPMSExtension" = xyes; then
 	AC_DEFINE(DPMSExtension, 1, [Support DPMS extension])
 fi
-
-if test "x$XCALIBRATE" = xyes && test "$KDRIVE" = yes; then
-   AC_DEFINE(XCALIBRATE, 1, [Build XCalibrate extension])
-   REQUIRED_MODULES="$REQUIRED_MODULES $XCALIBRATEPROTO"
-else
-   XCALIBRATE=no
-fi
-AM_CONDITIONAL(XCALIBRATE, [test "x$XCALIBRATE" = xyes])
 
 AC_DEFINE(RENDER, 1, [Support RENDER extension])
 RENDER_LIB='$(top_builddir)/render/librender.la'
