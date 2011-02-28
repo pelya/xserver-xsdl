@@ -299,9 +299,34 @@ xprAddScreen(int index, ScreenPtr pScreen)
     DEBUG_LOG("index=%d depth=%d\n", index, depth);
     
     if(depth == -1) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
         depth = CGDisplaySamplesPerPixel(kCGDirectMainDisplay) * CGDisplayBitsPerSample(kCGDirectMainDisplay);
+#else
+        CGDisplayModeRef modeRef;
+        CFStringRef encStrRef;
+        
+        modeRef = CGDisplayCopyDisplayMode(kCGDirectMainDisplay);
+        if(!modeRef)
+            goto have_depth;
+
+        encStrRef = CGDisplayModeCopyPixelEncoding(modeRef);
+        CFRelease(modeRef);
+        if(!encStrRef)
+            goto have_depth;
+        
+        if(CFStringCompare(encStrRef, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+            depth = 24;
+        } else if(CFStringCompare(encStrRef, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+            depth = 15;
+        } else if(CFStringCompare(encStrRef, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
+            depth = 8;
+        }
+
+        CFRelease(encStrRef);
+#endif
     }
     
+have_depth:
     switch(depth) {
         case 8: // pseudo-working
             dfb->visuals = PseudoColorMask;
@@ -326,7 +351,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
 //        case 24:
         default:
             if(depth != 24)
-                ErrorF("Unsupported color depth requested.  Defaulting to 24bit. (depth=%d darwinDesiredDepth=%d CGDisplaySamplesPerPixel=%d CGDisplayBitsPerSample=%d)\n",  darwinDesiredDepth, depth, (int)CGDisplaySamplesPerPixel(kCGDirectMainDisplay), (int)CGDisplayBitsPerSample(kCGDirectMainDisplay));
+                ErrorF("Unsupported color depth requested.  Defaulting to 24bit. (depth=%d darwinDesiredDepth=%d)\n", depth, darwinDesiredDepth);
             dfb->visuals = TrueColorMask; //LARGE_VISUALS;
             dfb->preferredCVC = TrueColor;
             dfb->depth = 24;
