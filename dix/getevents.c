@@ -695,12 +695,10 @@ UpdateFromMaster(InternalEvent* events, DeviceIntPtr dev, int type, int *num_eve
  * Move the device's pointer to the position given in the valuators.
  *
  * @param dev The device whose pointer is to be moved.
- * @param x Returns the x position of the pointer after the move.
- * @param y Returns the y position of the pointer after the move.
  * @param mask Valuator data for this event.
  */
 static void
-moveAbsolute(DeviceIntPtr dev, int *x_out, int *y_out, ValuatorMask *mask)
+moveAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
 {
     int i;
 
@@ -716,21 +714,16 @@ moveAbsolute(DeviceIntPtr dev, int *x_out, int *y_out, ValuatorMask *mask)
         dev->last.remainder[i] = val - trunc(val);
         valuator_mask_set_double(mask, i, val);
     }
-
-    *x_out = dev->last.valuators[0];
-    *y_out = dev->last.valuators[1];
 }
 
 /**
  * Move the device's pointer by the values given in @valuators.
  *
  * @param dev The device whose pointer is to be moved.
- * @param x Returns the x position of the pointer after the move.
- * @param y Returns the y position of the pointer after the move.
  * @param mask Valuator data for this event.
  */
 static void
-moveRelative(DeviceIntPtr dev, int *x_out, int *y_out, ValuatorMask *mask)
+moveRelative(DeviceIntPtr dev, ValuatorMask *mask)
 {
     int i;
     Bool clip_xy = IsMaster(dev) || !IsFloating(dev);
@@ -752,9 +745,6 @@ moveRelative(DeviceIntPtr dev, int *x_out, int *y_out, ValuatorMask *mask)
         dev->last.remainder[i] = val - trunc(val);
         valuator_mask_set_double(mask, i, val);
     }
-
-    *x_out = dev->last.valuators[0];
-    *y_out = dev->last.valuators[1];
 }
 
 /**
@@ -1182,26 +1172,34 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
         }
 
         transformAbsolute(pDev, &mask);
-        moveAbsolute(pDev, &x, &y, &mask);
+        moveAbsolute(pDev, &mask);
     } else {
         if (flags & POINTER_ACCELERATE)
             accelPointer(pDev, &mask, ms);
-        moveRelative(pDev, &x, &y, &mask);
+        moveRelative(pDev, &mask);
     }
 
     if ((flags & POINTER_NORAW) == 0)
         set_raw_valuators(raw, &mask, raw->valuators.data,
                           raw->valuators.data_frac);
 
-    if (valuator_mask_isset(&mask, 0))
-    {
-        x_frac = valuator_mask_get_double(&mask, 0);
-        x_frac -= trunc(x_frac);
+    if (valuator_mask_isset(&mask, 0)) {
+        double tmp = valuator_mask_get_double(&mask, 0);
+        x = trunc(tmp);
+        x_frac = tmp - x;
     }
-    if (valuator_mask_isset(&mask, 1))
-    {
-        y_frac = valuator_mask_get_double(&mask, 1);
-        y_frac -= trunc(y_frac);
+    else {
+        x = pDev->last.valuators[0];
+        x_frac = pDev->last.remainder[0];
+    }
+    if (valuator_mask_isset(&mask, 1)) {
+        double tmp = valuator_mask_get_double(&mask, 1);
+        y = trunc(tmp);
+        y_frac = tmp - y;
+    }
+    else {
+        y = pDev->last.valuators[1];
+        y_frac = pDev->last.remainder[1];
     }
 
     positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative,
