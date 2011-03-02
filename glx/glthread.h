@@ -68,7 +68,7 @@
 #define _glapi_Dispatch _mglapi_Dispatch
 #endif
 
-#if (defined(PTHREADS) || defined(WIN32_THREADS) || defined(BEOS_THREADS)) \
+#if (defined(PTHREADS) || defined(WIN32_THREADS)) \
     && !defined(THREADS)
 # define THREADS
 #endif

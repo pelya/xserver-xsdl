@@ -179,48 +179,7 @@ _glthread_SetTSD(_glthread_TSD *tsd, void *ptr)
 
 #endif /* WIN32_THREADS */
 
-/*
- * BeOS threads
- */
-#ifdef BEOS_THREADS
-
-unsigned long
-_glthread_GetID(void)
-{
-   return (unsigned long) find_thread(NULL);
-}
-
-void
-_glthread_InitTSD(_glthread_TSD *tsd)
-{
-   tsd->key = tls_allocate();
-   tsd->initMagic = INIT_MAGIC;
-}
-
-void *
-_glthread_GetTSD(_glthread_TSD *tsd)
-{
-   if (tsd->initMagic != (int) INIT_MAGIC) {
-      _glthread_InitTSD(tsd);
-   }
-   return tls_get(tsd->key);
-}
-
-void
-_glthread_SetTSD(_glthread_TSD *tsd, void *ptr)
-{
-   if (tsd->initMagic != (int) INIT_MAGIC) {
-      _glthread_InitTSD(tsd);
-   }
-   tls_set(tsd->key, ptr);
-}
-
-#endif /* BEOS_THREADS */
-
-
-
 #else  /* THREADS */
-
 
 /*
  * no-op functions
