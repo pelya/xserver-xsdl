@@ -54,6 +54,7 @@
 
 #include <dix-config.h>
 #include <X11/Xfuncproto.h>
+#include <os.h>
 #define PUBLIC _X_EXPORT
 
 #else
@@ -713,43 +714,15 @@ _glapi_add_dispatch( const char * const * function_names,
    return offset;
 }
 
-/**
- * Return pointer to the named function.  If the function name isn't found
- * in the name of static functions, try generating a new API entrypoint on
- * the fly with assembly language.
+/*
+ * glXGetProcAddress doesn't exist in the protocol, the drivers never call
+ * this themselves, and neither does the server.  warn if it happens though.
  */
-_glapi_proc
+PUBLIC _glapi_proc
 _glapi_get_proc_address(const char *funcName)
 {
-   struct _glapi_function * entry;
-   GLuint i;
-
-#ifdef MANGLE
-   if (funcName[0] != 'm' || funcName[1] != 'g' || funcName[2] != 'l')
-      return NULL;
-#else
-   if (funcName[0] != 'g' || funcName[1] != 'l')
-      return NULL;
-#endif
-
-   /* search extension functions first */
-   for (i = 0; i < NumExtEntryPoints; i++) {
-      if (strcmp(ExtEntryTable[i].name, funcName) == 0) {
-         return ExtEntryTable[i].dispatch_stub;
-      }
-   }
-
-#if !defined( XFree86Server ) && !defined( XGLServer )
-   /* search static functions */
-   {
-      const _glapi_proc func = get_static_proc_address(funcName);
-      if (func)
-         return func;
-   }
-#endif /* !defined( XFree86Server ) */
-
-   entry = add_function_name(funcName);
-   return (entry == NULL) ? NULL : entry->dispatch_stub;
+    ErrorF("_glapi_get_proc_address called!\n");
+    return NULL;
 }
 
 /**
