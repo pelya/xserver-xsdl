@@ -68,9 +68,7 @@
 #define _glapi_Dispatch _mglapi_Dispatch
 #endif
 
-
-
-#if (defined(PTHREADS) || defined(SOLARIS_THREADS) ||\
+#if (defined(PTHREADS) || \
      defined(WIN32_THREADS) || defined(USE_XTHREADS) || defined(BEOS_THREADS)) \
     && !defined(THREADS)
 # define THREADS
@@ -127,27 +125,6 @@ typedef pthread_mutex_t _glthread_Mutex;
  * Be sure to compile with -mt on the Solaris compilers, or
  * use -D_REENTRANT if using gcc.
  */
-#ifdef SOLARIS_THREADS
-#include <thread.h>
-
-typedef struct {
-   thread_key_t key;
-   mutex_t      keylock;
-   int          initMagic;
-} _glthread_TSD;
-
-typedef thread_t _glthread_Thread;
-
-typedef mutex_t _glthread_Mutex;
-
-/* XXX need to really implement mutex-related macros */
-#define _glthread_DECLARE_STATIC_MUTEX(name)  static _glthread_Mutex name = 0
-#define _glthread_INIT_MUTEX(name)  (void) name
-#define _glthread_DESTROY_MUTEX(name) (void) name
-#define _glthread_LOCK_MUTEX(name)  (void) name
-#define _glthread_UNLOCK_MUTEX(name)  (void) name
-
-#endif /* SOLARIS_THREADS */
 
 
 
