@@ -320,6 +320,8 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
      * position of the pointer */
     pDev->last.valuators[0] = master->last.valuators[0];
     pDev->last.valuators[1] = master->last.valuators[1];
+    pDev->last.remainder[0] = master->last.remainder[0];
+    pDev->last.remainder[1] = master->last.remainder[1];
 
     if (!pDev->valuator)
         return;
@@ -339,14 +341,19 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
     if ((lastSlave = master->last.slave) && lastSlave->valuator) {
         for (i = 2; i < pDev->valuator->numAxes; i++) {
             if (i >= lastSlave->valuator->numAxes)
+            {
                 pDev->last.valuators[i] = 0;
+                pDev->last.remainder[i] = 0;
+            }
             else
+            {
                 pDev->last.valuators[i] =
                     rescaleValuatorAxis(pDev->last.valuators[i],
                             pDev->last.remainder[i],
                             &pDev->last.remainder[i],
                             lastSlave->valuator->axes + i,
                             pDev->valuator->axes + i, 0);
+            }
         }
     }
 
