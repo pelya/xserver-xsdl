@@ -336,11 +336,6 @@ _glapi_set_dispatch(struct _glapi_table *dispatch)
       /* use the no-op functions */
       dispatch = (struct _glapi_table *) __glapi_noop_table;
    }
-#ifdef DEBUG
-   else {
-      _glapi_check_table(dispatch);
-   }
-#endif
 
 #if defined(GLX_USE_TLS)
    _glapi_tls_Dispatch = dispatch;
@@ -867,26 +862,6 @@ _glapi_add_dispatch( const char * const * function_names,
    return offset;
 }
 
-
-/**
- * Return offset of entrypoint for named function within dispatch table.
- */
-PUBLIC GLint
-_glapi_get_proc_offset(const char *funcName)
-{
-   /* search extension functions first */
-   GLuint i;
-   for (i = 0; i < NumExtEntryPoints; i++) {
-      if (strcmp(ExtEntryTable[i].name, funcName) == 0) {
-         return ExtEntryTable[i].dispatch_offset;
-      }
-   }
-   /* search static functions */
-   return get_static_proc_offset(funcName);
-}
-
-
-
 /**
  * Return pointer to the named function.  If the function name isn't found
  * in the name of static functions, try generating a new API entrypoint on
@@ -964,88 +939,6 @@ _glapi_get_dispatch_table_size(void)
 {
    return DISPATCH_TABLE_SIZE;
 }
-
-
-
-/**
- * Make sure there are no NULL pointers in the given dispatch table.
- * Intended for debugging purposes.
- */
-void
-_glapi_check_table(const struct _glapi_table *table)
-{
-#ifdef DEBUG
-   const GLuint entries = _glapi_get_dispatch_table_size();
-   const void **tab = (const void **) table;
-   GLuint i;
-   for (i = 1; i < entries; i++) {
-      assert(tab[i]);
-   }
-
-   /* Do some spot checks to be sure that the dispatch table
-    * slots are assigned correctly.
-    */
-   {
-      GLuint BeginOffset = _glapi_get_proc_offset("glBegin");
-      char *BeginFunc = (char*) &table->Begin;
-      GLuint offset = (BeginFunc - (char *) table) / sizeof(void *);
-      assert(BeginOffset == _gloffset_Begin);
-      assert(BeginOffset == offset);
-   }
-   {
-      GLuint viewportOffset = _glapi_get_proc_offset("glViewport");
-      char *viewportFunc = (char*) &table->Viewport;
-      GLuint offset = (viewportFunc - (char *) table) / sizeof(void *);
-      assert(viewportOffset == _gloffset_Viewport);
-      assert(viewportOffset == offset);
-   }
-   {
-      GLuint VertexPointerOffset = _glapi_get_proc_offset("glVertexPointer");
-      char *VertexPointerFunc = (char*) &table->VertexPointer;
-      GLuint offset = (VertexPointerFunc - (char *) table) / sizeof(void *);
-      assert(VertexPointerOffset == _gloffset_VertexPointer);
-      assert(VertexPointerOffset == offset);
-   }
-   {
-      GLuint ResetMinMaxOffset = _glapi_get_proc_offset("glResetMinmax");
-      char *ResetMinMaxFunc = (char*) &table->ResetMinmax;
-      GLuint offset = (ResetMinMaxFunc - (char *) table) / sizeof(void *);
-      assert(ResetMinMaxOffset == _gloffset_ResetMinmax);
-      assert(ResetMinMaxOffset == offset);
-   }
-   {
-      GLuint blendColorOffset = _glapi_get_proc_offset("glBlendColor");
-      char *blendColorFunc = (char*) &table->BlendColor;
-      GLuint offset = (blendColorFunc - (char *) table) / sizeof(void *);
-      assert(blendColorOffset == _gloffset_BlendColor);
-      assert(blendColorOffset == offset);
-   }
-   {
-      GLuint secondaryColor3fOffset = _glapi_get_proc_offset("glSecondaryColor3fEXT");
-      char *secondaryColor3fFunc = (char*) &table->SecondaryColor3fEXT;
-      GLuint offset = (secondaryColor3fFunc - (char *) table) / sizeof(void *);
-      assert(secondaryColor3fOffset == _gloffset_SecondaryColor3fEXT);
-      assert(secondaryColor3fOffset == offset);
-   }
-   {
-      GLuint pointParameterivOffset = _glapi_get_proc_offset("glPointParameterivNV");
-      char *pointParameterivFunc = (char*) &table->PointParameterivNV;
-      GLuint offset = (pointParameterivFunc - (char *) table) / sizeof(void *);
-      assert(pointParameterivOffset == _gloffset_PointParameterivNV);
-      assert(pointParameterivOffset == offset);
-   }
-   {
-      GLuint setFenceOffset = _glapi_get_proc_offset("glSetFenceNV");
-      char *setFenceFunc = (char*) &table->SetFenceNV;
-      GLuint offset = (setFenceFunc - (char *) table) / sizeof(void *);
-      assert(setFenceOffset == _gloffset_SetFenceNV);
-      assert(setFenceOffset == offset);
-   }
-#else
-   (void) table;
-#endif
-}
-
 
 #if defined(PTHREADS) || defined(GLX_USE_TLS)
 /**
