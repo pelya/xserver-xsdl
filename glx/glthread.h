@@ -68,8 +68,7 @@
 #define _glapi_Dispatch _mglapi_Dispatch
 #endif
 
-#if (defined(PTHREADS) || \
-     defined(WIN32_THREADS) || defined(USE_XTHREADS) || defined(BEOS_THREADS)) \
+#if (defined(PTHREADS) || defined(WIN32_THREADS) || defined(BEOS_THREADS)) \
     && !defined(THREADS)
 # define THREADS
 #endif
@@ -153,49 +152,6 @@ typedef CRITICAL_SECTION _glthread_Mutex;
 #define _glthread_UNLOCK_MUTEX(name)  LeaveCriticalSection(&name)
 
 #endif /* WIN32_THREADS */
-
-
-
-
-/*
- * XFree86 has its own thread wrapper, Xthreads.h
- * We wrap it again for GL.
- */
-#ifdef USE_XTHREADS
-#include <X11/Xthreads.h>
-
-typedef struct {
-   xthread_key_t key;
-   int initMagic;
-} _glthread_TSD;
-
-typedef xthread_t _glthread_Thread;
-
-typedef xmutex_rec _glthread_Mutex;
-
-#ifdef XMUTEX_INITIALIZER
-#define _glthread_DECLARE_STATIC_MUTEX(name) \
-   static _glthread_Mutex name = XMUTEX_INITIALIZER
-#else
-#define _glthread_DECLARE_STATIC_MUTEX(name) \
-   static _glthread_Mutex name
-#endif
-
-#define _glthread_INIT_MUTEX(name) \
-   xmutex_init(&(name))
-
-#define _glthread_DESTROY_MUTEX(name) \
-   xmutex_clear(&(name))
-
-#define _glthread_LOCK_MUTEX(name) \
-   (void) xmutex_lock(&(name))
-
-#define _glthread_UNLOCK_MUTEX(name) \
-   (void) xmutex_unlock(&(name))
-
-#endif /* USE_XTHREADS */
-
-
 
 /*
  * BeOS threads. R5.x required.
