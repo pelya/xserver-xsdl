@@ -426,26 +426,6 @@ get_static_proc_address(const char *funcName)
 
 #endif /* !defined(XFree86Server) && !defined(XGLServer) */
 
-
-
-/**
- * Return the name of the function at the given offset in the dispatch
- * table.  For debugging only.
- */
-static const char *
-get_static_proc_name( GLuint offset )
-{
-   GLuint i;
-   for (i = 0; static_functions[i].Name_offset >= 0; i++) {
-      if (static_functions[i].Offset == offset) {
-	 return gl_string_table + static_functions[i].Name_offset;
-      }
-   }
-   return NULL;
-}
-
-
-
 /**********************************************************************
  * Extension function management.
  */
@@ -859,35 +839,6 @@ _glapi_get_proc_address(const char *funcName)
    entry = add_function_name(funcName);
    return (entry == NULL) ? NULL : entry->dispatch_stub;
 }
-
-
-
-/**
- * Return the name of the function at the given dispatch offset.
- * This is only intended for debugging.
- */
-const char *
-_glapi_get_proc_name(GLuint offset)
-{
-   GLuint i;
-   const char * n;
-
-   /* search built-in functions */
-   n = get_static_proc_name(offset);
-   if ( n != NULL ) {
-      return n;
-   }
-
-   /* search added extension functions */
-   for (i = 0; i < NumExtEntryPoints; i++) {
-      if (ExtEntryTable[i].dispatch_offset == offset) {
-         return ExtEntryTable[i].name;
-      }
-   }
-   return NULL;
-}
-
-
 
 /**
  * Return size of dispatch table struct as number of functions (or

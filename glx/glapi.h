@@ -146,7 +146,4 @@ _glapi_add_dispatch( const char * const * function_names,
 extern _glapi_proc
 _glapi_get_proc_address(const char *funcName);
 
-extern const char *
-_glapi_get_proc_name(GLuint offset);
-
 #endif
