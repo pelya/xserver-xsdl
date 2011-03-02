@@ -792,28 +792,19 @@ positionSprite(DeviceIntPtr dev, int mode,
     int old_screenx, old_screeny;
     double val, ret;
 
-    /* scale x&y to screen */
-    if (dev->valuator && dev->valuator->numAxes > 0) {
-        val = *x + x_frac;
-        ret = rescaleValuatorAxis(val, dev->valuator->axes + 0, NULL,
-                                  scr->width);
-        *screenx = trunc(ret);
-        *screenx_frac = ret - trunc(ret);
-    } else {
-        *screenx = dev->last.valuators[0];
-        *screenx_frac = dev->last.remainder[0];
-    }
+    if (!dev->valuator || dev->valuator->numAxes < 2)
+        return;
 
-    if (dev->valuator && dev->valuator->numAxes > 1) {
-        val = *y + y_frac;
-        ret = rescaleValuatorAxis(val, dev->valuator->axes + 1, NULL,
-                                  scr->height);
-        *screeny = trunc(ret);
-        *screeny_frac = ret - trunc(ret);
-    } else {
-        *screeny = dev->last.valuators[1];
-        *screeny_frac = dev->last.remainder[1];
-    }
+    /* scale x&y to screen */
+    val = *x + x_frac;
+    ret = rescaleValuatorAxis(val, dev->valuator->axes + 0, NULL, scr->width);
+    *screenx = trunc(ret);
+    *screenx_frac = ret - trunc(ret);
+
+    val = *y + y_frac;
+    ret = rescaleValuatorAxis(val, dev->valuator->axes + 1, NULL, scr->height);
+    *screeny = trunc(ret);
+    *screeny_frac = ret - trunc(ret);
 
     /* Hit the left screen edge? */
     if (*screenx <= 0 && *screenx_frac < 0.0f)
