@@ -259,39 +259,29 @@ CreateClassesChangedEvent(InternalEvent* event,
 /**
  * Rescale the coord between the two axis ranges.
  */
-static int
-rescaleValuatorAxis(int coord, float remainder, float *remainder_return, AxisInfoPtr from, AxisInfoPtr to,
-                    int defmax)
+static double
+rescaleValuatorAxis(double coord, AxisInfoPtr from, AxisInfoPtr to,
+                    double defmax)
 {
-    int fmin = 0, tmin = 0, fmax = defmax, tmax = defmax, coord_return;
-    float value;
+    double fmin = 0.0, fmax = defmax;
+    double tmin = 0.0, tmax = defmax;
 
-    if(from && from->min_value < from->max_value) {
+    if (from && from->min_value < from->max_value) {
         fmin = from->min_value;
         fmax = from->max_value;
     }
-    if(to && to->min_value < to->max_value) {
+    if (to && to->min_value < to->max_value) {
         tmin = to->min_value;
         tmax = to->max_value;
     }
 
-    if(fmin == tmin && fmax == tmax) {
-        if (remainder_return)
-            *remainder_return = remainder;
+    if (fmin == tmin && fmax == tmax)
         return coord;
-    }
 
-    if(fmax == fmin) { /* avoid division by 0 */
-        if (remainder_return)
-            *remainder_return = 0.0;
-        return 0;
-    }
+    if (fmax == fmin) /* avoid division by 0 */
+        return 0.0;
 
-    value = (coord + remainder - fmin) * (tmax - tmin) / (fmax - fmin) + tmin;
-    coord_return = lroundf(value);
-    if (remainder_return)
-        *remainder_return = value - coord_return;
-    return coord_return;
+    return (coord - fmin) * (tmax - tmin) / (fmax - fmin) + tmin;
 }
 
 /**
@@ -307,6 +297,7 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 {
     ScreenPtr scr = miPointerGetScreen(pDev);
     int i;
+    double val, ret;
     DeviceIntPtr lastSlave;
 
     /* master->last.valuators[0]/[1] is in screen coords and the actual
@@ -321,11 +312,21 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 
     /* scale back to device coordinates */
     if(pDev->valuator->numAxes > 0)
-        pDev->last.valuators[0] = rescaleValuatorAxis(pDev->last.valuators[0], pDev->last.remainder[0],
-                        &pDev->last.remainder[0], NULL, pDev->valuator->axes + 0, scr->width);
+    {
+        val = pDev->last.valuators[0] + pDev->last.remainder[0];
+        ret = rescaleValuatorAxis(val, NULL, pDev->valuator->axes + 0,
+                                  scr->width);
+        pDev->last.valuators[0] = trunc(ret);
+        pDev->last.remainder[0] = ret - trunc(ret);
+    }
     if(pDev->valuator->numAxes > 1)
-        pDev->last.valuators[1] = rescaleValuatorAxis(pDev->last.valuators[1], pDev->last.remainder[1],
-                        &pDev->last.remainder[1], NULL, pDev->valuator->axes + 1, scr->height);
+    {
+        val = pDev->last.valuators[1] + pDev->last.remainder[1];
+        ret = rescaleValuatorAxis(val, NULL, pDev->valuator->axes + 1,
+                                  scr->height);
+        pDev->last.valuators[1] = trunc(ret);
+        pDev->last.remainder[1] = ret - trunc(ret);
+    }
 
     /* calculate the other axis as well based on info from the old
      * slave-device. If the old slave had less axes than this one,
@@ -340,12 +341,11 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
             }
             else
             {
-                pDev->last.valuators[i] =
-                    rescaleValuatorAxis(pDev->last.valuators[i],
-                            pDev->last.remainder[i],
-                            &pDev->last.remainder[i],
-                            lastSlave->valuator->axes + i,
-                            pDev->valuator->axes + i, 0);
+                val = pDev->last.valuators[i] + pDev->last.remainder[i];
+                ret = rescaleValuatorAxis(val, lastSlave->valuator->axes + i,
+                                          pDev->valuator->axes + i, 0);
+                pDev->last.valuators[i] = trunc(ret);
+                pDev->last.remainder[i] = ret - trunc(ret);
             }
         }
     }
@@ -456,7 +456,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                 /* scale to screen coords */
                 to = &core_axis;
                 to->max_value = pScreen->width;
-                coord = rescaleValuatorAxis(coord, 0.0, NULL, &from, to, pScreen->width);
+                coord = rescaleValuatorAxis(coord, &from, to, pScreen->width);
 
                 memcpy(corebuf, &coord, sizeof(INT16));
                 corebuf++;
@@ -467,7 +467,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                 memcpy(&coord, icbuf++, sizeof(INT32));
 
                 to->max_value = pScreen->height;
-                coord = rescaleValuatorAxis(coord, 0.0, NULL, &from, to, pScreen->height);
+                coord = rescaleValuatorAxis(coord, &from, to, pScreen->height);
                 memcpy(corebuf, &coord, sizeof(INT16));
 
             } else if (IsMaster(pDev))
@@ -495,7 +495,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                         from.max_value = pScreen->height;
 
                     /* scale from stored range into current range */
-                    coord = rescaleValuatorAxis(coord, 0.0, NULL, &from, to, 0);
+                    coord = rescaleValuatorAxis(coord, &from, to, 0);
                     memcpy(ocbuf, &coord, sizeof(INT32));
                     ocbuf++;
                 }
@@ -790,19 +790,26 @@ positionSprite(DeviceIntPtr dev, int mode,
                ScreenPtr scr, int *screenx, int *screeny, float *screenx_frac, float *screeny_frac)
 {
     int old_screenx, old_screeny;
+    double val, ret;
 
     /* scale x&y to screen */
     if (dev->valuator && dev->valuator->numAxes > 0) {
-        *screenx = rescaleValuatorAxis(*x, x_frac, screenx_frac,
-                dev->valuator->axes + 0, NULL, scr->width);
+        val = *x + x_frac;
+        ret = rescaleValuatorAxis(val, dev->valuator->axes + 0, NULL,
+                                  scr->width);
+        *screenx = trunc(ret);
+        *screenx_frac = ret - trunc(ret);
     } else {
         *screenx = dev->last.valuators[0];
         *screenx_frac = dev->last.remainder[0];
     }
 
     if (dev->valuator && dev->valuator->numAxes > 1) {
-        *screeny = rescaleValuatorAxis(*y, y_frac, screeny_frac,
-                dev->valuator->axes + 1, NULL, scr->height);
+        val = *y + y_frac;
+        ret = rescaleValuatorAxis(val, dev->valuator->axes + 1, NULL,
+                                  scr->height);
+        *screeny = trunc(ret);
+        *screeny_frac = ret - trunc(ret);
     } else {
         *screeny = dev->last.valuators[1];
         *screeny_frac = dev->last.remainder[1];
@@ -841,14 +848,20 @@ positionSprite(DeviceIntPtr dev, int mode,
         if(*screenx != old_screenx)
         {
             scr = miPointerGetScreen(dev);
-            *x = rescaleValuatorAxis(*screenx, *screenx_frac, &x_frac, NULL,
-                                    dev->valuator->axes + 0, scr->width);
+            val = *screenx + *screenx_frac;
+            ret = rescaleValuatorAxis(val, NULL, dev->valuator->axes + 0,
+                                      scr->width);
+            *x = trunc(ret);
+            x_frac = ret - trunc(ret);
         }
         if(*screeny != old_screeny)
         {
             scr = miPointerGetScreen(dev);
-            *y = rescaleValuatorAxis(*screeny, *screeny_frac, &y_frac, NULL,
-                                     dev->valuator->axes + 1, scr->height);
+            val = *screeny + *screeny_frac;
+            ret = rescaleValuatorAxis(val, NULL, dev->valuator->axes + 1,
+                                      scr->height);
+            *y = trunc(ret);
+            y_frac = ret - trunc(ret);
         }
     }
 
@@ -1155,19 +1168,17 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
 
             if (valuator_mask_isset(&mask, 0))
             {
-                scaled = rescaleValuatorAxis(valuator_mask_get(&mask, 0),
-                                             0.0, &x_frac, NULL,
-                                             pDev->valuator->axes + 0,
+                scaled = rescaleValuatorAxis(valuator_mask_get_double(&mask, 0),
+                                             NULL, pDev->valuator->axes + 0,
                                              scr->width);
-                valuator_mask_set(&mask, 0, scaled);
+                valuator_mask_set_double(&mask, 0, scaled);
             }
             if (valuator_mask_isset(&mask, 1))
             {
-                scaled = rescaleValuatorAxis(valuator_mask_get(&mask, 1),
-                                             0.0, &y_frac, NULL,
-                                             pDev->valuator->axes + 1,
+                scaled = rescaleValuatorAxis(valuator_mask_get_double(&mask, 1),
+                                             NULL, pDev->valuator->axes + 1,
                                              scr->height);
-                valuator_mask_set(&mask, 1, scaled);
+                valuator_mask_set_double(&mask, 1, scaled);
             }
         }
 
