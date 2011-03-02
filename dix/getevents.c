@@ -721,6 +721,7 @@ moveAbsolute(DeviceIntPtr dev, int *x, int *y, ValuatorMask *mask)
         {
             dev->last.valuators[i] = valuator_mask_get(mask, i);
             clipAxis(dev, i, &dev->last.valuators[i]);
+            valuator_mask_set(mask, i, dev->last.valuators[i]);
         }
     }
 }
