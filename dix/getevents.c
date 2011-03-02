@@ -1026,32 +1026,37 @@ FreeEventList(InternalEvent *list, int num_events)
  * back into x/y.
  */
 static void
-transform(struct pixman_f_transform *m, int *x, int *y)
+transform(struct pixman_f_transform *m, double *x, double *y)
 {
     struct pixman_f_vector p = {.v = {*x, *y, 1}};
     pixman_f_transform_point(m, &p);
 
-    *x = lround(p.v[0]);
-    *y = lround(p.v[1]);
+    *x = p.v[0];
+    *y = p.v[1];
 }
 
 static void
 transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
 {
-    int x, y, ox, oy;
+    double x, y, ox, oy;
 
-    ox = x = valuator_mask_isset(mask, 0) ? valuator_mask_get(mask, 0) :
-                                            dev->last.valuators[0];
-    oy = y = valuator_mask_isset(mask, 1) ? valuator_mask_get(mask, 1) :
-                                            dev->last.valuators[1];
+    if (valuator_mask_isset(mask, 0))
+        ox = x = valuator_mask_get_double(mask, 0);
+    else
+        ox = x = dev->last.valuators[0] + dev->last.remainder[0];
+
+    if (valuator_mask_isset(mask, 1))
+        oy = y = valuator_mask_get_double(mask, 1);
+    else
+        oy = y = dev->last.valuators[1] + dev->last.remainder[1];
 
     transform(&dev->transform, &x, &y);
 
     if (valuator_mask_isset(mask, 0) || ox != x)
-        valuator_mask_set(mask, 0, x);
+        valuator_mask_set_double(mask, 0, x);
 
     if (valuator_mask_isset(mask, 1) || oy != y)
-        valuator_mask_set(mask, 1, y);
+        valuator_mask_set_double(mask, 1, y);
 }
 
 /**
