@@ -167,16 +167,20 @@ init_raw(DeviceIntPtr dev, RawDeviceEvent *event, Time ms, int type, int detail)
 }
 
 static void
-set_raw_valuators(RawDeviceEvent *event, ValuatorMask *mask, int32_t* data)
+set_raw_valuators(RawDeviceEvent *event, ValuatorMask *mask, int32_t* data,
+                  int32_t* data_frac)
 {
     int i;
+    double val;
 
     for (i = 0; i < valuator_mask_size(mask); i++)
     {
         if (valuator_mask_isset(mask, i))
         {
             SetBit(event->valuators.mask, i);
-            data[i] = valuator_mask_get(mask, i);
+            val = valuator_mask_get_double(mask, i);
+            data[i] = trunc(val);
+            data_frac[i] = (val - data[i]) * (1UL << 32);
         }
     }
 }
@@ -969,11 +973,13 @@ GetKeyboardEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
     valuator_mask_copy(&mask, mask_in);
 
     init_raw(pDev, raw, ms, type, key_code);
-    set_raw_valuators(raw, &mask, raw->valuators.data_raw);
+    set_raw_valuators(raw, &mask, raw->valuators.data_raw,
+                      raw->valuators.data_raw_frac);
 
     clipValuators(pDev, &mask);
 
-    set_raw_valuators(raw, &mask, raw->valuators.data);
+    set_raw_valuators(raw, &mask, raw->valuators.data,
+                      raw->valuators.data_frac);
 
     event = &events->device_event;
     init_device_event(event, pDev, ms);
@@ -1147,7 +1153,8 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
 	num_events++;
 
 	init_raw(pDev, raw, ms, type, buttons);
-	set_raw_valuators(raw, &mask, raw->valuators.data_raw);
+	set_raw_valuators(raw, &mask, raw->valuators.data_raw,
+                          raw->valuators.data_raw_frac);
     }
 
     if (flags & POINTER_ABSOLUTE)
@@ -1188,7 +1195,8 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
     }
 
     if ((flags & POINTER_NORAW) == 0)
-	set_raw_valuators(raw, &mask, raw->valuators.data);
+        set_raw_valuators(raw, &mask, raw->valuators.data,
+                          raw->valuators.data_frac);
 
     positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative,
                    &x, &y, x_frac, y_frac, scr, &cx, &cy, &cx_frac, &cy_frac);
