@@ -1184,19 +1184,25 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
         transformAbsolute(pDev, &mask);
         moveAbsolute(pDev, &x, &y, &mask);
     } else {
-        if (flags & POINTER_ACCELERATE) {
+        if (flags & POINTER_ACCELERATE)
             accelPointer(pDev, &mask, ms);
-            /* The pointer acceleration code modifies the fractional part
-             * in-place, so we need to extract this information first */
-            x_frac = pDev->last.remainder[0];
-            y_frac = pDev->last.remainder[1];
-        }
         moveRelative(pDev, &x, &y, &mask);
     }
 
     if ((flags & POINTER_NORAW) == 0)
         set_raw_valuators(raw, &mask, raw->valuators.data,
                           raw->valuators.data_frac);
+
+    if (valuator_mask_isset(&mask, 0))
+    {
+        x_frac = valuator_mask_get_double(&mask, 0);
+        x_frac -= trunc(x_frac);
+    }
+    if (valuator_mask_isset(&mask, 1))
+    {
+        y_frac = valuator_mask_get_double(&mask, 1);
+        y_frac -= trunc(y_frac);
+    }
 
     positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative,
                    &x, &y, x_frac, y_frac, scr, &cx, &cy, &cx_frac, &cy_frac);
