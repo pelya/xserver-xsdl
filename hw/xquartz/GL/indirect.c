@@ -681,17 +681,8 @@ GLuint __glFloorLog2(GLuint val)
     return c;
 }
 
-void warn_func(void * p1, char *format, ...) {
-    va_list v;
-    va_start(v, format);
-    vfprintf(stderr, format, v);
-    va_end(v);
-}
-
 static void setup_dispatch_table(void) {
     struct _glapi_table *disp=_glapi_get_dispatch();
-    _glapi_set_warning_func((_glapi_warning_func)warn_func);
-    _glapi_noop_enable_warnings(TRUE);
 
     /* to update:
      * for f in $(grep 'define SET_' ../../../glx/dispatch.h  | cut -f2 -d' ' | cut -f1 -d\( | sort -u); do grep -q $f indirect.c || echo $f ; done | grep -v by_offset | sed 's:SET_\(.*\)$:SET_\1(disp, gl\1)\;:' | pbcopy
