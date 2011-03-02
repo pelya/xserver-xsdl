@@ -617,7 +617,7 @@ GetMaximumEventsNum(void) {
  * InitValuatorAxisClassStruct.
  */
 static void
-clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
+clipAxis(DeviceIntPtr pDev, int axisNum, double *val)
 {
     AxisInfoPtr axis;
 
@@ -647,9 +647,9 @@ clipValuators(DeviceIntPtr pDev, ValuatorMask *mask)
     for (i = 0; i < valuator_mask_size(mask); i++)
         if (valuator_mask_isset(mask, i))
         {
-            int val = valuator_mask_get(mask, i);
+            double val = valuator_mask_get_double(mask, i);
             clipAxis(pDev, i, &val);
-            valuator_mask_set(mask, i, val);
+            valuator_mask_set_double(mask, i, val);
         }
 }
 
@@ -699,17 +699,18 @@ static void
 moveAbsolute(DeviceIntPtr dev, int *x_out, int *y_out, ValuatorMask *mask)
 {
     int i;
-    int x, y;
 
     for (i = 0; i < valuator_mask_size(mask); i++)
     {
-        if (valuator_mask_isset(mask, i))
-        {
-            int val = valuator_mask_get(mask, i);
-            clipAxis(dev, i, &val);
-            dev->last.valuators[i] = val;
-            valuator_mask_set(mask, i, val);
-        }
+        double val;
+
+        if (!valuator_mask_isset(mask, i))
+            continue;
+        val = valuator_mask_get_double(mask, i);
+        clipAxis(dev, i, &val);
+        dev->last.valuators[i] = trunc(val);
+        dev->last.remainder[i] = val - trunc(val);
+        valuator_mask_set_double(mask, i, val);
     }
 
     *x_out = dev->last.valuators[0];
@@ -733,18 +734,19 @@ moveRelative(DeviceIntPtr dev, int *x_out, int *y_out, ValuatorMask *mask)
     /* calc other axes, clip, drop back into valuators */
     for (i = 0; i < valuator_mask_size(mask); i++)
     {
-        if (valuator_mask_isset(mask, i))
-        {
-            int val = dev->last.valuators[i];
-            val += valuator_mask_get(mask, i);
-            /* x & y need to go over the limits to cross screens if the SD
-             * isn't currently attached; otherwise, clip to screen bounds. */
-            if (valuator_get_mode(dev, i) == Absolute &&
-                ((i != 0 && i != 1) || clip_xy))
-                clipAxis(dev, i, &val);
-            dev->last.valuators[i] = val;
-            valuator_mask_set(mask, i, val);
-        }
+        double val = dev->last.valuators[i] + dev->last.remainder[i];
+
+        if (!valuator_mask_isset(mask, i))
+            continue;
+        val += valuator_mask_get_double(mask, i);
+        /* x & y need to go over the limits to cross screens if the SD
+         * isn't currently attached; otherwise, clip to screen bounds. */
+        if (valuator_get_mode(dev, i) == Absolute &&
+            ((i != 0 && i != 1) || clip_xy))
+            clipAxis(dev, i, &val);
+        dev->last.valuators[i] = trunc(val);
+        dev->last.remainder[i] = val - trunc(val);
+        valuator_mask_set_double(mask, i, val);
     }
 
     *x_out = dev->last.valuators[0];
