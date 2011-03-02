@@ -774,26 +774,34 @@ accelPointer(DeviceIntPtr dev, ValuatorMask* valuators, CARD32 ms)
  *
  * @param dev The device to be moved.
  * @param mode Movement mode (Absolute or Relative)
- * @param x Pointer to current x-axis value, may be modified.
- * @param y Pointer to current y-axis value, may be modified.
  * @param scr Screen the device's sprite is currently on.
+ * @param mask Mask of axis values for this event
  * @param screenx Screen x coordinate the sprite is on after the update.
  * @param screeny Screen y coordinate the sprite is on after the update.
  */
 static void
-positionSprite(DeviceIntPtr dev, int mode, double *x, double *y, ScreenPtr scr,
+positionSprite(DeviceIntPtr dev, int mode, ScreenPtr scr, ValuatorMask *mask,
                double *screenx, double *screeny)
 {
     int isx, isy; /* screen {x, y}, in int */
+    double x, y;
 
     if (!dev->valuator || dev->valuator->numAxes < 2)
         return;
 
-    /* scale x&y to screen */
-    *screenx = rescaleValuatorAxis(*x, dev->valuator->axes + 0, NULL,
-                                   scr->width);
+    if (valuator_mask_isset(mask, 0))
+        x = valuator_mask_get_double(mask, 0);
+    else
+        x = dev->last.valuators[0] + dev->last.remainder[0];
+    if (valuator_mask_isset(mask, 1))
+        y = valuator_mask_get_double(mask, 1);
+    else
+        y = dev->last.valuators[1] + dev->last.remainder[1];
 
-    *screeny = rescaleValuatorAxis(*y, dev->valuator->axes + 1, NULL,
+    /* scale x&y to screen */
+    *screenx = rescaleValuatorAxis(x, dev->valuator->axes + 0, NULL,
+                                   scr->width);
+    *screeny = rescaleValuatorAxis(y, dev->valuator->axes + 1, NULL,
                                    scr->height);
 
     /* miPointerSetPosition takes care of crossing screens for us, as well as
@@ -807,14 +815,14 @@ positionSprite(DeviceIntPtr dev, int mode, double *x, double *y, ScreenPtr scr,
     if (isx != trunc(*screenx))
     {
         *screenx -= trunc(*screenx) - isx;
-        *x = rescaleValuatorAxis(*screenx, NULL, dev->valuator->axes + 0,
-                                 scr->width);
+        x = rescaleValuatorAxis(*screenx, NULL, dev->valuator->axes + 0,
+                                scr->width);
     }
     if (isy != trunc(*screeny))
     {
         *screeny -= trunc(*screeny) - isy;
-        *y = rescaleValuatorAxis(*screeny, NULL, dev->valuator->axes + 1,
-                                 scr->height);
+        y = rescaleValuatorAxis(*screeny, NULL, dev->valuator->axes + 1,
+                                scr->height);
     }
 
     /* Update the MD's co-ordinates, which are always in screen space. */
@@ -827,10 +835,15 @@ positionSprite(DeviceIntPtr dev, int mode, double *x, double *y, ScreenPtr scr,
     }
 
     /* dropy x/y (device coordinates) back into valuators for next event */
-    dev->last.valuators[0] = trunc(*x);
-    dev->last.valuators[1] = trunc(*y);
-    dev->last.remainder[0] = *x - trunc(*x);
-    dev->last.remainder[1] = *y - trunc(*y);
+    dev->last.valuators[0] = trunc(x);
+    dev->last.valuators[1] = trunc(y);
+    dev->last.remainder[0] = x - trunc(x);
+    dev->last.remainder[1] = y - trunc(y);
+
+    if (valuator_mask_isset(mask, 0))
+        valuator_mask_set_double(mask, 0, x);
+    if (valuator_mask_isset(mask, 1))
+        valuator_mask_set_double(mask, 1, y);
 }
 
 /**
@@ -1076,8 +1089,7 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
     CARD32 ms;
     DeviceEvent *event;
     RawDeviceEvent    *raw;
-    double x = 0.0, y = 0.0; /* device coords */
-    double screenx = 0.0, screeny = 0.0; /* screen coords */
+    double screenx = 0.0, screeny = 0.0;
     ScreenPtr scr = miPointerGetScreen(pDev);
     ValuatorMask mask;
 
@@ -1154,28 +1166,9 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
         set_raw_valuators(raw, &mask, raw->valuators.data,
                           raw->valuators.data_frac);
 
-    if (valuator_mask_isset(&mask, 0))
-        x = valuator_mask_get_double(&mask, 0);
-    else
-        x = pDev->last.valuators[0] + pDev->last.remainder[0];
-    if (valuator_mask_isset(&mask, 1))
-        y = valuator_mask_get_double(&mask, 1);
-    else
-        y = pDev->last.valuators[1] + pDev->last.remainder[1];
-
-    positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative,
-                   &x, &y, scr, &screenx, &screeny);
-    if (valuator_mask_isset(&mask, 0))
-        valuator_mask_set_double(&mask, 0, x);
-    if (valuator_mask_isset(&mask, 1))
-        valuator_mask_set_double(&mask, 1, y);
+    positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative, scr,
+                   &mask, &screenx, &screeny);
     updateHistory(pDev, &mask, ms);
-
-    /* Update the valuators with the true value sent to the client*/
-    if (valuator_mask_isset(&mask, 0))
-        valuator_mask_set(&mask, 0, x);
-    if (valuator_mask_isset(&mask, 1))
-        valuator_mask_set(&mask, 1, y);
 
     clipValuators(pDev, &mask);
 
