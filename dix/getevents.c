@@ -690,40 +690,30 @@ UpdateFromMaster(InternalEvent* events, DeviceIntPtr dev, int type, int *num_eve
 /**
  * Move the device's pointer to the position given in the valuators.
  *
- * @param dev The device which's pointer is to be moved.
+ * @param dev The device whose pointer is to be moved.
  * @param x Returns the x position of the pointer after the move.
  * @param y Returns the y position of the pointer after the move.
- * @param mask Bit mask of valid valuators.
- * @param valuators Valuator data for each axis between @first and
- *        @first+@num.
+ * @param mask Valuator data for this event.
  */
 static void
-moveAbsolute(DeviceIntPtr dev, int *x, int *y, ValuatorMask *mask)
+moveAbsolute(DeviceIntPtr dev, int *x_out, int *y_out, ValuatorMask *mask)
 {
     int i;
+    int x, y;
 
-    if (valuator_mask_isset(mask, 0))
-        *x = valuator_mask_get(mask, 0);
-    else
-        *x = dev->last.valuators[0];
-
-    if (valuator_mask_isset(mask, 1))
-        *y = valuator_mask_get(mask, 1);
-    else
-        *y = dev->last.valuators[1];
-
-    clipAxis(dev, 0, x);
-    clipAxis(dev, 1, y);
-
-    for (i = 2; i < valuator_mask_size(mask); i++)
+    for (i = 0; i < valuator_mask_size(mask); i++)
     {
         if (valuator_mask_isset(mask, i))
         {
-            dev->last.valuators[i] = valuator_mask_get(mask, i);
-            clipAxis(dev, i, &dev->last.valuators[i]);
-            valuator_mask_set(mask, i, dev->last.valuators[i]);
+            int val = valuator_mask_get(mask, i);
+            clipAxis(dev, i, &val);
+            dev->last.valuators[i] = val;
+            valuator_mask_set(mask, i, val);
         }
     }
+
+    *x_out = dev->last.valuators[0];
+    *y_out = dev->last.valuators[1];
 }
 
 /**
