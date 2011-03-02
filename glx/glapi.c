@@ -22,46 +22,20 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 /*
- * This file manages the OpenGL API dispatch layer.
- * The dispatch table (struct _glapi_table) is basically just a list
- * of function pointers.
- * There are functions to set/get the current dispatch table for the
- * current thread and to manage registration/dispatch of dynamically
- * added extension functions.
+ * This file manages the OpenGL API dispatch layer.  There are functions
+ * to set/get the current dispatch table for the current thread and to
+ * manage registration/dispatch of dynamically added extension functions.
  *
- * It's intended that this file and the other glapi*.[ch] files are
- * flexible enough to be reused in several places:  XFree86, DRI-
- * based libGL.so, and perhaps the SGI SI.
- *
- * NOTE: There are no dependencies on Mesa in this code.
- *
- * Versions (API changes):
- *   2000/02/23  - original version for Mesa 3.3 and XFree86 4.0
- *   2001/01/16  - added dispatch override feature for Mesa 3.5
- *   2002/06/28  - added _glapi_set_warning_func(), Mesa 4.1.
- *   2002/10/01  - _glapi_get_proc_address() will now generate new entrypoints
- *                 itself (using offset ~0).  _glapi_add_entrypoint() can be
- *                 called afterward and it'll fill in the correct dispatch
- *                 offset.  This allows DRI libGL to avoid probing for DRI
- *                 drivers!  No changes to the public glapi interface.
+ * This code was originally general enough to be shared with Mesa, but
+ * they diverged long ago, so this is now just enough support to make
+ * indirect GLX work.
  */
-
-
-
-#ifdef HAVE_DIX_CONFIG_H
 
 #include <dix-config.h>
 #include <X11/Xfuncproto.h>
 #include <os.h>
 #define PUBLIC _X_EXPORT
-
-#else
-
-#include "glheader.h"
-
-#endif
 
 #include <stdlib.h>
 #include <string.h>
