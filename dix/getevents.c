@@ -291,15 +291,12 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 {
     ScreenPtr scr = miPointerGetScreen(pDev);
     int i;
-    double val, ret;
     DeviceIntPtr lastSlave;
 
     /* master->last.valuators[0]/[1] is in screen coords and the actual
      * position of the pointer */
     pDev->last.valuators[0] = master->last.valuators[0];
     pDev->last.valuators[1] = master->last.valuators[1];
-    pDev->last.remainder[0] = master->last.remainder[0];
-    pDev->last.remainder[1] = master->last.remainder[1];
 
     if (!pDev->valuator)
         return;
@@ -307,19 +304,17 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
     /* scale back to device coordinates */
     if(pDev->valuator->numAxes > 0)
     {
-        val = pDev->last.valuators[0] + pDev->last.remainder[0];
-        ret = rescaleValuatorAxis(val, NULL, pDev->valuator->axes + 0,
-                                  scr->width);
-        pDev->last.valuators[0] = trunc(ret);
-        pDev->last.remainder[0] = ret - trunc(ret);
+        pDev->last.valuators[0] = rescaleValuatorAxis(pDev->last.valuators[0],
+                                                      NULL,
+                                                      pDev->valuator->axes + 0,
+                                                      scr->width);
     }
     if(pDev->valuator->numAxes > 1)
     {
-        val = pDev->last.valuators[1] + pDev->last.remainder[1];
-        ret = rescaleValuatorAxis(val, NULL, pDev->valuator->axes + 1,
-                                  scr->height);
-        pDev->last.valuators[1] = trunc(ret);
-        pDev->last.remainder[1] = ret - trunc(ret);
+        pDev->last.valuators[1] = rescaleValuatorAxis(pDev->last.valuators[1],
+                                                      NULL,
+                                                      pDev->valuator->axes + 1,
+                                                      scr->height);
     }
 
     /* calculate the other axis as well based on info from the old
@@ -331,15 +326,13 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
             if (i >= lastSlave->valuator->numAxes)
             {
                 pDev->last.valuators[i] = 0;
-                pDev->last.remainder[i] = 0;
             }
             else
             {
-                val = pDev->last.valuators[i] + pDev->last.remainder[i];
-                ret = rescaleValuatorAxis(val, lastSlave->valuator->axes + i,
+                double val = pDev->last.valuators[i];
+                val = rescaleValuatorAxis(val, lastSlave->valuator->axes + i,
                                           pDev->valuator->axes + i, 0);
-                pDev->last.valuators[i] = trunc(ret);
-                pDev->last.remainder[i] = ret - trunc(ret);
+                pDev->last.valuators[i] = val;
             }
         }
     }
@@ -523,7 +516,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
  */
 static void
 updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, ValuatorMask *mask,
-                    int *valuators)
+                    double *valuators)
 {
     char *buff = (char *) pDev->valuator->motion;
     ValuatorClassPtr v;
@@ -545,6 +538,7 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, ValuatorMask *mask,
 
         for (i = 0; i < v->numAxes; i++)
         {
+            int val;
             /* XI1 doesn't support mixed mode devices */
             if (valuator_get_mode(pDev, i) != valuator_get_mode(pDev, 0))
                 break;
@@ -557,7 +551,8 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, ValuatorMask *mask,
             buff += sizeof(INT32);
             memcpy(buff, &v->axes[i].max_value, sizeof(INT32));
             buff += sizeof(INT32);
-            memcpy(buff, &valuators[i], sizeof(INT32));
+            val = valuators[i];
+            memcpy(buff, &val, sizeof(INT32));
             buff += sizeof(INT32);
         }
     } else
@@ -573,12 +568,14 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, ValuatorMask *mask,
 
         for (i = 0; i < MAX_VALUATORS; i++)
         {
+            int val;
             if (valuator_mask_size(mask) <= i || !valuator_mask_isset(mask, i))
             {
                 buff += sizeof(INT32);
                 continue;
             }
-            memcpy(buff, &valuators[i], sizeof(INT32));
+            val = valuators[i];
+            memcpy(buff, &val, sizeof(INT32));
             buff += sizeof(INT32);
         }
     }
@@ -704,8 +701,7 @@ moveAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
             continue;
         val = valuator_mask_get_double(mask, i);
         clipAxis(dev, i, &val);
-        dev->last.valuators[i] = trunc(val);
-        dev->last.remainder[i] = val - trunc(val);
+        dev->last.valuators[i] = val;
         valuator_mask_set_double(mask, i, val);
     }
 }
@@ -725,7 +721,7 @@ moveRelative(DeviceIntPtr dev, ValuatorMask *mask)
     /* calc other axes, clip, drop back into valuators */
     for (i = 0; i < valuator_mask_size(mask); i++)
     {
-        double val = dev->last.valuators[i] + dev->last.remainder[i];
+        double val = dev->last.valuators[i];
 
         if (!valuator_mask_isset(mask, i))
             continue;
@@ -735,8 +731,7 @@ moveRelative(DeviceIntPtr dev, ValuatorMask *mask)
         if (valuator_get_mode(dev, i) == Absolute &&
             ((i != 0 && i != 1) || clip_xy))
             clipAxis(dev, i, &val);
-        dev->last.valuators[i] = trunc(val);
-        dev->last.remainder[i] = val - trunc(val);
+        dev->last.valuators[i] = val;
         valuator_mask_set_double(mask, i, val);
     }
 }
@@ -786,11 +781,11 @@ positionSprite(DeviceIntPtr dev, int mode, ScreenPtr scr, ValuatorMask *mask,
     if (valuator_mask_isset(mask, 0))
         x = valuator_mask_get_double(mask, 0);
     else
-        x = dev->last.valuators[0] + dev->last.remainder[0];
+        x = dev->last.valuators[0];
     if (valuator_mask_isset(mask, 1))
         y = valuator_mask_get_double(mask, 1);
     else
-        y = dev->last.valuators[1] + dev->last.remainder[1];
+        y = dev->last.valuators[1];
 
     /* scale x&y to screen */
     *screenx = rescaleValuatorAxis(x, dev->valuator->axes + 0, NULL,
@@ -822,17 +817,13 @@ positionSprite(DeviceIntPtr dev, int mode, ScreenPtr scr, ValuatorMask *mask,
     /* Update the MD's co-ordinates, which are always in screen space. */
     if (!IsMaster(dev) || !IsFloating(dev)) {
         DeviceIntPtr master = GetMaster(dev, MASTER_POINTER);
-        master->last.valuators[0] = trunc(*screenx);
-        master->last.remainder[0] = *screenx - trunc(*screenx);
-        master->last.valuators[1] = trunc(*screeny);
-        master->last.remainder[1] = *screeny - trunc(*screeny);
+        master->last.valuators[0] = *screenx;
+        master->last.valuators[1] = *screeny;
     }
 
     /* dropy x/y (device coordinates) back into valuators for next event */
-    dev->last.valuators[0] = trunc(x);
-    dev->last.valuators[1] = trunc(y);
-    dev->last.remainder[0] = x - trunc(x);
-    dev->last.remainder[1] = y - trunc(y);
+    dev->last.valuators[0] = x;
+    dev->last.valuators[1] = y;
 
     if (valuator_mask_isset(mask, 0))
         valuator_mask_set_double(mask, 0, x);
@@ -1018,12 +1009,12 @@ transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
     if (valuator_mask_isset(mask, 0))
         ox = x = valuator_mask_get_double(mask, 0);
     else
-        ox = x = dev->last.valuators[0] + dev->last.remainder[0];
+        ox = x = dev->last.valuators[0];
 
     if (valuator_mask_isset(mask, 1))
         oy = y = valuator_mask_get_double(mask, 1);
     else
-        oy = y = dev->last.valuators[1] + dev->last.remainder[1];
+        oy = y = dev->last.valuators[1];
 
     transform(&dev->transform, &x, &y);
 

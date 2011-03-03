@@ -521,8 +521,7 @@ typedef struct _DeviceIntRec {
      * remainder supports acceleration
      */
     struct {
-        int             valuators[MAX_VALUATORS];
-        float           remainder[MAX_VALUATORS];
+        double          valuators[MAX_VALUATORS];
         int             numValuators;
         DeviceIntPtr    slave;
     } last;
