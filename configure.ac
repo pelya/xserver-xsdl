@@ -312,19 +312,6 @@ AC_CHECK_HEADER([execinfo.h],[
     ])]
 )
 
-dnl ARM needs additional compiler flags for proper backtraces if GCC is
-dnl used. Compile a dummy program with the -mapcs-frame option. If it
-dnl succeeds, we know that we are building for ARM with GCC.
-old_CFLAGS="$CFLAGS"
-CFLAGS="-mapcs-frame"
-AC_COMPILE_IFELSE(
-        AC_LANG_PROGRAM([[ ]]),
-        ARM_BACKTRACE_CFLAGS="$CFLAGS",
-        ARM_BACKTRACE_CFLAGS=""
-)
-CFLAGS="$old_CFLAGS"
-AC_SUBST(ARM_BACKTRACE_CFLAGS)
-
 dnl ---------------------------------------------------------------------------
 dnl Bus options and CPU capabilities.  Replaces logic in
 dnl hw/xfree86/os-support/bus/Makefile.am, among others.
@@ -641,6 +628,7 @@ AC_ARG_ENABLE(vbe,            AS_HELP_STRING([--enable-vbe], [Build Xorg with VB
 AC_ARG_ENABLE(int10-module,     AS_HELP_STRING([--enable-int10-module], [Build Xorg with int10 module (default: enabled)]), [INT10MODULE=$enableval], [INT10MODULE=yes])
 AC_ARG_ENABLE(windowswm,      AS_HELP_STRING([--enable-windowswm], [Build XWin with WindowsWM extension (default: no)]), [WINDOWSWM=$enableval], [WINDOWSWM=no])
 AC_ARG_ENABLE(libdrm,         AS_HELP_STRING([--enable-libdrm], [Build Xorg with libdrm support (default: enabled)]), [DRM=$enableval],[DRM=yes])
+AC_ARG_ENABLE(clientids,      AS_HELP_STRING([--disable-clientids], [Build Xorg with client ID tracking (default: enabled)]), [CLIENTIDS=$enableval], [CLIENTIDS=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -993,6 +981,18 @@ if test "x$RES" = xyes; then
 	AC_DEFINE(RES, 1, [Support X resource extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES $RESOURCEPROTO"
 fi
+
+# The XRes extension may support client ID tracking only if it has
+# been specifically enabled. Client ID tracking is implicitly not
+# supported if XRes extension is disabled.
+AC_MSG_CHECKING([whether to track client ids])
+if test "x$RES" = xyes && test "x$CLIENTIDS" = xyes; then
+	AC_DEFINE(CLIENTIDS, 1, [Support client ID tracking])
+else
+	CLIENTIDS=no
+fi
+AC_MSG_RESULT([$CLIENTIDS])
+AM_CONDITIONAL(CLIENTIDS, [test "x$CLIENTIDS" = xyes])
 
 if test "x$GLX" = xyes; then
 	PKG_CHECK_MODULES([XLIB], [x11])
@@ -1525,7 +1525,7 @@ if test "x$XNEST" = xyes; then
 	if test "x$have_xnest" = xno; then
 		AC_MSG_ERROR([Xnest build explicitly requested, but required modules not found.])
 	fi
-	XNEST_LIBS="$FB_LIB $FIXES_LIB $MI_LIB $XEXT_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $DIX_LIB $MAIN_LIB $OS_LIB"
+	XNEST_LIBS="$FB_LIB $FIXES_LIB $MI_LIB $XEXT_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB $DIX_LIB $OS_LIB"
 	XNEST_SYS_LIBS="$XNESTMODULES_LIBS $GLX_SYS_LIBS"
 	AC_SUBST([XNEST_LIBS])
 	AC_SUBST([XNEST_SYS_LIBS])
