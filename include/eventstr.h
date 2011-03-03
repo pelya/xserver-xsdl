@@ -199,10 +199,8 @@ struct _RawDeviceEvent
     } detail;
     struct {
         uint8_t  mask[(MAX_VALUATORS + 7)/8]; /**< Valuator mask */
-        int32_t  data[MAX_VALUATORS];         /**< Valuator data */
-        int32_t  data_frac[MAX_VALUATORS];    /**< Fractional part for data */
-        int32_t  data_raw[MAX_VALUATORS];     /**< Valuator data as posted */
-        int32_t  data_raw_frac[MAX_VALUATORS];/**< Fractional part for data_raw */
+        double   data[MAX_VALUATORS];         /**< Valuator data */
+        double   data_raw[MAX_VALUATORS];     /**< Valuator data as posted */
     } valuators;
     uint32_t flags;       /**< Flags to be copied into the generated event */
 };

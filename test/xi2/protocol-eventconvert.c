@@ -93,8 +93,8 @@ static void test_values_XIRawEvent(RawDeviceEvent *in, xXIRawEvent *out,
             value = (FP3232*)(((unsigned char*)&out[1]) + out->valuators_len * 4);
             value += nvals;
 
-            vi.integral = in->valuators.data[i];
-            vi.frac = in->valuators.data_frac[i];
+            vi.integral = trunc(in->valuators.data[i]);
+            vi.frac = in->valuators.data[i] - vi.integral;
 
             vo.integral = value->integral;
             vo.frac = value->frac;
@@ -109,8 +109,8 @@ static void test_values_XIRawEvent(RawDeviceEvent *in, xXIRawEvent *out,
 
             raw_value = value + bits_set;
 
-            vi.integral = in->valuators.data_raw[i];
-            vi.frac = in->valuators.data_raw_frac[i];
+            vi.integral = trunc(in->valuators.data_raw[i]);
+            vi.frac = in->valuators.data_raw[i] - vi.integral;
 
             vo.integral = raw_value->integral;
             vo.frac = raw_value->frac;
@@ -248,10 +248,8 @@ static void test_convert_XIRawEvent(void)
     {
         XISetMask(in.valuators.mask, i);
 
-        in.valuators.data[i] = i;
-        in.valuators.data_raw[i] = i + 10;
-        in.valuators.data_frac[i] = i + 20;
-        in.valuators.data_raw_frac[i] = i + 30;
+        in.valuators.data[i] = i + (i * 0.0010);
+        in.valuators.data_raw[i] = (i + 10) + (i * 0.0030);
         test_XIRawEvent(&in);
         XIClearMask(in.valuators.mask, i);
     }
