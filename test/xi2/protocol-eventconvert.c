@@ -374,8 +374,8 @@ static void test_values_XIDeviceEvent(DeviceEvent *in, xXIDeviceEvent *out,
             {
                 FP3232 vi, vo;
 
-                vi.integral = in->valuators.data[i];
-                vi.frac = in->valuators.data_frac[i];
+                vi.integral = trunc(in->valuators.data[i]);
+                vi.frac = (in->valuators.data[i] - vi.integral) * (1UL << 32);
 
                 vo = *values;
 
@@ -617,8 +617,7 @@ static void test_convert_XIDeviceEvent(void)
     {
         XISetMask(in.valuators.mask, i);
 
-        in.valuators.data[i] = i;
-        in.valuators.data_frac[i] = i + 20;
+        in.valuators.data[i] = i + (i * 0.0020);
         test_XIDeviceEvent(&in);
         XIClearMask(in.valuators.mask, i);
     }

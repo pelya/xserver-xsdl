@@ -633,8 +633,9 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
         if (BitIsOn(ev->valuators.mask, i))
         {
             SetBit(ptr, i);
-            axisval->integral = ev->valuators.data[i];
-            axisval->frac = ev->valuators.data_frac[i];
+            axisval->integral = trunc(ev->valuators.data[i]);
+            axisval->frac = (ev->valuators.data[i] - axisval->integral) *
+                            (1UL << 32);
             axisval++;
         }
     }
