@@ -701,7 +701,6 @@ moveAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
             continue;
         val = valuator_mask_get_double(mask, i);
         clipAxis(dev, i, &val);
-        dev->last.valuators[i] = val;
         valuator_mask_set_double(mask, i, val);
     }
 }
@@ -731,7 +730,6 @@ moveRelative(DeviceIntPtr dev, ValuatorMask *mask)
         if (valuator_get_mode(dev, i) == Absolute &&
             ((i != 0 && i != 1) || clip_xy))
             clipAxis(dev, i, &val);
-        dev->last.valuators[i] = val;
         valuator_mask_set_double(mask, i, val);
     }
 }
@@ -820,10 +818,6 @@ positionSprite(DeviceIntPtr dev, int mode, ScreenPtr scr, ValuatorMask *mask,
         master->last.valuators[0] = *screenx;
         master->last.valuators[1] = *screeny;
     }
-
-    /* dropy x/y (device coordinates) back into valuators for next event */
-    dev->last.valuators[0] = x;
-    dev->last.valuators[1] = y;
 
     if (valuator_mask_isset(mask, 0))
         valuator_mask_set_double(mask, 0, x);
@@ -1068,7 +1062,7 @@ QueuePointerEvents(DeviceIntPtr device, int type,
 int
 GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, const ValuatorMask *mask_in) {
-    int num_events = 1;
+    int num_events = 1, i;
     CARD32 ms;
     DeviceEvent *event;
     RawDeviceEvent    *raw;
@@ -1152,6 +1146,12 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
     updateHistory(pDev, &mask, ms);
 
     clipValuators(pDev, &mask);
+
+    for (i = 0; i < valuator_mask_size(&mask); i++)
+    {
+        if (valuator_mask_isset(&mask, i))
+            pDev->last.valuators[i] = valuator_mask_get_double(&mask, i);
+    }
 
     event = &events->device_event;
     init_device_event(event, pDev, ms);
