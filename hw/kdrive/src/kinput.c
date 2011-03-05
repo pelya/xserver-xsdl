@@ -2204,8 +2204,6 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr pDev,
 
     case DEVICE_ABS_CALIB:
     case DEVICE_ABS_AREA:
-        return Success;
-
     case DEVICE_CORE:
         return BadMatch;
     case DEVICE_ENABLE:
