@@ -51,9 +51,6 @@
 static void init_glapi_relocs(void);
 #endif
 
-static _glapi_proc generate_entrypoint(GLuint functionOffset);
-static void fill_in_entrypoint_offset(_glapi_proc entrypoint, GLuint offset);
-
 /**
  * \name Current dispatch and current context control variables
  *
@@ -113,23 +110,6 @@ PUBLIC void *_glapi_Context = NULL;
 
 #endif /* defined(GLX_USE_TLS) */
 /*@}*/
-
-
-/**
- * strdup() is actually not a standard ANSI C or POSIX routine.
- * Irix will not define it if ANSI mode is in effect.
- */
-static char *
-str_dup(const char *str)
-{
-   char *copy;
-   copy = (char*) malloc(strlen(str) + 1);
-   if (!copy)
-      return NULL;
-   strcpy(copy, str);
-   return copy;
-}
-
 
 /*
  * xserver's gl is not multithreaded, we promise.
@@ -298,7 +278,6 @@ struct _glapi_function {
     */
    const char * name;
 
-
    /**
     * Text string that describes the types of the parameters passed to the
     * named function.   Parameter types are converted to characters using the
@@ -310,163 +289,16 @@ struct _glapi_function {
     */
    const char * parameter_signature;
 
-
    /**
     * Offset in the dispatch table where the pointer to the real function is
     * located.  If the driver has not requested that the named function be
     * added to the dispatch table, this will have the value ~0.
     */
    unsigned dispatch_offset;
-
-
-   /**
-    * Pointer to the dispatch stub for the named function.
-    * 
-    * \todo
-    * The semantic of this field should be changed slightly.  Currently, it
-    * is always expected to be non-\c NULL.  However, it would be better to
-    * only allocate the entry-point stub when the application requests the
-    * function via \c glXGetProcAddress.  This would save memory for all the
-    * functions that the driver exports but that the application never wants
-    * to call.
-    */
-   _glapi_proc dispatch_stub;
 };
-
 
 static struct _glapi_function ExtEntryTable[MAX_EXTENSION_FUNCS];
 static GLuint NumExtEntryPoints = 0;
-
-#ifdef USE_SPARC_ASM
-extern void __glapi_sparc_icache_flush(unsigned int *);
-#endif
-
-/**
- * Generate a dispatch function (entrypoint) which jumps through
- * the given slot number (offset) in the current dispatch table.
- * We need assembly language in order to accomplish this.
- */
-static _glapi_proc
-generate_entrypoint(GLuint functionOffset)
-{
-#if defined(USE_X86_ASM)
-   /* 32 is chosen as something of a magic offset.  For x86, the dispatch
-    * at offset 32 is the first one where the offset in the
-    * "jmp OFFSET*4(%eax)" can't be encoded in a single byte.
-    */
-   const GLubyte * const template_func = gl_dispatch_functions_start 
-     + (DISPATCH_FUNCTION_SIZE * 32);
-   GLubyte * const code = (GLubyte *) malloc(DISPATCH_FUNCTION_SIZE);
-
-
-   if ( code != NULL ) {
-      (void) memcpy(code, template_func, DISPATCH_FUNCTION_SIZE);
-      fill_in_entrypoint_offset( (_glapi_proc) code, functionOffset );
-   }
-
-   return (_glapi_proc) code;
-#elif defined(USE_SPARC_ASM)
-
-#ifdef __arch64__
-   static const unsigned int insn_template[] = {
-	   0x05000000,	/* sethi	%uhi(_glapi_Dispatch), %g2	*/
-	   0x03000000,	/* sethi	%hi(_glapi_Dispatch), %g1	*/
-	   0x8410a000,	/* or		%g2, %ulo(_glapi_Dispatch), %g2	*/
-	   0x82106000,	/* or		%g1, %lo(_glapi_Dispatch), %g1	*/
-	   0x8528b020,	/* sllx		%g2, 32, %g2			*/
-	   0xc2584002,	/* ldx		[%g1 + %g2], %g1		*/
-	   0x05000000,	/* sethi	%hi(8 * glapioffset), %g2	*/
-	   0x8410a000,	/* or		%g2, %lo(8 * glapioffset), %g2	*/
-	   0xc6584002,	/* ldx		[%g1 + %g2], %g3		*/
-	   0x81c0c000,	/* jmpl		%g3, %g0			*/
-	   0x01000000	/*  nop						*/
-   };
-#else
-   static const unsigned int insn_template[] = {
-	   0x03000000,	/* sethi	%hi(_glapi_Dispatch), %g1	  */
-	   0xc2006000,	/* ld		[%g1 + %lo(_glapi_Dispatch)], %g1 */
-	   0xc6006000,	/* ld		[%g1 + %lo(4*glapioffset)], %g3	  */
-	   0x81c0c000,	/* jmpl		%g3, %g0			  */
-	   0x01000000	/*  nop						  */
-   };
-#endif /* __arch64__ */
-   unsigned int *code = (unsigned int *) malloc(sizeof(insn_template));
-   unsigned long glapi_addr = (unsigned long) &_glapi_Dispatch;
-   if (code) {
-      memcpy(code, insn_template, sizeof(insn_template));
-
-#ifdef __arch64__
-      code[0] |= (glapi_addr >> (32 + 10));
-      code[1] |= ((glapi_addr & 0xffffffff) >> 10);
-      __glapi_sparc_icache_flush(&code[0]);
-      code[2] |= ((glapi_addr >> 32) & ((1 << 10) - 1));
-      code[3] |= (glapi_addr & ((1 << 10) - 1));
-      __glapi_sparc_icache_flush(&code[2]);
-      code[6] |= ((functionOffset * 8) >> 10);
-      code[7] |= ((functionOffset * 8) & ((1 << 10) - 1));
-      __glapi_sparc_icache_flush(&code[6]);
-#else
-      code[0] |= (glapi_addr >> 10);
-      code[1] |= (glapi_addr & ((1 << 10) - 1));
-      __glapi_sparc_icache_flush(&code[0]);
-      code[2] |= (functionOffset * 4);
-      __glapi_sparc_icache_flush(&code[2]);
-#endif /* __arch64__ */
-   }
-   return (_glapi_proc) code;
-#else
-   (void) functionOffset;
-   return NULL;
-#endif /* USE_*_ASM */
-}
-
-
-/**
- * This function inserts a new dispatch offset into the assembly language
- * stub that was generated with the preceeding function.
- */
-static void
-fill_in_entrypoint_offset(_glapi_proc entrypoint, GLuint offset)
-{
-#if defined(USE_X86_ASM)
-   GLubyte * const code = (GLubyte *) entrypoint;
-
-#if DISPATCH_FUNCTION_SIZE == 32
-   *((unsigned int *)(code + 11)) = 4 * offset;
-   *((unsigned int *)(code + 22)) = 4 * offset;
-#elif DISPATCH_FUNCTION_SIZE == 16 && defined( GLX_USE_TLS )
-   *((unsigned int *)(code +  8)) = 4 * offset;
-#elif DISPATCH_FUNCTION_SIZE == 16
-   *((unsigned int *)(code +  7)) = 4 * offset;
-#else
-# error Invalid DISPATCH_FUNCTION_SIZE!
-#endif
-
-#elif defined(USE_SPARC_ASM)
-
-   /* XXX this hasn't been tested! */
-   unsigned int *code = (unsigned int *) entrypoint;
-#ifdef __arch64__
-   code[6] = 0x05000000;  /* sethi	%hi(8 * glapioffset), %g2	*/
-   code[7] = 0x8410a000;  /* or		%g2, %lo(8 * glapioffset), %g2	*/
-   code[6] |= ((offset * 8) >> 10);
-   code[7] |= ((offset * 8) & ((1 << 10) - 1));
-   __glapi_sparc_icache_flush(&code[6]);
-#else /* __arch64__ */
-   code[2] = 0xc6006000;  /* ld		[%g1 + %lo(4*glapioffset)], %g3	  */
-   code[2] |= (offset * 4);
-   __glapi_sparc_icache_flush(&code[2]);
-#endif /* __arch64__ */
-
-#else
-
-   /* an unimplemented architecture */
-   (void) entrypoint;
-   (void) offset;
-
-#endif /* USE_*_ASM */
-}
-
 
 /**
  * Generate new entrypoint
@@ -487,16 +319,12 @@ add_function_name( const char * funcName )
    struct _glapi_function * entry = NULL;
    
    if (NumExtEntryPoints < MAX_EXTENSION_FUNCS) {
-      _glapi_proc entrypoint = generate_entrypoint(~0);
-      if (entrypoint != NULL) {
-	 entry = & ExtEntryTable[NumExtEntryPoints];
+      entry = &ExtEntryTable[NumExtEntryPoints];
 
-	 ExtEntryTable[NumExtEntryPoints].name = str_dup(funcName);
-	 ExtEntryTable[NumExtEntryPoints].parameter_signature = NULL;
-	 ExtEntryTable[NumExtEntryPoints].dispatch_offset = ~0;
-	 ExtEntryTable[NumExtEntryPoints].dispatch_stub = entrypoint;
-	 NumExtEntryPoints++;
-      }
+      ExtEntryTable[NumExtEntryPoints].name = strdup(funcName);
+      ExtEntryTable[NumExtEntryPoints].parameter_signature = NULL;
+      ExtEntryTable[NumExtEntryPoints].dispatch_offset = ~0;
+      NumExtEntryPoints++;
    }
 
    return entry;
@@ -565,14 +393,13 @@ _glapi_add_dispatch( const char * const * function_names,
    int new_offset;
 
 
-   (void) memset( is_static, 0, sizeof( is_static ) );
-   (void) memset( entry, 0, sizeof( entry ) );
+   (void) memset(is_static, 0, sizeof(is_static));
+   (void) memset(entry, 0, sizeof(entry));
 
-   for ( i = 0 ; function_names[i] != NULL ; i++ ) {
-      /* Do some trivial validation on the name of the function.
-       */
+   for (i = 0 ; function_names[i] != NULL ; i++) {
+      /* Do some trivial validation on the name of the function. */
 
-      if (!function_names[i] || function_names[i][0] != 'g' || function_names[i][1] != 'l')
+      if (function_names[i][0] != 'g' || function_names[i][1] != 'l')
 	return GL_FALSE;
    
       /* Determine if the named function already exists.  If the function does
@@ -586,7 +413,7 @@ _glapi_add_dispatch( const char * const * function_names,
 	  * FIXME: the parameter signature for static functions?
 	  */
 
-	 if ( (offset != ~0) && (new_offset != offset) ) {
+	 if ((offset != ~0) && (new_offset != offset)) {
 	    return -1;
 	 }
 
@@ -594,20 +421,17 @@ _glapi_add_dispatch( const char * const * function_names,
 	 offset = new_offset;
       }
    
-   
-      for ( j = 0 ; j < NumExtEntryPoints ; j++ ) {
+      for (j = 0; j < NumExtEntryPoints; j++) {
 	 if (strcmp(ExtEntryTable[j].name, function_names[i]) == 0) {
 	    /* The offset may be ~0 if the function name was added by
 	     * glXGetProcAddress but never filled in by the driver.
 	     */
 
 	    if (ExtEntryTable[j].dispatch_offset != ~0) {
-	       if (strcmp(real_sig, ExtEntryTable[j].parameter_signature) 
-		   != 0) {
+	       if (strcmp(real_sig, ExtEntryTable[j].parameter_signature) != 0)
 		  return -1;
-	       }
 
-	       if ( (offset != ~0) && (ExtEntryTable[j].dispatch_offset != offset) ) {
+	       if ((offset != ~0) && (ExtEntryTable[j].dispatch_offset != offset)) {
 		  return -1;
 	       }
 
@@ -625,19 +449,15 @@ _glapi_add_dispatch( const char * const * function_names,
       next_dynamic_offset++;
    }
 
-   for ( i = 0 ; function_names[i] != NULL ; i++ ) {
-      if (! is_static[i] ) {
+   for (i = 0 ; function_names[i] != NULL ; i++) {
+      if (!is_static[i]) {
 	 if (entry[i] == NULL) {
-	    entry[i] = add_function_name( function_names[i] );
-	    if (entry[i] == NULL) {
-	       /* FIXME: Possible memory leak here.
-		*/
+	    entry[i] = add_function_name(function_names[i]);
+	    if (entry[i] == NULL)
 	       return -1;
-	    }
 	 }
 
-	 entry[i]->parameter_signature = str_dup(real_sig);
-	 fill_in_entrypoint_offset(entry[i]->dispatch_stub, offset);
+	 entry[i]->parameter_signature = strdup(real_sig);
 	 entry[i]->dispatch_offset = offset;
       }
    }
