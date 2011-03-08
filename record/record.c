@@ -804,7 +804,6 @@ RecordADeviceEvent(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
     RecordContextPtr pContext;
     RecordClientsAndProtocolPtr pRCAP;
     int eci; /* enabled context index */
-    int count;
 
     for (eci = 0; eci < numEnabledContexts; eci++)
     {
