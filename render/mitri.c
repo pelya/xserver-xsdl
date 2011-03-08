@@ -108,25 +108,4 @@ miTriFan (CARD8		op,
 	  int		npoint,
 	  xPointFixed	*points)
 {
-    ScreenPtr		pScreen = pDst->pDrawable->pScreen;
-    PictureScreenPtr    ps = GetPictureScreen(pScreen);
-    xTriangle		*tris, *tri;
-    xPointFixed		*first;
-    int			ntri;
-    
-    if (npoint < 3)
-	return;
-    ntri = npoint - 2;
-    tris = malloc(ntri * sizeof (xTriangle));
-    if (!tris)
-	return;
-    first = points++;
-    for (tri = tris; npoint >= 3; npoint--, points++, tri++)
-    {
-	tri->p1 = *first;
-	tri->p2 = points[0];
-	tri->p3 = points[1];
-    }
-    (*ps->Triangles) (op, pSrc, pDst, maskFormat, xSrc, ySrc, ntri, tris);
-    free(tris);
 }

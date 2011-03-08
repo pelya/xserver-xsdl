@@ -1790,11 +1790,26 @@ CompositeTriFan (CARD8		op,
 		 int		npoints,
 		 xPointFixed	*points)
 {
-    PictureScreenPtr	ps = GetPictureScreen(pDst->pDrawable->pScreen);
+    ScreenPtr		pScreen = pDst->pDrawable->pScreen;
+    xTriangle		*tris, *tri;
+    xPointFixed		*first;
+    int			ntri;
     
-    ValidatePicture (pSrc);
-    ValidatePicture (pDst);
-    (*ps->TriFan) (op, pSrc, pDst, maskFormat, xSrc, ySrc, npoints, points);
+    if (npoints < 3)
+	return;
+    ntri = npoints - 2;
+    tris = malloc(ntri * sizeof (xTriangle));
+    if (!tris)
+	return;
+    first = points++;
+    for (tri = tris; npoints >= 3; npoints--, points++, tri++)
+    {
+	tri->p1 = *first;
+	tri->p2 = points[0];
+	tri->p3 = points[1];
+    }
+    CompositeTriangles (op, pSrc, pDst, maskFormat, xSrc, ySrc, ntri, tris);
+    free(tris);
 }
 
 void
