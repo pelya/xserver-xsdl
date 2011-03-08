@@ -66,27 +66,3 @@ miTriangleBounds (int ntri, xTriangle *tris, BoxPtr bounds)
 {
     miPointFixedBounds (ntri * 3, (xPointFixed *) tris, bounds);
 }
-
-void
-miTriStrip (CARD8	    op,
-	    PicturePtr	    pSrc,
-	    PicturePtr	    pDst,
-	    PictFormatPtr   maskFormat,
-	    INT16	    xSrc,
-	    INT16	    ySrc,
-	    int		    npoint,
-	    xPointFixed	    *points)
-{
-}
-
-void
-miTriFan (CARD8		op,
-	  PicturePtr	pSrc,
-	  PicturePtr	pDst,
-	  PictFormatPtr	maskFormat,
-	  INT16		xSrc,
-	  INT16		ySrc,
-	  int		npoint,
-	  xPointFixed	*points)
-{
-}

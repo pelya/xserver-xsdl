@@ -148,26 +148,6 @@ miPointFixedBounds (int npoint, xPointFixed *points, BoxPtr bounds);
 extern _X_EXPORT void
 miTriangleBounds (int ntri, xTriangle *tris, BoxPtr bounds);
 
-extern _X_EXPORT void
-miTriStrip (CARD8	    op,
-	    PicturePtr	    pSrc,
-	    PicturePtr	    pDst,
-	    PictFormatPtr   maskFormat,
-	    INT16	    xSrc,
-	    INT16	    ySrc,
-	    int		    npoint,
-	    xPointFixed	    *points);
-
-extern _X_EXPORT void
-miTriFan (CARD8		op,
-	  PicturePtr	pSrc,
-	  PicturePtr	pDst,
-	  PictFormatPtr maskFormat,
-	  INT16		xSrc,
-	  INT16		ySrc,
-	  int		npoint,
-	  xPointFixed	*points);
-
 extern _X_EXPORT Bool
 miInitIndexed (ScreenPtr	pScreen,
 	       PictFormatPtr	pFormat);
