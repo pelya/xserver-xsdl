@@ -99,7 +99,10 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     {
         ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
         if (ret != Success)
+        {
+            client->errorValue = stuff->deviceid;
             return ret;
+        }
     }
 
     if (stuff->grab_type != XIGrabtypeButton &&
