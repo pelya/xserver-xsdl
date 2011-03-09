@@ -178,6 +178,17 @@ typedef struct _xReq *xReqPtr;
 
 #endif
 
+#ifndef PATH_MAX
+#include <sys/param.h>
+#ifndef PATH_MAX
+#ifdef MAXPATHLEN
+#define PATH_MAX MAXPATHLEN
+#else
+#define PATH_MAX 1024
+#endif
+#endif
+#endif
+
 /**
  * Calculate the number of bytes needed to hold bits.
  * @param bits The minimum number of bits needed.
