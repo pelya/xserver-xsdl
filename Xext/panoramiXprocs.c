@@ -1334,7 +1334,7 @@ int PanoramiXPolyLine(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
     npoint = bytes_to_int32((client->req_len << 2) - sizeof(xPolyLineReq));
     if (npoint > 0){
         origPts = malloc(npoint * sizeof(xPoint));
@@ -1394,7 +1394,7 @@ int PanoramiXPolySegment(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     nsegs = (client->req_len << 2) - sizeof(xPolySegmentReq);
     if(nsegs & 4) return BadLength;
@@ -1457,7 +1457,7 @@ int PanoramiXPolyRectangle(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     nrects = (client->req_len << 2) - sizeof(xPolyRectangleReq);
     if(nrects & 4) return BadLength;
@@ -1519,7 +1519,7 @@ int PanoramiXPolyArc(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     narcs = (client->req_len << 2) - sizeof(xPolyArcReq);
     if(narcs % sizeof(xArc)) return BadLength;
@@ -1579,7 +1579,7 @@ int PanoramiXFillPoly(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     count = bytes_to_int32((client->req_len << 2) - sizeof(xFillPolyReq));
     if (count > 0){
@@ -1640,7 +1640,7 @@ int PanoramiXPolyFillRectangle(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     things = (client->req_len << 2) - sizeof(xPolyFillRectangleReq);
     if(things & 4) return BadLength;
@@ -1701,7 +1701,7 @@ int PanoramiXPolyFillArc(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     narcs = (client->req_len << 2) - sizeof(xPolyFillArcReq);
     if (narcs % sizeof(xArc)) return BadLength;
@@ -1761,7 +1761,7 @@ int PanoramiXPutImage(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     orig_x = stuff->dstX;
     orig_y = stuff->dstY;
@@ -1824,7 +1824,7 @@ int PanoramiXGetImage(ClientPtr client)
     format = stuff->format;
     planemask = stuff->planeMask;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     if(isRoot) {
       if( /* check for being onscreen */
@@ -1962,7 +1962,7 @@ PanoramiXPolyText8(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     orig_x = stuff->x;
     orig_y = stuff->y;
@@ -2003,7 +2003,7 @@ PanoramiXPolyText16(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     orig_x = stuff->x;
     orig_y = stuff->y;
@@ -2044,7 +2044,7 @@ int PanoramiXImageText8(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     orig_x = stuff->x;
     orig_y = stuff->y;
@@ -2085,7 +2085,7 @@ int PanoramiXImageText16(ClientPtr client)
     if (result != Success)
 	return result;
 
-    isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
+    isRoot = IS_ROOT_DRAWABLE(draw);
 
     orig_x = stuff->x;
     orig_y = stuff->y;

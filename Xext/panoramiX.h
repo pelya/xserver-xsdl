@@ -75,4 +75,5 @@ typedef struct {
 
 #define IS_SHARED_PIXMAP(r) (((r)->type == XRT_PIXMAP) && (r)->u.pix.shared)
 
+#define IS_ROOT_DRAWABLE(d) (((d)->type == XRT_WINDOW) && (d)->u.win.root)
 #endif /* _PANORAMIX_H_ */
