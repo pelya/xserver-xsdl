@@ -4307,6 +4307,17 @@ ProcXkbSetNames(ClientPtr client)
 
 #define	XkbSizeCountedString(s)  ((s)?((((2+strlen(s))+3)/4)*4):4)
 
+/**
+ * Write the zero-terminated string str into wire as a pascal string with a
+ * 16-bit length field prefixed before the actual string.
+ *
+ * @param wire The destination array, usually the wire struct
+ * @param str The source string as zero-terminated C string
+ * @param swap If TRUE, the length field is swapped.
+ *
+ * @return The input string in the format <string length><string> with a
+ * (swapped) 16 bit string length, non-zero terminated.
+ */
 static char *
 XkbWriteCountedString(char *wire,char *str,Bool swap)
 {
