@@ -215,7 +215,7 @@ glxProbeDriver(const char *driverName,
 {
     int i;
     void *driver;
-    char filename[128];
+    char filename[PATH_MAX];
     const __DRIextension **extensions;
 
     snprintf(filename, sizeof filename, "%s/%s_dri.so",
