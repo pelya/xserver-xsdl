@@ -1840,7 +1840,7 @@ int PanoramiXGetImage(ClientPtr client)
     }
 
     drawables[0] = pDraw;
-    for(i = 1; i < PanoramiXNumScreens; i++) {
+    FOR_NSCREENS_FORWARD_SKIP(i) {
 	rc = dixLookupDrawable(drawables+i, draw->info[i].id, client, 0,
 			       DixGetAttrAccess);
 	if (rc != Success)
