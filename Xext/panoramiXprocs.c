@@ -120,9 +120,7 @@ int PanoramiXCreateWindow(ClientPtr client)
     newWin->u.win.visibility = VisibilityNotViewable;
     newWin->u.win.class = stuff->class;
     newWin->u.win.root = FALSE;
-    newWin->info[0].id = stuff->wid;
-    for(j = 1; j < PanoramiXNumScreens; j++)
-        newWin->info[j].id = FakeClientID(client->index);
+    panoramix_setup_ids(newWin, client, stuff->wid);
 
     if (stuff->class == InputOnly)
 	stuff->visual = CopyFromParent;
@@ -663,9 +661,7 @@ int PanoramiXCreatePixmap(ClientPtr client)
 
     newPix->type = XRT_PIXMAP;
     newPix->u.pix.shared = FALSE;
-    newPix->info[0].id = stuff->pid;
-    for(j = 1; j < PanoramiXNumScreens; j++)
-	newPix->info[j].id = FakeClientID(client->index);
+    panoramix_setup_ids(newPix, client, stuff->pid);
    
     FOR_NSCREENS_BACKWARD(j) {
 	stuff->pid = newPix->info[j].id;
@@ -767,9 +763,7 @@ int PanoramiXCreateGC(ClientPtr client)
         return BadAlloc;
 
     newGC->type = XRT_GC;
-    newGC->info[0].id = stuff->gc;
-    for(j = 1; j < PanoramiXNumScreens; j++)
-        newGC->info[j].id = FakeClientID(client->index);
+    panoramix_setup_ids(newGC, client, stuff->gc);
 
     FOR_NSCREENS_BACKWARD(j) {
         stuff->gc = newGC->info[j].id;
@@ -2121,9 +2115,7 @@ int PanoramiXCreateColormap(ClientPtr client)
         return BadAlloc;
 
     newCmap->type = XRT_COLORMAP;
-    newCmap->info[0].id = stuff->mid;
-    for(j = 1; j < PanoramiXNumScreens; j++)
-        newCmap->info[j].id = FakeClientID(client->index);
+    panoramix_setup_ids(newCmap, client, stuff->mid);
 
     orig_visual = stuff->visual;
     FOR_NSCREENS_BACKWARD(j){
@@ -2192,9 +2184,7 @@ PanoramiXCopyColormapAndFree(ClientPtr client)
         return BadAlloc;
 
     newCmap->type = XRT_COLORMAP;
-    newCmap->info[0].id = stuff->mid;
-    for(j = 1; j < PanoramiXNumScreens; j++)
-        newCmap->info[j].id = FakeClientID(client->index);
+    panoramix_setup_ids(newCmap, client, stuff->mid);
 
     FOR_NSCREENS_BACKWARD(j){
         stuff->srcCmap = cmap->info[j].id;

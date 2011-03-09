@@ -972,9 +972,7 @@ CreatePmap:
 
     newPix->type = XRT_PIXMAP;
     newPix->u.pix.shared = TRUE;
-    newPix->info[0].id = stuff->pid;
-    for(j = 1; j < PanoramiXNumScreens; j++)
-	newPix->info[j].id = FakeClientID(client->index);
+    panoramix_setup_ids(newPix, client, stuff->pid);
 
     result = Success;
 
