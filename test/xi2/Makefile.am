@@ -8,6 +8,7 @@ noinst_PROGRAMS =  \
 	protocol-xigetselectedevents \
         protocol-xisetclientpointer \
         protocol-xigetclientpointer \
+        protocol-xipassivegrabdevice \
         protocol-xiquerypointer \
         protocol-xiwarppointer \
         protocol-eventconvert
@@ -30,6 +31,7 @@ protocol_xigetselectedevents_LDADD=$(TEST_LDADD)
 protocol_xisetclientpointer_LDADD=$(TEST_LDADD)
 protocol_xigetclientpointer_LDADD=$(TEST_LDADD)
 protocol_xiquerypointer_LDADD=$(TEST_LDADD)
+protocol_xipassivegrabdevice_LDADD=$(TEST_LDADD)
 protocol_xiwarppointer_LDADD=$(TEST_LDADD)
 protocol_eventconvert_LDADD=$(TEST_LDADD)
 
@@ -39,6 +41,7 @@ protocol_xiselectevents_LDFLAGS=$(AM_LDFLAGS) -Wl,-wrap,dixLookupWindow -Wl,-wra
 protocol_xigetselectedevents_LDFLAGS=$(AM_LDFLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,dixLookupWindow -Wl,-wrap,AddResource
 protocol_xisetclientpointer_LDFLAGS=$(AM_LDFLAGS) -Wl,-wrap,dixLookupClient
 protocol_xigetclientpointer_LDFLAGS=$(AM_LDFLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,dixLookupClient
+protocol_xipassivegrabdevice_LDFLAGS=$(AM_LDFLAGS) -Wl,-wrap,GrabButton -Wl,-wrap,dixLookupWindow -Wl,-wrap,WriteToClient
 protocol_xiquerypointer_LDFLAGS=$(AM_LDFLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,dixLookupWindow
 protocol_xiwarppointer_LDFLAGS=$(AM_LDFLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,dixLookupWindow
 
@@ -49,6 +52,7 @@ protocol_xigetselectedevents_SOURCES=$(COMMON_SOURCES) protocol-xigetselectedeve
 protocol_xisetclientpointer_SOURCES=$(COMMON_SOURCES) protocol-xisetclientpointer.c
 protocol_xigetclientpointer_SOURCES=$(COMMON_SOURCES) protocol-xigetclientpointer.c
 protocol_xiquerypointer_SOURCES=$(COMMON_SOURCES) protocol-xiquerypointer.c
+protocol_xipassivegrabdevice_SOURCES=$(COMMON_SOURCES) protocol-xipassivegrabdevice.c
 protocol_xiwarppointer_SOURCES=$(COMMON_SOURCES) protocol-xiwarppointer.c
 endif
 endif
