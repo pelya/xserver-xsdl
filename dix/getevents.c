@@ -767,7 +767,7 @@ moveRelative(DeviceIntPtr dev, int *x, int *y, ValuatorMask *mask)
     /* if attached, clip both x and y to the defined limits (usually
      * co-ord space limit). If it is attached, we need x/y to go over the
      * limits to be able to change screens. */
-    if(dev->valuator && IsMaster(dev) || !IsFloating(dev)) {
+    if (dev->valuator && (IsMaster(dev) || !IsFloating(dev))) {
         if (valuator_get_mode(dev, 0) == Absolute)
             clipAxis(dev, 0, x);
         if (valuator_get_mode(dev, 1) == Absolute)
@@ -791,17 +791,14 @@ moveRelative(DeviceIntPtr dev, int *x, int *y, ValuatorMask *mask)
  * Accelerate the data in valuators based on the device's acceleration scheme.
  *
  * @param dev The device which's pointer is to be moved.
- * @param first The first valuator in @valuators
- * @param num Total number of valuators in @valuators.
- * @param valuators Valuator data for each axis between @first and
- *        @first+@num.
+ * @param valuators Valuator mask
  * @param ms Current time.
  */
 static void
-accelPointer(DeviceIntPtr dev, int first, int num, int *valuators, CARD32 ms)
+accelPointer(DeviceIntPtr dev, ValuatorMask* valuators, CARD32 ms)
 {
     if (dev->valuator->accelScheme.AccelSchemeProc)
-        dev->valuator->accelScheme.AccelSchemeProc(dev, first, num, valuators, ms);
+        dev->valuator->accelScheme.AccelSchemeProc(dev, valuators, ms);
 }
 
 /**
@@ -1170,20 +1167,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         moveAbsolute(pDev, &x, &y, &mask);
     } else {
         if (flags & POINTER_ACCELERATE) {
-            /* FIXME: Pointer acceleration only requires X and Y values. This
-             * should be converted to masked valuators. */
-            int vals[2];
-            vals[0] = valuator_mask_isset(&mask, 0) ?
-                      valuator_mask_get(&mask, 0) : 0;
-            vals[1] = valuator_mask_isset(&mask, 1) ?
-                      valuator_mask_get(&mask, 1) : 0;
-            accelPointer(pDev, 0, 2, vals, ms);
-
-            if (valuator_mask_isset(&mask, 0))
-                valuator_mask_set(&mask, 0, vals[0]);
-            if (valuator_mask_isset(&mask, 1))
-                valuator_mask_set(&mask, 1, vals[1]);
-
+            accelPointer(pDev, &mask, ms);
             /* The pointer acceleration code modifies the fractional part
              * in-place, so we need to extract this information first */
             x_frac = pDev->last.remainder[0];
