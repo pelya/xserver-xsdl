@@ -558,7 +558,7 @@ XineramaSetWindowPntrs(DeviceIntPtr pDev, WindowPtr pWin)
 
     if(pWin == screenInfo.screens[0]->root) {
 	int i;
-	for (i = 0; i < PanoramiXNumScreens; i++)
+	FOR_NSCREENS(i)
 	    pSprite->windows[i] = screenInfo.screens[i]->root;
     } else {
 	PanoramiXRes *win;
@@ -569,7 +569,7 @@ XineramaSetWindowPntrs(DeviceIntPtr pDev, WindowPtr pWin)
 	if (rc != Success)
 	    return FALSE;
 
-	for(i = 0; i < PanoramiXNumScreens; i++) {
+	FOR_NSCREENS(i) {
 	    rc = dixLookupWindow(pSprite->windows + i, win->info[i].id,
 				 serverClient, DixReadAccess);
 	    if (rc != Success)  /* window is being unmapped */

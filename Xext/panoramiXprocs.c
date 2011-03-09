@@ -2186,7 +2186,7 @@ PanoramiXCopyColormapAndFree(ClientPtr client)
     newCmap->type = XRT_COLORMAP;
     panoramix_setup_ids(newCmap, client, stuff->mid);
 
-    FOR_NSCREENS_BACKWARD(j){
+    FOR_NSCREENS_BACKWARD(j) {
         stuff->srcCmap = cmap->info[j].id;
 	stuff->mid = newCmap->info[j].id;
         result = (* SavedProcVector[X_CopyColormapAndFree])(client);
