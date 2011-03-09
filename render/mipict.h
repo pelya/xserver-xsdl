@@ -81,11 +81,8 @@ miChangePictureFilter (PicturePtr pPicture,
 		       int	  nparams);
 
 extern _X_EXPORT void
-miCompositeSourceValidate (PicturePtr	pPicture,
-			   INT16	x,
-			   INT16	y,
-			   CARD16	width,
-			   CARD16	height);
+miCompositeSourceValidate (PicturePtr pPicture);
+
 extern _X_EXPORT Bool
 miComputeCompositeRegion (RegionPtr	pRegion,
 			  PicturePtr	pSrc,
