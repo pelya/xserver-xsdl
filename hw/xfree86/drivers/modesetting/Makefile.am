@@ -38,7 +38,6 @@ modesetting_drv_la_SOURCES = \
 	 driver.h \
 	 output.c \
 	 crtc.c \
-	 exa.c \
 	 dri2.c
 
 EXTRA_DIST =

@@ -126,16 +126,6 @@ static const OptionInfoRec Options[] = {
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
-static const char *exaSymbols[] = {
-    "exaGetVersion",
-    "exaDriverInit",
-    "exaDriverFini",
-    "exaOffscreenAlloc",
-    "exaOffscreenFree",
-    "exaWaitSync",
-    NULL
-};
-
 static const char *fbSymbols[] = {
     "fbPictureInit",
     "fbScreenInit",
@@ -188,7 +178,7 @@ Setup(pointer module, pointer opts, int *errmaj, int *errmin)
 	 * Tell the loader about symbols from other modules that this module
 	 * might refer to.
 	 */
-	LoaderRefSymLists(exaSymbols, fbSymbols, ddcSymbols, NULL);
+	LoaderRefSymLists(fbSymbols, ddcSymbols, NULL);
 
 	/*
 	 * The return value must be non-NULL on success even though there
@@ -415,14 +405,11 @@ CreateFrontBuffer(ScrnInfoPtr pScrn)
     Bool fbAccessDisabled;
     int flags;
 
-    ms->noEvict = TRUE;
     pScreen->ModifyPixmapHeader(rootPixmap,
 				pScrn->virtualX, pScrn->virtualY,
 				pScrn->depth, pScrn->bitsPerPixel,
 				pScrn->displayWidth * pScrn->bitsPerPixel / 8,
 				NULL);
-    ms->noEvict = FALSE;
-
     drmModeAddFB(ms->fd,
 		 pScrn->virtualX,
 		 pScrn->virtualY,
@@ -633,8 +620,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
     xf86LoaderReqSymLists(fbSymbols, NULL);
 
-    xf86LoadSubModule(pScrn, "exa");
-
 #ifdef DRI2
     xf86LoadSubModule(pScrn, "dri2");
 #endif
@@ -667,8 +652,6 @@ CreateScreenResources(ScreenPtr pScreen)
     Bool ret;
     int flags;
 
-    ms->noEvict = TRUE;
-
     pScreen->CreateScreenResources = ms->createScreenResources;
     ret = pScreen->CreateScreenResources(pScreen);
     pScreen->CreateScreenResources = CreateScreenResources;
@@ -677,8 +660,6 @@ CreateScreenResources(ScreenPtr pScreen)
 
     if (!pScreen->ModifyPixmapHeader(rootPixmap, -1, -1, -1, -1, -1, NULL))
 	FatalError("Couldn't adjust screen pixmap\n");
-
-    ms->noEvict = FALSE;
 
     drmModeAddFB(ms->fd,
 		 pScrn->virtualX,
@@ -770,8 +751,6 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     pScreen->CreateScreenResources = CreateScreenResources;
 
     xf86SetBlackWhitePixels(pScreen);
-
-    ms->exa = ExaInit(pScrn);
 
     miInitializeBackingStore(pScreen);
     xf86SetBackingStore(pScreen);
@@ -932,9 +911,6 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
 #endif
 
     pScreen->CreateScreenResources = ms->createScreenResources;
-
-    if (ms->exa)
-	ExaClose(pScrn);
 
     drmClose(ms->fd);
     ms->fd = -1;

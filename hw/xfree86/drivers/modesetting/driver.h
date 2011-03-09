@@ -32,7 +32,6 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 #include <xf86mm.h>
-#include "exa.h"
 
 #define DRV_ERROR(msg)	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, msg);
 
@@ -71,10 +70,7 @@ typedef struct _modesettingRec
 
     CreateScreenResourcesProcPtr createScreenResources;
 
-    /* exa */
-    void *exa;
     void *driver;
-    Bool noEvict;
 
     /* dri2 */
     drm_context_t context;
