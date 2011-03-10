@@ -111,6 +111,8 @@ fbShapes (CompositeShapesFunc	composite,
     int src_xoff, src_yoff;
     int dst_xoff, dst_yoff;
 
+    miCompositeSourceValidate (pSrc);
+
     src = image_from_pict (pSrc, FALSE, &src_xoff, &src_yoff);
     dst = image_from_pict (pDst, TRUE, &dst_xoff, &dst_yoff);
 
