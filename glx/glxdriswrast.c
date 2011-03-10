@@ -201,6 +201,14 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     if (texBuffer == NULL)
         return Success;
 
+#if __DRI_TEX_BUFFER_VERSION >= 2
+    if (texBuffer->base.version >= 2 && texBuffer->setTexBuffer2 != NULL) {
+	(*texBuffer->setTexBuffer2)(context->driContext,
+				    glxPixmap->target,
+				    glxPixmap->format,
+				    drawable->driDrawable);
+    } else
+#endif
     texBuffer->setTexBuffer(context->driContext,
 			    glxPixmap->target,
 			    drawable->driDrawable);
