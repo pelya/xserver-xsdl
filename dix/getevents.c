@@ -809,7 +809,11 @@ accelPointer(DeviceIntPtr dev, ValuatorMask* valuators, CARD32 ms)
  * miPointerSetPosition() and then scale back into device coordinates (if
  * needed). miPSP will change x/y if the screen was crossed.
  *
+ * The coordinates provided are always absolute. The parameter mode whether
+ * it was relative or absolute movement that landed us at those coordinates.
+ *
  * @param dev The device to be moved.
+ * @param mode Movement mode (Absolute or Relative)
  * @param x Pointer to current x-axis value, may be modified.
  * @param y Pointer to current y-axis value, may be modified.
  * @param x_frac Fractional part of current x-axis value, may be modified.
@@ -821,7 +825,8 @@ accelPointer(DeviceIntPtr dev, ValuatorMask* valuators, CARD32 ms)
  * @param screeny_frac Fractional part of screen y coordinate, as above.
  */
 static void
-positionSprite(DeviceIntPtr dev, int *x, int *y, float x_frac, float y_frac,
+positionSprite(DeviceIntPtr dev, int mode,
+               int *x, int *y, float x_frac, float y_frac,
                ScreenPtr scr, int *screenx, int *screeny, float *screenx_frac, float *screeny_frac)
 {
     int old_screenx, old_screeny;
@@ -860,7 +865,7 @@ positionSprite(DeviceIntPtr dev, int *x, int *y, float x_frac, float y_frac,
     old_screeny = *screeny;
     /* This takes care of crossing screens for us, as well as clipping
      * to the current screen. */
-    miPointerSetPosition(dev, screenx, screeny);
+    miPointerSetPosition(dev, mode, screenx, screeny);
 
     if(!IsMaster(dev) || !IsFloating(dev)) {
         DeviceIntPtr master = GetMaster(dev, MASTER_POINTER);
@@ -1178,7 +1183,8 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     set_raw_valuators(raw, &mask, raw->valuators.data);
 
-    positionSprite(pDev, &x, &y, x_frac, y_frac, scr, &cx, &cy, &cx_frac, &cy_frac);
+    positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative,
+                   &x, &y, x_frac, y_frac, scr, &cx, &cy, &cx_frac, &cy_frac);
     updateHistory(pDev, &mask, ms);
 
     /* Update the valuators with the true value sent to the client*/
