@@ -1,7 +1,7 @@
-#		Add & Override for this directory and it's subdirectories
 libxservertest.c
 
 input
+list
 xkb
 xtest
 xi2/protocol-eventconvert
