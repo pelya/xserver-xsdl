@@ -100,14 +100,6 @@ extern ClientPtr __pGlxClient;
 
 int __glXError(int error);
 
-/*
-** Macros to set, unset, and retrieve the flag that says whether a context
-** has unflushed commands.
-*/
-#define __GLX_NOTE_UNFLUSHED_CMDS(glxc) glxc->hasUnflushedCommands = GL_TRUE
-#define __GLX_NOTE_FLUSHED_CMDS(glxc) glxc->hasUnflushedCommands = GL_FALSE
-#define __GLX_HAS_UNFLUSHED_CMDS(glxc) (glxc->hasUnflushedCommands)
-
 /************************************************************************/
 
 typedef struct __GLXprovider __GLXprovider;

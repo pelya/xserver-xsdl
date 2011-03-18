@@ -859,7 +859,7 @@ glxWinDrawableDestroy(__GLXdrawable *base)
       // on the next context change)
       // (GLX core considers it an error when we try to select a new current context if the old one
       // has unflushed commands, but the window has disappeared..)
-      __GLX_NOTE_FLUSHED_CMDS(__glXLastContext);
+      __glXLastContext->hasUnflushedCommands = FALSE;
       __glXLastContext = NULL;
     }
 
