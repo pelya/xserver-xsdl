@@ -50,7 +50,6 @@
 ** from the server's perspective.
 */
 __GLXcontext *__glXLastContext;
-__GLXcontext *__glXContextList;
 
 /*
 ** X resources.
@@ -65,11 +64,6 @@ xGLXSingleReply __glXReply;
 
 static DevPrivateKeyRec glxClientPrivateKeyRec;
 #define glxClientPrivateKey (&glxClientPrivateKeyRec)
-
-/*
-** Client that called into GLX dispatch.
-*/
-ClientPtr __pGlxClient;
 
 /*
 ** Forward declarations.
@@ -546,8 +540,6 @@ static int __glXDispatch(ClientPtr client)
     if (proc != NULL) {
 	GLboolean rendering = opcode <= X_GLXRenderLarge;
 	__glXleaveServer(rendering);
-
-	__pGlxClient = client;
 
 	retval = (*proc)(cl, (GLbyte *) stuff);
 
