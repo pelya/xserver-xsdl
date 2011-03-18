@@ -775,6 +775,8 @@ xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL enable)
         goto unwind;
     }
 
+    xf86Msg(X_INFO, "Using input driver '%s' for '%s'\n", drv->driverName, pInfo->name);
+
     if (!drv->PreInit) {
         xf86Msg(X_ERROR,
                 "Input driver `%s' has no PreInit function (ignoring)\n",
