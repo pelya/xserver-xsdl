@@ -174,7 +174,6 @@ static __GLXdrawable * __glXAquaScreenCreateDrawable(ClientPtr client, __GLXscre
 static void __glXAquaContextDestroy(__GLXcontext *baseContext);
 static int __glXAquaContextMakeCurrent(__GLXcontext *baseContext);
 static int __glXAquaContextLoseCurrent(__GLXcontext *baseContext);
-static int __glXAquaContextForceCurrent(__GLXcontext *baseContext);
 static int __glXAquaContextCopy(__GLXcontext *baseDst, __GLXcontext *baseSrc, unsigned long mask);
 
 static CGLPixelFormatObj makeFormat(__GLXconfig *conf);
@@ -235,7 +234,6 @@ __glXAquaScreenCreateContext(__GLXscreen *screen,
     context->base.makeCurrent    = __glXAquaContextMakeCurrent;
     context->base.loseCurrent    = __glXAquaContextLoseCurrent;
     context->base.copy           = __glXAquaContextCopy;
-    context->base.forceCurrent   = __glXAquaContextForceCurrent;
     /*FIXME verify that the context->base is fully initialized. */
     
     context->pixelFormat = makeFormat(conf);
@@ -454,19 +452,6 @@ static int __glXAquaContextCopy(__GLXcontext *baseDst, __GLXcontext *baseSrc, un
     gl_err = CGLCopyContext(src->ctx, dst->ctx, mask);
     if (gl_err != 0)
         ErrorF("CGLCopyContext error: %s\n", CGLErrorString(gl_err));
-
-    return gl_err == 0;
-}
-
-static int __glXAquaContextForceCurrent(__GLXcontext *baseContext)
-{
-    CGLError gl_err;
-    __GLXAquaContext *context = (__GLXAquaContext *) baseContext;
-    GLAQUA_DEBUG_MSG("glAquaForceCurrent (ctx %p)\n", context->ctx);
-
-    gl_err = CGLSetCurrentContext(context->ctx);
-    if (gl_err != 0)
-        ErrorF("CGLSetCurrentContext error: %s\n", CGLErrorString(gl_err));
 
     return gl_err == 0;
 }

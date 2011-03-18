@@ -1480,13 +1480,6 @@ glxWinContextCopy(__GLXcontext *dst_base, __GLXcontext *src_base, unsigned long 
   return ret;
 }
 
-static int
-glxWinContextForceCurrent(__GLXcontext *base)
-{
-  /* wglMakeCurrent always flushes the previous context, so this is equivalent to glxWinContextMakeCurrent */
-  return glxWinContextMakeCurrent(base);
-}
-
 static void
 glxWinContextDestroy(__GLXcontext *base)
 {
@@ -1541,7 +1534,6 @@ glxWinCreateContext(__GLXscreen *screen,
     context->base.makeCurrent    = glxWinContextMakeCurrent;
     context->base.loseCurrent    = glxWinContextLoseCurrent;
     context->base.copy           = glxWinContextCopy;
-    context->base.forceCurrent   = glxWinContextForceCurrent;
     context->base.textureFromPixmap = &glxWinTextureFromPixmap;
     context->base.config = modes;
     context->base.pGlxScreen = screen;
