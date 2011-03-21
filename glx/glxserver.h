@@ -158,13 +158,6 @@ struct __GLXclientStateRec {
     GLbyte *largeCmdBuf;
     GLint largeCmdBufSize;
 
-    /*
-    ** Keep a list of all the contexts that are current for this client's
-    ** threads.
-    */
-    __GLXcontext **currentContexts;
-    GLint numCurrentContexts;
-
     /* Back pointer to X client record */
     ClientPtr client;
 
