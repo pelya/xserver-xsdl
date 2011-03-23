@@ -66,10 +66,6 @@ Equipment Corporation.
 #include "dixfont.h"
 #include "xace.h"
 
-#ifdef DEBUG
-#include	<stdio.h>
-#endif
-
 #ifdef XF86BIGFONT
 #include "xf86bigfontsrv.h"
 #endif
@@ -391,14 +387,6 @@ OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname, char *pfontna
     int         i;
     FontPtr     cached = (FontPtr)0;
 
-#ifdef FONTDEBUG
-    char *f;
-    f = malloc(lenfname + 1);
-    memmove(f, pfontname, lenfname);
-    f[lenfname] = '\0';
-    ErrorF("[dix] OpenFont: fontname is \"%s\"\n", f);
-    free(f);
-#endif
     if (!lenfname || lenfname > XLFDMAXFONTNAMELEN)
 	return BadName;
     if (patternCache)
