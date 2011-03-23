@@ -35,7 +35,7 @@ AM_MAINTAINER_MODE
 # Require xorg-macros minimum of 1.13 for XORG_ENABLE_UNIT_TESTS
 m4_ifndef([XORG_MACROS_VERSION],
           [m4_fatal([must install xorg-macros 1.13 or later before running autoconf/autogen])])
-XORG_MACROS_VERSION(1.10)
+XORG_MACROS_VERSION(1.13)
 XORG_DEFAULT_OPTIONS
 XORG_WITH_DOXYGEN(1.6.1)
 XORG_CHECK_SGML_DOCTOOLS(1.5)
