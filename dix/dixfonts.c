@@ -70,8 +70,6 @@ Equipment Corporation.
 #include "xf86bigfontsrv.h"
 #endif
 
-#define QUERYCHARINFO(pci, pr)  *(pr) = (pci)->metrics
-
 extern pointer fosNaturalParams;
 extern FontPtr defaultFont;
 
