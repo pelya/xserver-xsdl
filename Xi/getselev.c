@@ -152,8 +152,8 @@ ProcXGetSelectedExtensionEvents(ClientPtr client)
     if (total_length) {
 	client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
 	WriteSwappedDataToClient(client, total_length, buf);
-	free(buf);
     }
+    free(buf);
     return Success;
 }
 
