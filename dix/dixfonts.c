@@ -1815,8 +1815,10 @@ SetDefaultFontPath(char *path)
     /* get enough for string, plus values -- use up commas */
     len = strlen(temp_path) + 1;
     nump = cp = newpath = malloc(len);
-    if (!newpath)
+    if (!newpath) {
+	free(temp_path);
 	return BadAlloc;
+    }
     pp = (unsigned char *) temp_path;
     cp++;
     while (*pp) {
