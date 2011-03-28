@@ -397,25 +397,17 @@ getValuatorEvents(DeviceEvent *ev, deviceValuator *xv)
 
     /* FIXME: non-continuous valuator data in internal events*/
     for (i = 0; i < num_valuators; i += 6, xv++) {
+        INT32 *valuators = &xv->valuator0; // Treat all 6 vals as an array
+        int j;
+
         xv->type = DeviceValuator;
         xv->first_valuator = first_valuator + i;
         xv->num_valuators = ((num_valuators - i) > 6) ? 6 : (num_valuators - i);
         xv->deviceid = ev->deviceid;
         xv->device_state = state;
-        switch (xv->num_valuators) {
-        case 6:
-            xv->valuator5 = ev->valuators.data[xv->first_valuator + 5];
-        case 5:
-            xv->valuator4 = ev->valuators.data[xv->first_valuator + 4];
-        case 4:
-            xv->valuator3 = ev->valuators.data[xv->first_valuator + 3];
-        case 3:
-            xv->valuator2 = ev->valuators.data[xv->first_valuator + 2];
-        case 2:
-            xv->valuator1 = ev->valuators.data[xv->first_valuator + 1];
-        case 1:
-            xv->valuator0 = ev->valuators.data[xv->first_valuator + 0];
-        }
+
+        for (j = 0; j < xv->num_valuators; j++)
+            valuators[j] = ev->valuators.data[xv->first_valuator + j];
 
         if (i + 6 < num_valuators)
             xv->deviceid |= MORE_EVENTS;
