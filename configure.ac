@@ -797,7 +797,7 @@ LIBPCIACCESS="pciaccess >= 0.8.0"
 LIBUDEV="libudev >= 143"
 LIBSELINUX="libselinux >= 2.0.86"
 LIBDBUS="dbus-1 >= 1.0"
-LIBPIXMAN="pixman-1 >= 0.21.6"
+LIBPIXMAN="pixman-1 >= 0.21.8"
 
 dnl Pixman is always required, but we separate it out so we can link
 dnl specific modules against it
