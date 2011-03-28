@@ -1315,6 +1315,9 @@ Popen(char *command, char *type)
     /* Ignore the smart scheduler while this is going on */
     old_alarm = OsSignal(SIGALRM, SIG_IGN);
     if (old_alarm == SIG_ERR) {
+      close(pdes[0]);
+      close(pdes[1]);
+      free(cur);
       perror("signal");
       return NULL;
     }
