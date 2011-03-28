@@ -314,7 +314,6 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
                                     (PtrCtrlProcPtr)NoopDDA,
                                     GetMotionHistorySize(), NAXES,
                                     axes_labels);
-            InitAbsoluteClassDeviceStruct(pPointer);
 //            InitValuatorAxisStruct(pPointer, 0, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1, Absolute);
 //            InitValuatorAxisStruct(pPointer, 1, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1, Absolute);
             break;
@@ -362,7 +361,6 @@ static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
                                     GetMotionHistorySize(), NAXES,
                                     axes_labels);
             InitProximityClassDeviceStruct(pPointer);
-			InitAbsoluteClassDeviceStruct(pPointer);
 
             InitValuatorAxisStruct(pPointer, 0, axes_labels[0], 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1, Absolute);
             InitValuatorAxisStruct(pPointer, 1, axes_labels[1], 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1, Absolute);
