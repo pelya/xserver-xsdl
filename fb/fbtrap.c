@@ -29,6 +29,7 @@
 #include "picturestr.h"
 #include "mipict.h"
 #include "fbpict.h"
+#include "damage.h"
 
 void
 fbAddTraps (PicturePtr	pPicture,
@@ -117,6 +118,8 @@ fbShapes (CompositeShapesFunc	composite,
     {
 	pixman_format_code_t format;
 
+	DamageRegionAppend (pDst->pDrawable, pDst->pCompositeClip);
+
 	if (!maskFormat)
 	{
 	    int i;
@@ -161,6 +164,8 @@ fbShapes (CompositeShapesFunc	composite,
 		       yDst + dst_yoff,
 		       nshapes, shapes);
 	}
+
+	DamageRegionProcessPending (pDst->pDrawable);
     }
 
     free_pixman_pict (pSrc, src);
