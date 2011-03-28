@@ -2105,6 +2105,7 @@ AllocShared (ColormapPtr pmap, Pixel *ppix, int c, int r, int g, int b,
 	{
 	    for (z++ ; z < npixShared; z++)
 		free(ppshared[z]);
+	    free(psharedList);
 	    return FALSE;
 	}
     }
