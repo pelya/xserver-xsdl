@@ -1459,8 +1459,9 @@ configInputDevices(XF86ConfLayoutPtr layout, serverLayoutPtr servlayoutp)
     while (irp) {
 	indp[count] = xf86AllocateInput();
 	if (!configInput(indp[count], irp->iref_inputdev, X_CONFIG)) {
-	    while(count--)
+	    do {
 		free(indp[count]);
+	    } while(count--);
 	    free(indp);
 	    return FALSE;
 	}
