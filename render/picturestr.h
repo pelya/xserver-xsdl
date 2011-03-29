@@ -614,11 +614,6 @@ CompositeTriFan (CARD8		op,
 		 int		npoints,
 		 xPointFixed	*points);
 
-extern _X_EXPORT CARD32
-PictureGradientColor (PictGradientStopPtr stop1,
-		      PictGradientStopPtr stop2,
-		      CARD32	          x);
-
 extern _X_EXPORT void RenderExtensionInit (void);
 
 Bool
