@@ -843,11 +843,6 @@ static void initGradient(SourcePictPtr pGradient, int stopCount,
         pGradient->gradient.stops[i].x = stopPoints[i];
         pGradient->gradient.stops[i].color = stopColors[i];
     }
-
-    pGradient->gradient.class	       = SourcePictClassUnknown;
-    pGradient->gradient.stopRange      = 0xffff;
-    pGradient->gradient.colorTable     = NULL;
-    pGradient->gradient.colorTableSize = 0;
 }
 
 static PicturePtr createSourcePicture(void)
@@ -922,8 +917,6 @@ CreateLinearGradientPicture (Picture pid, xPointFixed *p1, xPointFixed *p2,
     return pPicture;
 }
 
-#define FixedToDouble(x) ((x)/65536.)
-
 PicturePtr
 CreateRadialGradientPicture (Picture pid, xPointFixed *inner, xPointFixed *outer,
                              xFixed innerRadius, xFixed outerRadius,
@@ -959,12 +952,6 @@ CreateRadialGradientPicture (Picture pid, xPointFixed *inner, xPointFixed *outer
     radial->c2.x = outer->x;
     radial->c2.y = outer->y;
     radial->c2.radius = outerRadius;
-    radial->cdx = (radial->c2.x - radial->c1.x) / 65536.;
-    radial->cdy = (radial->c2.y - radial->c1.y) / 65536.;
-    radial->dr = (radial->c2.radius - radial->c1.radius) / 65536.;
-    radial->A = (  radial->cdx * radial->cdx
-		   + radial->cdy * radial->cdy
-		   - radial->dr  * radial->dr);
     
     initGradient(pPicture->pSourcePict, nStops, stops, colors, error);
     if (*error) {

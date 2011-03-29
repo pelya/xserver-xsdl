@@ -65,13 +65,8 @@ typedef struct pixman_transform PictTransform, *PictTransformPtr;
 #define SourcePictTypeRadial 2
 #define SourcePictTypeConical 3
 
-#define SourcePictClassUnknown    0
-#define SourcePictClassHorizontal 1
-#define SourcePictClassVertical   2
-
 typedef struct _PictSolidFill {
     unsigned int type;
-    unsigned int class;
     CARD32 color;
 } PictSolidFill, *PictSolidFillPtr;
 
@@ -82,22 +77,14 @@ typedef struct _PictGradientStop {
 
 typedef struct _PictGradient {
     unsigned int type;
-    unsigned int class;
     int nstops;
     PictGradientStopPtr stops;
-    int stopRange;
-    CARD32 *colorTable;
-    int colorTableSize;
 } PictGradient, *PictGradientPtr;
 
 typedef struct _PictLinearGradient {
     unsigned int type;
-    unsigned int class;
     int nstops;
     PictGradientStopPtr stops;
-    int stopRange;
-    CARD32 *colorTable;
-    int colorTableSize;
     xPointFixed p1;
     xPointFixed p2;
 } PictLinearGradient, *PictLinearGradientPtr;
@@ -110,28 +97,16 @@ typedef struct _PictCircle {
 
 typedef struct _PictRadialGradient {
     unsigned int type;
-    unsigned int class;
     int nstops;
     PictGradientStopPtr stops;
-    int stopRange;
-    CARD32 *colorTable;
-    int colorTableSize;
     PictCircle c1;
     PictCircle c2;
-    double cdx;
-    double cdy;
-    double dr;
-    double A;
 } PictRadialGradient, *PictRadialGradientPtr;
 
 typedef struct _PictConicalGradient {
     unsigned int type;
-    unsigned int class;
     int nstops;
     PictGradientStopPtr stops;
-    int stopRange;
-    CARD32 *colorTable;
-    int colorTableSize;
     xPointFixed center;
     xFixed angle;
 } PictConicalGradient, *PictConicalGradientPtr;
