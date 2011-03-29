@@ -104,6 +104,9 @@
  * windows with 32bpp image format for application compatibility
  */
 
+/* for driver compat - intel UXA needs the second one at least */
+#define FB_24BIT
+#define FB_24_32BIT
 
 #define FB_STIP_SHIFT	LOG2_BITMAP_PAD
 #define FB_STIP_UNIT	(1 << FB_STIP_SHIFT)
