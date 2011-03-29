@@ -33,10 +33,8 @@ fbCreateWindow(WindowPtr pWin)
 {
     dixSetPrivate(&pWin->devPrivates, fbGetWinPrivateKey(),
 		  fbGetScreenPixmap(pWin->drawable.pScreen));
-#ifdef FB_SCREEN_PRIVATE
     if (pWin->drawable.bitsPerPixel == 32)
 	pWin->drawable.bitsPerPixel = fbGetScreenPrivate(pWin->drawable.pScreen)->win32bpp;
-#endif
     return TRUE;
 }
 
@@ -158,7 +156,6 @@ fbChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 	if (pWin->backgroundState == BackgroundPixmap)
 	{
 	    pPixmap = pWin->background.pixmap;
-#ifdef FB_24_32BIT
 	    if (pPixmap->drawable.bitsPerPixel != pWin->drawable.bitsPerPixel)
 	    {
 		pPixmap = fb24_32ReformatTile (pPixmap,
@@ -169,7 +166,6 @@ fbChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 		    pWin->background.pixmap = pPixmap;
 		}
 	    }
-#endif
 	    if (FbEvenTile (pPixmap->drawable.width *
 			    pPixmap->drawable.bitsPerPixel))
 		fbPadPixmap (pPixmap);
@@ -180,7 +176,6 @@ fbChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 	if (pWin->borderIsPixel == FALSE)
 	{
 	    pPixmap = pWin->border.pixmap;
-#ifdef FB_24_32BIT
 	    if (pPixmap->drawable.bitsPerPixel !=
 		pWin->drawable.bitsPerPixel)
 	    {
@@ -192,7 +187,6 @@ fbChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 		    pWin->border.pixmap = pPixmap;
 		}
 	    }
-#endif
 	    if (FbEvenTile (pPixmap->drawable.width *
 			    pPixmap->drawable.bitsPerPixel))
 		fbPadPixmap (pPixmap);
