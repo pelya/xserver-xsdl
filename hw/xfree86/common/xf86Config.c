@@ -1485,7 +1485,7 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
 {
     XF86ConfAdjacencyPtr adjp;
     XF86ConfInactivePtr idp;
-    int count = 0;
+    int saved_count, count = 0;
     int scrnum;
     XF86ConfLayoutPtr l;
     MessageType from;
@@ -1553,6 +1553,9 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
 	    scrnum = adjp->adj_scrnum;
 	if (!configScreen(slp[count].screen, adjp->adj_screen, scrnum,
 			  X_CONFIG)) {
+	    do {
+		free(slp[count].screen);
+	    } while(count--);
 	    free(slp);
 	    return FALSE;
 	}
@@ -1641,6 +1644,10 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
 	}
     }
 
+    if (!count)
+	saved_count = 1;
+    else
+	saved_count = count;
     /*
      * Count the number of inactive devices.
      */
@@ -1657,16 +1664,14 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
     idp = conf_layout->lay_inactive_lst;
     count = 0;
     while (idp) {
-	if (!configDevice(&gdp[count], idp->inactive_device, FALSE)) {
-	    free(gdp);
-	    return FALSE;
-	}
+	if (!configDevice(&gdp[count], idp->inactive_device, FALSE))
+	    goto bail;
         count++;
         idp = (XF86ConfInactivePtr)idp->list.next;
     }
 
     if (!configInputDevices(conf_layout, servlayoutp))
-	return FALSE;
+	goto bail;
 
     servlayoutp->id = conf_layout->lay_identifier;
     servlayoutp->screens = slp;
@@ -1675,6 +1680,14 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
     from = X_DEFAULT;
 
     return TRUE;
+
+bail:
+    do {
+	free(slp[saved_count].screen);
+    } while(saved_count--);
+    free(slp);
+    free(gdp);
+    return FALSE;
 }
 
 /*
