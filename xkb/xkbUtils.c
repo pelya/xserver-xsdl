@@ -1541,10 +1541,10 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
         }
 
         if (src->geom->num_shapes) {
-            tmp = calloc(src->geom->num_shapes, sizeof(XkbShapeRec));
-            if (!tmp)
+            /* Reallocate and clear all items. */
+            if (!XkbGeomRealloc((void **)&dst->geom->shapes, dst->geom->sz_shapes, src->geom->num_shapes,
+                                sizeof(XkbShapeRec), XKB_GEOM_CLEAR_ALL))
                 return FALSE;
-            dst->geom->shapes = tmp;
 
             for (i = 0, sshape = src->geom->shapes, dshape = dst->geom->shapes;
                  i < src->geom->num_shapes;
@@ -1661,7 +1661,6 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
             }
 
             dst->geom->num_sections = 0;
-            dst->geom->sections = NULL;
         }
 
         if (src->geom->num_sections) {
@@ -1771,7 +1770,6 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
                 }
             }
             dst->geom->num_doodads = 0;
-            dst->geom->doodads = NULL;
         }
 
         if (src->geom->num_doodads) {
