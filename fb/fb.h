@@ -97,12 +97,6 @@
 #if GLYPHPADBYTES != 4
 #error "GLYPHPADBYTES must be 4"
 #endif
-/* whether to bother to include 24bpp support */
-
-/*
- * Unless otherwise instructed, fb includes code to advertise 24bpp
- * windows with 32bpp image format for application compatibility
- */
 
 /* for driver compat - intel UXA needs the second one at least */
 #define FB_24BIT
