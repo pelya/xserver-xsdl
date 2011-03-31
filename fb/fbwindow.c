@@ -146,51 +146,36 @@ fbCopyWindow(WindowPtr	    pWin,
     fbValidateDrawable (&pWin->drawable);
 }
 
+static void
+fbFixupWindowPixmap(DrawablePtr pDrawable, PixmapPtr *ppPixmap)
+{
+    PixmapPtr pPixmap = *ppPixmap;
+
+    if (pPixmap->drawable.bitsPerPixel != pDrawable->bitsPerPixel)
+    {
+	pPixmap = fb24_32ReformatTile (pPixmap, pDrawable->bitsPerPixel);
+	if (!pPixmap)
+	    return;
+	(*pDrawable->pScreen->DestroyPixmap) (*ppPixmap);
+	*ppPixmap = pPixmap;
+    }
+    if (FbEvenTile (pPixmap->drawable.width *
+		    pPixmap->drawable.bitsPerPixel))
+	fbPadPixmap (pPixmap);
+}
+
 Bool
 fbChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 {
-    PixmapPtr	pPixmap;
-    
     if (mask & CWBackPixmap)
     {
 	if (pWin->backgroundState == BackgroundPixmap)
-	{
-	    pPixmap = pWin->background.pixmap;
-	    if (pPixmap->drawable.bitsPerPixel != pWin->drawable.bitsPerPixel)
-	    {
-		pPixmap = fb24_32ReformatTile (pPixmap,
-					       pWin->drawable.bitsPerPixel);
-		if (pPixmap)
-		{
-		    (*pWin->drawable.pScreen->DestroyPixmap) (pWin->background.pixmap);
-		    pWin->background.pixmap = pPixmap;
-		}
-	    }
-	    if (FbEvenTile (pPixmap->drawable.width *
-			    pPixmap->drawable.bitsPerPixel))
-		fbPadPixmap (pPixmap);
-	}
+	    fbFixupWindowPixmap(&pWin->drawable, &pWin->background.pixmap);
     }
     if (mask & CWBorderPixmap)
     {
 	if (pWin->borderIsPixel == FALSE)
-	{
-	    pPixmap = pWin->border.pixmap;
-	    if (pPixmap->drawable.bitsPerPixel !=
-		pWin->drawable.bitsPerPixel)
-	    {
-		pPixmap = fb24_32ReformatTile (pPixmap,
-					       pWin->drawable.bitsPerPixel);
-		if (pPixmap)
-		{
-		    (*pWin->drawable.pScreen->DestroyPixmap) (pWin->border.pixmap);
-		    pWin->border.pixmap = pPixmap;
-		}
-	    }
-	    if (FbEvenTile (pPixmap->drawable.width *
-			    pPixmap->drawable.bitsPerPixel))
-		fbPadPixmap (pPixmap);
-	}
+	    fbFixupWindowPixmap(&pWin->drawable, &pWin->border.pixmap);
     }
     return TRUE;
 }
