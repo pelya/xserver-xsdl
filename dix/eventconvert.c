@@ -408,8 +408,10 @@ getValuatorEvents(DeviceEvent *ev, deviceValuator *xv)
         for (j = 0; j < xv->num_valuators; j++) {
             if (BitIsOn(ev->valuators.mask, xv->first_valuator + j))
                 valuators[j] = ev->valuators.data[xv->first_valuator + j];
-            else
+            else if (dev->valuator->axes[xv->first_valuator + j].mode == Absolute)
                 valuators[j] = dev->valuator->axisVal[xv->first_valuator + j];
+            else
+                valuators[j] = 0;
         }
 
         if (i + 6 < num_valuators)
