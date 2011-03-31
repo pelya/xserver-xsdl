@@ -343,12 +343,13 @@ xf86XVFreeAdaptor(XvAdaptorPtr pAdaptor)
       free(pAdaptor->pPorts);
    }
 
-   if(pAdaptor->nAttributes) {
+   if(pAdaptor->pAttributes) {
       XvAttributePtr pAttribute = pAdaptor->pAttributes;
 
       for(i = 0; i < pAdaptor->nAttributes; i++, pAttribute++)
 	  free(pAttribute->name);
       free(pAdaptor->pAttributes);
+      pAdaptor->pAttributes = NULL;
    }
 
    free(pAdaptor->pImages);
