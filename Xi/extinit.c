@@ -864,6 +864,8 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
     {
         case XI_Enter:
         case XI_Leave:
+        case XI_FocusIn:
+        case XI_FocusOut:
             SDeviceLeaveNotifyEvent((xXILeaveEvent*)from, (xXILeaveEvent*)to);
             break;
         case XI_DeviceChanged:
