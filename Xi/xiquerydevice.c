@@ -153,8 +153,9 @@ ProcXIQueryDevice(ClientPtr client)
         }
     }
 
+    len = rep.length * 4;
     WriteReplyToClient(client, sizeof(xXIQueryDeviceReply), &rep);
-    WriteToClient(client, rep.length * 4, ptr);
+    WriteToClient(client, len, ptr);
     free(ptr);
     free(skip);
     return rc;

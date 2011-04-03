@@ -83,7 +83,7 @@ typedef void (*_glapi_warning_func)(void *ctx, const char *str, ...);
 const extern void *_glapi_Context;
 const extern struct _glapi_table *_glapi_Dispatch;
 
-extern __thread void * _glapi_tls_Context
+extern TLS void * _glapi_tls_Context
     __attribute__((tls_model("initial-exec")));
 
 # define GET_CURRENT_CONTEXT(C)  GLcontext *C = (GLcontext *) _glapi_tls_Context
@@ -105,12 +105,6 @@ extern struct _glapi_table *_glapi_Dispatch;
 /**
  ** GL API public functions
  **/
-
-extern void
-_glapi_noop_enable_warnings(GLboolean enable);
-
-extern void
-_glapi_set_warning_func(_glapi_warning_func func);
 
 extern void
 _glapi_check_multithread(void);
