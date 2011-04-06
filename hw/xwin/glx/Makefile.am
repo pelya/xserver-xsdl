@@ -26,6 +26,7 @@ AM_CFLAGS = -DHAVE_XWIN_CONFIG_H $(DIX_CFLAGS) \
             -I$(top_srcdir)/hw/xwin/
 
 if XWIN_GLX_WINDOWS
+
 generated_gl_wrappers.c: gen_gl_wrappers.py $(KHRONOS_SPEC_DIR)/gl.spec $(KHRONOS_SPEC_DIR)/gl.tm
 	$(srcdir)/gen_gl_wrappers.py --spec=$(KHRONOS_SPEC_DIR)/gl.spec --typemap=$(KHRONOS_SPEC_DIR)/gl.tm --dispatch-header=$(top_srcdir)/glx/dispatch.h --staticwrappers >generated_gl_wrappers.c
 
@@ -33,11 +34,7 @@ generated_wgl_wrappers.c: gen_gl_wrappers.py $(KHRONOS_SPEC_DIR)/wglext.spec $(K
 	$(srcdir)/gen_gl_wrappers.py --spec=$(KHRONOS_SPEC_DIR)/wglext.spec --typemap=$(KHRONOS_SPEC_DIR)/wgl.tm --prefix=wgl --preresolve >generated_wgl_wrappers.c
 endif
 
-wglext.h:
-	wget http://www.opengl.org/registry/api/wglext.h
-
 BUILT_SOURCES = generated_gl_wrappers.c generated_wgl_wrappers.c
 CLEANFILES = $(BUILT_SOURCES)
-DISTCLEANFILES = wglext.h
 
-EXTRA_DIST = gen_gl_wrappers.py wglext.h
+EXTRA_DIST = gen_gl_wrappers.py
