@@ -598,6 +598,9 @@ AC_ARG_ENABLE(glx-tls,        AS_HELP_STRING([--enable-glx-tls], [Build GLX with
                                    GLX_USE_TLS=yes
                                  fi])
 AC_SUBST(GLX_TLS, ${GLX_USE_TLS})
+AC_ARG_WITH(khronos-spec-dir, AS_HELP_STRING([--with-khronos-spec-dir=PATH], [Path to Khronos OpenGL registry database files (default: auto)]),
+				[KHRONOS_SPEC_DIR="${withval}"],
+				[KHRONOS_SPEC_DIR=auto])
 
 dnl Extensions.
 AC_ARG_ENABLE(registry,       AS_HELP_STRING([--disable-registry], [Build string registry module (default: enabled)]), [XREGISTRY=$enableval], [XREGISTRY=yes])
@@ -1854,6 +1857,16 @@ if test "x$XWIN" = xyes; then
 
 	AC_DEFINE(DDXOSVERRORF, 1, [Use OsVendorVErrorF])
 	AC_DEFINE(DDXBEFORERESET, 1, [Use ddxBeforeReset ])
+
+dnl XWin with AIGLX requires OpenGL spec files in order to generate wrapper code for native GL functions
+	if [test "x$XWIN" = xyes && test "x$AIGLX" = xyes] ; then
+           if test "x$KHRONOS_SPEC_DIR" = "xauto" ; then
+		PKG_CHECK_MODULES([KHRONOS_OPENGL_REGISTRY], [khronos-opengl-registry])
+		KHRONOS_SPEC_DIR=`pkg-config khronos-opengl-registry --variable=specdir`
+           fi
+           AC_SUBST(KHRONOS_SPEC_DIR)
+	fi
+
 fi
 AM_CONDITIONAL(XWIN, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_MULTIWINDOW, [test "x$XWIN" = xyes])
