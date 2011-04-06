@@ -275,10 +275,12 @@ extern _X_EXPORT RESTYPE TypeMask;
 /** @brief A hashing function to be used for hashing resource IDs
 
     @param id The resource ID to hash
-    @param numBits The number of bits in the resulting hash
+    @param numBits The number of bits in the resulting hash. Must be >=0.
 
-    @note This function can only handle INITHASHSIZE..MAXHASHSIZE bit
-    hashes and will return -1 if numBits is not within those bounds.
+    @note This function is really only for handling
+    INITHASHSIZE..MAXHASHSIZE bit hashes, but will handle any number
+    of bits by either masking numBits lower bits of the ID or by
+    providing at most MAXHASHSIZE hashes.
 */
 extern _X_EXPORT int HashResourceID(XID id,
                                     int numBits);
