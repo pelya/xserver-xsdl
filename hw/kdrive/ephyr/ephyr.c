@@ -669,7 +669,9 @@ ephyrInitScreen (ScreenPtr pScreen)
   }
   if (!ephyrNoDRI) {
     ephyrDRIExtensionInit (pScreen) ;
+#if 0
     ephyrHijackGLXExtension () ;
+#endif
   }
 #endif
 
