@@ -572,8 +572,10 @@ glamor_buffer_glyph(ScreenPtr screen,
 static void glamor_glyphs_to_mask(PicturePtr mask,
 				  glamor_glyph_buffer_t *buffer)
 {
+#ifdef RENDER
     glamor_composite_rects(PictOpAdd, buffer->source, mask,
 			   buffer->count, buffer->rects);
+#endif
 
     buffer->count = 0;
     buffer->source = NULL;
