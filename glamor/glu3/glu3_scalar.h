@@ -24,7 +24,7 @@
 #include <math.h>
 #include <string.h>
 
-extern inline void gluMult4v_4v(GLUvec4 *result,
+static inline void gluMult4v_4v(GLUvec4 *result,
 				const GLUvec4 *v1, const GLUvec4 *v2)
 {
 	result->values[0] = v1->values[0] * v2->values[0];
@@ -34,7 +34,7 @@ extern inline void gluMult4v_4v(GLUvec4 *result,
 }
 
 
-extern inline void gluDiv4v_4v(GLUvec4 *result,
+static inline void gluDiv4v_4v(GLUvec4 *result,
 			       const GLUvec4 *v1, const GLUvec4 *v2)
 {
 	result->values[0] = v1->values[0] / v2->values[0];
@@ -44,7 +44,7 @@ extern inline void gluDiv4v_4v(GLUvec4 *result,
 }
 
 
-extern inline void gluAdd4v_4v(GLUvec4 *result,
+static inline void gluAdd4v_4v(GLUvec4 *result,
 			       const GLUvec4 *v1, const GLUvec4 *v2)
 {
 	result->values[0] = v1->values[0] + v2->values[0];
@@ -54,7 +54,7 @@ extern inline void gluAdd4v_4v(GLUvec4 *result,
 }
 
 
-extern inline void gluSub4v_4v(GLUvec4 *result,
+static inline void gluSub4v_4v(GLUvec4 *result,
 			       const GLUvec4 *v1, const GLUvec4 *v2)
 {
 	result->values[0] = v1->values[0] - v2->values[0];
@@ -64,7 +64,7 @@ extern inline void gluSub4v_4v(GLUvec4 *result,
 }
 
 
-extern inline void gluMult4v_f(GLUvec4 *result,
+static inline void gluMult4v_f(GLUvec4 *result,
 			       const GLUvec4 *v1, GLfloat f)
 {
 	result->values[0] = v1->values[0] * f;
@@ -74,7 +74,7 @@ extern inline void gluMult4v_f(GLUvec4 *result,
 }
 
 
-extern inline void gluDiv4v_f(GLUvec4 *result,
+static inline void gluDiv4v_f(GLUvec4 *result,
 			      const GLUvec4 *v1, GLfloat f)
 {
 	result->values[0] = v1->values[0] / f;
@@ -84,7 +84,7 @@ extern inline void gluDiv4v_f(GLUvec4 *result,
 }
 
 
-extern inline void gluAdd4v_f(GLUvec4 *result,
+static inline void gluAdd4v_f(GLUvec4 *result,
 			      const GLUvec4 *v1, GLfloat f)
 {
 	result->values[0] = v1->values[0] + f;
@@ -94,7 +94,7 @@ extern inline void gluAdd4v_f(GLUvec4 *result,
 }
 
 
-extern inline void gluSub4v_f(GLUvec4 *result,
+static inline void gluSub4v_f(GLUvec4 *result,
 			      const GLUvec4 *v1, GLfloat f)
 {
 	result->values[0] = v1->values[0] - f;
@@ -104,7 +104,7 @@ extern inline void gluSub4v_f(GLUvec4 *result,
 }
 
 
-extern inline void gluMult4m_f(GLUmat4 *result,
+static inline void gluMult4m_f(GLUmat4 *result,
 			       const GLUmat4 *m, GLfloat f)
 {
 	GLUmat4 temp;
@@ -117,7 +117,7 @@ extern inline void gluMult4m_f(GLUmat4 *result,
 }
 
 
-extern inline void gluMult4m_4v(GLUvec4 *result,
+static inline void gluMult4m_4v(GLUvec4 *result,
 				const GLUmat4 *m, const GLUvec4 *v)
 {
 	GLUvec4 temp[6];
@@ -133,7 +133,7 @@ extern inline void gluMult4m_4v(GLUvec4 *result,
 }
 
 
-extern inline void gluAdd4m_4m(GLUmat4 *result,
+static inline void gluAdd4m_4m(GLUmat4 *result,
 			       const GLUmat4 *m1, const GLUmat4 *m2)
 {
 	GLUmat4 temp;
@@ -145,7 +145,7 @@ extern inline void gluAdd4m_4m(GLUmat4 *result,
 	*result = temp;
 }
 
-extern inline void gluSub4m_4m(GLUmat4 *result,
+static inline void gluSub4m_4m(GLUmat4 *result,
 			       const GLUmat4 *m1, const GLUmat4 *m2)
 {
 	GLUmat4 temp;
@@ -157,7 +157,7 @@ extern inline void gluSub4m_4m(GLUmat4 *result,
 	*result = temp;
 }
 
-extern inline GLfloat gluDot4_4v(const GLUvec4 *v1, const GLUvec4 *v2)
+static inline GLfloat gluDot4_4v(const GLUvec4 *v1, const GLUvec4 *v2)
 {
 	return v1->values[0] * v2->values[0]
 		+ v1->values[1] * v2->values[1]
@@ -166,7 +166,7 @@ extern inline GLfloat gluDot4_4v(const GLUvec4 *v1, const GLUvec4 *v2)
 }
 
 
-extern inline GLfloat gluDot3_4v(const GLUvec4 *v1, const GLUvec4 *v2)
+static inline GLfloat gluDot3_4v(const GLUvec4 *v1, const GLUvec4 *v2)
 {
 	return v1->values[0] * v2->values[0]
 		+ v1->values[1] * v2->values[1]
@@ -174,14 +174,14 @@ extern inline GLfloat gluDot3_4v(const GLUvec4 *v1, const GLUvec4 *v2)
 }
 
 
-extern inline GLfloat gluDot2_4v(const GLUvec4 *v1, const GLUvec4 *v2)
+static inline GLfloat gluDot2_4v(const GLUvec4 *v1, const GLUvec4 *v2)
 {
 	return v1->values[0] * v2->values[0]
 		+ v1->values[1] * v2->values[1];
 }
 
 
-extern inline void gluCross4v(GLUvec4 *result,
+static inline void gluCross4v(GLUvec4 *result,
 			      const GLUvec4 *v1, const GLUvec4 *v2)
 {
 	GLUvec4 temp;
@@ -197,7 +197,7 @@ extern inline void gluCross4v(GLUvec4 *result,
 }
 
 
-extern inline void gluOuter4v(GLUmat4 *result,
+static inline void gluOuter4v(GLUmat4 *result,
 			      const GLUvec4 *v1, const GLUvec4 *v2)
 {
 	GLUmat4 temp;
@@ -210,26 +210,26 @@ extern inline void gluOuter4v(GLUmat4 *result,
 }
 
 
-extern inline GLfloat gluLengthSqr4v(const GLUvec4 *v)
+static inline GLfloat gluLengthSqr4v(const GLUvec4 *v)
 {
 	return gluDot4_4v(v, v);
 }
 
 
-extern inline GLfloat gluLength4v(const GLUvec4 *v)
+static inline GLfloat gluLength4v(const GLUvec4 *v)
 {
 	return sqrt(gluLengthSqr4v(v));
 }
 
 
-extern inline void gluNormalize4v(GLUvec4 *result, const GLUvec4 *v)
+static inline void gluNormalize4v(GLUvec4 *result, const GLUvec4 *v)
 {
 	gluDiv4v_f(result, v, gluLength4v(v));
 }
 
 
 
-extern inline void gluTranspose4m(GLUmat4 *result, const GLUmat4 *m)
+static inline void gluTranspose4m(GLUmat4 *result, const GLUmat4 *m)
 {
 	unsigned i;
 	unsigned j;
@@ -245,7 +245,7 @@ extern inline void gluTranspose4m(GLUmat4 *result, const GLUmat4 *m)
 }
 
 
-extern inline void gluMult4m_4m(GLUmat4 *result,
+static inline void gluMult4m_4m(GLUmat4 *result,
 				const GLUmat4 *m1, const GLUmat4 *m2)
 {
 	GLUmat4 temp;
@@ -260,7 +260,7 @@ extern inline void gluMult4m_4m(GLUmat4 *result,
 
 
 
-extern inline void gluTranslate3f(GLUmat4 *result,
+static inline void gluTranslate3f(GLUmat4 *result,
 				  GLfloat x, GLfloat y, GLfloat z)
 {
 	memcpy(result, & gluIdentityMatrix, sizeof(gluIdentityMatrix));
@@ -271,7 +271,7 @@ extern inline void gluTranslate3f(GLUmat4 *result,
 
 
 #ifdef __cplusplus
-extern inline GLfloat gluDot4(const GLUvec4 &v1, const GLUvec4 &v2)
+static inline GLfloat gluDot4(const GLUvec4 &v1, const GLUvec4 &v2)
 {
 	return v1.values[0] * v2.values[0]
 		+ v1.values[1] * v2.values[1]
@@ -280,7 +280,7 @@ extern inline GLfloat gluDot4(const GLUvec4 &v1, const GLUvec4 &v2)
 }
 
 
-extern inline GLfloat gluDot3(const GLUvec4 &v1, const GLUvec4 &v2)
+static inline GLfloat gluDot3(const GLUvec4 &v1, const GLUvec4 &v2)
 {
 	return v1.values[0] * v2.values[0]
 		+ v1.values[1] * v2.values[1]
@@ -288,7 +288,7 @@ extern inline GLfloat gluDot3(const GLUvec4 &v1, const GLUvec4 &v2)
 }
 
 
-extern inline GLfloat gluDot2(const GLUvec4 &v1, const GLUvec4 &v2)
+static inline GLfloat gluDot2(const GLUvec4 &v1, const GLUvec4 &v2)
 {
 	return v1.values[0] * v2.values[0]
 		+ v1.values[1] * v2.values[1];

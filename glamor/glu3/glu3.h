@@ -123,7 +123,7 @@ typedef struct GLUmat4Stack GLUmat4Stack;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#if 0
 GLfloat gluDot4_4v(const GLUvec4 *, const GLUvec4 *);
 GLfloat gluDot3_4v(const GLUvec4 *, const GLUvec4 *);
 GLfloat gluDot2_4v(const GLUvec4 *, const GLUvec4 *);
@@ -169,7 +169,7 @@ void gluOrtho6f(GLUmat4 *result,
 		GLfloat left, GLfloat right,
 		GLfloat bottom, GLfloat top,
 		GLfloat near, GLfloat far);
-
+#endif
 extern const GLUmat4 gluIdentityMatrix;
 
 #ifdef __cplusplus
