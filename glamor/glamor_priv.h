@@ -24,9 +24,13 @@
  *    Eric Anholt <eric@anholt.net>
  *
  */
-
 #ifndef GLAMOR_PRIV_H
 #define GLAMOR_PRIV_H
+
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 
 #include "glamor.h"
 #include <GL/glew.h>
