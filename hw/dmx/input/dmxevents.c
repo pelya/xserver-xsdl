@@ -176,7 +176,7 @@ static void enqueueMotion(DevicePtr pDev, int x, int y)
 {
     GETDMXLOCALFROMPDEV;
     DeviceIntPtr p = dmxLocal->pDevice;
-    int i, nevents, valuators[3];
+    int valuators[3];
     EventListPtr events;
     int detail = 0;  /* XXX should this be mask of pressed buttons? */
     ValuatorMask mask;
@@ -185,10 +185,8 @@ static void enqueueMotion(DevicePtr pDev, int x, int y)
 
     valuator_mask_set_range(&mask, 0, 2, valuators);
     GetEventList(&events);
-    nevents = GetPointerEvents(events, p, MotionNotify, detail,
-                               POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
-    for (i = 0; i < nevents; i++)
-       mieqEnqueue(p, (InternalEvent*)(events + i)->event);
+    QueuePointerEvents(events, p, MotionNotify, detail,
+                       POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
     return;
 }
 
@@ -291,10 +289,8 @@ static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
     deviceValuator         *xv     = (deviceValuator *)xev+1;
     int                    thisX   = 0;
     int                    thisY   = 0;
-    int                    i;
     int                    count;
     EventListPtr           events;
-    int                    nevents;
     ValuatorMask           mask;
 
     memset(xE, 0, sizeof(xE));
@@ -348,6 +344,7 @@ static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
             }
             count              = 2;
     } else {
+        int i;
         for (i = 0, count = 0; i < axesCount; i += 6) {
             xev->time          = GetTimeInMillis();
             xev->type          = DeviceMotionNotify;
@@ -376,10 +373,8 @@ static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
         dmxSigioBlock();
     valuator_mask_set_range(&mask, firstAxis, axesCount, v);
     GetEventList(&events);
-    nevents = GetPointerEvents(events, pDevice, MotionNotify, 0,
-                               POINTER_ABSOLUTE, &mask);
-    for (i = 0; i < nevents; i++)
-        mieqEnqueue(pDevice, (InternalEvent*)(events + i)->event);
+    QueuePointerEvents(events, pDevice, MotionNotify, 0,
+                       POINTER_ABSOLUTE, &mask);
 
     if (block)
         dmxSigioUnblock();
@@ -395,7 +390,6 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
     DeviceIntPtr           pDevice = dmxLocal->pDevice;
     int                    valuators[MAX_VALUATORS];
     EventListPtr           events;
-    int                    nevents, i;
     ValuatorMask           mask;
 
     if (!e)
@@ -453,11 +447,7 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
         if (block)
             dmxSigioBlock();
         GetEventList(&events);
-        nevents = GetKeyboardEvents(events, pDevice, event,
-                                    ke->keycode, &mask);
-        for (i = 0; i < nevents; i++)
-            mieqEnqueue(pDevice, (InternalEvent*)(events + i)->event);
-
+        QueueKeyboardEvents(events, pDevice, event, ke->keycode, &mask);
         if (block)
             dmxSigioUnblock();
         break;
@@ -468,11 +458,8 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
         if (block)
             dmxSigioBlock();
         GetEventList(&events);
-        nevents = GetPointerEvents(events, pDevice, event, ke->keycode,
-                                   POINTER_ABSOLUTE, &mask);
-        for (i = 0; i < nevents; i++)
-            mieqEnqueue(pDevice, (InternalEvent*)(events + i)->event);
-
+        QueuePointerEvents(events, pDevice, event, ke->keycode,
+                           POINTER_ABSOLUTE, &mask);
         if (block)
             dmxSigioUnblock();
         break;
@@ -483,10 +470,7 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
         if (block)
             dmxSigioBlock();
         GetEventList(&events);
-        nevents = GetProximityEvents(events, pDevice, event, &mask);
-        for (i = 0; i < nevents; i++)
-            mieqEnqueue(pDevice, (InternalEvent*)(events + i)->event);
-
+        QueueProximityEvents(events, pDevice, event, &mask);
         if (block)
             dmxSigioUnblock();
         break;
@@ -667,7 +651,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
     GETDMXINPUTFROMPDEV;
     xEvent xE;
     DeviceIntPtr p = dmxLocal->pDevice;
-    int i, nevents, valuators[3];
+    int valuators[3];
     EventListPtr events;
     ValuatorMask mask;
 
@@ -685,9 +669,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
 
         GetEventList(&events);
         /*ErrorF("KEY %d  sym %d\n", detail, (int) keySym);*/
-        nevents = GetKeyboardEvents(events, p, type, detail, NULL);
-        for (i = 0; i < nevents; i++)
-            mieqEnqueue(p, (InternalEvent*)(events + i)->event);
+        QueueKeyboardEvents(events, p, type, detail, NULL);
         return;
 
     case ButtonPress:
@@ -695,10 +677,8 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         detail = dmxGetButtonMapping(dmxLocal, detail);
         valuator_mask_zero(&mask);
         GetEventList(&events);
-        nevents = GetPointerEvents(events, p, type, detail,
-                                   POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
-        for (i = 0; i < nevents; i++)
-            mieqEnqueue(p, (InternalEvent*)(events + i)->event);
+        QueuePointerEvents(events, p, type, detail,
+                           POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
         return;
 
     case MotionNotify:
@@ -707,10 +687,8 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         valuators[1] = e->xmotion.y;
         valuators[2] = e->xmotion.state; /* FIXME: WTF?? */
         valuator_mask_set_range(&mask, 0, 3, valuators);
-        nevents = GetPointerEvents(events, p, type, detail, 
-                                   POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
-        for (i = 0; i < nevents; i++)
-            mieqEnqueue(p, (InternalEvent*)(events + i)->event);
+        QueuePointerEvents(events, p, type, detail,
+                           POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
         return;
 
     case EnterNotify:

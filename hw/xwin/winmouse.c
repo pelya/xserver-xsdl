@@ -235,7 +235,6 @@ void
 winMouseButtonsSendEvent (int iEventType, int iButton)
 {
   EventListPtr events;
-  int i, nevents;
   ValuatorMask mask;
 
   if (g_winMouseButtonMap)
@@ -243,11 +242,8 @@ winMouseButtonsSendEvent (int iEventType, int iButton)
 
   valuator_mask_zero(&mask);
   GetEventList(&events);
-  nevents = GetPointerEvents(events, g_pwinPointer, iEventType, iButton,
-			     POINTER_RELATIVE, &mask);
-
-  for (i = 0; i < nevents; i++)
-    mieqEnqueue(g_pwinPointer, (InternalEvent*)events[i].event);
+  QueuePointerEvents(events, g_pwinPointer, iEventType, iButton,
+		     POINTER_RELATIVE, &mask);
 
 #if CYGDEBUG
   ErrorF("winMouseButtonsSendEvent: iEventType: %d, iButton: %d, nEvents %d\n",
@@ -367,7 +363,6 @@ winMouseButtonsHandle (ScreenPtr pScreen,
  */
 void winEnqueueMotion(int x, int y)
 {
-  int i, nevents;
   int valuators[2];
   ValuatorMask mask;
   EventListPtr events;
@@ -378,9 +373,7 @@ void winEnqueueMotion(int x, int y)
 
   valuator_mask_set_range(&mask, 0, 2, valuators);
   GetEventList(&events);
-  nevents = GetPointerEvents(events, g_pwinPointer, MotionNotify, 0,
-			     POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
+  QueuePointerEvents(events, g_pwinPointer, MotionNotify, 0,
+		     POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
 
-  for (i = 0; i < nevents; i++)
-    mieqEnqueue(g_pwinPointer, (InternalEvent*)events[i].event);
 }

@@ -473,7 +473,6 @@ void
 winSendKeyEvent (DWORD dwKey, Bool fDown)
 {
   EventListPtr events;
-  int i, nevents;
 
   /*
    * When alt-tabing between screens we can get phantom key up messages
@@ -485,10 +484,7 @@ winSendKeyEvent (DWORD dwKey, Bool fDown)
   g_winKeyState[dwKey] = fDown;
 
   GetEventList(&events);
-  nevents = GetKeyboardEvents(events, g_pwinKeyboard, fDown ? KeyPress : KeyRelease, dwKey + MIN_KEYCODE, NULL);
-
-  for (i = 0; i < nevents; i++)
-    mieqEnqueue(g_pwinKeyboard, (InternalEvent*)events[i].event);
+  QueueKeyboardEvents(events, g_pwinKeyboard, fDown ? KeyPress : KeyRelease, dwKey + MIN_KEYCODE, NULL);
 
   winDebug("winSendKeyEvent: dwKey: %d, fDown: %d, nEvents %d\n",
            dwKey, fDown, nevents);

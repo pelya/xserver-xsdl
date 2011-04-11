@@ -47,6 +47,7 @@
 #include "eventstr.h"
 #include "eventconvert.h"
 #include "inpututils.h"
+#include "mi.h"
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
@@ -924,6 +925,39 @@ updateHistory(DeviceIntPtr dev, ValuatorMask *mask, CARD32 ms)
     }
 }
 
+static void
+queueEventList(DeviceIntPtr device, EventList *events, int nevents)
+{
+    int i;
+
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(device, (InternalEvent*)((events + i)->event));
+}
+
+/**
+ * Generate internal events representing this keyboard event and enqueue
+ * them on the event queue.
+ *
+ * FIXME: don't require the event list to be passed in.
+ * FIXME: flags for relative/abs motion?
+ *
+ * @param events Event list used as temporary storage
+ * @param device The device to generate the event for
+ * @param type Event type, one of KeyPress or KeyRelease
+ * @param keycode Key code of the pressed/released key
+ * @param mask Valuator mask for valuators present for this event.
+ *
+ */
+void
+QueueKeyboardEvents(EventList *events, DeviceIntPtr device, int type,
+                    int keycode, const ValuatorMask *mask)
+{
+    int nevents;
+
+    nevents = GetKeyboardEvents(events, device, type, keycode, mask);
+    queueEventList(device, events, nevents);
+}
+
 /**
  * Returns a set of InternalEvents for KeyPress/KeyRelease, optionally
  * also with valuator events.
@@ -1059,6 +1093,30 @@ transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask, int *x, int *y)
 
     *x = lround(p.v[0]);
     *y = lround(p.v[1]);
+}
+
+/**
+ * Generate internal events representing this pointer event and enqueue them
+ * on the event queue.
+ *
+ * FIXME: don't require the event list to be passed in.
+ *
+ * @param events Event list used as temporary storage
+ * @param device The device to generate the event for
+ * @param type Event type, one of ButtonPress, ButtonRelease, MotionNotify
+ * @param buttons Button number of the buttons modified. Must be 0 for
+ * MotionNotify
+ * @param flags Event modification flags
+ * @param mask Valuator mask for valuators present for this event.
+ */
+void
+QueuePointerEvents(EventList *events, DeviceIntPtr device, int type,
+                   int buttons, int flags, const ValuatorMask *mask)
+{
+    int nevents;
+
+    nevents = GetPointerEvents(events, device, type, buttons, flags, mask);
+    queueEventList(device, events, nevents);
 }
 
 /**
@@ -1214,6 +1272,28 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     return num_events;
 }
 
+/**
+ * Generate internal events representing this proximity event and enqueue
+ * them on the event queue.
+ *
+ * FIXME: don't require the event list to be passed in.
+ *
+ * @param events Event list used as temporary storage
+ * @param device The device to generate the event for
+ * @param type Event type, one of ProximityIn or ProximityOut
+ * @param keycode Key code of the pressed/released key
+ * @param mask Valuator mask for valuators present for this event.
+ *
+ */
+void
+QueueProximityEvents(EventList *events, DeviceIntPtr device, int type,
+                     const ValuatorMask *mask)
+{
+    int nevents;
+
+    nevents = GetProximityEvents(events, device, type, mask);
+    queueEventList(device, events, nevents);
+}
 
 /**
  * Generate ProximityIn/ProximityOut InternalEvents, accompanied by

@@ -461,6 +461,14 @@ extern _X_EXPORT int GetPointerEvents(
     int flags,
     const ValuatorMask *mask);
 
+extern _X_EXPORT void QueuePointerEvents(
+    EventListPtr events,
+    DeviceIntPtr pDev,
+    int type,
+    int buttons,
+    int flags,
+    const ValuatorMask *mask);
+
 extern _X_EXPORT int GetKeyboardEvents(
     EventListPtr events,
     DeviceIntPtr pDev,
@@ -468,7 +476,20 @@ extern _X_EXPORT int GetKeyboardEvents(
     int key_code,
     const ValuatorMask *mask);
 
+extern _X_EXPORT void QueueKeyboardEvents(
+    EventListPtr events,
+    DeviceIntPtr pDev,
+    int type,
+    int key_code,
+    const ValuatorMask *mask);
+
 extern int GetProximityEvents(
+    EventListPtr events,
+    DeviceIntPtr pDev,
+    int type,
+    const ValuatorMask *mask);
+
+extern void QueueProximityEvents(
     EventListPtr events,
     DeviceIntPtr pDev,
     int type,

@@ -1012,7 +1012,6 @@ xf86PostMotionEventM(DeviceIntPtr	device,
                      int		is_absolute,
                      const ValuatorMask	*mask)
 {
-    int i = 0, nevents = 0;
     int flags = 0;
 
     if (valuator_mask_num_valuators(mask) > 0)
@@ -1050,11 +1049,7 @@ xf86PostMotionEventM(DeviceIntPtr	device,
         }
 #endif
 
-    nevents = GetPointerEvents(xf86Events, device, MotionNotify, 0, flags, mask);
-
-    for (i = 0; i < nevents; i++) {
-        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
-    }
+    QueuePointerEvents(xf86Events, device, MotionNotify, 0, flags, mask);
 }
 
 void
@@ -1099,13 +1094,8 @@ xf86PostProximityEventM(DeviceIntPtr	device,
                         int		is_in,
                         const ValuatorMask *mask)
 {
-    int i, nevents;
-
-    nevents = GetProximityEvents(xf86Events, device,
-                                 is_in ? ProximityIn : ProximityOut, mask);
-    for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
-
+    QueueProximityEvents(xf86Events, device,
+                         is_in ? ProximityIn : ProximityOut, mask);
 }
 
 void
@@ -1157,7 +1147,6 @@ xf86PostButtonEventM(DeviceIntPtr	device,
                      int		is_down,
                      const ValuatorMask	*mask)
 {
-    int i = 0, nevents = 0;
     int flags = 0;
 
     if (valuator_mask_num_valuators(mask) > 0)
@@ -1177,13 +1166,9 @@ xf86PostButtonEventM(DeviceIntPtr	device,
     }
 #endif
 
-    nevents = GetPointerEvents(xf86Events, device,
-                               is_down ? ButtonPress : ButtonRelease, button,
-                               flags, mask);
-
-    for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
-
+    QueuePointerEvents(xf86Events, device,
+                       is_down ? ButtonPress : ButtonRelease, button,
+                       flags, mask);
 }
 
 void
@@ -1235,8 +1220,6 @@ xf86PostKeyEventM(DeviceIntPtr	device,
                   int		is_absolute,
                   const ValuatorMask *mask)
 {
-    int i = 0, nevents = 0;
-
 #if XFreeXDGA
     DeviceIntPtr pointer;
 
@@ -1250,12 +1233,9 @@ xf86PostKeyEventM(DeviceIntPtr	device,
     }
 #endif
 
-    nevents = GetKeyboardEvents(xf86Events, device,
-                                is_down ? KeyPress : KeyRelease,
-                                key_code, mask);
-
-    for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
+    QueueKeyboardEvents(xf86Events, device,
+                        is_down ? KeyPress : KeyRelease,
+                        key_code, mask);
 }
 
 void

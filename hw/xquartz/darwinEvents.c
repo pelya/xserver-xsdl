@@ -433,7 +433,6 @@ static void DarwinPrepareValuators(DeviceIntPtr pDev, int *valuators, ScreenPtr 
 void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, float pointer_x, float pointer_y, 
 			     float pressure, float tilt_x, float tilt_y) {
 	static int darwinFakeMouseButtonDown = 0;
-	int i, num_events;
     ScreenPtr screen;
     int valuators[5];
 	
@@ -486,15 +485,13 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
     darwinEvents_lock(); {
         ValuatorMask mask;
         valuator_mask_set_range(&mask, 0, (pDev == darwinPointer) ? 2 : 5, valuators);
-        num_events = GetPointerEvents(darwinEvents, pDev, ev_type, ev_button, 
-                                      POINTER_ABSOLUTE, &mask);
-        for(i=0; i<num_events; i++) mieqEnqueue (pDev, (InternalEvent*)darwinEvents[i].event);
-        if(num_events > 0) DarwinPokeEQ();
+        QueuePointerEvents(darwinEvents, pDev, ev_type, ev_button,
+                           POINTER_ABSOLUTE, &mask);
+        DarwinPokeEQ();
     } darwinEvents_unlock();
 }
 
 void DarwinSendKeyboardEvents(int ev_type, int keycode) {
-	int i, num_events;
 
 	if(!darwinEvents) {
 		DEBUG_LOG("DarwinSendKeyboardEvents called before darwinEvents was initialized\n");
@@ -502,15 +499,13 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 	}
 
     darwinEvents_lock(); {
-        num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE, NULL);
-        for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard, (InternalEvent*)darwinEvents[i].event);
-        if(num_events > 0) DarwinPokeEQ();
+        QueueKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE, NULL);
+        DarwinPokeEQ();
     } darwinEvents_unlock();
 }
 
 void DarwinSendProximityEvents(DeviceIntPtr pDev, int ev_type, float pointer_x, float pointer_y,  
                                float pressure, float tilt_x, float tilt_y) {
-    int i, num_events;
     ScreenPtr screen;
     int valuators[5];
 
@@ -531,9 +526,8 @@ void DarwinSendProximityEvents(DeviceIntPtr pDev, int ev_type, float pointer_x, 
     darwinEvents_lock(); {
         ValuatorMask mask;
         valuator_mask_set_range(&mask, 0, 5, valuators);
-        num_events = GetProximityEvents(darwinEvents, pDev, ev_type, &mask);
-        for(i=0; i<num_events; i++) mieqEnqueue (pDev, (InternalEvent*)darwinEvents[i].event);
-        if(num_events > 0) DarwinPokeEQ();
+        QueueProximityEvents(darwinEvents, pDev, ev_type, &mask);
+        DarwinPokeEQ();
     } darwinEvents_unlock();
 }
 
