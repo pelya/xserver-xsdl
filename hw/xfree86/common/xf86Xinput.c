@@ -1013,7 +1013,6 @@ xf86PostMotionEventM(DeviceIntPtr	device,
                      const ValuatorMask	*mask)
 {
     int i = 0, nevents = 0;
-    DeviceEvent *event;
     int flags = 0;
 
     if (valuator_mask_num_valuators(mask) > 0)
@@ -1054,7 +1053,6 @@ xf86PostMotionEventM(DeviceIntPtr	device,
     nevents = GetPointerEvents(xf86Events, device, MotionNotify, 0, flags, mask);
 
     for (i = 0; i < nevents; i++) {
-        event = (DeviceEvent*)((xf86Events + i)->event);
         mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
     }
 }
