@@ -465,12 +465,6 @@ extern _X_EXPORT int GetKeyboardEvents(
     EventListPtr events,
     DeviceIntPtr pDev,
     int type,
-    int key_code);
-
-extern int GetKeyboardValuatorEvents(
-    EventListPtr events,
-    DeviceIntPtr pDev,
-    int type,
     int key_code,
     const ValuatorMask *mask);
 

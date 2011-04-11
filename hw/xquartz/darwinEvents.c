@@ -482,7 +482,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 	}
 
     darwinEvents_lock(); {
-        num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
+        num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE, NULL);
         for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard, (InternalEvent*)darwinEvents[i].event);
         if(num_events > 0) DarwinPokeEQ();
     } darwinEvents_unlock();

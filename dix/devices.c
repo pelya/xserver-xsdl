@@ -2392,7 +2392,7 @@ ReleaseButtonsAndKeys(DeviceIntPtr dev)
     {
         if (BitIsOn(k->down, i))
         {
-            nevents = GetKeyboardEvents(eventlist, dev, KeyRelease, i);
+            nevents = GetKeyboardEvents(eventlist, dev, KeyRelease, i, NULL);
             for (j = 0; j < nevents; j++)
                 mieqProcessDeviceEvent(dev, (InternalEvent*)(eventlist+j)->event, NULL);
         }
