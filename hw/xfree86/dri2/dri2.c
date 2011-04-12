@@ -409,6 +409,8 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 	&& (pPriv->serialNumber == DRI2DrawableSerial(pDraw));
 
     buffers = calloc((count + 1), sizeof(buffers[0]));
+    if (!buffers)
+	goto err_out;
 
     for (i = 0; i < count; i++) {
 	const unsigned attachment = *(attachments++);
@@ -501,13 +503,15 @@ err_out:
 
     *out_count = 0;
 
-    for (i = 0; i < count; i++) {
+    if (buffers) {
+	for (i = 0; i < count; i++) {
 	    if (buffers[i] != NULL)
-		    (*ds->DestroyBuffer)(pDraw, buffers[i]);
-    }
+		(*ds->DestroyBuffer)(pDraw, buffers[i]);
+	}
 
-    free(buffers);
-    buffers = NULL;
+	free(buffers);
+	buffers = NULL;
+    }
 
     update_dri2_drawable_buffers(pPriv, pDraw, buffers, out_count, width, height);
 
