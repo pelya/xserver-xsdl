@@ -1987,6 +1987,43 @@ ActivateImplicitGrab(DeviceIntPtr dev, ClientPtr client, WindowPtr win,
     return TRUE;
 }
 
+enum EventDeliveryState {
+    EVENT_DELIVERED,     /**< Event has been delivered to a client  */
+    EVENT_NOT_DELIVERED, /**< Event was not delivered to any client */
+    EVENT_SKIP,          /**< Event can be discarded by the caller  */
+    EVENT_REJECTED,      /**< Event was rejected for delivery to the client */
+};
+
+/**
+ * Attempt event delivery to the client owning the window.
+ */
+static enum EventDeliveryState
+DeliverToWindowOwner(DeviceIntPtr dev, WindowPtr win,
+                     xEvent *events, int count, Mask filter,
+                     GrabPtr grab)
+{
+    /* if nobody ever wants to see this event, skip some work */
+    if (filter != CantBeFiltered &&
+            !((wOtherEventMasks(win)|win->eventMask) & filter))
+        return EVENT_SKIP;
+
+    if (IsInterferingGrab(wClient(win), dev, events))
+        return EVENT_SKIP;
+
+    if (!XaceHook(XACE_RECEIVE_ACCESS, wClient(win), win, events, count))
+    {
+        int attempt = TryClientEvents(wClient(win), dev, events,
+                                      count, win->eventMask,
+                                      filter, grab);
+        if (attempt > 0)
+            return EVENT_DELIVERED;
+        if (attempt < 0)
+            return EVENT_REJECTED;
+    }
+
+    return EVENT_NOT_DELIVERED;
+}
+
 /**
  * Deliver events to a window. At this point, we do not yet know if the event
  * actually needs to be delivered. May activate a grab if the event is a
@@ -2023,28 +2060,26 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     /* Deliver to window owner */
     if ((filter == CantBeFiltered) || CORE_EVENT(pEvents))
     {
-	/* if nobody ever wants to see this event, skip some work */
-	if (filter != CantBeFiltered &&
-	    !((wOtherEventMasks(pWin)|pWin->eventMask) & filter))
-	    return 0;
+        enum EventDeliveryState rc;
 
-        if (IsInterferingGrab(wClient(pWin), pDev, pEvents))
+        rc = DeliverToWindowOwner(pDev, pWin, pEvents, count, filter, grab);
+
+        switch(rc)
+        {
+            case EVENT_SKIP:
                 return 0;
-
-	if (XaceHook(XACE_RECEIVE_ACCESS, wClient(pWin), pWin, pEvents, count))
-	    /* do nothing */;
-        else if ( (attempt = TryClientEvents(wClient(pWin), pDev, pEvents,
-                                             count, pWin->eventMask,
-                                             filter, grab)) )
-	{
-	    if (attempt > 0)
-	    {
-		deliveries++;
-		client = wClient(pWin);
-		deliveryMask = pWin->eventMask;
-	    } else
-		nondeliveries--;
-	}
+            case EVENT_REJECTED:
+                nondeliveries--;
+                break;
+            case EVENT_DELIVERED:
+                /* We delivered to the owner, with our event mask */
+                deliveries++;
+                client = wClient(pWin);
+                deliveryMask = pWin->eventMask;
+                break;
+            case EVENT_NOT_DELIVERED:
+                break;
+        }
     }
 
     /* CantBeFiltered means only window owner gets the event */
