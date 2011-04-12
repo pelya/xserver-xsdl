@@ -1209,6 +1209,28 @@ static void include_bit_test_macros(void)
     }
 }
 
+/**
+ * Ensure that val->axisVal and val->axes are aligned on doubles.
+ */
+static void dix_valuator_alloc(void)
+{
+    ValuatorClassPtr v = NULL;
+    int num_axes = 0;
+
+    while (num_axes < 5)
+    {
+        v = AllocValuatorClass(v, num_axes);
+
+        g_assert(v);
+        g_assert(v->numAxes == num_axes);
+        g_assert(((void*)v->axisVal - (void*)v) % sizeof(double) == 0);
+        g_assert(((void*)v->axes - (void*)v) % sizeof(double) == 0);
+        num_axes ++;
+    }
+
+    free(v);
+}
+
 int main(int argc, char** argv)
 {
     g_test_init(&argc, &argv,NULL);
@@ -1226,7 +1248,7 @@ int main(int argc, char** argv)
     g_test_add_func("/include/byte_padding_macros", include_byte_padding_macros);
     g_test_add_func("/include/bit_test_macros", include_bit_test_macros);
     g_test_add_func("/Xi/xiproperty/register-unregister", xi_unregister_handlers);
-
+    g_test_add_func("/dix/input/valuator-alloc", dix_valuator_alloc);
 
     return g_test_run();
 }
