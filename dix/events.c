@@ -2025,6 +2025,75 @@ DeliverToWindowOwner(DeviceIntPtr dev, WindowPtr win,
 }
 
 /**
+ * Deliver events to clients registered on the window.
+ *
+ * @param client_return On successful delivery, set to the recipient.
+ * @param mask_return On successful delivery, set to the recipient's event
+ * mask for this event.
+ */
+static enum EventDeliveryState
+DeliverEventToClients(DeviceIntPtr dev, WindowPtr win, xEvent *events,
+                      int count, Mask filter, GrabPtr grab,
+                      ClientPtr *client_return, Mask *mask_return)
+{
+    int attempt;
+    enum EventDeliveryState rc = EVENT_SKIP;
+    InputClients *other;
+
+    if (CORE_EVENT(events))
+        other = (InputClients *)wOtherClients(win);
+    else if (XI2_EVENT(events))
+    {
+        OtherInputMasks *inputMasks = wOtherInputMasks(win);
+        /* Has any client selected for the event? */
+        if (!GetWindowXI2Mask(dev, win, events))
+            goto out;
+        other = inputMasks->inputClients;
+    } else {
+        OtherInputMasks *inputMasks = wOtherInputMasks(win);
+        /* Has any client selected for the event? */
+        if (!inputMasks ||
+            !(inputMasks->inputEvents[dev->id] & filter))
+            goto out;
+
+        other = inputMasks->inputClients;
+    }
+
+    rc = EVENT_NOT_DELIVERED;
+
+    for (; other; other = other->next)
+    {
+        Mask mask;
+
+        if (IsInterferingGrab(rClient(other), dev, events))
+            continue;
+
+        mask = GetEventMask(dev, events, other);
+
+        if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), win,
+                    events, count))
+            /* do nothing */;
+        else if ( (attempt = TryClientEvents(rClient(other), dev,
+                        events, count,
+                        mask, filter, grab)) )
+        {
+            if (attempt > 0)
+            {
+                rc = EVENT_DELIVERED;
+                *client_return = rClient(other);
+                *mask_return = mask;
+                /* Success overrides non-success, so if we've been
+                 * successful on one client, return that */
+            } else if (rc == EVENT_NOT_DELIVERED)
+                rc = EVENT_REJECTED;
+        }
+    }
+
+out:
+    return rc;
+}
+
+/**
  * Deliver events to a window. At this point, we do not yet know if the event
  * actually needs to be delivered. May activate a grab if the event is a
  * button press.
@@ -2042,20 +2111,19 @@ DeliverToWindowOwner(DeviceIntPtr dev, WindowPtr win,
  * @param filter Mask based on event type.
  * @param grab Possible grab on the device that caused the event.
  *
- * @return Number of events delivered to various clients.
+ * @return a positive number if at least one successful delivery has been
+ * made, 0 if no events were delivered, or a negative number if the event
+ * has not been delivered _and_ rejected by at least one client.
  */
 int
 DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         *pEvents, int count, Mask filter, GrabPtr grab)
 {
     int deliveries = 0, nondeliveries = 0;
-    int attempt;
-    InputClients *other;
     ClientPtr client = NullClient;
     Mask deliveryMask = 0; /* If a grab occurs due to a button press, then
 		              this mask is the mask of the grab. */
     int type = pEvents->u.u.type;
-
 
     /* Deliver to window owner */
     if ((filter == CantBeFiltered) || CORE_EVENT(pEvents))
@@ -2085,50 +2153,26 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     /* CantBeFiltered means only window owner gets the event */
     if (filter != CantBeFiltered)
     {
-        if (CORE_EVENT(pEvents))
-            other = (InputClients *)wOtherClients(pWin);
-        else if (XI2_EVENT(pEvents))
+        enum EventDeliveryState rc;
+
+        rc = DeliverEventToClients(pDev, pWin, pEvents, count, filter, grab,
+                                   &client, &deliveryMask);
+
+        switch(rc)
         {
-            OtherInputMasks *inputMasks = wOtherInputMasks(pWin);
-            /* Has any client selected for the event? */
-            if (!GetWindowXI2Mask(pDev, pWin, pEvents))
+            case EVENT_SKIP:
                 return 0;
-            other = inputMasks->inputClients;
-        } else {
-            OtherInputMasks *inputMasks = wOtherInputMasks(pWin);
-            /* Has any client selected for the event? */
-            if (!inputMasks ||
-                !(inputMasks->inputEvents[pDev->id] & filter))
-                return 0;
-
-            other = inputMasks->inputClients;
-        }
-
-        for (; other; other = other->next)
-        {
-            Mask mask;
-            if (IsInterferingGrab(rClient(other), pDev, pEvents))
-                continue;
-
-            mask = GetEventMask(pDev, pEvents, other);
-
-            if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin,
-                        pEvents, count))
-                /* do nothing */;
-            else if ( (attempt = TryClientEvents(rClient(other), pDev,
-                            pEvents, count,
-                            mask, filter, grab)) )
-            {
-                if (attempt > 0)
-                {
-                    deliveries++;
-                    client = rClient(other);
-                    deliveryMask = mask;
-                } else
-                    nondeliveries--;
-            }
+            case EVENT_REJECTED:
+                nondeliveries--;
+                break;
+            case EVENT_DELIVERED:
+                deliveries++;
+                break;
+            case EVENT_NOT_DELIVERED:
+                break;
         }
     }
+
     /*
      * Note that since core events are delivered first, an implicit grab may
      * be activated on a core grab, stopping the XI events.
