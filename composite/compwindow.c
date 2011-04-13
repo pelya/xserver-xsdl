@@ -171,6 +171,11 @@ compCheckRedirect (WindowPtr pWin)
 	    compRestoreWindow (pWin, pPixmap);
 	    (*pScreen->DestroyPixmap) (pPixmap);
 	}
+    } else if (should) {
+	if (cw->update == CompositeRedirectAutomatic)
+	    pWin->redirectDraw = RedirectDrawAutomatic;
+	else
+	    pWin->redirectDraw = RedirectDrawManual;
     }
     return TRUE;
 }
