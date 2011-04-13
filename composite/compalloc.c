@@ -226,6 +226,10 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	}
 	cw->update = CompositeRedirectManual;
     }
+    else if (cw->update == CompositeRedirectAutomatic && !cw->damageRegistered) {
+	if (!anyMarked)
+	    anyMarked = compMarkWindows (pWin, &pLayerWin);
+    }
 
     if (!compCheckRedirect (pWin))
     {
@@ -314,6 +318,8 @@ compFreeClientWindow (WindowPtr pWin, XID id)
     else if (cw->update == CompositeRedirectAutomatic &&
 	     !cw->damageRegistered && pWin->redirectDraw != RedirectDrawNone)
     {
+	anyMarked = compMarkWindows (pWin, &pLayerWin);
+
 	DamageRegister (&pWin->drawable, cw->damage);
 	cw->damageRegistered = TRUE;
 	pWin->redirectDraw = RedirectDrawAutomatic;
