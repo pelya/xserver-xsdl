@@ -128,6 +128,7 @@ enum shader_in {
 };
 
 typedef struct glamor_screen_private {
+    CloseScreenProcPtr saved_close_screen;
     CreateGCProcPtr saved_create_gc;
     CreatePixmapProcPtr saved_create_pixmap;
     DestroyPixmapProcPtr saved_destroy_pixmap;
@@ -281,6 +282,9 @@ t_from_x_coord_y(PixmapPtr pixmap, int y)
 
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
+
+Bool glamor_close_screen(int idx, ScreenPtr screen);
+
 
 /* glamor_copyarea.c */
 RegionPtr

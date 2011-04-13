@@ -203,6 +203,9 @@ glamor_init(ScreenPtr screen)
 	goto fail;
     }
 
+    glamor_priv->saved_close_screen = screen->CloseScreen;
+    screen->CloseScreen = glamor_close_screen;
+
     glamor_priv->saved_create_gc = screen->CreateGC;
     screen->CreateGC = glamor_create_gc;
 
@@ -251,8 +254,8 @@ fail:
     return FALSE;
 }
 
-void
-glamor_fini(ScreenPtr screen)
+Bool 
+glamor_close_screen(int idx, ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 #ifdef RENDER
@@ -260,7 +263,7 @@ glamor_fini(ScreenPtr screen)
 #endif
 
     glamor_glyphs_fini(screen);
-
+    screen->CloseScreen = glamor_priv->saved_close_screen;
     screen->CreateGC = glamor_priv->saved_create_gc;
     screen->CreatePixmap = glamor_priv->saved_create_pixmap;
     screen->DestroyPixmap = glamor_priv->saved_destroy_pixmap;
@@ -275,4 +278,13 @@ glamor_fini(ScreenPtr screen)
 	ps->Glyphs = glamor_priv->saved_glyphs;
     }
 #endif
+    free(glamor_priv);
+    return screen->CloseScreen(idx, screen);   
+    
+}
+
+void
+glamor_fini(ScreenPtr screen)
+{
+/* Do nothing currently. */
 }
