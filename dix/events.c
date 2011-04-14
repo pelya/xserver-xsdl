@@ -2173,24 +2173,22 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         }
     }
 
-    /*
-     * Note that since core events are delivered first, an implicit grab may
-     * be activated on a core grab, stopping the XI events.
-     */
-    if (deliveries && !grab && ActivateImplicitGrab(pDev, client, pWin, pEvents, deliveryMask))
-        /* grab activated */;
-    else if ((type == MotionNotify) && deliveries)
-	pDev->valuator->motionHintWindow = pWin;
-    else
-    {
-	if ((type == DeviceMotionNotify || type == DeviceButtonPress) &&
-	    deliveries)
-	    CheckDeviceGrabAndHintWindow (pWin, type,
-					  (deviceKeyButtonPointer*) pEvents,
-					  grab, client, deliveryMask);
-    }
     if (deliveries)
+    {
+        /*
+         * Note that since core events are delivered first, an implicit grab may
+         * be activated on a core grab, stopping the XI events.
+         */
+        if (!grab && ActivateImplicitGrab(pDev, client, pWin, pEvents, deliveryMask))
+            /* grab activated */;
+        else if ((type == MotionNotify))
+            pDev->valuator->motionHintWindow = pWin;
+        else if (type == DeviceMotionNotify || type == DeviceButtonPress)
+                CheckDeviceGrabAndHintWindow (pWin, type,
+                                              (deviceKeyButtonPointer*) pEvents,
+                                              grab, client, deliveryMask);
 	return deliveries;
+    }
     return nondeliveries;
 }
 
