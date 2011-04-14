@@ -177,7 +177,7 @@ static void enqueueMotion(DevicePtr pDev, int x, int y)
     GETDMXLOCALFROMPDEV;
     DeviceIntPtr p = dmxLocal->pDevice;
     int valuators[3];
-    EventListPtr events;
+    InternalEvent* events;
     int detail = 0;  /* XXX should this be mask of pressed buttons? */
     ValuatorMask mask;
     valuators[0] = x;
@@ -290,7 +290,7 @@ static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
     int                    thisX   = 0;
     int                    thisY   = 0;
     int                    count;
-    EventListPtr           events;
+    InternalEvent*         events;
     ValuatorMask           mask;
 
     memset(xE, 0, sizeof(xE));
@@ -389,7 +389,7 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
     XDeviceMotionEvent     *me     = (XDeviceMotionEvent *)e;
     DeviceIntPtr           pDevice = dmxLocal->pDevice;
     int                    valuators[MAX_VALUATORS];
-    EventListPtr           events;
+    InternalEvent*         events;
     ValuatorMask           mask;
 
     if (!e)
@@ -652,7 +652,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
     xEvent xE;
     DeviceIntPtr p = dmxLocal->pDevice;
     int valuators[3];
-    EventListPtr events;
+    InternalEvent* events;
     ValuatorMask mask;
 
     DMXDBG2("dmxEnqueue: Enqueuing type=%d detail=0x%0x\n", type, detail);

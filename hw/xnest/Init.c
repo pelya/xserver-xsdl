@@ -45,7 +45,7 @@ is" without express or implied warranty.
 
 Bool xnestDoFullGeneration = True;
 
-EventList *xnestEvents = NULL;
+InternalEvent *xnestEvents = NULL;
 
 void
 InitOutput(ScreenInfo *screenInfo, int argc, char *argv[])

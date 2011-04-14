@@ -234,7 +234,7 @@ winMouseWheel (ScreenPtr pScreen, int iDeltaZ)
 void
 winMouseButtonsSendEvent (int iEventType, int iButton)
 {
-  EventListPtr events;
+  InternalEvent* events;
   ValuatorMask mask;
 
   if (g_winMouseButtonMap)
@@ -365,7 +365,7 @@ void winEnqueueMotion(int x, int y)
 {
   int valuators[2];
   ValuatorMask mask;
-  EventListPtr events;
+  InternalEvent* events;
 
   miPointerSetPosition(g_pwinPointer, POINTER_RELATIVE, &x, &y);
   valuators[0] = x;

@@ -472,7 +472,7 @@ winKeybdReleaseKeys (void)
 void
 winSendKeyEvent (DWORD dwKey, Bool fDown)
 {
-  EventListPtr events;
+  InternalEvent* events;
 
   /*
    * When alt-tabing between screens we can get phantom key up messages

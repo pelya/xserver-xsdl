@@ -88,7 +88,7 @@ static pthread_mutex_t fd_add_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t fd_add_ready_cond = PTHREAD_COND_INITIALIZER;
 static pthread_t fd_add_tid = NULL;
 
-static EventListPtr darwinEvents = NULL;
+static InternalEvent* darwinEvents = NULL;
 
 static pthread_mutex_t mieq_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t mieq_ready_cond = PTHREAD_COND_INITIALIZER;

@@ -66,7 +66,7 @@ static struct KdConfigDevice *kdConfigPointers    = NULL;
 static KdKeyboardDriver *kdKeyboardDrivers = NULL;
 static KdPointerDriver  *kdPointerDrivers  = NULL;
 
-static EventListPtr     kdEvents = NULL;
+static InternalEvent*   kdEvents = NULL;
 
 static Bool		kdInputEnabled;
 static Bool		kdOffScreen;

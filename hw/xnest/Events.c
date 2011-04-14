@@ -43,7 +43,7 @@ is" without express or implied warranty.
 
 CARD32 lastEventTime = 0;
 
-extern EventList *xnestEvents;
+extern InternalEvent *xnestEvents;
 
 void
 ProcessInputEvents(void)

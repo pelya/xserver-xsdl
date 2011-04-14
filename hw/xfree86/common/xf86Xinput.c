@@ -99,7 +99,7 @@
 		return;								\
 	}
 
-EventListPtr xf86Events = NULL;
+InternalEvent* xf86Events = NULL;
 
 static int
 xf86InputDevicePostInit(DeviceIntPtr dev);
