@@ -415,7 +415,7 @@ extern void DeliverFocusedEvent(
     InternalEvent* /* event */,
     WindowPtr /* window */);
 
-extern void DeliverGrabbedEvent(
+extern int DeliverGrabbedEvent(
     InternalEvent* /* event */,
     DeviceIntPtr /* thisDev */,
     Bool /* deactivateGrab */);

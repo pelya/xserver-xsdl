@@ -3884,8 +3884,10 @@ unwind:
  * grab. If not, TryClientEvents() is used.
  *
  * @param deactivateGrab True if the device's grab should be deactivated.
+ *
+ * @return The number of events delivered.
  */
-void
+int
 DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
                     Bool deactivateGrab)
 {
@@ -4053,6 +4055,8 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     free(core);
     free(xi);
     free(xi2);
+
+    return deliveries;
 }
 
 /* This function is used to set the key pressed or key released state -
