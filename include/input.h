@@ -495,6 +495,8 @@ extern _X_EXPORT int GetMotionHistory(
     ScreenPtr pScreen,
     BOOL core);
 
+extern void ReleaseButtonsAndKeys(DeviceIntPtr dev);
+
 extern int AttachDevice(ClientPtr client,
                         DeviceIntPtr slave,
                         DeviceIntPtr master);
