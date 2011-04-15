@@ -1006,7 +1006,7 @@ else
 fi
 AM_CONDITIONAL(GLX, test "x$GLX" = xyes)
 
-if test "x$AIGLX" = xyes -a "x$GLX" = xyes -a "x$DRI" = xyes; then
+if test "x$AIGLX" = xyes -a "x$GLX" = xyes -a \( "x$DRI" = xyes -o "x$DRI2" = xyes \); then
 	AC_DEFINE(AIGLX, 1, [Build AIGLX loader])
 else
 	AIGLX=no
