@@ -483,8 +483,7 @@ winSendKeyEvent (DWORD dwKey, Bool fDown)
   /* Update the keyState map */
   g_winKeyState[dwKey] = fDown;
 
-  GetEventList(&events);
-  QueueKeyboardEvents(events, g_pwinKeyboard, fDown ? KeyPress : KeyRelease, dwKey + MIN_KEYCODE, NULL);
+  QueueKeyboardEvents(g_pwinKeyboard, fDown ? KeyPress : KeyRelease, dwKey + MIN_KEYCODE, NULL);
 
   winDebug("winSendKeyEvent: dwKey: %d, fDown: %d, nEvents %d\n",
            dwKey, fDown, nevents);

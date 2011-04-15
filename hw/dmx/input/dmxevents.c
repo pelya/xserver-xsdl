@@ -177,15 +177,13 @@ static void enqueueMotion(DevicePtr pDev, int x, int y)
     GETDMXLOCALFROMPDEV;
     DeviceIntPtr p = dmxLocal->pDevice;
     int valuators[3];
-    InternalEvent* events;
     int detail = 0;  /* XXX should this be mask of pressed buttons? */
     ValuatorMask mask;
     valuators[0] = x;
     valuators[1] = y;
 
     valuator_mask_set_range(&mask, 0, 2, valuators);
-    GetEventList(&events);
-    QueuePointerEvents(events, p, MotionNotify, detail,
+    QueuePointerEvents(p, MotionNotify, detail,
                        POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
     return;
 }
@@ -290,7 +288,6 @@ static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
     int                    thisX   = 0;
     int                    thisY   = 0;
     int                    count;
-    InternalEvent*         events;
     ValuatorMask           mask;
 
     memset(xE, 0, sizeof(xE));
@@ -372,8 +369,7 @@ static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
     if (block)
         dmxSigioBlock();
     valuator_mask_set_range(&mask, firstAxis, axesCount, v);
-    GetEventList(&events);
-    QueuePointerEvents(events, pDevice, MotionNotify, 0,
+    QueuePointerEvents(pDevice, MotionNotify, 0,
                        POINTER_ABSOLUTE, &mask);
 
     if (block)
@@ -389,7 +385,6 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
     XDeviceMotionEvent     *me     = (XDeviceMotionEvent *)e;
     DeviceIntPtr           pDevice = dmxLocal->pDevice;
     int                    valuators[MAX_VALUATORS];
-    InternalEvent*         events;
     ValuatorMask           mask;
 
     if (!e)
@@ -446,8 +441,7 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
         valuator_mask_set_range(&mask, ke->first_axis, ke->axes_count, valuators);
         if (block)
             dmxSigioBlock();
-        GetEventList(&events);
-        QueueKeyboardEvents(events, pDevice, event, ke->keycode, &mask);
+        QueueKeyboardEvents(pDevice, event, ke->keycode, &mask);
         if (block)
             dmxSigioUnblock();
         break;
@@ -457,8 +451,7 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
         valuator_mask_set_range(&mask, ke->first_axis, ke->axes_count, valuators);
         if (block)
             dmxSigioBlock();
-        GetEventList(&events);
-        QueuePointerEvents(events, pDevice, event, ke->keycode,
+        QueuePointerEvents(pDevice, event, ke->keycode,
                            POINTER_ABSOLUTE, &mask);
         if (block)
             dmxSigioUnblock();
@@ -469,8 +462,7 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
         valuator_mask_set_range(&mask, ke->first_axis, ke->axes_count, valuators);
         if (block)
             dmxSigioBlock();
-        GetEventList(&events);
-        QueueProximityEvents(events, pDevice, event, &mask);
+        QueueProximityEvents(pDevice, event, &mask);
         if (block)
             dmxSigioUnblock();
         break;
@@ -652,7 +644,6 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
     xEvent xE;
     DeviceIntPtr p = dmxLocal->pDevice;
     int valuators[3];
-    InternalEvent* events;
     ValuatorMask mask;
 
     DMXDBG2("dmxEnqueue: Enqueuing type=%d detail=0x%0x\n", type, detail);
@@ -667,27 +658,24 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         if (dmxLocal->sendsCore && dmxLocal != dmxLocalCoreKeyboard)
             xE.u.u.detail = dmxFixup(pDev, detail, keySym);
 
-        GetEventList(&events);
         /*ErrorF("KEY %d  sym %d\n", detail, (int) keySym);*/
-        QueueKeyboardEvents(events, p, type, detail, NULL);
+        QueueKeyboardEvents(p, type, detail, NULL);
         return;
 
     case ButtonPress:
     case ButtonRelease:
         detail = dmxGetButtonMapping(dmxLocal, detail);
         valuator_mask_zero(&mask);
-        GetEventList(&events);
-        QueuePointerEvents(events, p, type, detail,
+        QueuePointerEvents(p, type, detail,
                            POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
         return;
 
     case MotionNotify:
-        GetEventList(&events);
         valuators[0] = e->xmotion.x;
         valuators[1] = e->xmotion.y;
         valuators[2] = e->xmotion.state; /* FIXME: WTF?? */
         valuator_mask_set_range(&mask, 0, 3, valuators);
-        QueuePointerEvents(events, p, type, detail,
+        QueuePointerEvents(p, type, detail,
                            POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
         return;
 

@@ -399,7 +399,7 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
          i++) {
         if (key_is_down(pDev, i, KEY_POSTED)) {
             sigstate = xf86BlockSIGIO ();
-            QueueKeyboardEvents(xf86Events, pDev, KeyRelease, i, NULL);
+            QueueKeyboardEvents(pDev, KeyRelease, i, NULL);
             xf86UnblockSIGIO(sigstate);
         }
     }

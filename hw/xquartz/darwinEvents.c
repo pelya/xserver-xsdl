@@ -485,8 +485,7 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
     darwinEvents_lock(); {
         ValuatorMask mask;
         valuator_mask_set_range(&mask, 0, (pDev == darwinPointer) ? 2 : 5, valuators);
-        QueuePointerEvents(darwinEvents, pDev, ev_type, ev_button,
-                           POINTER_ABSOLUTE, &mask);
+        QueuePointerEvents(pDev, ev_type, ev_button, POINTER_ABSOLUTE, &mask);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }
@@ -499,7 +498,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 	}
 
     darwinEvents_lock(); {
-        QueueKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE, NULL);
+        QueueKeyboardEvents(darwinKeyboard, ev_type, keycode + MIN_KEYCODE, NULL);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }
@@ -526,7 +525,7 @@ void DarwinSendProximityEvents(DeviceIntPtr pDev, int ev_type, float pointer_x, 
     darwinEvents_lock(); {
         ValuatorMask mask;
         valuator_mask_set_range(&mask, 0, 5, valuators);
-        QueueProximityEvents(darwinEvents, pDev, ev_type, &mask);
+        QueueProximityEvents(pDev, ev_type, &mask);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }

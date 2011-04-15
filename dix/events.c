@@ -5035,8 +5035,7 @@ InitEvents(void)
 	DontPropagateRefCnts[i] = 0;
     }
 
-    InputEventListLen = GetMaximumEventsNum();
-    InputEventList = InitEventList(InputEventListLen);
+    InputEventList = InitEventList(GetMaximumEventsNum());
     if (!InputEventList)
         FatalError("[dix] Failed to allocate input event list.\n");
 }
@@ -5044,8 +5043,7 @@ InitEvents(void)
 void
 CloseDownEvents(void)
 {
-    FreeEventList(InputEventList, InputEventListLen);
-    InputEventListLen = 0;
+    FreeEventList(InputEventList, GetMaximumEventsNum());
     InputEventList = NULL;
 }
 

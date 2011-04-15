@@ -99,8 +99,6 @@
 		return;								\
 	}
 
-InternalEvent* xf86Events = NULL;
-
 static int
 xf86InputDevicePostInit(DeviceIntPtr dev);
 
@@ -1049,7 +1047,7 @@ xf86PostMotionEventM(DeviceIntPtr	device,
         }
 #endif
 
-    QueuePointerEvents(xf86Events, device, MotionNotify, 0, flags, mask);
+    QueuePointerEvents(device, MotionNotify, 0, flags, mask);
 }
 
 void
@@ -1094,8 +1092,7 @@ xf86PostProximityEventM(DeviceIntPtr	device,
                         int		is_in,
                         const ValuatorMask *mask)
 {
-    QueueProximityEvents(xf86Events, device,
-                         is_in ? ProximityIn : ProximityOut, mask);
+    QueueProximityEvents(device, is_in ? ProximityIn : ProximityOut, mask);
 }
 
 void
@@ -1166,7 +1163,7 @@ xf86PostButtonEventM(DeviceIntPtr	device,
     }
 #endif
 
-    QueuePointerEvents(xf86Events, device,
+    QueuePointerEvents(device,
                        is_down ? ButtonPress : ButtonRelease, button,
                        flags, mask);
 }
@@ -1233,7 +1230,7 @@ xf86PostKeyEventM(DeviceIntPtr	device,
     }
 #endif
 
-    QueueKeyboardEvents(xf86Events, device,
+    QueueKeyboardEvents(device,
                         is_down ? KeyPress : KeyRelease,
                         key_code, mask);
 }

@@ -111,7 +111,6 @@ typedef struct _ValuatorMask ValuatorMask;
 
 /* The DIX stores incoming input events in this list */
 extern InternalEvent* InputEventList;
-extern int InputEventListLen;
 
 typedef int (*DeviceProc)(
     DeviceIntPtr /*device*/,
@@ -429,7 +428,6 @@ extern _X_EXPORT void CloseInput(void);
 
 extern _X_EXPORT int GetMaximumEventsNum(void);
 
-extern _X_EXPORT int GetEventList(InternalEvent** list);
 extern _X_EXPORT InternalEvent *InitEventList(int num_events);
 extern _X_EXPORT void FreeEventList(InternalEvent *list, int num_events);
 
@@ -452,7 +450,6 @@ extern _X_EXPORT int GetPointerEvents(
     const ValuatorMask *mask);
 
 extern _X_EXPORT void QueuePointerEvents(
-    InternalEvent *events,
     DeviceIntPtr pDev,
     int type,
     int buttons,
@@ -467,7 +464,6 @@ extern _X_EXPORT int GetKeyboardEvents(
     const ValuatorMask *mask);
 
 extern _X_EXPORT void QueueKeyboardEvents(
-    InternalEvent *events,
     DeviceIntPtr pDev,
     int type,
     int key_code,
@@ -480,7 +476,6 @@ extern int GetProximityEvents(
     const ValuatorMask *mask);
 
 extern void QueueProximityEvents(
-    InternalEvent *events,
     DeviceIntPtr pDev,
     int type,
     const ValuatorMask *mask);

@@ -66,8 +66,6 @@ static struct KdConfigDevice *kdConfigPointers    = NULL;
 static KdKeyboardDriver *kdKeyboardDrivers = NULL;
 static KdPointerDriver  *kdPointerDrivers  = NULL;
 
-static InternalEvent*   kdEvents = NULL;
-
 static Bool		kdInputEnabled;
 static Bool		kdOffScreen;
 static unsigned long	kdOffScreenTime;
@@ -1803,8 +1801,7 @@ KdReleaseAllKeys (void)
              key++) {
             if (key_is_down(ki->dixdev, key, KEY_POSTED | KEY_PROCESSED)) {
                 KdHandleKeyboardEvent(ki, KeyRelease, key);
-                GetEventList(&kdEvents);
-                QueueGetKeyboardEvents(kdEvents, ki->dixdev, KeyRelease, key, NULL);
+                QueueGetKeyboardEvents(ki->dixdev, KeyRelease, key, NULL);
             }
         }
     }
@@ -1860,8 +1857,7 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
 	else
 	    type = KeyPress;
 
-        GetEventList(&kdEvents);
-        QueueKeyboardEvents(kdEvents, ki->dixdev, type, key_code, NULL);
+        QueueKeyboardEvents(ki->dixdev, type, key_code, NULL);
     }
     else {
         ErrorF("driver %s wanted to post scancode %d outside of [%d, %d]!\n",
@@ -1969,8 +1965,7 @@ _KdEnqueuePointerEvent (KdPointerInfo *pi, int type, int x, int y, int z,
 
     valuator_mask_set_range(&mask, 0, 3, valuators);
 
-    GetEventList(&kdEvents);
-    QueuePointerEvents(kdEvents, pi->dixdev, type, b, absrel, &mask);
+    QueuePointerEvents(pi->dixdev, type, b, absrel, &mask);
 }
 
 void

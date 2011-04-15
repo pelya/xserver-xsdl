@@ -234,15 +234,13 @@ winMouseWheel (ScreenPtr pScreen, int iDeltaZ)
 void
 winMouseButtonsSendEvent (int iEventType, int iButton)
 {
-  InternalEvent* events;
   ValuatorMask mask;
 
   if (g_winMouseButtonMap)
     iButton = g_winMouseButtonMap[iButton];
 
   valuator_mask_zero(&mask);
-  GetEventList(&events);
-  QueuePointerEvents(events, g_pwinPointer, iEventType, iButton,
+  QueuePointerEvents(g_pwinPointer, iEventType, iButton,
 		     POINTER_RELATIVE, &mask);
 
 #if CYGDEBUG
@@ -365,15 +363,13 @@ void winEnqueueMotion(int x, int y)
 {
   int valuators[2];
   ValuatorMask mask;
-  InternalEvent* events;
 
   miPointerSetPosition(g_pwinPointer, POINTER_RELATIVE, &x, &y);
   valuators[0] = x;
   valuators[1] = y;
 
   valuator_mask_set_range(&mask, 0, 2, valuators);
-  GetEventList(&events);
-  QueuePointerEvents(events, g_pwinPointer, MotionNotify, 0,
+  QueuePointerEvents(g_pwinPointer, MotionNotify, 0,
 		     POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
 
 }

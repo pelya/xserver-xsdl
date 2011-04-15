@@ -43,8 +43,6 @@ is" without express or implied warranty.
 
 CARD32 lastEventTime = 0;
 
-extern InternalEvent *xnestEvents;
-
 void
 ProcessInputEvents(void)
 {
@@ -104,9 +102,8 @@ xnestCollectExposures(void)
 void
 xnestQueueKeyEvent(int type, unsigned int keycode)
 {
-  GetEventList(&xnestEvents);
   lastEventTime = GetTimeInMillis();
-  QueueKeyboardEvents(xnestEvents, xnestKeyboardDevice, type, keycode, NULL);
+  QueueKeyboardEvents(xnestKeyboardDevice, type, keycode, NULL);
 }
 
 void
@@ -116,7 +113,6 @@ xnestCollectEvents(void)
   int valuators[2];
   ValuatorMask mask;
   ScreenPtr pScreen;
-  GetEventList(&xnestEvents);
 
   while (XCheckIfEvent(xnestDisplay, &X, xnestNotExposurePredicate, NULL)) {
     switch (X.type) {
@@ -134,7 +130,7 @@ xnestCollectEvents(void)
       valuator_mask_set_range(&mask, 0, 0, NULL);
       xnestUpdateModifierState(X.xkey.state);
       lastEventTime = GetTimeInMillis();
-      QueuePointerEvents(xnestEvents, xnestPointerDevice, ButtonPress,
+      QueuePointerEvents(xnestPointerDevice, ButtonPress,
                          X.xbutton.button, POINTER_RELATIVE, &mask);
       break;
       
@@ -142,7 +138,7 @@ xnestCollectEvents(void)
       valuator_mask_set_range(&mask, 0, 0, NULL);
       xnestUpdateModifierState(X.xkey.state);
       lastEventTime = GetTimeInMillis();
-      QueuePointerEvents(xnestEvents, xnestPointerDevice, ButtonRelease,
+      QueuePointerEvents(xnestPointerDevice, ButtonRelease,
                          X.xbutton.button, POINTER_RELATIVE, &mask);
       break;
       
@@ -151,7 +147,7 @@ xnestCollectEvents(void)
       valuators[1] = X.xmotion.y;
       valuator_mask_set_range(&mask, 0, 2, valuators);
       lastEventTime = GetTimeInMillis();
-      QueuePointerEvents(xnestEvents, xnestPointerDevice, MotionNotify,
+      QueuePointerEvents(xnestPointerDevice, MotionNotify,
                          0, POINTER_ABSOLUTE, &mask);
       break;
       
@@ -183,7 +179,7 @@ xnestCollectEvents(void)
           valuators[1] = X.xcrossing.y;
           valuator_mask_set_range(&mask, 0, 2, valuators);
           lastEventTime = GetTimeInMillis();
-          QueuePointerEvents(xnestEvents, xnestPointerDevice, MotionNotify,
+          QueuePointerEvents(xnestPointerDevice, MotionNotify,
                              0, POINTER_ABSOLUTE, &mask);
 	  xnestDirectInstallColormaps(pScreen);
 	}
