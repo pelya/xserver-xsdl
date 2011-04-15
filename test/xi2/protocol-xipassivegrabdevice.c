@@ -39,7 +39,6 @@
 #include "exevents.h"
 
 #include "protocol-common.h"
-#include <glib.h>
 
 static ClientRec client_request;
 #define N_MODS 7
@@ -116,12 +115,12 @@ static void reply_XIPassiveGrabDevice_data(ClientPtr client, int len, char *data
 
         /* 1 - 7 is the range we use for the global modifiers array
          * above */
-        g_assert(mods->modifiers > 0);
-        g_assert(mods->modifiers <= 7);
-        g_assert(mods->modifiers % 2 == 1); /* because we fail odd ones */
-        g_assert(mods->status != Success);
-        g_assert(mods->pad0 == 0);
-        g_assert(mods->pad1 == 0);
+        assert(mods->modifiers > 0);
+        assert(mods->modifiers <= 7);
+        assert(mods->modifiers % 2 == 1); /* because we fail odd ones */
+        assert(mods->status != Success);
+        assert(mods->pad0 == 0);
+        assert(mods->pad1 == 0);
     }
 
     reply_handler = reply_XIPassiveGrabDevice;
@@ -134,10 +133,10 @@ static void request_XIPassiveGrabDevice(ClientPtr client, xXIPassiveGrabDeviceRe
     int modifiers;
 
     rc = ProcXIPassiveGrabDevice(&client_request);
-    g_assert(rc == error);
+    assert(rc == error);
 
     if (rc != Success)
-        g_assert(client_request.errorValue == errval);
+        assert(client_request.errorValue == errval);
 
     client_request.swapped = TRUE;
     swaps(&req->length, n);
@@ -157,10 +156,10 @@ static void request_XIPassiveGrabDevice(ClientPtr client, xXIPassiveGrabDeviceRe
     }
 
     rc = SProcXIPassiveGrabDevice(&client_request);
-    g_assert(rc == error);
+    assert(rc == error);
 
     if (rc != Success)
-        g_assert(client_request.errorValue == errval);
+        assert(client_request.errorValue == errval);
 }
 
 static unsigned char *data[4096]; /* the request buffer */
@@ -177,20 +176,20 @@ static void test_XIPassiveGrabDevice(void)
     reply_handler = reply_XIPassiveGrabDevice;
     client_request = init_client(request->length, request);
 
-    g_test_message("Testing invalid device");
+    printf("Testing invalid device\n");
     request->deviceid = 12;
     request_XIPassiveGrabDevice(&client_request, request, BadDevice, request->deviceid);
 
     request->deviceid = XIAllMasterDevices;
 
-    g_test_message("Testing invalid grab types");
+    printf("Testing invalid grab types\n");
     for (i = XIGrabtypeFocusIn + 1; i < 0xFF; i++)
     {
         request->grab_type = i;
         request_XIPassiveGrabDevice(&client_request, request, BadValue, request->grab_type);
     }
 
-    g_test_message("Testing invalid grab type + detail combinations");
+    printf("Testing invalid grab type + detail combinations\n");
     request->grab_type = XIGrabtypeEnter;
     request->detail = 1;
     request_XIPassiveGrabDevice(&client_request, request, BadValue, request->detail);
@@ -200,7 +199,7 @@ static void test_XIPassiveGrabDevice(void)
 
     request->detail = 0;
 
-    g_test_message("Testing invalid masks");
+    printf("Testing invalid masks\n");
     mask = (unsigned char*)&request[1];
 
     request->mask_len = bytes_to_int32(XI2LASTEVENT + 1);
@@ -227,12 +226,9 @@ static void test_XIPassiveGrabDevice(void)
 
 int main(int argc, char** argv)
 {
-    g_test_init(&argc, &argv,NULL);
-    g_test_bug_base("https://bugzilla.freedesktop.org/show_bug.cgi?id=");
-
     init_simple();
 
-    g_test_add_func("/xi2/protocol/XIPassiveGrab", test_XIPassiveGrabDevice);
+    test_XIPassiveGrabDevice();
 
-    return g_test_run();
+    return 0;
 }

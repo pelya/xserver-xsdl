@@ -1,5 +1,4 @@
 if ENABLE_UNIT_TESTS
-if HAVE_GLIB
 if HAVE_LD_WRAP
 noinst_PROGRAMS =  \
 	protocol-xiqueryversion \
@@ -15,9 +14,9 @@ noinst_PROGRAMS =  \
 
 TESTS=$(noinst_PROGRAMS)
 
-AM_CFLAGS = $(DIX_CFLAGS) $(GLIB_CFLAGS) @XORG_CFLAGS@
+AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
 INCLUDES = @XORG_INCS@
-TEST_LDADD=../libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLIB_LIBS)
+TEST_LDADD=../libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
 COMMON_SOURCES=protocol-common.h protocol-common.c
 
 if SPECIAL_DTRACE_OBJECTS
@@ -54,6 +53,5 @@ protocol_xigetclientpointer_SOURCES=$(COMMON_SOURCES) protocol-xigetclientpointe
 protocol_xiquerypointer_SOURCES=$(COMMON_SOURCES) protocol-xiquerypointer.c
 protocol_xipassivegrabdevice_SOURCES=$(COMMON_SOURCES) protocol-xipassivegrabdevice.c
 protocol_xiwarppointer_SOURCES=$(COMMON_SOURCES) protocol-xiwarppointer.c
-endif
 endif
 endif
