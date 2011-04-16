@@ -70,12 +70,6 @@ extern HWND			g_hwndClipboard;
 extern Bool			g_fClipboard;
 #endif
 
-
-/*
-  module handle for dynamically loaded comctl32 library
-*/
-static HMODULE g_hmodCommonControls = NULL;
-
 /*
  * Function prototypes
  */
@@ -235,14 +229,6 @@ ddxGiveUp (enum ExitCode error)
    * we are guaranteed to not need the DirectDraw functions.
    */
   winReleaseDDProcAddresses();
-
-  /* Unload our TrackMouseEvent function pointer */
-  if (g_hmodCommonControls != NULL)
-    {
-      FreeLibrary (g_hmodCommonControls);
-      g_hmodCommonControls = NULL;
-      g_fpTrackMouseEvent = (FARPROC) (void (*)(void))NoopDDA;
-    }
   
   /* Free concatenated command line */
   free(g_pszCommandLine);
@@ -978,27 +964,6 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
   
   /* Detect supported engines */
   winDetectSupportedEngines ();
-
-  /* Load common controls library */
-  g_hmodCommonControls = LoadLibraryEx ("comctl32.dll", NULL, 0);
-
-  /* Load TrackMouseEvent function pointer */  
-  g_fpTrackMouseEvent = GetProcAddress (g_hmodCommonControls,
-					 "_TrackMouseEvent");
-  if (g_fpTrackMouseEvent == NULL)
-    {
-      winErrorFVerb (1, "InitOutput - Could not get pointer to function\n"
-	      "\t_TrackMouseEvent in comctl32.dll.  Try installing\n"
-	      "\tInternet Explorer 3.0 or greater if you have not\n"
-	      "\talready.\n");
-
-      /* Free the library since we won't need it */
-      FreeLibrary (g_hmodCommonControls);
-      g_hmodCommonControls = NULL;
-
-      /* Set function pointer to point to no operation function */
-      g_fpTrackMouseEvent = (FARPROC) (void (*)(void))NoopDDA;
-    }
 
   /* Store the instance handle */
   g_hInstance = GetModuleHandle (NULL);
