@@ -483,8 +483,16 @@ DoGetDirection(int dx, int dy){
 #else
     r = atan2(dy, dx);
 #endif
-    /* find direction. We avoid r to become negative,
-     * since C has no well-defined modulo for such cases. */
+    /* find direction.
+     *
+     * Add 360° to avoid r become negative since C has no well-defined
+     * modulo for such cases. Then divide by 45° to get the octant number,
+     * e.g.     0 <= r <= 1 is [0-45]°
+     *          1 <= r <= 2 is [45-90]°
+     *          etc.
+     * But we add extra 90° to match up with our N, S, etc. defines up
+     * there, rest stays the same.
+     */
     r = (r+(M_PI*2.5))/(M_PI/4);
     /* this intends to flag 2 directions (45 degrees each),
      * except on very well-aligned mickeys. */
