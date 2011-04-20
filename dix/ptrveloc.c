@@ -697,12 +697,13 @@ static inline float
 ApplySimpleSoftening(int prev_delta, int delta)
 {
     float result = delta;
-    if (delta <= 1 && delta >= -1)
-        return result;
-    if (delta > prev_delta)
-        result -= 0.5;
-    else if (delta < prev_delta)
-        result += 0.5;
+
+    if (delta < -1 || delta > 1) {
+	if (delta > prev_delta)
+	    result -= 0.5;
+	else if (delta < prev_delta)
+	    result += 0.5;
+    }
     return result;
 }
 
