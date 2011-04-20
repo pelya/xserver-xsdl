@@ -572,11 +572,9 @@ FeedTrackers(DeviceVelocityPtr vel, int dx, int dy, int cur_t)
  * This assumes linear motion.
  */
 static float
-CalcTracker(DeviceVelocityPtr vel, int offset, int cur_t){
-    int index = TRACKER_INDEX(vel, offset);
-    float dist = sqrt(  vel->tracker[index].dx * vel->tracker[index].dx
-                      + vel->tracker[index].dy * vel->tracker[index].dy);
-    int dtime = cur_t - vel->tracker[index].time;
+CalcTracker(const MotionTracker *tracker, int cur_t){
+    float dist = sqrt(tracker->dx * tracker->dx + tracker->dy * tracker->dy);
+    int dtime = cur_t - tracker->time;
     if(dtime > 0)
 	return dist / dtime;
     else
@@ -621,7 +619,7 @@ QueryTrackers(DeviceVelocityPtr vel, int cur_t){
 	    break;
 	}
 
-	tmp = CalcTracker(vel, offset, cur_t) * vfac;
+	tmp = CalcTracker(&vel->tracker[n], cur_t) * vfac;
 
 	if ((iveloc == 0 || offset <= vel->initial_range) && tmp != 0) {
 	    /* set initial velocity and result */
