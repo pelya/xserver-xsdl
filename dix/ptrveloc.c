@@ -745,14 +745,14 @@ ComputeAcceleration(
 	res /= 6.0f;
 	DebugAccelF("(dix ptracc) profile average [%.2f ... %.2f] is %.3f\n",
 	            vel->velocity, vel->last_velocity, res);
-        return res;
     }else{
 	res = BasicComputeAcceleration(dev, vel,
 	                               vel->velocity, threshold, acc);
 	DebugAccelF("(dix ptracc) profile sample [%.2f] is %.3f\n",
                vel->velocity, res);
-	return res;
     }
+
+    return res;
 }
 
 
