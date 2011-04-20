@@ -708,21 +708,21 @@ ApplySimpleSoftening(int prev_delta, int delta)
 }
 
 
+/**
+ * Soften the delta based on previous deltas stored in vel.
+ *
+ * @param[in,out] fdx Delta X, modified in-place.
+ * @param[in,out] fdx Delta Y, modified in-place.
+ */
 static void
 ApplySoftening(
         DeviceVelocityPtr vel,
-        int dx,
-        int dy,
         float* fdx,
-        float* fdy,
-        BOOL do_soften)
+        float* fdy)
 {
-    if (do_soften && vel->use_softening) {
-        *fdx = ApplySimpleSoftening(vel->last_dx, dx);
-        *fdy = ApplySimpleSoftening(vel->last_dy, dy);
-    } else {
-        *fdx = dx;
-        *fdy = dy;
+    if (vel->use_softening) {
+        *fdx = ApplySimpleSoftening(vel->last_dx, *fdx);
+        *fdy = ApplySimpleSoftening(vel->last_dy, *fdy);
     }
 }
 
@@ -1118,7 +1118,7 @@ acceleratePointerPredictable(
     ValuatorMask* val,
     CARD32 evtime)
 {
-    float fdx, fdy, tmp, mult; /* no need to init */
+    float tmp, mult; /* no need to init */
     int dx = 0, dy = 0, tmpi;
     DeviceVelocityPtr velocitydata = GetDevicePredictableAccelData(dev);
     Bool soften = TRUE;
@@ -1153,10 +1153,11 @@ acceleratePointerPredictable(
                                             (float)dev->ptrfeed->ctrl.den);
 
             if(mult != 1.0f || velocitydata->const_acceleration != 1.0f) {
-                ApplySoftening(velocitydata,
-                               dx, dy,
-                               &fdx, &fdy,
-                               (mult > 1.0f) && soften);
+                float fdx = dx,
+                      fdy = dy;
+
+                if (mult > 1.0f && soften)
+                    ApplySoftening(velocitydata, &fdx, &fdy);
                 ApplyConstantDeceleration(velocitydata, &fdx, &fdy);
 
                 /* Calculate the new delta (with accel) and drop it back
