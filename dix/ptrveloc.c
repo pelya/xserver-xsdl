@@ -506,7 +506,13 @@ DoGetDirection(int dx, int dy){
 #define DIRECTION_CACHE_RANGE 5
 #define DIRECTION_CACHE_SIZE (DIRECTION_CACHE_RANGE*2+1)
 
-/* cache DoGetDirection(). */
+/* cache DoGetDirection().
+ * To avoid excessive use of direction calculation, cache the values for
+ * [-5..5] for both x/y. Anything outside of that is calcualted on the fly.
+ *
+ * @return A bitmask for N, NE, S, SE, etc. indicating the directions for
+ * this movement.
+ */
 static int
 GetDirection(int dx, int dy){
     static int cache[DIRECTION_CACHE_SIZE][DIRECTION_CACHE_SIZE];
