@@ -548,6 +548,10 @@ GetDirection(int dx, int dy){
 #define TRACKER_INDEX(s, d) (((s)->num_tracker + (s)->cur_tracker - (d)) % (s)->num_tracker)
 #define TRACKER(s, d) &(s)->tracker[TRACKER_INDEX(s,d)]
 
+/**
+ * Add the delta motion to each tracker, then reset the latest tracker to
+ * 0/0 and set it as the current one.
+ */
 static inline void
 FeedTrackers(DeviceVelocityPtr vel, int dx, int dy, int cur_t)
 {
@@ -583,10 +587,11 @@ CalcTracker(const MotionTracker *tracker, int cur_t){
 }
 
 /* find the most plausible velocity. That is, the most distant
- * (in time) tracker which isn't too old, beyond a linear partition,
- * or simply too much off initial velocity.
+ * (in time) tracker which isn't too old, the movement vector was
+ * in the same octant, and where the velocity is within an
+ * acceptable range to the inital velocity.
  *
- * May return 0.
+ * @return The tracker's velocity or 0 if the above conditions are unmet
  */
 static float
 QueryTrackers(DeviceVelocityPtr vel, int cur_t){
@@ -613,7 +618,7 @@ QueryTrackers(DeviceVelocityPtr vel, int cur_t){
 	 * non-linearities are accounted for.
 	 */
 	dir &= tracker->dir;
-	if(dir == 0){
+	if(dir == 0){ /* we've changed octant of movement (e.g. NE → NW) */
 	    DebugAccelF("(dix prtacc) query: no longer linear\n");
 	    /* instead of breaking it we might also inspect the partition after,
 	     * but actual improvement with this is probably rare. */
@@ -745,6 +750,8 @@ BasicComputeAcceleration(
 
 /**
  * Compute acceleration. Takes into account averaging, nv-reset, etc.
+ * If the velocity has changed, an average is taken of 6 velocity factors:
+ * current velocity, last velocity and 4 times the average between the two.
  */
 static float
 ComputeAcceleration(
@@ -1146,6 +1153,8 @@ acceleratePointerPredictable(
                                                       &fdx, &fdy,
                                                       (mult > 1.0f) && soften);
 
+                /* Calculate the new delta (with accel) and drop it back
+                 * into the valuator masks */
                 if (dx) {
                     tmp = mult * fdx + dev->last.remainder[0];
                     /* Since it may not be apparent: lrintf() does not offer
