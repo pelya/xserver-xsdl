@@ -759,7 +759,7 @@ ComputeAcceleration(
     DeviceVelocityPtr vel,
     float threshold,
     float acc){
-    float res;
+    float result;
 
     if(vel->velocity <= 0){
 	DebugAccelF("(dix ptracc) profile skipped\n");
@@ -774,24 +774,24 @@ ComputeAcceleration(
 	 * current and previous velocity.
 	 * Though being the more natural choice, it causes a minor delay
 	 * in comparison, so it can be disabled. */
-	res = BasicComputeAcceleration(
+	result = BasicComputeAcceleration(
 	          dev, vel, vel->velocity, threshold, acc);
-	res += BasicComputeAcceleration(
+	result += BasicComputeAcceleration(
 	          dev, vel, vel->last_velocity, threshold, acc);
-	res += 4.0f * BasicComputeAcceleration(dev, vel,
+	result += 4.0f * BasicComputeAcceleration(dev, vel,
 	                   (vel->last_velocity + vel->velocity) / 2,
 	                   threshold, acc);
-	res /= 6.0f;
+	result /= 6.0f;
 	DebugAccelF("(dix ptracc) profile average [%.2f ... %.2f] is %.3f\n",
-	            vel->velocity, vel->last_velocity, res);
+	            vel->velocity, vel->last_velocity, result);
     }else{
-	res = BasicComputeAcceleration(dev, vel,
-	                               vel->velocity, threshold, acc);
+	result = BasicComputeAcceleration(dev, vel,
+	                                  vel->velocity, threshold, acc);
 	DebugAccelF("(dix ptracc) profile sample [%.2f] is %.3f\n",
                vel->velocity, res);
     }
 
-    return res;
+    return result;
 }
 
 
