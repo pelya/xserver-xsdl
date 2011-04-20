@@ -709,7 +709,7 @@ ApplySimpleSoftening(int prev_delta, int delta)
 
 
 static void
-ApplySofteningAndConstantDeceleration(
+ApplySoftening(
         DeviceVelocityPtr vel,
         int dx,
         int dy,
@@ -724,7 +724,11 @@ ApplySofteningAndConstantDeceleration(
         *fdx = dx;
         *fdy = dy;
     }
+}
 
+static void
+ApplyConstantDeceleration(DeviceVelocityPtr vel, float *fdx, float *fdy)
+{
     *fdx *= vel->const_acceleration;
     *fdy *= vel->const_acceleration;
 }
@@ -1149,10 +1153,11 @@ acceleratePointerPredictable(
                                             (float)dev->ptrfeed->ctrl.den);
 
             if(mult != 1.0f || velocitydata->const_acceleration != 1.0f) {
-                ApplySofteningAndConstantDeceleration(velocitydata,
-                                                      dx, dy,
-                                                      &fdx, &fdy,
-                                                      (mult > 1.0f) && soften);
+                ApplySoftening(velocitydata,
+                               dx, dy,
+                               &fdx, &fdy,
+                               (mult > 1.0f) && soften);
+                ApplyConstantDeceleration(velocitydata, &fdx, &fdy);
 
                 /* Calculate the new delta (with accel) and drop it back
                  * into the valuator masks */
