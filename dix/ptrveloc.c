@@ -714,7 +714,7 @@ ApplySofteningAndConstantDeceleration(
         int dy,
         float* fdx,
         float* fdy,
-        short do_soften)
+        BOOL do_soften)
 {
     if (do_soften && vel->use_softening) {
         *fdx = ApplySimpleSoftening(vel->last_dx, dx);
