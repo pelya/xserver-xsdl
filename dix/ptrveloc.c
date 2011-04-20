@@ -1118,7 +1118,6 @@ acceleratePointerPredictable(
     ValuatorMask* val,
     CARD32 evtime)
 {
-    float tmp, mult; /* no need to init */
     int dx = 0, dy = 0, tmpi;
     DeviceVelocityPtr velocitydata = GetDevicePredictableAccelData(dev);
     Bool soften = TRUE;
@@ -1146,6 +1145,8 @@ acceleratePointerPredictable(
         }
 
         if (dev->ptrfeed && dev->ptrfeed->ctrl.num) {
+            float mult;
+
             /* invoke acceleration profile to determine acceleration */
             mult = ComputeAcceleration (dev, velocitydata,
                                         dev->ptrfeed->ctrl.threshold,
@@ -1163,6 +1164,7 @@ acceleratePointerPredictable(
                 /* Calculate the new delta (with accel) and drop it back
                  * into the valuator masks */
                 if (dx) {
+                    float tmp;
                     tmp = mult * fdx + dev->last.remainder[0];
                     /* Since it may not be apparent: lrintf() does not offer
                      * strong statements about rounding; however because we
@@ -1174,6 +1176,7 @@ acceleratePointerPredictable(
                     dev->last.remainder[0] = tmp - (float)tmpi;
                 }
                 if (dy) {
+                    float tmp;
                     tmp = mult * fdy + dev->last.remainder[1];
                     tmpi = lrintf(tmp);
                     valuator_mask_set(val, 1, tmpi);
