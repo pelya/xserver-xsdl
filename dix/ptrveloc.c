@@ -429,14 +429,27 @@ InitTrackers(DeviceVelocityPtr vel, int ntracker)
     vel->num_tracker = ntracker;
 }
 
+enum directions {
+    N   = (1 << 0),
+    NE  = (1 << 1),
+    E   = (1 << 2),
+    SE  = (1 << 3),
+    S   = (1 << 4),
+    SW  = (1 << 5),
+    W   = (1 << 6),
+    NW  = (1 << 7),
+    UNDEFINED = 0xFF
+};
 /**
  * return a bit field of possible directions.
- * 0 = N, 2 = E, 4 = S, 6 = W, in-between is as you guess.
  * There's no reason against widening to more precise directions (<45 degrees),
  * should it not perform well. All this is needed for is sort out non-linear
  * motion, so precision isn't paramount. However, one should not flag direction
  * too narrow, since it would then cut the linear segment to zero size way too
  * often.
+ *
+ * @return A bitmask for N, NE, S, SE, etc. indicating the directions for
+ * this movement.
  */
 static int
 DoGetDirection(int dx, int dy){
@@ -446,23 +459,23 @@ DoGetDirection(int dx, int dy){
     if(abs(dx) < 2 && abs(dy) < 2){
 	/* first check diagonal cases */
 	if(dx > 0 && dy > 0)
-	    return 4+8+16;
+	    return E | SE | S;
 	if(dx > 0 && dy < 0)
-	    return 1+2+4;
+	    return N | NE | E;
 	if(dx < 0 && dy < 0)
-	    return 1+128+64;
+	    return W | NW | N;
 	if(dx < 0 && dy > 0)
-	    return 16+32+64;
+	    return W | SW | S;
         /* check axis-aligned directions */
 	if(dx > 0)
-            return 2+4+8; /*E*/
+            return NE | E | SE;
         if(dx < 0)
-            return 128+64+32; /*W*/
+            return NW | W | SW;
         if(dy > 0)
-            return 32+16+8; /*S*/
+            return SE | S | SW;
         if(dy < 0)
-            return 128+1+2; /*N*/
-        return 255; /* shouldn't happen */
+            return NE | N | NW;
+        return UNDEFINED; /* shouldn't happen */
     }
     /* else, compute angle and set appropriate flags */
 #ifdef _ISOC99_SOURCE
@@ -478,7 +491,7 @@ DoGetDirection(int dx, int dy){
     i1 = (int)(r+0.1) % 8;
     i2 = (int)(r+0.9) % 8;
     if(i1 < 0 || i1 > 7 || i2 < 0 || i2 > 7)
-	return 255; /* shouldn't happen */
+	return UNDEFINED; /* shouldn't happen */
     return 1 << i1 | 1 << i2;
 }
 
@@ -558,7 +571,7 @@ CalcTracker(DeviceVelocityPtr vel, int offset, int cur_t){
  */
 static float
 QueryTrackers(DeviceVelocityPtr vel, int cur_t){
-    int n, offset, dir = 255, i = -1, age_ms;
+    int n, offset, dir = UNDEFINED, i = -1, age_ms;
     /* initial velocity: a low-offset, valid velocity */
     float iveloc = 0, res = 0, tmp, vdiff;
     float vfac =  vel->corr_mul * vel->const_acceleration; /* premultiply */
