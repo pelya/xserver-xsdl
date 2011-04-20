@@ -546,6 +546,7 @@ GetDirection(int dx, int dy){
 
 /* convert offset (age) to array index */
 #define TRACKER_INDEX(s, d) (((s)->num_tracker + (s)->cur_tracker - (d)) % (s)->num_tracker)
+#define TRACKER(s, d) &(s)->tracker[TRACKER_INDEX(s,d)]
 
 static inline void
 FeedTrackers(DeviceVelocityPtr vel, int dx, int dy, int cur_t)
@@ -589,15 +590,15 @@ CalcTracker(const MotionTracker *tracker, int cur_t){
  */
 static float
 QueryTrackers(DeviceVelocityPtr vel, int cur_t){
-    int n, offset, dir = UNDEFINED, i = -1, age_ms;
+    int offset, dir = UNDEFINED, i = -1, age_ms;
     /* initial velocity: a low-offset, valid velocity */
     float iveloc = 0, res = 0, tmp, vdiff;
     float vfac =  vel->corr_mul * vel->const_acceleration; /* premultiply */
     /* loop from current to older data */
     for(offset = 1; offset < vel->num_tracker; offset++){
-	n = TRACKER_INDEX(vel, offset);
+	MotionTracker *tracker = TRACKER(vel, offset);
 
-	age_ms = cur_t - vel->tracker[n].time;
+	age_ms = cur_t - tracker->time;
 
 	/* bail out if data is too old and protect from overrun */
 	if (age_ms >= vel->reset_time || age_ms < 0) {
@@ -611,7 +612,7 @@ QueryTrackers(DeviceVelocityPtr vel, int cur_t){
 	 * even more precision we could subdivide as a final step, so possible
 	 * non-linearities are accounted for.
 	 */
-	dir &= vel->tracker[n].dir;
+	dir &= tracker->dir;
 	if(dir == 0){
 	    DebugAccelF("(dix prtacc) query: no longer linear\n");
 	    /* instead of breaking it we might also inspect the partition after,
@@ -619,7 +620,7 @@ QueryTrackers(DeviceVelocityPtr vel, int cur_t){
 	    break;
 	}
 
-	tmp = CalcTracker(&vel->tracker[n], cur_t) * vfac;
+	tmp = CalcTracker(tracker, cur_t) * vfac;
 
 	if ((iveloc == 0 || offset <= vel->initial_range) && tmp != 0) {
 	    /* set initial velocity and result */
@@ -647,18 +648,18 @@ QueryTrackers(DeviceVelocityPtr vel, int cur_t){
 	DebugAccelF("(dix prtacc) query: last tracker in effect\n");
 	i = vel->num_tracker-1;
     }
+#ifdef PTRACCEL_DEBUGGING
     if(i>=0){
-        n = TRACKER_INDEX(vel, i);
+	MotionTracker *tracker = TRACKER(vel, i);
 	DebugAccelF("(dix prtacc) result: offset %i [dx: %i dy: %i diff: %i]\n",
-	            i,
-	            vel->tracker[n].dx,
-	            vel->tracker[n].dy,
-	            cur_t - vel->tracker[n].time);
+	            i, tracker->dx, tracker->dy, cur_t - tracker->time);
     }
+#endif
     return res;
 }
 
 #undef TRACKER_INDEX
+#undef TRACKER
 
 /**
  * Perform velocity approximation based on 2D 'mickeys' (mouse motion delta).
