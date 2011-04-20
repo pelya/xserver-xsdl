@@ -486,7 +486,7 @@ DoGetDirection(int dx, int dy){
     /* find direction. We avoid r to become negative,
      * since C has no well-defined modulo for such cases. */
     r = (r+(M_PI*2.5))/(M_PI/4);
-    /* this intends to flag 2 directions (90 degrees),
+    /* this intends to flag 2 directions (45 degrees each),
      * except on very well-aligned mickeys. */
     i1 = (int)(r+0.1) % 8;
     i2 = (int)(r+0.9) % 8;
