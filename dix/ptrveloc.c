@@ -516,22 +516,21 @@ DoGetDirection(int dx, int dy){
 static int
 GetDirection(int dx, int dy){
     static int cache[DIRECTION_CACHE_SIZE][DIRECTION_CACHE_SIZE];
-    int i;
+    int dir;
     if (abs(dx) <= DIRECTION_CACHE_RANGE &&
 	abs(dy) <= DIRECTION_CACHE_RANGE) {
 	/* cacheable */
-	i = cache[DIRECTION_CACHE_RANGE+dx][DIRECTION_CACHE_RANGE+dy];
-	if(i != 0){
-	    return i;
-	}else{
-	    i = DoGetDirection(dx, dy);
-	    cache[DIRECTION_CACHE_RANGE+dx][DIRECTION_CACHE_RANGE+dy] = i;
-	    return i;
+	dir = cache[DIRECTION_CACHE_RANGE+dx][DIRECTION_CACHE_RANGE+dy];
+	if(dir == 0) {
+	    dir = DoGetDirection(dx, dy);
+	    cache[DIRECTION_CACHE_RANGE+dx][DIRECTION_CACHE_RANGE+dy] = dir;
 	}
     }else{
 	/* non-cacheable */
-	return DoGetDirection(dx, dy);
+	dir = DoGetDirection(dx, dy);
     }
+
+    return dir;
 }
 
 #undef DIRECTION_CACHE_RANGE
