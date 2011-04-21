@@ -950,7 +950,7 @@ environment the next time you start X11?", @"Startup xinitrc dialog");
     [X11App prefs_synchronize];
 }
 
-static inline pthread_t create_thread(void *func, void *arg) {
+static inline pthread_t create_thread(void *(*func)(void *), void *arg) {
     pthread_attr_t attr;
     pthread_t tid;
     

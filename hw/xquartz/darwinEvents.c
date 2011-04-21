@@ -94,7 +94,7 @@ static pthread_mutex_t mieq_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t mieq_ready_cond = PTHREAD_COND_INITIALIZER;
 
 /*** Pthread Magics ***/
-static pthread_t create_thread(void *func, void *arg) {
+static pthread_t create_thread(void *(*func)(void *), void *arg) {
     pthread_attr_t attr;
     pthread_t tid;
 
@@ -305,7 +305,7 @@ void DarwinListenOnOpenFD(int fd) {
     pthread_mutex_unlock(&fd_add_lock);
 }
 
-static void DarwinProcessFDAdditionQueue_thread(void *args) {
+static void *DarwinProcessFDAdditionQueue_thread(void *args) {
     /* TODO: Possibly adjust this to no longer be a race... maybe trigger this
      *       once a client connects and claims to be the WM.
      *
@@ -334,6 +334,8 @@ static void DarwinProcessFDAdditionQueue_thread(void *args) {
         }
         pthread_cond_wait(&fd_add_ready_cond, &fd_add_lock);
     }
+
+    return NULL;
 }
 
 Bool DarwinEQInit(void) { 

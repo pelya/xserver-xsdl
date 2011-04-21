@@ -95,7 +95,7 @@ static int execute(const char *command);
 static char *command_from_prefs(const char *key, const char *default_value);
 
 /*** Pthread Magics ***/
-static pthread_t create_thread(void *func, void *arg) {
+static pthread_t create_thread(void *(*func)(void *), void *arg) {
     pthread_attr_t attr;
     pthread_t tid;
 	
@@ -199,7 +199,7 @@ typedef struct {
 /* This thread accepts an incoming connection and hands off the file
  * descriptor for the new connection to accept_fd_handoff()
  */
-static void socket_handoff_thread(void *arg) {
+static void *socket_handoff_thread(void *arg) {
     socket_handoff_t *handoff_data = (socket_handoff_t *)arg;
     int launchd_fd = -1;
     int connected_fd;
@@ -228,6 +228,8 @@ static void socket_handoff_thread(void *arg) {
         
     fprintf(stderr, "X11.app Handing off fd to server thread via DarwinListenOnOpenFD(%d)\n", launchd_fd);
     DarwinListenOnOpenFD(launchd_fd);
+
+    return NULL;
 }
 
 static int create_socket(char *filename_out) {
