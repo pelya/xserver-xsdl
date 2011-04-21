@@ -47,7 +47,6 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#include <sys/time.h>
 #include <fcntl.h>
 
 #include <mach/mach.h>
@@ -204,7 +203,6 @@ static void socket_handoff_thread(void *arg) {
     socket_handoff_t *handoff_data = (socket_handoff_t *)arg;
     int launchd_fd = -1;
     int connected_fd;
-    unsigned remain;
 
     /* Now actually get the passed file descriptor from this connection
      * If we encounter an error, keep listening.
@@ -227,20 +225,7 @@ static void socket_handoff_thread(void *arg) {
     close(handoff_data->fd);
     unlink(handoff_data->filename);
     free(handoff_data);
-    
-    /* TODO: Clean up this race better... giving xinitrc time to run... need to wait for 1.5 branch:
-     *
-     * From ajax:
-     * There's already an internal callback chain for setting selection [in 1.5]
-     * ownership.  See the CallSelectionCallback at the bottom of
-     * ProcSetSelectionOwner, and xfixes/select.c for an example of how to hook
-     * into it.
-     */
-    
-    remain = 3000000;
-    fprintf(stderr, "X11.app: Received new $DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
-    while((remain = usleep(remain)) > 0);
-    
+        
     fprintf(stderr, "X11.app Handing off fd to server thread via DarwinListenOnOpenFD(%d)\n", launchd_fd);
     DarwinListenOnOpenFD(launchd_fd);
 }

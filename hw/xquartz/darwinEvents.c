@@ -61,6 +61,7 @@ in this Software without prior written authorization from The Open Group.
 #include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
+#include <time.h>
 
 #include <IOKit/hidsystem/IOLLEvent.h>
 
@@ -305,6 +306,27 @@ void DarwinListenOnOpenFD(int fd) {
 }
 
 static void DarwinProcessFDAdditionQueue_thread(void *args) {
+    /* TODO: Possibly adjust this to no longer be a race... maybe trigger this
+     *       once a client connects and claims to be the WM.
+     *
+     * From ajax:
+     * There's already an internal callback chain for setting selection [in 1.5]
+     * ownership.  See the CallSelectionCallback at the bottom of
+     * ProcSetSelectionOwner, and xfixes/select.c for an example of how to hook
+     * into it.
+     */
+
+    struct timespec sleep_for;
+    struct timespec sleep_remaining;
+
+    sleep_for.tv_sec = 3;
+    sleep_for.tv_nsec = 0;
+
+    ErrorF("X11.app: DarwinProcessFDAdditionQueue_thread: Sleeping to allow xinitrc to catchup.\n");
+    while(nanosleep(&sleep_for, &sleep_remaining) != 0) {
+        sleep_for = sleep_remaining;
+    }
+
     pthread_mutex_lock(&fd_add_lock);
     while(true) {
         while(fd_add_count) {
