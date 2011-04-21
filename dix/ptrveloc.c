@@ -634,20 +634,20 @@ QueryTrackers(DeviceVelocityPtr vel, int cur_t){
 	    used_offset = offset;
 	} else if (initial_velocity != 0 && tracker_velocity != 0) {
 	    velocity_diff = fabs(initial_velocity - tracker_velocity);
-	    if (velocity_diff <= vel->max_diff ||
-		velocity_diff/(initial_velocity + tracker_velocity) < vel->max_rel_diff) {
-		/* we're in range with the initial velocity,
-		 * so this result is likely better
-		 * (it contains more information). */
-		result = tracker_velocity;
-		used_offset = offset;
-	    }else{
+
+	    if (velocity_diff > vel->max_diff &&
+		velocity_diff/(initial_velocity + tracker_velocity) >= vel->max_rel_diff) {
 		/* we're not in range, quit - it won't get better. */
 		DebugAccelF("(dix prtacc) query: tracker too different:"
 		            " old %2.2f initial %2.2f diff: %2.2f\n",
 		            tracker_velocity, initial_velocity, velocity_diff);
 		break;
 	    }
+	    /* we're in range with the initial velocity,
+	     * so this result is likely better
+	     * (it contains more information). */
+	    result = tracker_velocity;
+	    used_offset = offset;
 	}
     }
     if(offset == vel->num_tracker){
