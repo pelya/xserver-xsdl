@@ -595,13 +595,14 @@ CalcTracker(const MotionTracker *tracker, int cur_t){
  */
 static float
 QueryTrackers(DeviceVelocityPtr vel, int cur_t){
-    int offset, dir = UNDEFINED, i = -1, age_ms;
+    int offset, dir = UNDEFINED, used_offset = -1, age_ms;
     /* initial velocity: a low-offset, valid velocity */
-    float iveloc = 0, res = 0, tmp, vdiff;
-    float vfac =  vel->corr_mul * vel->const_acceleration; /* premultiply */
+    float initial_velocity = 0, result = 0, velocity_diff;
+    float velocity_factor =  vel->corr_mul * vel->const_acceleration; /* premultiply */
     /* loop from current to older data */
     for(offset = 1; offset < vel->num_tracker; offset++){
 	MotionTracker *tracker = TRACKER(vel, offset);
+	float tracker_velocity;
 
 	age_ms = cur_t - tracker->time;
 
@@ -625,42 +626,42 @@ QueryTrackers(DeviceVelocityPtr vel, int cur_t){
 	    break;
 	}
 
-	tmp = CalcTracker(tracker, cur_t) * vfac;
+	tracker_velocity = CalcTracker(tracker, cur_t) * velocity_factor;
 
-	if ((iveloc == 0 || offset <= vel->initial_range) && tmp != 0) {
+	if ((initial_velocity == 0 || offset <= vel->initial_range) && tracker_velocity != 0) {
 	    /* set initial velocity and result */
-	    res = iveloc = tmp;
-	    i = offset;
-	} else if (iveloc != 0 && tmp != 0) {
-	    vdiff = fabs(iveloc - tmp);
-	    if (vdiff <= vel->max_diff ||
-		vdiff/(iveloc + tmp) < vel->max_rel_diff) {
+	    result = initial_velocity = tracker_velocity;
+	    used_offset = offset;
+	} else if (initial_velocity != 0 && tracker_velocity != 0) {
+	    velocity_diff = fabs(initial_velocity - tracker_velocity);
+	    if (velocity_diff <= vel->max_diff ||
+		velocity_diff/(initial_velocity + tracker_velocity) < vel->max_rel_diff) {
 		/* we're in range with the initial velocity,
 		 * so this result is likely better
 		 * (it contains more information). */
-		res = tmp;
-		i = offset;
+		result = tracker_velocity;
+		used_offset = offset;
 	    }else{
 		/* we're not in range, quit - it won't get better. */
 		DebugAccelF("(dix prtacc) query: tracker too different:"
 		            " old %2.2f initial %2.2f diff: %2.2f\n",
-		            tmp, iveloc, vdiff);
+		            tracker_velocity, initial_velocity, velocity_diff);
 		break;
 	    }
 	}
     }
     if(offset == vel->num_tracker){
 	DebugAccelF("(dix prtacc) query: last tracker in effect\n");
-	i = vel->num_tracker-1;
+	used_offset = vel->num_tracker-1;
     }
 #ifdef PTRACCEL_DEBUGGING
-    if(i>=0){
-	MotionTracker *tracker = TRACKER(vel, i);
+    if(used_offset >= 0){
+	MotionTracker *tracker = TRACKER(vel, used_offset);
 	DebugAccelF("(dix prtacc) result: offset %i [dx: %i dy: %i diff: %i]\n",
-	            i, tracker->dx, tracker->dy, cur_t - tracker->time);
+	            used_offset, tracker->dx, tracker->dy, cur_t - tracker->time);
     }
 #endif
-    return res;
+    return result;
 }
 
 #undef TRACKER_INDEX
