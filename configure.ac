@@ -726,9 +726,9 @@ case $host_os in
 		 		save_LDFLAGS=$LDFLAGS
 				LDFLAGS="$LDFLAGS -framework Carbon"
 				AC_LINK_IFELSE([char FSFindFolder(); int main() { FSFindFolder(); return 0;}],
-				[xorg_cv_Carbon_framework=yes],
-				[xorg_cv_Carbon_framework=no])
-			LDFLAGS=$save_LDFLAGS])
+				               [xorg_cv_Carbon_framework=yes],
+				               [xorg_cv_Carbon_framework=no])
+			        LDFLAGS=$save_LDFLAGS])
                 
 			if test "X$xorg_cv_Carbon_framework" = Xyes; then
 				XQUARTZ=yes
@@ -736,6 +736,10 @@ case $host_os in
 				XQUARTZ=no
 			fi
 		fi
+
+		AC_CHECK_FUNC(dispatch_async,
+		              AC_DEFINE([HAVE_LIBDISPATCH], 1, [Define to 1 if you have the libdispatch (GCD) available]),
+		              [])
 
 		if test "x$XQUARTZ" = xyes ; then
 			XQUARTZ=yes
