@@ -453,54 +453,61 @@ enum directions {
  */
 static int
 DoGetDirection(int dx, int dy){
-    float r;
-    int i1, i2;
+    int dir = 0;
+
     /* on insignificant mickeys, flag 135 degrees */
     if(abs(dx) < 2 && abs(dy) < 2){
-	/* first check diagonal cases */
-	if(dx > 0 && dy > 0)
-	    return E | SE | S;
-	if(dx > 0 && dy < 0)
-	    return N | NE | E;
-	if(dx < 0 && dy < 0)
-	    return W | NW | N;
-	if(dx < 0 && dy > 0)
-	    return W | SW | S;
+        /* first check diagonal cases */
+        if(dx > 0 && dy > 0)
+            dir = E | SE | S;
+        else if(dx > 0 && dy < 0)
+            dir =  N | NE | E;
+        else if(dx < 0 && dy < 0)
+            dir =  W | NW | N;
+        else if(dx < 0 && dy > 0)
+            dir =  W | SW | S;
         /* check axis-aligned directions */
-	if(dx > 0)
-            return NE | E | SE;
-        if(dx < 0)
-            return NW | W | SW;
-        if(dy > 0)
-            return SE | S | SW;
-        if(dy < 0)
-            return NE | N | NW;
-        return UNDEFINED; /* shouldn't happen */
-    }
-    /* else, compute angle and set appropriate flags */
+        else if(dx > 0)
+            dir =  NE | E | SE;
+        else if(dx < 0)
+            dir =  NW | W | SW;
+        else if(dy > 0)
+            dir =  SE | S | SW;
+        else if(dy < 0)
+            dir =  NE | N | NW;
+        else
+            dir = UNDEFINED; /* shouldn't happen */
+    } else { /* compute angle and set appropriate flags */
+        float r;
+        int i1, i2;
+
 #ifdef _ISOC99_SOURCE
-    r = atan2f(dy, dx);
+        r = atan2f(dy, dx);
 #else
-    r = atan2(dy, dx);
+        r = atan2(dy, dx);
 #endif
-    /* find direction.
-     *
-     * Add 360° to avoid r become negative since C has no well-defined
-     * modulo for such cases. Then divide by 45° to get the octant number,
-     * e.g.     0 <= r <= 1 is [0-45]°
-     *          1 <= r <= 2 is [45-90]°
-     *          etc.
-     * But we add extra 90° to match up with our N, S, etc. defines up
-     * there, rest stays the same.
-     */
-    r = (r+(M_PI*2.5))/(M_PI/4);
-    /* this intends to flag 2 directions (45 degrees each),
-     * except on very well-aligned mickeys. */
-    i1 = (int)(r+0.1) % 8;
-    i2 = (int)(r+0.9) % 8;
-    if(i1 < 0 || i1 > 7 || i2 < 0 || i2 > 7)
-	return UNDEFINED; /* shouldn't happen */
-    return 1 << i1 | 1 << i2;
+        /* find direction.
+         *
+         * Add 360° to avoid r become negative since C has no well-defined
+         * modulo for such cases. Then divide by 45° to get the octant
+         * number,  e.g.
+         *          0 <= r <= 1 is [0-45]°
+         *          1 <= r <= 2 is [45-90]°
+         *          etc.
+         * But we add extra 90° to match up with our N, S, etc. defines up
+         * there, rest stays the same.
+         */
+        r = (r+(M_PI*2.5))/(M_PI/4);
+        /* this intends to flag 2 directions (45 degrees),
+         * except on very well-aligned mickeys. */
+        i1 = (int)(r+0.1) % 8;
+        i2 = (int)(r+0.9) % 8;
+        if(i1 < 0 || i1 > 7 || i2 < 0 || i2 > 7)
+            dir = UNDEFINED; /* shouldn't happen */
+        else
+            dir = (1 << i1 | 1 << i2);
+    }
+    return dir;
 }
 
 #define DIRECTION_CACHE_RANGE 5
