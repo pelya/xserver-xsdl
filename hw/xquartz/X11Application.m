@@ -61,6 +61,12 @@ extern int xpbproxy_run (void);
 #define XSERVER_VERSION "?"
 #endif
 
+#ifdef HAVE_LIBDISPATCH
+#include <dispatch/dispatch.h>
+
+static dispatch_queue_t eventTranslationQueue;
+#endif
+
 /* Stuck modifier / button state... force release when we context switch */
 static NSEventType keyState[NUM_KEYCODES];
 
@@ -385,7 +391,15 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     
     if (for_appkit) [super sendEvent:e];
     
-    if (for_x) [self sendX11NSEvent:e];
+    if (for_x) {
+#ifdef HAVE_LIBDISPATCH
+        dispatch_async(eventTranslationQueue, ^{
+#endif
+            [self sendX11NSEvent:e];
+#ifdef HAVE_LIBDISPATCH
+        });
+#endif
+    }
 }
 
 - (void) set_window_menu:(NSArray *)list {
@@ -999,6 +1013,11 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
     NSMaxY([[NSScreen mainScreen] visibleFrame]);
 
+#ifdef HAVE_LIBDISPATCH
+    eventTranslationQueue = dispatch_queue_create(LAUNCHD_ID_PREFIX".X11.NSEventsToX11EventsQueue", NULL);
+    assert(eventTranslationQueue != NULL);
+#endif
+    
     /* Set the key layout seed before we start the server */
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     last_key_layout = TISCopyCurrentKeyboardLayoutInputSource();    
