@@ -489,7 +489,7 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
     DarwinPrepareValuators(pDev, valuators, screen, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     darwinEvents_lock(); {
         ValuatorMask mask;
-        valuator_mask_set_range(&mask, 0, (pDev == darwinTabletCurrent) ? 5 : 2, valuators);
+        valuator_mask_set_range(&mask, 0, (pDev == darwinPointer) ? 2 : 5, valuators);
         num_events = GetPointerEvents(darwinEvents, pDev, ev_type, ev_button, 
                                       POINTER_ABSOLUTE, &mask);
         for(i=0; i<num_events; i++) mieqEnqueue (pDev, (InternalEvent*)darwinEvents[i].event);
@@ -512,18 +512,18 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
     } darwinEvents_unlock();
 }
 
-void DarwinSendProximityEvents(int ev_type, float pointer_x, float pointer_y) {
-	int i, num_events;
+void DarwinSendProximityEvents(DeviceIntPtr pDev, int ev_type, float pointer_x, float pointer_y,  
+                               float pressure, float tilt_x, float tilt_y) {
+    int i, num_events;
     ScreenPtr screen;
-    DeviceIntPtr pDev = darwinTabletCurrent;
     int valuators[5];
 
-	DEBUG_LOG("DarwinSendProximityEvents(%d, %f, %f)\n", ev_type, pointer_x, pointer_y);
+    DEBUG_LOG("DarwinSendProximityEvents: %d l:%f,%f p:%f t:%f,%f\n", ev_type, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
 
-	if(!darwinEvents) {
-		DEBUG_LOG("DarwinSendProximityEvents called before darwinEvents was initialized\n");
-		return;
-	}
+    if(!darwinEvents) {
+        DEBUG_LOG("DarwinSendProximityEvents called before darwinEvents was initialized\n");
+        return;
+    }
     
     screen = miPointerGetScreen(pDev);
     if(!screen) {
@@ -531,7 +531,7 @@ void DarwinSendProximityEvents(int ev_type, float pointer_x, float pointer_y) {
         return;
     }    
 
-    DarwinPrepareValuators(pDev, valuators, screen, pointer_x, pointer_y, 0.0f, 0.0f, 0.0f);
+    DarwinPrepareValuators(pDev, valuators, screen, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     darwinEvents_lock(); {
         ValuatorMask mask;
         valuator_mask_set_range(&mask, 0, 5, valuators);

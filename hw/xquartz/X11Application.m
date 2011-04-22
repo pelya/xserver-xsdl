@@ -1079,13 +1079,29 @@ static const char *untrusted_str(NSEvent *e) {
 #endif
 
 - (void) sendX11NSEvent:(NSEvent *)e {
-    NSPoint location = NSZeroPoint, tilt = NSZeroPoint;
+    NSPoint location = NSZeroPoint;
     int ev_button, ev_type;
-    float pressure = 0.0;
+    static float pressure = 0.0;       // static so ProximityOut will have the value from the previous tablet event
+    static NSPoint tilt;               // static so ProximityOut will have the value from the previous tablet event
+    static DeviceIntPtr darwinTabletCurrent = NULL;
+    static BOOL needsProximityIn = NO; // Do we do need to handle a pending ProximityIn once we have pressure/tilt?
     DeviceIntPtr pDev;
     int modifierFlags;
     BOOL isMouseOrTabletEvent, isTabletEvent;
 
+#ifdef HAVE_LIBDISPATCH
+    static dispatch_once_t once_pred;
+    dispatch_once(&once_pred, ^{
+        tilt = NSZeroPoint;
+        darwinTabletCurrent = darwinTabletStylus;
+    });
+#else
+    if(!darwinTabletCurrent) {
+        tilt = NSZeroPoint;
+        darwinTabletCurrent = darwinTabletStylus;
+    }
+#endif
+    
     isMouseOrTabletEvent =  [e type] == NSLeftMouseDown    ||  [e type] == NSOtherMouseDown    ||  [e type] == NSRightMouseDown    ||
                             [e type] == NSLeftMouseUp      ||  [e type] == NSOtherMouseUp      ||  [e type] == NSRightMouseUp      ||
                             [e type] == NSLeftMouseDragged ||  [e type] == NSOtherMouseDragged ||  [e type] == NSRightMouseDragged ||
@@ -1207,19 +1223,14 @@ static const char *untrusted_str(NSEvent *e) {
                         darwinTabletCurrent=darwinTabletCursor;
                         break;
                 }
-                
-                /* NSTabletProximityEventSubtype doesn't encode pressure ant tilt
-                 * So we just pretend the motion was caused by the mouse.  Hopefully
-                 * we'll have a better solution for this in the future (like maybe
-                 * NSTabletProximityEventSubtype will come from NSTabletPoint
-                 * rather than NSMouseMoved.
-                pressure = [e pressure];
-                tilt     = [e tilt];
-                pDev = darwinTabletCurrent;                
-                 */
 
-                DarwinSendProximityEvents([e isEnteringProximity] ? ProximityIn : ProximityOut,
-                                          location.x, location.y);
+                if([e isEnteringProximity])
+                    needsProximityIn = YES;
+                else
+                    DarwinSendProximityEvents(darwinTabletCurrent, ProximityOut,
+                                              location.x, location.y, pressure,
+                                              tilt.x, tilt.y);
+                return;
             }
 
 			if ([e type] == NSTabletPoint || [e subtype] == NSTabletPointEventSubtype) {
@@ -1227,6 +1238,14 @@ static const char *untrusted_str(NSEvent *e) {
                 tilt     = [e tilt];
                 
                 pDev = darwinTabletCurrent;
+                
+                if(needsProximityIn) {
+                    DarwinSendProximityEvents(darwinTabletCurrent, ProximityIn,
+                                              location.x, location.y, pressure,
+                                              tilt.x, tilt.y);
+
+                    needsProximityIn = NO;
+                }
             }
 
             if(!XQuartzServerVisible && noTestExtensions) {
@@ -1280,8 +1299,12 @@ static const char *untrusted_str(NSEvent *e) {
                     break;
             }
             
-			DarwinSendProximityEvents([e isEnteringProximity] ? ProximityIn : ProximityOut,
-                                      location.x, location.y);
+            if([e isEnteringProximity])
+                needsProximityIn = YES;
+            else
+                DarwinSendProximityEvents(darwinTabletCurrent, ProximityOut,
+                                          location.x, location.y, pressure,
+                                          tilt.x, tilt.y);
             break;
             
 		case NSScrollWheel:
