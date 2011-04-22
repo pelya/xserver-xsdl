@@ -35,7 +35,7 @@ AM_MAINTAINER_MODE
 # Require xorg-macros minimum of 1.13 for XORG_ENABLE_UNIT_TESTS
 m4_ifndef([XORG_MACROS_VERSION],
           [m4_fatal([must install xorg-macros 1.13 or later before running autoconf/autogen])])
-XORG_MACROS_VERSION(1.10)
+XORG_MACROS_VERSION(1.13)
 XORG_DEFAULT_OPTIONS
 XORG_WITH_DOXYGEN(1.6.1)
 XORG_CHECK_SGML_DOCTOOLS(1.5)
@@ -44,7 +44,6 @@ XORG_ENABLE_DEVEL_DOCS
 XORG_WITH_XMLTO(0.0.20)
 XORG_WITH_FOP
 XORG_ENABLE_UNIT_TESTS
-XORG_WITH_GLIB
 XORG_LD_WRAP
 
 m4_ifndef([XORG_FONT_MACROS_VERSION], [m4_fatal([must install fontutil 1.1 or later before running autoconf/autogen])])
@@ -791,7 +790,6 @@ LIBXFONT="xfont >= 1.4.2"
 LIBXI="xi >= 1.2.99.1"
 LIBXTST="xtst >= 1.0.99.2"
 LIBPCIACCESS="pciaccess >= 0.8.0"
-LIBGLIB="glib-2.0 >= 2.16"
 LIBUDEV="libudev >= 143"
 LIBSELINUX="libselinux >= 2.0.86"
 LIBDBUS="dbus-1 >= 1.0"
