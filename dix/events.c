@@ -345,8 +345,8 @@ extern int DeviceMotionNotify;
 /**
  * Event masks for each event type.
  *
- * One set of filters for each device, but only the first layer
- * is initialized. The rest is memcpy'd in InitEvents.
+ * One set of filters for each device, initialized by memcpy of
+ * default_filter in InitEvents.
  *
  * Filters are used whether a given event may be delivered to a client,
  * usually in the form of if (window-event-mask & filter); then deliver event.
@@ -355,7 +355,9 @@ extern int DeviceMotionNotify;
  * time a button is pressed, the filter is modified to also contain the
  * matching ButtonXMotion mask.
  */
-static Mask filters[MAXDEVICES][128] = {
+static Mask filters[MAXDEVICES][128];
+
+static const Mask default_filter[128] =
 {
 	NoSuchEvent,		       /* 0 */
 	NoSuchEvent,		       /* 1 */
@@ -392,7 +394,7 @@ static Mask filters[MAXDEVICES][128] = {
 	ColormapChangeMask,	       /* ColormapNotify */
 	CantBeFiltered,		       /* ClientMessage */
 	CantBeFiltered		       /* MappingNotify */
-}};
+};
 
 /**
  * For the given event, return the matching event filter. This filter may then
@@ -4977,12 +4979,9 @@ InitEvents(void)
     inputInfo.off_devices = (DeviceIntPtr)NULL;
     inputInfo.keyboard = (DeviceIntPtr)NULL;
     inputInfo.pointer = (DeviceIntPtr)NULL;
-    /* The mask for pointer motion events may have changed in the last server
-     * generation. See comment above definition of filters. */
-    filters[0][PointerMotionMask] = MotionNotify;
-    for (i = 1; i < MAXDEVICES; i++)
+    for (i = 0; i < MAXDEVICES; i++)
     {
-        memcpy(&filters[i], filters[0], sizeof(filters[0]));
+        memcpy(&filters[i], default_filter, sizeof(default_filter));
     }
 
     syncEvents.replayDev = (DeviceIntPtr)NULL;
