@@ -236,8 +236,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                 
                 if ([self isActive]) {
                     [self deactivate];
-                    if (!_x_active && quartzProcs->IsX11Window([e window],
-                                                               [e windowNumber]))
+                    if (!_x_active && quartzProcs->IsX11Window([e windowNumber]))
                         [self activateX:YES];
                 }
             }

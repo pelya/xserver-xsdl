@@ -43,7 +43,11 @@
 #include "windowstr.h"
 #include "quartz.h"
 
+#ifdef HAVE_LIBDISPATCH
+#include <dispatch/dispatch.h>
+#else
 #include <pthread.h>
+#endif
 
 #define DEFINE_ATOM_HELPER(func,atom_name)                      \
 static Atom func (void) {                                       \
@@ -61,10 +65,12 @@ DEFINE_ATOM_HELPER(xa_native_window_id, "_NATIVE_WINDOW_ID")
 /* Maps xp_window_id -> RootlessWindowRec */
 static x_hash_table *window_hash;
 
-/* Need to guard window_hash since xprGetXWindowFromAppKit and xprIsX11Window
- * can be called from any thread.
- */
+/* Need to guard window_hash since xprIsX11Window can be called from any thread. */
+#ifdef HAVE_LIBDISPATCH
+static dispatch_queue_t window_hash_serial_q;
+#else
 static pthread_mutex_t window_hash_mutex;
+#endif
 
 /* Prototypes for static functions */
 static Bool xprCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
@@ -181,9 +187,15 @@ xprCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
         return FALSE;
     }
 
+#ifdef HAVE_LIBDISPATCH
+    dispatch_async(window_hash_serial_q, ^{
+        x_hash_table_insert(window_hash, pFrame->wid, pFrame);
+    });
+#else
     pthread_mutex_lock(&window_hash_mutex);
     x_hash_table_insert(window_hash, pFrame->wid, pFrame);
     pthread_mutex_unlock(&window_hash_mutex);
+#endif
 
     xprSetNativeProperty(pFrame);
 
@@ -199,9 +211,15 @@ xprDestroyFrame(RootlessFrameID wid)
 {
     xp_error err;
 
+#ifdef HAVE_LIBDISPATCH
+    dispatch_async(window_hash_serial_q, ^{
+        x_hash_table_remove(window_hash, wid);
+    });
+#else
     pthread_mutex_lock(&window_hash_mutex);
     x_hash_table_remove(window_hash, wid);
     pthread_mutex_unlock(&window_hash_mutex);
+#endif
 
     err = xp_destroy_window(x_cvt_vptr_to_uint(wid));
     if (err != Success)
@@ -253,6 +271,9 @@ xprResizeFrame(RootlessFrameID wid, ScreenPtr pScreen,
 static void xprRestackFrame(RootlessFrameID wid, RootlessFrameID nextWid) {
     xp_window_changes wc;
     unsigned int mask = XP_STACKING;
+#ifdef HAVE_LIBDISPATCH
+    __block
+#endif
     RootlessWindowRec *winRec;
 
     /* Stack frame below nextWid it if it exists, or raise
@@ -266,8 +287,16 @@ static void xprRestackFrame(RootlessFrameID wid, RootlessFrameID nextWid) {
         wc.sibling = x_cvt_vptr_to_uint(nextWid);
     }
 
+#ifdef HAVE_LIBDISPATCH
+    dispatch_sync(window_hash_serial_q, ^{
+        winRec = x_hash_table_lookup(window_hash, wid, NULL);
+    });
+#else
+    pthread_mutex_lock(&window_hash_mutex);
     winRec = x_hash_table_lookup(window_hash, wid, NULL);
-
+    pthread_mutex_unlock(&window_hash_mutex);
+#endif
+    
     if(winRec) {
         if(XQuartzIsRootless)
             wc.window_level = normal_window_levels[winRec->level];
@@ -447,8 +476,12 @@ xprInit(ScreenPtr pScreen)
     rootless_CopyWindow_threshold = xp_scroll_area_threshold;
 
     assert((window_hash = x_hash_table_new(NULL, NULL, NULL, NULL)));
+#ifdef HAVE_LIBDISPATCH
+    assert((window_hash_serial_q = dispatch_queue_create(LAUNCHD_ID_PREFIX".X11.xpr_window_hash", NULL)));
+#else
     assert(0 == pthread_mutex_init(&window_hash_mutex, NULL));
-
+#endif
+    
     return TRUE;
 }
 
@@ -460,59 +493,35 @@ xprInit(ScreenPtr pScreen)
 WindowPtr
 xprGetXWindow(xp_window_id wid)
 {
+#ifdef HAVE_LIBDISPATCH
+    RootlessWindowRec *winRec __block;
+    dispatch_sync(window_hash_serial_q, ^{
+        winRec = x_hash_table_lookup(window_hash, x_cvt_uint_to_vptr(wid), NULL);
+    });
+#else
     RootlessWindowRec *winRec;
-
-    winRec = x_hash_table_lookup(window_hash, x_cvt_uint_to_vptr(wid), NULL);
-
-    return winRec != NULL ? winRec->win : NULL;
-}
-
-#ifdef UNUSED_CODE
-/*
- * Given the id of a physical window, try to find the top-level (or root)
- * X window that it represents.
- */
-WindowPtr
-xprGetXWindowFromAppKit(int windowNumber)
-{
-    RootlessWindowRec *winRec;
-    Bool ret;
-    xp_window_id wid;
-
     pthread_mutex_lock(&window_hash_mutex);
-
-    if (xp_lookup_native_window(windowNumber, &wid))
-        ret = xprGetXWindow(wid) != NULL;
-    else
-        ret = FALSE;
-
-    pthread_mutex_unlock(&window_hash_mutex);
-
-    if (!ret) return NULL;
     winRec = x_hash_table_lookup(window_hash, x_cvt_uint_to_vptr(wid), NULL);
+    pthread_mutex_unlock(&window_hash_mutex);
+#endif
 
     return winRec != NULL ? winRec->win : NULL;
 }
-#endif
 
 /*
  * The windowNumber is an AppKit window number. Returns TRUE if xpr is
  * displaying a window with that number.
  */
 Bool
-xprIsX11Window(void *nsWindow, int windowNumber)
+xprIsX11Window(int windowNumber)
 {
     Bool ret;
     xp_window_id wid;
-
-    pthread_mutex_lock(&window_hash_mutex);
 
     if (xp_lookup_native_window(windowNumber, &wid))
         ret = xprGetXWindow(wid) != NULL;
     else
         ret = FALSE;
-
-    pthread_mutex_unlock(&window_hash_mutex);
 
     return ret;
 }
