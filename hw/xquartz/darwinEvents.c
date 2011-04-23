@@ -113,7 +113,7 @@ void darwinEvents_lock(void) {
     if((err = pthread_mutex_lock(&mieq_lock))) {
         ErrorF("%s:%s:%d: Failed to lock mieq_lock: %d\n",
                __FILE__, __FUNCTION__, __LINE__, err);
-        spewCallStack();
+        xorg_backtrace();
     }
     if(darwinEvents == NULL) {
         pthread_cond_wait(&mieq_ready_cond, &mieq_lock);
@@ -126,7 +126,7 @@ void darwinEvents_unlock(void) {
     if((err = pthread_mutex_unlock(&mieq_lock))) {
         ErrorF("%s:%s:%d: Failed to unlock mieq_lock: %d\n",
                __FILE__, __FUNCTION__, __LINE__, err);
-        spewCallStack();
+        xorg_backtrace();
     }
 }
 
