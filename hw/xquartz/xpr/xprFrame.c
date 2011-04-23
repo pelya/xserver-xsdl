@@ -1,7 +1,7 @@
 /*
  * Xplugin rootless implementation frame functions
  *
- * Copyright (c) 2002 Apple Computer, Inc. All rights reserved.
+ * Copyright (c) 2002-2011 Apple Computer, Inc. All rights reserved.
  * Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -35,7 +35,6 @@
 #include "rootlessCommon.h"
 #include <Xplugin.h>
 #include "x-hash.h"
-#include "x-list.h"
 #include "applewmExt.h"
 
 #include "propertyst.h"
@@ -61,6 +60,10 @@ DEFINE_ATOM_HELPER(xa_native_window_id, "_NATIVE_WINDOW_ID")
 
 /* Maps xp_window_id -> RootlessWindowRec */
 static x_hash_table *window_hash;
+
+/* Need to guard window_hash since xprGetXWindowFromAppKit and xprIsX11Window
+ * can be called from any thread.
+ */
 static pthread_mutex_t window_hash_mutex;
 
 /* Prototypes for static functions */
@@ -178,12 +181,6 @@ xprCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
         return FALSE;
     }
 
-    if (window_hash == NULL)
-    {
-        window_hash = x_hash_table_new(NULL, NULL, NULL, NULL);
-        pthread_mutex_init(&window_hash_mutex, NULL);
-    }
-
     pthread_mutex_lock(&window_hash_mutex);
     x_hash_table_insert(window_hash, pFrame->wid, pFrame);
     pthread_mutex_unlock(&window_hash_mutex);
@@ -256,6 +253,7 @@ xprResizeFrame(RootlessFrameID wid, ScreenPtr pScreen,
 static void xprRestackFrame(RootlessFrameID wid, RootlessFrameID nextWid) {
     xp_window_changes wc;
     unsigned int mask = XP_STACKING;
+    RootlessWindowRec *winRec;
 
     /* Stack frame below nextWid it if it exists, or raise
        frame above everything otherwise. */
@@ -268,18 +266,16 @@ static void xprRestackFrame(RootlessFrameID wid, RootlessFrameID nextWid) {
         wc.sibling = x_cvt_vptr_to_uint(nextWid);
     }
 
-    if(window_hash) {
-        RootlessWindowRec *winRec = x_hash_table_lookup(window_hash, wid, NULL);
+    winRec = x_hash_table_lookup(window_hash, wid, NULL);
 
-        if(winRec) {
-            if(XQuartzIsRootless)
-                wc.window_level = normal_window_levels[winRec->level];
-            else if(XQuartzShieldingWindowLevel)
-                wc.window_level = XQuartzShieldingWindowLevel + 1;
-            else
-                wc.window_level = rooted_window_levels[winRec->level];
-            mask |= XP_WINDOW_LEVEL;
-        }
+    if(winRec) {
+        if(XQuartzIsRootless)
+            wc.window_level = normal_window_levels[winRec->level];
+        else if(XQuartzShieldingWindowLevel)
+            wc.window_level = XQuartzShieldingWindowLevel + 1;
+        else
+            wc.window_level = rooted_window_levels[winRec->level];
+        mask |= XP_WINDOW_LEVEL;
     }
 
     xprConfigureWindow(x_cvt_vptr_to_uint(wid), mask, &wc);
@@ -450,6 +446,9 @@ xprInit(ScreenPtr pScreen)
     rootless_CopyBytes_threshold = xp_copy_bytes_threshold;
     rootless_CopyWindow_threshold = xp_scroll_area_threshold;
 
+    assert((window_hash = x_hash_table_new(NULL, NULL, NULL, NULL)));
+    assert(0 == pthread_mutex_init(&window_hash_mutex, NULL));
+
     return TRUE;
 }
 
@@ -462,9 +461,6 @@ WindowPtr
 xprGetXWindow(xp_window_id wid)
 {
     RootlessWindowRec *winRec;
-
-    if (window_hash == NULL)
-        return NULL;
 
     winRec = x_hash_table_lookup(window_hash, x_cvt_uint_to_vptr(wid), NULL);
 
@@ -482,11 +478,6 @@ xprGetXWindowFromAppKit(int windowNumber)
     RootlessWindowRec *winRec;
     Bool ret;
     xp_window_id wid;
-
-    if (window_hash == NULL)
-        return FALSE;
-
-    /* need to lock, since this function can be called by any thread */
 
     pthread_mutex_lock(&window_hash_mutex);
 
@@ -513,11 +504,6 @@ xprIsX11Window(void *nsWindow, int windowNumber)
 {
     Bool ret;
     xp_window_id wid;
-
-    if (window_hash == NULL)
-        return FALSE;
-
-    /* need to lock, since this function can be called by any thread */
 
     pthread_mutex_lock(&window_hash_mutex);
 
