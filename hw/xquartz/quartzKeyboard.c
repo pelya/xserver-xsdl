@@ -56,8 +56,6 @@
 
 #include "X11Application.h"
 
-#include "threadSafety.h"
-
 #ifdef NDEBUG
 #undef NDEBUG
 #include <assert.h>
