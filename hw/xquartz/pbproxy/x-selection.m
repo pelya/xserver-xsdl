@@ -625,6 +625,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	/* TODO add the NSPICTPboardType back again, once we have conversion
 	 * functionality in send_image.
 	 */
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations" // NSPICTPboardType
+#endif
 
 	if ([pbtypes containsObject:NSPICTPboardType] 
 	    || [pbtypes containsObject:NSTIFFPboardType]) 
@@ -636,6 +640,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	    list[count] = atoms->image_jpeg;
 	    ++count;
 	} 
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 	if (count)
 	{
@@ -925,7 +933,14 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	    if (NO == [self send_image_tiff_reply:e pasteboard:pb type:imagetype]) 
 	  	return;
 	} 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations" // NSPICTPboardType
+#endif
      	else if ([pbtypes containsObject:NSPICTPboardType])
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 	{
 	    if (NO == [self send_image_pict_reply:e pasteboard:pb type:imagetype]) 
 		return;

@@ -144,7 +144,15 @@ static mach_port_t checkin_or_register(char *bname) {
         exit(EXIT_FAILURE);
     }
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations" // bootstrap_register
+#endif
     kr = bootstrap_register(bootstrap_port, bname, mp);
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
     if (kr != KERN_SUCCESS) {
         fprintf(stderr, "bootstrap_register(): %s\n", mach_error_string(kr));
         exit(EXIT_FAILURE);
