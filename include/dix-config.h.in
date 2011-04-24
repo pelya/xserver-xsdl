@@ -447,7 +447,7 @@
 /* Define to 1 if you have the `ffs' function. */
 #undef HAVE_FFS
 
-/* If the compiler supports a TLS storage class define it to that here */
+/* The compiler supported TLS storage class, prefering initial-exec if tls_model is supported */
 #undef TLS
 
 /* Correctly set _XSERVER64 for OSX fat binaries */
