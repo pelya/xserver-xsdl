@@ -300,8 +300,8 @@ int main(int argc, char **argv, char **envp) {
     /* We have fixed-size string lengths due to limitations in IPC,
      * so we need to copy our argv and envp.
      */
-    newargv = (string_array_t)malloc(argc * sizeof(string_t));
-    newenvp = (string_array_t)malloc(envpc * sizeof(string_t));
+    newargv = (string_array_t)calloc((1 + argc), sizeof(string_t));
+    newenvp = (string_array_t)calloc((1 + envpc), sizeof(string_t));
 
     if(!newargv || !newenvp) {
         fprintf(stderr, "Xquartz: Memory allocation failure\n");
