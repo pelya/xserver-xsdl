@@ -158,7 +158,7 @@ addFormat (FormatInitRec    formats[256],
     return ++nformat;
 }
 
-#define Mask(n)	((n) == 32 ? 0xffffffff : ((1 << (n))-1))
+#define Mask(n) ((1 << (n)) - 1)
 
 PictFormatPtr
 PictureCreateDefaultFormats (ScreenPtr pScreen, int *nformatp)
