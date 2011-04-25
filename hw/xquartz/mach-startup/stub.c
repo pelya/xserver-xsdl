@@ -40,7 +40,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#define kX11AppBundleId LAUNCHD_ID_PREFIX".X11"
+#define kX11AppBundleId BUNDLE_ID_PREFIX".X11"
 #define kX11AppBundlePath "/Contents/MacOS/X11"
 
 static char *server_bootstrap_name = kX11AppBundleId;

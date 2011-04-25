@@ -477,7 +477,7 @@ xprInit(ScreenPtr pScreen)
 
     assert((window_hash = x_hash_table_new(NULL, NULL, NULL, NULL)));
 #ifdef HAVE_LIBDISPATCH
-    assert((window_hash_serial_q = dispatch_queue_create(LAUNCHD_ID_PREFIX".X11.xpr_window_hash", NULL)));
+    assert((window_hash_serial_q = dispatch_queue_create(BUNDLE_ID_PREFIX".X11.xpr_window_hash", NULL)));
 #else
     assert(0 == pthread_mutex_init(&window_hash_mutex, NULL));
 #endif

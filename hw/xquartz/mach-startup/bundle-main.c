@@ -88,7 +88,7 @@ asm (".desc ___crashreporter_info__, 0x10");
 
 static const char *__crashreporter_info__base = "X.Org X Server " XSERVER_VERSION " Build Date: " BUILD_DATE;
 
-static char *launchd_id_prefix = NULL;
+static char *bundle_id_prefix = NULL;
 static char *server_bootstrap_name = NULL;
 
 #define DEBUG 1
@@ -491,7 +491,7 @@ static void setup_env(void) {
 
     /* fallback to hardcoded value if we can't discover it */
     if(!pds) {
-        pds = LAUNCHD_ID_PREFIX".X11";
+        pds = BUNDLE_ID_PREFIX".X11";
     }
 
     server_bootstrap_name = strdup(pds);
@@ -502,12 +502,12 @@ static void setup_env(void) {
     setenv("X11_PREFS_DOMAIN", server_bootstrap_name, 1);
     
     len = strlen(server_bootstrap_name);
-    launchd_id_prefix = malloc(sizeof(char) * (len - 3));
-    if(!launchd_id_prefix) {
+    bundle_id_prefix = malloc(sizeof(char) * (len - 3));
+    if(!bundle_id_prefix) {
         fprintf(stderr, "X11.app: Memory allocation error.\n");
         exit(1);
     }
-    strlcpy(launchd_id_prefix, server_bootstrap_name, len - 3);
+    strlcpy(bundle_id_prefix, server_bootstrap_name, len - 3);
     
     /* We need to unset DISPLAY if it is not our socket */
     if(disp) {
@@ -519,7 +519,7 @@ static void setup_env(void) {
         }
 
         if(s && *s) {
-            if(strcmp(launchd_id_prefix, "org.x") == 0 && strcmp(s, ":0") == 0) {
+            if(strcmp(bundle_id_prefix, "org.x") == 0 && strcmp(s, ":0") == 0) {
                 fprintf(stderr, "X11.app: Detected old style launchd DISPLAY, please update xinit.\n");
             } else {
                 temp = (char *)malloc(sizeof(char) * len);
@@ -527,12 +527,12 @@ static void setup_env(void) {
                     fprintf(stderr, "X11.app: Memory allocation error creating space for socket name test.\n");
                     exit(1);
                 }
-                strlcpy(temp, launchd_id_prefix, len);
+                strlcpy(temp, bundle_id_prefix, len);
                 strlcat(temp, ":0", len);
             
                 if(strcmp(temp, s) != 0) {
                     /* If we don't have a match, unset it. */
-                    fprintf(stderr, "X11.app: DISPLAY (\"%s\") does not match our id (\"%s\"), unsetting.\n", disp, launchd_id_prefix);
+                    fprintf(stderr, "X11.app: DISPLAY (\"%s\") does not match our id (\"%s\"), unsetting.\n", disp, bundle_id_prefix);
                     unsetenv("DISPLAY");
                 }
                 free(temp);
@@ -632,7 +632,7 @@ int main(int argc, char **argv, char **envp) {
     fprintf(stderr, "Waiting for startup parameters via Mach IPC.\n");
     kr = mach_msg_server(mach_startup_server, mxmsgsz, mp, 0);
     if (kr != KERN_SUCCESS) {
-        fprintf(stderr, "%s.X11(mp): %s\n", LAUNCHD_ID_PREFIX, mach_error_string(kr));
+        fprintf(stderr, "%s.X11(mp): %s\n", BUNDLE_ID_PREFIX, mach_error_string(kr));
         return EXIT_FAILURE;
     }
     

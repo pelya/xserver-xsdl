@@ -7,11 +7,11 @@
 	<key>CFBundleExecutable</key>
 		<string>X11</string>
 	<key>CFBundleGetInfoString</key>
-		<string>LAUNCHD_ID_PREFIX.X11</string>
+		<string>BUNDLE_ID_PREFIX.X11</string>
 	<key>CFBundleIconFile</key>
 		<string>X11.icns</string>
 	<key>CFBundleIdentifier</key>
-		<string>LAUNCHD_ID_PREFIX.X11</string>
+		<string>BUNDLE_ID_PREFIX.X11</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 	<key>CFBundleName</key>

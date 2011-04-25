@@ -34,7 +34,7 @@
 #include <unistd.h> /*for getpid*/
 #include <Cocoa/Cocoa.h>
 
-static const char *app_prefs_domain = 	LAUNCHD_ID_PREFIX".xpbproxy";
+static const char *app_prefs_domain = 	BUNDLE_ID_PREFIX".xpbproxy";
 CFStringRef app_prefs_domain_cfstr;
 
 /* Stubs */

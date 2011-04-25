@@ -1012,7 +1012,7 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     NSMaxY([[NSScreen mainScreen] visibleFrame]);
 
 #ifdef HAVE_LIBDISPATCH
-    eventTranslationQueue = dispatch_queue_create(LAUNCHD_ID_PREFIX".X11.NSEventsToX11EventsQueue", NULL);
+    eventTranslationQueue = dispatch_queue_create(BUNDLE_ID_PREFIX".X11.NSEventsToX11EventsQueue", NULL);
     assert(eventTranslationQueue != NULL);
 #endif
     
