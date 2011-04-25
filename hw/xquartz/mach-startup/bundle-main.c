@@ -88,7 +88,7 @@ asm (".desc ___crashreporter_info__, 0x10");
 
 static const char *__crashreporter_info__base = "X.Org X Server " XSERVER_VERSION " Build Date: " BUILD_DATE;
 
-static char *bundle_id_prefix = NULL;
+char *bundle_id_prefix = NULL;
 static char *server_bootstrap_name = NULL;
 
 #define DEBUG 1

@@ -73,6 +73,9 @@ extern int              darwinDesiredDepth;
 extern int              darwinMainScreenX;
 extern int              darwinMainScreenY;
 
+// bundle-main.c
+extern char *bundle_id_prefix;
+
 #define ENABLE_DEBUG_LOG 1
 
 #ifdef ENABLE_DEBUG_LOG

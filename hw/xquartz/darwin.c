@@ -589,6 +589,13 @@ void OsVendorFatalError( void )
 void OsVendorInit(void)
 {
     if (serverGeneration == 1) {
+        char *lf;
+        char *home = getenv("HOME");
+        assert(home);
+        assert(0 < asprintf(&lf, "%s/Library/Logs/X11.%s.log", home, bundle_id_prefix));
+        LogInit(lf, ".old");
+        free(lf);
+
         DarwinPrintBanner();
 #ifdef ENABLE_DEBUG_LOG
 	{
