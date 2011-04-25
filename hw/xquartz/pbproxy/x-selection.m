@@ -175,7 +175,12 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 #endif
 	
 	/* Format is the number of bits. */
-	chunkbytesize = numitems * (format / 8);
+	if (format == 8)
+	  chunkbytesize = numitems;
+	else if (format == 16)
+	  chunkbytesize = numitems * sizeof(short);
+	else if (format == 32)
+	  chunkbytesize = numitems * sizeof(long);
 
 #ifdef TEST
 	printf("chunkbytesize %zu\n", chunkbytesize);
@@ -235,9 +240,9 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	return None;
     }
 
-    for (i = 0, step = pdata->format >> 3; i < pdata->length; i += step)
+    for (i = 0, step = sizeof(long); i < pdata->length; i += step)
     {
-	a = (Atom)*(uint32_t *)(pdata->data + i);
+	a = (Atom)*(long *)(pdata->data + i);
 
 	if (a == atoms->image_png)
 	{
