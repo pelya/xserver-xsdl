@@ -30,9 +30,6 @@
 /* Support Damage extension */
 #undef DAMAGE
 
-/* Build for darwin with Quartz support */
-#undef DARWIN_WITH_QUARTZ
-
 /* Use OsVendorVErrorF */
 #undef DDXOSVERRORF
 

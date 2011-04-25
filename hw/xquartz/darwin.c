@@ -133,22 +133,6 @@ static PixmapFormatRec formats[] = {
 };
 const int NUMFORMATS = sizeof(formats)/sizeof(formats[0]);
 
-#ifndef OSNAME
-#define OSNAME " Darwin"
-#endif
-#ifndef OSVENDOR
-#define OSVENDOR ""
-#endif
-#ifndef PRE_RELEASE
-#define PRE_RELEASE XORG_VERSION_SNAP
-#endif
-#ifndef BUILD_DATE
-#define BUILD_DATE ""
-#endif
-#ifndef XORG_RELEASE
-#define XORG_RELEASE "?"
-#endif
-
 void
 DarwinPrintBanner(void)
 { 
