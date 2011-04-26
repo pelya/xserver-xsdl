@@ -136,9 +136,9 @@ const int NUMFORMATS = sizeof(formats)/sizeof(formats[0]);
 void
 DarwinPrintBanner(void)
 { 
-  // this should change depending on which specific server we are building
   ErrorF("Xquartz starting:\n");
-  ErrorF("X.Org X Server %s\nBuild Date: %s\n", XSERVER_VERSION, BUILD_DATE );
+  ErrorF("X.Org X Server %s\n", XSERVER_VERSION);
+  ErrorF("Build Date: %s\n", BUILD_DATE );
 }
 
 

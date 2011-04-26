@@ -367,9 +367,9 @@ static void DarwinKeyboardSetRepeat(DeviceIntPtr pDev, int initialKeyRepeatValue
         if (pDev->kbdfeed)
             memcpy(pDev->kbdfeed->ctrl.autoRepeats, ctrl->per_key_repeat, XkbPerKeyBitArraySize);
 
-        //fprintf(stderr, "per_key_repeat =\n");
+        //ErrorF("per_key_repeat =\n");
         //for(i=0; i < XkbPerKeyBitArraySize; i++)
-        //    fprintf(stderr, "%02x%s", ctrl->per_key_repeat[i], (i + 1) & 7 ? "" : "\n");
+        //    ErrorF("%02x%s", ctrl->per_key_repeat[i], (i + 1) & 7 ? "" : "\n");
 
         /* And now we notify the puppies about the changes */
         XkbDDXChangeControls(pDev, &old, ctrl);
