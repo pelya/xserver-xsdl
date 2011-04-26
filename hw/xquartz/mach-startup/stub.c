@@ -56,15 +56,6 @@ static char *server_bootstrap_name = kX11AppBundleId;
 
 #include "launchd_fd.h"
 
-#ifndef BUILD_DATE
-#define BUILD_DATE "?"
-#endif
-#ifndef XSERVER_VERSION
-#define XSERVER_VERSION "?"
-#endif
-
-#define DEBUG 1
-
 static char x11_path[PATH_MAX + 1];
 
 static pid_t x11app_pid = 0;
@@ -196,13 +187,6 @@ int main(int argc, char **argv, char **envp) {
     int launchd_fd;
     string_t handoff_socket_filename;
     sig_t handler;
-
-    if(argc == 2 && !strcmp(argv[1], "-version")) {
-        fprintf(stderr, "X.org Release 7.5\n");
-        fprintf(stderr, "X.Org X Server %s\n", XSERVER_VERSION);
-        fprintf(stderr, "Build Date: %s\n", BUILD_DATE);
-        return EXIT_SUCCESS;
-    }
 
     if(getenv("X11_PREFS_DOMAIN"))
         server_bootstrap_name = getenv("X11_PREFS_DOMAIN");
