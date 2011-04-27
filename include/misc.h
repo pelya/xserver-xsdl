@@ -139,9 +139,6 @@ typedef struct _xReq *xReqPtr;
  * it in case we haven't done that yet.
  */
 #include <stdlib.h>
-#ifndef Fabs
-#define Fabs(a) ((a) > 0.0 ? (a) : -(a))	/* floating absolute value */
-#endif
 #define sign(x) ((x) < 0 ? -1 : ((x) > 0 ? 1 : 0))
 /* this assumes b > 0 */
 #define modulus(a, b, d)    if (((d) = (a) % (b)) < 0) (d) += (b)
