@@ -37,8 +37,6 @@
 #include "winprefs.h"
 
 #include "propertyst.h"
-
-#include "propertyst.h"
 #include "windowstr.h"
 
 
