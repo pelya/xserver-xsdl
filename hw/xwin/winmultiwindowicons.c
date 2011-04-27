@@ -622,6 +622,7 @@ void winSelectIcons(WindowPtr pWin, HICON *pIcon, HICON *pSmallIcon)
     *pIcon = hIcon;
   else
     winDestroyIcon(hIcon);
+
   if (pSmallIcon)
     *pSmallIcon = hSmallIcon;
   else
@@ -630,7 +631,7 @@ void winSelectIcons(WindowPtr pWin, HICON *pIcon, HICON *pSmallIcon)
 
 void winDestroyIcon(HICON hIcon)
 {
-  /* Delete the icon if its not the default */
+  /* Delete the icon if its not one of the application defaults or an override */
   if (hIcon &&
       hIcon != g_hIconX &&
       hIcon != g_hSmallIconX &&
