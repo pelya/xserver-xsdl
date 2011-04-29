@@ -16,7 +16,7 @@
  <!ENTITY k.serverflags "<emphasis>ServerFlags</emphasis>">
 ] >
 
-<article>
+<article id="ddxDesign">
   <articleinfo>
 
     <title>XFree86 DDX Design (Xorg server version &xserver.version;)</title>
@@ -4905,7 +4905,7 @@ as follows:
 		XV_HUE
 		XV_SATURATION
 		XV_BRIGHTNESS
-  		XV_CONTRAST
+		XV_CONTRAST
 		  </constant></literallayout>
 	  but the driver may recognize as many atoms as it wishes.  If
 	  a requested attribute is unknown by the driver it should return
