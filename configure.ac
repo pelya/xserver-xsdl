@@ -2213,7 +2213,8 @@ hw/xfree86/utils/gtf/Makefile
 hw/dmx/config/Makefile
 hw/dmx/config/man/Makefile
 hw/dmx/doc/Makefile
-hw/dmx/doc/doxygen.conf
+hw/dmx/doxygen/doxygen.conf
+hw/dmx/doxygen/Makefile
 hw/dmx/examples/Makefile
 hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile

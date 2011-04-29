@@ -1,11 +1,6 @@
-#		Add & Override for this directory and it's subdirectories
-html/
-dmx.html
-dmx.pdf
-dmx.ps
-dmx.txt
-scaled.html
-scaled.pdf
-scaled.ps
-scaled.txt
-doxygen.conf
+*.html
+*.pdf
+*.ps
+*.txt
+!DMXSpec.txt
+!DMXSpec-v1.txt
