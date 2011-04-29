@@ -1,3 +1,3 @@
-SUBDIRS = man xml
+SUBDIRS = xml
 
 dist_noinst_DATA = smartsched
