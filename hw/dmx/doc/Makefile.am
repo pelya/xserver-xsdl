@@ -19,11 +19,16 @@
 #  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 #  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-doc_sources = dmx.xml scaled.xml
-
-# Developer's documentation is not installed
 if ENABLE_DEVEL_DOCS
-include $(top_srcdir)/doc/xml/xmlrules-noinst.in
+if HAVE_XMLTO
+
+# Main DocBook/XML files (DOCTYPE book)
+docbook = dmx.xml scaled.xml
+
+# Generate DocBook/XML output formats with or without stylesheets
+include $(top_srcdir)/devbook.am
+
+endif HAVE_XMLTO
 endif ENABLE_DEVEL_DOCS
 
 DOXYGEN_HEAD=\
