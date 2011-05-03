@@ -5870,21 +5870,22 @@ ProcXkbGetKbdByName(ClientPtr client)
 	xkb->ctrls->num_groups= nTG;
 
         for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
-            if ((tmpd == dev) || (!IsMaster(tmpd) && GetMaster(tmpd, MASTER_KEYBOARD) == dev)) {
-                if (tmpd != dev)
-                    XkbCopyDeviceKeymap(tmpd, dev);
+            if (tmpd != dev && GetMaster(tmpd, MASTER_KEYBOARD) != dev)
+                continue;
 
-                if (tmpd->kbdfeed && tmpd->kbdfeed->xkb_sli) {
-                    old_sli = tmpd->kbdfeed->xkb_sli;
-                    tmpd->kbdfeed->xkb_sli = NULL;
-                    sli = XkbAllocSrvLedInfo(tmpd, tmpd->kbdfeed, NULL, 0);
-                    if (sli) {
-                        sli->explicitState = old_sli->explicitState;
-                        sli->effectiveState = old_sli->effectiveState;
-                    }
-                    tmpd->kbdfeed->xkb_sli = sli;
-                    XkbFreeSrvLedInfo(old_sli);
+            if (tmpd != dev)
+                XkbCopyDeviceKeymap(tmpd, dev);
+
+            if (tmpd->kbdfeed && tmpd->kbdfeed->xkb_sli) {
+                old_sli = tmpd->kbdfeed->xkb_sli;
+                tmpd->kbdfeed->xkb_sli = NULL;
+                sli = XkbAllocSrvLedInfo(tmpd, tmpd->kbdfeed, NULL, 0);
+                if (sli) {
+                    sli->explicitState = old_sli->explicitState;
+                    sli->effectiveState = old_sli->effectiveState;
                 }
+                tmpd->kbdfeed->xkb_sli = sli;
+                XkbFreeSrvLedInfo(old_sli);
             }
         }
 
