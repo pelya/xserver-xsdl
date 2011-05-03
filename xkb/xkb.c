@@ -5871,6 +5871,18 @@ ProcXkbGetKbdByName(ClientPtr client)
 	}
 	xkb->ctrls->num_groups= nTG;
 
+	nkn.deviceID= nkn.oldDeviceID= dev->id;
+	nkn.minKeyCode= new->min_key_code;
+	nkn.maxKeyCode= new->max_key_code;
+	nkn.oldMinKeyCode= xkb->min_key_code;
+	nkn.oldMaxKeyCode= xkb->max_key_code;
+	nkn.requestMajor= XkbReqCode;
+	nkn.requestMinor= X_kbGetKbdByName;
+	nkn.changed= XkbNKN_KeycodesMask;
+	if (geom_changed)
+	    nkn.changed|= XkbNKN_GeometryMask;
+	XkbSendNewKeyboardNotify(dev,&nkn);
+
         /* Update the map and LED info on the device itself, as well as
          * any slaves if it's an MD, or its MD if it's an SD and was the
          * last device used on that MD. */
@@ -5894,18 +5906,6 @@ ProcXkbGetKbdByName(ClientPtr client)
                 XkbFreeSrvLedInfo(old_sli);
             }
         }
-
-	nkn.deviceID= nkn.oldDeviceID= dev->id;
-	nkn.minKeyCode= new->min_key_code;
-	nkn.maxKeyCode= new->max_key_code;
-	nkn.oldMinKeyCode= xkb->min_key_code;
-	nkn.oldMaxKeyCode= xkb->max_key_code;
-	nkn.requestMajor= XkbReqCode;
-	nkn.requestMinor= X_kbGetKbdByName;
-	nkn.changed= XkbNKN_KeycodesMask;
-	if (geom_changed)
-	    nkn.changed|= XkbNKN_GeometryMask;
-	XkbSendNewKeyboardNotify(dev,&nkn);
     }
     if ((new!=NULL)&&(new!=xkb)) {
 	XkbFreeKeyboard(new,XkbAllComponentsMask,TRUE);
