@@ -5586,6 +5586,7 @@ ProcXkbGetKbdByName(ClientPtr client)
 {
     DeviceIntPtr 		dev;
     DeviceIntPtr                tmpd;
+    DeviceIntPtr                master;
     xkbGetKbdByNameReply 	rep = {0};
     xkbGetMapReply		mrep = {0};
     xkbGetCompatMapReply	crep = {0};
@@ -5611,6 +5612,7 @@ ProcXkbGetKbdByName(ClientPtr client)
 	return BadAccess;
 
     CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, access_mode);
+    master = GetMaster(dev, MASTER_KEYBOARD);
 
     xkb = dev->key->xkbInfo->desc;
     status= Success;
@@ -5869,8 +5871,12 @@ ProcXkbGetKbdByName(ClientPtr client)
 	}
 	xkb->ctrls->num_groups= nTG;
 
+        /* Update the map and LED info on the device itself, as well as
+         * any slaves if it's an MD, or its MD if it's an SD and was the
+         * last device used on that MD. */
         for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
-            if (tmpd != dev && GetMaster(tmpd, MASTER_KEYBOARD) != dev)
+            if (tmpd != dev && GetMaster(tmpd, MASTER_KEYBOARD) != dev &&
+                (tmpd != master || dev != master->lastSlave))
                 continue;
 
             if (tmpd != dev)
@@ -5900,12 +5906,6 @@ ProcXkbGetKbdByName(ClientPtr client)
 	if (geom_changed)
 	    nkn.changed|= XkbNKN_GeometryMask;
 	XkbSendNewKeyboardNotify(dev,&nkn);
-
-	if (!IsMaster(dev)) {
-	    DeviceIntPtr master = GetMaster(dev, MASTER_KEYBOARD);
-	    if (master && master->lastSlave == dev)
-		XkbCopyDeviceKeymap(master, dev);
-	}
     }
     if ((new!=NULL)&&(new!=xkb)) {
 	XkbFreeKeyboard(new,XkbAllComponentsMask,TRUE);
