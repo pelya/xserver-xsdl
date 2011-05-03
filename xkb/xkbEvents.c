@@ -88,11 +88,15 @@ XkbSendLegacyMapNotify(DeviceIntPtr kbd, CARD16 xkb_event, CARD16 changed,
         if (!clients[i] || clients[i]->clientState != ClientStateRunning)
             continue;
 
-        /* Ignore clients which will have already received this.
-         * Inconsistent with themselves, but consistent with previous
-         * behaviour.*/
-        if (xkb_event == XkbMapNotify && (clients[i]->mapNotifyMask & changed))
+        /* XKB allows clients to restrict the MappingNotify events sent to
+         * them.  This was broken for three years.  Sorry. */
+        if (xkb_event == XkbMapNotify &&
+            (clients[i]->xkbClientFlags & _XkbClientInitialized) &&
+            !(clients[i]->mapNotifyMask & changed))
             continue;
+        /* Emulate previous server behaviour: any client which has activated
+         * XKB will not receive core events emulated from a NewKeyboardNotify
+         * at all. */
         if (xkb_event == XkbNewKeyboardNotify &&
             (clients[i]->xkbClientFlags & _XkbClientInitialized))
             continue;
