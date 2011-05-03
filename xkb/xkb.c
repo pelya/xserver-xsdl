@@ -5902,10 +5902,8 @@ ProcXkbGetKbdByName(ClientPtr client)
 
 	if (!IsMaster(dev)) {
 	    DeviceIntPtr master = GetMaster(dev, MASTER_KEYBOARD);
-	    if (master && master->lastSlave == dev) {
+	    if (master && master->lastSlave == dev)
 		XkbCopyDeviceKeymap(master, dev);
-		XkbSendNewKeyboardNotify(dev,&nkn);
-	    }
 	}
     }
     if ((new!=NULL)&&(new!=xkb)) {
