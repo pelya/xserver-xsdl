@@ -222,7 +222,7 @@ __glXDRIdrawableSwapBuffers(ClientPtr client, __GLXdrawable *drawable)
 #endif
 
     if (DRI2SwapBuffers(client, drawable->pDraw, 0, 0, 0, &unused,
-			__glXdriSwapEvent, drawable->pDraw) != Success)
+			__glXdriSwapEvent, drawable) != Success)
 	return FALSE;
 
     return TRUE;
