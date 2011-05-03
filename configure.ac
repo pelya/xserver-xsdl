@@ -32,10 +32,10 @@ AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
 AM_MAINTAINER_MODE
 
-# Require xorg-macros minimum of 1.13 for XORG_ENABLE_UNIT_TESTS
+# Require xorg-macros minimum of 1.14 for XORG_COMPILER_BRAND in XORG_DEFAULT_OPTIONS
 m4_ifndef([XORG_MACROS_VERSION],
-          [m4_fatal([must install xorg-macros 1.13 or later before running autoconf/autogen])])
-XORG_MACROS_VERSION(1.13)
+          [m4_fatal([must install xorg-macros 1.14 or later before running autoconf/autogen])])
+XORG_MACROS_VERSION(1.14)
 XORG_DEFAULT_OPTIONS
 XORG_WITH_DOXYGEN(1.6.1)
 XORG_CHECK_SGML_DOCTOOLS(1.7)
@@ -1522,7 +1522,6 @@ if test "x$XORG" = xyes; then
 	    if test x$GCC = xyes; then
 		VISIBILITY_CFLAGS="-fvisibility=hidden"
 	    else
-		AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
 		if test x$SUNCC = xyes; then
 		    VISIBILITY_CFLAGS="-xldscope=hidden"
 		else
@@ -1631,7 +1630,6 @@ if test "x$XORG" = xyes; then
 		if test "${OS_MINOR}" -lt 8 ; then
 			AC_MSG_ERROR([This release no longer supports Solaris versions older than Solaris 8.])
 		fi
-		AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
 		if test "x$SUNCC" = "xyes"; then
 			solaris_asm_inline="yes"
 		fi
