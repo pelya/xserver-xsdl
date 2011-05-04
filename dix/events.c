@@ -2377,7 +2377,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
     xEvent *xE = NULL, *core = NULL;
     int rc, mask, count = 0;
 
-    CHECKEVENT(event);
+    verify_internal_event(event);
 
     while (pWin)
     {
@@ -2723,7 +2723,7 @@ CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
     WindowPtr prevSpriteWin, newSpriteWin;
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 
-    CHECKEVENT(ev);
+    verify_internal_event(ev);
 
     prevSpriteWin = pSprite->win;
 

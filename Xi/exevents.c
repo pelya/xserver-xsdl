@@ -77,6 +77,7 @@ SOFTWARE.
 #include "xiquerydevice.h" /* For List*Info */
 #include "eventconvert.h"
 #include "eventstr.h"
+#include "inpututils.h"
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
@@ -920,7 +921,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     DeviceIntPtr mouse = NULL, kbd = NULL;
     DeviceEvent *event = &ev->device_event;
 
-    CHECKEVENT(ev);
+    verify_internal_event(ev);
 
     if (ev->any.type == ET_RawKeyPress ||
         ev->any.type == ET_RawKeyRelease ||
