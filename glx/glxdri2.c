@@ -163,10 +163,10 @@ __glXDRIdrawableWaitGL(__GLXdrawable *drawable)
 
 static void
 __glXdriSwapEvent(ClientPtr client, void *data, int type, CARD64 ust,
-		  CARD64 msc, CARD64 sbc)
+		  CARD64 msc, CARD32 sbc)
 {
     __GLXdrawable *drawable = data;
-    xGLXBufferSwapComplete wire;
+    xGLXBufferSwapComplete2 wire;
 
     if (!(drawable->eventMask & GLX_BUFFER_SWAP_COMPLETE_INTEL_MASK))
 	return;
@@ -192,8 +192,7 @@ __glXdriSwapEvent(ClientPtr client, void *data, int type, CARD64 ust,
     wire.ust_lo = ust & 0xffffffff;
     wire.msc_hi = msc >> 32;
     wire.msc_lo = msc & 0xffffffff;
-    wire.sbc_hi = sbc >> 32;
-    wire.sbc_lo = sbc & 0xffffffff;
+    wire.sbc = sbc;
 
     WriteEventsToClient(client, 1, (xEvent *) &wire);
 }
