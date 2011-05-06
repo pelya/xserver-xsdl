@@ -434,6 +434,7 @@ compRedirectSubwindows (ClientPtr pClient, WindowPtr pWin, int update)
 	 * critical output
 	 */
 	DamageExtSetCritical (pClient, TRUE);
+	pWin->inhibitBGPaint = TRUE;
     }
     return Success;
 }
@@ -466,6 +467,7 @@ compFreeClientSubwindows (WindowPtr pWin, XID id)
 		 */
 		DamageExtSetCritical (pClient, FALSE);
 		csw->update = CompositeRedirectAutomatic;
+		pWin->inhibitBGPaint = FALSE;
 		if (pWin->mapped)
 		    (*pWin->drawable.pScreen->ClearToBackground)(pWin, 0, 0, 0, 0, TRUE);
 	    }
