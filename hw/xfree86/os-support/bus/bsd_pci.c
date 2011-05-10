@@ -48,13 +48,6 @@
 
 #include "pciaccess.h"
 
-pointer
-xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
-		    ADDRESS Base, unsigned long Size)
-{
-    return xf86MapVidMem(ScreenNum, Flags, Base, Size);
-}
-
 void
 osPciInit(void)
 {

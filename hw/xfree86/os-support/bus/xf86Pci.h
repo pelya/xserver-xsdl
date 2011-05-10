@@ -254,8 +254,6 @@ typedef enum {
 extern _X_EXPORT Bool xf86scanpci(void);
 
 /* Domain access functions.  Some of these probably shouldn't be public */
-extern _X_EXPORT pointer xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
-    ADDRESS Base, unsigned long Size);
 extern _X_EXPORT struct pci_io_handle *xf86MapLegacyIO(struct pci_device *dev);
 extern _X_EXPORT void xf86UnmapLegacyIO(struct pci_device *, struct pci_io_handle *);
 

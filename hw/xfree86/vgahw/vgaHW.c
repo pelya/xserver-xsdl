@@ -1741,7 +1741,6 @@ Bool
 vgaHWMapMem(ScrnInfoPtr scrp)
 {
     vgaHWPtr hwp = VGAHWPTR(scrp);
-    int scr_index = scrp->scrnIndex;
     
     if (hwp->Base)
 	return TRUE;
@@ -1759,8 +1758,7 @@ vgaHWMapMem(ScrnInfoPtr scrp)
      * for now.
      */
     DebugF("Mapping VGAMem\n");
-    hwp->Base = xf86MapDomainMemory(scr_index, VIDMEM_MMIO_32BIT, hwp->dev,
-				    hwp->MapPhys, hwp->MapSize);
+    pci_device_map_legacy(hwp->dev, hwp->MapPhys, hwp->MapSize, PCI_DEV_MAP_FLAG_WRITABLE, &hwp->Base);
     return hwp->Base != NULL;
 }
 
@@ -1769,13 +1767,12 @@ void
 vgaHWUnmapMem(ScrnInfoPtr scrp)
 {
     vgaHWPtr hwp = VGAHWPTR(scrp);
-    int scr_index = scrp->scrnIndex;
 
     if (hwp->Base == NULL)
 	return;
     
     DebugF("Unmapping VGAMem\n");
-    xf86UnMapVidMem(scr_index, hwp->Base, hwp->MapSize);
+    pci_device_unmap_legacy(hwp->dev, hwp->Base, hwp->MapSize);
     hwp->Base = NULL;
 }
 

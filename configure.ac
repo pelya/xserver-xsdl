@@ -793,7 +793,7 @@ LIBXEXT="xext >= 1.0.99.4"
 LIBXFONT="xfont >= 1.4.2"
 LIBXI="xi >= 1.2.99.1"
 LIBXTST="xtst >= 1.0.99.2"
-LIBPCIACCESS="pciaccess >= 0.8.0"
+LIBPCIACCESS="pciaccess >= 0.12.901"
 LIBUDEV="libudev >= 143"
 LIBSELINUX="libselinux >= 2.0.86"
 LIBDBUS="dbus-1 >= 1.0"
@@ -1521,7 +1521,6 @@ if test "x$XORG" = xauto; then
 fi
 AC_MSG_RESULT([$XORG])
 
-xorg_bus_linuxpci=no
 xorg_bus_bsdpci=no
 xorg_bus_sparc=no
 
@@ -1592,7 +1591,6 @@ if test "x$XORG" = xyes; then
 			XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
 		fi
 		XORG_OS_SUBDIR="linux"
-		xorg_bus_linuxpci="yes"
 		linux_acpi="no"
 		case $host_cpu in
 		  alpha*)
@@ -1775,7 +1773,6 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([abi_extension])
 fi
 AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
-AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_BSDPCI], [test "x$xorg_bus_bsdpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
 AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])

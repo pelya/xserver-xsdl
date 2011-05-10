@@ -3,10 +3,6 @@ sdk_HEADERS = xf86Pci.h
 
 PCI_SOURCES = Pci.c Pci.h
 
-if XORG_BUS_LINUXPCI
-PCI_SOURCES += linuxPci.c
-endif
-
 if XORG_BUS_BSDPCI
 PCI_SOURCES += bsd_pci.c
 endif
