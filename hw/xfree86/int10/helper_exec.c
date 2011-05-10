@@ -475,7 +475,7 @@ static struct pci_device*
 pci_device_for_cfg_address (CARD32 addr)
 {
 	struct pci_device *dev = NULL;
-	PCITAG tag = PCI_TAG(addr);
+	CARD32 tag = PCI_TAG(addr);
 	struct pci_slot_match slot_match = {
 		.domain = PCI_DOM_FROM_TAG(tag),
 		.bus = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(tag)),
