@@ -103,8 +103,8 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     MapVRam(pInt);
 #ifdef _PC
     if (!sysMem)
-	sysMem = xf86MapVidMem(screen, VIDMEM_MMIO, V_BIOS,
-			       BIOS_SIZE + SYS_BIOS - V_BIOS);
+	pci_device_map_legacy(pInt->dev, V_BIOS, BIOS_SIZE + SYS_BIOS - V_BIOS,
+			      PCI_DEV_MAP_FLAG_WRITABLE, &sysMem);
     INTPriv(pInt)->sysMem = sysMem;
 
     if (xf86ReadBIOS(0, 0, base, LOW_PAGE_SIZE) < 0) {

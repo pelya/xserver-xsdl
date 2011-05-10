@@ -680,9 +680,11 @@ static void
 SetResetBIOSVars(xf86Int10InfoPtr pInt, Bool set)
 {
     int pagesize = getpagesize();
-    unsigned char* base = xf86MapVidMem(pInt->scrnIndex,
-					VIDMEM_MMIO, 0, pagesize);
+    unsigned char* base;
     int i;
+
+    if (pci_device_map_legacy(pInt->dev, 0, pagesize, PCI_DEV_MAP_FLAG_WRITABLE, (void **)&base))
+	return; /* eek */
 
     if (set) {
 	for (i = BIOS_SCRATCH_OFF; i < BIOS_SCRATCH_END; i++)
@@ -692,7 +694,7 @@ SetResetBIOSVars(xf86Int10InfoPtr pInt, Bool set)
 	    *(base + i) = MEM_RW(pInt, i);
     }
     
-    xf86UnMapVidMem(pInt->scrnIndex,base,pagesize);
+    pci_device_unmap_legacy(pInt->dev, base, pagesize);
 }
 
 void
@@ -706,7 +708,9 @@ xf86Int10SaveRestoreBIOSVars(xf86Int10InfoPtr pInt, Bool save)
 	|| (!save && !pInt->BIOSScratch))
 	return;
     
-    base = xf86MapVidMem(pInt->scrnIndex, VIDMEM_MMIO, 0, pagesize);
+    if (pci_device_map_legacy(pInt->dev, 0, pagesize, PCI_DEV_MAP_FLAG_WRITABLE, (void **)&base))
+	return; /* eek */
+
     base += BIOS_SCRATCH_OFF;
     if (save) {
 	if ((pInt->BIOSScratch
@@ -722,7 +726,7 @@ xf86Int10SaveRestoreBIOSVars(xf86Int10InfoPtr pInt, Bool save)
 	}
     }
     
-    xf86UnMapVidMem(pInt->scrnIndex,base - BIOS_SCRATCH_OFF ,pagesize);
+    pci_device_unmap_legacy(pInt->dev, base, pagesize);
 }
 #endif
 
