@@ -61,7 +61,8 @@
 #include "mach_startup.h"
 #include "mach_startupServer.h"
 
-#include "launchd_fd.h"
+#include "console_redirect.h"
+
 /* From darwinEvents.c ... but don't want to pull in all the server cruft */
 void DarwinListenOnOpenFD(int fd);
 
@@ -481,6 +482,28 @@ static void ensure_path(const char *dir) {
     }
 }
 
+static void setup_console_redirect(const char *bundle_id) {
+    char *asl_sender;
+    char *asl_facility;
+    aslclient aslc;
+
+    asprintf(&asl_sender, "%s.server", bundle_id);
+    assert(asl_sender);
+
+    asl_facility = strdup(bundle_id);
+    assert(asl_facility);
+    if(strcmp(asl_facility + strlen(asl_facility) - 4, ".X11") == 0)
+        asl_facility[strlen(asl_facility) - 4] = '\0';
+
+    assert(aslc = asl_open(asl_sender, asl_facility, ASL_OPT_NO_DELAY));
+    free(asl_sender);
+    free(asl_facility);
+
+    asl_set_filter(aslc, ASL_FILTER_MASK_UPTO(ASL_LEVEL_WARNING));
+    xq_asl_capture_fd(aslc, NULL, ASL_LEVEL_INFO, STDOUT_FILENO);
+    xq_asl_capture_fd(aslc, NULL, ASL_LEVEL_NOTICE, STDERR_FILENO);
+}
+
 static void setup_env(void) {
     char *temp;
     const char *pds = NULL;
@@ -502,6 +525,8 @@ static void setup_env(void) {
     if(!pds) {
         pds = BUNDLE_ID_PREFIX".X11";
     }
+
+    setup_console_redirect(pds);
 
     server_bootstrap_name = strdup(pds);
     if(!server_bootstrap_name) {
