@@ -37,5 +37,7 @@
 
 #endif /* GLAMOR_H */
 
+
 Bool glamor_init(ScreenPtr screen);
 void glamor_fini(ScreenPtr screen);
+void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex);

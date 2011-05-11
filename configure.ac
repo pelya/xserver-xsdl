@@ -2185,6 +2185,7 @@ hw/xfree86/utils/Makefile
 hw/xfree86/utils/man/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile
+hw/xfree86/glamor/Makefile
 hw/dmx/config/Makefile
 hw/dmx/config/man/Makefile
 hw/dmx/doc/Makefile

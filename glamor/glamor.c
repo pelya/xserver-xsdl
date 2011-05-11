@@ -59,25 +59,54 @@ glamor_get_drawable_pixmap(DrawablePtr drawable)
 	return (PixmapPtr)drawable;
 }
 
+
+void
+glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
+{
+    ScreenPtr screen = pixmap->drawable.pScreen;
+    glamor_pixmap_private *pixmap_priv;
+
+    pixmap_priv = glamor_get_pixmap_private(pixmap);
+    pixmap_priv->tex = tex;
+
+    /* Create a framebuffer object wrapping the texture so that we can render
+     * to it.
+     */
+    glGenFramebuffersEXT(1, &pixmap_priv->fb);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+                             GL_COLOR_ATTACHMENT0_EXT,
+                             GL_TEXTURE_2D,
+                             pixmap_priv->tex,
+                             0);
+
+    screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
+                              (((w * pixmap->drawable.bitsPerPixel +
+                                 7) / 8) + 3) & ~3,
+                              NULL);
+}
+
+
+
 static PixmapPtr
 glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 		     unsigned int usage)
 {
     PixmapPtr pixmap;
-    glamor_pixmap_private *pixmap_priv, *newpixmap_priv;
     GLenum format;
+    GLuint tex;
+
 
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
     pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
+
     if (dixAllocatePrivates(pixmap->devPrivates, PRIVATE_PIXMAP) != TRUE) {
         fbDestroyPixmap(pixmap);
 	ErrorF("Fail to allocate privates for PIXMAP.\n");
 	return NullPixmap;
     }	 
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
-    assert(pixmap_priv != NULL);
 
     if (w == 0 || h == 0)
 	return pixmap;
@@ -95,28 +124,15 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 
 
     /* Create the texture used to store the pixmap's data. */
-    glGenTextures(1, &pixmap_priv->tex);
-    glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0,
                  format, GL_UNSIGNED_BYTE, NULL);
 
-    /*  Create a framebuffer object wrapping the texture so that we can render
-     ** to it.
-     **/
-    glGenFramebuffersEXT(1, &pixmap_priv->fb);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-                              GL_COLOR_ATTACHMENT0_EXT,
-                              GL_TEXTURE_2D,
-                              pixmap_priv->tex,
-                              0);
+    glamor_set_pixmap_texture(pixmap, w, h, tex);
 
-    screen->ModifyPixmapHeader(pixmap, w, h, depth, 0,
-			       (((w * pixmap->drawable.bitsPerPixel +
-				  7) / 8) + 3) & ~3,
-			       NULL);
     return pixmap;
 }
 
@@ -149,6 +165,7 @@ Bool
 glamor_init(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv;
+
 #ifdef RENDER
     PictureScreenPtr ps = GetPictureScreenIfSet(screen);
 #endif
@@ -173,7 +190,6 @@ glamor_init(ScreenPtr screen)
                    screen->myNum);
     }
 
-
     glewInit();
 
     if (!GLEW_EXT_framebuffer_object) {
@@ -196,13 +212,13 @@ glamor_init(ScreenPtr screen)
 	ErrorF("GL_EXT_bgra required\n");
 	goto fail;
     }
-
     if (!RegisterBlockAndWakeupHandlers(glamor_block_handler,
 					glamor_wakeup_handler,
 					NULL)) {
 	goto fail;
     }
 
+    
     glamor_priv->saved_close_screen = screen->CloseScreen;
     screen->CloseScreen = glamor_close_screen;
 
