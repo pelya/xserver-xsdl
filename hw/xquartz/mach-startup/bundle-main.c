@@ -36,6 +36,7 @@
 #endif
 
 #include <X11/Xlib.h>
+#include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
@@ -66,6 +67,7 @@ void DarwinListenOnOpenFD(int fd);
 
 /* Ditto, from os/log.c */
 extern void ErrorF(const char *f, ...) _X_ATTRIBUTE_PRINTF(1,2);
+extern void FatalError(const char *f, ...) _X_ATTRIBUTE_PRINTF(1,2) _X_NORETURN;
 
 extern int noPanoramiXExtension;
 
@@ -101,6 +103,10 @@ int server_main(int argc, char **argv, char **envp);
 
 static int execute(const char *command);
 static char *command_from_prefs(const char *key, const char *default_value);
+
+static char *pref_app_to_run;
+static char *pref_login_shell;
+static char *pref_startx_script;
 
 #ifndef HAVE_LIBDISPATCH
 /*** Pthread Magics ***/
@@ -446,7 +452,7 @@ static int startup_trigger(int argc, char **argv, char **envp) {
             /* Could open the display, start the launcher */
             XCloseDisplay(display);
 
-            return execute(command_from_prefs("app_to_run", DEFAULT_CLIENT));
+            return execute(pref_app_to_run);
         }
     }
 
@@ -457,7 +463,7 @@ static int startup_trigger(int argc, char **argv, char **envp) {
     } else {
         ErrorF("X11.app: Could not connect to server (DISPLAY is not set).  Starting X server.\n");
     }
-    return execute(command_from_prefs("startx_script", DEFAULT_STARTX));
+    return execute(pref_startx_script);
 }
 
 /** Setup the environment we want our child processes to inherit */
@@ -594,11 +600,20 @@ int main(int argc, char **argv, char **envp) {
         pid_t child1, child2;
         int status;
 
+        pref_app_to_run = command_from_prefs("app_to_run", DEFAULT_CLIENT);
+        assert(pref_app_to_run);
+
+        pref_login_shell = command_from_prefs("login_shell", DEFAULT_SHELL);
+        assert(pref_login_shell);
+
+        pref_startx_script = command_from_prefs("startx_script", DEFAULT_STARTX);
+        assert(pref_startx_script);
+
         /* Do the fork-twice trick to avoid having to reap zombies */
         child1 = fork();
         switch (child1) {
             case -1:                                /* error */
-                break;
+                FatalError("fork() failed: %s\n", strerror(errno));
 
             case 0:                                 /* child1 */
                 child2 = fork();
@@ -607,7 +622,7 @@ int main(int argc, char **argv, char **envp) {
                     int max_files, i;
 
                     case -1:                            /* error */
-                        break;
+                        FatalError("fork() failed: %s\n", strerror(errno));
 
                     case 0:                             /* child2 */
                         /* close all open files except for standard streams */
@@ -629,6 +644,10 @@ int main(int argc, char **argv, char **envp) {
             default:                                /* parent */
               waitpid(child1, &status, 0);
         }
+
+        free(pref_app_to_run);
+        free(pref_login_shell);
+        free(pref_startx_script);
     }
     
     /* Main event loop */
@@ -646,7 +665,7 @@ static int execute(const char *command) {
     const char *newargv[4];
     const char **p;
     
-    newargv[0] = command_from_prefs("login_shell", DEFAULT_SHELL);
+    newargv[0] = pref_login_shell;
     newargv[1] = "-c";
     newargv[2] = command;
     newargv[3] = NULL;
