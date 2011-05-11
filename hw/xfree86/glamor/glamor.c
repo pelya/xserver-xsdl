@@ -45,7 +45,9 @@
 #include "../../../mi/micmap.h"
 #include <xf86Crtc.h>
 #include <xf86.h>
+#define GC XORG_GC
 #include <glamor.h>
+#undef GC
 
 #include "glamor_ddx.h"
 
