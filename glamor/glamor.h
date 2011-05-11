@@ -38,6 +38,9 @@
 #endif /* GLAMOR_H */
 
 
-Bool glamor_init(ScreenPtr screen);
+#define GLAMOR_INVERTED_Y_AXIS  0x1
+#define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS)
+
+Bool glamor_init(ScreenPtr screen, unsigned int flags);
 void glamor_fini(ScreenPtr screen);
 void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex);

@@ -294,12 +294,14 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
     unsigned int stride, read_stride, x, y;
     GLenum format, type;
     uint8_t *data, *read;
+    glamor_screen_private *glamor_priv =
+	glamor_get_screen_private(drawable->pScreen);
 
     if (pixmap_priv == NULL)
 	return TRUE;
 
     if (pixmap_priv->fb == 0) {
-	ScreenPtr screen = pixmap->drawable.pScreen;
+    	ScreenPtr screen = pixmap->drawable.pScreen;
 	PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
 
 	if (pixmap != screen_pixmap)
@@ -343,11 +345,13 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	glPixelStorei(GL_PACK_ROW_LENGTH, read_stride);
     }
     if (GLEW_MESA_pack_invert && drawable->depth != 1) {
-	glPixelStorei(GL_PACK_INVERT_MESA, 1);
+	if (!glamor_priv->yInverted)
+	  glPixelStorei(GL_PACK_INVERT_MESA, 1);
 	glReadPixels(0, 0,
 		     pixmap->drawable.width, pixmap->drawable.height,
 		     format, type, data);
-	glPixelStorei(GL_PACK_INVERT_MESA, 0);
+	if (!glamor_priv->yInverted)
+	  glPixelStorei(GL_PACK_INVERT_MESA, 0);
     } else {
 	glGenBuffersARB(1, &pixmap_priv->pbo);
 	glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
@@ -362,9 +366,14 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 
 	if (pixmap->drawable.depth == 1) {
 	    for (y = 0; y < pixmap->drawable.height; y++) {
-		uint8_t *read_row = read +
-		    read_stride * (pixmap->drawable.height - y - 1);
+		uint8_t *read_row;
 		uint8_t *write_row = data + y * stride;
+
+		if (glamor_priv->yInverted) 
+		  read_row = read + read_stride * y;
+		else
+		  read_row = read + 
+			     read_stride * (pixmap->drawable.height - y - 1);
 
 		for (x = 0; x < pixmap->drawable.width; x++) {
 		    int index = x / 8;
@@ -378,6 +387,9 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	    }
 	} else {
 	    for (y = 0; y < pixmap->drawable.height; y++)
+	      if (glamor_priv->yInverted)
+		memcpy(data + y * stride, read + y * stride, stride);
+	      else
 		memcpy(data + y * stride,
 		       read + (pixmap->drawable.height - y - 1) * stride, stride);
 	}
@@ -452,10 +464,20 @@ glamor_finish_access(DrawablePtr drawable)
 				    {1, 1},
 				    {1, 0},
 				    {0, 0}};
+
     GLuint tex;
+    static float texcoords_inverted[4][2] =    {{0, 0},
+				    		{1, 0},
+				    		{1, 1},
+				    		{0, 1}};
+   static float *ptexcoords;
 
     if (pixmap_priv == NULL)
 	return;
+    if (glamor_priv->yInverted)
+	ptexcoords = texcoords_inverted;
+    else
+	ptexcoords = texcoords;
 
     if (pixmap_priv->fb == 0) {
 	ScreenPtr screen = pixmap->drawable.pScreen;
@@ -496,7 +518,7 @@ glamor_finish_access(DrawablePtr drawable)
     glEnableClientState(GL_VERTEX_ARRAY);
 
     glClientActiveTexture(GL_TEXTURE0);
-    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, ptexcoords);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);

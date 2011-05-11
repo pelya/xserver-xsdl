@@ -377,13 +377,9 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	src_y2 = (float)(y2 - y) / h;
 
 	vertices[0][0] = v_from_x_coord_x(pixmap, x1 + x_off);
-	vertices[0][1] = v_from_x_coord_y(pixmap, y1 + y_off);
 	vertices[1][0] = v_from_x_coord_x(pixmap, x2 + x_off);
-	vertices[1][1] = v_from_x_coord_y(pixmap, y1 + y_off);
 	vertices[2][0] = v_from_x_coord_x(pixmap, x2 + x_off);
-	vertices[2][1] = v_from_x_coord_y(pixmap, y2 + y_off);
 	vertices[3][0] = v_from_x_coord_x(pixmap, x1 + x_off);
-	vertices[3][1] = v_from_x_coord_y(pixmap, y2 + y_off);
 
 	texcoords[0][0] = src_x1;
 	texcoords[0][1] = src_y1;
@@ -393,7 +389,23 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	texcoords[2][1] = src_y2;
 	texcoords[3][0] = src_x1;
 	texcoords[3][1] = src_y2;
+ 
 
+	if (glamor_priv->yInverted) {
+
+	vertices[0][1] = v_from_x_coord_y_inverted(pixmap, y1 + y_off);
+	vertices[1][1] = v_from_x_coord_y_inverted(pixmap, y1 + y_off);
+	vertices[2][1] = v_from_x_coord_y_inverted(pixmap, y2 + y_off);
+	vertices[3][1] = v_from_x_coord_y_inverted(pixmap, y2 + y_off);
+
+	} else {
+
+	vertices[0][1] = v_from_x_coord_y(pixmap, y1 + y_off);
+	vertices[1][1] = v_from_x_coord_y(pixmap, y1 + y_off);
+	vertices[2][1] = v_from_x_coord_y(pixmap, y2 + y_off);
+	vertices[3][1] = v_from_x_coord_y(pixmap, y2 + y_off);
+
+	}
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
 

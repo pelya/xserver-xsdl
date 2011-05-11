@@ -142,7 +142,7 @@ typedef struct glamor_screen_private {
     BitmapToRegionProcPtr saved_bitmap_to_region;
 
     char *delayed_fallback_string;
-
+    int yInverted;
     GLuint vbo;
     int vbo_offset;
     int vbo_size;
@@ -269,6 +269,13 @@ v_from_x_coord_y(PixmapPtr pixmap, int y)
 }
 
 static inline float
+v_from_x_coord_y_inverted(PixmapPtr pixmap, int y)
+{
+    return (float)y / pixmap->drawable.height * 2.0 - 1.0;
+}
+
+
+static inline float
 t_from_x_coord_x(PixmapPtr pixmap, int x)
 {
     return (float)x / pixmap->drawable.width;
@@ -279,6 +286,13 @@ t_from_x_coord_y(PixmapPtr pixmap, int y)
 {
     return 1.0 - (float)y / pixmap->drawable.height;
 }
+
+static inline float
+t_from_x_coord_y_inverted(PixmapPtr pixmap, int y)
+{
+    return (float)y / pixmap->drawable.height;
+}
+
 
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);

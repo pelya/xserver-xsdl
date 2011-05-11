@@ -45,7 +45,7 @@ ephyr_glamor_init(ScreenPtr screen)
 
     ephyr_glamor_host_create_context(kd_screen);
 
-    glamor_init(screen);
+    glamor_init(screen, 0);
 
     return TRUE;
 }

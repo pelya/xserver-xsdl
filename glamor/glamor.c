@@ -162,9 +162,14 @@ glamor_wakeup_handler(void *data, int result, void *last_select_mask)
 
 /** Set up glamor for an already-configured GL context. */
 Bool
-glamor_init(ScreenPtr screen)
+glamor_init(ScreenPtr screen, unsigned int flags)
 {
     glamor_screen_private *glamor_priv;
+
+    if (flags & ~GLAMOR_VALID_FLAGS) {
+      ErrorF("glamor_init: Invalid flags %x\n", flags);
+      return FALSE;
+    }
 
 #ifdef RENDER
     PictureScreenPtr ps = GetPictureScreenIfSet(screen);
@@ -174,6 +179,10 @@ glamor_init(ScreenPtr screen)
     if (glamor_priv == NULL)
 	return FALSE;
 
+    if (flags & GLAMOR_INVERTED_Y_AXIS) {
+	glamor_priv->yInverted = 1;
+    } else
+	glamor_priv->yInverted = 0;
 
     if (!dixRegisterPrivateKey(glamor_screen_private_key,PRIVATE_SCREEN,
 			   0)) {

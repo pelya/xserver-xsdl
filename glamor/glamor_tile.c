@@ -120,23 +120,36 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     glEnable(GL_TEXTURE_2D);
 
     vertices[0][0] = v_from_x_coord_x(pixmap, x1);
-    vertices[0][1] = v_from_x_coord_y(pixmap, y1);
     vertices[1][0] = v_from_x_coord_x(pixmap, x2);
-    vertices[1][1] = v_from_x_coord_y(pixmap, y1);
     vertices[2][0] = v_from_x_coord_x(pixmap, x2);
-    vertices[2][1] = v_from_x_coord_y(pixmap, y2);
     vertices[3][0] = v_from_x_coord_x(pixmap, x1);
-    vertices[3][1] = v_from_x_coord_y(pixmap, y2);
-
     source_texcoords[0][0] = t_from_x_coord_x(tile, tile_x1);
-    source_texcoords[0][1] = t_from_x_coord_y(tile, tile_y1);
     source_texcoords[1][0] = t_from_x_coord_x(tile, tile_x2);
-    source_texcoords[1][1] = t_from_x_coord_y(tile, tile_y1);
     source_texcoords[2][0] = t_from_x_coord_x(tile, tile_x2);
-    source_texcoords[2][1] = t_from_x_coord_y(tile, tile_y2);
     source_texcoords[3][0] = t_from_x_coord_x(tile, tile_x1);
-    source_texcoords[3][1] = t_from_x_coord_y(tile, tile_y2);
+ 
+    if (glamor_priv->yInverted) {
+      vertices[0][1] = v_from_x_coord_y_inverted(pixmap, y1);
+      vertices[1][1] = v_from_x_coord_y_inverted(pixmap, y1);
+      vertices[2][1] = v_from_x_coord_y_inverted(pixmap, y2);
+      vertices[3][1] = v_from_x_coord_y_inverted(pixmap, y2);
 
+      source_texcoords[0][1] = t_from_x_coord_y_inverted(tile, tile_y1);
+      source_texcoords[1][1] = t_from_x_coord_y_inverted(tile, tile_y1);
+      source_texcoords[2][1] = t_from_x_coord_y_inverted(tile, tile_y2);
+      source_texcoords[3][1] = t_from_x_coord_y_inverted(tile, tile_y2);
+    } else {
+
+      vertices[0][1] = v_from_x_coord_y(pixmap, y1);
+      vertices[1][1] = v_from_x_coord_y(pixmap, y1);
+      vertices[2][1] = v_from_x_coord_y(pixmap, y2);
+      vertices[3][1] = v_from_x_coord_y(pixmap, y2);
+
+      source_texcoords[0][1] = t_from_x_coord_y(tile, tile_y1);
+      source_texcoords[1][1] = t_from_x_coord_y(tile, tile_y1);
+      source_texcoords[2][1] = t_from_x_coord_y(tile, tile_y2);
+      source_texcoords[3][1] = t_from_x_coord_y(tile, tile_y2);
+    }
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
 

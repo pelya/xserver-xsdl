@@ -556,6 +556,8 @@ glamor_set_transformed_point(PicturePtr picture, PixmapPtr pixmap,
     float result[3];
     int i;
     float tx, ty;
+    ScreenPtr screen = picture->pDrawable->pScreen;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
     if (picture->transform) {
 	for (i = 0; i < 3; i++) {
@@ -570,7 +572,10 @@ glamor_set_transformed_point(PicturePtr picture, PixmapPtr pixmap,
 	ty = y;
     }
     texcoord[0] = t_from_x_coord_x(pixmap, tx);
-    texcoord[1] = t_from_x_coord_y(pixmap, ty);
+    if (glamor_priv->yInverted)
+      texcoord[1] = t_from_x_coord_y_inverted(pixmap, ty);
+    else
+      texcoord[1] = t_from_x_coord_y(pixmap, ty);
 }
 
 static void
@@ -887,21 +892,33 @@ glamor_composite_with_shader(CARD8 op,
 	for (i = 0; i < REGION_NUM_RECTS(&region); i++) {
 	    vertices[0] = v_from_x_coord_x(dest_pixmap,
 					   box[i].x1 + dest_x_off);
-	    vertices[1] = v_from_x_coord_y(dest_pixmap,
-					   box[i].y1 + dest_y_off);
 	    vertices[2] = v_from_x_coord_x(dest_pixmap,
 					   box[i].x2 + dest_x_off);
-	    vertices[3] = v_from_x_coord_y(dest_pixmap,
-					   box[i].y1 + dest_y_off);
 	    vertices[4] = v_from_x_coord_x(dest_pixmap,
 					   box[i].x2 + dest_x_off);
-	    vertices[5] = v_from_x_coord_y(dest_pixmap,
-					   box[i].y2 + dest_y_off);
 	    vertices[6] = v_from_x_coord_x(dest_pixmap,
 					   box[i].x1 + dest_x_off);
-	    vertices[7] = v_from_x_coord_y(dest_pixmap,
+
+	  if (glamor_priv->yInverted) {
+	    vertices[1] = v_from_x_coord_y_inverted(dest_pixmap,
+					   box[i].y1 + dest_y_off);
+	    vertices[3] = v_from_x_coord_y_inverted(dest_pixmap,
+					   box[i].y1 + dest_y_off);
+	    vertices[5] = v_from_x_coord_y_inverted(dest_pixmap,
+					   box[i].y2 + dest_y_off);
+	    vertices[7] = v_from_x_coord_y_inverted(dest_pixmap,
 					   box[i].y2 + dest_y_off);
 
+	    } else {
+	    vertices[1] = v_from_x_coord_y(dest_pixmap,
+					   box[i].y1 + dest_y_off);
+	    vertices[3] = v_from_x_coord_y(dest_pixmap,
+					   box[i].y1 + dest_y_off);
+	    vertices[5] = v_from_x_coord_y(dest_pixmap,
+					   box[i].y2 + dest_y_off);
+	    vertices[7] = v_from_x_coord_y(dest_pixmap,
+					   box[i].y2 + dest_y_off);
+	   }
 	    if (key.source != SHADER_SOURCE_SOLID) {
 		int tx1 = box[i].x1 + x_source - x_dest;
 		int ty1 = box[i].y1 + y_source - y_dest;

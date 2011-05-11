@@ -153,14 +153,21 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glEnableClientState(GL_VERTEX_ARRAY);
 
     vertices[0][0] = v_from_x_coord_x(pixmap, x1);
-    vertices[0][1] = v_from_x_coord_y(pixmap, y1);
     vertices[1][0] = v_from_x_coord_x(pixmap, x2);
-    vertices[1][1] = v_from_x_coord_y(pixmap, y1);
     vertices[2][0] = v_from_x_coord_x(pixmap, x2);
-    vertices[2][1] = v_from_x_coord_y(pixmap, y2);
     vertices[3][0] = v_from_x_coord_x(pixmap, x1);
-    vertices[3][1] = v_from_x_coord_y(pixmap, y2);
-
+ 
+    if (glamor_priv->yInverted) {
+      vertices[0][1] = v_from_x_coord_y_inverted(pixmap, y1);
+      vertices[1][1] = v_from_x_coord_y_inverted(pixmap, y1);
+      vertices[2][1] = v_from_x_coord_y_inverted(pixmap, y2);
+      vertices[3][1] = v_from_x_coord_y_inverted(pixmap, y2);
+    } else {
+      vertices[0][1] = v_from_x_coord_y(pixmap, y1);
+      vertices[1][1] = v_from_x_coord_y(pixmap, y1);
+      vertices[2][1] = v_from_x_coord_y(pixmap, y2);
+      vertices[3][1] = v_from_x_coord_y(pixmap, y2);
+    }
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     glDisableClientState(GL_VERTEX_ARRAY);

@@ -45,6 +45,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
     PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
     glamor_pixmap_private *src_pixmap_priv;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     int dst_x_off, dst_y_off, src_x_off, src_y_off, i;
 
     if (src == dst) {
@@ -94,6 +95,18 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
     src_y_off += dy;
 
     for (i = 0; i < nbox; i++) {
+      if(glamor_priv->yInverted) {
+	glBlitFramebufferEXT((box[i].x1 + dx + src_x_off),
+                             (box[i].y1 + src_y_off),
+			     (box[i].x2 + dx + src_x_off),
+			     (box[i].y2 + src_y_off),
+                             (box[i].x1 + dst_x_off),
+                             (box[i].y1 + dst_y_off),
+			     (box[i].x2 + dst_x_off),
+			     (box[i].y2 + dst_y_off),
+			     GL_COLOR_BUFFER_BIT,
+			     GL_NEAREST);
+       } else {
 	int flip_dst_y1 = dst_pixmap->drawable.height - (box[i].y2 + dst_y_off);
 	int flip_dst_y2 = dst_pixmap->drawable.height - (box[i].y1 + dst_y_off);
 	int flip_src_y1 = src_pixmap->drawable.height - (box[i].y2 + src_y_off);
@@ -109,6 +122,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 			     flip_dst_y2,
 			     GL_COLOR_BUFFER_BIT,
 			     GL_NEAREST);
+	}
     }
 
     return TRUE;
@@ -125,6 +139,8 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
 {
     ScreenPtr screen = dst->pScreen;
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
+    glamor_screen_private *glamor_priv =
+	glamor_get_screen_private(screen);
     int x_off, y_off, i;
 
     if (src != dst) {
@@ -161,6 +177,15 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
     glamor_get_drawable_deltas(dst, dst_pixmap, &x_off, &y_off);
 
     for (i = 0; i < nbox; i++) {
+      if(glamor_priv->yInverted) {
+	glRasterPos2i(box[i].x1 + x_off,
+		      box[i].y1 + y_off);
+	glCopyPixels(box[i].x1 + dx + x_off,
+		     box[i].y1 + dy + y_off,
+		     box[i].x2 - box[i].x1,
+		     box[i].y2 - box[i].y1,
+		     GL_COLOR);
+	} else {
 	int flip_y1 = dst_pixmap->drawable.height - box[i].y2 + y_off;
 	glRasterPos2i(box[i].x1 + x_off,
 		      flip_y1);
@@ -169,6 +194,7 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
 		     box[i].x2 - box[i].x1,
 		     box[i].y2 - box[i].y1,
 		     GL_COLOR);
+	}
     }
 
     return TRUE;
@@ -235,23 +261,39 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     glUseProgramObjectARB(glamor_priv->finish_access_prog);
 
     for (i = 0; i < nbox; i++) {
+
 	vertices[0][0] = v_from_x_coord_x(dst_pixmap, box[i].x1 + dst_x_off);
-	vertices[0][1] = v_from_x_coord_y(dst_pixmap, box[i].y1 + dst_y_off);
 	vertices[1][0] = v_from_x_coord_x(dst_pixmap, box[i].x2 + dst_x_off);
-	vertices[1][1] = v_from_x_coord_y(dst_pixmap, box[i].y1 + dst_y_off);
 	vertices[2][0] = v_from_x_coord_x(dst_pixmap, box[i].x2 + dst_x_off);
-	vertices[2][1] = v_from_x_coord_y(dst_pixmap, box[i].y2 + dst_y_off);
 	vertices[3][0] = v_from_x_coord_x(dst_pixmap, box[i].x1 + dst_x_off);
+	texcoords[0][0] = t_from_x_coord_x(src_pixmap, box[i].x1 + dx);
+	texcoords[1][0] = t_from_x_coord_x(src_pixmap, box[i].x2 + dx);
+	texcoords[2][0] = t_from_x_coord_x(src_pixmap, box[i].x2 + dx);
+	texcoords[3][0] = t_from_x_coord_x(src_pixmap, box[i].x1 + dx);
+
+      if(glamor_priv->yInverted) {
+
+	vertices[0][1] = v_from_x_coord_y_inverted(dst_pixmap, box[i].y1 + dst_y_off);
+	vertices[1][1] = v_from_x_coord_y_inverted(dst_pixmap, box[i].y1 + dst_y_off);
+	vertices[2][1] = v_from_x_coord_y_inverted(dst_pixmap, box[i].y2 + dst_y_off);
+	vertices[3][1] = v_from_x_coord_y_inverted(dst_pixmap, box[i].y2 + dst_y_off);
+
+	texcoords[0][1] = t_from_x_coord_y_inverted(src_pixmap, box[i].y1 + dy);
+	texcoords[1][1] = t_from_x_coord_y_inverted(src_pixmap, box[i].y1 + dy);
+	texcoords[2][1] = t_from_x_coord_y_inverted(src_pixmap, box[i].y2 + dy);
+	texcoords[3][1] = t_from_x_coord_y_inverted(src_pixmap, box[i].y2 + dy);
+	} else {
+
+	vertices[0][1] = v_from_x_coord_y(dst_pixmap, box[i].y1 + dst_y_off);
+	vertices[1][1] = v_from_x_coord_y(dst_pixmap, box[i].y1 + dst_y_off);
+	vertices[2][1] = v_from_x_coord_y(dst_pixmap, box[i].y2 + dst_y_off);
 	vertices[3][1] = v_from_x_coord_y(dst_pixmap, box[i].y2 + dst_y_off);
 
-	texcoords[0][0] = t_from_x_coord_x(src_pixmap, box[i].x1 + dx);
 	texcoords[0][1] = t_from_x_coord_y(src_pixmap, box[i].y1 + dy);
-	texcoords[1][0] = t_from_x_coord_x(src_pixmap, box[i].x2 + dx);
 	texcoords[1][1] = t_from_x_coord_y(src_pixmap, box[i].y1 + dy);
-	texcoords[2][0] = t_from_x_coord_x(src_pixmap, box[i].x2 + dx);
 	texcoords[2][1] = t_from_x_coord_y(src_pixmap, box[i].y2 + dy);
-	texcoords[3][0] = t_from_x_coord_x(src_pixmap, box[i].x1 + dx);
 	texcoords[3][1] = t_from_x_coord_y(src_pixmap, box[i].y2 + dy);
+	}
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
 
