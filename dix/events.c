@@ -1939,6 +1939,54 @@ TryClientEvents (ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
     return 1;
 }
 
+static BOOL
+ActivateImplicitGrab(DeviceIntPtr dev, ClientPtr client, WindowPtr win,
+                     xEvent *event, Mask deliveryMask)
+{
+    GrabRec tempGrab;
+    OtherInputMasks *inputMasks;
+    CARD8 type = event->u.u.type;
+    GrabType grabtype;
+
+    if (type == ButtonPress)
+        grabtype = GRABTYPE_CORE;
+    else if (type == DeviceButtonPress)
+        grabtype = GRABTYPE_XI;
+    else if (XI2_EVENT(event) && ((xGenericEvent*)event)->evtype == XI_ButtonPress)
+    {
+        type = ((xGenericEvent*)event)->evtype;
+        grabtype = GRABTYPE_XI2;
+    }
+    else
+        return FALSE;
+
+    memset(&tempGrab, 0, sizeof(GrabRec));
+    tempGrab.next = NULL;
+    tempGrab.device = dev;
+    tempGrab.resource = client->clientAsMask;
+    tempGrab.window = win;
+    tempGrab.ownerEvents = (deliveryMask & OwnerGrabButtonMask) ? TRUE : FALSE;
+    tempGrab.eventMask = deliveryMask;
+    tempGrab.keyboardMode = GrabModeAsync;
+    tempGrab.pointerMode = GrabModeAsync;
+    tempGrab.confineTo = NullWindow;
+    tempGrab.cursor = NullCursor;
+    tempGrab.type = type;
+    tempGrab.grabtype = grabtype;
+
+    /* get the XI and XI2 device mask */
+    inputMasks = wOtherInputMasks(win);
+    tempGrab.deviceMask = (inputMasks) ? inputMasks->inputEvents[dev->id]: 0;
+
+    if (inputMasks)
+        memcpy(tempGrab.xi2mask, inputMasks->xi2mask,
+               sizeof(tempGrab.xi2mask));
+
+    (*dev->deviceGrab.ActivateGrab)(dev, &tempGrab,
+                                    currentTime, TRUE | ImplicitGrabMask);
+    return TRUE;
+}
+
 /**
  * Deliver events to a window. At this point, we do not yet know if the event
  * actually needs to be delivered. May activate a grab if the event is a
@@ -2050,47 +2098,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
      * Note that since core events are delivered first, an implicit grab may
      * be activated on a core grab, stopping the XI events.
      */
-    if ((type == DeviceButtonPress || type == ButtonPress ||
-        ((XI2_EVENT(pEvents) && ((xGenericEvent*)pEvents)->evtype == XI_ButtonPress)))
-            && deliveries
-            && (!grab))
-    {
-	GrabRec tempGrab;
-        OtherInputMasks *inputMasks;
-
-        memset(&tempGrab, 0, sizeof(GrabRec));
-        tempGrab.next = NULL;
-	tempGrab.device = pDev;
-	tempGrab.resource = client->clientAsMask;
-	tempGrab.window = pWin;
-	tempGrab.ownerEvents = (deliveryMask & OwnerGrabButtonMask) ? TRUE : FALSE;
-	tempGrab.eventMask = deliveryMask;
-	tempGrab.keyboardMode = GrabModeAsync;
-	tempGrab.pointerMode = GrabModeAsync;
-	tempGrab.confineTo = NullWindow;
-	tempGrab.cursor = NullCursor;
-        tempGrab.type = type;
-        if (type == ButtonPress)
-            tempGrab.grabtype = GRABTYPE_CORE;
-        else if (type == DeviceButtonPress)
-            tempGrab.grabtype = GRABTYPE_XI;
-        else
-        {
-            tempGrab.type = ((xGenericEvent*)pEvents)->evtype;
-            tempGrab.grabtype = GRABTYPE_XI2;
-        }
-
-        /* get the XI and XI2 device mask */
-        inputMasks = wOtherInputMasks(pWin);
-        tempGrab.deviceMask = (inputMasks) ? inputMasks->inputEvents[pDev->id]: 0;
-
-        if (inputMasks)
-            memcpy(tempGrab.xi2mask, inputMasks->xi2mask,
-                    sizeof(tempGrab.xi2mask));
-
-	(*pDev->deviceGrab.ActivateGrab)(pDev, &tempGrab,
-                                        currentTime, TRUE | ImplicitGrabMask);
-    }
+    if (deliveries && !grab && ActivateImplicitGrab(pDev, client, pWin, pEvents, deliveryMask))
+        /* grab activated */;
     else if ((type == MotionNotify) && deliveries)
 	pDev->valuator->motionHintWindow = pWin;
     else
