@@ -328,7 +328,7 @@ drmmode_update_fb (ScrnInfoPtr scrn, int width, int height)
 		drmModeRmFB(drmmode->fd, drmmode->fb_id);
 	glamor_frontbuffer_handle(scrn, &handle, &pitch);
 	ret = drmModeAddFB(drmmode->fd, width, height, scrn->depth,
-			   scrn->bitsPerPixel, pitch * drmmode->cpp,
+			   scrn->bitsPerPixel, pitch,
 			   handle, &drmmode->fb_id);
 	if (ret)
 		/* FIXME: Undo glamor_resize() */
@@ -461,7 +461,7 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 {
 	ScrnInfoPtr scrn = crtc->scrn;
 
-	glamor_load_cursor(scrn, image, 64, 64);
+	//glamor_load_cursor(scrn, image, 64, 64);
 }
 
 

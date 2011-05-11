@@ -27,6 +27,9 @@
  *
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -85,11 +88,11 @@ glamor_resize(ScrnInfoPtr scrn, int width, int height)
 	EGLImageKHR image;
 	GLuint texture;
 	EGLint attribs[] = {
-		EGL_IMAGE_WIDTH_INTEL,	0,
-		EGL_IMAGE_HEIGHT_INTEL,	0,
-		EGL_IMAGE_FORMAT_INTEL,	EGL_FORMAT_RGBA_8888_KHR,
-		EGL_IMAGE_USE_INTEL,	EGL_IMAGE_USE_SHARE_INTEL |
-					EGL_IMAGE_USE_SCANOUT_INTEL,
+		EGL_WIDTH,	0,
+		EGL_HEIGHT,	0,
+		EGL_DRM_BUFFER_FORMAT_MESA,	EGL_DRM_BUFFER_FORMAT_ARGB32_MESA,
+		EGL_DRM_BUFFER_USE_MESA,	EGL_DRM_BUFFER_USE_SHARE_MESA |
+					EGL_DRM_BUFFER_USE_SCANOUT_MESA,
 		EGL_NONE
 	};
 
@@ -99,9 +102,8 @@ glamor_resize(ScrnInfoPtr scrn, int width, int height)
 
 	attribs[1] = width;
 	attribs[3] = height;
-	image = eglCreateImageKHR(glamor->display, glamor->context,
-				  EGL_SYSTEM_IMAGE_INTEL,
-				  NULL, attribs);
+	EGLint name, handle, stride, i; 
+	image =	 eglCreateDRMImageMESA(glamor->display, attribs);  
 	if (image == EGL_NO_IMAGE_KHR)
 		return FALSE;
 
@@ -109,14 +111,13 @@ glamor_resize(ScrnInfoPtr scrn, int width, int height)
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, image);
+	glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, image); 
 
 	glamor_set_pixmap_texture(screen->GetScreenPixmap(screen),
 				  width, height, texture);
 	glamor->root = image;
 	scrn->virtualX = width;
 	scrn->virtualY = height;
-
 	return TRUE;
 }
 
@@ -125,49 +126,24 @@ glamor_frontbuffer_handle(ScrnInfoPtr scrn, uint32_t *handle, uint32_t *pitch)
 {
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
 	EGLint name;
-
-	eglShareImageINTEL (glamor->display, glamor->context, glamor->root, 0,
-			    &name, (EGLint *) handle, (EGLint *) pitch);
+	eglExportDRMImageMESA (glamor->display, glamor->root, &name, (EGLint*) handle, (EGLint*) pitch);
 }
 
-Bool
-glamor_load_cursor(ScrnInfoPtr scrn, CARD32 *image, int width, int height)
+EGLImageKHR glamor_create_cursor_argb(ScrnInfoPtr scrn, int width, int height)
 {
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
+	EGLint attribs[] = {
+		EGL_WIDTH,	0,
+		EGL_HEIGHT,	0,
+		EGL_DRM_BUFFER_FORMAT_MESA,	EGL_DRM_BUFFER_FORMAT_ARGB32_MESA,
+		EGL_DRM_BUFFER_USE_MESA,	EGL_DRM_BUFFER_USE_SHARE_MESA |
+					EGL_DRM_BUFFER_USE_SCANOUT_MESA | EGL_DRM_BUFFER_USE_CURSOR_MESA,
+		EGL_NONE
+	};
 
-	if (glamor->cursor == NULL) {
-		EGLint attribs[] = {
-			EGL_IMAGE_WIDTH_INTEL,	0,
-			EGL_IMAGE_HEIGHT_INTEL,	0,
-			EGL_IMAGE_FORMAT_INTEL,	EGL_FORMAT_RGBA_8888_KHR,
-			EGL_IMAGE_USE_INTEL,	EGL_IMAGE_USE_SHARE_INTEL |
-						EGL_IMAGE_USE_SCANOUT_INTEL,
-			EGL_NONE
-		};
-
-		attribs[1] = width;
-		attribs[3] = height;
-		glamor->cursor =
-			eglCreateImageKHR(glamor->display, glamor->context,
-					  EGL_SYSTEM_IMAGE_INTEL,
-					  NULL, attribs);
-		if (image == EGL_NO_IMAGE_KHR)
-			return FALSE;
-
-		glGenTextures(1, &glamor->cursor_tex);
-		glBindTexture(GL_TEXTURE_2D, glamor->cursor_tex);
-		glTexParameteri(GL_TEXTURE_2D,
-				GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D,
-				GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, glamor->cursor);
-	}
-
-	glBindTexture(GL_TEXTURE_2D, glamor->cursor_tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0,
-		     GL_RGBA, GL_UNSIGNED_BYTE, image);
-
-	return TRUE;
+	attribs[1] = width;
+	attribs[3] = height;
+	return	eglCreateDRMImageMESA(glamor->display, attribs); 
 }
 
 void
@@ -175,9 +151,7 @@ glamor_cursor_handle(ScrnInfoPtr scrn, uint32_t *handle, uint32_t *pitch)
 {
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
 	EGLint name;
-
-	eglShareImageINTEL (glamor->display, glamor->context, glamor->cursor, 
-			    0, &name, (EGLint *) handle, (EGLint *) pitch);
+	eglExportDRMImageMESA (glamor->display, glamor->cursor, &name, (EGLint*) handle, (EGLint*) pitch);
 	ErrorF("cursor stride: %d\n", *pitch);
 }
 
@@ -190,8 +164,7 @@ glamor_pre_init(ScrnInfoPtr scrn, int flags)
 	glamor = xnfcalloc(sizeof *glamor, 1);
 
 	scrn->driverPrivate = glamor;
-
-	glamor->fd = open("/dev/dri/card0", O_RDWR);
+	glamor->fd = open("/dev/dri/card1", O_RDWR);
 	glamor->cpp = 4;
 
 	scrn->monitor = scrn->confScreen->monitor;
@@ -243,7 +216,10 @@ glamor_enter_vt(int scrnIndex, int flags)
 			   "drmSetMaster failed: %s\n", strerror(errno));
 		return FALSE;
 	}
-
+#if 0
+        if (!xf86SetDesiredModes(scrn))
+	  return FALSE;
+#endif               
 	return TRUE;
 }
 
@@ -265,6 +241,7 @@ glamor_create_screen_resources(ScreenPtr screen)
 	screen->CreateScreenResources = glamor->CreateScreenResources;
 	if (!(*screen->CreateScreenResources) (screen))
 		return FALSE;
+
 
 	if (!xf86SetDesiredModes(scrn))
 		return FALSE;
@@ -300,15 +277,12 @@ glamor_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
-	EGLDisplayTypeDRMMESA display;
 	const char *version;
+	VisualPtr visual;
 
-	display.type = EGL_DISPLAY_TYPE_DRM_MESA;
-	display.device = NULL;
-	display.fd = glamor->fd;
-	
-	glamor->display = eglGetDisplay((EGLNativeDisplayType) &display);
-	
+	glamor->display = eglGetDRMDisplayMESA(glamor->fd);
+	eglBindAPI(EGL_OPENGL_API);
+        LogMessageVerb(X_INFO, 0, "%s glCreateProgramObjectARB=%p", __FUNCTION__, *(&glCreateProgramObjectARB));
 	if (!eglInitialize(glamor->display, &glamor->major, &glamor->minor)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "eglInitialize() failed\n");
@@ -325,6 +299,7 @@ glamor_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 			   "Failed to create EGL context\n");
 		return FALSE;
 	}
+
 	if (!eglMakeCurrent(glamor->display,
 			    EGL_NO_SURFACE, EGL_NO_SURFACE, glamor->context)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
@@ -346,16 +321,29 @@ glamor_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 			  1, scrn->bitsPerPixel))
 		return FALSE;
 
-	fbPictureInit(screen, NULL, 0);
+	if (scrn->bitsPerPixel > 8) {
+	  /* Fixup RGB ordering */
+	  visual = screen->visuals + screen->numVisuals;
+	  while(--visual >= screen->visuals) {
+	    if ((visual->class | DynamicClass) == DirectColor) {
+	      visual->offsetRed = scrn->offset.red;
+	      visual->offsetGreen = scrn->offset.green;
+	      visual->offsetBlue = scrn->offset.blue;
+	      visual->redMask = scrn->mask.red;
+	      visual->blueMask = scrn->mask.blue;
+	    }
+	  }
+	}
 
+	fbPictureInit(screen, NULL, 0);
 	xf86SetBlackWhitePixels(screen);
 
-	if (!glamor_init(screen)) {
+	if (!glamor_init(screen, GLAMOR_INVERTED_Y_AXIS)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "Failed to initialize glamor\n");
 		return FALSE;
 	}
-		
+	
 	miInitializeBackingStore(screen);
 	xf86SetBackingStore(screen);
 	xf86SetSilkenMouse(screen);
@@ -369,7 +357,7 @@ glamor_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 				HARDWARE_CURSOR_INVERT_MASK |
 				HARDWARE_CURSOR_SWAP_SOURCE_AND_MASK |
 				HARDWARE_CURSOR_AND_SOURCE_WITH_MASK |
-				HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64 |
+				HARDWARE_CURSOR_SOURCE_MASK_NOT_INTERLEAVED |
 				HARDWARE_CURSOR_UPDATE_UNHIDDEN |
 				HARDWARE_CURSOR_ARGB))) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
@@ -388,6 +376,15 @@ glamor_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	screen->CreateScreenResources = glamor_create_screen_resources;
 	glamor->CloseScreen = screen->CloseScreen;
 	screen->CloseScreen = glamor_close_screen;
+
+	/* Fixme should we init crtc screen here? */
+	if (!xf86CrtcScreenInit(screen))
+	  return FALSE;
+	if (!miCreateDefColormap(screen))
+	  return FALSE;
+	/* Fixme should we add handle colormap here? */
+
+	xf86DPMSInit(screen, xf86DPMSSet, 0);
 
 	return TRUE;
 }
@@ -423,6 +420,8 @@ glamor_probe(struct _DriverRec *drv, int flags)
 	ScrnInfoPtr scrn = NULL;
        	GDevPtr *sections;
 	int entity, n;
+	LogMessageVerb(X_INFO, 0 , "%s : %d \n", __FUNCTION__, __LINE__);
+
 
 	n = xf86MatchDevice(glamor_name, &sections);
 	if (n <= 0)
