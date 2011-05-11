@@ -176,12 +176,23 @@ typedef const char *string;
 #define AllEventMasks (LastEventMask|(LastEventMask-1))
 
 
-#define CORE_EVENT(event) \
-    (!((event)->u.u.type & EXTENSION_EVENT_BASE) && \
-      (event)->u.u.type != GenericEvent)
-#define XI2_EVENT(event) \
-    (((event)->u.u.type == GenericEvent) && \
-    ((xGenericEvent*)(event))->extension == IReqCode)
+/* @return the core event type or 0 if the event is not a core event */
+static inline int
+core_get_type(const xEvent *event)
+{
+    int type = event->u.u.type;
+
+    return ((type & EXTENSION_EVENT_BASE) || type == GenericEvent) ? 0 : type;
+}
+
+/* @return the XI2 event type or 0 if the event is not a XI2 event */
+static inline int
+xi2_get_type(const xEvent *event)
+{
+    xGenericEvent* e = (xGenericEvent*)event;
+
+    return (e->type != GenericEvent || e->extension != IReqCode) ? 0 : e->evtype;
+}
 
 /**
  * Used to indicate a implicit passive grab created by a ButtonPress event.
@@ -414,10 +425,12 @@ static const Mask default_filter[128] =
 Mask
 GetEventFilter(DeviceIntPtr dev, xEvent *event)
 {
+    int evtype = 0;
+
     if (event->u.u.type != GenericEvent)
         return filters[dev ? dev->id : 0][event->u.u.type];
-    else if (XI2_EVENT(event))
-        return (1 << (((xXIDeviceEvent*)event)->evtype % 8));
+    else if ((evtype = xi2_get_type(event)))
+        return (1 << (evtype % 8));
     ErrorF("[dix] Unknown device type %d. No filter\n", event->u.u.type);
     return 0;
 }
@@ -432,7 +445,7 @@ GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
     int filter;
     int evtype;
 
-    if (!inputMasks || !XI2_EVENT(ev))
+    if (!inputMasks || xi2_get_type(ev) == 0)
         return 0;
 
     evtype = ((xGenericEvent*)ev)->evtype;
@@ -446,14 +459,16 @@ GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
 Mask
 GetEventMask(DeviceIntPtr dev, xEvent *event, InputClients* other)
 {
+    int evtype;
+
     /* XI2 filters are only ever 8 bit, so let's return a 8 bit mask */
-    if (XI2_EVENT(event))
+    if ((evtype = xi2_get_type(event)))
     {
-        int byte = ((xGenericEvent*)event)->evtype / 8;
+        int byte = evtype / 8;
         return (other->xi2mask[dev->id][byte] |
                 other->xi2mask[XIAllDevices][byte] |
                 (IsMaster(dev)? other->xi2mask[XIAllMasterDevices][byte] : 0));
-    } else if (CORE_EVENT(event))
+    } else if (core_get_type(event) != 0)
         return other->mask[XIAllDevices];
     else
         return other->mask[dev->id];
@@ -1952,11 +1967,8 @@ ActivateImplicitGrab(DeviceIntPtr dev, ClientPtr client, WindowPtr win,
         grabtype = GRABTYPE_CORE;
     else if (type == DeviceButtonPress)
         grabtype = GRABTYPE_XI;
-    else if (XI2_EVENT(event) && ((xGenericEvent*)event)->evtype == XI_ButtonPress)
-    {
-        type = ((xGenericEvent*)event)->evtype;
+    else if ((type = xi2_get_type(event)) == XI_ButtonPress)
         grabtype = GRABTYPE_XI2;
-    }
     else
         return FALSE;
 
@@ -2040,9 +2052,9 @@ DeliverEventToClients(DeviceIntPtr dev, WindowPtr win, xEvent *events,
     enum EventDeliveryState rc = EVENT_SKIP;
     InputClients *other;
 
-    if (CORE_EVENT(events))
+    if (core_get_type(events) != 0)
         other = (InputClients *)wOtherClients(win);
-    else if (XI2_EVENT(events))
+    else if (xi2_get_type(events) != 0)
     {
         OtherInputMasks *inputMasks = wOtherInputMasks(win);
         /* Has any client selected for the event? */
@@ -2094,6 +2106,7 @@ out:
     return rc;
 }
 
+
 /**
  * Deliver events to a window. At this point, we do not yet know if the event
  * actually needs to be delivered. May activate a grab if the event is a
@@ -2127,7 +2140,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     int type = pEvents->u.u.type;
 
     /* Deliver to window owner */
-    if ((filter == CantBeFiltered) || CORE_EVENT(pEvents))
+    if ((filter == CantBeFiltered) || core_get_type(pEvents) != 0)
     {
         enum EventDeliveryState rc;
 
@@ -2313,22 +2326,29 @@ FixUpEventFromWindow(
     Window child,
     Bool calcChild)
 {
+    int evtype;
+
     if (calcChild)
         child = FindChildForEvent(pSprite, pWin);
 
-    if (XI2_EVENT(xE))
+    if ((evtype = xi2_get_type(xE)))
     {
         xXIDeviceEvent* event = (xXIDeviceEvent*)xE;
 
-        if (event->evtype == XI_RawKeyPress ||
-            event->evtype == XI_RawKeyRelease ||
-            event->evtype == XI_RawButtonPress ||
-            event->evtype == XI_RawButtonRelease ||
-            event->evtype == XI_RawMotion ||
-            event->evtype == XI_DeviceChanged ||
-            event->evtype == XI_HierarchyChanged ||
-            event->evtype == XI_PropertyEvent)
-            return;
+        switch (evtype)
+        {
+            case XI_RawKeyPress:
+            case XI_RawKeyRelease:
+            case XI_RawButtonPress:
+            case XI_RawButtonRelease:
+            case XI_RawMotion:
+            case XI_DeviceChanged:
+            case XI_HierarchyChanged:
+            case XI_PropertyEvent:
+                return;
+            default:
+                break;
+        }
 
         event->root = RootWindow(pSprite)->drawable.id;
         event->event = pWin->drawable.id;
