@@ -2064,23 +2064,24 @@ DeliverEventToClients(DeviceIntPtr dev, WindowPtr win, xEvent *events,
     for (; other; other = other->next)
     {
         Mask mask;
+        ClientPtr client = rClient(other);
 
-        if (IsInterferingGrab(rClient(other), dev, events))
+        if (IsInterferingGrab(client, dev, events))
             continue;
 
         mask = GetEventMask(dev, events, other);
 
-        if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), win,
+        if (XaceHook(XACE_RECEIVE_ACCESS, client, win,
                     events, count))
             /* do nothing */;
-        else if ( (attempt = TryClientEvents(rClient(other), dev,
+        else if ( (attempt = TryClientEvents(client, dev,
                         events, count,
                         mask, filter, grab)) )
         {
             if (attempt > 0)
             {
                 rc = EVENT_DELIVERED;
-                *client_return = rClient(other);
+                *client_return = client;
                 *mask_return = mask;
                 /* Success overrides non-success, so if we've been
                  * successful on one client, return that */
