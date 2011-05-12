@@ -50,7 +50,6 @@
 
 #include "xkbsrv.h"
 
-extern int KdTsPhyScreen;
 extern Bool ephyr_glamor;
 
 KdKeyboardInfo *ephyrKbd;
