@@ -102,9 +102,32 @@ Same as fake_button3 above.
 .TP 8
 .B "\-depth \fIdepth\fP"
 Same as depth above.
+.SH LOGGING
+XQuartz stores a server log at ~/Library/Logs/X11.__bundle_id_prefix__.log which
+is analogous to /var/log/Xorg.#.log on systems that use the XFree86 DDX such as
+Linux, BSD, and Solaris.
+.PP
+In addition to this server log, XQuartz sends messages to syslogd(8) using
+asl(3).  These logs are sent to the __bundle_id_prefix__ facility, and you can
+watch these logs using the following syslog(1) command:
+.TP 8
+.B $ syslog -w -k Facility __bundle_id_prefix__
+.PP
+By default, XQaurtz sets an ASL mask which prevents it from logging messages
+below the ASL_LEVEL_WARNING level (meaning almost all logging is done strictly
+to the file referenced above).  To force XQuartz to send all log messages to
+syslogd(8), you can adjust this mask using the following syslog(1) command:
+.TP 8
+.B $ syslog -c X11.bin -d
+.PP
+The stdout and stderr messages printed by any process launched by XQuartz will
+be redirected to this syslog facility with a priority level of ASL_LEVEL_INFO
+and ASL_LEVEL_NOTICE respectively.  In order to see these messages in syslog,
+you will need to adjust XQuartz's asl mask as above but using -i or -n
+instead of -d.
 .SH "SEE ALSO"
 .PP
-X(__miscmansuffix__), Xserver(1), xdm(1), xinit(1)
+X(__miscmansuffix__), Xserver(1), xdm(1), xinit(1), syslog(1), syslogd(8)
 .PP
 http://xquartz.macosforge.org
 .PP
