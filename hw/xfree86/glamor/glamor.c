@@ -66,9 +66,8 @@ glamor_identify(int flags)
 struct glamor_screen_private {
 	EGLDisplay display;
 	EGLContext context;
-	EGLImageKHR root, cursor;
+	EGLImageKHR root;
 	EGLint major, minor;
-	GLuint cursor_tex;
 
 	CreateScreenResourcesProcPtr CreateScreenResources;
 	CloseScreenProcPtr CloseScreen;
@@ -149,14 +148,15 @@ EGLImageKHR glamor_create_cursor_argb(ScrnInfoPtr scrn, int width, int height)
 }
 
 void
-glamor_cursor_handle(ScrnInfoPtr scrn, uint32_t *handle, uint32_t *pitch)
+glamor_cursor_handle(ScrnInfoPtr scrn, EGLImageKHR cursor, uint32_t *handle, uint32_t *pitch)
 {
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
 	EGLint name;
-	eglExportDRMImageMESA (glamor->display, glamor->cursor, &name, (EGLint*) handle, (EGLint*) pitch);
+	eglExportDRMImageMESA (glamor->display, cursor, &name, (EGLint*) handle, (EGLint*) pitch);
 	ErrorF("cursor stride: %d\n", *pitch);
 }
 
+char * dri_device_name = "/dev/dri/card0";
 static Bool
 glamor_pre_init(ScrnInfoPtr scrn, int flags)
 {
@@ -166,7 +166,12 @@ glamor_pre_init(ScrnInfoPtr scrn, int flags)
 	glamor = xnfcalloc(sizeof *glamor, 1);
 
 	scrn->driverPrivate = glamor;
-	glamor->fd = open("/dev/dri/card1", O_RDWR);
+	glamor->fd = open(dri_device_name, O_RDWR);
+	if (glamor->fd == -1 ) {
+	  ErrorF("Failed to open %s: %s\n", dri_device_name, strerror(errno));
+	  goto fail;
+	}
+
 	glamor->cpp = 4;
 
 	scrn->monitor = scrn->confScreen->monitor;
@@ -174,22 +179,21 @@ glamor_pre_init(ScrnInfoPtr scrn, int flags)
 	scrn->rgbBits = 8;
 
 	if (!xf86SetDepthBpp(scrn, 0, 0, 0, Support32bppFb))
-		return FALSE;
+	  goto fail;
 
 	xf86PrintDepthBpp(scrn);
 
 	if (!xf86SetWeight(scrn, defaultWeight, defaultWeight))
-		return FALSE;
+	  goto fail;
 	if (!xf86SetDefaultVisual(scrn, -1))
-		return FALSE;
+	  goto fail;
 
 	glamor->cpp = scrn->bitsPerPixel / 8;
 
 	if (drmmode_pre_init(scrn, glamor->fd, glamor->cpp) == FALSE) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "Kernel modesetting setup failed\n");
-		xfree(glamor);
-		return FALSE;
+	  goto fail;
 	}
 
 	scrn->currentMode = scrn->modes;
@@ -197,9 +201,13 @@ glamor_pre_init(ScrnInfoPtr scrn, int flags)
 
 	/* Load the required sub modules */
 	if (!xf86LoadSubModule(scrn, "fb"))
-		return FALSE;
+	  goto fail;
 
 	return TRUE;
+
+fail:
+	  scrn->driverPrivate = NULL;
+	  xfree(glamor);
 }
 
 static void
@@ -396,10 +404,12 @@ glamor_free_screen(int scrnIndex, int flags)
 {
 	ScrnInfoPtr scrn = xf86Screens[scrnIndex];
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
-
-	close(glamor->fd);
-	xfree(scrn->driverPrivate);
-	scrn->driverPrivate = NULL;
+	if (glamor != NULL)
+	{
+	  close(glamor->fd);
+	  xfree(glamor);
+	  scrn->driverPrivate = NULL;
+	}
 }
 
 static ModeStatus
@@ -422,8 +432,6 @@ glamor_probe(struct _DriverRec *drv, int flags)
 	ScrnInfoPtr scrn = NULL;
        	GDevPtr *sections;
 	int entity, n;
-	LogMessageVerb(X_INFO, 0 , "%s : %d \n", __FUNCTION__, __LINE__);
-
 
 	n = xf86MatchDevice(glamor_name, &sections);
 	if (n <= 0)

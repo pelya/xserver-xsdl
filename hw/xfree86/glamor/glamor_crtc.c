@@ -48,6 +48,14 @@
 #include <xf86Crtc.h>
 #include <xf86DDC.h>
 #include <xorgVersion.h>
+#include <libkms/libkms.h>
+
+#define GL_GLEXT_PROTOTYPES
+#define EGL_EGLEXT_PROTOTYPES
+#define EGL_DISPLAY_NO_X_MESA
+#include <GL/gl.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 
 #include "glamor_ddx.h"
 
@@ -67,6 +75,7 @@ typedef struct {
     drmmode_ptr drmmode;
     drmModeCrtcPtr mode_crtc;
     uint32_t rotate_fb_id;
+    EGLImageKHR cursor;
     unsigned int cursor_tex;
 } drmmode_crtc_private_rec, *drmmode_crtc_private_ptr;
 
@@ -328,7 +337,7 @@ drmmode_update_fb (ScrnInfoPtr scrn, int width, int height)
 		drmModeRmFB(drmmode->fd, drmmode->fb_id);
 	glamor_frontbuffer_handle(scrn, &handle, &pitch);
 	ret = drmModeAddFB(drmmode->fd, width, height, scrn->depth,
-			   scrn->bitsPerPixel, pitch,
+			   scrn->bitsPerPixel, pitch /** drmmode->cpp*/,
 			   handle, &drmmode->fb_id);
 	if (ret)
 		/* FIXME: Undo glamor_resize() */
@@ -459,9 +468,31 @@ drmmode_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
 static void
 drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 {
+	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+	drmmode_ptr drmmode = drmmode_crtc->drmmode;
 	ScrnInfoPtr scrn = crtc->scrn;
 
-	//glamor_load_cursor(scrn, image, 64, 64);
+
+	if (drmmode_crtc->cursor == NULL)
+	{
+	     drmmode_crtc->cursor = glamor_create_cursor_argb(scrn, 64, 64);
+	     if (drmmode_crtc->cursor == EGL_NO_IMAGE_KHR)
+		return;
+		glGenTextures(1, &drmmode_crtc->cursor_tex);
+		glBindTexture(GL_TEXTURE_2D, drmmode_crtc->cursor_tex);
+		glTexParameteri(GL_TEXTURE_2D,
+				GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D,
+				GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, drmmode_crtc->cursor);
+	}
+
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 64);
+	glBindTexture(GL_TEXTURE_2D, drmmode_crtc->cursor_tex);
+	//	memset(image, 0xff, 64*64*4);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0,
+	  GL_BGRA,  GL_UNSIGNED_INT_8_8_8_8_REV, image);
+
 }
 
 
@@ -484,7 +515,7 @@ drmmode_show_cursor (xf86CrtcPtr crtc)
 	uint32_t handle, stride;
 
 	ErrorF("show cursor\n");
-	glamor_cursor_handle(scrn, &handle, &stride);
+	glamor_cursor_handle(scrn, drmmode_crtc->cursor, &handle, &stride);
 
 	drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
 			 handle, 64, 64);
@@ -596,6 +627,7 @@ static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
 	.show_cursor = drmmode_show_cursor,
 	.hide_cursor = drmmode_hide_cursor,
 	.load_cursor_argb = drmmode_load_cursor_argb,
+	.load_cursor_image = NULL,
 #if 0
 	.shadow_create = drmmode_crtc_shadow_create,
 	.shadow_allocate = drmmode_crtc_shadow_allocate,
@@ -1311,9 +1343,10 @@ drmmode_xf86crtc_resize (ScrnInfoPtr scrn, int width, int height)
 
 		if (!crtc->enabled)
 			continue;
-
+#if 0
 		drmmode_set_mode_major(crtc, &crtc->mode,
 				       crtc->rotation, crtc->x, crtc->y);
+#endif
 	}
 
 	return TRUE;
