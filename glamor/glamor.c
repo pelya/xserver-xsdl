@@ -102,7 +102,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 
     pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
 
-    if (dixAllocatePrivates(pixmap->devPrivates, PRIVATE_PIXMAP) != TRUE) {
+    if (dixAllocatePrivates(&pixmap->devPrivates, PRIVATE_PIXMAP) != TRUE) {
         fbDestroyPixmap(pixmap);
 	ErrorF("Fail to allocate privates for PIXMAP.\n");
 	return NullPixmap;
@@ -166,16 +166,15 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 {
     glamor_screen_private *glamor_priv;
 
-    if (flags & ~GLAMOR_VALID_FLAGS) {
-      ErrorF("glamor_init: Invalid flags %x\n", flags);
-      return FALSE;
-    }
-
 #ifdef RENDER
     PictureScreenPtr ps = GetPictureScreenIfSet(screen);
 #endif
 
-    glamor_priv = xcalloc(1, sizeof(*glamor_priv));
+    if (flags & ~GLAMOR_VALID_FLAGS) {
+      ErrorF("glamor_init: Invalid flags %x\n", flags);
+      return FALSE;
+    }
+    glamor_priv = calloc(1, sizeof(*glamor_priv));
     if (glamor_priv == NULL)
 	return FALSE;
 
@@ -274,7 +273,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     return TRUE;
 
 fail:
-    xfree(glamor_priv);
+    free(glamor_priv);
     dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, NULL);
     return FALSE;
 }

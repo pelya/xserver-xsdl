@@ -61,7 +61,7 @@ glamor_get_spans(DrawablePtr drawable,
 
     switch (drawable->depth) {
     case 1:
-	temp_dst = xalloc(wmax);
+	temp_dst = malloc(wmax);
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
 	readpixels_dst = temp_dst;
@@ -111,7 +111,7 @@ glamor_get_spans(DrawablePtr drawable,
 	    readpixels_dst += PixmapBytePad(widths[i], drawable->depth);
 	}
     }
-    xfree(temp_dst);
+    free(temp_dst);
     return;
 
 fail:

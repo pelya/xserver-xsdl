@@ -64,7 +64,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 	goto fail;
     }
 
-    rects = xalloc(sizeof(xRectangle) * (n - 1));
+    rects = malloc(sizeof(xRectangle) * (n - 1));
     x1 = points[0].x;
     y1 = points[0].y;
     /* If we have any non-horizontal/vertical, fall back. */
@@ -80,7 +80,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 	if (x1 != x2 && y1 != y2) {
 	    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 
-	    xfree(rects);
+	    free(rects);
 
 	    ErrorF("stub diagonal poly_line\n");
 	    glamor_solid_fail_region(pixmap, x1, y1, x2 - x1, y2 - y1);
@@ -106,7 +106,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 	y1 = y2;
     }
     gc->ops->PolyFillRect(drawable, gc, n - 1, rects);
-    xfree(rects);
+    free(rects);
     return;
 
 fail:

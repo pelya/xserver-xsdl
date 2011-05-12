@@ -311,7 +311,7 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
     stride = pixmap->devKind;
     read_stride = stride;
 
-    data = xalloc(stride * pixmap->drawable.height);
+    data = malloc(stride * pixmap->drawable.height);
 
     switch (drawable->depth) {
     case 1:
@@ -332,7 +332,7 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	break;
     default:
 	ErrorF("Unknown prepareaccess depth %d\n", drawable->depth);
-	xfree(data);
+	free(data);
 	return FALSE;
     }
 
@@ -475,9 +475,9 @@ glamor_finish_access(DrawablePtr drawable)
     if (pixmap_priv == NULL)
 	return;
     if (glamor_priv->yInverted)
-	ptexcoords = texcoords_inverted;
+	ptexcoords = &texcoords_inverted[0][0];
     else
-	ptexcoords = texcoords;
+	ptexcoords = &texcoords[0][0];
 
     if (pixmap_priv->fb == 0) {
 	ScreenPtr screen = pixmap->drawable.pScreen;
@@ -549,7 +549,7 @@ glamor_finish_access(DrawablePtr drawable)
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDeleteTextures(1, &tex);
 
-    xfree(pixmap->devPrivate.ptr);
+    free(pixmap->devPrivate.ptr);
     pixmap->devPrivate.ptr = NULL;
 }
 

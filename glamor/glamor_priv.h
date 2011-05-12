@@ -231,7 +231,7 @@ glamor_delayed_fallback(ScreenPtr screen, char *format, ...)
 	return;
 
     va_start(ap, format);
-    glamor_priv->delayed_fallback_string = XNFvprintf(format, ap);
+    XNFvasprintf(&glamor_priv->delayed_fallback_string, format, ap);
     va_end(ap);
 }
 
@@ -240,7 +240,7 @@ glamor_clear_delayed_fallbacks(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
-    xfree(glamor_priv->delayed_fallback_string);
+    free(glamor_priv->delayed_fallback_string);
     glamor_priv->delayed_fallback_string = NULL;
 }
 

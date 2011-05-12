@@ -181,13 +181,15 @@ glamor_create_composite_fs(struct shader_key *key)
 	FatalError("Bad composite IN type");
     }
 
-    source = XNFprintf("%s%s%s",
-		       source_fetch,
-		       mask_fetch,
-		       in);
+    XNFasprintf(&source,
+		"%s%s%s",
+		source_fetch,
+		mask_fetch,
+		in);
+ 
 
     prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, source);
-    xfree(source);
+    free(source);
 
     return prog;
 }
@@ -216,14 +218,15 @@ glamor_create_composite_vs(struct shader_key *key)
     if (key->mask != SHADER_MASK_NONE && key->mask != SHADER_MASK_SOLID)
 	mask_coords_setup = mask_coords;
 
-    source = XNFprintf("%s%s%s%s",
-		       main_opening,
-		       source_coords_setup,
-		       mask_coords_setup,
-		       main_closing);
+    XNFasprintf(&source,
+		"%s%s%s%s",
+		 main_opening,
+		 source_coords_setup,
+		 mask_coords_setup,
+		 main_closing);
 
     prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, source);
-    xfree(source);
+    free(source);
 
     return prog;
 }
@@ -591,7 +594,7 @@ glamor_setup_composite_vbo(ScreenPtr screen)
 
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, glamor_priv->vbo);
     glVertexPointer(2, GL_FLOAT, glamor_priv->vb_stride,
-		    (void *)(glamor_priv->vbo_offset));
+		    (void *)((long)glamor_priv->vbo_offset));
     glEnableClientState(GL_VERTEX_ARRAY);
 
     if (glamor_priv->has_source_coords) {

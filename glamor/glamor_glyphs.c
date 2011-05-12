@@ -130,12 +130,12 @@ static void glamor_unrealize_glyph_caches(ScreenPtr screen, unsigned int format)
 	}
 
 	if (cache->hash_entries) {
-	    xfree(cache->hash_entries);
+	    free(cache->hash_entries);
 	    cache->hash_entries = NULL;
 	}
 
 	if (cache->glyphs) {
-	    xfree(cache->glyphs);
+	    free(cache->glyphs);
 	    cache->glyphs = NULL;
 	}
 	cache->glyph_count = 0;
@@ -215,9 +215,9 @@ static Bool glamor_realize_glyph_caches(ScreenPtr screen, unsigned int format)
 
 	cache->picture = picture;
 	cache->picture->refcnt++;
-	cache->hash_entries = xalloc(sizeof(int) * cache->hash_size);
+	cache->hash_entries = malloc(sizeof(int) * cache->hash_size);
 	cache->glyphs =
-	    xalloc(sizeof(glamor_cached_glyph_t) * cache->size);
+	    malloc(sizeof(glamor_cached_glyph_t) * cache->size);
 	cache->glyph_count = 0;
 
 	if (!cache->hash_entries || !cache->glyphs)

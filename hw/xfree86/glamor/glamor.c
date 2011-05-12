@@ -103,7 +103,6 @@ glamor_resize(ScrnInfoPtr scrn, int width, int height)
 
 	attribs[1] = width;
 	attribs[3] = height;
-	EGLint name, handle, stride, i; 
 	image =	 eglCreateDRMImageMESA(glamor->display, attribs);  
 	if (image == EGL_NO_IMAGE_KHR)
 		return FALSE;
@@ -206,8 +205,9 @@ glamor_pre_init(ScrnInfoPtr scrn, int flags)
 	return TRUE;
 
 fail:
-	  scrn->driverPrivate = NULL;
-	  xfree(glamor);
+	scrn->driverPrivate = NULL;
+	free(glamor);
+	return FALSE;
 }
 
 static void
@@ -407,7 +407,7 @@ glamor_free_screen(int scrnIndex, int flags)
 	if (glamor != NULL)
 	{
 	  close(glamor->fd);
-	  xfree(glamor);
+	  free(glamor);
 	  scrn->driverPrivate = NULL;
 	}
 }

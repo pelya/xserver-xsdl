@@ -123,44 +123,14 @@ typedef struct GLUmat4Stack GLUmat4Stack;
 #ifdef __cplusplus
 extern "C" {
 #endif
-#if 0
-GLfloat gluDot4_4v(const GLUvec4 *, const GLUvec4 *);
-GLfloat gluDot3_4v(const GLUvec4 *, const GLUvec4 *);
-GLfloat gluDot2_4v(const GLUvec4 *, const GLUvec4 *);
-
-void gluCross4v(GLUvec4 *result, const GLUvec4 *, const GLUvec4 *);
-void gluNormalize4v(GLUvec4 *result, const GLUvec4 *);
-GLfloat gluLength4v(const GLUvec4 *);
-GLfloat gluLengthSqr4v(const GLUvec4 *);
-void gluOuter4v(GLUmat4 *result, const GLUvec4 *, const GLUvec4 *);
-
-
-void gluMult4v_4v(GLUvec4 *result, const GLUvec4 *, const GLUvec4 *);
-void gluDiv4v_4v(GLUvec4 *result, const GLUvec4 *, const GLUvec4 *);
-void gluAdd4v_4v(GLUvec4 *result, const GLUvec4 *, const GLUvec4 *);
-void gluSub4v_4v(GLUvec4 *result, const GLUvec4 *, const GLUvec4 *);
-
-void gluMult4v_f(GLUvec4 *result, const GLUvec4 *, GLfloat);
-void gluDiv4v_f(GLUvec4 *result, const GLUvec4 *, GLfloat);
-void gluAdd4v_f(GLUvec4 *result, const GLUvec4 *, GLfloat);
-void gluSub4v_f(GLUvec4 *result, const GLUvec4 *, GLfloat);
-
-void gluMult4m_4m(GLUmat4 *result, const GLUmat4 *, const GLUmat4 *);
-void gluAdd4m_4m(GLUmat4 *result, const GLUmat4 *, const GLUmat4 *);
-void gluSub4m_4m(GLUmat4 *result, const GLUmat4 *, const GLUmat4 *);
-void gluMult4m_4v(GLUvec4 *result, const GLUmat4 *m, const GLUvec4 *v);
-
-void gluMult4m_f(GLUmat4 *result, const GLUmat4 *, GLfloat);
 
 void gluScale4v(GLUmat4 *result, const GLUvec4 *);
-void gluTranslate3f(GLUmat4 *result, GLfloat x, GLfloat y, GLfloat z);
 void gluTranslate4v(GLUmat4 *result, const GLUvec4 *);
 void gluRotate4v(GLUmat4 *result, const GLUvec4 *axis, GLfloat angle);
 void gluLookAt4v(GLUmat4 *result, const GLUvec4 *eye, const GLUvec4 *center,
 		 const GLUvec4 *up);
 void gluPerspective4f(GLUmat4 *result, GLfloat fovy, GLfloat aspect,
 		      GLfloat near, GLfloat far);
-void gluTranspose4m(GLUmat4 *result, const GLUmat4 *m);
 void gluFrustum6f(GLUmat4 *result,
 		  GLfloat left, GLfloat right,
 		  GLfloat bottom, GLfloat top,
@@ -169,7 +139,6 @@ void gluOrtho6f(GLUmat4 *result,
 		GLfloat left, GLfloat right,
 		GLfloat bottom, GLfloat top,
 		GLfloat near, GLfloat far);
-#endif
 extern const GLUmat4 gluIdentityMatrix;
 
 #ifdef __cplusplus

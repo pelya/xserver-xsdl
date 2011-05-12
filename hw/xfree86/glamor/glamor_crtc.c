@@ -377,7 +377,7 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
 	crtc->y = y;
 	crtc->rotation = rotation;
 
-	output_ids = xcalloc(sizeof(uint32_t), xf86_config->num_output);
+	output_ids = calloc(sizeof(uint32_t), xf86_config->num_output);
 	if (!output_ids) {
 		ret = FALSE;
 		goto done;
@@ -469,9 +469,7 @@ static void
 drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 {
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
-	drmmode_ptr drmmode = drmmode_crtc->drmmode;
 	ScrnInfoPtr scrn = crtc->scrn;
-
 
 	if (drmmode_crtc->cursor == NULL)
 	{
@@ -489,7 +487,6 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 64);
 	glBindTexture(GL_TEXTURE_2D, drmmode_crtc->cursor_tex);
-	//	memset(image, 0xff, 64*64*4);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0,
 	  GL_BGRA,  GL_UNSIGNED_INT_8_8_8_8_REV, image);
 
@@ -775,7 +772,7 @@ static int drmmode_output_lvds_edid(xf86OutputPtr output,
 	 * device. This is similar to what we have done in i830_lvds.c
 	 */
 	edid_mon = NULL;
-	edid_mon = xcalloc(1, sizeof(xf86Monitor));
+	edid_mon = calloc(1, sizeof(xf86Monitor));
 	if (!edid_mon) {
 		xf86DrvMsg(output->scrn->scrnIndex, X_ERROR,
 			"Can't allocate memory for edid_mon.\n");
@@ -915,17 +912,17 @@ drmmode_output_destroy(xf86OutputPtr output)
 		drmModeFreePropertyBlob(drmmode_output->edid_blob);
 	for (i = 0; i < drmmode_output->num_props; i++) {
 	    drmModeFreeProperty(drmmode_output->props[i].mode_prop);
-	    xfree(drmmode_output->props[i].atoms);
+	    free(drmmode_output->props[i].atoms);
 	}
-	xfree(drmmode_output->props);
+	free(drmmode_output->props);
 	drmModeFreeConnector(drmmode_output->mode_output);
 	if (drmmode_output->private_data) {
-		xfree(drmmode_output->private_data);
+		free(drmmode_output->private_data);
 		drmmode_output->private_data = NULL;
 	}
 	if (drmmode_output->backlight_iface)
 		drmmode_backlight_set(output, drmmode_output->backlight_active_level);
-	xfree(drmmode_output);
+	free(drmmode_output);
 	output->driver_private = NULL;
 }
 
@@ -1008,7 +1005,7 @@ drmmode_output_create_resources(xf86OutputPtr output)
     drmModePropertyPtr drmmode_prop;
     int i, j, err;
 
-    drmmode_output->props = xcalloc(mode_output->count_props, sizeof(drmmode_prop_rec));
+    drmmode_output->props = calloc(mode_output->count_props, sizeof(drmmode_prop_rec));
     if (!drmmode_output->props)
 	return;
 
@@ -1033,7 +1030,7 @@ drmmode_output_create_resources(xf86OutputPtr output)
 	    INT32 range[2];
 
 	    p->num_atoms = 1;
-	    p->atoms = xcalloc(p->num_atoms, sizeof(Atom));
+	    p->atoms = calloc(p->num_atoms, sizeof(Atom));
 	    if (!p->atoms)
 		continue;
 	    p->atoms[0] = MakeAtom(drmmode_prop->name, strlen(drmmode_prop->name), TRUE);
@@ -1055,7 +1052,7 @@ drmmode_output_create_resources(xf86OutputPtr output)
 	    }
 	} else if (drmmode_prop->flags & DRM_MODE_PROP_ENUM) {
 	    p->num_atoms = drmmode_prop->count_enums + 1;
-	    p->atoms = xcalloc(p->num_atoms, sizeof(Atom));
+	    p->atoms = calloc(p->num_atoms, sizeof(Atom));
 	    if (!p->atoms)
 		continue;
 	    p->atoms[0] = MakeAtom(drmmode_prop->name, strlen(drmmode_prop->name), TRUE);
@@ -1291,7 +1288,7 @@ drmmode_output_init(ScrnInfoPtr scrn, drmmode_ptr drmmode, int num)
 		return;
 	}
 
-	drmmode_output = xcalloc(sizeof(drmmode_output_private_rec), 1);
+	drmmode_output = calloc(sizeof(drmmode_output_private_rec), 1);
 	if (!drmmode_output) {
 		xf86OutputDestroy(output);
 		drmModeFreeConnector(koutput);
@@ -1305,7 +1302,7 @@ drmmode_output_init(ScrnInfoPtr scrn, drmmode_ptr drmmode, int num)
 	 */
 	drmmode_output->private_data = NULL;
 	if (koutput->connector_type ==  DRM_MODE_CONNECTOR_LVDS) {
-		drmmode_output->private_data = xcalloc(
+		drmmode_output->private_data = calloc(
 				sizeof(struct fixed_panel_lvds), 1);
 		if (!drmmode_output->private_data)
 			xf86DrvMsg(scrn->scrnIndex, X_ERROR,

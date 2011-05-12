@@ -53,7 +53,7 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 
     switch (drawable->depth) {
     case 1:
-	temp_src = xalloc(wmax);
+	temp_src = malloc(wmax);
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
 	drawpixels_src = temp_src;
@@ -123,7 +123,7 @@ fail:
     glDisable(GL_SCISSOR_TEST);
     glamor_set_planemask(dest_pixmap, ~0);
     glamor_set_alu(GXcopy);
-    xfree(temp_src);
+    free(temp_src);
 
     glamor_fallback("glamor_set_spans(): to %p (%c)\n",
 		    drawable, glamor_get_drawable_location(drawable));
