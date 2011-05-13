@@ -566,8 +566,7 @@ AC_ARG_WITH(launchd-id-prefix,  AS_HELP_STRING([--with-launchd-id-prefix=PATH], 
                                 [ BUNDLE_ID_PREFIX="${withval}" ],
                                 [ BUNDLE_ID_PREFIX="org.x" ])
 AC_ARG_WITH(bundle-id-prefix,  AS_HELP_STRING([--with-bundle-id-prefix=PATH], [Prefix to use for bundle identifiers (default: org.x)]),
-                               [ BUNDLE_ID_PREFIX="${withval}" ],
-                               [ BUNDLE_ID_PREFIX="org.x" ])
+                               [ BUNDLE_ID_PREFIX="${withval}" ])
 AC_SUBST([BUNDLE_ID_PREFIX])
 AC_DEFINE_UNQUOTED(BUNDLE_ID_PREFIX, "$BUNDLE_ID_PREFIX", [Prefix to use for bundle identifiers])
 AC_ARG_ENABLE(sparkle,AS_HELP_STRING([--enable-sparkle], [Enable updating of X11.app using the Sparkle Framework (default: disabled)]),
