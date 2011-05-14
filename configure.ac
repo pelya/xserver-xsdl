@@ -38,11 +38,12 @@ m4_ifndef([XORG_MACROS_VERSION],
 XORG_MACROS_VERSION(1.13)
 XORG_DEFAULT_OPTIONS
 XORG_WITH_DOXYGEN(1.6.1)
-XORG_CHECK_SGML_DOCTOOLS(1.5)
+XORG_CHECK_SGML_DOCTOOLS(1.7)
 XORG_ENABLE_DOCS
 XORG_ENABLE_DEVEL_DOCS
 XORG_WITH_XMLTO(0.0.20)
 XORG_WITH_FOP
+XORG_WITH_XSLTPROC
 XORG_ENABLE_UNIT_TESTS
 XORG_LD_WRAP
 
@@ -2151,8 +2152,8 @@ damageext/Makefile
 dbe/Makefile
 dix/Makefile
 doc/Makefile
+doc/dtrace/Makefile
 doc/xml/Makefile
-doc/xml/dtrace/Makefile
 doc/xml/xserver.ent
 man/Makefile
 fb/Makefile

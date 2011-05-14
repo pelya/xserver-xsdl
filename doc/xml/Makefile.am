@@ -21,7 +21,6 @@
 # DEALINGS IN THE SOFTWARE.
 #
 
-SUBDIRS = dtrace
 doc_sources =  Xserver-spec.xml Xinput.xml
 
 # Developer's documentation is not installed
