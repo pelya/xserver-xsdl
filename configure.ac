@@ -2153,7 +2153,6 @@ dbe/Makefile
 dix/Makefile
 doc/Makefile
 doc/dtrace/Makefile
-doc/xml/Makefile
 man/Makefile
 fb/Makefile
 record/Makefile
