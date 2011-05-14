@@ -27,7 +27,7 @@
 # It is included by xmlrules-noinst for non installable developer's documentation
 # If the server version or release date changes, autogen && make
 
-XML_ENT_DIR = $(abs_top_builddir)/doc/xml
+XML_ENT_DIR = $(abs_top_builddir)
 SUFFIXES = .xml .txt .html .pdf
 
 XMLTO_FLAGS = --searchpath $(XML_ENT_DIR)

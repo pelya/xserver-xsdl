@@ -32,7 +32,7 @@ sgmldbsdir = $(XORG_SGML_PATH)/X11/dbs
 masterdb = "$(sgmldbsdir)/masterdb$(suffix $@).xml"
 XMLTO_FLAGS =							\
 	--searchpath "$(XORG_SGML_PATH)/X11"			\
-	--searchpath "$(abs_top_builddir)/doc/xml"		\
+	--searchpath "$(abs_top_builddir)"			\
 	--stringparam target.database.document=$(masterdb)	\
 	--stringparam current.docid="$(<:.xml=)"		\
 	--stringparam collect.xref.targets="no"

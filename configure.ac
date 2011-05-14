@@ -2154,7 +2154,6 @@ dix/Makefile
 doc/Makefile
 doc/dtrace/Makefile
 doc/xml/Makefile
-doc/xml/xserver.ent
 man/Makefile
 fb/Makefile
 record/Makefile
@@ -2244,5 +2243,6 @@ hw/kdrive/linux/Makefile
 hw/kdrive/src/Makefile
 test/Makefile
 test/xi2/Makefile
+xserver.ent
 xorg-server.pc
 ])
