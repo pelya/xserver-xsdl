@@ -157,7 +157,7 @@ glamor_cursor_handle(ScrnInfoPtr scrn, EGLImageKHR cursor, uint32_t *handle, uin
 
 char * dri_device_name = "/dev/dri/card0";
 static Bool
-glamor_pre_init(ScrnInfoPtr scrn, int flags)
+glamor_pre_init_ddx(ScrnInfoPtr scrn, int flags)
 {
 	struct glamor_screen_private *glamor;
 	rgb defaultWeight = { 0, 0, 0 };
@@ -211,12 +211,12 @@ fail:
 }
 
 static void
-glamor_adjust_frame(int scrnIndex, int x, int y, int flags)
+glamor_adjust_frame_ddx(int scrnIndex, int x, int y, int flags)
 {
 }
 
 static Bool
-glamor_enter_vt(int scrnIndex, int flags)
+glamor_enter_vt_ddx(int scrnIndex, int flags)
 {
 	ScrnInfoPtr scrn = xf86Screens[scrnIndex];
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
@@ -234,7 +234,7 @@ glamor_enter_vt(int scrnIndex, int flags)
 }
 
 static void
-glamor_leave_vt(int scrnIndex, int flags)
+glamor_leave_vt_ddx(int scrnIndex, int flags)
 {
 	ScrnInfoPtr scrn = xf86Screens[scrnIndex];
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
@@ -243,7 +243,7 @@ glamor_leave_vt(int scrnIndex, int flags)
 }
 
 static Bool
-glamor_create_screen_resources(ScreenPtr screen)
+glamor_create_screen_resources_ddx(ScreenPtr screen)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
@@ -260,13 +260,16 @@ glamor_create_screen_resources(ScreenPtr screen)
 }
 
 static Bool
-glamor_close_screen(int scrnIndex, ScreenPtr screen)
+glamor_close_screen_ddx(int scrnIndex, ScreenPtr screen)
 {
 	ScrnInfoPtr scrn = xf86Screens[scrnIndex];
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
 
+	screen->CloseScreen = glamor->CloseScreen;
+	(*screen->CloseScreen) (scrnIndex, screen);
+
 	if (scrn->vtSema == TRUE)
-		glamor_leave_vt(scrnIndex, 0);
+		glamor_leave_vt_ddx(scrnIndex, 0);
 
 	glamor_fini(screen);
 
@@ -275,20 +278,31 @@ glamor_close_screen(int scrnIndex, ScreenPtr screen)
 	eglTerminate(glamor->display);
 
 	drmmode_closefb(scrn);
-
-	screen->CloseScreen = glamor->CloseScreen;
-	(*screen->CloseScreen) (scrnIndex, screen);
+	
+	glamor->fd = -1;
+	glamor->root = EGL_NO_IMAGE_KHR;
 
 	return TRUE;
 }
 
 static Bool
-glamor_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
+glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
 	const char *version;
 	VisualPtr visual;
+
+	/* If serverGeneration != 1 then fd was closed during the last
+	 time closing screen, actually in eglTerminate(). */
+
+	if (glamor->fd == -1 && serverGeneration != 1) {
+	  glamor->fd = open(dri_device_name, O_RDWR);
+	  if (glamor->fd == -1 ) {
+	    ErrorF("Failed to open %s: %s\n", dri_device_name, strerror(errno));
+	    return FALSE;
+	  }
+	}
 
 	glamor->display = eglGetDRMDisplayMESA(glamor->fd);
 	eglBindAPI(EGL_OPENGL_API);
@@ -378,15 +392,14 @@ glamor_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	 * later memory should be bound when allocating, e.g rotate_mem */
 	scrn->vtSema = TRUE;
 
-	if (!glamor_enter_vt(scrnIndex, 0))
+	if (!glamor_enter_vt_ddx(scrnIndex, 0))
 		return FALSE;
 
 	screen->SaveScreen = xf86SaveScreen;
 	glamor->CreateScreenResources = screen->CreateScreenResources;
-	screen->CreateScreenResources = glamor_create_screen_resources;
+	screen->CreateScreenResources = glamor_create_screen_resources_ddx;
 	glamor->CloseScreen = screen->CloseScreen;
-	screen->CloseScreen = glamor_close_screen;
-
+	screen->CloseScreen = glamor_close_screen_ddx;
 	/* Fixme should we init crtc screen here? */
 	if (!xf86CrtcScreenInit(screen))
 	  return FALSE;
@@ -400,7 +413,7 @@ glamor_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 }
 
 static void
-glamor_free_screen(int scrnIndex, int flags)
+glamor_free_screen_ddx(int scrnIndex, int flags)
 {
 	ScrnInfoPtr scrn = xf86Screens[scrnIndex];
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
@@ -413,7 +426,7 @@ glamor_free_screen(int scrnIndex, int flags)
 }
 
 static ModeStatus
-glamor_valid_mode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
+glamor_valid_mode_ddx(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 {
 	if (mode->Flags & V_INTERLACE) {
 		if (verbose) {
@@ -450,13 +463,13 @@ glamor_probe(struct _DriverRec *drv, int flags)
 	scrn->name = (char *) glamor_name;
 	scrn->Probe = NULL;
 
-	scrn->PreInit = glamor_pre_init;
-	scrn->ScreenInit = glamor_screen_init;
-	scrn->AdjustFrame = glamor_adjust_frame;
-	scrn->EnterVT = glamor_enter_vt;
-	scrn->LeaveVT = glamor_leave_vt;
-	scrn->FreeScreen = glamor_free_screen;
-	scrn->ValidMode = glamor_valid_mode;
+	scrn->PreInit = glamor_pre_init_ddx;
+	scrn->ScreenInit = glamor_screen_init_ddx;
+	scrn->AdjustFrame = glamor_adjust_frame_ddx;
+	scrn->EnterVT = glamor_enter_vt_ddx;
+	scrn->LeaveVT = glamor_leave_vt_ddx;
+	scrn->FreeScreen = glamor_free_screen_ddx;
+	scrn->ValidMode = glamor_valid_mode_ddx;
 
 	return TRUE;
 }
