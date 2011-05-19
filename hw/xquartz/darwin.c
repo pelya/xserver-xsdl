@@ -772,8 +772,8 @@ void ddxGiveUp( void )
  *      made to restore all original setting of the displays. Also all devices
  *      are closed.
  */
-void AbortDDX( void )
-{
+_X_NORETURN
+void AbortDDX( void ) {
     ErrorF( "   AbortDDX\n" );
     OsAbort();
 }
