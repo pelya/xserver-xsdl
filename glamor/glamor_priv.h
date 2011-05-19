@@ -39,6 +39,14 @@
 #include "glyphstr.h"
 #endif
 
+#ifndef MAX_WIDTH
+#define MAX_WIDTH 4096
+#endif
+
+#ifndef MAX_HEIGHT
+#define MAX_HEIGHT 4096
+#endif
+
 typedef enum glamor_access {
     GLAMOR_ACCESS_RO,
     GLAMOR_ACCESS_RW,
@@ -175,10 +183,16 @@ typedef struct glamor_screen_private {
     glamor_glyph_cache_t glyph_caches[GLAMOR_NUM_GLYPH_CACHES];
 } glamor_screen_private;
 
+enum glamor_pixmap_type {
+  GLAMOR_GL,
+  GLAMOR_FB
+};
+
 typedef struct glamor_pixmap_private {
     GLuint tex;
     GLuint fb;
     GLuint pbo;
+    enum   glamor_pixmap_type type;
 } glamor_pixmap_private;
 
 extern DevPrivateKey glamor_screen_private_key;
@@ -250,8 +264,8 @@ glamor_report_delayed_fallbacks(ScreenPtr screen)
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
     if (glamor_priv->delayed_fallback_string) {
-	LogMessageVerb(X_INFO, 0, "fallback: %s",
-		       glamor_priv->delayed_fallback_string);
+      //	LogMessageVerb(X_INFO, 0, "fallback: %s",
+      //	       glamor_priv->delayed_fallback_string);
 	glamor_clear_delayed_fallbacks(screen);
     }
 }

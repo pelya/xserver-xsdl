@@ -95,12 +95,24 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     PixmapPtr pixmap;
     GLenum format;
     GLuint tex;
-
+    glamor_pixmap_private *pixmap_priv;
+    int type = GLAMOR_GL;
 
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
-    pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
+    if (w > MAX_WIDTH || h > MAX_HEIGHT) {
+	/* MESA can only support upto MAX_WIDTH*MAX_HEIGHT fbo.
+ 	   If we exceed such limitation, we have to use framebuffer.*/
+      type = GLAMOR_FB;
+      pixmap = fbCreatePixmap (screen, w, h, depth, usage);
+      screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
+                              (((w * pixmap->drawable.bitsPerPixel +
+                                 7) / 8) + 3) & ~3,
+                              NULL);
+      ErrorF("fallback to software fb for pixmap %p , %d x %d \n", pixmap, w, h);
+   } else
+      pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
 
     if (dixAllocatePrivates(&pixmap->devPrivates, PRIVATE_PIXMAP) != TRUE) {
         fbDestroyPixmap(pixmap);
@@ -108,8 +120,12 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	return NullPixmap;
     }	 
 
-    if (w == 0 || h == 0)
+    if (w == 0 || h == 0 || type != GLAMOR_GL)
 	return pixmap;
+
+    pixmap_priv = glamor_get_pixmap_private(pixmap);
+    pixmap_priv->type = type;
+
     /* We should probably take advantage of ARB_fbo's allowance of GL_ALPHA.
      * FBOs, which EXT_fbo forgot to do.
      */
@@ -122,7 +138,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
         break;
     }
 
-
     /* Create the texture used to store the pixmap's data. */
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
@@ -132,7 +147,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
                  format, GL_UNSIGNED_BYTE, NULL);
 
     glamor_set_pixmap_texture(pixmap, w, h, tex);
-
     return pixmap;
 }
 
@@ -141,7 +155,6 @@ glamor_destroy_pixmap(PixmapPtr pixmap)
 {
     if (pixmap->refcnt == 1) {
 	glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-
 	glDeleteFramebuffersEXT(1, &pixmap_priv->fb);
 	glDeleteTextures(1, &pixmap_priv->tex);
     }
@@ -285,7 +298,6 @@ glamor_close_screen(int idx, ScreenPtr screen)
 #ifdef RENDER
     PictureScreenPtr	ps = GetPictureScreenIfSet(screen);
 #endif
-
     glamor_glyphs_fini(screen);
     screen->CloseScreen = glamor_priv->saved_close_screen;
     screen->CreateGC = glamor_priv->saved_create_gc;
