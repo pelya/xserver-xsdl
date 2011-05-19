@@ -645,7 +645,7 @@ int main(int argc, char **argv, char **envp) {
                 child2 = fork();
 
                 switch (child2) {
-                    int max_files, i;
+                    int max_files;
 
                     case -1:                            /* error */
                         FatalError("fork() failed: %s\n", strerror(errno));
