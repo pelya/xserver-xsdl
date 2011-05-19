@@ -117,12 +117,10 @@ void
 glamor_set_alu(unsigned char alu)
 {
     if (alu == GXcopy) {
-	glDisable(GL_LOGIC_OP);
+	glDisable(GL_COLOR_LOGIC_OP);
 	return;
     }
-
-    glEnable(GL_LOGIC_OP);
-
+    glEnable(GL_COLOR_LOGIC_OP);
     switch (alu) {
     case GXclear:
 	glLogicOp(GL_CLEAR);
@@ -271,10 +269,10 @@ glamor_get_color_4f_from_pixel(PixmapPtr pixmap, unsigned long fg_pixel,
 	break;
     case 24:
     case 32:
-	color[0] = ubyte_to_float(fg_pixel >> 16);
-	color[1] = ubyte_to_float(fg_pixel >> 8);
-	color[2] = ubyte_to_float(fg_pixel >> 0);
-	color[3] = ubyte_to_float(fg_pixel >> 24);
+	color[0] = ubyte_to_float((fg_pixel >> 16) & 0xFF);
+	color[1] = ubyte_to_float((fg_pixel >> 8) & 0xFF);
+	color[2] = ubyte_to_float((fg_pixel >> 0) & 0xFF);
+	color[3] = ubyte_to_float((fg_pixel >> 24) & 0xFF);
 	break;
     default:
 	ErrorF("pixmap with bad depth: %d\n", pixmap->drawable.depth);
