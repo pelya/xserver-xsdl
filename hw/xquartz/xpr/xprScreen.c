@@ -253,7 +253,7 @@ xprDisplayInit(void)
 {
     CGDisplayCount displayCount;
 
-    DEBUG_LOG("");
+    TRACE();
 
     CGGetActiveDisplayList(0, NULL, &displayCount);
 
