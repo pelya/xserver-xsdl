@@ -84,6 +84,20 @@ glamor_fill(DrawablePtr drawable,
 		    drawable->y + y - gc->patOrg.y);
 	break;
     }
+    return;
+#if 0
+ fail:
+    glamor_fallback("glamor_fill()");
+    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
+	if (glamor_prepare_access_gc(gc)) {
+            fbFill(drawable, gc, x, y, width, height);
+	    glamor_finish_access_gc(gc);
+	}
+	glamor_finish_access(drawable);
+    }
+#endif
+return;
+
 }
 
 void
@@ -142,8 +156,10 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     if (!glamor_set_destination_pixmap(pixmap))
 	return;
     glamor_set_alu(alu);
-    if (!glamor_set_planemask(pixmap, planemask))
+    if (!glamor_set_planemask(pixmap, planemask)) {
+	ErrorF("Failedto set planemask  in glamor_solid.\n");
 	goto fail;
+	}
 
     glUseProgramObjectARB(glamor_priv->solid_prog);
     glamor_get_color_4f_from_pixel(pixmap, fg_pixel, color);
