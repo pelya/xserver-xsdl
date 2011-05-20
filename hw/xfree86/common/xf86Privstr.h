@@ -66,6 +66,8 @@ typedef struct {
     int			vtPendingNum;
 #endif
     Bool		dontVTSwitch;
+    Bool		autoVTSwitch;
+    Bool		ShareVTs;
     Bool		dontZap;
     Bool		dontZoom;
     Bool		notrapSignals;	/* don't exit cleanly - die at fault */
