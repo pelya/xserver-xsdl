@@ -464,11 +464,15 @@ void QuartzSpaceChanged(uint32_t space_id) {
 void QuartzCopyDisplayIDs(ScreenPtr pScreen,
                           int displayCount, CGDirectDisplayID *displayIDs) {
     QuartzScreenPtr pQuartzScreen = QUARTZ_PRIV(pScreen);
-    int size = displayCount * sizeof(CGDirectDisplayID);
 
     free(pQuartzScreen->displayIDs);
-    pQuartzScreen->displayIDs = malloc(size);
-    memcpy(pQuartzScreen->displayIDs, displayIDs, size);
+    if(displayCount) {
+        size_t size = displayCount * sizeof(CGDirectDisplayID);
+        pQuartzScreen->displayIDs = malloc(size);
+        memcpy(pQuartzScreen->displayIDs, displayIDs, size);
+    } else {
+       pQuartzScreen->displayIDs = NULL;
+    }
     pQuartzScreen->displayCount = displayCount;
 }
 
