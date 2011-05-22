@@ -289,7 +289,7 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 {
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    unsigned int stride, read_stride, x, y;
+    unsigned int stride, row_length, x, y;
     GLenum format, type;
     uint8_t *data, *read;
     glamor_screen_private *glamor_priv =
@@ -307,15 +307,14 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
     }
 
     stride = pixmap->devKind;
-    read_stride = stride;
+    row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
 
-    data = malloc(stride * pixmap->drawable.height);
-
+	
     switch (drawable->depth) {
     case 1:
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
-	read_stride = pixmap->drawable.width;
+	row_length = stride;
 	break;
     case 8:
 	format = GL_ALPHA;
@@ -330,67 +329,47 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	break;
     default:
 	ErrorF("Unknown prepareaccess depth %d\n", drawable->depth);
-	free(data);
 	return FALSE;
     }
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    if (drawable->depth != 1) {
-	glPixelStorei(GL_PACK_ROW_LENGTH, read_stride * 8 /
-		      pixmap->drawable.bitsPerPixel);
+    glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
+
+    if (GLEW_MESA_pack_invert || glamor_priv->yInverted) {
+
+      if (!glamor_priv->yInverted) 
+        glPixelStorei(GL_PACK_INVERT_MESA, 1);
+
+      glGenBuffersARB (1, &pixmap_priv->pbo);
+      glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
+      glBufferDataARB (GL_PIXEL_PACK_BUFFER_EXT,
+                       stride * pixmap->drawable.height,
+                       NULL, GL_DYNAMIC_DRAW_ARB);
+      glReadPixels (0, 0,
+                    row_length, pixmap->drawable.height,
+                    format, type, 0);
+
+      data = glMapBufferARB (GL_PIXEL_PACK_BUFFER_EXT, GL_READ_WRITE_ARB);
+
+      if (!glamor_priv->yInverted) 
+	glPixelStorei(GL_PACK_INVERT_MESA, 0);
+
     } else {
-	glPixelStorei(GL_PACK_ROW_LENGTH, read_stride);
-    }
-    if (GLEW_MESA_pack_invert && drawable->depth != 1) {
-	if (!glamor_priv->yInverted)
-	  glPixelStorei(GL_PACK_INVERT_MESA, 1);
-	glReadPixels(0, 0,
-		     pixmap->drawable.width, pixmap->drawable.height,
-		     format, type, data);
-	if (!glamor_priv->yInverted)
-	  glPixelStorei(GL_PACK_INVERT_MESA, 0);
-    } else {
-	glGenBuffersARB(1, &pixmap_priv->pbo);
+        data = malloc(stride * pixmap->drawable.height);
+
+        glGenBuffersARB(1, &pixmap_priv->pbo);
 	glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
 	glBufferDataARB(GL_PIXEL_PACK_BUFFER_EXT,
-			read_stride * pixmap->drawable.height,
-			NULL, GL_STREAM_READ_ARB);
-	glReadPixels(0, 0,
-		     pixmap->drawable.width, pixmap->drawable.height,
-		     format, type, 0);
-
+			stride * pixmap->drawable.height,
+	                NULL, GL_STREAM_READ_ARB);
+	glReadPixels (0, 0, row_length, pixmap->drawable.height,
+		      format, type, 0);
 	read = glMapBufferARB(GL_PIXEL_PACK_BUFFER_EXT, GL_READ_ONLY_ARB);
 
-	if (pixmap->drawable.depth == 1) {
-	    for (y = 0; y < pixmap->drawable.height; y++) {
-		uint8_t *read_row;
-		uint8_t *write_row = data + y * stride;
-
-		if (glamor_priv->yInverted) 
-		  read_row = read + read_stride * y;
-		else
-		  read_row = read + 
-			     read_stride * (pixmap->drawable.height - y - 1);
-
-		for (x = 0; x < pixmap->drawable.width; x++) {
-		    int index = x / 8;
-		    int bit = 1 << (x % 8);
-
-		    if (read_row[x])
-			write_row[index] |= bit;
-		    else
-			write_row[index] &= ~bit;
-		}
-	    }
-	} else {
-	    for (y = 0; y < pixmap->drawable.height; y++)
-	      if (glamor_priv->yInverted)
-		memcpy(data + y * stride, read + y * stride, stride);
-	      else
-		memcpy(data + y * stride,
-		       read + (pixmap->drawable.height - y - 1) * stride, stride);
-	}
+	for (y = 0; y < pixmap->drawable.height; y++)
+	  memcpy(data + y * stride,
+	         read + (pixmap->drawable.height - y - 1) * stride, stride);
 	glUnmapBufferARB(GL_PIXEL_PACK_BUFFER_EXT);
 	glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, 0);
 	glDeleteBuffersARB(1, &pixmap_priv->pbo);
@@ -452,7 +431,7 @@ glamor_finish_access(DrawablePtr drawable)
 	glamor_get_screen_private(drawable->pScreen);
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    unsigned int stride;
+    unsigned int stride, row_length;
     GLenum format, type;
     static float vertices[4][2] = {{-1, -1},
 				   { 1, -1},
@@ -489,10 +468,13 @@ glamor_finish_access(DrawablePtr drawable)
     if (pixmap->devPrivate.ptr == NULL)
 	return;
 
+    stride = pixmap->devKind;
+    row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
     switch (drawable->depth) {
     case 1:
 	format = GL_COLOR_INDEX;
 	type = GL_BITMAP;
+	row_length = stride;
 	break;
     case 8:
 	format = GL_ALPHA;
@@ -510,7 +492,6 @@ glamor_finish_access(DrawablePtr drawable)
 	return;
     }
 
-    stride = pixmap->devKind;
 
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -523,8 +504,7 @@ glamor_finish_access(DrawablePtr drawable)
     glViewport(0, 0, pixmap->drawable.width, pixmap->drawable.height);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, stride * 8 /
-		  pixmap->drawable.bitsPerPixel);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 
     glGenTextures(1, &tex);
     glActiveTexture(GL_TEXTURE0);
@@ -540,14 +520,21 @@ glamor_finish_access(DrawablePtr drawable)
     glUseProgramObjectARB(glamor_priv->finish_access_prog);
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
     glDisable(GL_TEXTURE_2D);
     glUseProgramObjectARB(0);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDeleteTextures(1, &tex);
 
-    free(pixmap->devPrivate.ptr);
+    if (GLEW_MESA_pack_invert || glamor_priv->yInverted) {
+      glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
+      glUnmapBufferARB (GL_PIXEL_PACK_BUFFER_EXT);
+      glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, 0);
+      glDeleteBuffersARB (1, &pixmap_priv->pbo);
+      pixmap_priv->pbo = 0;
+    } else
+      free(pixmap->devPrivate.ptr);
+
     pixmap->devPrivate.ptr = NULL;
 }
 
