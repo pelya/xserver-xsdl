@@ -193,6 +193,7 @@ typedef struct glamor_pixmap_private {
     GLuint fb;
     GLuint pbo;
     enum   glamor_pixmap_type type;
+    glamor_access_t access_mode;
 } glamor_pixmap_private;
 
 extern DevPrivateKey glamor_screen_private_key;

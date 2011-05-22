@@ -332,6 +332,7 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	return FALSE;
     }
 
+    pixmap_priv->access_mode = access;
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
@@ -468,6 +469,9 @@ glamor_finish_access(DrawablePtr drawable)
     if (pixmap->devPrivate.ptr == NULL)
 	return;
 
+    if (pixmap_priv->access_mode == GLAMOR_ACCESS_RO)
+      goto read_only;
+
     stride = pixmap->devKind;
     row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
     switch (drawable->depth) {
@@ -526,6 +530,7 @@ glamor_finish_access(DrawablePtr drawable)
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDeleteTextures(1, &tex);
 
+read_only:
     if (GLEW_MESA_pack_invert || glamor_priv->yInverted) {
       glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
       glUnmapBufferARB (GL_PIXEL_PACK_BUFFER_EXT);
