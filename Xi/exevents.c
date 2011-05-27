@@ -886,6 +886,7 @@ ProcessRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
     else { /* deliver to all root windows */
         xEvent *xi;
         int i;
+        int filter;
 
         i = EventToXI2((InternalEvent*)ev, (xEvent**)&xi);
         if (i != Success)
@@ -895,9 +896,11 @@ ProcessRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
             return;
         }
 
+        filter = GetEventFilter(device, xi);
+
         for (i = 0; i < screenInfo.numScreens; i++)
             DeliverEventsToWindow(device, screenInfo.screens[i]->root, xi, 1,
-                                  GetEventFilter(device, xi), NULL);
+                                  filter, NullGrab);
         free(xi);
     }
 }
