@@ -3997,7 +3997,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             rc = EventToXI2(event, &xi2);
             if (rc == Success)
             {
-                int evtype = ((xGenericEvent*)xi2)->evtype;
+                int evtype = xi2_get_type(xi2);
                 mask = grab->xi2mask[XIAllDevices][evtype/8] |
                     grab->xi2mask[XIAllMasterDevices][evtype/8] |
                     grab->xi2mask[thisDev->id][evtype/8];
