@@ -2037,6 +2037,44 @@ DeliverToWindowOwner(DeviceIntPtr dev, WindowPtr win,
     return EVENT_NOT_DELIVERED;
 }
 
+
+/**
+ * Get the list of clients that should be tried for event delivery on the
+ * given window.
+ *
+ * @return 1 if the client list should be traversed, zero if the event
+ * should be skipped.
+ */
+static Bool
+GetClientsForDelivery(DeviceIntPtr dev, WindowPtr win,
+                      xEvent *events, Mask filter, InputClients **clients)
+{
+    int rc = 0;
+
+    if (core_get_type(events) != 0)
+        *clients = (InputClients *)wOtherClients(win);
+    else if (xi2_get_type(events) != 0)
+    {
+        OtherInputMasks *inputMasks = wOtherInputMasks(win);
+        /* Has any client selected for the event? */
+        if (!GetWindowXI2Mask(dev, win, events))
+            goto out;
+        *clients = inputMasks->inputClients;
+    } else {
+        OtherInputMasks *inputMasks = wOtherInputMasks(win);
+        /* Has any client selected for the event? */
+        if (!inputMasks ||
+            !(inputMasks->inputEvents[dev->id] & filter))
+            goto out;
+
+        *clients = inputMasks->inputClients;
+    }
+
+    rc = 1;
+out:
+    return rc;
+}
+
 /**
  * Deliver events to clients registered on the window.
  *
@@ -2053,24 +2091,8 @@ DeliverEventToClients(DeviceIntPtr dev, WindowPtr win, xEvent *events,
     enum EventDeliveryState rc = EVENT_SKIP;
     InputClients *other;
 
-    if (core_get_type(events) != 0)
-        other = (InputClients *)wOtherClients(win);
-    else if (xi2_get_type(events) != 0)
-    {
-        OtherInputMasks *inputMasks = wOtherInputMasks(win);
-        /* Has any client selected for the event? */
-        if (!GetWindowXI2Mask(dev, win, events))
-            goto out;
-        other = inputMasks->inputClients;
-    } else {
-        OtherInputMasks *inputMasks = wOtherInputMasks(win);
-        /* Has any client selected for the event? */
-        if (!inputMasks ||
-            !(inputMasks->inputEvents[dev->id] & filter))
-            goto out;
-
-        other = inputMasks->inputClients;
-    }
+    if (!GetClientsForDelivery(dev, win, events, filter, &other))
+        goto out;
 
     rc = EVENT_NOT_DELIVERED;
 
