@@ -2243,6 +2243,35 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     return nondeliveries;
 }
 
+void
+DeliverRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
+{
+    GrabPtr grab = device->deviceGrab.grab;
+
+    if (grab)
+        DeliverGrabbedEvent((InternalEvent*)ev, device, FALSE);
+    else { /* deliver to all root windows */
+        xEvent *xi;
+        int i;
+        int filter;
+
+        i = EventToXI2((InternalEvent*)ev, (xEvent**)&xi);
+        if (i != Success)
+        {
+            ErrorF("[Xi] %s: XI2 conversion failed in %s (%d)\n",
+                    __func__, device->name, i);
+            return;
+        }
+
+        filter = GetEventFilter(device, xi);
+
+        for (i = 0; i < screenInfo.numScreens; i++)
+            DeliverEventsToWindow(device, screenInfo.screens[i]->root, xi, 1,
+                                  filter, NullGrab);
+        free(xi);
+    }
+}
+
 /* If the event goes to dontClient, don't send it and return 0.  if
    send works,  return 1 or if send didn't work, return 2.
    Only works for core events.
