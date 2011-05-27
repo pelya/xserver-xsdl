@@ -2083,9 +2083,9 @@ out:
  * mask for this event.
  */
 static enum EventDeliveryState
-DeliverEventToClients(DeviceIntPtr dev, WindowPtr win, xEvent *events,
-                      int count, Mask filter, GrabPtr grab,
-                      ClientPtr *client_return, Mask *mask_return)
+DeliverEventToWindowMask(DeviceIntPtr dev, WindowPtr win, xEvent *events,
+                         int count, Mask filter, GrabPtr grab,
+                         ClientPtr *client_return, Mask *mask_return)
 {
     int attempt;
     enum EventDeliveryState rc = EVENT_SKIP;
@@ -2192,8 +2192,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     {
         enum EventDeliveryState rc;
 
-        rc = DeliverEventToClients(pDev, pWin, pEvents, count, filter, grab,
-                                   &client, &deliveryMask);
+        rc = DeliverEventToWindowMask(pDev, pWin, pEvents, count, filter,
+                                      grab, &client, &deliveryMask);
 
         switch(rc)
         {
