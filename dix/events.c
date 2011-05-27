@@ -2076,35 +2076,27 @@ out:
 }
 
 /**
- * Deliver events to clients registered on the window.
- *
- * @param client_return On successful delivery, set to the recipient.
- * @param mask_return On successful delivery, set to the recipient's event
- * mask for this event.
+ * Try delivery on each client in inputclients, provided the event mask
+ * accepts it and there is no interfering core grab..
  */
 static enum EventDeliveryState
-DeliverEventToWindowMask(DeviceIntPtr dev, WindowPtr win, xEvent *events,
-                         int count, Mask filter, GrabPtr grab,
-                         ClientPtr *client_return, Mask *mask_return)
+DeliverEventToInputClients(DeviceIntPtr dev, InputClients *inputclients,
+                           WindowPtr win, xEvent *events,
+                           int count, Mask filter, GrabPtr grab,
+                           ClientPtr *client_return, Mask *mask_return)
 {
     int attempt;
-    enum EventDeliveryState rc = EVENT_SKIP;
-    InputClients *other;
+    enum EventDeliveryState rc = EVENT_NOT_DELIVERED;
 
-    if (!GetClientsForDelivery(dev, win, events, filter, &other))
-        goto out;
-
-    rc = EVENT_NOT_DELIVERED;
-
-    for (; other; other = other->next)
+    for (; inputclients; inputclients = inputclients->next)
     {
         Mask mask;
-        ClientPtr client = rClient(other);
+        ClientPtr client = rClient(inputclients);
 
         if (IsInterferingGrab(client, dev, events))
             continue;
 
-        mask = GetEventMask(dev, events, other);
+        mask = GetEventMask(dev, events, inputclients);
 
         if (XaceHook(XACE_RECEIVE_ACCESS, client, win,
                     events, count))
@@ -2125,8 +2117,30 @@ DeliverEventToWindowMask(DeviceIntPtr dev, WindowPtr win, xEvent *events,
         }
     }
 
-out:
     return rc;
+}
+
+
+/**
+ * Deliver events to clients registered on the window.
+ *
+ * @param client_return On successful delivery, set to the recipient.
+ * @param mask_return On successful delivery, set to the recipient's event
+ * mask for this event.
+ */
+static enum EventDeliveryState
+DeliverEventToWindowMask(DeviceIntPtr dev, WindowPtr win, xEvent *events,
+                         int count, Mask filter, GrabPtr grab,
+                         ClientPtr *client_return, Mask *mask_return)
+{
+    InputClients *clients;
+
+    if (!GetClientsForDelivery(dev, win, events, filter, &clients))
+        return EVENT_SKIP;
+
+    return DeliverEventToInputClients(dev, clients, win, events, count, filter,
+                                      grab, client_return, mask_return);
+
 }
 
 
