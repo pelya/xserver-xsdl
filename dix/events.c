@@ -2284,14 +2284,14 @@ DeliverRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
 {
     GrabPtr grab = device->deviceGrab.grab;
     xEvent *xi;
-    int i;
+    int i, rc;
     int filter;
 
-    i = EventToXI2((InternalEvent*)ev, (xEvent**)&xi);
-    if (i != Success)
+    rc = EventToXI2((InternalEvent*)ev, (xEvent**)&xi);
+    if (rc != Success)
     {
         ErrorF("[Xi] %s: XI2 conversion failed in %s (%d)\n",
-                __func__, device->name, i);
+                __func__, device->name, rc);
         return;
     }
 
