@@ -432,7 +432,7 @@ GetEventFilter(DeviceIntPtr dev, xEvent *event)
         return filters[dev ? dev->id : 0][event->u.u.type];
     else if ((evtype = xi2_get_type(event)))
         return (1 << (evtype % 8));
-    ErrorF("[dix] Unknown device type %d. No filter\n", event->u.u.type);
+    ErrorF("[dix] Unknown event type %d. No filter\n", event->u.u.type);
     return 0;
 }
 
