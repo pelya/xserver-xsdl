@@ -1069,18 +1069,19 @@ transform(struct pixman_f_transform *m, int *x, int *y)
 static void
 transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
 {
-    int x, y;
+    int x, y, ox, oy;
 
-    x = valuator_mask_isset(mask, 0) ? valuator_mask_get(mask, 0) :
-                                       dev->last.valuators[0];
-    y = valuator_mask_isset(mask, 1) ? valuator_mask_get(mask, 1) :
-                                       dev->last.valuators[1];
+    ox = x = valuator_mask_isset(mask, 0) ? valuator_mask_get(mask, 0) :
+                                            dev->last.valuators[0];
+    oy = y = valuator_mask_isset(mask, 1) ? valuator_mask_get(mask, 1) :
+                                            dev->last.valuators[1];
 
     transform(&dev->transform, &x, &y);
 
-    if (valuator_mask_isset(mask, 0))
+    if (valuator_mask_isset(mask, 0) || ox != x)
         valuator_mask_set(mask, 0, x);
-    if (valuator_mask_isset(mask, 1))
+
+    if (valuator_mask_isset(mask, 1) || oy != y)
         valuator_mask_set(mask, 1, y);
 }
 
