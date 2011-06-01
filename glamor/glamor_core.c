@@ -295,7 +295,7 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
     glamor_screen_private *glamor_priv =
 	glamor_get_screen_private(drawable->pScreen);
 
-    if (pixmap_priv == NULL)
+    if (!pixmap_priv)
 	return TRUE;
 
     if (pixmap_priv->fb == 0) {
@@ -425,53 +425,6 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     }
 }
 
-/* Load the pixmap's data to the fbo's texutre directly. 
- * Only useful when the platform enable yInverted, for
- * example MESA/EGL. 
- * */
-void glamor_load_texture_pixmap_direct(PixmapPtr pixmap)
-{
-    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    glamor_screen_private *glamor_priv =
-	glamor_get_screen_private(pixmap->drawable.pScreen);
-    unsigned int stride, row_length;
-    GLenum format, type;
-
-    stride = pixmap->devKind;
-    row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
-    switch (pixmap->drawable.depth) {
-    case 1:
-	format = GL_COLOR_INDEX;
-	type = GL_BITMAP;
-	row_length = stride;
-	break;
-    case 8:
-	format = GL_ALPHA;
-	type = GL_UNSIGNED_BYTE;
-	break;
-    case 24:
-	assert(pixmap->drawable.bitsPerPixel == 32);
-	/* FALLTHROUGH */
-    case 32:
-	format = GL_BGRA;
-	type = GL_UNSIGNED_INT_8_8_8_8_REV;
-	break;
-    default:
-	ErrorF("Unknown finishaccess depth %d\n", pixmap->drawable.depth);
-	return;
-    }
-
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
-    glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-		 pixmap->drawable.width, pixmap->drawable.height, 0,
-		 format, type, pixmap->devPrivate.ptr);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-}
-
-
 /* 
  * Load texture from the pixmap's data pointer and then
  * draw the texture to the fbo, and flip the y axis.
@@ -493,7 +446,17 @@ glamor_load_texture_pixmap(PixmapPtr pixmap)
 				 1, 1,
 				 1, 0,
 				 0, 0};
+    static float texcoords_inverted[8] = {0, 0,
+                                1, 0,
+                                1, 1,
+                                0, 1};
+    float *ptexcoords;
+
+    void * texel;
     GLuint tex;
+
+    if (glamor_priv->yInverted)
+       ptexcoords = texcoords_inverted;
 
     stride = pixmap->devKind;
     row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
@@ -523,7 +486,7 @@ glamor_load_texture_pixmap(PixmapPtr pixmap)
     glEnableClientState(GL_VERTEX_ARRAY);
 
     glClientActiveTexture(GL_TEXTURE0);
-    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, ptexcoords);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
@@ -535,9 +498,18 @@ glamor_load_texture_pixmap(PixmapPtr pixmap)
     glGenTextures(1, &tex);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
+
+    if (glamor_priv->yInverted || GLEW_MESA_pack_invert) {
+      texel = NULL;
+      glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, pixmap_priv->pbo);
+    }
+    else
+      texel = pixmap->devPrivate.ptr;
+
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
 		 pixmap->drawable.width, pixmap->drawable.height, 0,
-		 format, type, pixmap->devPrivate.ptr);
+		 format, type, texel);
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glEnable(GL_TEXTURE_2D);
@@ -560,13 +532,11 @@ glamor_finish_access(DrawablePtr drawable)
 	glamor_get_screen_private(drawable->pScreen);
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    unsigned int stride, row_length;
-    GLenum format, type;
     /* Check if finish_access was already called once on this */
     if (pixmap->devPrivate.ptr == NULL)
 	return;
 
-    if (pixmap_priv == NULL)
+    if (!pixmap_priv)
 	return;
 
     if (pixmap_priv->fb == 0) {
@@ -577,21 +547,20 @@ glamor_finish_access(DrawablePtr drawable)
 	    return;
     }
 
-    if (pixmap_priv->access_mode != GLAMOR_ACCESS_RO) {
-      if (glamor_priv->yInverted) 
-        glamor_load_texture_pixmap_direct(pixmap);
-      else 
-        glamor_load_texture_pixmap(pixmap);
-    } 
 
-    if (GLEW_MESA_pack_invert || glamor_priv->yInverted) {
-      glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
-      glUnmapBufferARB (GL_PIXEL_PACK_BUFFER_EXT);
-      glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, 0);
-      glDeleteBuffersARB (1, &pixmap_priv->pbo);
-      pixmap_priv->pbo = 0;
-    } else
-      free(pixmap->devPrivate.ptr);
+    if ( pixmap_priv->access_mode != GLAMOR_ACCESS_RO) {
+      glamor_load_texture_pixmap(pixmap);
+    }
+
+   if (GLEW_MESA_pack_invert || glamor_priv->yInverted) {
+     glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
+     glUnmapBufferARB (GL_PIXEL_PACK_BUFFER_EXT);
+     glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, 0);
+     glBindBufferARB (GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+     glDeleteBuffersARB (1, &pixmap_priv->pbo);
+     pixmap_priv->pbo = 0;
+   } else
+     free(pixmap->devPrivate.ptr);
 
     pixmap->devPrivate.ptr = NULL;
 }
