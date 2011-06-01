@@ -57,8 +57,8 @@ extern _X_EXPORT void ReplyNotSwappd (
 		void *		/* pbuf */) _X_NORETURN;
 
 typedef enum {ClientStateInitial,
-	      ClientStateAuthenticating,
-	      ClientStateRunning,
+	      /* 1 is unused now, was ClientStateAuthenticating */
+	      ClientStateRunning = 2,
 	      ClientStateRetained,
 	      ClientStateGone
 } ClientState;
