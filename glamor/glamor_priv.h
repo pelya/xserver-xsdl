@@ -231,8 +231,8 @@ glamor_fallback(char *format, ...)
     va_list ap;
 
     va_start(ap, format);
-    LogMessageVerb(X_INFO, 0, "fallback: ");
-    LogVMessageVerb(X_NONE, 0, format, ap);
+    LogMessageVerb(X_INFO, 3, "fallback: ");
+    LogMessageVerb(X_NONE, 3, format, ap);
     va_end(ap);
 }
 
@@ -265,8 +265,8 @@ glamor_report_delayed_fallbacks(ScreenPtr screen)
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
     if (glamor_priv->delayed_fallback_string) {
-      //	LogMessageVerb(X_INFO, 0, "fallback: %s",
-      //	       glamor_priv->delayed_fallback_string);
+      	LogMessageVerb(X_INFO, 3, "fallback: %s",
+      	       glamor_priv->delayed_fallback_string);
 	glamor_clear_delayed_fallbacks(screen);
     }
 }
