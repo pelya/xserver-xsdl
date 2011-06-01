@@ -67,6 +67,7 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
     glamor_pixmap_private *pixmap_priv;
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
+    assert(pixmap_priv);
     pixmap_priv->tex = tex;
 
     /* Create a framebuffer object wrapping the texture so that we can render
@@ -87,6 +88,12 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
 }
 
 
+/* XXX For the screen pixmap, the w and h maybe 0,0 too, but it should
+ * be GLAMOR_GL pixmap. Now, all the pixmap will have a valid pixmap_priv. 
+ * This is not good enough. After we can identify which is the screen
+ * pixmap and which is not, then we can split the pixmap to exclusive
+ * two types GLAMOR_GL and GLAMOR_FB, and for those GLAMOR_FB pixmaps, 
+ * we don't need to allocate pixmap_priv. */
 
 static PixmapPtr
 glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
@@ -96,7 +103,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     GLenum format;
     GLuint tex;
     glamor_pixmap_private *pixmap_priv;
-    int type = GLAMOR_GL;
+    enum glamor_pixmap_type type = GLAMOR_GL;
 
     if (w > 32767 || h > 32767)
 	return NullPixmap;
@@ -111,7 +118,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
                                  7) / 8) + 3) & ~3,
                               NULL);
       ErrorF("fallback to software fb for pixmap %p , %d x %d \n", pixmap, w, h);
-   } else
+   } else 
       pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
 
     if (dixAllocatePrivates(&pixmap->devPrivates, PRIVATE_PIXMAP) != TRUE) {
@@ -120,11 +127,8 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	return NullPixmap;
     }	 
 
-    if (w == 0 || h == 0 || type != GLAMOR_GL)
+    if (w == 0 || h == 0 || type == GLAMOR_FB)
 	return pixmap;
-
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
-    pixmap_priv->type = type;
 
     /* We should probably take advantage of ARB_fbo's allowance of GL_ALPHA.
      * FBOs, which EXT_fbo forgot to do.
