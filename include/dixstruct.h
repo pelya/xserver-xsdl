@@ -60,9 +60,8 @@ typedef enum {ClientStateInitial,
 	      ClientStateAuthenticating,
 	      ClientStateRunning,
 	      ClientStateRetained,
-	      ClientStateGone,
-	      ClientStateCheckingSecurity,
-	      ClientStateCheckedSecurity} ClientState;
+	      ClientStateGone
+} ClientState;
 
 #ifdef XFIXES
 typedef struct _saveSet {

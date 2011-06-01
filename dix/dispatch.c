@@ -3714,9 +3714,7 @@ ProcEstablishConnection(ClientPtr client)
      * So we don't want to send the connection setup info yet, since
      * the auth step isn't really done.
      */
-    if (client->clientState == ClientStateCheckingSecurity)
-	client->clientState = ClientStateCheckedSecurity;
-    else if (client->clientState != ClientStateAuthenticating)
+    if (client->clientState != ClientStateAuthenticating)
 	return(SendConnSetup(client, reason));
     return Success;
 }
