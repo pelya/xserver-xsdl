@@ -159,6 +159,7 @@ typedef struct glamor_screen_private {
 
     /* glamor_finishaccess */
     GLint finish_access_prog;
+    GLint aswizzle_prog;
 
     /* glamor_solid */
     GLint solid_prog;

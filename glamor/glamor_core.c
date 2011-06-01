@@ -289,7 +289,7 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 {
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    unsigned int stride, row_length, x, y;
+    unsigned int stride, row_length, y;
     GLenum format, type;
     uint8_t *data, *read;
     glamor_screen_private *glamor_priv =
@@ -399,20 +399,38 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 	"{\n"
 	"	gl_FragColor = texture2D(sampler, gl_TexCoord[0].xy);\n"
 	"}\n";
-    GLint fs_prog, vs_prog;
+    
+    const char *aswizzle_source =
+        "varying vec2 texcoords;\n"
+        "uniform sampler2D sampler;\n"
+        "void main()\n"
+        "{\n"
+        " gl_FragColor = vec4(texture2D(sampler, gl_TexCoord[0].xy).rgb, 1);\n"
+        "}\n";
+
+    GLint fs_prog, vs_prog, avs_prog, aswizzle_prog;
 
     glamor_priv->finish_access_prog = glCreateProgramObjectARB();
+    glamor_priv->aswizzle_prog = glCreateProgramObjectARB();
+
     if (GLEW_ARB_fragment_shader) {
 	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, vs_source);
 	fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, fs_source);
 	glAttachObjectARB(glamor_priv->finish_access_prog, vs_prog);
 	glAttachObjectARB(glamor_priv->finish_access_prog, fs_prog);
+
+        avs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, vs_source);
+        aswizzle_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, aswizzle_source);
+        glAttachObjectARB(glamor_priv->aswizzle_prog, avs_prog);
+        glAttachObjectARB(glamor_priv->aswizzle_prog, aswizzle_prog);
     } else {
 	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, vs_source);
 	glAttachObjectARB(glamor_priv->finish_access_prog, vs_prog);
+        ErrorF("Lack of framgment shader support.\n");
     }
 
     glamor_link_glsl_prog(glamor_priv->finish_access_prog);
+    glamor_link_glsl_prog(glamor_priv->aswizzle_prog);
 
     if (GLEW_ARB_fragment_shader) {
 	GLint sampler_uniform_location;
@@ -422,6 +440,12 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 	glUseProgramObjectARB(glamor_priv->finish_access_prog);
 	glUniform1iARB(sampler_uniform_location, 0);
 	glUseProgramObjectARB(0);
+
+        sampler_uniform_location =
+            glGetUniformLocationARB(glamor_priv->aswizzle_prog, "sampler");
+        glUseProgramObjectARB(glamor_priv->aswizzle_prog);
+        glUniform1iARB(sampler_uniform_location, 0);
+        glUseProgramObjectARB(0);
     }
 }
 
@@ -429,7 +453,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
  * Load texture from the pixmap's data pointer and then
  * draw the texture to the fbo, and flip the y axis.
  * */
-void
+static void
 glamor_load_texture_pixmap(PixmapPtr pixmap)
 {
 
@@ -454,9 +478,12 @@ glamor_load_texture_pixmap(PixmapPtr pixmap)
 
     void * texel;
     GLuint tex;
+    int alfa_mode = 0;
 
     if (glamor_priv->yInverted)
        ptexcoords = texcoords_inverted;
+    else
+       ptexcoords = texcoords;
 
     stride = pixmap->devKind;
     row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
@@ -473,6 +500,7 @@ glamor_load_texture_pixmap(PixmapPtr pixmap)
     case 24:
 	assert(pixmap->drawable.bitsPerPixel == 32);
 	/* FALLTHROUGH */
+        alfa_mode = 1;
     case 32:
 	format = GL_BGRA;
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -515,7 +543,10 @@ glamor_load_texture_pixmap(PixmapPtr pixmap)
     glEnable(GL_TEXTURE_2D);
 
     assert(GLEW_ARB_fragment_shader);
-    glUseProgramObjectARB(glamor_priv->finish_access_prog);
+    if (alfa_mode == 0)
+      glUseProgramObjectARB(glamor_priv->finish_access_prog);
+    else
+      glUseProgramObjectARB(glamor_priv->aswizzle_prog);
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glDisable(GL_TEXTURE_2D);
@@ -547,14 +578,12 @@ glamor_finish_access(DrawablePtr drawable)
 	    return;
     }
 
-
     if ( pixmap_priv->access_mode != GLAMOR_ACCESS_RO) {
       glamor_load_texture_pixmap(pixmap);
     }
 
    if (GLEW_MESA_pack_invert || glamor_priv->yInverted) {
      glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
-     glUnmapBufferARB (GL_PIXEL_PACK_BUFFER_EXT);
      glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, 0);
      glBindBufferARB (GL_PIXEL_UNPACK_BUFFER_EXT, 0);
      glDeleteBuffersARB (1, &pixmap_priv->pbo);

@@ -256,7 +256,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     int x_off, y_off;
     float vertices[4][2], texcoords[4][2];
     GLuint tex;
-
+    int alfa_mode = 0;
     if (image_format == XYBitmap) {
 	assert(depth == 1);
 	glamor_put_image_xybitmap(drawable, gc, x, y, w, h,
@@ -299,6 +299,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     case 24:
 	assert(drawable->bitsPerPixel == 32);
 	/* FALLTHROUGH */
+        alfa_mode = 1;
     case 32:
 	format = GL_BGRA;
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -340,8 +341,10 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glEnable(GL_TEXTURE_2D);
 
     assert(GLEW_ARB_fragment_shader);
-    glUseProgramObjectARB(glamor_priv->finish_access_prog);
-
+    if (alfa_mode == 0)
+      glUseProgramObjectARB(glamor_priv->finish_access_prog);
+    else
+      glUseProgramObjectARB(glamor_priv->aswizzle_prog);
 
     x += drawable->x;
     y += drawable->y;

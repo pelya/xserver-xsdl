@@ -86,8 +86,7 @@ glamor_create_composite_fs(struct shader_key *key)
 	"uniform sampler2D source_sampler;\n"
 	"vec4 get_source()\n"
 	"{\n"
-	"	return vec4(texture2D(source_sampler, gl_TexCoord[0].xy).rgb,\n"
-	"		    1.0);\n"
+        "       return texture2D(source_sampler, gl_TexCoord[0].xy);\n"
 	"}\n";
     const char *mask_solid_fetch =
 	"uniform vec4 mask;\n"
@@ -105,8 +104,7 @@ glamor_create_composite_fs(struct shader_key *key)
 	"uniform sampler2D mask_sampler;\n"
 	"vec4 get_mask()\n"
 	"{\n"
-	"	return vec4(texture2D(mask_sampler, gl_TexCoord[1].xy).rgb, \n"
-	"		    1.0);\n"
+        "       return texture2D(mask_sampler, gl_TexCoord[1].xy);\n"
 	"}\n";
     const char *in_source_only =
 	"void main()\n"
@@ -495,15 +493,8 @@ good_source_format(PicturePtr picture)
     case PICT_a1:
     case PICT_a8:
     case PICT_a8r8g8b8:
-	return TRUE;
     case PICT_x8r8g8b8:
-	/* In order to support formats with no alpha, we have to wire the
-	 * alpha to 1 in the shader, which conflicts with
-	 * GL_CLAMP_TO_BORDERing to transparent.  We could possibly compute
-	 * coverage of the texels in the sampling area if we need to, but
-	 * that isn't implemented today.
-	 */
-	return (picture->repeatType != RepeatNone);
+	return TRUE;
     default:
 	glamor_fallback("Bad source format 0x%08x\n", picture->format);
 	return FALSE;
@@ -517,15 +508,8 @@ good_mask_format(PicturePtr picture)
     case PICT_a1:
     case PICT_a8:
     case PICT_a8r8g8b8:
-	return TRUE;
     case PICT_x8r8g8b8:
-	/* In order to support formats with no alpha, we have to wire the
-	 * alpha to 1 in the shader, which conflicts with
-	 * GL_CLAMP_TO_BORDERing to transparent.  We could possibly compute
-	 * coverage of the texels in the sampling area if we need to, but
-	 * that isn't implemented today.
-	 */
-	return (picture->repeatType != RepeatNone);
+	return TRUE;
     default:
 	glamor_fallback("Bad mask format 0x%08x\n", picture->format);
 	return FALSE;
