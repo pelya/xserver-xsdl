@@ -155,12 +155,8 @@ typedef long long GLint64EXT;
 
 __GLXprovider * GlxGetDRISWrastProvider (void);
 
-// Write debugging output, or not
-#ifdef GLAQUA_DEBUG
-#define GLAQUA_DEBUG_MSG ErrorF
-#else
-#define GLAQUA_DEBUG_MSG(a, ...)
-#endif
+#include "darwin.h"
+#define GLAQUA_DEBUG_MSG(msg, args...) ASL_LOG(ASL_LEVEL_DEBUG, "GLXAqua", msg, ##args)
 
 static void setup_dispatch_table(void);
 GLuint __glFloorLog2(GLuint val);
