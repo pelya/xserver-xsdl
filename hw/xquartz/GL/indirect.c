@@ -35,47 +35,33 @@
 #include <dix-config.h>
 #endif
 
-#include "dri.h"
-
 #include <AvailabilityMacros.h>
 
 #include <dlfcn.h>
 
-#define GL_GLEXT_WUNDEF_SUPPORT
-
 #include <OpenGL/OpenGL.h>
-#include <OpenGL/CGLContext.h>
+#include <OpenGL/gl.h>     /* Just to prevent glxserver.h from loading mesa's and colliding with OpenGL.h */
 
+#include <X11/Xproto.h>
 #include <GL/glxproto.h>
-#include <windowstr.h>
-#include <resource.h>
-#include <GL/glxint.h>
-#include <GL/glxtokens.h>
-#include <scrnintstr.h>
-#include <glxserver.h>
-#include <glxscreens.h>
-#include <glxdrawable.h>
-#include <glxcontext.h>
-#include <glxext.h>
-#include <glxutil.h>
-#include <GL/internal/glcore.h>
-#include "x-hash.h"
-#include "x-list.h"
 
-//#include "capabilities.h"
-#include "visualConfigs.h"
+#include <glxserver.h>
+#include <glxutil.h>
 
 typedef unsigned long long GLuint64EXT;
 typedef long long GLint64EXT;
 #include <dispatch.h>
-#include <Xplugin.h>
 #include <glapi.h>
-#include <glapitable.h>
 
-__GLXprovider * GlxGetDRISWrastProvider (void);
+#include "x-hash.h"
+
+#include "visualConfigs.h"
+#include "dri.h"
 
 #include "darwin.h"
 #define GLAQUA_DEBUG_MSG(msg, args...) ASL_LOG(ASL_LEVEL_DEBUG, "GLXAqua", msg, ##args)
+
+__GLXprovider * GlxGetDRISWrastProvider (void);
 
 static void setup_dispatch_table(void);
 GLuint __glFloorLog2(GLuint val);
