@@ -62,7 +62,7 @@ unsigned	set,rtrn;
 		rtrn|= _XkbKSUpper;
 	    }
 	    if (((ks>=XK_a)&&(ks<=XK_z))||
-		((ks>=XK_agrave)&&(ks<=XK_ydiaeresis))) {
+		((ks>=XK_ssharp)&&(ks<=XK_ydiaeresis)&&(ks!=XK_division))) {
 		rtrn|= _XkbKSLower;
 	    }
 	    break;
