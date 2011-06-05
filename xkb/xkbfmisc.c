@@ -71,7 +71,7 @@ unsigned	set,rtrn;
 		((ks>=XK_Racute)&&(ks<=XK_Tcedilla))) {
 		rtrn|= _XkbKSUpper;
 	    }
-	    if (((ks>=XK_aogonek)&&(ks<=XK_zabovedot)&&(ks!=XK_caron))||
+	    if (((ks>=XK_aogonek)&&(ks<=XK_zabovedot)&&(ks!=XK_ogonek)&&(ks!=XK_caron)&&(ks!=XK_doubleacute))||
 		((ks>=XK_racute)&&(ks<=XK_tcedilla))) {
 		rtrn|= _XkbKSLower;
 	    }
