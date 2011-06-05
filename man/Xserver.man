@@ -396,7 +396,7 @@ ends.
 .B \-class \fIdisplay-class\fP
 XDMCP has an additional display qualifier used in resource lookup for
 display-specific options.  This option sets that value, by default it
-is "MIT-Unspecified" (not a very useful value).
+is "MIT-unspecified" (not a very useful value).
 .TP 8
 .B \-cookie \fIxdm-auth-bits\fP
 When testing XDM-AUTHENTICATION-1, a private key is shared between the
