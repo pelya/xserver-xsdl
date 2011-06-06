@@ -420,7 +420,7 @@ FocusClass - the device can be focused.
   </listitem>
   <listitem>
     <para>
-FeedbackClass - the device supports some kind of feedback
+FeedbackClass - the device supports some kind of feedback.
 <!-- .in -5n -->
 <!-- .RE -->
     </para>
@@ -702,7 +702,7 @@ InitStringFeedbackClassDeviceStruct(dev, controlProc, max_symbols,
 	num_symbols_supported, symbols)
     DeviceIntPtr dev;
     void (*controlProc)();
-    int max_symbols:
+    int max_symbols;
     int num_symbols_supported;
     KeySym *symbols;
 </literallayout>
@@ -1035,7 +1035,7 @@ deviceid - the identifier of the device that generated the event.
   </listitem>
   <listitem>
     <para>
-device_state - the state of any modifiers on the device that generated the event
+device_state - the state of any modifiers on the device that generated the event.
     </para>
   </listitem>
   <listitem>
