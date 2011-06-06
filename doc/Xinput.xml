@@ -1003,7 +1003,7 @@ initialized.
 </para>
 <para>
 <!-- .LP -->
-The data structures that define these
+The data structures that describe these
 events are defined in the file <function>extensions/include/XIproto.h</function>.  Other
 input extension constants needed by DDX are defined in the file
 <function>extensions/include/XI.h</function>.
