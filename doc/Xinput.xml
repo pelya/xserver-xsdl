@@ -61,7 +61,7 @@ The functionality is implemented by
 routines that typically reside in the server source tree directory 
 extensions/server/xinput.
 This extension includes functions to enable and disable input extension devices,
-select input, grab and focus those device, query and change key 
+select input, grab and focus those devices, query and change key
 and button mappings, and others.  The only input extension requirements 
 for the device-dependent part of X are that the input devices be 
 correctly initialized and input events from those devices be correctly
@@ -446,7 +446,7 @@ This function is provided to allocate and initialize a KeyClassRec, and
 should be called for extension devices that have keys.  It is passed a pointer
 to the device, and pointers to arrays of keysyms and modifiers reported by
 the device.  It returns FALSE if the KeyClassRec could not be allocated,
-or if the maps for the keysyms and and modifiers could not be allocated.
+or if the maps for the keysyms and modifiers could not be allocated.
 Its parameters are:
 </para>
 <para>
@@ -905,7 +905,7 @@ such a device.
 <para>
 <!-- .LP -->
 The default implementation is to always return a BadMatch error.  If the
-implementation does not support any input devices that are allow their
+implementation does not support any input devices that allow their
 valuators to be set, the default implementation may be left unchanged.
 </para>
 </sect2>
