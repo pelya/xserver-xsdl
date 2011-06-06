@@ -362,7 +362,7 @@ server to begin checking for available input from this device.
 </para>
 <para>
 <!-- .LP -->
-&gt;From InitAndStartDevices, EnableDevice is called for all devices that have
+From InitAndStartDevices, EnableDevice is called for all devices that have
 the "inited" and "startup" fields in the DeviceIntRec set to TRUE.  The
 "inited" field is set by InitAndStartDevices to the value returned by
 the deviceproc when called with a mode value of DEVICE_INIT.  The "startup"
