@@ -1078,7 +1078,7 @@ The following code fragment shows how the two wire events could be initialized:
     deviceKeyButtonPointer *xev = (deviceKeyButtonPointer *) xE;
     deviceValuator *xv;
 
-    xev-&gt;type = DeviceKeyPress;                /* defined by input extension */
+    xev-&gt;type = DeviceKeyPress;         /* defined by input extension */
     xev-&gt;detail = keycode;              /* key pressed on this device */
     xev-&gt;time = timestamp;              /* same as for core events    */
     xev-&gt;rootX = pointerx;              /* x location of core pointer */
@@ -1093,7 +1093,7 @@ The following code fragment shows how the two wire events could be initialized:
     /*                                                                */
     /******************************************************************/
 
-    xev-&gt;deviceid = dev-&gt;id | MORE_EVENTS;        /* sending more than 1*/
+    xev-&gt;deviceid = dev-&gt;id | MORE_EVENTS;     /* sending more than 1 */
 
     /******************************************************************/
     /* Fields in the second 32-byte wire event:                       */
@@ -1152,7 +1152,7 @@ The following code fragment shows how the two wire events could be initialized:
     /*                                                                */
     /******************************************************************/
 
-    xev-&gt;deviceid = dev-&gt;id | MORE_EVENTS;        /* sending more than 1*/
+    xev-&gt;deviceid = dev-&gt;id | MORE_EVENTS;     /* sending more than 1 */
 
     /******************************************************************/
     /* Fields in the second 32-byte wire event:                       */
