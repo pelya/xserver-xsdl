@@ -864,7 +864,7 @@ positionSprite(DeviceIntPtr dev, int mode,
      * to the current screen. */
     miPointerSetPosition(dev, mode, screenx, screeny);
 
-    if(!IsMaster(dev) || !IsFloating(dev)) {
+    if(!IsMaster(dev) && !IsFloating(dev)) {
         DeviceIntPtr master = GetMaster(dev, MASTER_POINTER);
         master->last.valuators[0] = *screenx;
         master->last.valuators[1] = *screeny;
@@ -911,7 +911,7 @@ updateHistory(DeviceIntPtr dev, ValuatorMask *mask, CARD32 ms)
         return;
 
     updateMotionHistory(dev, ms, mask, dev->last.valuators);
-    if(!IsMaster(dev) || !IsFloating(dev))
+    if(!IsMaster(dev) && !IsFloating(dev))
     {
         DeviceIntPtr master = GetMaster(dev, MASTER_POINTER);
         updateMotionHistory(master, ms, mask, dev->last.valuators);

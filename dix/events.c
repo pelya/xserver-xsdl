@@ -1421,7 +1421,7 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
 static void
 DetachFromMaster(DeviceIntPtr dev)
 {
-    if (!IsFloating(dev))
+    if (IsFloating(dev))
         return;
 
     dev->saved_master_id = GetMaster(dev, MASTER_ATTACHED)->id;
