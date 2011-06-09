@@ -51,6 +51,7 @@ static void test_values_XIRawEvent(RawDeviceEvent *in, xXIRawEvent *out,
         swapl(&out->time);
         swapl(&out->detail);
         swaps(&out->valuators_len);
+        swapl(&out->flags);
     }
 
 

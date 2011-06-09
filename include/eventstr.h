@@ -204,6 +204,7 @@ struct _RawDeviceEvent
         int32_t  data_raw[MAX_VALUATORS];     /**< Valuator data as posted */
         int32_t  data_raw_frac[MAX_VALUATORS];/**< Fractional part for data_raw */
     } valuators;
+    uint32_t flags;       /**< Flags to be copied into the generated event */
 };
 
 #ifdef XQUARTZ

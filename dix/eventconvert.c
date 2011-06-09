@@ -667,6 +667,7 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
     raw->detail         = ev->detail.button;
     raw->deviceid       = ev->deviceid;
     raw->valuators_len  = vallen;
+    raw->flags          = ev->flags;
 
     ptr = (char*)&raw[1];
     axisval = (FP3232*)(ptr + raw->valuators_len * 4);
