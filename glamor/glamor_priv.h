@@ -350,7 +350,7 @@ const Bool glamor_get_drawable_location(const DrawablePtr drawable);
 void glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
 				int *x, int *y);
 Bool glamor_create_gc(GCPtr gc);
-void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
+Bool glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 		    int x, int y, int width, int height,
 		    unsigned char alu, unsigned long planemask,
 		    unsigned long fg_pixel, unsigned long bg_pixel,
@@ -376,7 +376,7 @@ void glamor_fill(DrawablePtr drawable,
 		 int y,
 		 int width,
 		 int height);
-void glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
+Bool glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 		  unsigned char alu, unsigned long planemask,
 		  unsigned long fg_pixel);
 void glamor_solid_fail_region(PixmapPtr pixmap,
@@ -456,7 +456,7 @@ void glamor_composite_rects(CARD8 op,
 			    int nrect, glamor_composite_rect_t *rects);
 
 /* glamor_tile.c */
-void glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
+Bool glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 		 int x, int y, int width, int height,
 		 unsigned char alu, unsigned long planemask,
 		 int tile_x, int tile_y);

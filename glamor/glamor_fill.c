@@ -42,23 +42,23 @@ glamor_fill(DrawablePtr drawable,
 {
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(drawable);
     int x_off, y_off;
-
     glamor_get_drawable_deltas(drawable, dst_pixmap, &x_off, &y_off);
 
     switch (gc->fillStyle) {
     case FillSolid:
-	glamor_solid(dst_pixmap,
-		     x + x_off,
-		     y + y_off,
-		     width,
-		     height,
-		     gc->alu,
-		     gc->planemask,
-		     gc->fgPixel);
+	if (!glamor_solid(dst_pixmap,
+                         x + x_off,
+                         y + y_off,
+		         width,
+		         height,
+		         gc->alu,
+		         gc->planemask,
+		         gc->fgPixel))
+	goto fail;
 	break;
     case FillStippled:
     case FillOpaqueStippled:
-	glamor_stipple(dst_pixmap,
+	if (!glamor_stipple(dst_pixmap,
 		       gc->stipple,
 		       x+ x_off,
 		       y + y_off,
@@ -69,10 +69,12 @@ glamor_fill(DrawablePtr drawable,
 		       gc->fgPixel,
 		       gc->bgPixel,
 		       gc->patOrg.x + x_off,
-		       gc->patOrg.y + y_off);
+		       gc->patOrg.y + y_off))
+	goto fail;
+        return;
 	break;
     case FillTiled:
-	glamor_tile(dst_pixmap,
+	if (!glamor_tile(dst_pixmap,
 		    gc->tile.pixmap,
 		    x + x_off,
 		    y + y_off,
@@ -81,12 +83,12 @@ glamor_fill(DrawablePtr drawable,
 		    gc->alu,
 		    gc->planemask,
 		    drawable->x + x - gc->patOrg.x,
-		    drawable->y + y - gc->patOrg.y);
+		    drawable->y + y - gc->patOrg.y))
+	goto fail;
 	break;
     }
     return;
-#if 0
- fail:
+fail:
     glamor_fallback("glamor_fill()");
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 	if (glamor_prepare_access_gc(gc)) {
@@ -95,7 +97,6 @@ glamor_fill(DrawablePtr drawable,
 	}
 	glamor_finish_access(drawable);
     }
-#endif
 return;
 
 }
@@ -140,7 +141,7 @@ glamor_init_solid_shader(ScreenPtr screen)
 	glGetUniformLocationARB(glamor_priv->solid_prog, "color");
 }
 
-void
+Bool
 glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	     unsigned char alu, unsigned long planemask, unsigned long fg_pixel)
 {
@@ -154,12 +155,12 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     float vertices[4][2];
 
     if (!glamor_set_destination_pixmap(pixmap))
-	return;
+	goto fail;
     glamor_set_alu(alu);
     if (!glamor_set_planemask(pixmap, planemask)) {
-	ErrorF("Failedto set planemask  in glamor_solid.\n");
-	goto fail;
-	}
+      ErrorF("Failedto set planemask  in glamor_solid.\n");
+      goto fail;
+    } 
 
     glUseProgramObjectARB(glamor_priv->solid_prog);
     glamor_get_color_4f_from_pixel(pixmap, fg_pixel, color);
@@ -188,9 +189,11 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glUseProgramObjectARB(0);
+    return TRUE;
 fail:
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);
+    return FALSE;
 }
 
 /* Highlight places where we're doing it wrong. */

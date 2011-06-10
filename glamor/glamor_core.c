@@ -621,15 +621,17 @@ glamor_finish_access_gc(GCPtr gc)
 		glamor_finish_access(&gc->stipple->drawable);
 }
 
-void
+Bool
 glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 	       int x, int y, int width, int height,
 	       unsigned char alu, unsigned long planemask,
 	       unsigned long fg_pixel, unsigned long bg_pixel,
 	       int stipple_x, int stipple_y)
 {
-    ErrorF("stubbed out stipple depth %d\n", pixmap->drawable.depth);
-    glamor_solid_fail_region(pixmap, x, y, width, height);
+    glamor_fallback("stubbed out stipple depth %d\n", pixmap->drawable.depth);
+    return FALSE;
+//    ErrorF("stubbed out stipple depth %d\n", pixmap->drawable.depth);
+//    glamor_solid_fail_region(pixmap, x, y, width, height);
 }
 
 GCOps glamor_gc_ops = {

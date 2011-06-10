@@ -72,7 +72,7 @@ glamor_init_tile_shader(ScreenPtr screen)
     glUseProgramObjectARB(0);
 }
 
-void
+Bool
 glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	    int x, int y, int width, int height,
 	    unsigned char alu, unsigned long planemask,
@@ -93,7 +93,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     float source_texcoords[4][2];
 
     if (glamor_priv->tile_prog == 0) {
-	ErrorF("Tiling unsupported\n");
+	glamor_fallback("Tiling unsupported\n");
 	goto fail;
     }
 
@@ -101,7 +101,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	goto fail;
 
     if (tile_priv->tex == 0) {
-	ErrorF("Non-texture tile pixmap\n");
+	glamor_fallback("Non-texture tile pixmap\n");
 	goto fail;
     }
 
@@ -167,9 +167,8 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     glDisable(GL_TEXTURE_2D);
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);
-    return;
+    return TRUE;
 
 fail:
-    glamor_solid_fail_region(pixmap, x, y, width, height);
-    return;
+    return FALSE;
 }
