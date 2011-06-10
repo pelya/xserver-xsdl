@@ -76,17 +76,13 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 	    x2 = points[i + 1].x;
 	    y2 = points[i + 1].y;
 	}
-
 	if (x1 != x2 && y1 != y2) {
 	    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
-
 	    free(rects);
-
-	    ErrorF("stub diagonal poly_line\n");
-	    glamor_solid_fail_region(pixmap, x1, y1, x2 - x1, y2 - y1);
+	    glamor_fallback("stub diagonal poly_line\n");
+	    goto fail;
 	    return;
 	}
-
 	if (x1 < x2) {
 	    rects[i].x = x1;
 	    rects[i].width = x2 - x1 + 1;
