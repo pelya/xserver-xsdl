@@ -102,7 +102,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     PixmapPtr pixmap;
     GLenum format;
     GLuint tex;
-    glamor_pixmap_private *pixmap_priv;
     enum glamor_pixmap_type type = GLAMOR_GL;
 
     if (w > 32767 || h > 32767)

@@ -34,6 +34,7 @@
 #include "gcstruct.h"
 #include "picturestr.h"
 #include "fb.h"
+#include "fbpict.h"
 
 #endif /* GLAMOR_H */
 
