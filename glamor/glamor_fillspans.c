@@ -38,68 +38,48 @@ glamor_fill_spans(DrawablePtr drawable,
 		  int *widths,
 		  int sorted)
 {
-    RegionPtr clip = gc->pCompositeClip;
-    BoxPtr extents, boxes;
+    DDXPointPtr ppt;
     int nbox;
-    int extentX1, extentX2, extentY1, extentY2;
-    int fullX1, fullX2, fullY1;
-    int partX1, partX2;
+    BoxPtr pbox;
+    int x1, x2, y;
+    int off_x, off_y;
+    RegionPtr pClip = fbGetCompositeClip(gc);
+    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
+
 
     if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
 	goto fail;
 
-    extents = REGION_EXTENTS(gc->pScreen, clip);
-    extentX1 = extents->x1;
-    extentY1 = extents->y1;
-    extentX2 = extents->x2;
-    extentY2 = extents->y2;
-    while (n--) {
-	fullX1 = points->x;
-	fullY1 = points->y;
-	fullX2 = fullX1 + *widths;
-	points++;
-	widths++;
 
-	if (fullY1 < extentY1 || extentY2 <= fullY1)
-	    continue;
+    glamor_get_drawable_deltas(drawable, pixmap, &off_x, &off_y);
+	ppt = points;
+        while (n--) {
+                x1 = ppt->x;
+                y = ppt->y;
+                x2 = x1 + (int)*widths;
+                ppt++;
+                widths++;
 
-	if (fullX1 < extentX1)
-	    fullX1 = extentX1;
+                nbox = REGION_NUM_RECTS(pClip);
+                pbox = REGION_RECTS(pClip);
+                while (nbox--) {
+                        if (pbox->y1 > y || pbox->y2 <= y)
+                                continue;
 
-	if (fullX2 > extentX2)
-	    fullX2 = extentX2;
+                        if (x1 < pbox->x1)
+                                x1 = pbox->x1;
 
-	if (fullX1 >= fullX2)
-	    continue;
+                        if (x2 > pbox->x2)
+                                x2 = pbox->x2;
 
-	nbox = REGION_NUM_RECTS (clip);
-	if (nbox == 1) {
-	    glamor_fill(drawable,
-			gc,
-			fullX1, fullY1, fullX2-fullX1, 1);
-	} else {
-	    boxes = REGION_RECTS(clip);
-	    while(nbox--)
-	    {
-		if (boxes->y1 <= fullY1 && fullY1 < boxes->y2)
-		{
-		    partX1 = boxes->x1;
-		    if (partX1 < fullX1)
-			partX1 = fullX1;
-		    partX2 = boxes->x2;
-		    if (partX2 > fullX2)
-			partX2 = fullX2;
-		    if (partX2 > partX1)
-		    {
-			glamor_fill(drawable, gc,
-				    partX1, fullY1,
-				    partX2 - partX1, 1);
-		    }
-		}
-		boxes++;
-	    }
-	}
-    }
+                        if (x2 <= x1)
+                                continue;
+                        glamor_fill (drawable,gc,
+                                     x1 + off_x, y + off_y,
+                                     x2 - x1 ,  1);
+                        pbox++;
+                }
+        }
     return;
 fail:
     glamor_fallback("glamor_fillspans(): to %p (%c)\n", drawable,

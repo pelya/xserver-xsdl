@@ -43,80 +43,60 @@ glamor_poly_fill_rect(DrawablePtr drawable,
 		      int nrect,
 		      xRectangle *prect)
 {
-    RegionPtr	    clip = fbGetCompositeClip(gc);
-    register BoxPtr box;
-    BoxPtr	    pextent;
-    int		    extentX1, extentX2, extentY1, extentY2;
     int		    fullX1, fullX2, fullY1, fullY2;
-    int		    partX1, partX2, partY1, partY2;
     int		    xorg, yorg;
     int		    n;
+    register BoxPtr pbox;
+    int off_x, off_y;
+    RegionPtr pClip = fbGetCompositeClip(gc);
+    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 
     if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
 	goto fail;
 
     xorg = drawable->x;
     yorg = drawable->y;
+    glamor_get_drawable_deltas(drawable, pixmap, &off_x, &off_y);
 
-    pextent = REGION_EXTENTS(gc->pScreen, clip);
-    extentX1 = pextent->x1;
-    extentY1 = pextent->y1;
-    extentX2 = pextent->x2;
-    extentY2 = pextent->y2;
-    while (nrect--)
-    {
-	fullX1 = prect->x + xorg;
-	fullY1 = prect->y + yorg;
-	fullX2 = fullX1 + (int)prect->width;
-	fullY2 = fullY1 + (int)prect->height;
-	prect++;
+        while (nrect--) {
+                fullX1 = prect->x + xorg;
+                fullY1 = prect->y + yorg;
+                fullX2 = fullX1 + (int)prect->width;
+                fullY2 = fullY1 + (int)prect->height;
+                prect++;
 
-	if (fullX1 < extentX1)
-	    fullX1 = extentX1;
+                n = REGION_NUM_RECTS(pClip);
+                pbox = REGION_RECTS(pClip);
+                /*
+                 * clip the rectangle to each box in the clip region
+                 * this is logically equivalent to calling Intersect(),
+                 * but rectangles may overlap each other here.
+                 */
+                while (n--) {
+                        int x1 = fullX1;
+                        int x2 = fullX2;
+                        int y1 = fullY1;
+                        int y2 = fullY2;
 
-	if (fullY1 < extentY1)
-	    fullY1 = extentY1;
+                        if (pbox->x1 > x1)
+                                x1 = pbox->x1;
+                        if (pbox->x2 < x2)
+                                x2 = pbox->x2;
+                        if (pbox->y1 > y1)
+                                y1 = pbox->y1;
+                        if (pbox->y2 < y2)
+                                y2 = pbox->y2;
+                        pbox++;
 
-	if (fullX2 > extentX2)
-	    fullX2 = extentX2;
-
-	if (fullY2 > extentY2)
-	    fullY2 = extentY2;
-
-	if ((fullX1 >= fullX2) || (fullY1 >= fullY2))
-	    continue;
-	n = REGION_NUM_RECTS(clip);
-	if (n == 1) {
-	    glamor_fill(drawable,
-			gc,
-			fullX1, fullY1, fullX2-fullX1, fullY2-fullY1);
-	} else {
-	    box = REGION_RECTS(clip);
-	    /* clip the rectangle to each box in the clip region
-	     * this is logically equivalent to calling Intersect()
-	     */
-	    while (n--) {
-		partX1 = box->x1;
-		if (partX1 < fullX1)
-		    partX1 = fullX1;
-		partY1 = box->y1;
-		if (partY1 < fullY1)
-		    partY1 = fullY1;
-		partX2 = box->x2;
-		if (partX2 > fullX2)
-		    partX2 = fullX2;
-		partY2 = box->y2;
-		if (partY2 > fullY2)
-		    partY2 = fullY2;
-
-		box++;
-
-		if (partX1 < partX2 && partY1 < partY2)
-		    glamor_fill(drawable, gc,
-				partX1, partY1,
-				partX2 - partX1, partY2 - partY1);
-	    }
-	}
+                        if (x1 >= x2 || y1 >= y2)
+                                continue;
+	                glamor_fill(drawable,
+			            gc,
+				    x1 + off_x,
+				    y1 + off_y,
+				    x2 - x1,
+                                    y2 - y1);
+                }
     }
     return;
 
