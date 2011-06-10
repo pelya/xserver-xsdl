@@ -279,6 +279,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     ps->Trapezoids = glamor_trapezoids;
     glamor_priv->saved_glyphs = ps->Glyphs;
     ps->Glyphs = glamor_glyphs;
+    glamor_priv->saved_triangles = ps->Triangles;
+    ps->Triangles = glamor_triangles;
     glamor_init_composite_shaders(screen);
 #endif
     glamor_init_solid_shader(screen);
@@ -317,6 +319,7 @@ glamor_close_screen(int idx, ScreenPtr screen)
 	ps->Composite = glamor_priv->saved_composite;
 	ps->Trapezoids = glamor_priv->saved_trapezoids;
 	ps->Glyphs = glamor_priv->saved_glyphs;
+        ps->Triangles = glamor_priv->saved_triangles;
     }
 #endif
     free(glamor_priv);
