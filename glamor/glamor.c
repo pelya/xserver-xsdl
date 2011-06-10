@@ -108,7 +108,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
-    if (w > MAX_WIDTH || h > MAX_HEIGHT) {
+    if (w > MAX_WIDTH || h > MAX_HEIGHT || ( depth == 1 && w != 0 && h != 0)) {
 	/* MESA can only support upto MAX_WIDTH*MAX_HEIGHT fbo.
  	   If we exceed such limitation, we have to use framebuffer.*/
       type = GLAMOR_FB;
@@ -117,7 +117,8 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
                               (((w * pixmap->drawable.bitsPerPixel +
                                  7) / 8) + 3) & ~3,
                               NULL);
-      ErrorF("fallback to software fb for pixmap %p , %d x %d \n", pixmap, w, h);
+
+      glamor_fallback("fallback to software fb for pixmap %p , %d x %d depth %d\n", pixmap, w, h, depth);
    } else 
       pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
 

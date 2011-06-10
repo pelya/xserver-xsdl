@@ -309,13 +309,8 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
     stride = pixmap->devKind;
     row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
 
-	
+    assert(drawable->depth != 1);	
     switch (drawable->depth) {
-    case 1:
-	format = GL_ALPHA;
-	type = GL_UNSIGNED_BYTE;
-	row_length = stride;
-	break;
     case 8:
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
@@ -485,14 +480,10 @@ glamor_load_texture_pixmap(PixmapPtr pixmap)
     else
        ptexcoords = texcoords;
 
+    assert(pixmap->drawable.depth != 1);	
     stride = pixmap->devKind;
     row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
     switch (pixmap->drawable.depth) {
-    case 1:
-	format = GL_COLOR_INDEX;
-	type = GL_BITMAP;
-	row_length = stride;
-	break;
     case 8:
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
