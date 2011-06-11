@@ -140,7 +140,7 @@ the "xfree86" keycodes and the "pc104" symbols should be used to
 initialize the keyboard.  For an SGI keyboard, ",xkb,sgi/indy(pc102)"
 might be useful.  A list of keycodes, symbols, and geometries can be
 found in
-.IR /usr/X11R6/lib/X11/xkb .
+.IR __xkbdir__ .
 If this option is not specified, the input device will be queried,
 perhaps using the XKEYBOARD extension.
 .RE
@@ -352,31 +352,31 @@ This option specifies parameters on the command line.  Currently, only
 parameters dealing with XKEYBOARD configuration are supported.  These
 parameters apply only to the core keyboard.  Parameter values are
 installation-dependent.  Please see
-.I /usr/X11R6/lib/X11/xkb
+.I __xkbdir__
 or a similar directory for complete information.
 .RS
 .TP 8
 .B XkbRules
-Defaults to "xfree86".  Other values may include "sgi" and "sun".
+Defaults to "__XKB_DFLT_RULES__".  Other values may include "sgi" and "sun".
 .sp
 .TP 8
 .B XkbModel
-Defaults to "pc101".  When used with "xfree86" rules, other values may
-include "pc102", "pc104", "pc105", "microsoft", and many others.  When
+Defaults to "__XKB_DFLT_MODEL__".  When used with "xfree86" rules, other values
+may include "pc102", "pc104", "microsoft", and many others.  When
 used with "sun" rules, other values may include "type4" and "type5".
 .sp
 .TP 8
 .B XkbLayout
-Defaults to "us".  Other country codes and "dvorak" are usually
+Defaults to "__XKB_DFLT_LAYOUT__".  Other country codes and "dvorak" are usually
 available.
 .sp
 .TP 8
 .B XkbVariant
-Defaults to "".
+Defaults to "__XKB_DFLT_VARIANT__".
 .sp
 .TP 8
 .B XkbOptions
-Defaults to "".
+Defaults to "__XKB_DFLT_OPTIONS__".
 .RE
 .SH "CONFIGURATION FILE GRAMMAR"
 The following words and tokens are reserved:
