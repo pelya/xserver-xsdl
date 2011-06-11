@@ -1,4 +1,3 @@
-.\" $XFree86$
 .\"
 .\" Copyright 2001-2004 Red Hat Inc., Durham, North Carolina.
 .\" All Rights Reserved.
@@ -11,7 +10,7 @@
 .\" and to permit persons to whom the Software is furnished to do so,
 .\" subject to the following conditions:
 .\"
-.\" he above copyright notice and this permission notice (including the
+.\" The above copyright notice and this permission notice (including the
 .\" next paragraph) shall be included in all copies or substantial
 .\" portions of the Software.
 .\"
@@ -141,6 +140,9 @@ initialize the keyboard.  For an SGI keyboard, ",xkb,sgi/indy(pc102)"
 might be useful.  A list of keycodes, symbols, and geometries can be
 found in
 .IR __xkbdir__ .
+Use of keycodes, symbols and geometries for XKB configuration is
+deprecated in favor of the rules, layout, model, variant and options
+settings available via the -param command line switch.
 If this option is not specified, the input device will be queried,
 perhaps using the XKEYBOARD extension.
 .RE
@@ -361,7 +363,7 @@ Defaults to "__XKB_DFLT_RULES__".  Other values may include "sgi" and "sun".
 .sp
 .TP 8
 .B XkbModel
-Defaults to "__XKB_DFLT_MODEL__".  When used with "xfree86" rules, other values
+Defaults to "__XKB_DFLT_MODEL__".  When used with "base" rules, other values
 may include "pc102", "pc104", "microsoft", and many others.  When
 used with "sun" rules, other values may include "type4" and "type5".
 .sp
