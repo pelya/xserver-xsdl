@@ -504,7 +504,7 @@ static void __glXAquaDrawableDestroy(__GLXdrawable *base) {
      */
     __GLXAquaDrawable *glxPriv = (__GLXAquaDrawable *)base;
 
-    GLAQUA_DEBUG_MSG(__func__);
+    GLAQUA_DEBUG_MSG("TRACE");
     
     /* It doesn't work to call DRIDestroySurface here, the drawable's
        already gone.. But dri.c notices the window destruction and
