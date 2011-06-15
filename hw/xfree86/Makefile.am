@@ -38,10 +38,11 @@ DIST_SUBDIRS = common ddc i2c x86emu int10 fbdevhw os-support \
 	       utils doc man
 
 bin_PROGRAMS = Xorg
-Xorg_SOURCES =
+nodist_Xorg_SOURCES = sdksyms.c
 
 AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
-INCLUDES = @XORG_INCS@ 
+INCLUDES = $(XORG_INCS) -I$(srcdir)/parser -I$(top_srcdir)/miext/cw \
+	-I$(srcdir)/ddc -I$(srcdir)/i2c -I$(srcdir)/modes -I$(srcdir)/ramdac
 
 noinst_LTLIBRARIES = libxorg.la
 libxorg_la_SOURCES =
@@ -111,3 +112,12 @@ xorg.conf.example: xorgconf.cpp
 
 relink:
 	$(AM_V_at)rm -f Xorg && $(MAKE) Xorg
+
+CLEANFILES = sdksyms.c sdksyms.dep
+EXTRA_DIST += sdksyms.sh
+
+sdksyms.dep sdksyms.c: sdksyms.sh
+	CPP='$(CPP)' AWK='$(AWK)' $(srcdir)/sdksyms.sh $(top_srcdir) $(CFLAGS) $(AM_CFLAGS) $(INCLUDES)
+
+SDKSYMS_DEP = sdksyms.dep
+include $(SDKSYMS_DEP)
