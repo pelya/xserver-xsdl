@@ -38,13 +38,13 @@ DIST_SUBDIRS = common ddc i2c x86emu int10 fbdevhw os-support \
 	       utils doc man
 
 bin_PROGRAMS = Xorg
-Xorg_SOURCES = xorg.c
+Xorg_SOURCES =
 
 AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
 INCLUDES = @XORG_INCS@ 
 
 noinst_LTLIBRARIES = libxorg.la
-libxorg_la_SOURCES = libxorg.c
+libxorg_la_SOURCES =
 libxorg_la_LIBADD = \
             $(XSERVER_LIBS) \
             loader/libloader.la \
@@ -63,18 +63,13 @@ libxorg_la_LIBADD = \
 
 libxorg_la_DEPENDENCIES = $(libxorg_la_LIBADD)
 
-libxorg.c xorg.c:
-	touch $@
-
-DISTCLEANFILES = libxorg.c xorg.c
-
 Xorg_DEPENDENCIES = libxorg.la
 Xorg_LDADD = $(MAIN_LIB) libxorg.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
 BUILT_SOURCES = xorg.conf.example
-DISTCLEANFILES += xorg.conf.example
+DISTCLEANFILES = xorg.conf.example
 EXTRA_DIST = xorgconf.cpp
 
 if SPECIAL_DTRACE_OBJECTS

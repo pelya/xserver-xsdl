@@ -21,6 +21,7 @@ list_LDADD=$(TEST_LDADD)
 misc_LDADD=$(TEST_LDADD)
 fixes_LDADD=$(TEST_LDADD)
 
+libxservertest_la_SOURCES =
 libxservertest_la_LIBADD = \
             $(XSERVER_LIBS) \
             $(top_builddir)/hw/xfree86/loader/libloader.la \
@@ -39,8 +40,3 @@ libxservertest_la_LIBADD = \
             @XORG_LIBS@
 endif
 endif
-
-CLEANFILES=libxservertest.c
-
-libxservertest.c:
-	touch $@
