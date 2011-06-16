@@ -119,8 +119,8 @@ typedef struct _connectionInput {
 
 typedef struct _connectionOutput {
     struct _connectionOutput *next;
-    int size;
     unsigned char *buf;
+    int size;
     int count;
 } ConnectionOutput, *ConnectionOutputPtr;
 
