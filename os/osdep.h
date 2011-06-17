@@ -107,22 +107,8 @@ typedef Bool (*AddAuthorFunc) (unsigned name_length, const char *name,
                                unsigned data_length, char *data);
 #endif
 
-typedef struct _connectionInput {
-    struct _connectionInput *next;
-    char *buffer;               /* contains current client input */
-    char *bufptr;               /* pointer to current start of data */
-    int bufcnt;                 /* count of bytes in buffer */
-    int lenLastReq;
-    int size;
-    unsigned int ignoreBytes;   /* bytes to ignore before the next request */
-} ConnectionInput, *ConnectionInputPtr;
-
-typedef struct _connectionOutput {
-    struct _connectionOutput *next;
-    unsigned char *buf;
-    int size;
-    int count;
-} ConnectionOutput, *ConnectionOutputPtr;
+typedef struct _connectionInput *ConnectionInputPtr;
+typedef struct _connectionOutput *ConnectionOutputPtr;
 
 struct _osComm;
 
