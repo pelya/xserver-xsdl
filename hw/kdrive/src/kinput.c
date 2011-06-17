@@ -2159,7 +2159,6 @@ void
 ProcessInputEvents (void)
 {
     mieqProcessInputEvents();
-    miPointerUpdateSprite(inputInfo.pointer);
     if (kdSwitchPending)
 	KdProcessSwitch ();
     KdCheckLock ();
