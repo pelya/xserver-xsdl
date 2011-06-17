@@ -52,10 +52,6 @@ SOFTWARE.
 #ifndef _OSDEP_H_
 #define _OSDEP_H_ 1
 
-#define BOTIMEOUT 200 /* in milliseconds */
-#define BUFSIZE 4096
-#define BUFWATERMARK 8192
-
 #if defined(XDMCP) || defined(HASXDMAUTH)
 #include <X11/Xdmcp.h>
 #endif

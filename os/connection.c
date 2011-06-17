@@ -873,6 +873,8 @@ EstablishNewConnections(ClientPtr clientUnused, pointer closure)
  *     Fail a connection due to lack of client or file descriptor space
  ************/
 
+#define BOTIMEOUT 200 /* in milliseconds */
+
 static void
 ErrorConnMax(XtransConnInfo trans_conn)
 {

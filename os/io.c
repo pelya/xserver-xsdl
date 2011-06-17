@@ -129,6 +129,8 @@ static OsCommPtr AvailableInput = (OsCommPtr)NULL;
 				  ((xBigReq *)(req))->length)
 
 #define MAX_TIMES_PER         10
+#define BUFSIZE 4096
+#define BUFWATERMARK 8192
 
 /*
  *   A lot of the code in this file manipulates a ConnectionInputPtr:
