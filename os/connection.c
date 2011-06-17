@@ -745,7 +745,7 @@ AllocNewConnection (XtransConnInfo trans_conn, int fd, CARD32 conn_time)
 	free(oc);
 	return NullClient;
     }
-    oc->local_client = ComputeLocalClient(client);
+    client->local = ComputeLocalClient(client);
 #if !defined(WIN32)
     ConnectionTranslation[fd] = client->index;
 #else
