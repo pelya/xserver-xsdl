@@ -133,12 +133,9 @@ cat > sdksyms.c << EOF
 # include "xf86xvmc.h"
 # include "xf86xvpriv.h"
 #endif
-/* XF86VidMode code is in libextmod module */
-/*
 #if XF86VIDMODE
 # include "vidmodeproc.h"
 #endif
- */
 #include "xorgVersion.h"
 #if defined(__sparc__) || defined(__sparc)
 # include "xf86sbusBus.h"

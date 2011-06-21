@@ -45,10 +45,24 @@
 #include <X11/extensions/xf86dgaproto.h>
 #endif
 
+#ifdef XF86VIDMODE
+#include <X11/extensions/xf86vmproto.h>
+#include "vidmodeproc.h"
+#endif
+
 /*
  * DDX-specific extensions.
  */
 static ExtensionModule extensionModules[] = {
+#ifdef XF86VIDMODE
+    {
+	XFree86VidModeExtensionInit,
+	XF86VIDMODENAME,
+	&noXFree86VidModeExtension,
+	NULL,
+	NULL
+    },
+#endif
 #ifdef XFreeXDGA
     {
 	XFree86DGAExtensionInit,

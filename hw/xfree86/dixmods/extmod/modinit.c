@@ -39,14 +39,6 @@ static MODULESETUPPROTO(extmodSetup);
  * Array describing extensions to be initialized
  */
 static ExtensionModule extensionModules[] = {
-#ifdef XF86VIDMODE
-    {
-     XFree86VidModeExtensionInit,
-     XF86VIDMODENAME,
-     &noXFree86VidModeExtension,
-     NULL,
-     NULL},
-#endif
 };
 
 static XF86ModuleVersionInfo VersRec = {

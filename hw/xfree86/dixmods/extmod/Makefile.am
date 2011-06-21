@@ -1,10 +1,6 @@
 extsmoduledir = $(moduledir)/extensions
 extsmodule_LTLIBRARIES = libextmod.la
 
-if XF86VIDMODE
-XF86VMODE_SRCS = xf86vmode.c
-endif
-
 AM_CFLAGS = @DIX_CFLAGS@ @XORG_CFLAGS@
 INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/dbe \
@@ -12,6 +8,5 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/miext/shadow
 
 libextmod_la_LDFLAGS = -module -avoid-version $(LD_NO_UNDEFINED_FLAG)
-libextmod_la_SOURCES = modinit.c \
-                       $(XF86VMODE_SRCS)
+libextmod_la_SOURCES = modinit.c
 libextmod_la_LIBADD = $(top_builddir)/Xext/libXextmodule.la

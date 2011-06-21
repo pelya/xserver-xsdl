@@ -47,7 +47,7 @@ libcommon_la_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
                       xf86Helper.c xf86PM.c xf86Xinput.c xisb.c \
                       xf86Mode.c xorgHelper.c xf86Extensions.h \
-		      xf86Extensions.c \
+		      xf86Extensions.c xf86vmode.c \
                       $(XVSOURCES) $(BUSSOURCES) $(RANDRSOURCES)
 nodist_libcommon_la_SOURCES = xf86DefModeSet.c xf86Build.h
 libcommon_la_LIBADD = $(top_builddir)/config/libconfig.la
