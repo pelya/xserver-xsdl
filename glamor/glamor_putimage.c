@@ -132,6 +132,7 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 	0.0, 1.0,
     };
 
+
     dest_coords[0][0] = v_from_x_coord_x(pixmap, x);
     dest_coords[0][1] = v_from_x_coord_y(pixmap, y);
     dest_coords[1][0] = v_from_x_coord_x(pixmap, x + w);
@@ -226,13 +227,11 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     return;
-
-fail:
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);
-
-    glamor_fallback("glamor_put_image(): to %p (%c)\n",
+    glamor_fallback(": to %p (%c)\n",
 		    drawable, glamor_get_drawable_location(drawable));
+fail:
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 	fbPutImage(drawable, gc, 1, x, y, w, h, left_pad, XYBitmap, bits);
 	glamor_finish_access(drawable);
@@ -251,12 +250,11 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     RegionPtr clip;
     BoxPtr pbox;
     int nbox;
-    int bpp = drawable->bitsPerPixel;
     int src_stride = PixmapBytePad(w, drawable->depth);
     int x_off, y_off;
     float vertices[4][2], texcoords[4][2];
     GLuint tex;
-    int alfa_mode = 0;
+    int ax = 0;
     if (image_format == XYBitmap) {
 	assert(depth == 1);
 	glamor_put_image_xybitmap(drawable, gc, x, y, w, h,
@@ -264,56 +262,32 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	return;
     }
 
-    if (pixmap_priv == NULL) {
-	glamor_fallback("glamor_put_image: system memory pixmap\n");
-	goto fail;
+    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+	glamor_fallback("has no fbo.\n");
+        goto fail;
     }
-
-    if (pixmap_priv->fb == 0) {
-	ScreenPtr screen = pixmap->drawable.pScreen;
-	PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
-
-	if (pixmap != screen_pixmap) {
-	    glamor_fallback("glamor_put_image: no fbo\n");
-	    goto fail;
-	}
-    }
-
-    if (bpp == 1 && image_format == XYPixmap)
-	image_format = ZPixmap;
 
     if (image_format != ZPixmap) {
-	glamor_fallback("glamor_put_image: non-ZPixmap\n");
+	glamor_fallback("non-ZPixmap\n");
 	goto fail;
     }
 
-    switch (drawable->depth) {
-    case 1:
-	format = GL_COLOR_INDEX;
-	type = GL_BITMAP;
-	break;
-    case 8:
-	format = GL_ALPHA;
-	type = GL_UNSIGNED_BYTE;
-	break;
-    case 24:
-	assert(drawable->bitsPerPixel == 32);
-	/* FALLTHROUGH */
-        alfa_mode = 1;
-    case 32:
-	format = GL_BGRA;
-	type = GL_UNSIGNED_INT_8_8_8_8_REV;
-	break;
-    default:
-	glamor_fallback("glamor_putimage: bad depth %d\n", drawable->depth);
+    if (!glamor_set_planemask(pixmap, gc->planemask)) {
 	goto fail;
     }
-
-    if (!glamor_set_planemask(pixmap, gc->planemask))
-	goto fail;
-
     glamor_set_alu(gc->alu);
 
+    if (glamor_get_tex_format_type_from_pixmap(pixmap,
+                                               &format, 
+                                               &type, 
+                                               &ax
+                                               )) {
+      glamor_fallback("unknown depth. %d \n", 
+                     drawable->depth);
+      goto fail;
+    }
+
+    /* XXX consider to reuse a function to do the following work. */
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -321,15 +295,13 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
-    glViewport(0, 0, pixmap->drawable.width, pixmap->drawable.height);
+    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride * 8 /
 		  pixmap->drawable.bitsPerPixel);
-    if (bpp == 1)
-	glPixelStorei(GL_UNPACK_SKIP_PIXELS, left_pad);
 
+    
     glGenTextures(1, &tex);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
@@ -341,10 +313,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glEnable(GL_TEXTURE_2D);
 
     assert(GLEW_ARB_fragment_shader);
-    if (alfa_mode == 0)
-      glUseProgramObjectARB(glamor_priv->finish_access_prog);
-    else
-      glUseProgramObjectARB(glamor_priv->aswizzle_prog);
+    glUseProgramObjectARB(glamor_priv->finish_access_prog[ax]);
 
     x += drawable->x;
     y += drawable->y;
@@ -425,7 +394,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 
 fail:
     glamor_set_planemask(pixmap, ~0);
-    glamor_fallback("glamor_put_image(): to %p (%c)\n",
+    glamor_fallback("to %p (%c)\n",
 		    drawable, glamor_get_drawable_location(drawable));
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 	fbPutImage(drawable, gc, depth, x, y, w, h, left_pad, image_format,

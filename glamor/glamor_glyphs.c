@@ -67,6 +67,7 @@
  */
 #define GLYPH_BUFFER_SIZE 256
 
+
 typedef struct {
     PicturePtr source;
     glamor_composite_rect_t rects[GLYPH_BUFFER_SIZE];
@@ -573,6 +574,7 @@ static void glamor_glyphs_to_mask(PicturePtr mask,
 				  glamor_glyph_buffer_t *buffer)
 {
 #ifdef RENDER
+    
     glamor_composite_rects(PictOpAdd, buffer->source, mask,
 			   buffer->count, buffer->rects);
 #endif

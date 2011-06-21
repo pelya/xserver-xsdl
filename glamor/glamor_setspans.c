@@ -37,46 +37,23 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 {
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
     GLenum format, type;
-    uint8_t *temp_src = NULL, *drawpixels_src = (uint8_t *)src;
-    int i, j;
-    int wmax = 0;
+    int ax, i;
+    uint8_t *drawpixels_src = (uint8_t *)src;
     RegionPtr clip = fbGetCompositeClip(gc);
     BoxRec *pbox;
     int x_off, y_off;
 
-    goto fail;
-
-    for (i = 0 ; i < n; i++) {
-	if (wmax < widths[i])
-	    wmax = widths[i];
+    if (glamor_get_tex_format_type_from_pixmap(dest_pixmap,
+                                               &format, 
+                                               &type, 
+                                               &ax
+                                               )) {
+      glamor_fallback("unknown depth. %d \n", 
+                     drawable->depth);
+      goto fail;
     }
 
-    switch (drawable->depth) {
-    case 1:
-	temp_src = malloc(wmax);
-	format = GL_ALPHA;
-	type = GL_UNSIGNED_BYTE;
-	drawpixels_src = temp_src;
-	break;
-    case 8:
-	format = GL_ALPHA;
-	type = GL_UNSIGNED_BYTE;
-	break;
-    case 24:
-	format = GL_RGB;
-	type = GL_UNSIGNED_BYTE;
-	break;
-    case 32:
-	format = GL_BGRA;
-	type = GL_UNSIGNED_INT_8_8_8_8_REV;
-	break;
-    default:
-	glamor_fallback("glamor_set_spans()Unknown depth %d\n",
-			drawable->depth);
-	goto fail;
-    }
-
-    if (!glamor_set_destination_pixmap(dest_pixmap))
+    if (glamor_set_destination_pixmap(dest_pixmap))
 	goto fail;
     if (!glamor_set_planemask(dest_pixmap, gc->planemask))
 	goto fail;
@@ -87,14 +64,6 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     glamor_get_drawable_deltas(drawable, dest_pixmap, &x_off, &y_off);
 
     for (i = 0; i < n; i++) {
-	if (temp_src) {
-	    for (j = 0; j < widths[i]; j++) {
-		if (src[j / 8] & (1 << (j % 8)))
-		    temp_src[j] = 0xff;
-		else
-		    temp_src[j] = 0;
-	    }
-	}
 
 	n = REGION_NUM_RECTS(clip);
 	pbox = REGION_RECTS(clip);
@@ -113,19 +82,14 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 			 format, type,
 			 drawpixels_src);
 	}
-	if (temp_src) {
-	    src += PixmapBytePad(widths[i], drawable->depth);
-	} else {
 	    drawpixels_src += PixmapBytePad(widths[i], drawable->depth);
-	}
     }
 fail:
     glDisable(GL_SCISSOR_TEST);
     glamor_set_planemask(dest_pixmap, ~0);
     glamor_set_alu(GXcopy);
-    free(temp_src);
 
-    glamor_fallback("glamor_set_spans(): to %p (%c)\n",
+    glamor_fallback("to %p (%c)\n",
 		    drawable, glamor_get_drawable_location(drawable));
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 	fbSetSpans(drawable, gc, src, points, widths, n, sorted);

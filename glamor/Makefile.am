@@ -31,6 +31,8 @@ libglamor_la_SOURCES = \
 	glamor_render.c \
 	glamor_tile.c \
         glamor_triangles.c\
+        glamor_pixmap.c\
+        glamor_picture.c\
 	glamor.h
 libglamor_la_LIBADD = \
 	glu3/libglu3.la

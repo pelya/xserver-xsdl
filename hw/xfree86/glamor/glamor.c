@@ -113,8 +113,7 @@ glamor_resize(ScrnInfoPtr scrn, int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, image); 
 
-	glamor_set_pixmap_texture(screen->GetScreenPixmap(screen),
-				  width, height, texture);
+	glamor_set_screen_pixmap_texture(screen, width, height, texture);
 	glamor->root = image;
 	scrn->virtualX = width;
 	scrn->virtualY = height;

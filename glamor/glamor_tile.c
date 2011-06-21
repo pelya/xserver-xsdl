@@ -91,24 +91,26 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     glamor_pixmap_private *tile_priv = glamor_get_pixmap_private(tile);
     float vertices[4][2];
     float source_texcoords[4][2];
-
     if (glamor_priv->tile_prog == 0) {
 	glamor_fallback("Tiling unsupported\n");
 	goto fail;
     }
 
-    if (!glamor_set_destination_pixmap(pixmap))
+    if (glamor_set_destination_pixmap(pixmap)) {
+        glamor_fallback("dest has no fbo.");
 	goto fail;
+    }
 
-    if (tile_priv->tex == 0) {
+    if (tile_priv->gl_tex == 0) {
 	glamor_fallback("Non-texture tile pixmap\n");
 	goto fail;
     }
 
-    if (!glamor_set_planemask(pixmap, planemask))
+    if (!glamor_set_planemask(pixmap, planemask)) {
+        glamor_fallback("unsupported planemask %lx\n", planemask);
 	goto fail;
+    }
     glamor_set_alu(alu);
-
     glUseProgramObjectARB(glamor_priv->tile_prog);
 
     glActiveTexture(GL_TEXTURE0);

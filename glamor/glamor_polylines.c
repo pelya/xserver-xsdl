@@ -49,18 +49,17 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
     xRectangle *rects;
     int x1, x2, y1, y2;
     int i;
-
     /* Don't try to do wide lines or non-solid fill style. */
     if (gc->lineWidth != 0) {
 	/* This ends up in miSetSpans, which is accelerated as well as we
 	 * can hope X wide lines will be.
 	 */
-	/*glamor_fallback("glamor_poly_lines(): wide lines\n");*/
 	goto fail;
     }
     if (gc->lineStyle != LineSolid ||
 	gc->fillStyle != FillSolid) {
-	glamor_fallback("glamor_poly_lines(): non-solid fill\n");
+	glamor_fallback("non-solid fill line style %d, fill style %d\n",
+                         gc->lineStyle, gc->fillStyle);
 	goto fail;
     }
 
@@ -77,11 +76,9 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 	    y2 = points[i + 1].y;
 	}
 	if (x1 != x2 && y1 != y2) {
-	    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 	    free(rects);
 	    glamor_fallback("stub diagonal poly_line\n");
 	    goto fail;
-	    return;
 	}
 	if (x1 < x2) {
 	    rects[i].x = x1;

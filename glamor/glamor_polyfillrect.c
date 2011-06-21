@@ -50,9 +50,9 @@ glamor_poly_fill_rect(DrawablePtr drawable,
     int off_x, off_y;
     RegionPtr pClip = fbGetCompositeClip(gc);
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
-
-    if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
+    if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) {
 	goto fail;
+    }
 
     xorg = drawable->x;
     yorg = drawable->y;
@@ -101,9 +101,8 @@ glamor_poly_fill_rect(DrawablePtr drawable,
     return;
 
 fail:
-    glamor_fallback("glamor_poly_fill_rect() to %p (%c)\n",
+    glamor_fallback(" to %p (%c)\n",
 		    drawable, glamor_get_drawable_location(drawable));
-
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 	if (glamor_prepare_access_gc(gc)) {
 	    fbPolyFillRect(drawable, gc, nrect, prect );

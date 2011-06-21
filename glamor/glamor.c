@@ -59,8 +59,7 @@ glamor_get_drawable_pixmap(DrawablePtr drawable)
 	return (PixmapPtr)drawable;
 }
 
-
-void
+static void
 glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
@@ -73,6 +72,8 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
     /* Create a framebuffer object wrapping the texture so that we can render
      * to it.
      */
+    pixmap_priv->gl_fbo = 1;
+    pixmap_priv->gl_tex = 1;
     glGenFramebuffersEXT(1, &pixmap_priv->fb);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
@@ -87,13 +88,24 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
                               NULL);
 }
 
+/* Set screen pixmap. If tex equal to 0, means it is called from ephyr. */
+void
+glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h, unsigned int tex)
+{
+  PixmapPtr pixmap = screen->GetScreenPixmap(screen);
+  glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+  glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
-/* XXX For the screen pixmap, the w and h maybe 0,0 too, but it should
- * be GLAMOR_GL pixmap. Now, all the pixmap will have a valid pixmap_priv. 
- * This is not good enough. After we can identify which is the screen
- * pixmap and which is not, then we can split the pixmap to exclusive
- * two types GLAMOR_GL and GLAMOR_FB, and for those GLAMOR_FB pixmaps, 
- * we don't need to allocate pixmap_priv. */
+  glamor_set_pixmap_texture(pixmap, w, h, tex);
+  glamor_priv->screen_fbo = pixmap_priv->fb;
+}
+
+
+
+#define GLAMOR_PIXMAP_MEMORY 0 
+#define GLAMOR_PIXMAP_TEXTURE 1 
+
+
 
 static PixmapPtr
 glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
@@ -102,22 +114,24 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     PixmapPtr pixmap;
     GLenum format;
     GLuint tex;
-    enum glamor_pixmap_type type = GLAMOR_GL;
+    int type = GLAMOR_PIXMAP_TEXTURE;
+    glamor_pixmap_private *pixmap_priv;
 
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
-    if (w > MAX_WIDTH || h > MAX_HEIGHT || ( depth == 1 && w != 0 && h != 0)) {
+    if (!glamor_check_fbo_width_height(w,h) || !glamor_check_fbo_depth(depth)) {
 	/* MESA can only support upto MAX_WIDTH*MAX_HEIGHT fbo.
  	   If we exceed such limitation, we have to use framebuffer.*/
-      type = GLAMOR_FB;
+      type = GLAMOR_PIXMAP_MEMORY;
       pixmap = fbCreatePixmap (screen, w, h, depth, usage);
       screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
                               (((w * pixmap->drawable.bitsPerPixel +
                                  7) / 8) + 3) & ~3,
                               NULL);
 
-      glamor_fallback("fallback to software fb for pixmap %p , %d x %d depth %d\n", pixmap, w, h, depth);
+      glamor_fallback("choose cpu memory for pixmap %p ,"
+	              " %d x %d depth %d\n", pixmap, w, h, depth);
    } else 
       pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
 
@@ -127,7 +141,10 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	return NullPixmap;
     }	 
 
-    if (w == 0 || h == 0 || type == GLAMOR_FB)
+    pixmap_priv = glamor_get_pixmap_private(pixmap);
+    pixmap_priv->container = pixmap;
+
+    if (w == 0 || h == 0 || type == GLAMOR_PIXMAP_MEMORY)
 	return pixmap;
 
     /* We should probably take advantage of ARB_fbo's allowance of GL_ALPHA.
@@ -136,7 +153,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     switch (depth) {
     case 24:
         format = GL_RGB;
-        break;
+        break; 
     default:
         format = GL_RGBA;
         break;
@@ -154,13 +171,51 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     return pixmap;
 }
 
+
+/**
+ * For Xephyr use only. set up the screen pixmap to correct state. 
+ **/
+static PixmapPtr
+glamor_create_screen_pixmap(ScreenPtr screen, int w, int h, int depth,
+		     unsigned int usage)
+{
+    PixmapPtr pixmap;
+    glamor_pixmap_private *pixmap_priv;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    assert(w ==0 && h == 0);
+
+    glamor_priv->screen_fbo = 0; 
+    pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
+
+    if (dixAllocatePrivates(&pixmap->devPrivates, PRIVATE_PIXMAP) != TRUE) {
+        fbDestroyPixmap(pixmap);
+	ErrorF("Fail to allocate privates for PIXMAP.\n");
+	return NullPixmap;
+    }	 
+
+    pixmap_priv = glamor_get_pixmap_private(pixmap);
+    pixmap_priv->tex = 0; 
+    pixmap_priv->gl_fbo = 1;
+    pixmap_priv->gl_tex = 1;
+    
+    screen->CreatePixmap = glamor_create_pixmap;
+    return pixmap;
+}
+
+
+
+
 static Bool
 glamor_destroy_pixmap(PixmapPtr pixmap)
 {
     if (pixmap->refcnt == 1) {
 	glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-	glDeleteFramebuffersEXT(1, &pixmap_priv->fb);
-	glDeleteTextures(1, &pixmap_priv->tex);
+        if (pixmap_priv->fb)
+	  glDeleteFramebuffersEXT(1, &pixmap_priv->fb);
+        if (pixmap_priv->tex)
+	  glDeleteTextures(1, &pixmap_priv->tex);
+        if (pixmap_priv->pbo)
+          glDeleteBuffersARB(1, &pixmap_priv->pbo);
     }
 
     return fbDestroyPixmap(pixmap);
@@ -177,6 +232,18 @@ glamor_wakeup_handler(void *data, int result, void *last_select_mask)
 {
 }
 
+static void 
+glamor_set_debug_level(int *debug_level)
+{
+  char *debug_level_string;
+  debug_level_string = getenv("GLAMOR_DEBUG");
+  if (debug_level_string && sscanf(debug_level_string, "%d", debug_level) == 1)
+     return;
+  *debug_level = 0;
+}
+
+int glamor_debug_level;
+
 /** Set up glamor for an already-configured GL context. */
 Bool
 glamor_init(ScreenPtr screen, unsigned int flags)
@@ -186,7 +253,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 #ifdef RENDER
     PictureScreenPtr ps = GetPictureScreenIfSet(screen);
 #endif
-
     if (flags & ~GLAMOR_VALID_FLAGS) {
       ErrorF("glamor_init: Invalid flags %x\n", flags);
       return FALSE;
@@ -205,7 +271,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	LogMessage(X_WARNING,
 		   "glamor%d: Failed to allocate screen private\n",
 		   screen->myNum);
+        return FALSE;
     }
+
     dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, glamor_priv);
 
     if (!dixRegisterPrivateKey(glamor_pixmap_private_key,PRIVATE_PIXMAP,
@@ -213,6 +281,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         LogMessage(X_WARNING,
                    "glamor%d: Failed to allocate pixmap private\n",
                    screen->myNum);
+        return FALSE;
     }
 
     glewInit();
@@ -243,7 +312,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	goto fail;
     }
 
-    
+    glamor_set_debug_level(&glamor_debug_level); 
     glamor_priv->saved_close_screen = screen->CloseScreen;
     screen->CloseScreen = glamor_close_screen;
 
@@ -251,7 +320,11 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     screen->CreateGC = glamor_create_gc;
 
     glamor_priv->saved_create_pixmap = screen->CreatePixmap;
-    screen->CreatePixmap = glamor_create_pixmap;
+
+    if (flags & GLAMOR_HOSTX)
+      screen->CreatePixmap = glamor_create_screen_pixmap;
+    else
+      screen->CreatePixmap = glamor_create_pixmap;
 
     glamor_priv->saved_destroy_pixmap = screen->DestroyPixmap;
     screen->DestroyPixmap = glamor_destroy_pixmap;
@@ -281,13 +354,16 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_priv->saved_triangles = ps->Triangles;
     ps->Triangles = glamor_triangles;
     glamor_init_composite_shaders(screen);
+    glamor_priv->saved_create_picture = ps->CreatePicture; 
+    ps->CreatePicture = glamor_create_picture;
+    glamor_priv->saved_destroy_picture = ps->DestroyPicture; 
+    ps->DestroyPicture = glamor_destroy_picture;
 #endif
     glamor_init_solid_shader(screen);
     glamor_init_tile_shader(screen);
     glamor_init_putimage_shaders(screen);
     glamor_init_finish_access_shaders(screen);
     glamor_glyphs_init(screen);
-
 
     return TRUE;
 
@@ -319,6 +395,7 @@ glamor_close_screen(int idx, ScreenPtr screen)
 	ps->Trapezoids = glamor_priv->saved_trapezoids;
 	ps->Glyphs = glamor_priv->saved_glyphs;
         ps->Triangles = glamor_priv->saved_triangles;
+        ps->CreatePicture = glamor_priv->saved_create_picture;
     }
 #endif
     free(glamor_priv);

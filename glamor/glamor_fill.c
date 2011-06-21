@@ -89,7 +89,6 @@ glamor_fill(DrawablePtr drawable,
     }
     return;
 fail:
-    glamor_fallback("glamor_fill()");
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 	if (glamor_prepare_access_gc(gc)) {
             fbFill(drawable, gc, x, y, width, height);
@@ -154,16 +153,22 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     GLfloat color[4];
     float vertices[4][2];
 
-    if (!glamor_set_destination_pixmap(pixmap))
+    if (glamor_set_destination_pixmap(pixmap)) {
+        glamor_fallback("dest has no fbo.\n");
 	goto fail;
+    }
     glamor_set_alu(alu);
     if (!glamor_set_planemask(pixmap, planemask)) {
-      ErrorF("Failedto set planemask  in glamor_solid.\n");
+      glamor_fallback("Failedto set planemask  in glamor_solid.\n");
       goto fail;
     } 
-
     glUseProgramObjectARB(glamor_priv->solid_prog);
-    glamor_get_color_4f_from_pixel(pixmap, fg_pixel, color);
+    glamor_get_rgba_from_pixel(fg_pixel, 
+                              &color[0], 
+                              &color[1], 
+                              &color[2], 
+                              &color[3],
+                              format_for_pixmap(pixmap));
     glUniform4fvARB(glamor_priv->solid_color_uniform_location, 1, color);
 
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
@@ -196,22 +201,4 @@ fail:
     return FALSE;
 }
 
-/* Highlight places where we're doing it wrong. */
-void
-glamor_solid_fail_region(PixmapPtr pixmap, int x, int y, int width, int height)
-{
-    unsigned long pixel;
 
-    switch (pixmap->drawable.depth) {
-    case 24:
-    case 32:
-	pixel = 0x00ff00ff; /* our favorite color */
-	break;
-    default:
-    case 8:
-	pixel = 0xd0d0d0d0;
-	break;
-    }
-
-    glamor_solid(pixmap, x, y, width, height, GXcopy, ~0, pixel);
-}

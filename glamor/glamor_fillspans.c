@@ -47,9 +47,8 @@ glamor_fill_spans(DrawablePtr drawable,
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 
 
-    if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
+    if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) 
 	goto fail;
-
 
     glamor_get_drawable_deltas(drawable, pixmap, &off_x, &off_y);
 	ppt = points;
@@ -82,7 +81,7 @@ glamor_fill_spans(DrawablePtr drawable,
         }
     return;
 fail:
-    glamor_fallback("glamor_fillspans(): to %p (%c)\n", drawable,
+    glamor_fallback("to %p (%c)\n", drawable,
 		    glamor_get_drawable_location(drawable));
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 	if (glamor_prepare_access_gc(gc)) {

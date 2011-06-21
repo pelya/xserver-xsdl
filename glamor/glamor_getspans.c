@@ -31,18 +31,6 @@
 
 #include "glamor_priv.h"
 
-static void
-set_bit(uint8_t *bitfield, unsigned int index, unsigned int val)
-{
-    int i = index / 8;
-    int mask = 1 << (index % 8);
-
-    if (val)
-	bitfield[i] |= mask;
-    else
-	bitfield[i] &= ~mask;
-}
-
 void
 glamor_get_spans(DrawablePtr drawable,
 		 int wmax,
@@ -53,39 +41,27 @@ glamor_get_spans(DrawablePtr drawable,
 {
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     GLenum format, type;
+    int ax;
     glamor_screen_private *glamor_priv =
 	glamor_get_screen_private(drawable->pScreen);
-    int i, j;
-    uint8_t *temp_dst = NULL, *readpixels_dst = (uint8_t *)dst;
+    int i;
+    uint8_t *readpixels_dst = (uint8_t *)dst;
     int x_off, y_off;
-
-    switch (drawable->depth) {
-    case 1:
-	temp_dst = malloc(wmax);
-	format = GL_ALPHA;
-	type = GL_UNSIGNED_BYTE;
-	readpixels_dst = temp_dst;
-	break;
-    case 8:
-	format = GL_ALPHA;
-	type = GL_UNSIGNED_BYTE;
-	break;
-    case 24:
-    case 32:
-	format = GL_BGRA;
-	type = GL_UNSIGNED_INT_8_8_8_8_REV;
-	break;
-    default:
-	glamor_fallback("glamor_get_spans(): "
-			"Unknown getspans depth %d\n", drawable->depth);
-	goto fail;
+    if (glamor_get_tex_format_type_from_pixmap(pixmap,
+                                               &format, 
+                                               &type, 
+                                               &ax
+                                               )) {
+      glamor_fallback("unknown depth. %d \n", 
+                     drawable->depth);
+      goto fail;
     }
 
-    if (!glamor_set_destination_pixmap(pixmap))
+    if (glamor_set_destination_pixmap(pixmap)) { 
+        glamor_fallback("pixmap has no fbo.\n");
 	goto fail;
-
+    }
     glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
-
     for (i = 0; i < count; i++) {
       if (glamor_priv->yInverted) {
 	glReadPixels(points[i].x + x_off,
@@ -102,21 +78,12 @@ glamor_get_spans(DrawablePtr drawable,
 		     format, type,
 		     readpixels_dst);
 	}
-	if (temp_dst) {
-	    for (j = 0; j < widths[i]; j++) {
-		set_bit((uint8_t *)dst, j, temp_dst[j] & 0x1);
-	    }
-	    dst += PixmapBytePad(widths[i], drawable->depth);
-	} else {
-	    readpixels_dst += PixmapBytePad(widths[i], drawable->depth);
-	}
+       readpixels_dst += PixmapBytePad(widths[i], drawable->depth);
     }
-    free(temp_dst);
     return;
 
 fail:
-    free(temp_dst);
-    glamor_fallback("glamor_get_spans() from %p (%c)\n", drawable,
+    glamor_fallback("from %p (%c)\n", drawable,
 		    glamor_get_drawable_location(drawable));
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RO)) {
 	fbGetSpans(drawable, wmax, points, widths, count, dst);

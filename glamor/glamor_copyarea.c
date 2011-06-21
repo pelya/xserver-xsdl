@@ -31,7 +31,6 @@
  *
  * GC CopyArea implementation
  */
-
 static Bool
 glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 			    DrawablePtr dst,
@@ -49,45 +48,36 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
     int dst_x_off, dst_y_off, src_x_off, src_y_off, i;
 
     if (src == dst) {
-	glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
-				"src == dest\n");
+	glamor_delayed_fallback(screen,"src == dest\n");
 	return FALSE;
     }
 
     if (!GLEW_EXT_framebuffer_blit) {
-	glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
-				"no EXT_framebuffer_blit\n");
+	glamor_delayed_fallback(screen,"no EXT_framebuffer_blit\n");
 	return FALSE;
    }
 
     src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 
-    if (src_pixmap_priv->fb == 0) {
-        PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
-
-        if (src_pixmap != screen_pixmap) {
-            glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
-				    "no src fbo\n");
-            return FALSE;
-        }
-    }
-
     if (gc) {
 	if (gc->alu != GXcopy) {
-	    glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
-				    "non-copy ALU\n");
+	    glamor_delayed_fallback(screen, "non-copy ALU\n");
 	    return FALSE;
 	}
 	if (!glamor_pm_is_solid(dst, gc->planemask)) {
-	    glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
-				    "non-solid planemask\n");
+	    glamor_delayed_fallback(screen, "non-solid planemask\n");
 	    return FALSE;
 	}
     }
 
-    if (!glamor_set_destination_pixmap(dst_pixmap))
-	return FALSE;
+    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(src_pixmap_priv)) {
+        glamor_delayed_fallback(screen, "no src fbo\n");
+        return FALSE;
+    }
 
+    if (glamor_set_destination_pixmap(dst_pixmap)) {
+	return FALSE;
+    }
     glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, src_pixmap_priv->fb);
 
     glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
@@ -124,7 +114,6 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 			     GL_NEAREST);
 	}
     }
-
     return TRUE;
 }
 
@@ -142,29 +131,26 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
     glamor_screen_private *glamor_priv =
 	glamor_get_screen_private(screen);
     int x_off, y_off, i;
-
     if (src != dst) {
-	glamor_delayed_fallback(screen, "glamor_copy_n_to_n_copypixels(): "
-				"src != dest\n");
+	glamor_delayed_fallback(screen, "src != dest\n");
 	return FALSE;
     }
 
     if (gc) {
 	if (gc->alu != GXcopy) {
-	    glamor_delayed_fallback(screen, "glamor_copy_n_to_n_copypixels(): "
-				    "non-copy ALU\n");
+	    glamor_delayed_fallback(screen,"non-copy ALU\n");
 	    return FALSE;
 	}
 	if (!glamor_pm_is_solid(dst, gc->planemask)) {
-	    glamor_delayed_fallback(screen, "glamor_copy_n_to_n_copypixels(): "
-				    "non-solid planemask\n");
+	    glamor_delayed_fallback(screen,"non-solid planemask\n");
 	    return FALSE;
 	}
     }
 
-    if (!glamor_set_destination_pixmap(dst_pixmap))
+    if (glamor_set_destination_pixmap(dst_pixmap)) {
+        glamor_delayed_fallback(screen, "dst has no fbo.\n");
 	return FALSE;
-
+    }
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glOrtho(0, dst_pixmap->drawable.width,
@@ -196,7 +182,6 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
 		     GL_COLOR);
 	}
     }
-
     return TRUE;
 }
 
@@ -216,28 +201,42 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     int i;
     float vertices[4][2], texcoords[4][2];
     glamor_pixmap_private *src_pixmap_priv;
+    glamor_pixmap_private *dst_pixmap_priv;
     int src_x_off, src_y_off, dst_x_off, dst_y_off;
-
+    enum glamor_pixmap_status src_status = GLAMOR_NONE;
     src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
+    dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
 
     if (src == dst) {
-	glamor_fallback("glamor_copy_n_to_n with same src/dst\n");
+	glamor_delayed_fallback(dst->pScreen, "same src/dst\n");
 	goto fail;
     }
 
-    if (!src_pixmap_priv || !src_pixmap_priv->tex) {
-	glamor_fallback("glamor_copy_n_to_n with non-texture src\n");
-	goto fail;
+    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
+        glamor_delayed_fallback(dst->pScreen, "dst has no fbo.\n");
+        goto fail;
     }
 
-    if (!glamor_set_destination_pixmap(dst_pixmap))
+    if (!src_pixmap_priv->gl_tex) {
+#ifndef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
+	glamor_delayed_fallback(dst->pScreen, "src has no fbo.\n");
 	goto fail;
+#else
+        /* XXX in yInverted mode we have bug here.*/
+        if (!glamor_priv->yInverted) goto fail;
+        src_status = glamor_upload_pixmap_to_texture(src_pixmap);
+	if (src_status != GLAMOR_UPLOAD_DONE) 
+	goto fail;
+#endif
+    }
 
     if (gc) {
 	glamor_set_alu(gc->alu);
 	if (!glamor_set_planemask(dst_pixmap, gc->planemask))
-	    goto fail;
+	  goto fail;
     }
+
+    glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
 
     glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
     glamor_get_drawable_deltas(src, src_pixmap, &src_x_off, &src_y_off);
@@ -258,7 +257,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     assert(GLEW_ARB_fragment_shader);
-    glUseProgramObjectARB(glamor_priv->finish_access_prog);
+    glUseProgramObjectARB(glamor_priv->finish_access_prog[0]);
 
     for (i = 0; i < nbox; i++) {
 
@@ -324,23 +323,23 @@ glamor_copy_n_to_n(DrawablePtr src,
 		 void		*closure)
 {
     if (glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx, dy)) {
-	glamor_clear_delayed_fallbacks(dst->pScreen);
+        goto done;
 	return;
     }
 
-    if (glamor_copy_n_to_n_copypixels(src, dst, gc, box, nbox, dx, dy)) {
-	glamor_clear_delayed_fallbacks(dst->pScreen);
+    if (glamor_copy_n_to_n_copypixels(src, dst, gc, box, nbox, dx, dy)){
+        goto done;
 	return;
-    }
+     }
 
     if (glamor_copy_n_to_n_textured(src, dst, gc, box, nbox, dx, dy)) {
-	glamor_clear_delayed_fallbacks(dst->pScreen);
+        goto done;
 	return;
     }
-
+    glamor_report_delayed_fallbacks(src->pScreen);
     glamor_report_delayed_fallbacks(dst->pScreen);
 
-    glamor_fallback("glamor_copy_area() from %p to %p (%c,%c)\n", src, dst,
+    glamor_fallback("from %p to %p (%c,%c)\n", src, dst,
 		    glamor_get_drawable_location(src),
 		    glamor_get_drawable_location(dst));
     if (glamor_prepare_access(dst, GLAMOR_ACCESS_RW)) {
@@ -352,6 +351,11 @@ glamor_copy_n_to_n(DrawablePtr src,
 	}
 	glamor_finish_access(dst);
     }
+    return;
+
+done:
+    glamor_clear_delayed_fallbacks(src->pScreen);
+    glamor_clear_delayed_fallbacks(dst->pScreen);
 }
 
 RegionPtr
