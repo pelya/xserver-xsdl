@@ -727,7 +727,7 @@ translated if it was the first core keyboard.
 .BR DMX "(__libmansuffix__), " X "(__miscmansuffix__), "
 .BR Xserver "(__appmansuffix__), " xdmxconfig "(__appmansuffix__), "
 .BR vdltodmx "(__appmansuffix__), " xfs "(__appmansuffix__), "
-.BR xkbcomp (__appmansuffix__)
+.BR xkbcomp "(__appmansuffix__), " xkeyboard-config "(__miscmansuffix__)"
 .SH AUTHORS
 Kevin E. Martin
 .I <kem@redhat.com>,
