@@ -42,11 +42,17 @@ glamor_get_spans(DrawablePtr drawable,
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     GLenum format, type;
     int ax;
-    glamor_screen_private *glamor_priv =
-	glamor_get_screen_private(drawable->pScreen);
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(drawable->pScreen);
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     int i;
     uint8_t *readpixels_dst = (uint8_t *)dst;
     int x_off, y_off;
+
+    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+        glamor_fallback("pixmap has no fbo.\n");
+	goto fail;
+    }
+
     if (glamor_get_tex_format_type_from_pixmap(pixmap,
                                                &format, 
                                                &type, 
@@ -57,10 +63,8 @@ glamor_get_spans(DrawablePtr drawable,
       goto fail;
     }
 
-    if (glamor_set_destination_pixmap(pixmap)) { 
-        glamor_fallback("pixmap has no fbo.\n");
-	goto fail;
-    }
+    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+ 
     glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
     for (i = 0; i < count; i++) {
       if (glamor_priv->yInverted) {

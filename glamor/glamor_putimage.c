@@ -87,17 +87,6 @@ glamor_init_putimage_shaders(ScreenPtr screen)
     glUseProgramObjectARB(0);
 }
 
-static int
-y_flip(PixmapPtr pixmap, int y)
-{
-    ScreenPtr screen = pixmap->drawable.pScreen;
-    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
-
-    if (pixmap == screen_pixmap)
-	return (pixmap->drawable.height - 1) - y;
-    else
-	return y;
-}
 
 /* Do an XYBitmap putimage.  The bits are byte-aligned rows of bitmap
  * data (where each row starts at a bit index of left_pad), and the
@@ -110,6 +99,21 @@ y_flip(PixmapPtr pixmap, int y)
  * case we might be better off just doing the fg/bg choosing in the CPU
  * and just draw the resulting texture to the destination.
  */
+#if 0
+
+static int
+y_flip(PixmapPtr pixmap, int y)
+{
+    ScreenPtr screen = pixmap->drawable.pScreen;
+    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
+
+    if (pixmap == screen_pixmap)
+	return (pixmap->drawable.height - 1) - y;
+    else
+	return y;
+}
+
+
 static void
 glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 			  int x, int y, int w, int h, int left_pad,
@@ -124,25 +128,27 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
     RegionPtr clip;
     BoxPtr box;
     int nbox;
-    float dest_coords[4][2];
+    float dest_coords[8];
     const float bitmap_coords[8] = {
 	0.0, 0.0,
 	1.0, 0.0,
 	1.0, 1.0,
 	0.0, 1.0,
     };
+    GLfloat xscale, yscale;
+    glamor_pixmap_private *pixmap_priv;
+   
+    pixmap_priv = glamor_get_pixmap_private(pixmap);
 
+    pixmap_priv_get_scale(pixmap_priv, &xscale, &yscale);
 
-    dest_coords[0][0] = v_from_x_coord_x(pixmap, x);
-    dest_coords[0][1] = v_from_x_coord_y(pixmap, y);
-    dest_coords[1][0] = v_from_x_coord_x(pixmap, x + w);
-    dest_coords[1][1] = v_from_x_coord_y(pixmap, y);
-    dest_coords[2][0] = v_from_x_coord_x(pixmap, x + w);
-    dest_coords[2][1] = v_from_x_coord_y(pixmap, y + h);
-    dest_coords[3][0] = v_from_x_coord_x(pixmap, x);
-    dest_coords[3][1] = v_from_x_coord_y(pixmap, y + h);
+    glamor_set_normalize_vcoords(xscale, yscale,
+				 x, y,
+				 x + w, y + h,
+				 glamor_priv->yInverted,
+				 dest_coords);
 
-   glamor_fallback("glamor_put_image_xybitmap: disabled\n");
+    glamor_fallback("glamor_put_image_xybitmap: disabled\n");
     goto fail;
 
     if (glamor_priv->put_image_xybitmap_prog == 0) {
@@ -237,6 +243,8 @@ fail:
 	glamor_finish_access(drawable);
     }
 }
+#endif
+
 
 void
 glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
@@ -252,13 +260,13 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     int nbox;
     int src_stride = PixmapBytePad(w, drawable->depth);
     int x_off, y_off;
-    float vertices[4][2], texcoords[4][2];
+    float vertices[8], texcoords[8];
+    GLfloat xscale, yscale, txscale, tyscale;
     GLuint tex;
     int ax = 0;
     if (image_format == XYBitmap) {
 	assert(depth == 1);
-	glamor_put_image_xybitmap(drawable, gc, x, y, w, h,
-				  left_pad, image_format, bits);
+        goto fail;
 	return;
     }
 
@@ -319,8 +327,12 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     y += drawable->y;
 
     glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
-
     clip = fbGetCompositeClip(gc);
+
+    txscale = 1.0/w;
+    tyscale = 1.0/h;
+    pixmap_priv_get_scale(pixmap_priv, &xscale, &yscale);
+
     for (nbox = REGION_NUM_RECTS(clip),
 	 pbox = REGION_RECTS(clip);
 	 nbox--;
@@ -330,7 +342,6 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	int y1 = y;
 	int x2 = x + w;
 	int y2 = y + h;
-	float src_x1, src_x2, src_y1, src_y2;
 
 	if (x1 < pbox->x1)
 	    x1 = pbox->x1;
@@ -343,41 +354,18 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	if (x1 >= x2 || y1 >= y2)
 	    continue;
 
-	src_x1 = (float)(x1 - x) / w;
-	src_y1 = (float)(y1 - y) / h;
-	src_x2 = (float)(x2 - x) / w;
-	src_y2 = (float)(y2 - y) / h;
+	glamor_set_normalize_tcoords( txscale, tyscale, 
+				      x1 - x, y1 - y,
+				      x2 - x, y2 - y,
+				      1,
+				      texcoords);
 
-	vertices[0][0] = v_from_x_coord_x(pixmap, x1 + x_off);
-	vertices[1][0] = v_from_x_coord_x(pixmap, x2 + x_off);
-	vertices[2][0] = v_from_x_coord_x(pixmap, x2 + x_off);
-	vertices[3][0] = v_from_x_coord_x(pixmap, x1 + x_off);
+	glamor_set_normalize_vcoords( xscale, yscale,
+				      x1 + x_off, y1 + y_off,
+				      x2 + x_off, y2 + y_off,
+				      glamor_priv->yInverted,
+				      vertices);
 
-	texcoords[0][0] = src_x1;
-	texcoords[0][1] = src_y1;
-	texcoords[1][0] = src_x2;
-	texcoords[1][1] = src_y1;
-	texcoords[2][0] = src_x2;
-	texcoords[2][1] = src_y2;
-	texcoords[3][0] = src_x1;
-	texcoords[3][1] = src_y2;
- 
-
-	if (glamor_priv->yInverted) {
-
-	vertices[0][1] = v_from_x_coord_y_inverted(pixmap, y1 + y_off);
-	vertices[1][1] = v_from_x_coord_y_inverted(pixmap, y1 + y_off);
-	vertices[2][1] = v_from_x_coord_y_inverted(pixmap, y2 + y_off);
-	vertices[3][1] = v_from_x_coord_y_inverted(pixmap, y2 + y_off);
-
-	} else {
-
-	vertices[0][1] = v_from_x_coord_y(pixmap, y1 + y_off);
-	vertices[1][1] = v_from_x_coord_y(pixmap, y1 + y_off);
-	vertices[2][1] = v_from_x_coord_y(pixmap, y2 + y_off);
-	vertices[3][1] = v_from_x_coord_y(pixmap, y2 + y_off);
-
-	}
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
 

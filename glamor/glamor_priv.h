@@ -505,44 +505,6 @@ glamor_pm_is_solid(DrawablePtr drawable, unsigned long planemask)
 
 extern int glamor_debug_level;
 
-static inline float
-v_from_x_coord_x(PixmapPtr pixmap, int x)
-{
-  return (float)x / pixmap->drawable.width * 2.0 - 1.0;
-}
-
-static inline float
-v_from_x_coord_y(PixmapPtr pixmap, int y)
-{
-  return (float)y / pixmap->drawable.height * -2.0 + 1.0;
-}
-
-static inline float
-v_from_x_coord_y_inverted(PixmapPtr pixmap, int y)
-{
-  return (float)y / pixmap->drawable.height * 2.0 - 1.0;
-}
-
-
-static inline float
-t_from_x_coord_x(PixmapPtr pixmap, int x)
-{
-  return (float)x / pixmap->drawable.width;
-}
-
-static inline float
-t_from_x_coord_y(PixmapPtr pixmap, int y)
-{
-  return 1.0 - (float)y / pixmap->drawable.height;
-}
-
-static inline float
-t_from_x_coord_y_inverted(PixmapPtr pixmap, int y)
-{
-  return (float)y / pixmap->drawable.height;
-}
-
-
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
@@ -790,5 +752,8 @@ glamor_picture_format_fixup(PicturePtr picture, glamor_pixmap_private *pixmap_pr
 
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD 
+
+
+#include"glamor_utils.h" 
 
 #endif /* GLAMOR_PRIV_H */

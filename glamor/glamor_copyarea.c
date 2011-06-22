@@ -199,11 +199,13 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
     int i;
-    float vertices[4][2], texcoords[4][2];
+    float vertices[8], texcoords[8];
     glamor_pixmap_private *src_pixmap_priv;
     glamor_pixmap_private *dst_pixmap_priv;
     int src_x_off, src_y_off, dst_x_off, dst_y_off;
     enum glamor_pixmap_status src_status = GLAMOR_NONE;
+    GLfloat dst_xscale, dst_yscale, src_xscale, src_yscale;
+
     src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
     dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
 
@@ -237,6 +239,9 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     }
 
     glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
+    pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
+    pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
+
 
     glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
     glamor_get_drawable_deltas(src, src_pixmap, &src_x_off, &src_y_off);
@@ -258,42 +263,25 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
     assert(GLEW_ARB_fragment_shader);
     glUseProgramObjectARB(glamor_priv->finish_access_prog[0]);
+   
 
     for (i = 0; i < nbox; i++) {
 
-	vertices[0][0] = v_from_x_coord_x(dst_pixmap, box[i].x1 + dst_x_off);
-	vertices[1][0] = v_from_x_coord_x(dst_pixmap, box[i].x2 + dst_x_off);
-	vertices[2][0] = v_from_x_coord_x(dst_pixmap, box[i].x2 + dst_x_off);
-	vertices[3][0] = v_from_x_coord_x(dst_pixmap, box[i].x1 + dst_x_off);
-	texcoords[0][0] = t_from_x_coord_x(src_pixmap, box[i].x1 + dx);
-	texcoords[1][0] = t_from_x_coord_x(src_pixmap, box[i].x2 + dx);
-	texcoords[2][0] = t_from_x_coord_x(src_pixmap, box[i].x2 + dx);
-	texcoords[3][0] = t_from_x_coord_x(src_pixmap, box[i].x1 + dx);
+      glamor_set_normalize_vcoords(dst_xscale, dst_yscale, 
+				   box[i].x1 + dst_x_off,
+				   box[i].y1 + dst_y_off,
+				   box[i].x2 + dst_x_off,
+				   box[i].y2 + dst_y_off,
+				   glamor_priv->yInverted,
+				   vertices);
 
-      if(glamor_priv->yInverted) {
+      glamor_set_normalize_tcoords(src_xscale, src_yscale,
+				   box[i].x1 + dx, box[i].y1 + dy,
+				   box[i].x2 + dx, box[i].y2 + dy,
+				   glamor_priv->yInverted,
+				   texcoords);
 
-	vertices[0][1] = v_from_x_coord_y_inverted(dst_pixmap, box[i].y1 + dst_y_off);
-	vertices[1][1] = v_from_x_coord_y_inverted(dst_pixmap, box[i].y1 + dst_y_off);
-	vertices[2][1] = v_from_x_coord_y_inverted(dst_pixmap, box[i].y2 + dst_y_off);
-	vertices[3][1] = v_from_x_coord_y_inverted(dst_pixmap, box[i].y2 + dst_y_off);
-
-	texcoords[0][1] = t_from_x_coord_y_inverted(src_pixmap, box[i].y1 + dy);
-	texcoords[1][1] = t_from_x_coord_y_inverted(src_pixmap, box[i].y1 + dy);
-	texcoords[2][1] = t_from_x_coord_y_inverted(src_pixmap, box[i].y2 + dy);
-	texcoords[3][1] = t_from_x_coord_y_inverted(src_pixmap, box[i].y2 + dy);
-	} else {
-
-	vertices[0][1] = v_from_x_coord_y(dst_pixmap, box[i].y1 + dst_y_off);
-	vertices[1][1] = v_from_x_coord_y(dst_pixmap, box[i].y1 + dst_y_off);
-	vertices[2][1] = v_from_x_coord_y(dst_pixmap, box[i].y2 + dst_y_off);
-	vertices[3][1] = v_from_x_coord_y(dst_pixmap, box[i].y2 + dst_y_off);
-
-	texcoords[0][1] = t_from_x_coord_y(src_pixmap, box[i].y1 + dy);
-	texcoords[1][1] = t_from_x_coord_y(src_pixmap, box[i].y1 + dy);
-	texcoords[2][1] = t_from_x_coord_y(src_pixmap, box[i].y2 + dy);
-	texcoords[3][1] = t_from_x_coord_y(src_pixmap, box[i].y2 + dy);
-	}
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
 
     glUseProgramObjectARB(0);

@@ -88,70 +88,64 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     int tile_x2 = tile_x + width;
     int tile_y1 = tile_y;
     int tile_y2 = tile_y + height;
-    glamor_pixmap_private *tile_priv = glamor_get_pixmap_private(tile);
-    float vertices[4][2];
-    float source_texcoords[4][2];
+    float vertices[8];
+    float source_texcoords[8];
+    GLfloat dst_xscale, dst_yscale, src_xscale, src_yscale;
+    glamor_pixmap_private *src_pixmap_priv;
+    glamor_pixmap_private *dst_pixmap_priv;
+
+    src_pixmap_priv = glamor_get_pixmap_private(tile);
+    dst_pixmap_priv = glamor_get_pixmap_private(pixmap);
+
+
     if (glamor_priv->tile_prog == 0) {
 	glamor_fallback("Tiling unsupported\n");
 	goto fail;
     }
 
-    if (glamor_set_destination_pixmap(pixmap)) {
-        glamor_fallback("dest has no fbo.");
-	goto fail;
+
+    if (GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {      
+      glamor_fallback("dest has no fbo.");
+      goto fail;
     }
 
-    if (tile_priv->gl_tex == 0) {
-	glamor_fallback("Non-texture tile pixmap\n");
-	goto fail;
+    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(src_pixmap_priv)) {
+      /* XXX dynamic uploading candidate. */
+      glamor_fallback("Non-texture tile pixmap\n");
+      goto fail;
     }
 
     if (!glamor_set_planemask(pixmap, planemask)) {
         glamor_fallback("unsupported planemask %lx\n", planemask);
 	goto fail;
     }
+
+    glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
+    pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
+    pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
+
     glamor_set_alu(alu);
     glUseProgramObjectARB(glamor_priv->tile_prog);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tile_priv->tex);
+    glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glEnable(GL_TEXTURE_2D);
 
-    vertices[0][0] = v_from_x_coord_x(pixmap, x1);
-    vertices[1][0] = v_from_x_coord_x(pixmap, x2);
-    vertices[2][0] = v_from_x_coord_x(pixmap, x2);
-    vertices[3][0] = v_from_x_coord_x(pixmap, x1);
-    source_texcoords[0][0] = t_from_x_coord_x(tile, tile_x1);
-    source_texcoords[1][0] = t_from_x_coord_x(tile, tile_x2);
-    source_texcoords[2][0] = t_from_x_coord_x(tile, tile_x2);
-    source_texcoords[3][0] = t_from_x_coord_x(tile, tile_x1);
- 
-    if (glamor_priv->yInverted) {
-      vertices[0][1] = v_from_x_coord_y_inverted(pixmap, y1);
-      vertices[1][1] = v_from_x_coord_y_inverted(pixmap, y1);
-      vertices[2][1] = v_from_x_coord_y_inverted(pixmap, y2);
-      vertices[3][1] = v_from_x_coord_y_inverted(pixmap, y2);
+    glamor_set_normalize_vcoords(dst_xscale, dst_yscale,
+				 x1, y1,x2, y2,
+				 glamor_priv->yInverted,
+				 vertices);
 
-      source_texcoords[0][1] = t_from_x_coord_y_inverted(tile, tile_y1);
-      source_texcoords[1][1] = t_from_x_coord_y_inverted(tile, tile_y1);
-      source_texcoords[2][1] = t_from_x_coord_y_inverted(tile, tile_y2);
-      source_texcoords[3][1] = t_from_x_coord_y_inverted(tile, tile_y2);
-    } else {
+    glamor_set_normalize_tcoords(src_xscale, src_yscale,
+				 tile_x1, tile_y1,
+				 tile_x2, tile_y2,
+				 glamor_priv->yInverted,
+				 source_texcoords);
 
-      vertices[0][1] = v_from_x_coord_y(pixmap, y1);
-      vertices[1][1] = v_from_x_coord_y(pixmap, y1);
-      vertices[2][1] = v_from_x_coord_y(pixmap, y2);
-      vertices[3][1] = v_from_x_coord_y(pixmap, y2);
-
-      source_texcoords[0][1] = t_from_x_coord_y(tile, tile_y1);
-      source_texcoords[1][1] = t_from_x_coord_y(tile, tile_y1);
-      source_texcoords[2][1] = t_from_x_coord_y(tile, tile_y2);
-      source_texcoords[3][1] = t_from_x_coord_y(tile, tile_y2);
-    }
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
 

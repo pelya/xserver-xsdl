@@ -146,14 +146,16 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     int x1 = x;
     int x2 = x + width;
     int y1 = y;
     int y2 = y + height;
     GLfloat color[4];
-    float vertices[4][2];
-
-    if (glamor_set_destination_pixmap(pixmap)) {
+    float vertices[8];
+    GLfloat xscale, yscale;
+    
+    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
         glamor_fallback("dest has no fbo.\n");
 	goto fail;
     }
@@ -162,6 +164,9 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
       glamor_fallback("Failedto set planemask  in glamor_solid.\n");
       goto fail;
     } 
+
+    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+
     glUseProgramObjectARB(glamor_priv->solid_prog);
     glamor_get_rgba_from_pixel(fg_pixel, 
                               &color[0], 
@@ -174,22 +179,11 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    vertices[0][0] = v_from_x_coord_x(pixmap, x1);
-    vertices[1][0] = v_from_x_coord_x(pixmap, x2);
-    vertices[2][0] = v_from_x_coord_x(pixmap, x2);
-    vertices[3][0] = v_from_x_coord_x(pixmap, x1);
- 
-    if (glamor_priv->yInverted) {
-      vertices[0][1] = v_from_x_coord_y_inverted(pixmap, y1);
-      vertices[1][1] = v_from_x_coord_y_inverted(pixmap, y1);
-      vertices[2][1] = v_from_x_coord_y_inverted(pixmap, y2);
-      vertices[3][1] = v_from_x_coord_y_inverted(pixmap, y2);
-    } else {
-      vertices[0][1] = v_from_x_coord_y(pixmap, y1);
-      vertices[1][1] = v_from_x_coord_y(pixmap, y1);
-      vertices[2][1] = v_from_x_coord_y(pixmap, y2);
-      vertices[3][1] = v_from_x_coord_y(pixmap, y2);
-    }
+    pixmap_priv_get_scale(pixmap_priv, &xscale, &yscale);
+
+    glamor_set_normalize_vcoords(xscale, yscale, x1, y1, x2, y2,
+				 glamor_priv->yInverted,
+				 vertices);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     glDisableClientState(GL_VERTEX_ARRAY);

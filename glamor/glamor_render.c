@@ -533,41 +533,6 @@ good_dest_format(PicturePtr picture)
   }
 }
 
-static inline float
-xFixedToFloat(pixman_fixed_t val)
-{
-  return ((float)xFixedToInt(val) + ((float)xFixedFrac(val) / 65536.0));
-}
-
-static void
-glamor_set_transformed_point(PicturePtr picture, PixmapPtr pixmap,
-			     float *texcoord, int x, int y)
-{
-  float result[3];
-  int i;
-  float tx, ty;
-  ScreenPtr screen = picture->pDrawable->pScreen;
-  glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-
-  if (picture->transform) {
-    for (i = 0; i < 3; i++) {
-      result[i] = (xFixedToFloat(picture->transform->matrix[i][0]) * x +
-		   xFixedToFloat(picture->transform->matrix[i][1]) * y +
-		   xFixedToFloat(picture->transform->matrix[i][2]));
-    }
-    tx = result[0] / result[2];
-    ty = result[1] / result[2];
-  } else {
-    tx = x;
-    ty = y;
-  }
-  texcoord[0] = t_from_x_coord_x(pixmap, tx);
-  if (glamor_priv->yInverted)
-    texcoord[1] = t_from_x_coord_y_inverted(pixmap, ty);
-  else
-    texcoord[1] = t_from_x_coord_y(pixmap, ty);
-}
-
 static void
 glamor_setup_composite_vbo(ScreenPtr screen)
 {
@@ -756,6 +721,8 @@ glamor_composite_with_shader(CARD8 op,
   glamor_pixmap_private *source_pixmap_priv = NULL;
   glamor_pixmap_private *mask_pixmap_priv = NULL;
   glamor_pixmap_private *dest_pixmap_priv = NULL;
+  GLfloat dst_xscale, dst_yscale;
+  GLfloat mask_xscale = 1, mask_yscale = 1, src_xscale = 1, src_yscale = 1;
   struct shader_key key;
   glamor_composite_shader *shader;
   RegionRec region;
@@ -768,6 +735,8 @@ glamor_composite_with_shader(CARD8 op,
   enum glamor_pixmap_status source_status = GLAMOR_NONE;
   enum glamor_pixmap_status mask_status = GLAMOR_NONE;
   PictFormatShort saved_source_format = 0;
+  float src_matrix[9], mask_matrix[9];
+
   dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 
   if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
@@ -972,14 +941,24 @@ glamor_composite_with_shader(CARD8 op,
 
   glamor_get_drawable_deltas(dest->pDrawable, dest_pixmap,
 			     &dest_x_off, &dest_y_off);
+  pixmap_priv_get_scale(dest_pixmap_priv, &dst_xscale, &dst_yscale);
+
+
+
   if (source_pixmap) {
     glamor_get_drawable_deltas(source->pDrawable, source_pixmap,
 			       &source_x_off, &source_y_off);
+    pixmap_priv_get_scale(source_pixmap_priv, &src_xscale, &src_yscale);
+    glamor_picture_get_matrixf(source, src_matrix);
   }
+
   if (mask_pixmap) {
     glamor_get_drawable_deltas(mask->pDrawable, mask_pixmap,
 			       &mask_x_off, &mask_y_off);
+    pixmap_priv_get_scale(mask_pixmap_priv, &mask_xscale, &mask_yscale);
+    glamor_picture_get_matrixf(mask, mask_matrix);
   }
+
   while (nrect--) {
     INT16 x_source;
     INT16 y_source;
@@ -1025,65 +1004,41 @@ glamor_composite_with_shader(CARD8 op,
 
     box = REGION_RECTS(&region);
     for (i = 0; i < REGION_NUM_RECTS(&region); i++) {
-      vertices[0] = v_from_x_coord_x(dest_pixmap,
-				     box[i].x1 + dest_x_off);
-      vertices[2] = v_from_x_coord_x(dest_pixmap,
-				     box[i].x2 + dest_x_off);
-      vertices[4] = v_from_x_coord_x(dest_pixmap,
-				     box[i].x2 + dest_x_off);
-      vertices[6] = v_from_x_coord_x(dest_pixmap,
-				     box[i].x1 + dest_x_off);
+      int vx1 = box[i].x1 + dest_x_off;
+      int vx2 = box[i].x2 + dest_x_off;
+      int vy1 = box[i].y1 + dest_y_off;
+      int vy2 = box[i].y2 + dest_y_off;
+      glamor_set_normalize_vcoords(dst_xscale, dst_yscale, vx1, vy1, vx2, vy2, 
+				   glamor_priv->yInverted, vertices);
 
-      if (glamor_priv->yInverted) {
-	vertices[1] = v_from_x_coord_y_inverted(dest_pixmap,
-						box[i].y1 + dest_y_off);
-	vertices[3] = v_from_x_coord_y_inverted(dest_pixmap,
-						box[i].y1 + dest_y_off);
-	vertices[5] = v_from_x_coord_y_inverted(dest_pixmap,
-						box[i].y2 + dest_y_off);
-	vertices[7] = v_from_x_coord_y_inverted(dest_pixmap,
-						box[i].y2 + dest_y_off);
-
-      } else {
-	vertices[1] = v_from_x_coord_y(dest_pixmap,
-				       box[i].y1 + dest_y_off);
-	vertices[3] = v_from_x_coord_y(dest_pixmap,
-				       box[i].y1 + dest_y_off);
-	vertices[5] = v_from_x_coord_y(dest_pixmap,
-				       box[i].y2 + dest_y_off);
-	vertices[7] = v_from_x_coord_y(dest_pixmap,
-				       box[i].y2 + dest_y_off);
-      }
       if (key.source != SHADER_SOURCE_SOLID) {
 	int tx1 = box[i].x1 + x_source - x_dest;
 	int ty1 = box[i].y1 + y_source - y_dest;
 	int tx2 = box[i].x2 + x_source - x_dest;
 	int ty2 = box[i].y2 + y_source - y_dest;
-
-	glamor_set_transformed_point(source, source_pixmap,
-				     source_texcoords + 0, tx1, ty1);
-	glamor_set_transformed_point(source, source_pixmap,
-				     source_texcoords + 2, tx2, ty1);
-	glamor_set_transformed_point(source, source_pixmap,
-				     source_texcoords + 4, tx2, ty2);
-	glamor_set_transformed_point(source, source_pixmap,
-				     source_texcoords + 6, tx1, ty2);
-      }
+	if (source->transform)
+	  glamor_set_transformed_normalize_tcoords(src_matrix, src_xscale, src_yscale, 
+						   tx1, ty1, tx2, ty2,
+						   glamor_priv->yInverted, 
+						   source_texcoords);
+	else
+	  glamor_set_normalize_tcoords(src_xscale, src_yscale, tx1, ty1, tx2, ty2,
+				       glamor_priv->yInverted, source_texcoords);
+      }   
 
       if (key.mask != SHADER_MASK_NONE && key.mask != SHADER_MASK_SOLID) {
 	float tx1 = box[i].x1 + x_mask - x_dest;
 	float ty1 = box[i].y1 + y_mask - y_dest;
 	float tx2 = box[i].x2 + x_mask - x_dest;
 	float ty2 = box[i].y2 + y_mask - y_dest;
-
-	glamor_set_transformed_point(mask, mask_pixmap,
-				     mask_texcoords + 0, tx1, ty1);
-	glamor_set_transformed_point(mask, mask_pixmap,
-				     mask_texcoords + 2, tx2, ty1);
-	glamor_set_transformed_point(mask, mask_pixmap,
-				     mask_texcoords + 4, tx2, ty2);
-	glamor_set_transformed_point(mask, mask_pixmap,
-				     mask_texcoords + 6, tx1, ty2);
+	if (mask->transform)
+	  glamor_set_transformed_normalize_tcoords(mask_matrix, mask_xscale, mask_yscale, 
+						   tx1, ty1, tx2, ty2,
+						   glamor_priv->yInverted, 
+						   mask_texcoords);
+	else
+	  glamor_set_normalize_tcoords(mask_xscale, mask_yscale, tx1, ty1, tx2, ty2,
+				       glamor_priv->yInverted, mask_texcoords);
       }
       glamor_emit_composite_rect(screen, source_texcoords,
 				 mask_texcoords, vertices);
