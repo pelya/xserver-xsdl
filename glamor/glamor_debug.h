@@ -5,9 +5,24 @@
 #define GLAMOR_DELAYED_STRING_MAX 64
 
 #define GLAMOR_DEBUG_NONE                     0
+#define GLAMOR_DEBUG_UNIMPL                   0
 #define GLAMOR_DEBUG_FALLBACK                 1
-#define GLAMOR_DEBUG_TEXTURE_DYNAMIC_UPLOAD   2
-#define GLAMOR_DEBUG_TEXTURE_DOWNLOAD         3
+#define GLAMOR_DEBUG_TEXTURE_DOWNLOAD         2
+#define GLAMOR_DEBUG_TEXTURE_DYNAMIC_UPLOAD   3
+
+extern void
+AbortServer(void) _X_NORETURN;
+
+#define GLAMOR_PANIC(_format_, ...)			\
+  do {							\
+    LogMessageVerb(X_NONE, 0, "Glamor Fatal Error"	\
+		   " at %32s line %d: " _format_ "\n",	\
+		   __FUNCTION__, __LINE__,		\
+		   ##__VA_ARGS__ );			\
+    AbortServer();					\
+  } while(0)
+                        
+
 
 
 #define __debug_output_message(_format_, _prefix_, ...) \

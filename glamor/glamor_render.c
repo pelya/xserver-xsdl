@@ -748,6 +748,7 @@ glamor_composite_with_shader(CARD8 op,
     if (source->pSourcePict->type == SourcePictTypeSolidFill) {
       key.source = SHADER_SOURCE_SOLID;
     } else {
+      //key.source = SHADER_SOURCE_SOLID;
       glamor_fallback("gradient source\n");
       goto fail;
     }
@@ -1134,12 +1135,23 @@ glamor_composite(CARD8 op,
     return;
 
  fail:
-  glamor_fallback("glamor_composite(): "
-		  "from picts %p/%p(%c,%c) to pict %p (%c)\n",
-		  source, mask,
+
+  glamor_fallback(
+		  "from picts %p:%p %dx%d / %p:%p %d x %d (%c,%c)  to pict %p:%p %dx%d (%c)\n",
+		  source, 
+                  source->pDrawable,
+		  source->pDrawable ? source->pDrawable->width : 0,
+		  source->pDrawable ? source->pDrawable->height : 0,
+		  mask, 
+                  (!mask) ? NULL : mask->pDrawable,
+		  (!mask || !mask->pDrawable)? 0 : mask->pDrawable->width,
+		  (!mask || !mask->pDrawable)? 0 : mask->pDrawable->height,
 		  glamor_get_picture_location(source),
 		  glamor_get_picture_location(mask),
 		  dest,
+		  dest->pDrawable,
+		  dest->pDrawable->width,
+		  dest->pDrawable->height,
 		  glamor_get_picture_location(dest));
 
   glUseProgramObjectARB(0);

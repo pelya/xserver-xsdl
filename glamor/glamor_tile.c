@@ -94,18 +94,17 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     glamor_pixmap_private *src_pixmap_priv;
     glamor_pixmap_private *dst_pixmap_priv;
 
+
     src_pixmap_priv = glamor_get_pixmap_private(tile);
     dst_pixmap_priv = glamor_get_pixmap_private(pixmap);
-
 
     if (glamor_priv->tile_prog == 0) {
 	glamor_fallback("Tiling unsupported\n");
 	goto fail;
     }
 
-
     if (GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {      
-      glamor_fallback("dest has no fbo.");
+      glamor_fallback("dest has no fbo.\n");
       goto fail;
     }
 

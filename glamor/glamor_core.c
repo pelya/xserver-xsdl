@@ -241,10 +241,13 @@ glamor_finish_access(DrawablePtr drawable)
 Bool
 glamor_prepare_access_gc(GCPtr gc)
 {
-  if (gc->stipple)
+  if (gc->stipple) {
+    glamor_fallback("has stipple %p\n", gc->stipple);
     if (!glamor_prepare_access(&gc->stipple->drawable, GLAMOR_ACCESS_RO))
       return FALSE;
+  }
   if (gc->fillStyle == FillTiled) {
+    glamor_fallback("has tile pixmap %p\n", gc->tile.pixmap);
     if (!glamor_prepare_access (&gc->tile.pixmap->drawable,
 				GLAMOR_ACCESS_RO)) {
       if (gc->stipple)
@@ -332,6 +335,8 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
 	  /* fb24_32ReformatTile will do direct access of a newly-
 	   * allocated pixmap.
 	   */
+	  glamor_fallback("GC %p tile FB_24_32 transformat %p.\n", gc, old_tile);
+
 	  if (glamor_prepare_access(&old_tile->drawable,
 				    GLAMOR_ACCESS_RO)) {
 	    new_tile = fb24_32ReformatTile(old_tile,
@@ -351,6 +356,7 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
     if (!gc->tileIsPixel && FbEvenTile(gc->tile.pixmap->drawable.width *
 				       drawable->bitsPerPixel))
       {
+	glamor_fallback("GC %p tile changed %p.\n", gc, gc->tile.pixmap);
 	if (glamor_prepare_access(&gc->tile.pixmap->drawable,
 				  GLAMOR_ACCESS_RW)) {
 	  fbPadPixmap(gc->tile.pixmap);
@@ -367,6 +373,7 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
     /* We can't inline stipple handling like we do for GCTile because
      * it sets fbgc privates.
      */
+    glamor_fallback("GC %p stipple changed %p.\n", gc, gc->stipple);
     if (glamor_prepare_access(&gc->stipple->drawable, GLAMOR_ACCESS_RW)) {
       fbValidateGC(gc, changes, drawable);
       glamor_finish_access(&gc->stipple->drawable);
@@ -403,52 +410,11 @@ glamor_create_gc(GCPtr gc)
   return TRUE;
 }
 
-Bool
-glamor_prepare_access_window(WindowPtr window)
-{
-  if (window->backgroundState == BackgroundPixmap) {
-    if (!glamor_prepare_access(&window->background.pixmap->drawable,
-			       GLAMOR_ACCESS_RO))
-      return FALSE;
-  }
-
-  if (window->borderIsPixel == FALSE) {
-    if (!glamor_prepare_access(&window->border.pixmap->drawable,
-			       GLAMOR_ACCESS_RO)) {
-      if (window->backgroundState == BackgroundPixmap)
-	glamor_finish_access(&window->background.pixmap->drawable);
-      return FALSE;
-    }
-  }
-  return TRUE;
-}
-
-void
-glamor_finish_access_window(WindowPtr window)
-{
-  if (window->backgroundState == BackgroundPixmap)
-    glamor_finish_access(&window->background.pixmap->drawable);
-
-  if (window->borderIsPixel == FALSE)
-    glamor_finish_access(&window->border.pixmap->drawable);
-}
-
-Bool
-glamor_change_window_attributes(WindowPtr window, unsigned long mask)
-{
-  Bool ret;
-
-  if (!glamor_prepare_access_window(window))
-    return FALSE;
-  ret = fbChangeWindowAttributes(window, mask);
-  glamor_finish_access_window(window);
-  return ret;
-}
-
 RegionPtr
 glamor_bitmap_to_region(PixmapPtr pixmap)
 {
   RegionPtr ret;
+  glamor_fallback("pixmap %p \n", pixmap);
   if (!glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RO))
     return NULL;
   ret = fbPixmapToRegion(pixmap);
