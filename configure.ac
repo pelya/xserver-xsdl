@@ -1735,14 +1735,6 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([XORG_INCS])
 	AC_SUBST([XORG_OS])
 	AC_SUBST([XORG_OS_SUBDIR])
-
-	AC_PATH_PROG(PERL, perl, no)
-	dnl unlikely as this may be ...
-	if test "x$PERL" = xno; then
-		AC_MSG_ERROR([Perl is required to build the XFree86/Xorg DDX.])
-	fi
-	AC_SUBST(PERL)
-
 	AC_SUBST([XORG_CFLAGS])
 
 	dnl these only go in xorg-config.h
