@@ -1164,14 +1164,17 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
 
     events = UpdateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT, &num_events);
 
-    raw = &events->raw_event;
-    events++;
-    num_events++;
-
     valuator_mask_copy(&mask, mask_in);
 
-    init_raw(pDev, raw, ms, type, buttons);
-    set_raw_valuators(raw, &mask, raw->valuators.data_raw);
+    if ((flags & POINTER_NORAW) == 0)
+    {
+	raw = &events->raw_event;
+	events++;
+	num_events++;
+
+	init_raw(pDev, raw, ms, type, buttons);
+	set_raw_valuators(raw, &mask, raw->valuators.data_raw);
+    }
 
     if (flags & POINTER_ABSOLUTE)
     {
@@ -1210,7 +1213,8 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
         moveRelative(pDev, &x, &y, &mask);
     }
 
-    set_raw_valuators(raw, &mask, raw->valuators.data);
+    if ((flags & POINTER_NORAW) == 0)
+	set_raw_valuators(raw, &mask, raw->valuators.data);
 
     positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative,
                    &x, &y, x_frac, y_frac, scr, &cx, &cy, &cx_frac, &cy_frac);
