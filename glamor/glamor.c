@@ -197,6 +197,7 @@ glamor_create_screen_pixmap(ScreenPtr screen, int w, int h, int depth,
     pixmap_priv->tex = 0; 
     pixmap_priv->gl_fbo = 1;
     pixmap_priv->gl_tex = 1;
+    pixmap_priv->container = pixmap;
     
     screen->CreatePixmap = glamor_create_pixmap;
     return pixmap;
