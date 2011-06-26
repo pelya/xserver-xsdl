@@ -241,11 +241,19 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, i
 }
 
 
-/*   */
+/*  
+ * Prepare to upload a pixmap to texture memory.
+ * ax 1 means the format needs to wire alpha to 1.
+ * Two condtion need to setup a fbo for a pixmap
+ * 1. !yInverted, we need to do flip if we are not yInverted.
+ * 2. ax != 0, we need to wire the alpha.
+ * */
 static int
-glamor_pixmap_upload_prepare(PixmapPtr pixmap, int need_fbo)
+glamor_pixmap_upload_prepare(PixmapPtr pixmap, int ax)
 {
+  int need_fbo;
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+  glamor_screen_private *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 
   if (!glamor_check_fbo_width_height(pixmap->drawable.width , pixmap->drawable.height) 
       || !glamor_check_fbo_depth(pixmap->drawable.depth)) {
@@ -253,25 +261,28 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int need_fbo)
 		    pixmap->drawable.width, pixmap->drawable.height, pixmap->drawable.depth);
     return -1;
   }
+
   if (GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) 
     return 0; 
-  if (pixmap_priv->tex == 0) {
-    /* Create a framebuffer object wrapping the texture so that we can render
-     * to it.
-     */
+
+  if (ax != 0 || !glamor_priv->yInverted)
+    need_fbo = 1;
+  else
+    need_fbo = 0;
+
+  if (pixmap_priv->tex == 0) 
     glGenTextures(1, &pixmap_priv->tex);
+
+  if (need_fbo) {
+    if (pixmap_priv->fb == 0) 
+      glGenFramebuffersEXT(1, &pixmap_priv->fb);
     glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
-  }
-
-  if (need_fbo && pixmap_priv->fb == 0) {
-
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pixmap->drawable.width, 
 		 pixmap->drawable.height, 0,
 		 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-    glGenFramebuffersEXT(1, &pixmap_priv->fb);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
 			      GL_COLOR_ATTACHMENT0_EXT,
@@ -304,7 +315,7 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 		      pixmap->drawable.width, 
 		      pixmap->drawable.height,
 		      pixmap->drawable.depth);
-  _glamor_upload_pixmap_to_texture(pixmap, format, type, ax, 0);
+  _glamor_upload_pixmap_to_texture(pixmap, format, type, ax, 1);
   return GLAMOR_UPLOAD_DONE;
 }
 

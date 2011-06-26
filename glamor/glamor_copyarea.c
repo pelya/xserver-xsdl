@@ -224,8 +224,6 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	glamor_delayed_fallback(dst->pScreen, "src has no fbo.\n");
 	goto fail;
 #else
-        /* XXX in yInverted mode we have bug here.*/
-        if (!glamor_priv->yInverted) goto fail;
         src_status = glamor_upload_pixmap_to_texture(src_pixmap);
 	if (src_status != GLAMOR_UPLOAD_DONE) 
 	goto fail;
