@@ -1305,6 +1305,12 @@ KdInitInput (void)
     mieqInit();
 }
 
+void
+KdCloseInput (void)
+{
+    mieqFini();
+}
+
 /*
  * Middle button emulation state machine
  *

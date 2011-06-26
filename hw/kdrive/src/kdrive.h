@@ -500,6 +500,8 @@ KdScreenInfoDispose (KdScreenInfo *si);
 /* kinput.c */
 void
 KdInitInput(void);
+void
+KdCloseInput(void);
 
 void
 KdAddPointerDriver(KdPointerDriver *);
