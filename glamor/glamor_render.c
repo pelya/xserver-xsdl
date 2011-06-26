@@ -734,7 +734,7 @@ glamor_composite_with_shader(CARD8 op,
   int mask_x_off, mask_y_off;
   enum glamor_pixmap_status source_status = GLAMOR_NONE;
   enum glamor_pixmap_status mask_status = GLAMOR_NONE;
-  PictFormatShort saved_source_format = 0;
+  PictFormatShort saved_source_format = 0; 
   float src_matrix[9], mask_matrix[9];
 
   dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
@@ -838,10 +838,6 @@ glamor_composite_with_shader(CARD8 op,
   if (!good_dest_format(dest)) {
     goto fail;
   }
-  if (!glamor_set_composite_op(screen, op, dest, mask)) {
-    goto fail;
-  }
-
 #ifdef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
   if (source_status == GLAMOR_UPLOAD_PENDING 
       && mask_status == GLAMOR_UPLOAD_PENDING 
@@ -849,17 +845,13 @@ glamor_composite_with_shader(CARD8 op,
 
     if (source->format != mask->format) {
       saved_source_format = source->format;
-      /* XXX
-       * when need to flip the texture and mask and source share the same pixmap,
-       * there is a bug, need to be fixed. *
-       */
-      if (!glamor_priv->yInverted)
-	goto fail;
+
       if (!combine_pict_format(&source->format, source->format, mask->format, key.in)) {
 	glamor_fallback("combine source %x mask %x failed.\n", 
 			source->format, mask->format);
 	goto fail;
       }
+
       if (source->format != saved_source_format) {
 	glamor_picture_format_fixup(source, source_pixmap_priv);
       }
@@ -913,7 +905,9 @@ glamor_composite_with_shader(CARD8 op,
     }
   }
 #endif
-
+  if (!glamor_set_composite_op(screen, op, dest, mask)) {
+    goto fail;
+  }
   glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
 
   shader = glamor_lookup_composite_shader(screen, &key);
