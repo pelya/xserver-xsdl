@@ -1084,6 +1084,7 @@ glamor_composite(CARD8 op,
 		 CARD16 height)
 {
   glamor_composite_rect_t rect;
+  glamor_access_t dest_access;
 
   /* Do two-pass PictOpOver componentAlpha, until we enable
    * dual source color blending.
@@ -1150,7 +1151,11 @@ glamor_composite(CARD8 op,
 
   glUseProgramObjectARB(0);
   glDisable(GL_BLEND);
-  if (glamor_prepare_access_picture(dest, GLAMOR_ACCESS_RW)) {
+  if (op == PictOpSrc || op == PictOpClear)
+    dest_access = GLAMOR_ACCESS_WO;
+  else
+    dest_access = GLAMOR_ACCESS_RW;
+  if (glamor_prepare_access_picture(dest, dest_access)) {
     if (glamor_prepare_access_picture(source, GLAMOR_ACCESS_RO))
       {
 	if (!mask ||
