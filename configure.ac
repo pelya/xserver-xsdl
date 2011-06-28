@@ -2144,7 +2144,7 @@ AC_SUBST([libdir])
 AC_SUBST([exec_prefix])
 AC_SUBST([prefix])
 
-AC_CONFIG_COMMANDS([sdksyms], [touch hw/xfree86/loader/sdksyms.dep])
+AC_CONFIG_COMMANDS([sdksyms], [touch hw/xfree86/sdksyms.dep])
 
 AC_OUTPUT([
 Makefile
