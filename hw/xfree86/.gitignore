@@ -1,4 +1,4 @@
-libxorg.c
 Xorg
-xorg.c
 xorg.conf.example
+sdksyms.c
+sdksyms.dep
