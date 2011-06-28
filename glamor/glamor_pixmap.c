@@ -387,15 +387,23 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   }
 
   pixmap_priv->access_mode = access;
-
+  glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DOWNLOAD,
+		      "Downloading pixmap %p  %dx%d depth%d\n", 
+		      pixmap, 
+		      pixmap->drawable.width, 
+		      pixmap->drawable.height,
+		      pixmap->drawable.depth);
+ 
+  stride = pixmap->devKind;
+ 
   switch (access) {
   case GLAMOR_ACCESS_RO:
     gl_access = GL_READ_ONLY_ARB;
     gl_usage = GL_STREAM_READ_ARB;
     break;
   case GLAMOR_ACCESS_WO:
-    gl_access = GL_WRITE_ONLY_ARB;
-    gl_usage = GL_STREAM_DRAW_ARB;
+    data = malloc(stride * pixmap->drawable.height);
+    goto done;
     break;
   case GLAMOR_ACCESS_RW:
     gl_access = GL_READ_WRITE_ARB;
@@ -405,15 +413,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
     ErrorF("Glamor: Invalid access code. %d\n", access);
     assert(0);
   }
-
-  glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DOWNLOAD,
-		      "Downloading pixmap %p  %dx%d depth%d\n", 
-		      pixmap, 
-		      pixmap->drawable.width, 
-		      pixmap->drawable.height,
-		      pixmap->drawable.depth);
  
-  stride = pixmap->devKind;
   row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -429,8 +429,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
     glBufferDataARB (GL_PIXEL_PACK_BUFFER_EXT,
 		     stride * pixmap->drawable.height,
 		     NULL, gl_usage);
-    if (access != GLAMOR_ACCESS_WO)
-      glReadPixels (0, 0,
+    glReadPixels (0, 0,
                     row_length, pixmap->drawable.height,
                     format, type, 0);
     data = glMapBufferARB (GL_PIXEL_PACK_BUFFER_EXT, gl_access);
@@ -438,7 +437,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 
     if (!glamor_priv->yInverted) 
       glPixelStorei(GL_PACK_INVERT_MESA, 0);
-
+    glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, 0);
   } else {
     data = malloc(stride * pixmap->drawable.height);
     assert(data);
@@ -465,6 +464,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   }
 
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+done:
   pixmap->devPrivate.ptr = data;
   return TRUE;
 }
