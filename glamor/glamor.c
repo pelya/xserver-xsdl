@@ -399,6 +399,8 @@ glamor_close_screen(int idx, ScreenPtr screen)
         ps->CreatePicture = glamor_priv->saved_create_picture;
     }
 #endif
+    if (glamor_priv->vb)
+      free(glamor_priv->vb);
     free(glamor_priv);
     return screen->CloseScreen(idx, screen);   
     

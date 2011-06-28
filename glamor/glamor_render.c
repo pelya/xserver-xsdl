@@ -285,10 +285,25 @@ glamor_lookup_composite_shader(ScreenPtr screen, struct shader_key *key)
 
   return shader;
 }
+#define GLAMOR_COMPOSITE_VBO_SIZE 8192
+
+static void
+glamor_reset_composite_vbo(ScreenPtr screen)
+{
+  glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+  glamor_priv->vbo_offset = 0;
+  glamor_priv->vbo_size = GLAMOR_COMPOSITE_VBO_SIZE;
+  glamor_priv->render_nr_verts = 0;
+}
+
 
 void
 glamor_init_composite_shaders(ScreenPtr screen)
 {
+  glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+  glamor_priv->vb = malloc(GLAMOR_COMPOSITE_VBO_SIZE);
+  assert(glamor_priv->vb != NULL);
+  glamor_reset_composite_vbo(screen);
 }
 
 static Bool
@@ -599,13 +614,11 @@ glamor_flush_composite_rects(ScreenPtr screen)
 
   if (!glamor_priv->render_nr_verts)
     return;
-
-  glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
-  glamor_priv->vb = NULL;
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, glamor_priv->vbo_offset, glamor_priv->vb,
+	    GL_STREAM_DRAW_ARB);
 
   glDrawArrays(GL_QUADS, 0, glamor_priv->render_nr_verts);
-  glamor_priv->render_nr_verts = 0;
-  glamor_priv->vbo_size = 0;
+  glamor_reset_composite_vbo(screen);
 }
 
 static void
@@ -622,16 +635,10 @@ glamor_emit_composite_rect(ScreenPtr screen,
       glamor_flush_composite_rects(screen);
     }
 
-  if (glamor_priv->vbo_size == 0) {
+  if (glamor_priv->vbo_offset == 0) {
     if (glamor_priv->vbo == 0)
       glGenBuffersARB(1, &glamor_priv->vbo);
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, glamor_priv->vbo);
 
-    glamor_priv->vbo_size = 4096;
-    glBufferDataARB(GL_ARRAY_BUFFER_ARB, glamor_priv->vbo_size, NULL,
-		    GL_STREAM_DRAW_ARB);
-    glamor_priv->vbo_offset = 0;
-    glamor_priv->vb = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
     glamor_setup_composite_vbo(screen);
   }
 
