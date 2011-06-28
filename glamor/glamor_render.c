@@ -748,7 +748,6 @@ glamor_composite_with_shader(CARD8 op,
     if (source->pSourcePict->type == SourcePictTypeSolidFill) {
       key.source = SHADER_SOURCE_SOLID;
     } else {
-      //key.source = SHADER_SOURCE_SOLID;
       glamor_fallback("gradient source\n");
       goto fail;
     }
@@ -1201,7 +1200,7 @@ glamor_create_mask_picture(ScreenPtr screen,
       return 0;
   }
 
-  pixmap = screen->CreatePixmap(screen, width, height,
+  pixmap = screen->CreatePixmap(screen, 0, 0,
 				pict_format->depth,
 				0);
   if (!pixmap)
@@ -1229,7 +1228,6 @@ glamor_trapezoids(CARD8 op,
   INT16 x_rel, y_rel;
   int width, height, stride;
   PixmapPtr pixmap;
-  GCPtr gc;
   pixman_image_t *image;
 
   /* If a mask format wasn't provided, we get to choose, but behavior should
@@ -1256,8 +1254,7 @@ glamor_trapezoids(CARD8 op,
 
   width = bounds.x2 - bounds.x1;
   height = bounds.y2 - bounds.y1;
-  stride = (width * BitsPerPixel(mask_format->depth) + 7) / 8;
-
+  stride = PixmapBytePad(width, mask_format->depth);
   picture = glamor_create_mask_picture(screen, dst, mask_format,
 				       width, height);
   if (!picture)
@@ -1275,32 +1272,13 @@ glamor_trapezoids(CARD8 op,
     pixman_rasterize_trapezoid(image, (pixman_trapezoid_t *) traps,
 			       -bounds.x1, -bounds.y1);
 
-  pixmap = GetScratchPixmapHeader(screen, width, height,
-				  mask_format->depth,
-				  BitsPerPixel(mask_format->depth),
-				  PixmapBytePad(width, mask_format->depth),
-				  pixman_image_get_data(image));
-  if (!pixmap) {
-    FreePicture(picture, 0);
-    pixman_image_unref(image);
-    return;
-  }
-
-  gc = GetScratchGC(picture->pDrawable->depth, screen);
-  if (!gc) {
-    FreeScratchPixmapHeader(pixmap);
-    pixman_image_unref (image);
-    FreePicture(picture, 0);
-    return;
-  }
-  ValidateGC(picture->pDrawable, gc);
-
-  gc->ops->CopyArea(&pixmap->drawable, picture->pDrawable,
-		    gc, 0, 0, width, height, 0, 0);
-
-  FreeScratchGC(gc);
-  FreeScratchPixmapHeader(pixmap);
-  pixman_image_unref(image);
+  pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
+ 
+  screen->ModifyPixmapHeader(pixmap, width, height, 
+                             mask_format->depth, 
+	                     BitsPerPixel(mask_format->depth),
+			     PixmapBytePad(width, mask_format->depth),
+			     pixman_image_get_data(image));
 
   x_rel = bounds.x1 + x_src - x_dst;
   y_rel = bounds.y1 + y_src - y_dst;
@@ -1309,6 +1287,9 @@ glamor_trapezoids(CARD8 op,
 		   0, 0,
 		   bounds.x1, bounds.y1,
 		   bounds.x2 - bounds.x1, bounds.y2 - bounds.y1);
+
+  pixman_image_unref(image);
+
   FreePicture(picture, 0);
 }
 
