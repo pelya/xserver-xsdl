@@ -41,14 +41,12 @@ glamor_fill(DrawablePtr drawable,
 	    int height)
 {
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(drawable);
-    int x_off, y_off;
-    glamor_get_drawable_deltas(drawable, dst_pixmap, &x_off, &y_off);
 
     switch (gc->fillStyle) {
     case FillSolid:
 	if (!glamor_solid(dst_pixmap,
-                         x + x_off,
-                         y + y_off,
+                         x,
+                         y,
 		         width,
 		         height,
 		         gc->alu,
@@ -60,24 +58,24 @@ glamor_fill(DrawablePtr drawable,
     case FillOpaqueStippled:
 	if (!glamor_stipple(dst_pixmap,
 		       gc->stipple,
-		       x+ x_off,
-		       y + y_off,
+		       x,
+		       y,
 		       width,
 		       height,
 		       gc->alu,
 		       gc->planemask,
 		       gc->fgPixel,
 		       gc->bgPixel,
-		       gc->patOrg.x + x_off,
-		       gc->patOrg.y + y_off))
+		       gc->patOrg.x,
+		       gc->patOrg.y))
 	goto fail;
         return;
 	break;
     case FillTiled:
 	if (!glamor_tile(dst_pixmap,
 		    gc->tile.pixmap,
-		    x + x_off,
-		    y + y_off,
+		    x,
+		    y,
 		    width,
 		    height,
 		    gc->alu,
