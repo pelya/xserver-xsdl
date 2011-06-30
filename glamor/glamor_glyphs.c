@@ -375,6 +375,7 @@ glamor_glyph_cache_upload_glyph(ScreenPtr screen,
     ValidateGC(&cache_pixmap->drawable, gc);
 
     /* Create a temporary bo to stream the updates to the cache */
+#if 0
     scratch = screen->CreatePixmap(screen,
 				   glyph->info.width,
 				   glyph->info.height,
@@ -390,7 +391,8 @@ glamor_glyph_cache_upload_glyph(ScreenPtr screen,
     } else {
 	scratch = glyph_pixmap;
     }
-
+#endif
+    scratch = glyph_pixmap;
     (void)glamor_copy_area(&scratch->drawable,
 			   &cache_pixmap->drawable,
 			   gc,
