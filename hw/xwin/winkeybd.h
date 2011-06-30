@@ -35,6 +35,8 @@
  */
 #include "winkeynames.h"
 
+#define VK_FN 0xFF
+
 #define		WIN_KEYMAP_COLS		3
 
 /* Rows 160 through 165 correspond to software-generated codes, which
@@ -298,7 +300,7 @@ g_iKeyMap [] = {
   /* 252 */	0,		0,		0,
   /* 253 */	0,		0,		0,
   /* 254 */	0,		0,		0,
-  /* 255 */	0,		0,		0
+  /* 255 */	VK_FN,		0,		KEY_Fn  /* Most keyboards don't generate a scancode for Fn, but a few do... */
 };
 
 #endif /* WINKEYBD_H */
