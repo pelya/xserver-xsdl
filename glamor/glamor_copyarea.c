@@ -308,6 +308,23 @@ glamor_copy_n_to_n(DrawablePtr src,
 		 Pixel		bitplane,
 		 void		*closure)
 {
+    glamor_access_t dst_access;
+    PixmapPtr dst_pixmap, src_pixmap, temp_pixmap;
+    DrawablePtr temp_src = src;
+    glamor_pixmap_private *dst_pixmap_priv, *src_pixmap_priv;
+    BoxRec bound;
+    ScreenPtr screen;
+    int temp_dx = dx;
+    int temp_dy = dy;
+    dst_pixmap = glamor_get_drawable_pixmap(dst);
+    dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
+    screen = dst_pixmap->drawable.pScreen;
+
+    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
+      glamor_fallback("dest pixmap %p has no fbo. \n", dst_pixmap);
+      goto fail;
+    }
+
     if (glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx, dy)) {
         goto done;
 	return;
@@ -318,17 +335,50 @@ glamor_copy_n_to_n(DrawablePtr src,
 	return;
      }
 
-    if (glamor_copy_n_to_n_textured(src, dst, gc, box, nbox, dx, dy)) {
-        goto done;
-	return;
+    src_pixmap = glamor_get_drawable_pixmap(src);
+    src_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
+
+    glamor_calculate_boxes_bound(&bound, box, nbox);
+
+    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(src_pixmap_priv) 
+	&& ((bound.x2 - bound.x1) * (bound.y2 - bound.y1)
+	    * 4 > src_pixmap->drawable.width * src_pixmap->drawable.height)) {
+
+      temp_pixmap = (*screen->CreatePixmap)(screen,
+					 bound.x2 - bound.x1,
+					 bound.y2 - bound.y1,
+					 src_pixmap->drawable.depth,
+					 GLAMOR_CREATE_PIXMAP_CPU);
+      if (!temp_src)
+	goto fail;
+      glamor_transform_boxes(box, nbox, -bound.x1, -bound.y1);
+      fbCopyNtoN(src, temp_src, gc, box, nbox,
+		 temp_dx + bound.x1, temp_dy + bound.y1, 
+		 reverse, upsidedown, bitplane,
+		 closure);
+      glamor_transform_boxes(box, nbox, bound.x1, bound.y1);
+      temp_dx = -bound.x1;
+      temp_dy = -bound.y1;
+      temp_src = &temp_pixmap->drawable;
     }
 
+    if (glamor_copy_n_to_n_textured(temp_src, dst, gc, box, nbox, temp_dx, temp_dy)) {
+        goto done;
+    }
+    
+ fail:
     glamor_report_delayed_fallbacks(src->pScreen);
     glamor_report_delayed_fallbacks(dst->pScreen);
 
     glamor_fallback("from %p to %p (%c,%c)\n", src, dst,
 		    glamor_get_drawable_location(src),
 		    glamor_get_drawable_location(dst));
+
+    if (gc && gc->alu != GXcopy)
+      dst_access = GLAMOR_ACCESS_RW;
+    else
+      dst_access = GLAMOR_ACCESS_WO;
+
     if (glamor_prepare_access(dst, GLAMOR_ACCESS_RW)) {
 	if (dst == src || glamor_prepare_access(src, GLAMOR_ACCESS_RO)) {
 	    fbCopyNtoN(src, dst, gc, box, nbox,
@@ -339,11 +389,13 @@ glamor_copy_n_to_n(DrawablePtr src,
 	}
 	glamor_finish_access(dst);
     }
-    return;
 
 done:
     glamor_clear_delayed_fallbacks(src->pScreen);
     glamor_clear_delayed_fallbacks(dst->pScreen);
+    if (temp_src != src) {
+      (*screen->DestroyPixmap)(temp_pixmap);
+    }
 }
 
 RegionPtr
