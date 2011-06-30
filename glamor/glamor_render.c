@@ -1075,6 +1075,53 @@ glamor_composite_with_shader(CARD8 op,
   return FALSE;
 }
 
+static PicturePtr
+glamor_convert_gradient_picture(ScreenPtr screen,
+                                PicturePtr source,
+                                int x_source,
+                                int y_source,
+                                int width,
+                                int height)
+{
+  PixmapPtr pixmap;
+  PicturePtr dst;
+  int error;
+  PictFormatShort format;
+
+  if (!source->pDrawable)
+    format = PICT_a8r8g8b8;
+  else
+    format = source->format;
+
+  pixmap = screen->CreatePixmap(screen, 
+                                width, 
+                                height, 
+                                PIXMAN_FORMAT_DEPTH(format),
+                                GLAMOR_CREATE_PIXMAP_CPU);
+
+  if (!pixmap)
+    return NULL;
+  
+  dst = CreatePicture(0, 
+                      &pixmap->drawable,
+                      PictureMatchFormat(screen,
+                                         PIXMAN_FORMAT_DEPTH(format),
+                                         format),
+                      0, 
+                      0, 
+                      serverClient, 
+                      &error);
+  screen->DestroyPixmap(pixmap);
+  if (!dst)
+     return NULL;
+
+  ValidatePicture(dst);
+
+  fbComposite(PictOpSrc, source, NULL, dst, x_source, y_source,
+              0, 0, 0, 0, width, height);
+  return dst;
+}
+
 void
 glamor_composite(CARD8 op,
 		 PicturePtr source,
@@ -1089,27 +1136,84 @@ glamor_composite(CARD8 op,
 		 CARD16 width,
 		 CARD16 height)
 {
+  ScreenPtr screen = dest->pDrawable->pScreen;
+  glamor_pixmap_private *dest_pixmap_priv, *source_pixmap_priv, *mask_pixmap_priv;
+  PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(dest->pDrawable);
+  PixmapPtr source_pixmap, mask_pixmap;
+  PicturePtr temp_src = source, temp_mask = mask;
+  int x_temp_src, y_temp_src, x_temp_mask, y_temp_mask;
   glamor_composite_rect_t rect;
   glamor_access_t dest_access;
 
+  x_temp_src = x_source;
+  y_temp_src = y_source;
+  x_temp_mask = x_mask;
+  y_temp_mask = y_mask;
+
+  dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
+  /* Currently. Always fallback to cpu if destination is in CPU memory. */
+  if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+    goto fail;
+  }
+
+  if (source->pDrawable) {
+    source_pixmap = glamor_get_drawable_pixmap(source->pDrawable);
+    source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
+  }
+
+  if (mask && mask->pDrawable) {
+    mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
+    mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
+  }
+
+  if ((!source->pDrawable && (source->pSourcePict->type != SourcePictTypeSolidFill))
+      || (source->pDrawable 
+	  && !GLAMOR_PIXMAP_PRIV_HAS_FBO(source_pixmap_priv) 
+	  && (width * height * 4 
+	      < (source_pixmap->drawable.width * source_pixmap->drawable.height)))){
+    temp_src = glamor_convert_gradient_picture(screen, source, x_source, y_source, width, height);
+    if (!temp_src) {
+      temp_src = source;
+      goto fail; 
+    }
+    x_temp_src = y_temp_src = 0;
+  }
+
+  if (mask 
+      && ((!mask->pDrawable && (mask->pSourcePict->type != SourcePictTypeSolidFill))
+	  || (mask->pDrawable 
+	      && (!GLAMOR_PIXMAP_PRIV_HAS_FBO(mask_pixmap_priv))
+	      && (width * height * 4 
+		  < (mask_pixmap->drawable.width * mask_pixmap->drawable.height))))) {
+    /* XXX if mask->pDrawable is the same as source->pDrawable, we have an opportunity
+     * to do reduce one convertion. */
+    temp_mask = glamor_convert_gradient_picture(screen, mask, x_mask, y_mask, width, height);
+    if (!temp_mask) {
+      temp_mask = mask;
+      goto fail; 
+    }
+    x_temp_mask = y_temp_mask = 0;
+  }
   /* Do two-pass PictOpOver componentAlpha, until we enable
    * dual source color blending.
    */
+
   if (mask && mask->componentAlpha) {
     if (op == PictOpOver) {
       glamor_composite(PictOpOutReverse,
-		       source, mask, dest,
-		       x_source, y_source,
-		       x_mask, y_mask,
+		       temp_src, temp_mask, dest,
+		       x_temp_src, y_temp_src,
+		       x_temp_mask, y_temp_mask,
 		       x_dest, y_dest,
 		       width, height);
       glamor_composite(PictOpAdd,
-		       source, mask, dest,
-		       x_source, y_source,
-		       x_mask, y_mask,
+		       temp_src, temp_mask, dest,
+		       x_temp_src, y_temp_src,
+		       x_temp_mask, y_temp_mask,
 		       x_dest, y_dest,
 		       width, height);
-      return;
+      goto done;
+
     } else if (op != PictOpAdd && op != PictOpOutReverse) {
       glamor_fallback("glamor_composite(): component alpha\n");
       goto fail;
@@ -1117,25 +1221,25 @@ glamor_composite(CARD8 op,
   }
 
   if (!mask) {
-    if (glamor_composite_with_copy(op, source, dest,
-				   x_source, y_source,
+    if (glamor_composite_with_copy(op, temp_src, dest,
+				   x_temp_src, y_temp_src,
 				   x_dest, y_dest,
 				   width, height))
-      return;
+      goto done;
   }
 
-  rect.x_src = x_source;
-  rect.y_src = y_source;
-  rect.x_mask = x_mask;
-  rect.y_mask = y_mask;
+  rect.x_src = x_temp_src;
+  rect.y_src = y_temp_src;
+  rect.x_mask = x_temp_mask;
+  rect.y_mask = y_temp_mask;
   rect.x_dst = x_dest;
   rect.y_dst = y_dest;
   rect.width = width;
   rect.height = height;
-  if (glamor_composite_with_shader(op, source, mask, dest, 1, &rect))
-    return;
+  if (glamor_composite_with_shader(op, temp_src, temp_mask, dest, 1, &rect))
+    goto done;
 
- fail:
+fail:
 
   glamor_fallback(
 		  "from picts %p:%p %dx%d / %p:%p %d x %d (%c,%c)  to pict %p:%p %dx%d (%c)\n",
@@ -1157,6 +1261,7 @@ glamor_composite(CARD8 op,
 
   glUseProgramObjectARB(0);
   glDisable(GL_BLEND);
+
   if (op == PictOpSrc || op == PictOpClear)
     dest_access = GLAMOR_ACCESS_WO;
   else
@@ -1180,6 +1285,11 @@ glamor_composite(CARD8 op,
       }
     glamor_finish_access_picture(dest);
   }
+done:
+    if (temp_src != source)
+      FreePicture(temp_src, 0);
+    if (temp_mask != mask)
+      FreePicture(temp_mask, 0);
 }
 
 
