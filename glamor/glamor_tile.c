@@ -103,7 +103,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	goto fail;
     }
 
-    if (GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {      
+    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {      
       glamor_fallback("dest has no fbo.\n");
       goto fail;
     }
