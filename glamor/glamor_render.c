@@ -1137,9 +1137,10 @@ glamor_composite(CARD8 op,
 		 CARD16 height)
 {
   ScreenPtr screen = dest->pDrawable->pScreen;
-  glamor_pixmap_private *dest_pixmap_priv, *source_pixmap_priv, *mask_pixmap_priv;
+  glamor_pixmap_private *dest_pixmap_priv;
+  glamor_pixmap_private *source_pixmap_priv = NULL, *mask_pixmap_priv = NULL;
   PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(dest->pDrawable);
-  PixmapPtr source_pixmap, mask_pixmap;
+  PixmapPtr source_pixmap = NULL, mask_pixmap = NULL;
   PicturePtr temp_src = source, temp_mask = mask;
   int x_temp_src, y_temp_src, x_temp_mask, y_temp_mask;
   glamor_composite_rect_t rect;
