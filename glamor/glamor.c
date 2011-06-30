@@ -116,11 +116,12 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     GLuint tex;
     int type = GLAMOR_PIXMAP_TEXTURE;
     glamor_pixmap_private *pixmap_priv;
-
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
-    if (!glamor_check_fbo_width_height(w,h) || !glamor_check_fbo_depth(depth)) {
+    if (!glamor_check_fbo_width_height(w,h) 
+	|| !glamor_check_fbo_depth(depth) 
+	|| usage == GLAMOR_CREATE_PIXMAP_CPU) {
 	/* MESA can only support upto MAX_WIDTH*MAX_HEIGHT fbo.
  	   If we exceed such limitation, we have to use framebuffer.*/
       type = GLAMOR_PIXMAP_MEMORY;
@@ -129,9 +130,9 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
                               (((w * pixmap->drawable.bitsPerPixel +
                                  7) / 8) + 3) & ~3,
                               NULL);
-
-      glamor_fallback("choose cpu memory for pixmap %p ,"
-	              " %d x %d depth %d\n", pixmap, w, h, depth);
+      if (usage != GLAMOR_CREATE_PIXMAP_CPU)
+	glamor_fallback("choose cpu memory for pixmap %p ,"
+			" %d x %d depth %d\n", pixmap, w, h, depth);
    } else 
       pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
 
@@ -217,6 +218,7 @@ glamor_destroy_pixmap(PixmapPtr pixmap)
 	  glDeleteTextures(1, &pixmap_priv->tex);
         if (pixmap_priv->pbo)
           glDeleteBuffersARB(1, &pixmap_priv->pbo);
+        dixFreePrivates(pixmap->devPrivates, PRIVATE_PIXMAP);
     }
 
     return fbDestroyPixmap(pixmap);

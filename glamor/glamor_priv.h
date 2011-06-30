@@ -50,9 +50,9 @@
 
 #include "glamor_debug.h"
 
-#define glamor_check_fbo_width_height(_w_, _h_)    (_w_ > 0 && _h_ > 0	\
-                                                    && _w_ < MAX_WIDTH	\
-                                                    && _h_ < MAX_HEIGHT)
+#define glamor_check_fbo_width_height(_w_, _h_)    ((_w_) > 0 && (_h_) > 0 \
+                                                    && (_w_) < MAX_WIDTH   \
+                                                    && (_h_) < MAX_HEIGHT)
 
 #define glamor_check_fbo_depth(_depth_) (			\
                                          _depth_ == 8		\
@@ -149,6 +149,7 @@ enum shader_in {
   SHADER_IN_COUNT,
 };
 
+#define GLAMOR_CREATE_PIXMAP_CPU  0x100
 typedef struct glamor_screen_private {
   CloseScreenProcPtr saved_close_screen;
   CreateGCProcPtr saved_create_gc;
