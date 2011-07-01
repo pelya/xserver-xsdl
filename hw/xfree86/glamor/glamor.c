@@ -145,6 +145,12 @@ EGLImageKHR glamor_create_cursor_argb(ScrnInfoPtr scrn, int width, int height)
 	return	eglCreateDRMImageMESA(glamor->display, attribs); 
 }
 
+void glamor_destroy_cursor(ScrnInfoPtr scrn, EGLImageKHR cursor)
+{
+	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
+        eglDestroyImageKHR(glamor->display, cursor);
+}
+
 void
 glamor_cursor_handle(ScrnInfoPtr scrn, EGLImageKHR cursor, uint32_t *handle, uint32_t *pitch)
 {
@@ -191,7 +197,7 @@ glamor_pre_init_ddx(ScrnInfoPtr scrn, int flags)
 	if (drmmode_pre_init(scrn, glamor->fd, glamor->cpp) == FALSE) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "Kernel modesetting setup failed\n");
-	  goto fail;
+         goto fail;
 	}
 
 	scrn->currentMode = scrn->modes;
@@ -272,6 +278,8 @@ glamor_close_screen_ddx(int scrnIndex, ScreenPtr screen)
 
 	glamor_fini(screen);
 
+        eglDestroyImageKHR(glamor->display, glamor->root);
+
 	eglMakeCurrent(glamor->display,
 		       EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 	eglTerminate(glamor->display);
@@ -279,6 +287,7 @@ glamor_close_screen_ddx(int scrnIndex, ScreenPtr screen)
 	drmmode_closefb(scrn);
 	
 	glamor->fd = -1;
+
 	glamor->root = EGL_NO_IMAGE_KHR;
 
 	return TRUE;
@@ -301,7 +310,15 @@ glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	    ErrorF("Failed to open %s: %s\n", dri_device_name, strerror(errno));
 	    return FALSE;
 	  }
+	if (drmmode_pre_init(scrn, glamor->fd, glamor->cpp) == FALSE) {
+		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+			   "Kernel modesetting setup failed\n");
+            return FALSE;
 	}
+
+	}
+
+
 
 	glamor->display = eglGetDRMDisplayMESA(glamor->fd);
 	eglBindAPI(EGL_OPENGL_API);
