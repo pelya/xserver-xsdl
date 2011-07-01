@@ -1170,8 +1170,10 @@ glamor_composite(CARD8 op,
   if ((!source->pDrawable && (source->pSourcePict->type != SourcePictTypeSolidFill))
       || (source->pDrawable 
 	  && !GLAMOR_PIXMAP_PRIV_HAS_FBO(source_pixmap_priv) 
-	  && (width * height * 4 
-	      < (source_pixmap->drawable.width * source_pixmap->drawable.height)))){
+	  && ((width * height * 4 
+	       < (source_pixmap->drawable.width * source_pixmap->drawable.height))
+	      || !(glamor_check_fbo_width_height(source_pixmap->drawable.width,
+						 source_pixmap->drawable.height))))) {
     temp_src = glamor_convert_gradient_picture(screen, source, x_source, y_source, width, height);
     if (!temp_src) {
       temp_src = source;
@@ -1184,8 +1186,10 @@ glamor_composite(CARD8 op,
       && ((!mask->pDrawable && (mask->pSourcePict->type != SourcePictTypeSolidFill))
 	  || (mask->pDrawable 
 	      && (!GLAMOR_PIXMAP_PRIV_HAS_FBO(mask_pixmap_priv))
-	      && (width * height * 4 
-		  < (mask_pixmap->drawable.width * mask_pixmap->drawable.height))))) {
+	      && ((width * height * 4 
+		   < (mask_pixmap->drawable.width * mask_pixmap->drawable.height))
+		  || !(glamor_check_fbo_width_height(mask_pixmap->drawable.width,
+						     mask_pixmap->drawable.height)))))) {
     /* XXX if mask->pDrawable is the same as source->pDrawable, we have an opportunity
      * to do reduce one convertion. */
     temp_mask = glamor_convert_gradient_picture(screen, mask, x_mask, y_mask, width, height);
