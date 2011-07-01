@@ -1144,7 +1144,6 @@ glamor_composite(CARD8 op,
   PicturePtr temp_src = source, temp_mask = mask;
   int x_temp_src, y_temp_src, x_temp_mask, y_temp_mask;
   glamor_composite_rect_t rect;
-  glamor_access_t dest_access;
 
   x_temp_src = x_source;
   y_temp_src = y_source;
@@ -1266,12 +1265,7 @@ fail:
 
   glUseProgramObjectARB(0);
   glDisable(GL_BLEND);
-
-  if (op == PictOpSrc || op == PictOpClear)
-    dest_access = GLAMOR_ACCESS_WO;
-  else
-    dest_access = GLAMOR_ACCESS_RW;
-  if (glamor_prepare_access_picture(dest, dest_access)) {
+  if (glamor_prepare_access_picture(dest, GLAMOR_ACCESS_RW)) {
     if (glamor_prepare_access_picture(source, GLAMOR_ACCESS_RO))
       {
 	if (!mask ||
