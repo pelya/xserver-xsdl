@@ -613,6 +613,20 @@ drmmode_crtc_gamma_set(xf86CrtcPtr crtc,
 	drmModeCrtcSetGamma(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
 			    size, red, green, blue);
 }
+static void
+drmmode_crtc_destroy(xf86CrtcPtr crtc)
+{
+	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+	ScrnInfoPtr scrn = crtc->scrn;
+        if (drmmode_crtc->cursor) {
+          drmmode_hide_cursor(crtc);
+          glDeleteTextures(1, &drmmode_crtc->cursor_tex);
+	  glamor_destroy_cursor(scrn, drmmode_crtc->cursor);
+        }
+        free(drmmode_crtc->cursor);
+        crtc->driver_private = NULL;
+}
 
 static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
 	.dpms = drmmode_crtc_dpms,
@@ -629,7 +643,7 @@ static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
 	.shadow_destroy = drmmode_crtc_shadow_destroy,
 #endif
 	.gamma_set = drmmode_crtc_gamma_set,
-	.destroy = NULL, /* XXX */
+	.destroy = drmmode_crtc_destroy
 };
 
 
