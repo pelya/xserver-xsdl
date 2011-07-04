@@ -1139,15 +1139,14 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	 * removed.
 	 */
 	if (corePointer) {
-	    for (devs = servlayoutp->inputs; devs && *devs; devs++)
-		if (*devs == corePointer)
-                {
-                    free(*devs);
-                    *devs = (InputInfoPtr)0x1; /* ensure we dont skip next loop*/
+	    for (devs = servlayoutp->inputs; devs && *devs; devs++) {
+		if (*devs == corePointer) {
+		    free(*devs);
+		    for (; devs && *devs; devs++)
+			devs[0] = devs[1];
 		    break;
-                }
-	    for (; devs && *devs; devs++)
-		devs[0] = devs[1];
+		}
+	    }
 	    count--;
 	}
 	corePointer = NULL;
@@ -1285,15 +1284,14 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	 * removed.
 	 */
 	if (coreKeyboard) {
-	    for (devs = servlayoutp->inputs; devs && *devs; devs++)
-		if (*devs == coreKeyboard)
-                {
-                    free(*devs);
-                    *devs = (InputInfoPtr)0x1; /* ensure we dont skip next loop */
+	    for (devs = servlayoutp->inputs; devs && *devs; devs++) {
+		if (*devs == coreKeyboard) {
+		    free(*devs);
+		    for (; devs && *devs; devs++)
+			devs[0] = devs[1];
 		    break;
-                }
-	    for (; devs && *devs; devs++)
-		devs[0] = devs[1];
+		}
+	    }
 	    count--;
 	}
 	coreKeyboard = NULL;
