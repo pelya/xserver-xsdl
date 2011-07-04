@@ -1111,22 +1111,12 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	    xf86CheckBoolOption(indp->options, "CorePointer", FALSE)) {
 	    if (!corePointer) {
 		corePointer = indp;
-	    } else {
-		    xf86ReplaceBoolOption(indp->options, "CorePointer", FALSE);
-		xf86Msg(X_WARNING, "Duplicate core pointer devices.  "
-			"Removing core pointer attribute from \"%s\"\n",
-			indp->name);
 	    }
 	}
 	if (indp->options &&
 	    xf86CheckBoolOption(indp->options, "CoreKeyboard", FALSE)) {
 	    if (!coreKeyboard) {
 		coreKeyboard = indp;
-	    } else {
-		    xf86ReplaceBoolOption(indp->options, "CoreKeyboard", FALSE);
-		xf86Msg(X_WARNING, "Duplicate core keyboard devices.  "
-			"Removing core keyboard attribute from \"%s\"\n",
-			indp->name);
 	    }
 	}
 	count++;
