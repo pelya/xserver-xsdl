@@ -806,11 +806,10 @@ duplicateDevice(InputInfoPtr pInfo)
     return dup;
 }
 
-/*
- * InitInput --
- *      Initialize all supported input devices.
+/**
+ * Initialize all supported input devices present and referenced in the
+ * xorg.conf.
  */
-
 void
 InitInput(int argc, char **argv)
 {
