@@ -1208,16 +1208,16 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     if (foundPointer && confInput) {
 	foundPointer = configInput(&Pointer, confInput, from);
         if (foundPointer) {
+	    Pointer.options = xf86addNewOption(Pointer.options,
+					       xnfstrdup("CorePointer"), "on");
+	    Pointer.fd = -1;
 	    count++;
 	    devs = xnfrealloc(servlayoutp->inputs,
 			      (count + 1) * sizeof(InputInfoPtr));
             devs[count - 1] = xnfalloc(sizeof(InputInfoRec));
-            Pointer.fd = -1;
-	    *devs[count - 1] = Pointer;
-	    devs[count - 1]->options =
-				xf86addNewOption(devs[count -1]->options,
-				    xnfstrdup("CorePointer"), "on");
 	    devs[count] = NULL;
+
+	    *devs[count - 1] = Pointer;
 	    servlayoutp->inputs = devs;
 	}
     }
@@ -1254,15 +1254,16 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	confInput = &defPtr;
 	foundPointer = configInput(&Pointer, confInput, from);
         if (foundPointer) {
+	    Pointer.options = xf86addNewOption(NULL,
+					       xnfstrdup("AlwaysCore"), "on");
+	    Pointer.fd = -1;
 	    count++;
 	    devs = xnfrealloc(servlayoutp->inputs,
 			      (count + 1) * sizeof(InputInfoPtr));
             devs[count - 1] = xnfalloc(sizeof(InputInfoRec));
-            Pointer.fd = -1;
-	    *devs[count - 1] = Pointer;
-	    devs[count - 1]->options =
-				xf86addNewOption(NULL, xnfstrdup("AlwaysCore"), "on");
 	    devs[count] = NULL;
+
+	    *devs[count - 1] = Pointer;
 	    servlayoutp->inputs = devs;
 	}
     }
@@ -1351,16 +1352,16 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     if (foundKeyboard && confInput) {
 	foundKeyboard = configInput(&Keyboard, confInput, from);
         if (foundKeyboard) {
+	    Keyboard.options = xf86addNewOption(Keyboard.options,
+						xnfstrdup("CoreKeyboard"), "on");
+	    Keyboard.fd = -1;
 	    count++;
 	    devs = xnfrealloc(servlayoutp->inputs,
 			      (count + 1) * sizeof(InputInfoPtr));
             devs[count - 1] = xnfalloc(sizeof(InputInfoRec));
-            Keyboard.fd = -1;
-	    *devs[count - 1] = Keyboard;
-	    devs[count - 1]->options =
-				xf86addNewOption(devs[count - 1]->options,
-				    xnfstrdup("CoreKeyboard"), "on");
 	    devs[count] = NULL;
+
+	    *devs[count - 1] = Keyboard;
 	    servlayoutp->inputs = devs;
 	}
     }
