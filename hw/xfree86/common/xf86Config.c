@@ -1068,6 +1068,46 @@ Bool xf86DRI2Enabled(void)
     return xf86Info.dri2;
 }
 
+/**
+ * Search for the pInfo in the null-terminated list given and remove (and
+ * free) it if present. All other devices are moved forward.
+ */
+static void
+freeDevice(InputInfoPtr *list, InputInfoPtr pInfo)
+{
+    InputInfoPtr *devs;
+
+    for (devs = list; devs && *devs; devs++) {
+	if (*devs == pInfo) {
+	    free(*devs);
+	    for (; devs && *devs; devs++)
+		devs[0] = devs[1];
+	    break;
+	}
+    }
+}
+
+/**
+ * Append pInfo to the null-terminated list, allocating space as necessary.
+ * pInfo is copied into the last element.
+ */
+static InputInfoPtr*
+addDevice(InputInfoPtr *list, InputInfoPtr pInfo)
+{
+    InputInfoPtr *devs;
+    int count = 1;
+
+    for (devs = list; devs && *devs; devs++)
+	count++;
+
+    list = xnfrealloc(list, (count + 1) * sizeof(InputInfoPtr));
+    list[count] = NULL;
+
+    list[count - 1] = xnfalloc(sizeof(InputInfoRec));
+    *list[count - 1] = *pInfo;
+    return list;
+}
+
 /*
  * Locate the core input devices.  These can be specified/located in
  * the following ways, in order of priority:
@@ -1094,7 +1134,6 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     InputInfoRec Pointer = {}, Keyboard = {};
     XF86ConfInputPtr confInput;
     XF86ConfInputRec defPtr, defKbd;
-    int count = 0;
     MessageType from = X_DEFAULT;
     int found = 0;
     const char *mousedrivers[] = { "mouse", "synaptics", "evdev", "vmmouse",
@@ -1119,7 +1158,6 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 		coreKeyboard = indp;
 	    }
 	}
-	count++;
     }
 
     confInput = NULL;
@@ -1139,17 +1177,9 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	 * removed.
 	 */
 	if (corePointer) {
-	    for (devs = servlayoutp->inputs; devs && *devs; devs++) {
-		if (*devs == corePointer) {
-		    free(*devs);
-		    for (; devs && *devs; devs++)
-			devs[0] = devs[1];
-		    break;
-		}
-	    }
-	    count--;
+	    freeDevice(servlayoutp->inputs, corePointer);
+	    corePointer = NULL;
 	}
-	corePointer = NULL;
 	foundPointer = TRUE;
     }
 
@@ -1210,14 +1240,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	    Pointer.options = xf86addNewOption(Pointer.options,
 					       xnfstrdup("CorePointer"), "on");
 	    Pointer.fd = -1;
-	    count++;
-	    devs = xnfrealloc(servlayoutp->inputs,
-			      (count + 1) * sizeof(InputInfoPtr));
-            devs[count - 1] = xnfalloc(sizeof(InputInfoRec));
-	    devs[count] = NULL;
-
-	    *devs[count - 1] = Pointer;
-	    servlayoutp->inputs = devs;
+	    servlayoutp->inputs = addDevice(servlayoutp->inputs, &Pointer);
 	}
     }
 
@@ -1256,14 +1279,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	    Pointer.options = xf86addNewOption(NULL,
 					       xnfstrdup("AlwaysCore"), "on");
 	    Pointer.fd = -1;
-	    count++;
-	    devs = xnfrealloc(servlayoutp->inputs,
-			      (count + 1) * sizeof(InputInfoPtr));
-            devs[count - 1] = xnfalloc(sizeof(InputInfoRec));
-	    devs[count] = NULL;
-
-	    *devs[count - 1] = Pointer;
-	    servlayoutp->inputs = devs;
+	    servlayoutp->inputs = addDevice(servlayoutp->inputs, &Pointer);
 	}
     }
 
@@ -1284,17 +1300,9 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	 * removed.
 	 */
 	if (coreKeyboard) {
-	    for (devs = servlayoutp->inputs; devs && *devs; devs++) {
-		if (*devs == coreKeyboard) {
-		    free(*devs);
-		    for (; devs && *devs; devs++)
-			devs[0] = devs[1];
-		    break;
-		}
-	    }
-	    count--;
+	    freeDevice(servlayoutp->inputs, coreKeyboard);
+	    coreKeyboard = NULL;
 	}
-	coreKeyboard = NULL;
 	foundKeyboard = TRUE;
     }
 
@@ -1353,14 +1361,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	    Keyboard.options = xf86addNewOption(Keyboard.options,
 						xnfstrdup("CoreKeyboard"), "on");
 	    Keyboard.fd = -1;
-	    count++;
-	    devs = xnfrealloc(servlayoutp->inputs,
-			      (count + 1) * sizeof(InputInfoPtr));
-            devs[count - 1] = xnfalloc(sizeof(InputInfoRec));
-	    devs[count] = NULL;
-
-	    *devs[count - 1] = Keyboard;
-	    servlayoutp->inputs = devs;
+	    servlayoutp->inputs = addDevice(servlayoutp->inputs, &Keyboard);
 	}
     }
 
