@@ -84,10 +84,11 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	}
 	    drawpixels_src += PixmapBytePad(widths[i], drawable->depth);
     }
-fail:
-    glDisable(GL_SCISSOR_TEST);
     glamor_set_planemask(dest_pixmap, ~0);
     glamor_set_alu(GXcopy);
+    glDisable(GL_SCISSOR_TEST);
+    return;
+fail:
 
     glamor_fallback("to %p (%c)\n",
 		    drawable, glamor_get_drawable_location(drawable));
