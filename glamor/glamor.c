@@ -130,9 +130,11 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
                               (((w * pixmap->drawable.bitsPerPixel +
                                  7) / 8) + 3) & ~3,
                               NULL);
+#if 0
       if (usage != GLAMOR_CREATE_PIXMAP_CPU)
 	glamor_fallback("choose cpu memory for pixmap %p ,"
 			" %d x %d depth %d\n", pixmap, w, h, depth);
+#endif
    } else 
       pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
 
