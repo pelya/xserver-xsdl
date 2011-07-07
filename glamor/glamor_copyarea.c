@@ -309,7 +309,7 @@ glamor_copy_n_to_n(DrawablePtr src,
 		 void		*closure)
 {
     glamor_access_t dst_access;
-    PixmapPtr dst_pixmap, src_pixmap, temp_pixmap;
+    PixmapPtr dst_pixmap, src_pixmap, temp_pixmap = NULL;
     DrawablePtr temp_src = src;
     glamor_pixmap_private *dst_pixmap_priv, *src_pixmap_priv;
     BoxRec bound;
@@ -360,6 +360,11 @@ glamor_copy_n_to_n(DrawablePtr src,
       temp_dx = -bound.x1;
       temp_dy = -bound.y1;
       temp_src = &temp_pixmap->drawable;
+    }
+    else {
+      temp_dx = dx;
+      temp_dy = dy;
+      temp_src = src;
     }
 
     if (glamor_copy_n_to_n_textured(temp_src, dst, gc, box, nbox, temp_dx, temp_dy)) {

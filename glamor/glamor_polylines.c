@@ -55,7 +55,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
     int y_max = MINSHORT;
     DrawablePtr temp_dest;
     PixmapPtr temp_pixmap;
-    GCPtr temp_gc;
+    GCPtr temp_gc = NULL;
     /* Don't try to do wide lines or non-solid fill style. */
     if (gc->lineWidth != 0) {
 	/* This ends up in miSetSpans, which is accelerated as well as we
