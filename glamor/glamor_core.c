@@ -242,12 +242,10 @@ Bool
 glamor_prepare_access_gc(GCPtr gc)
 {
   if (gc->stipple) {
-    glamor_fallback("has stipple %p\n", gc->stipple);
     if (!glamor_prepare_access(&gc->stipple->drawable, GLAMOR_ACCESS_RO))
       return FALSE;
   }
   if (gc->fillStyle == FillTiled) {
-    glamor_fallback("has tile pixmap %p\n", gc->tile.pixmap);
     if (!glamor_prepare_access (&gc->tile.pixmap->drawable,
 				GLAMOR_ACCESS_RO)) {
       if (gc->stipple)
@@ -353,16 +351,20 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
   }
 #endif
   if (changes & GCTile) {
-    if (!gc->tileIsPixel && FbEvenTile(gc->tile.pixmap->drawable.width *
-				       drawable->bitsPerPixel))
-      {
-	glamor_fallback("GC %p tile changed %p.\n", gc, gc->tile.pixmap);
-	if (glamor_prepare_access(&gc->tile.pixmap->drawable,
+    if (!gc->tileIsPixel) {
+      glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(gc->tile.pixmap);
+      if ((!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+         && FbEvenTile(gc->tile.pixmap->drawable.width *
+	  			       drawable->bitsPerPixel))
+        {
+	  glamor_fallback("GC %p tile changed %p.\n", gc, gc->tile.pixmap);
+	  if (glamor_prepare_access(&gc->tile.pixmap->drawable,
 				  GLAMOR_ACCESS_RW)) {
 	  fbPadPixmap(gc->tile.pixmap);
 	  glamor_finish_access(&gc->tile.pixmap->drawable);
-	}
-      }
+	  }
+        }
+    }
     /* Mask out the GCTile change notification, now that we've done FB's
      * job for it.
      */
@@ -373,7 +375,6 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
     /* We can't inline stipple handling like we do for GCTile because
      * it sets fbgc privates.
      */
-    glamor_fallback("GC %p stipple changed %p.\n", gc, gc->stipple);
     if (glamor_prepare_access(&gc->stipple->drawable, GLAMOR_ACCESS_RW)) {
       fbValidateGC(gc, changes, drawable);
       glamor_finish_access(&gc->stipple->drawable);
