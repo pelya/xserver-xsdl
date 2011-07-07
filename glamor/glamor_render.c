@@ -501,53 +501,6 @@ glamor_composite_with_copy(CARD8 op,
   return TRUE;
 }
 
-static Bool
-good_source_format(PicturePtr picture)
-{
-  switch (picture->format) {
-  case PICT_a1:
-  case PICT_a8:
-  case PICT_a8r8g8b8:
-  case PICT_x8r8g8b8:
-    return TRUE;
-  default:
-    return TRUE;
-    glamor_fallback("Bad source format 0x%08x\n", picture->format);
-    return FALSE;
-  }
-}
-
-static Bool
-good_mask_format(PicturePtr picture)
-{
-  switch (picture->format) {
-  case PICT_a1:
-  case PICT_a8:
-  case PICT_a8r8g8b8:
-  case PICT_x8r8g8b8:
-    return TRUE;
-  default:
-    return TRUE;
-    glamor_fallback("Bad mask format 0x%08x\n", picture->format);
-    return FALSE;
-  }
-}
-
-static Bool
-good_dest_format(PicturePtr picture)
-{
-  switch (picture->format) {
-  case PICT_a8:
-  case PICT_a8r8g8b8:
-  case PICT_x8r8g8b8:
-    return TRUE;
-  default:
-    return TRUE;
-    glamor_fallback("Bad dest format 0x%08x\n", picture->format);
-    return FALSE;
-  }
-}
-
 static void
 glamor_setup_composite_vbo(ScreenPtr screen)
 {
@@ -815,10 +768,6 @@ glamor_composite_with_shader(CARD8 op,
       goto fail;
 #endif
     }
-    if ((source_status != GLAMOR_UPLOAD_PENDING) 
-	&& !good_source_format(source)) {
-      goto fail;
-    }
   }
   if (key.mask == SHADER_MASK_TEXTURE ||
       key.mask == SHADER_MASK_TEXTURE_ALPHA) {
@@ -836,13 +785,6 @@ glamor_composite_with_shader(CARD8 op,
       goto fail;
 #endif
     }
-    if ((mask_status != GLAMOR_UPLOAD_PENDING) 
-	&& !good_mask_format(mask)) {
-      goto fail;
-    }
-  }
-  if (!good_dest_format(dest)) {
-    goto fail;
   }
 #ifdef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
   if (source_status == GLAMOR_UPLOAD_PENDING 
