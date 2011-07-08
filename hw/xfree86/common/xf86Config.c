@@ -1089,7 +1089,7 @@ freeDevice(InputInfoPtr *list, InputInfoPtr pInfo)
 
 /**
  * Append pInfo to the null-terminated list, allocating space as necessary.
- * pInfo is copied into the last element.
+ * pInfo is used as the last element.
  */
 static InputInfoPtr*
 addDevice(InputInfoPtr *list, InputInfoPtr pInfo)
@@ -1103,8 +1103,7 @@ addDevice(InputInfoPtr *list, InputInfoPtr pInfo)
     list = xnfrealloc(list, (count + 1) * sizeof(InputInfoPtr));
     list[count] = NULL;
 
-    list[count - 1] = xnfalloc(sizeof(InputInfoRec));
-    *list[count - 1] = *pInfo;
+    list[count - 1] = pInfo;
     return list;
 }
 
@@ -1131,7 +1130,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     const char *pointerMsg = NULL, *keyboardMsg = NULL;
     InputInfoPtr *devs, /* iterator */
             indp;
-    InputInfoRec Pointer = {}, Keyboard = {};
+    InputInfoPtr Pointer, Keyboard;
     XF86ConfInputPtr confInput;
     XF86ConfInputRec defPtr, defKbd;
     MessageType from = X_DEFAULT;
@@ -1235,18 +1234,20 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 
     /* Add the core pointer device to the layout, and set it to Core. */
     if (foundPointer && confInput) {
-	foundPointer = configInput(&Pointer, confInput, from);
-        if (foundPointer) {
-	    Pointer.options = xf86addNewOption(Pointer.options,
+	Pointer = xf86AllocateInput();
+	if (Pointer)
+	    foundPointer = configInput(Pointer, confInput, from);
+	if (foundPointer) {
+	    Pointer->options = xf86addNewOption(Pointer->options,
 					       xnfstrdup("CorePointer"), "on");
-	    Pointer.fd = -1;
-	    servlayoutp->inputs = addDevice(servlayoutp->inputs, &Pointer);
+	    servlayoutp->inputs = addDevice(servlayoutp->inputs, Pointer);
 	}
     }
 
     if (!foundPointer && xf86Info.forceInputDevices) {
 	/* This shouldn't happen. */
 	xf86Msg(X_ERROR, "Cannot locate a core pointer device.\n");
+	xf86DeleteInput(Pointer, 0);
 	return FALSE;
     }
 
@@ -1274,12 +1275,13 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	defPtr.inp_identifier = strdup("<default pointer>");
 	defPtr.inp_driver = strdup("mouse");
 	confInput = &defPtr;
-	foundPointer = configInput(&Pointer, confInput, from);
-        if (foundPointer) {
-	    Pointer.options = xf86addNewOption(NULL,
+	Pointer = xf86AllocateInput();
+	if (Pointer)
+	    foundPointer = configInput(Pointer, confInput, from);
+	if (foundPointer) {
+	    Pointer->options = xf86addNewOption(NULL,
 					       xnfstrdup("AlwaysCore"), "on");
-	    Pointer.fd = -1;
-	    servlayoutp->inputs = addDevice(servlayoutp->inputs, &Pointer);
+	    servlayoutp->inputs = addDevice(servlayoutp->inputs, Pointer);
 	}
     }
 
@@ -1356,18 +1358,20 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 
     /* Add the core keyboard device to the layout, and set it to Core. */
     if (foundKeyboard && confInput) {
-	foundKeyboard = configInput(&Keyboard, confInput, from);
-        if (foundKeyboard) {
-	    Keyboard.options = xf86addNewOption(Keyboard.options,
+	Keyboard = xf86AllocateInput();
+	if (Keyboard)
+	    foundKeyboard = configInput(Keyboard, confInput, from);
+	if (foundKeyboard) {
+	    Keyboard->options = xf86addNewOption(Keyboard->options,
 						xnfstrdup("CoreKeyboard"), "on");
-	    Keyboard.fd = -1;
-	    servlayoutp->inputs = addDevice(servlayoutp->inputs, &Keyboard);
+	    servlayoutp->inputs = addDevice(servlayoutp->inputs, Keyboard);
 	}
     }
 
     if (!foundKeyboard && xf86Info.forceInputDevices) {
 	/* This shouldn't happen. */
 	xf86Msg(X_ERROR, "Cannot locate a core keyboard device.\n");
+	xf86DeleteInput(Keyboard, 0);
 	return FALSE;
     }
 
