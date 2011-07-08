@@ -1134,7 +1134,6 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     XF86ConfInputPtr confInput;
     XF86ConfInputRec defPtr, defKbd;
     MessageType from = X_DEFAULT;
-    int found = 0;
     const char *mousedrivers[] = { "mouse", "synaptics", "evdev", "vmmouse",
 				   "void", NULL };
 
@@ -1249,40 +1248,6 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	xf86Msg(X_ERROR, "Cannot locate a core pointer device.\n");
 	xf86DeleteInput(Pointer, 0);
 	return FALSE;
-    }
-
-    /*
-     * always synthesize a 'mouse' section configured to send core
-     * events, unless a 'void' section is found, in which case the user
-     * probably wants to run footless.
-     *
-     * If you're using an evdev keyboard and expect a default mouse
-     * section ... deal.
-     */
-    for (devs = servlayoutp->inputs; devs && *devs; devs++) {
-	const char **driver = mousedrivers;
-	while(*driver) {
-	    if (!strcmp((*devs)->driver, *driver)) {
-		found = 1;
-		break;
-	    }
-	    driver++;
-	}
-    }
-    if (!found && xf86Info.forceInputDevices) {
-	xf86Msg(X_INFO, "No default mouse found, adding one\n");
-	memset(&defPtr, 0, sizeof(defPtr));
-	defPtr.inp_identifier = strdup("<default pointer>");
-	defPtr.inp_driver = strdup("mouse");
-	confInput = &defPtr;
-	Pointer = xf86AllocateInput();
-	if (Pointer)
-	    foundPointer = configInput(Pointer, confInput, from);
-	if (foundPointer) {
-	    Pointer->options = xf86addNewOption(NULL,
-					       xnfstrdup("AlwaysCore"), "on");
-	    servlayoutp->inputs = addDevice(servlayoutp->inputs, Pointer);
-	}
     }
 
     confInput = NULL;
