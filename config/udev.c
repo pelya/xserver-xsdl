@@ -35,6 +35,7 @@
 #include "hotplug.h"
 #include "config-backends.h"
 #include "os.h"
+#include "globals.h"
 
 #define UDEV_XKB_PROP_KEY "xkb"
 
@@ -65,12 +66,23 @@ device_added(struct udev_device *udev_device)
     struct udev_list_entry *set, *entry;
     struct udev_device *parent;
     int rc;
+    const char *dev_seat;
 
     path = udev_device_get_devnode(udev_device);
 
     syspath = udev_device_get_syspath(udev_device);
 
     if (!path || !syspath)
+        return;
+
+    dev_seat = udev_device_get_property_value(udev_device, "ID_SEAT");
+    if (!dev_seat)
+        dev_seat = "seat0";
+
+    if (SeatId && strcmp(dev_seat, SeatId))
+        return;
+
+    if (!SeatId && strcmp(dev_seat, "seat0"))
         return;
 
     if (!udev_device_get_property_value(udev_device, "ID_INPUT")) {
@@ -284,6 +296,9 @@ config_udev_init(void)
     udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "input", NULL);
     udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "tty", NULL); /* For Wacom serial devices */
 
+    if (SeatId && strcmp(SeatId, "seat0"))
+        udev_monitor_filter_add_match_tag(udev_monitor, SeatId);
+
     if (udev_monitor_enable_receiving(udev_monitor)) {
         ErrorF("config/udev: failed to bind the udev monitor\n");
         return 0;
@@ -295,6 +310,9 @@ config_udev_init(void)
 
     udev_enumerate_add_match_subsystem(enumerate, "input");
     udev_enumerate_add_match_subsystem(enumerate, "tty");
+
+    if (SeatId && strcmp(SeatId, "seat0"))
+        udev_enumerate_add_match_tag(enumerate, SeatId);
 
     udev_enumerate_scan_devices(enumerate);
     devices = udev_enumerate_get_list_entry(enumerate);
