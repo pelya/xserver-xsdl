@@ -301,6 +301,11 @@ config_udev_init(void)
     udev_list_entry_foreach(device, devices) {
         const char *syspath = udev_list_entry_get_name(device);
         struct udev_device *udev_device = udev_device_new_from_syspath(udev, syspath);
+
+        /* Device might be gone by the time we try to open it */
+        if (!udev_device)
+            continue;
+
         device_added(udev_device);
         udev_device_unref(udev_device);
     }
