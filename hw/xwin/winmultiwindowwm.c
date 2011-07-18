@@ -1630,10 +1630,14 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
         XFree(normal_hint);
     }
 
-    /* Override hint settings from above with settings from config file */
+    /*
+       Override hint settings from above with settings from config file and set
+       application id for grouping.
+     */
     {
         XClassHint class_hint = { 0, 0 };
         char *window_name = 0;
+        char *application_id = 0;
 
         if (XGetClassHint(pDisplay, iWindow, &class_hint)) {
             XFetchName(pDisplay, iWindow, &window_name);
@@ -1642,10 +1646,24 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
                 winOverrideStyle(class_hint.res_name, class_hint.res_class,
                                  window_name);
 
+#define APPLICATION_ID_FORMAT	"%s.xwin.%s"
+#define APPLICATION_ID_UNKNOWN "unknown"
+            if (class_hint.res_class) {
+                asprintf(&application_id, APPLICATION_ID_FORMAT, XVENDORNAME,
+                         class_hint.res_class);
+            }
+            else {
+                asprintf(&application_id, APPLICATION_ID_FORMAT, XVENDORNAME,
+                         APPLICATION_ID_UNKNOWN);
+            }
+            winSetAppUserModelID(hWnd, application_id);
+
             if (class_hint.res_name)
                 XFree(class_hint.res_name);
             if (class_hint.res_class)
                 XFree(class_hint.res_class);
+            if (application_id)
+                free(application_id);
             if (window_name)
                 XFree(window_name);
         }

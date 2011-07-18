@@ -204,6 +204,9 @@ ddxGiveUp(enum ExitCode error)
     }
 
 #ifdef XWIN_MULTIWINDOW
+    /* Unload libraries for taskbar grouping */
+    winPropertyStoreDestroy();
+
     /* Notify the worker threads we're exiting */
     winDeinitMultiWindowWM();
 #endif
@@ -951,6 +954,10 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char *argv[])
 
     /* Detect supported engines */
     winDetectSupportedEngines();
+#ifdef XWIN_MULTIWINDOW
+    /* Load libraries for taskbar grouping */
+    winPropertyStoreInit();
+#endif
 
     /* Store the instance handle */
     g_hInstance = GetModuleHandle(NULL);
