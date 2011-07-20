@@ -134,11 +134,11 @@ glamor_calculate_boxes_bound(BoxPtr bound, BoxPtr boxes, int nbox)
       if (x_min > boxes[i].x1)
         x_min = boxes[i].x1;
       if (y_min > boxes[i].y1)
-        x_min = boxes[i].y1;
+        y_min = boxes[i].y1;
 
       if (x_max < boxes[i].x2)
         x_max = boxes[i].x2;
-      if (y_max > boxes[i].y2)
+      if (y_max < boxes[i].y2)
         y_max = boxes[i].y2;
     }
   bound->x1 = x_min;
