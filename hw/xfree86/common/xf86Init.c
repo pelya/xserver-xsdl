@@ -902,7 +902,7 @@ OsVendorInit(void)
  */
 
 void
-ddxGiveUp(void)
+ddxGiveUp(enum ExitCode error)
 {
     int i;
 
@@ -929,7 +929,7 @@ ddxGiveUp(void)
     if (xorgHWOpenConsole)
 	xf86CloseConsole();
 
-    xf86CloseLog();
+    xf86CloseLog(error);
 
     /* If an unexpected signal was caught, dump a core for debugging */
     if (xf86Info.caughtSignal)
@@ -946,7 +946,7 @@ ddxGiveUp(void)
  */
 
 void
-AbortDDX(void)
+AbortDDX(enum ExitCode error)
 {
   int i;
 
@@ -979,7 +979,7 @@ AbortDDX(void)
    * This is needed for an abnormal server exit, since the normal exit stuff
    * MUST also be performed (i.e. the vt must be left in a defined state)
    */
-  ddxGiveUp();
+  ddxGiveUp(error);
 }
 
 void
