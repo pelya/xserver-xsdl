@@ -1,4 +1,83 @@
-					X Server
+			Glamor setup
+
+1. Prerequirement.
+Please install makedepend and libudev-devel firstly. 
+Glamor need patch glew-1.5.8, here is the patch:
+
+
+diff -ur ../Downloads/glew-1.5.8/Makefile glew-1.5.8/Makefile
+--- ../Downloads/glew-1.5.8/Makefile    2011-01-31 22:17:27.000000000 +0800
++++ glew-1.5.8/Makefile 2011-06-28 10:13:54.147700479 +0800
+@@ -63,8 +63,12 @@
+ else
+ OPT = $(POPT)
+ endif
+-INCLUDE = -Iinclude
++
++NCLUDE = -Iinclude
+ CFLAGS = $(OPT) $(WARN) $(INCLUDE) $(CFLAGS.EXTRA)
++ifeq ($(NO_GLX), 1)
++CFLAGS += -D_NO_GLX_
++endif
+
+ LIB.SRCS = src/glew.c
+ LIB.OBJS = $(LIB.SRCS:.c=.o)
+diff -ur ../Downloads/glew-1.5.8/src/glew.c glew-1.5.8/src/glew.c
+--- ../Downloads/glew-1.5.8/src/glew.c  2011-01-31 22:17:27.000000000 +0800
++++ glew-1.5.8/src/glew.c       2011-06-28 10:06:45.952700777 +0800
+@@ -11379,6 +11379,10 @@
+ {
+   GLenum r;
+   if ( (r = glewContextInit()) ) return r;
++#if defined(_NO_GLX_)
++  return r;
++#endif
++
+ #if defined(_WIN32)
+   return wglewContextInit();
+ #elif !defined(__APPLE__) || defined(GLEW_APPLE_GLX) /* _UNIX */
+
+
+As xserver's glx extension code has conflicts with glew's glx related
+initialization, we have to disable it in glew currently. Please apply the
+above patch to glew and then build the glew as follow which will 
+workaround the problem.
+
+glew-1.5.8# NO_GLX=1 make
+
+2. Build xserver-glamor.
+
+Then do the following steps one by one.
+2.1. get latest glamor at github.
+
+2.2 Setup xorg development environment, use xserver-glamor to 
+    replace the official xserver. 
+ Here is the link of how to setup xorg development environment: 
+ http://www.x.org/wiki/ModularDevelopersGuide
+ 
+ For most of the packages, we prefer latest git version. Especially
+ for the mesa package.
+
+ When build mesa, use the following parameters: (assume you want to 
+ install the experimental xorg to /opt/gfx-test) 
+#mesa/./autogen.sh --prefix=/opt/gfx-test --with-egl-platforms=drm --disable-gallium  --disable-gallium-egl
+
+ build xserver-glamor as below:
+#xserver-glamor/./autogen.sh --disable-glx --enable-kdrive --enable-xephyr
+
+ Once you finish all the building process, you can have a try as below:
+xserver-glamor#startx -- `pwd`/hw/xfree86/Xorg If you can find the 
+ following messages on the console, then everything should work correctly.
+Mesa: Initializing x86-64 optimizations
+
+
+3. Restrictions:
+
+Currently, glamor doesn't support glx extension, will be fixed in the future.
+
+Glamor setup done.
+
+				X Server
 
 The X server accepts requests from client applications to create windows,
 which are (normally rectangular) "virtual screens" that the client program
