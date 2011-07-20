@@ -114,7 +114,7 @@ device_added(struct udev_device *udev_device)
                 == -1)
                 attrs.usb_id = NULL;
             else
-                LOG_PROPERTY(path, "PRODUCT", product);
+                LOG_PROPERTY(ppath, "PRODUCT", product);
         }
     }
     if (!name)
