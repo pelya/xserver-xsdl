@@ -151,10 +151,10 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     if (w == 0 || h == 0 || type == GLAMOR_PIXMAP_MEMORY)
 	return pixmap;
 
-    /* We should probably take advantage of ARB_fbo's allowance of GL_ALPHA.
-     * FBOs, which EXT_fbo forgot to do.
-     */
     switch (depth) {
+    case 8:
+        format = GL_ALPHA;
+        break;
     case 24:
         format = GL_RGB;
         break; 

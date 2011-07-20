@@ -199,7 +199,20 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
   unsigned int stride, row_length;
   void *texels;
-  GLenum iformat = GL_RGBA;
+  GLenum iformat;
+
+  switch (pixmap->drawable.depth) {
+    case 8:
+        iformat = GL_ALPHA;
+        break;
+    case 24:
+        iformat = GL_RGB;
+        break; 
+    default:
+        iformat = GL_RGBA;
+        break;
+    }
+
 
   stride = pixmap->devKind;
   row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
