@@ -59,6 +59,9 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 
     src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 
+    if (src_pixmap_priv->pending_op.type == GLAMOR_PENDING_FILL) 
+      return FALSE;
+
     if (gc) {
 	if (gc->alu != GXcopy) {
 	    glamor_delayed_fallback(screen, "non-copy ALU\n");
@@ -78,6 +81,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
     if (glamor_set_destination_pixmap(dst_pixmap)) {
 	return FALSE;
     }
+    glamor_validate_pixmap(dst_pixmap);
     glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, src_pixmap_priv->fb);
 
     glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
@@ -130,6 +134,7 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
     glamor_screen_private *glamor_priv =
 	glamor_get_screen_private(screen);
+    glamor_pixmap_private *pixmap_priv;
     int x_off, y_off, i;
     if (src != dst) {
 	glamor_delayed_fallback(screen, "src != dest\n");
@@ -147,6 +152,9 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
 	}
     }
 
+    pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
+    if (pixmap_priv->pending_op.type == GLAMOR_PENDING_FILL) 
+      return TRUE;
     if (glamor_set_destination_pixmap(dst_pixmap)) {
         glamor_delayed_fallback(screen, "dst has no fbo.\n");
 	return FALSE;
@@ -234,37 +242,47 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	glamor_set_alu(gc->alu);
 	if (!glamor_set_planemask(dst_pixmap, gc->planemask))
 	  goto fail;
+        if (gc->alu != GXcopy) {
+          glamor_set_destination_pixmap_priv_nc(src_pixmap_priv);
+          glamor_validate_pixmap(src_pixmap);
+        }
+ 
     }
 
     glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
+    glamor_validate_pixmap(dst_pixmap);
+
     pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
     pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
 
 
     glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
-    glamor_get_drawable_deltas(src, src_pixmap, &src_x_off, &src_y_off);
-    dx += src_x_off;
-    dy += src_y_off;
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
-    glEnable(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    glClientActiveTexture(GL_TEXTURE0);
-    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
+      glamor_get_drawable_deltas(src, src_pixmap, &src_x_off, &src_y_off);
+      dx += src_x_off;
+      dy += src_y_off;
+      pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
+      glEnable(GL_TEXTURE_2D);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    assert(GLEW_ARB_fragment_shader);
-    glUseProgramObjectARB(glamor_priv->finish_access_prog[0]);
-   
-
+      glClientActiveTexture(GL_TEXTURE0);
+      glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+      glUseProgramObjectARB(glamor_priv->finish_access_prog[0]);
+    } 
+    else {
+      GLAMOR_CHECK_PENDING_FILL(glamor_priv, src_pixmap_priv);
+   }
+ 
     for (i = 0; i < nbox; i++) {
-
       glamor_set_normalize_vcoords(dst_xscale, dst_yscale, 
 				   box[i].x1 + dst_x_off,
 				   box[i].y1 + dst_y_off,
@@ -273,11 +291,12 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 				   glamor_priv->yInverted,
 				   vertices);
 
-      glamor_set_normalize_tcoords(src_xscale, src_yscale,
-				   box[i].x1 + dx, box[i].y1 + dy,
-				   box[i].x2 + dx, box[i].y2 + dy,
-				   glamor_priv->yInverted,
-				   texcoords);
+      if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv))
+        glamor_set_normalize_tcoords(src_xscale, src_yscale,
+	  			     box[i].x1 + dx, box[i].y1 + dy,
+				     box[i].x2 + dx, box[i].y2 + dy,
+				     glamor_priv->yInverted,
+				     texcoords);
 
       glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
@@ -285,8 +304,10 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     glUseProgramObjectARB(0);
 
     glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisable(GL_TEXTURE_2D);
+    if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+      glDisable(GL_TEXTURE_2D);
+    }
     return TRUE;
 
 fail:
@@ -352,6 +373,7 @@ glamor_copy_n_to_n(DrawablePtr src,
       if (!temp_src)
 	goto fail;
       glamor_transform_boxes(box, nbox, -bound.x1, -bound.y1);
+      temp_src = &temp_pixmap->drawable;
       fbCopyNtoN(src, temp_src, gc, box, nbox,
 		 temp_dx + bound.x1, temp_dy + bound.y1, 
 		 reverse, upsidedown, bitplane,
@@ -359,7 +381,6 @@ glamor_copy_n_to_n(DrawablePtr src,
       glamor_transform_boxes(box, nbox, bound.x1, bound.y1);
       temp_dx = -bound.x1;
       temp_dy = -bound.y1;
-      temp_src = &temp_pixmap->drawable;
     }
     else {
       temp_dx = dx;

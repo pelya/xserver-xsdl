@@ -296,6 +296,8 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     }
 
     /* XXX consider to reuse a function to do the following work. */
+    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+    glamor_validate_pixmap(pixmap);
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -303,7 +305,6 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride * 8 /

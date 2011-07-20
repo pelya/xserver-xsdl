@@ -52,9 +52,10 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
                      drawable->depth);
       goto fail;
     }
-
     if (glamor_set_destination_pixmap(dest_pixmap))
 	goto fail;
+
+    glamor_validate_pixmap(dest_pixmap);
     if (!glamor_set_planemask(dest_pixmap, gc->planemask))
 	goto fail;
     glamor_set_alu(gc->alu);

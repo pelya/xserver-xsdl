@@ -64,6 +64,7 @@ glamor_get_spans(DrawablePtr drawable,
     }
 
     glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+    glamor_validate_pixmap(pixmap);
  
     glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
     for (i = 0; i < count; i++) {

@@ -98,6 +98,7 @@ glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h, unsigned int te
 
   glamor_set_pixmap_texture(pixmap, w, h, tex);
   glamor_priv->screen_fbo = pixmap_priv->fb;
+  pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
 }
 
 
@@ -119,7 +120,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
-    if (!glamor_check_fbo_width_height(w,h) 
+    if (!glamor_check_fbo_width_height(w,h)
 	|| !glamor_check_fbo_depth(depth) 
 	|| usage == GLAMOR_CREATE_PIXMAP_CPU) {
 	/* MESA can only support upto MAX_WIDTH*MAX_HEIGHT fbo.
@@ -201,6 +202,7 @@ glamor_create_screen_pixmap(ScreenPtr screen, int w, int h, int depth,
     pixmap_priv->gl_fbo = 1;
     pixmap_priv->gl_tex = 1;
     pixmap_priv->container = pixmap;
+    pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
     
     screen->CreatePixmap = glamor_create_pixmap;
     return pixmap;
@@ -369,6 +371,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_init_putimage_shaders(screen);
     glamor_init_finish_access_shaders(screen);
     glamor_glyphs_init(screen);
+    glamor_pixmap_init(screen);
 
     return TRUE;
 

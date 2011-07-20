@@ -149,6 +149,10 @@ enum shader_in {
   SHADER_IN_COUNT,
 };
 
+struct glamor_screen_private;
+struct glamor_pixmap_private;
+typedef void (*glamor_pixmap_validate_function_t)(struct glamor_screen_private*, 
+					          struct glamor_pixmap_private*);
 #define GLAMOR_CREATE_PIXMAP_CPU  0x100
 typedef struct glamor_screen_private {
   CloseScreenProcPtr saved_close_screen;
@@ -197,7 +201,7 @@ typedef struct glamor_screen_private {
   [SHADER_IN_COUNT];
   Bool has_source_coords, has_mask_coords;
   int render_nr_verts;
-
+  glamor_pixmap_validate_function_t *pixmap_validate_funcs;
   glamor_glyph_cache_t glyph_caches[GLAMOR_NUM_GLYPH_CACHES];
   char delayed_fallback_string[GLAMOR_DELAYED_STRING_MAX + 1];
   int  delayed_fallback_pending;
@@ -220,8 +224,33 @@ typedef enum glamor_access {
  * @pbo:     attached pbo.
  * @access_mode: access mode during the prepare/finish pair.
  * @pict_format: the corresponding picture's format.
+ * #pending_op: currently only support pending filling.
  * @container: The corresponding pixmap's pointer.
  **/
+
+#define GLAMOR_PIXMAP_PRIV_NEED_VALIDATE(pixmap_priv)  \
+	(GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv) \
+	&& (pixmap_priv->pending_op.type != GLAMOR_PENDING_NONE))
+
+#define GLAMOR_PIXMAP_PRIV_NO_PENDING(pixmap_priv)   \
+	(pixmap_priv->pending_op.type == GLAMOR_PENDING_NONE)
+
+enum _glamor_pending_op_type{
+    GLAMOR_PENDING_NONE,
+    GLAMOR_PENDING_FILL
+};
+
+typedef struct _glamor_pending_fill {
+    unsigned int type;
+    GLfloat color4fv[4];
+    CARD32  colori;
+} glamor_pending_fill;
+
+typedef union _glamor_pending_op {
+    unsigned int type;
+    glamor_pending_fill fill;
+} glamor_pending_op;
+
 
 typedef struct glamor_pixmap_private {
   unsigned char gl_fbo:1;
@@ -233,8 +262,19 @@ typedef struct glamor_pixmap_private {
   GLuint pbo;                
   glamor_access_t access_mode;
   PictFormatShort pict_format;
+  glamor_pending_op pending_op;
   PixmapPtr container;
 } glamor_pixmap_private;
+
+#define GLAMOR_CHECK_PENDING_FILL(_glamor_priv_, _pixmap_priv_) do \
+  { \
+      if (_pixmap_priv_->pending_op.type == GLAMOR_PENDING_FILL) { \
+        glUseProgramObjectARB(_glamor_priv_->solid_prog); \
+        glUniform4fvARB(_glamor_priv_->solid_color_uniform_location, 1,  \
+                        _pixmap_priv_->pending_op.fill.color4fv); \
+      } \
+  } while(0)
+ 
 
 /* 
  * Pixmap dynamic status, used by dynamic upload feature.
@@ -678,6 +718,8 @@ glamor_triangles (CARD8	    op,
 
 /* glamor_pixmap.c */
 
+void
+glamor_pixmap_init(ScreenPtr screen);
 /** 
  * Download a pixmap's texture to cpu memory. If success,
  * One copy of current pixmap's texture will be put into
@@ -724,7 +766,8 @@ glamor_upload_picture_to_texture(PicturePtr picture);
 void
 glamor_destroy_upload_pixmap(PixmapPtr pixmap);
 
-
+void
+glamor_validate_pixmap(PixmapPtr pixmap);
 
 int
 glamor_create_picture(PicturePtr picture);
@@ -753,6 +796,7 @@ glamor_picture_format_fixup(PicturePtr picture, glamor_pixmap_private *pixmap_pr
 
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD 
+#define GLAMOR_DELAYED_FILLING
 
 
 #include"glamor_utils.h" 

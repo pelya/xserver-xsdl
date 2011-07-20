@@ -26,14 +26,71 @@ glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
   *y = 0;
 }
 
+
+static void 
+_glamor_pixmap_validate_filling(glamor_screen_private *glamor_priv, 
+				 glamor_pixmap_private *pixmap_priv)
+{
+    GLfloat vertices[8];
+//    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glUseProgramObjectARB(glamor_priv->solid_prog);
+    glUniform4fvARB(glamor_priv->solid_color_uniform_location, 
+      1, pixmap_priv->pending_op.fill.color4fv);
+    vertices[0] = -1;
+    vertices[1] = -1;
+    vertices[2] = 1;
+    vertices[3] = -1;
+    vertices[4] = 1;
+    vertices[5] = 1;
+    vertices[6] = -1;
+    vertices[7] = 1;
+    glDrawArrays(GL_QUADS, 0, 4);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glUseProgramObjectARB(0);
+    pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
+}
+
+
+glamor_pixmap_validate_function_t pixmap_validate_funcs[] = {
+  NULL,
+  _glamor_pixmap_validate_filling
+};
+
+void
+glamor_pixmap_init(ScreenPtr screen)
+{
+  glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+  glamor_priv->pixmap_validate_funcs = pixmap_validate_funcs;
+}
+
+void
+glamor_validate_pixmap(PixmapPtr pixmap)
+{
+  glamor_pixmap_validate_function_t validate_op;
+  glamor_screen_private *glamor_priv =
+    glamor_get_screen_private(pixmap->drawable.pScreen);
+  glamor_pixmap_private *pixmap_priv = 
+    glamor_get_pixmap_private(pixmap);
+
+  validate_op = glamor_priv->pixmap_validate_funcs[pixmap_priv->pending_op.type];
+  if (validate_op) { 
+    (*validate_op)(glamor_priv, pixmap_priv);
+  }
+}
+
 void
 glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv)
 {
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+  glMatrixMode(GL_PROJECTION);                                                                                                                                                                  glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);                                                                                                                                                                   glLoadIdentity();                                        
 
   glViewport(0, 0,
 	     pixmap_priv->container->drawable.width,
 	     pixmap_priv->container->drawable.height);
+
 }
 
 int
@@ -49,9 +106,11 @@ glamor_set_destination_pixmap_priv(glamor_pixmap_private *pixmap_priv)
 int
 glamor_set_destination_pixmap(PixmapPtr pixmap)
 {
+  int err;
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-  return glamor_set_destination_pixmap_priv(pixmap_priv);
+  err = glamor_set_destination_pixmap_priv(pixmap_priv);
+  return err;
 }
 
 Bool
@@ -376,7 +435,8 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 
   if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
     return TRUE;
-
+  /* XXX we may don't need to validate it on GPU here,
+   * we can just validate it on CPU. */
   if (glamor_get_tex_format_type_from_pixmap(pixmap, 
 					     &format,
 					     &type, 
@@ -395,7 +455,8 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 		      pixmap->drawable.depth);
  
   stride = pixmap->devKind;
- 
+  glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+  glamor_validate_pixmap(pixmap); 
   switch (access) {
   case GLAMOR_ACCESS_RO:
     gl_access = GL_READ_ONLY_ARB;
@@ -415,7 +476,6 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   }
  
   row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
-  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
 

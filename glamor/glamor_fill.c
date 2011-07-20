@@ -154,7 +154,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     GLfloat xscale, yscale;
     
     if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
-        glamor_fallback("dest has no fbo.\n");
+        glamor_fallback("dest %p has no fbo.\n", pixmap);
 	goto fail;
     }
     glamor_set_alu(alu);
@@ -163,15 +163,29 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
       goto fail;
     } 
 
-    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-
-    glUseProgramObjectARB(glamor_priv->solid_prog);
     glamor_get_rgba_from_pixel(fg_pixel, 
                               &color[0], 
                               &color[1], 
                               &color[2], 
                               &color[3],
                               format_for_pixmap(pixmap));
+#ifdef GLAMOR_DELAYED_FILLING
+    if (x == 0 && y == 0 
+        && width == pixmap->drawable.width 
+        && height == pixmap->drawable.height 
+        && pixmap_priv->fb != glamor_priv->screen_fbo ) {
+      pixmap_priv->pending_op.type = GLAMOR_PENDING_FILL;
+      memcpy(&pixmap_priv->pending_op.fill.color4fv,
+	     color, 4*sizeof(GLfloat));
+      pixmap_priv->pending_op.fill.colori = fg_pixel;
+      return TRUE;
+    }
+#endif
+    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+    glamor_validate_pixmap(pixmap);
+
+    glUseProgramObjectARB(glamor_priv->solid_prog);
+ 
     glUniform4fvARB(glamor_priv->solid_color_uniform_location, 1, color);
 
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
