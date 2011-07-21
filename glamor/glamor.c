@@ -200,7 +200,7 @@ glamor_create_screen_pixmap(ScreenPtr screen, int w, int h, int depth,
     pixmap_priv = glamor_get_pixmap_private(pixmap);
     pixmap_priv->tex = 0; 
     pixmap_priv->gl_fbo = 1;
-    pixmap_priv->gl_tex = 1;
+    pixmap_priv->gl_tex = 0;
     pixmap_priv->container = pixmap;
     pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
     

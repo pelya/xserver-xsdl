@@ -293,7 +293,8 @@ glamor_copy_n_to_n(DrawablePtr src,
     }
     /* XXX need revisit to handle overlapped area copying. */
 
-    if ( overlaped  
+    if ((overlaped 
+          || !src_pixmap_priv->gl_tex  || !dst_pixmap_priv->gl_tex )
         && glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx, dy)) {
         goto done;
 	return;

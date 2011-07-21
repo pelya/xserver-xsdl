@@ -765,7 +765,11 @@ glamor_composite_with_shader(CARD8 op,
       glamor_fallback("source == dest\n");
       goto fail;
     }
-    if (!source_pixmap_priv || source_pixmap_priv->gl_tex == 0) {
+    if (!source_pixmap_priv || source_pixmap_priv->gl_fbo == 0) {
+    /* XXX in Xephyr, we may have gl_fbo equal to 1 but gl_tex 
+     * equal to zero when the pixmap is screen pixmap. Then we may
+     * refer the tex zero directly latter in the composition. 
+     * It seems that it works fine, but it may have potential problem*/
 #ifdef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
       source_status = GLAMOR_UPLOAD_PENDING;
 #else
@@ -786,7 +790,7 @@ glamor_composite_with_shader(CARD8 op,
       glamor_fallback("mask == dest\n");
       goto fail;
     }
-    if (!mask_pixmap_priv || mask_pixmap_priv->gl_tex == 0) {
+    if (!mask_pixmap_priv || mask_pixmap_priv->gl_fbo == 0) {
 #ifdef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
       mask_status = GLAMOR_UPLOAD_PENDING;
 #else
