@@ -3678,7 +3678,7 @@ CheckPassiveGrabsOnWindow(
             if (tempGrab.type < GenericEvent)
             {
                 grab->device = device;
-                grab->modifierDevice = GetPairedDevice(device);
+                grab->modifierDevice = GetMaster(device, MASTER_KEYBOARD);
             }
 
             for (other = inputInfo.devices; other; other = other->next)
