@@ -3351,16 +3351,21 @@ XineramaWarpPointer(ClientPtr client)
 {
     WindowPtr	dest = NULL;
     int		x, y, rc;
-    SpritePtr   pSprite = PickPointer(client)->spriteInfo->sprite;
+    DeviceIntPtr dev;
+    SpritePtr   pSprite;
 
     REQUEST(xWarpPointerReq);
-
 
     if (stuff->dstWid != None) {
 	rc = dixLookupWindow(&dest, stuff->dstWid, client, DixReadAccess);
 	if (rc != Success)
 	    return rc;
     }
+
+    /* Post through the XTest device */
+    dev = PickPointer(client);
+    dev = GetXTestDevice(dev);
+    pSprite = dev->spriteInfo->sprite;
     x = pSprite->hotPhys.x;
     y = pSprite->hotPhys.y;
 
@@ -3410,9 +3415,9 @@ XineramaWarpPointer(ClientPtr client)
     else if (y >= pSprite->physLimits.y2)
 	y = pSprite->physLimits.y2 - 1;
     if (pSprite->hotShape)
-	ConfineToShape(PickPointer(client), pSprite->hotShape, &x, &y);
+	ConfineToShape(dev, pSprite->hotShape, &x, &y);
 
-    XineramaSetCursorPosition(PickPointer(client), x, y, TRUE);
+    XineramaSetCursorPosition(dev, x, y, TRUE);
 
     return Success;
 }
@@ -3430,7 +3435,7 @@ ProcWarpPointer(ClientPtr client)
     WindowPtr	dest = NULL;
     int		x, y, rc;
     ScreenPtr	newScreen;
-    DeviceIntPtr dev, tmp;
+    DeviceIntPtr dev, tmp, xtest_dev = NULL;
     SpritePtr   pSprite;
 
     REQUEST(xWarpPointerReq);
@@ -3443,11 +3448,13 @@ ProcWarpPointer(ClientPtr client)
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixWriteAccess);
 	    if (rc != Success)
 		return rc;
+            if (IsXTestDevice(tmp, dev))
+                xtest_dev = tmp;
 	}
     }
 
-    if (dev->lastSlave)
-        dev = dev->lastSlave;
+    /* Use the XTest device to actually move the pointer */
+    dev = xtest_dev;
     pSprite = dev->spriteInfo->sprite;
 
 #ifdef PANORAMIX
