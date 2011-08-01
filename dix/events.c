@@ -5356,7 +5356,7 @@ ProcUngrabKey(ClientPtr client)
     tempGrab.window = pWin;
     tempGrab.modifiersDetail.exact = stuff->modifiers;
     tempGrab.modifiersDetail.pMask = NULL;
-    tempGrab.modifierDevice = GetPairedDevice(keybd);
+    tempGrab.modifierDevice = keybd;
     tempGrab.type = KeyPress;
     tempGrab.grabtype = GRABTYPE_CORE;
     tempGrab.detail.exact = stuff->key;
