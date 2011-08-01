@@ -1292,6 +1292,19 @@ static void dix_get_master(void)
     assert(GetMaster(&floating, MASTER_POINTER) == NULL);
     assert(GetMaster(&floating, MASTER_KEYBOARD) == NULL);
     assert(GetMaster(&floating, MASTER_ATTACHED) == NULL);
+
+    assert(GetMaster(&vcp, POINTER_OR_FLOAT) == &vcp);
+    assert(GetMaster(&vck, POINTER_OR_FLOAT) == &vcp);
+    assert(GetMaster(&ptr, POINTER_OR_FLOAT) == &vcp);
+    assert(GetMaster(&kbd, POINTER_OR_FLOAT) == &vcp);
+
+    assert(GetMaster(&vcp, KEYBOARD_OR_FLOAT) == &vck);
+    assert(GetMaster(&vck, KEYBOARD_OR_FLOAT) == &vck);
+    assert(GetMaster(&ptr, KEYBOARD_OR_FLOAT) == &vck);
+    assert(GetMaster(&kbd, KEYBOARD_OR_FLOAT) == &vck);
+
+    assert(GetMaster(&floating, KEYBOARD_OR_FLOAT) == &floating);
+    assert(GetMaster(&floating, POINTER_OR_FLOAT) == &floating);
 }
 
 

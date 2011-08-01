@@ -2484,16 +2484,22 @@ GetPairedDevice(DeviceIntPtr dev)
 
 
 /**
- * Returns the right master for the type of event needed. If the event is a
- * keyboard event.
- * This function may be called with a master device as argument. If so, the
- * returned master is either the device itself or the paired master device.
- * If dev is a floating slave device, NULL is returned.
+ * Returns the requested master for this device.
+ * The return values are:
+ * - MASTER_ATTACHED: the master for this device or NULL for a floating
+ *   slave.
+ * - MASTER_KEYBOARD: the master keyboard for this device or NULL for a
+ *   floating slave
+ * - MASTER_POINTER: the master keyboard for this device or NULL for a
+ *   floating slave
+ * - POINTER_OR_FLOAT: the master pointer for this device or the device for
+ *   a floating slave
+ * - KEYBOARD_OR_FLOAT: the master keyboard for this device or the device for
+ *   a floating slave
  *
- * @type ::MASTER_KEYBOARD or ::MASTER_POINTER or ::MASTER_ATTACHED
- * @return The requested master device. In the case of MASTER_ATTACHED, this
- * is the directly attached master to this device, regardless of the type.
- * Otherwise, it is either the master keyboard or pointer for this device.
+ * @param which ::MASTER_KEYBOARD or ::MASTER_POINTER, ::MASTER_ATTACHED,
+ * ::POINTER_OR_FLOAT or ::KEYBOARD_OR_FLOAT.
+ * @return The requested master device
  */
 DeviceIntPtr
 GetMaster(DeviceIntPtr dev, int which)
@@ -2502,12 +2508,15 @@ GetMaster(DeviceIntPtr dev, int which)
 
     if (IsMaster(dev))
         master = dev;
-    else
+    else {
         master = dev->master;
+        if (!master && (which == POINTER_OR_FLOAT || which == KEYBOARD_OR_FLOAT))
+            return dev;
+    }
 
     if (master && which != MASTER_ATTACHED)
     {
-        if (which == MASTER_KEYBOARD)
+        if (which == MASTER_KEYBOARD || which == KEYBOARD_OR_FLOAT)
         {
             if (master->type != MASTER_KEYBOARD)
                 master = GetPairedDevice(master);

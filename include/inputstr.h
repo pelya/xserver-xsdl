@@ -472,7 +472,10 @@ typedef struct _SpriteInfoRec {
 #define MASTER_POINTER          1
 #define MASTER_KEYBOARD         2
 #define SLAVE                   3
-#define MASTER_ATTACHED         4  /* special type for GetMaster */
+/* special types for GetMaster */
+#define MASTER_ATTACHED         4       /* Master for this device */
+#define KEYBOARD_OR_FLOAT       5       /* Keyboard master for this device or this device if floating */
+#define POINTER_OR_FLOAT        6       /* Pointer master for this device or this device if floating */
 
 typedef struct _DeviceIntRec {
     DeviceRec	public;
