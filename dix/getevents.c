@@ -414,7 +414,6 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
     Time current;
     /* The size of a single motion event. */
     int size;
-    int dflt;
     AxisInfo from, *to; /* for scaling */
     INT32 *ocbuf, *icbuf; /* pointer to coordinates for copying */
     INT16 *corebuf;
@@ -501,13 +500,6 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                         from.max_value = pScreen->width;
                     else if (j == 1 && (from.max_value < from.min_value))
                         from.max_value = pScreen->height;
-
-                    if (j == 0 && (to->max_value < to->min_value))
-                        dflt = pScreen->width;
-                    else if (j == 1 && (to->max_value < to->min_value))
-                        dflt = pScreen->height;
-                    else
-                        dflt = 0;
 
                     /* scale from stored range into current range */
                     coord = rescaleValuatorAxis(coord, 0.0, NULL, &from, to, 0);

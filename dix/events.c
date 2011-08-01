@@ -680,9 +680,7 @@ ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
     BoxRec box;
     int x = *px, y = *py;
     int incx = 1, incy = 1;
-    SpritePtr pSprite;
 
-    pSprite = pDev->spriteInfo->sprite;
     if (RegionContainsPoint(shape, x, y, &box))
 	return;
     box = *RegionExtents(shape);
@@ -4765,7 +4763,6 @@ ProcGrabPointer(ClientPtr client)
     WindowPtr confineTo;
     CursorPtr oldCursor;
     REQUEST(xGrabPointerReq);
-    TimeStamp time;
     int rc;
 
     REQUEST_SIZE_MATCH(xGrabPointerReq);
@@ -4811,7 +4808,6 @@ ProcGrabPointer(ClientPtr client)
     if (oldCursor && rep.status == GrabSuccess)
         FreeCursor (oldCursor, (Cursor)0);
 
-    time = ClientTimeToServerTime(stuff->time);
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
