@@ -1234,6 +1234,67 @@ static void dix_valuator_alloc(void)
     free(v);
 }
 
+static void dix_get_master(void)
+{
+    DeviceIntRec vcp, vck;
+    DeviceIntRec ptr, kbd;
+    DeviceIntRec floating;
+    SpriteInfoRec vcp_sprite, vck_sprite;
+    SpriteInfoRec ptr_sprite, kbd_sprite;
+    SpriteInfoRec floating_sprite;
+
+    memset(&vcp, 0, sizeof(DeviceIntRec));
+    memset(&vck, 0, sizeof(DeviceIntRec));
+    memset(&ptr, 0, sizeof(DeviceIntRec));
+    memset(&kbd, 0, sizeof(DeviceIntRec));
+    memset(&floating, 0, sizeof(DeviceIntRec));
+
+    memset(&vcp_sprite, 0, sizeof(DeviceIntRec));
+    memset(&vck_sprite, 0, sizeof(DeviceIntRec));
+    memset(&ptr_sprite, 0, sizeof(DeviceIntRec));
+    memset(&kbd_sprite, 0, sizeof(DeviceIntRec));
+    memset(&floating_sprite, 0, sizeof(DeviceIntRec));
+
+    vcp.type = MASTER_POINTER;
+    vck.type = MASTER_KEYBOARD;
+    ptr.type = SLAVE;
+    kbd.type = SLAVE;
+    floating.type = SLAVE;
+
+    vcp.spriteInfo = &vcp_sprite;
+    vck.spriteInfo = &vck_sprite;
+    ptr.spriteInfo = &ptr_sprite;
+    kbd.spriteInfo = &kbd_sprite;
+    floating.spriteInfo = &floating_sprite;
+
+    vcp_sprite.paired = &vck;
+    vck_sprite.paired = &vcp;
+    ptr_sprite.paired = &vcp;
+    kbd_sprite.paired = &vck;
+    floating_sprite.paired = &floating;
+
+    vcp_sprite.spriteOwner = TRUE;
+    floating_sprite.spriteOwner = TRUE;
+
+    ptr.master = &vcp;
+    kbd.master = &vck;
+
+    assert(GetPairedDevice(&vcp) == &vck);
+    assert(GetPairedDevice(&vck) == &vcp);
+    assert(GetMaster(&ptr, MASTER_POINTER) == &vcp);
+    assert(GetMaster(&ptr, MASTER_KEYBOARD) == &vck);
+    assert(GetMaster(&kbd, MASTER_POINTER) == &vcp);
+    assert(GetMaster(&kbd, MASTER_KEYBOARD) == &vck);
+    assert(GetMaster(&ptr, MASTER_ATTACHED) == &vcp);
+    assert(GetMaster(&kbd, MASTER_ATTACHED) == &vck);
+
+    assert(GetPairedDevice(&floating) == &floating);
+    assert(GetMaster(&floating, MASTER_POINTER) == NULL);
+    assert(GetMaster(&floating, MASTER_KEYBOARD) == NULL);
+    assert(GetMaster(&floating, MASTER_ATTACHED) == NULL);
+}
+
+
 int main(int argc, char** argv)
 {
     dix_input_valuator_masks();
@@ -1249,6 +1310,7 @@ int main(int argc, char** argv)
     include_bit_test_macros();
     xi_unregister_handlers();
     dix_valuator_alloc();
+    dix_get_master();
 
     return 0;
 }
