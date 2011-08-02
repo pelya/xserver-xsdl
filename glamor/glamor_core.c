@@ -59,10 +59,10 @@ void
 glamor_get_transform_uniform_locations(GLint prog,
 				       glamor_transform_uniforms *uniform_locations)
 {
-  uniform_locations->x_bias = glGetUniformLocationARB(prog, "x_bias");
-  uniform_locations->x_scale = glGetUniformLocationARB(prog, "x_scale");
-  uniform_locations->y_bias = glGetUniformLocationARB(prog, "y_bias");
-  uniform_locations->y_scale = glGetUniformLocationARB(prog, "y_scale");
+  uniform_locations->x_bias = glGetUniformLocation(prog, "x_bias");
+  uniform_locations->x_scale = glGetUniformLocation(prog, "x_scale");
+  uniform_locations->y_bias = glGetUniformLocation(prog, "y_bias");
+  uniform_locations->y_scale = glGetUniformLocation(prog, "y_scale");
 }
 
 /* We don't use a full matrix for our transformations because it's
@@ -73,10 +73,10 @@ void
 glamor_set_transform_for_pixmap(PixmapPtr pixmap,
 				glamor_transform_uniforms *uniform_locations)
 {
-  glUniform1fARB(uniform_locations->x_bias, -pixmap->drawable.width / 2.0f);
-  glUniform1fARB(uniform_locations->x_scale, 2.0f / pixmap->drawable.width);
-  glUniform1fARB(uniform_locations->y_bias, -pixmap->drawable.height / 2.0f);
-  glUniform1fARB(uniform_locations->y_scale, -2.0f / pixmap->drawable.height);
+  glUniform1f(uniform_locations->x_bias, -pixmap->drawable.width / 2.0f);
+  glUniform1f(uniform_locations->x_scale, 2.0f / pixmap->drawable.width);
+  glUniform1f(uniform_locations->y_bias, -pixmap->drawable.height / 2.0f);
+  glUniform1f(uniform_locations->y_scale, -2.0f / pixmap->drawable.height);
 }
 
 GLint
@@ -85,9 +85,9 @@ glamor_compile_glsl_prog(GLenum type, const char *source)
   GLint ok;
   GLint prog;
 
-  prog = glCreateShaderObjectARB(type);
-  glShaderSourceARB(prog, 1, (const GLchar **)&source, NULL);
-  glCompileShaderARB(prog);
+  prog = glCreateShader(type);
+  glShaderSource(prog, 1, (const GLchar **)&source, NULL);
+  glCompileShader(prog);
   glGetObjectParameterivARB(prog, GL_OBJECT_COMPILE_STATUS_ARB, &ok);
   if (!ok) {
     GLchar *info;
@@ -165,22 +165,22 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 
   GLint fs_prog, vs_prog, avs_prog, aswizzle_prog;
 
-  glamor_priv->finish_access_prog[0] = glCreateProgramObjectARB();
-  glamor_priv->finish_access_prog[1] = glCreateProgramObjectARB();
+  glamor_priv->finish_access_prog[0] = glCreateProgram();
+  glamor_priv->finish_access_prog[1] = glCreateProgram();
 
   if (GLEW_ARB_fragment_shader) {
-    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, vs_source);
-    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, fs_source);
-    glAttachObjectARB(glamor_priv->finish_access_prog[0], vs_prog);
-    glAttachObjectARB(glamor_priv->finish_access_prog[0], fs_prog);
+    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, vs_source);
+    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, fs_source);
+    glAttachShader(glamor_priv->finish_access_prog[0], vs_prog);
+    glAttachShader(glamor_priv->finish_access_prog[0], fs_prog);
 
-    avs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, vs_source);
-    aswizzle_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, aswizzle_source);
-    glAttachObjectARB(glamor_priv->finish_access_prog[1], avs_prog);
-    glAttachObjectARB(glamor_priv->finish_access_prog[1], aswizzle_prog);
+    avs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, vs_source);
+    aswizzle_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, aswizzle_source);
+    glAttachShader(glamor_priv->finish_access_prog[1], avs_prog);
+    glAttachShader(glamor_priv->finish_access_prog[1], aswizzle_prog);
   } else {
-    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, vs_source);
-    glAttachObjectARB(glamor_priv->finish_access_prog[0], vs_prog);
+    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, vs_source);
+    glAttachShader(glamor_priv->finish_access_prog[0], vs_prog);
     ErrorF("Lack of framgment shader support.\n");
   }
 
@@ -191,16 +191,16 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     GLint sampler_uniform_location;
 
     sampler_uniform_location =
-      glGetUniformLocationARB(glamor_priv->finish_access_prog[0], "sampler");
-    glUseProgramObjectARB(glamor_priv->finish_access_prog[0]);
-    glUniform1iARB(sampler_uniform_location, 0);
-    glUseProgramObjectARB(0);
+      glGetUniformLocation(glamor_priv->finish_access_prog[0], "sampler");
+    glUseProgram(glamor_priv->finish_access_prog[0]);
+    glUniform1i(sampler_uniform_location, 0);
+    glUseProgram(0);
 
     sampler_uniform_location =
-      glGetUniformLocationARB(glamor_priv->finish_access_prog[1], "sampler");
-    glUseProgramObjectARB(glamor_priv->finish_access_prog[1]);
-    glUniform1iARB(sampler_uniform_location, 0);
-    glUseProgramObjectARB(0);
+      glGetUniformLocation(glamor_priv->finish_access_prog[1], "sampler");
+    glUseProgram(glamor_priv->finish_access_prog[1]);
+    glUniform1i(sampler_uniform_location, 0);
+    glUseProgram(0);
   }
 }
 
@@ -218,10 +218,10 @@ glamor_finish_access(DrawablePtr drawable)
   }
 
   if (pixmap_priv->pbo != 0 && pixmap_priv->pbo_valid) {
-    glBindBufferARB (GL_PIXEL_PACK_BUFFER_EXT, 0);
-    glBindBufferARB (GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+    glBindBuffer (GL_PIXEL_PACK_BUFFER_EXT, 0);
+    glBindBuffer (GL_PIXEL_UNPACK_BUFFER_EXT, 0);
     pixmap_priv->pbo_valid = FALSE;
-    glDeleteBuffersARB(1, &pixmap_priv->pbo);
+    glDeleteBuffers(1, &pixmap_priv->pbo);
     pixmap_priv->pbo = 0;
   } else
     free(pixmap->devPrivate.ptr);

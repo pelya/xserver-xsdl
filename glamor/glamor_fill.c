@@ -122,20 +122,20 @@ glamor_init_solid_shader(ScreenPtr screen)
 	"}\n";
     GLint fs_prog, vs_prog;
 
-    glamor_priv->solid_prog = glCreateProgramObjectARB();
+    glamor_priv->solid_prog = glCreateProgram();
     if (GLEW_ARB_fragment_shader) {
-	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, solid_vs);
-	fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, solid_fs);
-	glAttachObjectARB(glamor_priv->solid_prog, vs_prog);
-	glAttachObjectARB(glamor_priv->solid_prog, fs_prog);
+	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, solid_vs);
+	fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, solid_fs);
+	glAttachShader(glamor_priv->solid_prog, vs_prog);
+	glAttachShader(glamor_priv->solid_prog, fs_prog);
     } else {
-	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, solid_vs_only);
-	glAttachObjectARB(glamor_priv->solid_prog, vs_prog);
+	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, solid_vs_only);
+	glAttachShader(glamor_priv->solid_prog, vs_prog);
     }
     glamor_link_glsl_prog(glamor_priv->solid_prog);
 
     glamor_priv->solid_color_uniform_location =
-	glGetUniformLocationARB(glamor_priv->solid_prog, "color");
+	glGetUniformLocation(glamor_priv->solid_prog, "color");
 }
 
 Bool
@@ -184,9 +184,9 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glamor_set_destination_pixmap_priv_nc(pixmap_priv);
     glamor_validate_pixmap(pixmap);
 
-    glUseProgramObjectARB(glamor_priv->solid_prog);
+    glUseProgram(glamor_priv->solid_prog);
  
-    glUniform4fvARB(glamor_priv->solid_color_uniform_location, 1, color);
+    glUniform4fv(glamor_priv->solid_color_uniform_location, 1, color);
 
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -199,7 +199,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     glDisableClientState(GL_VERTEX_ARRAY);
-    glUseProgramObjectARB(0);
+    glUseProgram(0);
     return TRUE;
 fail:
     glamor_set_alu(GXcopy);

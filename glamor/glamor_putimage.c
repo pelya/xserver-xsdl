@@ -66,25 +66,25 @@ glamor_init_putimage_shaders(ScreenPtr screen)
     if (!GLEW_ARB_fragment_shader)
 	return;
 
-    prog = glCreateProgramObjectARB();
-    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, xybitmap_vs);
-    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, xybitmap_fs);
-    glAttachObjectARB(prog, vs_prog);
-    glAttachObjectARB(prog, fs_prog);
+    prog = glCreateProgram();
+    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, xybitmap_vs);
+    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, xybitmap_fs);
+    glAttachShader(prog, vs_prog);
+    glAttachShader(prog, fs_prog);
     glamor_link_glsl_prog(prog);
 
-    glUseProgramObjectARB(prog);
-    sampler_uniform_location = glGetUniformLocationARB(prog, "bitmap_sampler");
-    glUniform1iARB(sampler_uniform_location, 0);
+    glUseProgram(prog);
+    sampler_uniform_location = glGetUniformLocation(prog, "bitmap_sampler");
+    glUniform1i(sampler_uniform_location, 0);
 
     glamor_priv->put_image_xybitmap_fg_uniform_location =
-	glGetUniformLocationARB(prog, "fg");
+	glGetUniformLocation(prog, "fg");
     glamor_priv->put_image_xybitmap_bg_uniform_location =
-	glGetUniformLocationARB(prog, "bg");
+	glGetUniformLocation(prog, "bg");
     glamor_get_transform_uniform_locations(prog,
 					   &glamor_priv->put_image_xybitmap_transform);
     glamor_priv->put_image_xybitmap_prog = prog;
-    glUseProgramObjectARB(0);
+    glUseProgram(0);
 }
 
 
@@ -160,13 +160,13 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
     if (!glamor_set_planemask(pixmap, gc->planemask))
 	goto fail;
 
-    glUseProgramObjectARB(glamor_priv->put_image_xybitmap_prog);
+    glUseProgram(glamor_priv->put_image_xybitmap_prog);
 
     glamor_get_color_4f_from_pixel(pixmap, gc->fgPixel, fg);
-    glUniform4fvARB(glamor_priv->put_image_xybitmap_fg_uniform_location,
+    glUniform4fv(glamor_priv->put_image_xybitmap_fg_uniform_location,
 		    1, fg);
     glamor_get_color_4f_from_pixel(pixmap, gc->bgPixel, bg);
-    glUniform4fvARB(glamor_priv->put_image_xybitmap_bg_uniform_location,
+    glUniform4fv(glamor_priv->put_image_xybitmap_bg_uniform_location,
 		    1, bg);
 
     glGenTextures(1, &tex);
@@ -322,7 +322,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glEnable(GL_TEXTURE_2D);
 
     assert(GLEW_ARB_fragment_shader);
-    glUseProgramObjectARB(glamor_priv->finish_access_prog[ax]);
+    glUseProgram(glamor_priv->finish_access_prog[ax]);
 
     x += drawable->x;
     y += drawable->y;
@@ -371,7 +371,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     }
 
     glDisable(GL_TEXTURE_2D);
-    glUseProgramObjectARB(0);
+    glUseProgram(0);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDeleteTextures(1, &tex);

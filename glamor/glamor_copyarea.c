@@ -196,7 +196,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
       glClientActiveTexture(GL_TEXTURE0);
       glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
       glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-      glUseProgramObjectARB(glamor_priv->finish_access_prog[0]);
+      glUseProgram(glamor_priv->finish_access_prog[0]);
     } 
     else {
       GLAMOR_CHECK_PENDING_FILL(glamor_priv, src_pixmap_priv);
@@ -222,7 +222,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
       glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
 
-    glUseProgramObjectARB(0);
+    glUseProgram(0);
 
     glDisableClientState(GL_VERTEX_ARRAY);
     if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {

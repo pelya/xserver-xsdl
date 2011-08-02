@@ -58,18 +58,18 @@ glamor_init_tile_shader(ScreenPtr screen)
     if (!GLEW_ARB_fragment_shader)
 	return;
 
-    glamor_priv->tile_prog = glCreateProgramObjectARB();
-    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, tile_vs);
-    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, tile_fs);
-    glAttachObjectARB(glamor_priv->tile_prog, vs_prog);
-    glAttachObjectARB(glamor_priv->tile_prog, fs_prog);
+    glamor_priv->tile_prog = glCreateProgram();
+    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, tile_vs);
+    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, tile_fs);
+    glAttachShader(glamor_priv->tile_prog, vs_prog);
+    glAttachShader(glamor_priv->tile_prog, fs_prog);
     glamor_link_glsl_prog(glamor_priv->tile_prog);
 
     sampler_uniform_location =
-	glGetUniformLocationARB(glamor_priv->tile_prog, "sampler");
-    glUseProgramObjectARB(glamor_priv->tile_prog);
-    glUniform1iARB(sampler_uniform_location, 0);
-    glUseProgramObjectARB(0);
+	glGetUniformLocation(glamor_priv->tile_prog, "sampler");
+    glUseProgram(glamor_priv->tile_prog);
+    glUniform1i(sampler_uniform_location, 0);
+    glUseProgram(0);
 }
 
 Bool
@@ -130,7 +130,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 
     if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
       pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
-      glUseProgramObjectARB(glamor_priv->tile_prog);
+      glUseProgram(glamor_priv->tile_prog);
  
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
@@ -169,7 +169,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     }
     glDisableClientState(GL_VERTEX_ARRAY);
 
-    glUseProgramObjectARB(0);
+    glUseProgram(0);
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);
     return TRUE;

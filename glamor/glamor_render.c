@@ -186,7 +186,7 @@ glamor_create_composite_fs(struct shader_key *key)
 	      in);
  
 
-  prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, source);
+  prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, source);
   free(source);
 
   return prog;
@@ -223,7 +223,7 @@ glamor_create_composite_vs(struct shader_key *key)
 	      mask_coords_setup,
 	      main_closing);
 
-  prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, source);
+  prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, source);
   free(source);
 
   return prog;
@@ -243,30 +243,30 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
   if (fs == 0)
     return;
 
-  prog = glCreateProgramObjectARB();
-  glAttachObjectARB(prog, vs);
-  glAttachObjectARB(prog, fs);
+  prog = glCreateProgram();
+  glAttachShader(prog, vs);
+  glAttachShader(prog, fs);
   glamor_link_glsl_prog(prog);
 
   shader->prog = prog;
 
-  glUseProgramObjectARB(prog);
+  glUseProgram(prog);
 
   if (key->source == SHADER_SOURCE_SOLID) {
-    shader->source_uniform_location = glGetUniformLocationARB(prog,
+    shader->source_uniform_location = glGetUniformLocation(prog,
 							      "source");
   } else {
-    source_sampler_uniform_location = glGetUniformLocationARB(prog,
+    source_sampler_uniform_location = glGetUniformLocation(prog,
 							      "source_sampler");
     glUniform1i(source_sampler_uniform_location, 0);
   }
 
   if (key->mask != SHADER_MASK_NONE) {
     if (key->mask == SHADER_MASK_SOLID) {
-      shader->mask_uniform_location = glGetUniformLocationARB(prog,
+      shader->mask_uniform_location = glGetUniformLocation(prog,
 							      "mask");
     } else {
-      mask_sampler_uniform_location = glGetUniformLocationARB(prog,
+      mask_sampler_uniform_location = glGetUniformLocation(prog,
 							      "mask_sampler");
       glUniform1i(mask_sampler_uniform_location, 1);
     }
@@ -397,7 +397,7 @@ glamor_set_composite_texture(ScreenPtr screen, int unit, PicturePtr picture,
 static void
 glamor_set_composite_solid(float *color, GLint uniform_location)
 {
-  glUniform4fvARB(uniform_location, 1, color);
+  glUniform4fv(uniform_location, 1, color);
 }
 
 static int
@@ -504,7 +504,7 @@ glamor_setup_composite_vbo(ScreenPtr screen)
   if (glamor_priv->has_mask_coords)
     glamor_priv->vb_stride += 2 * sizeof(float);
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, glamor_priv->vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
   glVertexPointer(2, GL_FLOAT, glamor_priv->vb_stride,
 		  (void *)((long)glamor_priv->vbo_offset));
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -559,8 +559,8 @@ glamor_flush_composite_rects(ScreenPtr screen)
 
   if (!glamor_priv->render_nr_verts)
     return;
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, glamor_priv->vbo_offset, glamor_priv->vb,
-	    GL_STREAM_DRAW_ARB);
+  glBufferData(GL_ARRAY_BUFFER, glamor_priv->vbo_offset, glamor_priv->vb,
+	    GL_STREAM_DRAW);
 
   glDrawArrays(GL_QUADS, 0, glamor_priv->render_nr_verts);
   glamor_reset_composite_vbo(screen);
@@ -582,7 +582,7 @@ glamor_emit_composite_rect(ScreenPtr screen,
 
   if (glamor_priv->vbo_offset == 0) {
     if (glamor_priv->vbo == 0)
-      glGenBuffersARB(1, &glamor_priv->vbo);
+      glGenBuffers(1, &glamor_priv->vbo);
 
     glamor_setup_composite_vbo(screen);
   }
@@ -882,7 +882,7 @@ glamor_composite_with_shader(CARD8 op,
     goto fail;
   }
 
-  glUseProgramObjectARB(shader->prog);
+  glUseProgram(shader->prog);
   if (key.source == SHADER_SOURCE_SOLID) {
     glamor_set_composite_solid(source_solid_color, shader->source_uniform_location);
   } else {
@@ -1008,7 +1008,7 @@ glamor_composite_with_shader(CARD8 op,
   }
   glamor_flush_composite_rects(screen);
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
   glClientActiveTexture(GL_TEXTURE0);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glClientActiveTexture(GL_TEXTURE1);
@@ -1021,7 +1021,7 @@ glamor_composite_with_shader(CARD8 op,
   glDisable(GL_TEXTURE_2D);
   glActiveTexture(GL_TEXTURE1);
   glDisable(GL_TEXTURE_2D);
-  glUseProgramObjectARB(0);
+  glUseProgram(0);
   if (saved_source_format) 
     source->format = saved_source_format;
   return TRUE;
@@ -1031,7 +1031,7 @@ glamor_composite_with_shader(CARD8 op,
     source->format = saved_source_format;
 
   glDisable(GL_BLEND);
-  glUseProgramObjectARB(0);
+  glUseProgram(0);
   return FALSE;
 }
 
@@ -1223,7 +1223,7 @@ fail:
 		  dest->pDrawable->height,
 		  glamor_get_picture_location(dest));
 
-  glUseProgramObjectARB(0);
+  glUseProgram(0);
   glDisable(GL_BLEND);
   if (glamor_prepare_access_picture(dest, GLAMOR_ACCESS_RW)) {
     if (glamor_prepare_access_picture(source, GLAMOR_ACCESS_RO))

@@ -74,10 +74,10 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
      */
     pixmap_priv->gl_fbo = 1;
     pixmap_priv->gl_tex = 1;
-    glGenFramebuffersEXT(1, &pixmap_priv->fb);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-                             GL_COLOR_ATTACHMENT0_EXT,
+    glGenFramebuffers(1, &pixmap_priv->fb);
+    glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
+    glFramebufferTexture2D(GL_FRAMEBUFFER,
+                             GL_COLOR_ATTACHMENT0,
                              GL_TEXTURE_2D,
                              pixmap_priv->tex,
                              0);
@@ -217,11 +217,11 @@ glamor_destroy_pixmap(PixmapPtr pixmap)
     if (pixmap->refcnt == 1) {
 	glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
         if (pixmap_priv->fb)
-	  glDeleteFramebuffersEXT(1, &pixmap_priv->fb);
+	  glDeleteFramebuffers(1, &pixmap_priv->fb);
         if (pixmap_priv->tex)
 	  glDeleteTextures(1, &pixmap_priv->tex);
         if (pixmap_priv->pbo)
-          glDeleteBuffersARB(1, &pixmap_priv->pbo);
+          glDeleteBuffers(1, &pixmap_priv->pbo);
         dixFreePrivates(pixmap->devPrivates, PRIVATE_PIXMAP);
     }
 
@@ -293,6 +293,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glewInit();
 
+#ifndef GLAMOR_GLES2
     if (!GLEW_EXT_framebuffer_object) {
 	ErrorF("GL_EXT_framebuffer_object required\n");
 	goto fail;
@@ -305,14 +306,17 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	ErrorF("GL_ARB_vertex_shader required\n");
 	goto fail;
     }
-    if (!GLEW_ARB_pixel_buffer_object) {
-	ErrorF("GL_ARB_pixel_buffer_object required\n");
-	goto fail;
-    }
     if (!GLEW_EXT_bgra) {
 	ErrorF("GL_EXT_bgra required\n");
 	goto fail;
     }
+#endif
+
+    if (!GLEW_ARB_pixel_buffer_object) {
+	ErrorF("GL_ARB_pixel_buffer_object required\n");
+	goto fail;
+    }
+ 
     if (!RegisterBlockAndWakeupHandlers(glamor_block_handler,
 					glamor_wakeup_handler,
 					NULL)) {
