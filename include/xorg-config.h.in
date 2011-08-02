@@ -139,4 +139,15 @@
 /* Build with libdrm support */
 #undef WITH_LIBDRM
 
+
+/* Build GLAMOR */
+#undef GLAMOR
+
+/* Build GLAMOR over GLES2*/
+#undef GLAMOR_GLES2
+
+/* Build GLAMOR ddx*/
+#undef GLAMOR_DDX
+
+
 #endif /* _XORG_CONFIG_H_ */

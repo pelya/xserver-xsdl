@@ -646,6 +646,8 @@ AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest serv
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
 AC_ARG_ENABLE(standalone-xpbproxy, AS_HELP_STRING([--enable-standalone-xpbproxy], [Build a standalone xpbproxy (in addition to the one integrated into Xquartz as a separate thread) (default: no)]), [STANDALONE_XPBPROXY=$enableval], [STANDALONE_XPBPROXY=no])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
+#AC_ARG_ENABLE(glamor,         AS_HELP_STRING([--enable-glamor], [Build glamor server (default: no)]), [GLAMOR=$enableval], [GLAMOR=no])
+AC_ARG_ENABLE(glamor-ddx,     AS_HELP_STRING([--enable-glamor-ddx], [Build glamor ddx (default: no)]), [GLAMOR_DDX=$enableval], [GLAMOR_DDX=no])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
@@ -655,6 +657,8 @@ dnl kdrive options
 AC_ARG_ENABLE(kdrive-kbd,     AS_HELP_STRING([--enable-kdrive-kbd], [Build kbd driver for kdrive (default: auto)]), [KDRIVE_KBD=$enableval], [KDRIVE_KBD=auto])
 AC_ARG_ENABLE(kdrive-mouse,   AC_HELP_STRING([--enable-kdrive-mouse], [Build mouse driver for kdrive (default: auto)]), [KDRIVE_MOUSE=$enableval], [KDRIVE_MOUSE=auto])
 AC_ARG_ENABLE(kdrive-evdev,   AC_HELP_STRING([--enable-kdrive-evdev], [Build evdev driver for kdrive (default: auto)]), [KDRIVE_EVDEV=$enableval], [KDRIVE_EVDEV=auto])
+dnl glamor options
+AC_ARG_ENABLE(glamor-gles2,         AS_HELP_STRING([--enable-glamor-gles2], [Build glamor based on gles2 (default: no)]), [GLAMOR_GLES2=$enableval], [GLAMOR_GLES2=no])
 
 
 dnl chown/chmod to be setuid root as part of build
@@ -1764,6 +1768,25 @@ AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
 AM_CONDITIONAL([SOLARIS_VT], [test "x$solaris_vt" = xyes])
 AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
 AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
+
+dnl glamor 
+
+AM_CONDITIONAL([GLAMOR], [test "x$XEPHYR" = xyes || test "x$GLAMOR_DDX" = xyes])
+
+GLAMOR=yes
+
+if test "x$GLAMOR" = xyes; then 
+   AC_DEFINE(GLAMOR,1,[Build Glamor])
+   if test "x$GLAMOR_GLES2" = xyes; then
+      AC_DEFINE(GLAMOR_GLES2,1,[Build glamor over GLES2])
+   else 
+      AC_DEFINE(GLAMOR_GL,1,[Build glamor over GL])
+   fi
+
+   if test "x$GLAMOR_DDX" = xyes; then
+     AC_DEFINE(GLAMOR_DDX,1,[Enable glamor ddx driver])
+   fi
+fi
 
 dnl XWin DDX
 

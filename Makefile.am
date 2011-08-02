@@ -17,6 +17,10 @@ if RECORD
 RECORD_DIR=record
 endif
 
+if GLAMOR
+GLAMOR_DIR=glamor
+endif
+
 SUBDIRS = \
 	doc \
 	man \
@@ -38,7 +42,7 @@ SUBDIRS = \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
 	exa \
-	glamor \
+	$(GLAMOR_DIR) \
 	config \
 	hw \
 	test

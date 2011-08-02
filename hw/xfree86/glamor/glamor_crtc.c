@@ -53,7 +53,17 @@
 #define GL_GLEXT_PROTOTYPES
 #define EGL_EGLEXT_PROTOTYPES
 #define EGL_DISPLAY_NO_X_MESA
+
+#if GLAMOR_GLES2
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#ifndef GL_BGRA
+#define GL_BGRA GL_BGRA_EXT
+#endif
+#else
 #include <GL/gl.h>
+#endif
+
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
@@ -482,11 +492,15 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 				GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, drmmode_crtc->cursor);
 	}
-
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 64);
 	glBindTexture(GL_TEXTURE_2D, drmmode_crtc->cursor_tex);
+#if GLAMOR_GLES2
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, 64, 64, 0,
+	  GL_BGRA,  GL_UNSIGNED_BYTE, image);
+#else
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 64);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0,
 	  GL_BGRA,  GL_UNSIGNED_INT_8_8_8_8_REV, image);
+#endif
 
 }
 

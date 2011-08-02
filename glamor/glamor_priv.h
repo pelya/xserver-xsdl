@@ -29,10 +29,28 @@
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
+#include <xorg-config.h>
 #endif
 
 
 #include "glamor.h"
+
+#ifdef GLAMOR_GLES2
+
+#define GLEW_ES_ONLY 1
+
+#define GL_BGRA                                 GL_BGRA_EXT
+#define GL_COLOR_INDEX                          0x1900
+#define GL_BITMAP                               0x1A00
+#define GL_UNSIGNED_INT_8_8_8_8                 0x8035
+#define GL_UNSIGNED_INT_8_8_8_8_REV             0x8367
+#define GL_UNSIGNED_INT_2_10_10_10_REV          0x8368
+#define GL_UNSIGNED_SHORT_5_6_5_REV             0x8364
+#define GL_UNSIGNED_SHORT_1_5_5_5_REV           0x8366
+#define GL_UNSIGNED_SHORT_4_4_4_4_REV           0x8365
+
+#endif
+
 #include <GL/glew.h>
 
 #ifdef RENDER

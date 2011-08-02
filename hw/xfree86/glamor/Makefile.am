@@ -12,8 +12,11 @@ glamor_la_CFLAGS =					\
 	-I$(top_srcdir)/glamor				\
 	-I/usr/include/drm
 
-glamor_la_LDFLAGS =							\
-	-module -avoid-version -L$(libdir) -lEGL $(top_builddir)/glamor/libglamor.la -lGLEW
+glamor_la_LDFLAGS =				 \
+	-module -avoid-version -L$(libdir) -lEGL \
+        $(top_builddir)/glamor/libglamor.la      \
+        -L$(libdir)/../lib64 -lGLEW
+
 glamor_ladir = $(moduledir)/drivers
 glamor_la_SOURCES =				\
 	glamor.c				\

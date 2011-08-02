@@ -38,7 +38,13 @@
 #define GL_GLEXT_PROTOTYPES
 #define EGL_EGLEXT_PROTOTYPES
 #define EGL_DISPLAY_NO_X_MESA
+
+#if GLAMOR_GLES2
+#include <GLES2/gl2.h>
+#else
 #include <GL/gl.h>
+#endif
+
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
@@ -322,7 +328,6 @@ glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 
 	glamor->display = eglGetDRMDisplayMESA(glamor->fd);
 	eglBindAPI(EGL_OPENGL_API);
-        LogMessageVerb(X_INFO, 0, "%s glCreateProgramObjectARB=%p", __FUNCTION__, *(&glCreateProgramObjectARB));
 	if (!eglInitialize(glamor->display, &glamor->major, &glamor->minor)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "eglInitialize() failed\n");

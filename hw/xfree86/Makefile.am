@@ -27,12 +27,16 @@ if INT10MODULE
 INT10_SUBDIR = int10
 endif
 
-SUBDIRS = common ddc i2c x86emu $(INT10_SUBDIR) fbdevhw glamor os-support parser \
+if GLAMOR
+GLAMOR_DIR=glamor
+endif
+
+SUBDIRS = common ddc i2c x86emu $(INT10_SUBDIR) fbdevhw $(GLAMOR_DIR) os-support parser \
 	  ramdac shadowfb $(VBE_SUBDIR) $(VGAHW_SUBDIR) $(XAA_SUBDIR) \
 	  loader dixmods exa modes \
 	  $(DRI_SUBDIR) $(DRI2_SUBDIR) $(XF86UTILS_SUBDIR) doc man
 
-DIST_SUBDIRS = common ddc i2c x86emu int10 fbdevhw glamor os-support \
+DIST_SUBDIRS = common ddc i2c x86emu int10 fbdevhw $(GLAMOR_DIR) os-support \
                parser ramdac shadowfb vbe vgahw xaa \
                loader dixmods dri dri2 exa modes \
 	       utils doc man
