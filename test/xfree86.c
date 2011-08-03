@@ -33,14 +33,15 @@
 static void
 xfree86_option_list_duplicate(void)
 {
-    pointer options;
-    pointer duplicate;
+    XF86OptionPtr options;
+    XF86OptionPtr duplicate;
     const char *o1 = "foo",
                *o2 = "bar",
                *v1 = "one",
                *v2 = "two";
     const char *o_null= "NULL";
     char *val1, *val2;
+    XF86OptionPtr a, b;
 
     duplicate = xf86OptionListDuplicate(NULL);
     assert(!duplicate);
@@ -67,9 +68,9 @@ xfree86_option_list_duplicate(void)
     assert(strcmp(val1, v2) == 0);
     assert(strcmp(val1, val2) == 0);
 
-    val1 = xf86FindOption(options, o_null);
-    val2 = xf86FindOption(duplicate, o_null);
-    assert(val1 && val2);
+    a = xf86FindOption(options, o_null);
+    b = xf86FindOption(duplicate, o_null);
+    assert(a && b);
 }
 
 int main(int argc, char** argv)

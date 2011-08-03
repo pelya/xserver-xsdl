@@ -276,7 +276,7 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
  */
 void
 xf86ProcessCommonOptions(InputInfoPtr pInfo,
-                         pointer	list)
+                         XF86OptionPtr list)
 {
     if (xf86SetBoolOption(list, "Floating", 0) ||
         !xf86SetBoolOption(list, "AlwaysCore", 1) ||
