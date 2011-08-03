@@ -46,7 +46,7 @@ _glamor_pixmap_validate_filling(glamor_screen_private *glamor_priv,
     vertices[5] = 1;
     vertices[6] = -1;
     vertices[7] = 1;
-    glDrawArrays(GL_QUADS, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glDisableClientState(GL_VERTEX_ARRAY);
     glUseProgram(0);
     pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
@@ -83,7 +83,7 @@ glamor_validate_pixmap(PixmapPtr pixmap)
 void
 glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv)
 {
-  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
   glMatrixMode(GL_PROJECTION);                                                                                                                                                                  glLoadIdentity();
   glMatrixMode(GL_MODELVIEW);                                                                                                                                                                   glLoadIdentity();                                        
 
@@ -223,7 +223,7 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
 
   if (pixmap_priv->pbo && pixmap_priv->pbo_valid) {
     texels = NULL;
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER_EXT, pixmap_priv->pbo);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixmap_priv->pbo);
   }
   else
     texels = pixmap->devPrivate.ptr;
@@ -288,7 +288,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, i
   glClientActiveTexture(GL_TEXTURE0);
   glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, ptexcoords);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
   glViewport(0, 0, pixmap->drawable.width, pixmap->drawable.height);
 
   glGenTextures(1, &tex);
@@ -309,7 +309,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, i
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glDeleteTextures(1, &tex);
-  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 
@@ -347,7 +347,7 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int ax)
 
   if (need_fbo) {
     if (pixmap_priv->fb == 0) 
-      glGenFramebuffersEXT(1, &pixmap_priv->fb);
+      glGenFramebuffers(1, &pixmap_priv->fb);
     glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -355,9 +355,9 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int ax)
 		 pixmap->drawable.height, 0,
 		 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-			      GL_COLOR_ATTACHMENT0_EXT,
+    glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
+    glFramebufferTexture2D(GL_FRAMEBUFFER,
+			      GL_COLOR_ATTACHMENT0,
 			      GL_TEXTURE_2D,
 			      pixmap_priv->tex,
 			      0);
@@ -498,45 +498,45 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
       glPixelStorei(GL_PACK_INVERT_MESA, 1);
     if (pixmap_priv->pbo == 0)
       glGenBuffers (1, &pixmap_priv->pbo);
-    glBindBuffer (GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
-    glBufferData (GL_PIXEL_PACK_BUFFER_EXT,
+    glBindBuffer (GL_PIXEL_PACK_BUFFER, pixmap_priv->pbo);
+    glBufferData (GL_PIXEL_PACK_BUFFER,
 		     stride * pixmap->drawable.height,
 		     NULL, gl_usage);
     glReadPixels (0, 0,
                     row_length, pixmap->drawable.height,
                     format, type, 0);
-    data = glMapBuffer (GL_PIXEL_PACK_BUFFER_EXT, gl_access);
+    data = glMapBuffer (GL_PIXEL_PACK_BUFFER, gl_access);
     pixmap_priv->pbo_valid = TRUE;
 
     if (!glamor_priv->yInverted) 
       glPixelStorei(GL_PACK_INVERT_MESA, 0);
-    glBindBuffer (GL_PIXEL_PACK_BUFFER_EXT, 0);
+    glBindBuffer (GL_PIXEL_PACK_BUFFER, 0);
   } else {
     data = malloc(stride * pixmap->drawable.height);
     assert(data);
     if (access != GLAMOR_ACCESS_WO) {
       if (pixmap_priv->pbo == 0)
 	glGenBuffers(1, &pixmap_priv->pbo);
-      glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
-      glBufferData(GL_PIXEL_PACK_BUFFER_EXT,
+      glBindBuffer(GL_PIXEL_PACK_BUFFER, pixmap_priv->pbo);
+      glBufferData(GL_PIXEL_PACK_BUFFER,
 		      stride * pixmap->drawable.height,
 		      NULL, GL_STREAM_READ);
       glReadPixels (0, 0, row_length, pixmap->drawable.height,
 		    format, type, 0);
-      read = glMapBuffer(GL_PIXEL_PACK_BUFFER_EXT, GL_READ_ONLY);
+      read = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 	  
       for (y = 0; y < pixmap->drawable.height; y++)
 	memcpy(data + y * stride,
 	       read + (pixmap->drawable.height - y - 1) * stride, stride);
-      glUnmapBuffer(GL_PIXEL_PACK_BUFFER_EXT);
-      glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, 0);
+      glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+      glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
       pixmap_priv->pbo_valid = FALSE;
       glDeleteBuffers(1, &pixmap_priv->pbo);
       pixmap_priv->pbo = 0;
     }
   }
 
-  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 done:
   pixmap->devPrivate.ptr = data;
   return TRUE;

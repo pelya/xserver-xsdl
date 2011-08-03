@@ -49,9 +49,31 @@
 #define GL_UNSIGNED_SHORT_1_5_5_5_REV           0x8366
 #define GL_UNSIGNED_SHORT_4_4_4_4_REV           0x8365
 
+#define GLEW_ARB_fragment_shader                1
+#define GL_PIXEL_PACK_BUFFER              0x88EB
+#define GL_PIXEL_UNPACK_BUFFER            0x88EC
+#define GL_CLAMP_TO_BORDER                0x812D
+
+#define GL_READ_WRITE                     0x88BA
+#define GL_READ_ONLY                      0x88B8
+#define GL_WRITE_ONLY                     0x88B9
+#define GL_STREAM_DRAW                    0x88E0
+#define GL_STREAM_READ                    0x88E1
+#define GL_PACK_ROW_LENGTH                      0x0D02
+
+#define GLEW_MESA_pack_invert             0
+#define GL_PACK_INVERT_MESA               0x8758
+
 #endif
 
+#ifdef GLAMOR_GLES2
+#define GL_GLEXT_PROTOTYPES
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#else
 #include <GL/glew.h>
+#endif
+
 
 #ifdef RENDER
 #include "glyphstr.h"
@@ -171,6 +193,12 @@ struct glamor_screen_private;
 struct glamor_pixmap_private;
 typedef void (*glamor_pixmap_validate_function_t)(struct glamor_screen_private*, 
 					          struct glamor_pixmap_private*);
+
+enum glamor_gl_flavor {
+   GLAMOR_GL_DESKTOP,        // OPENGL API
+   GLAMOR_GL_ES2             // OPENGL ES2.0 API
+};
+
 #define GLAMOR_CREATE_PIXMAP_CPU  0x100
 typedef struct glamor_screen_private {
   CloseScreenProcPtr saved_close_screen;
@@ -196,6 +224,7 @@ typedef struct glamor_screen_private {
   int vbo_size;
   char *vb;
   int vb_stride;
+  enum glamor_gl_flavor gl_flavor;
 
   /* glamor_finishaccess */
   GLint finish_access_prog[2];
@@ -287,8 +316,8 @@ typedef struct glamor_pixmap_private {
 #define GLAMOR_CHECK_PENDING_FILL(_glamor_priv_, _pixmap_priv_) do \
   { \
       if (_pixmap_priv_->pending_op.type == GLAMOR_PENDING_FILL) { \
-        glUseProgramObjectARB(_glamor_priv_->solid_prog); \
-        glUniform4fvARB(_glamor_priv_->solid_color_uniform_location, 1,  \
+        glUseProgram(_glamor_priv_->solid_prog); \
+        glUniform4fv(_glamor_priv_->solid_color_uniform_location, 1,  \
                         _pixmap_priv_->pending_op.fill.color4fv); \
       } \
   } while(0)

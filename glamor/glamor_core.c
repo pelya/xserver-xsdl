@@ -88,15 +88,15 @@ glamor_compile_glsl_prog(GLenum type, const char *source)
   prog = glCreateShader(type);
   glShaderSource(prog, 1, (const GLchar **)&source, NULL);
   glCompileShader(prog);
-  glGetObjectParameterivARB(prog, GL_OBJECT_COMPILE_STATUS_ARB, &ok);
+  glGetShaderiv(prog, GL_COMPILE_STATUS, &ok);
   if (!ok) {
     GLchar *info;
     GLint size;
 
-    glGetObjectParameterivARB(prog, GL_OBJECT_INFO_LOG_LENGTH_ARB, &size);
+    glGetShaderiv(prog, GL_INFO_LOG_LENGTH, &size);
     info = malloc(size);
 
-    glGetInfoLogARB(prog, size, NULL, info);
+    glGetShaderInfoLog(prog, size, NULL, info);
     ErrorF("Failed to compile %s: %s\n",
 	   type == GL_FRAGMENT_SHADER ? "FS" : "VS",
 	   info);
@@ -113,15 +113,15 @@ glamor_link_glsl_prog(GLint prog)
   GLint ok;
 
   glLinkProgram(prog);
-  glGetObjectParameterivARB(prog, GL_OBJECT_LINK_STATUS_ARB, &ok);
+  glGetProgramiv(prog, GL_LINK_STATUS, &ok);
   if (!ok) {
     GLchar *info;
     GLint size;
 
-    glGetObjectParameterivARB(prog, GL_OBJECT_INFO_LOG_LENGTH_ARB, &size);
+    glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &size);
     info = malloc(size);
 
-    glGetInfoLogARB(prog, size, NULL, info);
+    glGetProgramInfoLog(prog, size, NULL, info);
     ErrorF("Failed to link: %s\n",
 	   info);
     FatalError("GLSL link failure\n");
@@ -209,6 +209,7 @@ glamor_finish_access(DrawablePtr drawable)
 {
   PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+  glamor_screen_private *glamor_priv = glamor_get_screen_private(drawable->pScreen);
     
   if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
     return;
@@ -218,8 +219,9 @@ glamor_finish_access(DrawablePtr drawable)
   }
 
   if (pixmap_priv->pbo != 0 && pixmap_priv->pbo_valid) {
-    glBindBuffer (GL_PIXEL_PACK_BUFFER_EXT, 0);
-    glBindBuffer (GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+    assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
+    glBindBuffer (GL_PIXEL_PACK_BUFFER, 0);
+    glBindBuffer (GL_PIXEL_UNPACK_BUFFER, 0);
     pixmap_priv->pbo_valid = FALSE;
     glDeleteBuffers(1, &pixmap_priv->pbo);
     pixmap_priv->pbo = 0;

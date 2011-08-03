@@ -362,6 +362,9 @@ glamor_set_composite_texture(ScreenPtr screen, int unit, PicturePtr picture,
   glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
   switch (picture->repeatType) {
   case RepeatNone:
+#ifdef GLAMOR_GLES2
+    assert(0);
+#endif
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     break;
@@ -562,7 +565,7 @@ glamor_flush_composite_rects(ScreenPtr screen)
   glBufferData(GL_ARRAY_BUFFER, glamor_priv->vbo_offset, glamor_priv->vb,
 	    GL_STREAM_DRAW);
 
-  glDrawArrays(GL_QUADS, 0, glamor_priv->render_nr_verts);
+  glDrawArrays(GL_TRIANGLES, 0, glamor_priv->render_nr_verts);
   glamor_reset_composite_vbo(screen);
 }
 
@@ -574,7 +577,7 @@ glamor_emit_composite_rect(ScreenPtr screen,
 {
   glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
-  if (glamor_priv->vbo_offset + 4 * glamor_priv->vb_stride >
+  if (glamor_priv->vbo_offset + 6 * glamor_priv->vb_stride >
       glamor_priv->vbo_size)
     {
       glamor_flush_composite_rects(screen);
@@ -589,6 +592,8 @@ glamor_emit_composite_rect(ScreenPtr screen,
 
   glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 0);
   glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 1);
+  glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 2);
+  glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 0);
   glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 2);
   glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 3);
 }

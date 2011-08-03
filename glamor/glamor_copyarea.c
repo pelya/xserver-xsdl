@@ -31,6 +31,7 @@
  *
  * GC CopyArea implementation
  */
+#ifndef GLAMOR_GLES2
 static Bool
 glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 			    DrawablePtr dst,
@@ -51,7 +52,6 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 	glamor_delayed_fallback(screen,"no EXT_framebuffer_blit\n");
 	return FALSE;
     }
-
     src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 
     if (src_pixmap_priv->pending_op.type == GLAMOR_PENDING_FILL) 
@@ -77,8 +77,8 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 	return FALSE;
     }
     glamor_validate_pixmap(dst_pixmap);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, src_pixmap_priv->fb);
 
+    glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, src_pixmap_priv->fb);
     glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
     glamor_get_drawable_deltas(src, src_pixmap, &src_x_off, &src_y_off);
     src_y_off += dy;
@@ -115,6 +115,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
     }
     return TRUE;
 }
+#endif
 
 static Bool
 glamor_copy_n_to_n_textured(DrawablePtr src,
@@ -293,13 +294,14 @@ glamor_copy_n_to_n(DrawablePtr src,
     }
     /* XXX need revisit to handle overlapped area copying. */
 
+#ifndef GLAMOR_GLES2
     if ((overlaped 
           || !src_pixmap_priv->gl_tex  || !dst_pixmap_priv->gl_tex )
         && glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx, dy)) {
         goto done;
 	return;
     }
-
+#endif
     glamor_calculate_boxes_bound(&bound, box, nbox);
 
     if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(src_pixmap_priv) 

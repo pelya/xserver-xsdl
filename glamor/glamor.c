@@ -291,9 +291,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         return FALSE;
     }
 
-    glewInit();
 
 #ifndef GLAMOR_GLES2
+    glewInit();
     if (!GLEW_EXT_framebuffer_object) {
 	ErrorF("GL_EXT_framebuffer_object required\n");
 	goto fail;
@@ -306,17 +306,19 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	ErrorF("GL_ARB_vertex_shader required\n");
 	goto fail;
     }
-    if (!GLEW_EXT_bgra) {
-	ErrorF("GL_EXT_bgra required\n");
-	goto fail;
-    }
-#endif
 
     if (!GLEW_ARB_pixel_buffer_object) {
 	ErrorF("GL_ARB_pixel_buffer_object required\n");
 	goto fail;
     }
  
+    if (!GLEW_EXT_bgra) {
+	ErrorF("GL_EXT_bgra required\n");
+	goto fail;
+    }
+#endif
+
+
     if (!RegisterBlockAndWakeupHandlers(glamor_block_handler,
 					glamor_wakeup_handler,
 					NULL)) {
