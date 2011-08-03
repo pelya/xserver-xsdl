@@ -154,17 +154,6 @@ key_autorepeats(DeviceIntPtr pDev, int key_code)
 }
 
 static void
-init_event(DeviceIntPtr dev, DeviceEvent* event, Time ms)
-{
-    memset(event, 0, sizeof(DeviceEvent));
-    event->header = ET_Internal;
-    event->length = sizeof(DeviceEvent);
-    event->time = ms;
-    event->deviceid = dev->id;
-    event->sourceid = dev->id;
-}
-
-static void
 init_raw(DeviceIntPtr dev, RawDeviceEvent *event, Time ms, int type, int detail)
 {
     memset(event, 0, sizeof(RawDeviceEvent));
@@ -1006,7 +995,7 @@ GetKeyboardEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
     set_raw_valuators(raw, &mask, raw->valuators.data);
 
     event = &events->device_event;
-    init_event(pDev, event, ms);
+    init_device_event(event, pDev, ms);
     event->detail.key = key_code;
 
     if (type == KeyPress) {
@@ -1228,7 +1217,7 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
     clipValuators(pDev, &mask);
 
     event = &events->device_event;
-    init_event(pDev, event, ms);
+    init_device_event(event, pDev, ms);
 
     if (type == MotionNotify) {
         event->type = ET_Motion;
@@ -1321,7 +1310,7 @@ GetProximityEvents(InternalEvent *events, DeviceIntPtr pDev, int type, const Val
     events = UpdateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT, &num_events);
 
     event = &events->device_event;
-    init_event(pDev, event, GetTimeInMillis());
+    init_device_event(event, pDev, GetTimeInMillis());
     event->type = (type == ProximityIn) ? ET_ProximityIn : ET_ProximityOut;
 
     clipValuators(pDev, &mask);
@@ -1357,7 +1346,7 @@ PostSyntheticMotion(DeviceIntPtr pDev,
 #endif
 
     memset(&ev, 0, sizeof(DeviceEvent));
-    init_event(pDev, &ev, time);
+    init_device_event(&ev, pDev, time);
     ev.root_x = x;
     ev.root_y = y;
     ev.type = ET_Motion;

@@ -584,3 +584,17 @@ void verify_internal_event(const InternalEvent *ev)
         FatalError("Wrong event type %d. Aborting server\n", ev->any.header);
     }
 }
+
+/**
+ * Initializes the given event to zero (or default values), for the given
+ * device.
+ */
+void init_device_event(DeviceEvent *event, DeviceIntPtr dev, Time ms)
+{
+    memset(event, 0, sizeof(DeviceEvent));
+    event->header = ET_Internal;
+    event->length = sizeof(DeviceEvent);
+    event->time = ms;
+    event->deviceid = dev->id;
+    event->sourceid = dev->id;
+}

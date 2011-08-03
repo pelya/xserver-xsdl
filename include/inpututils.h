@@ -38,5 +38,6 @@ struct _ValuatorMask {
 };
 
 extern void verify_internal_event(const InternalEvent *ev);
+extern void init_device_event(DeviceEvent *event, DeviceIntPtr dev, Time ms);
 
 #endif
