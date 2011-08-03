@@ -166,6 +166,12 @@ typedef struct {
 
 #define GLAMOR_NUM_GLYPH_CACHES 4
 
+enum glamor_vertex_type {
+     GLAMOR_VERTEX_POS,
+     GLAMOR_VERTEX_SOURCE,
+     GLAMOR_VERTEX_MASK
+};
+
 enum shader_source {
   SHADER_SOURCE_SOLID,
   SHADER_SOURCE_TEXTURE,
@@ -227,7 +233,7 @@ typedef struct glamor_screen_private {
   enum glamor_gl_flavor gl_flavor;
 
   /* glamor_finishaccess */
-  GLint finish_access_prog[2];
+  GLint finish_access_prog[4];
 
   /* glamor_solid */
   GLint solid_prog;

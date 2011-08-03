@@ -36,7 +36,7 @@
 #include "mipict.h"
 #include "fbpict.h"
 
-#include "glu3/glu3.h"
+//#include "glu3/glu3.h"
 
 struct shader_key {
   enum shader_source source;
@@ -77,16 +77,18 @@ glamor_create_composite_fs(struct shader_key *key)
     "	return source;\n"
     "}\n";
   const char *source_alpha_pixmap_fetch =
+    "varying vec2 source_texture;\n"
     "uniform sampler2D source_sampler;\n"
     "vec4 get_source()\n"
     "{\n"
-    "	return texture2D(source_sampler, gl_TexCoord[0].xy);\n"
+    "	return texture2D(source_sampler, source_texture);\n"
     "}\n";
   const char *source_pixmap_fetch =
+    "varying vec2 source_texture;\n"
     "uniform sampler2D source_sampler;\n"
     "vec4 get_source()\n"
     "{\n"
-    "       return vec4(texture2D(source_sampler, gl_TexCoord[0].xy).rgb, 1);\n"
+    "       return vec4(texture2D(source_sampler, source_texture).rgb, 1);\n"
     "}\n";
   const char *mask_solid_fetch =
     "uniform vec4 mask;\n"
@@ -95,16 +97,18 @@ glamor_create_composite_fs(struct shader_key *key)
     "	return mask;\n"
     "}\n";
   const char *mask_alpha_pixmap_fetch =
+    "varying vec2 mask_texture;\n"
     "uniform sampler2D mask_sampler;\n"
     "vec4 get_mask()\n"
     "{\n"
-    "	return texture2D(mask_sampler, gl_TexCoord[1].xy);\n"
+    "	return texture2D(mask_sampler, mask_texture);\n"
     "}\n";
   const char *mask_pixmap_fetch =
+    "varying vec2 mask_texture;\n"
     "uniform sampler2D mask_sampler;\n"
     "vec4 get_mask()\n"
     "{\n"
-    "       return vec4(texture2D(mask_sampler, gl_TexCoord[1].xy).rgb, 1);\n"
+    "       return vec4(texture2D(mask_sampler, mask_texture).rgb, 1);\n"
     "}\n";
   const char *in_source_only =
     "void main()\n"
@@ -196,13 +200,18 @@ static GLuint
 glamor_create_composite_vs(struct shader_key *key)
 {
   const char *main_opening =
+    "attribute vec4 v_position;\n"
+    "attribute vec4 v_texcoord0;\n"
+    "attribute vec4 v_texcoord1;\n"
+    "varying vec2 source_texture;\n"
+    "varying vec2 mask_texture;\n"
     "void main()\n"
     "{\n"
-    "	gl_Position = gl_Vertex;\n";
+    "	gl_Position = v_position;\n";
   const char *source_coords =
-    "	gl_TexCoord[0] = gl_MultiTexCoord0;\n";
+    "	source_texture = v_texcoord0.xy;\n";
   const char *mask_coords =
-    "	gl_TexCoord[1] = gl_MultiTexCoord1;\n";
+    "	mask_texture = v_texcoord1.xy;\n";
   const char *main_closing =
     "}\n";
   const char *source_coords_setup = "";
@@ -246,6 +255,11 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
   prog = glCreateProgram();
   glAttachShader(prog, vs);
   glAttachShader(prog, fs);
+
+  glBindAttribLocation(prog, GLAMOR_VERTEX_POS, "v_position");
+  glBindAttribLocation(prog, GLAMOR_VERTEX_SOURCE, "v_texcoord0");
+  glBindAttribLocation(prog, GLAMOR_VERTEX_MASK, "v_texcoord1");
+
   glamor_link_glsl_prog(prog);
 
   shader->prog = prog;
@@ -508,24 +522,48 @@ glamor_setup_composite_vbo(ScreenPtr screen)
     glamor_priv->vb_stride += 2 * sizeof(float);
 
   glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
+
+#if 0
   glVertexPointer(2, GL_FLOAT, glamor_priv->vb_stride,
 		  (void *)((long)glamor_priv->vbo_offset));
   glEnableClientState(GL_VERTEX_ARRAY);
+#else
+  glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE, 
+                        glamor_priv->vb_stride,
+                       (void *)((long)glamor_priv->vbo_offset));
+  glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+#endif
 
   if (glamor_priv->has_source_coords) {
+#if 0
     glClientActiveTexture(GL_TEXTURE0);
     glTexCoordPointer(2, GL_FLOAT, glamor_priv->vb_stride,
 		      (void *)(glamor_priv->vbo_offset + 2 * sizeof(float)));
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+    glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE, 
+                        glamor_priv->vb_stride,
+                       (void *)((long)glamor_priv->vbo_offset + 2 * sizeof(float)));
+    glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+#endif
   }
 
   if (glamor_priv->has_mask_coords) {
+#if 0
     glClientActiveTexture(GL_TEXTURE1);
     glTexCoordPointer(2, GL_FLOAT, glamor_priv->vb_stride,
 		      (void *)(glamor_priv->vbo_offset +
 			       (glamor_priv->has_source_coords ? 4 : 2) *
 			       sizeof(float)));
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+    glVertexAttribPointer(GLAMOR_VERTEX_MASK, 2, GL_FLOAT, GL_FALSE, 
+                        glamor_priv->vb_stride,
+                       (void *)((long)glamor_priv->vbo_offset + 
+			       (glamor_priv->has_source_coords ? 4 : 2) *
+                               sizeof(float)));
+    glEnableVertexAttribArray(GLAMOR_VERTEX_MASK);
+#endif
   }
 }
 
@@ -888,6 +926,8 @@ glamor_composite_with_shader(CARD8 op,
   }
 
   glUseProgram(shader->prog);
+
+
   if (key.source == SHADER_SOURCE_SOLID) {
     glamor_set_composite_solid(source_solid_color, shader->source_uniform_location);
   } else {
@@ -1014,12 +1054,17 @@ glamor_composite_with_shader(CARD8 op,
   glamor_flush_composite_rects(screen);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+#if 0
   glClientActiveTexture(GL_TEXTURE0);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glClientActiveTexture(GL_TEXTURE1);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glDisableClientState(GL_VERTEX_ARRAY);
-
+#else
+  glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+  glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+  glDisableVertexAttribArray(GLAMOR_VERTEX_MASK);
+#endif
   REGION_UNINIT(dst->pDrawable->pScreen, &region);
   glDisable(GL_BLEND);
   glActiveTexture(GL_TEXTURE0);

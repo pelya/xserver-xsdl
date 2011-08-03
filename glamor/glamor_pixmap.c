@@ -32,9 +32,14 @@ _glamor_pixmap_validate_filling(glamor_screen_private *glamor_priv,
 				 glamor_pixmap_private *pixmap_priv)
 {
     GLfloat vertices[8];
-//    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+#if 0
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
+#else
+    glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
+                          2 * sizeof(float), vertices);
+    glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+#endif
     glUseProgram(glamor_priv->solid_prog);
     glUniform4fv(glamor_priv->solid_color_uniform_location, 
       1, pixmap_priv->pending_op.fill.color4fv);
@@ -47,7 +52,11 @@ _glamor_pixmap_validate_filling(glamor_screen_private *glamor_priv,
     vertices[6] = -1;
     vertices[7] = 1;
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+#if 0
     glDisableClientState(GL_VERTEX_ARRAY);
+#else
+    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+#endif
     glUseProgram(0);
     pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
 }
@@ -84,8 +93,10 @@ void
 glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv)
 {
   glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
+#ifndef GLAMOR_GLES2
   glMatrixMode(GL_PROJECTION);                                                                                                                                                                  glLoadIdentity();
   glMatrixMode(GL_MODELVIEW);                                                                                                                                                                   glLoadIdentity();                                        
+#endif
 
   glViewport(0, 0,
 	     pixmap_priv->container->drawable.width,
@@ -129,6 +140,7 @@ glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask)
 void
 glamor_set_alu(unsigned char alu)
 {
+#ifndef GLAMOR_GLES2
   if (alu == GXcopy) {
     glDisable(GL_COLOR_LOGIC_OP);
     return;
@@ -183,6 +195,10 @@ glamor_set_alu(unsigned char alu)
   default:
     FatalError("unknown logic op\n");
   }
+#else
+ if (alu != GXcopy)
+  ErrorF("unsupported alu %x \n", alu);
+#endif
 }
 
 
@@ -219,8 +235,9 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
 
   glBindTexture(GL_TEXTURE_2D, tex);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+#ifndef GLAMOR_GLES2
   glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
-
+#endif
   if (pixmap_priv->pbo && pixmap_priv->pbo_valid) {
     texels = NULL;
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixmap_priv->pbo);
@@ -282,12 +299,23 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, i
     ptexcoords = texcoords_inv;
 
   /* Slow path, we need to flip y or wire alpha to 1. */
+#if 0
   glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
   glEnableClientState(GL_VERTEX_ARRAY);
 
   glClientActiveTexture(GL_TEXTURE0);
   glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, ptexcoords);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+  glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
+                        2 * sizeof(float),
+                        vertices);
+  glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+  glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE,
+                        2 * sizeof(float),
+                        ptexcoords);
+  glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+#endif
   glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
   glViewport(0, 0, pixmap->drawable.width, pixmap->drawable.height);
 
@@ -300,14 +328,23 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, i
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glEnable(GL_TEXTURE_2D);
+#if 0
   glUseProgram(glamor_priv->finish_access_prog[ax]);
+#else
+  glUseProgram(glamor_priv->finish_access_prog[ax + 2]);
+#endif
 
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
   glDisable(GL_TEXTURE_2D);
   glUseProgram(0);
+#if 0
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+  glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+  glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+#endif
   glDeleteTextures(1, &tex);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

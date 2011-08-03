@@ -176,29 +176,46 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
     pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
 
-
     glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
 
 
+
+#if 0
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
+#else
+    glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE, 
+                          2 * sizeof(float),
+                          vertices);
+    glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+#endif
 
     if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
       glamor_get_drawable_deltas(src, src_pixmap, &src_x_off, &src_y_off);
       dx += src_x_off;
       dy += src_y_off;
       pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
+
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
       glEnable(GL_TEXTURE_2D);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+#if 0
       glClientActiveTexture(GL_TEXTURE0);
       glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
       glEnableClientState(GL_TEXTURE_COORD_ARRAY);
       glUseProgram(glamor_priv->finish_access_prog[0]);
-    } 
+#else
+ 
+      glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE, 
+                            2 * sizeof(float),
+                            texcoords);
+      glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+      glUseProgram(glamor_priv->finish_access_prog[2]);
+#endif
+ 
+   } 
     else {
       GLAMOR_CHECK_PENDING_FILL(glamor_priv, src_pixmap_priv);
    }
@@ -223,13 +240,20 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
       glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
 
-    glUseProgram(0);
-
+#if 0
     glDisableClientState(GL_VERTEX_ARRAY);
     if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
       glDisableClientState(GL_TEXTURE_COORD_ARRAY);
       glDisable(GL_TEXTURE_2D);
     }
+#else
+    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
+      glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+      glDisable(GL_TEXTURE_2D);
+    }
+#endif
+    glUseProgram(0);
     /* The source texture is bound to a fbo, we have to flush it here. */
     if (flush_needed) 
       glFlush();

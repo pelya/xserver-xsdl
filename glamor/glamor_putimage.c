@@ -298,17 +298,30 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     /* XXX consider to reuse a function to do the following work. */
     glamor_set_destination_pixmap_priv_nc(pixmap_priv);
     glamor_validate_pixmap(pixmap);
+#if 0
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
 
     glClientActiveTexture(GL_TEXTURE0);
     glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
+#else
+    glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
+                        2 * sizeof(float),
+                        vertices);
+    glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+    
+    glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE,
+                        2 * sizeof(float),
+                        texcoords);
+    glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+#endif
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+#ifndef GLAMOR_GLES2
     glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride * 8 /
 		  pixmap->drawable.bitsPerPixel);
+#endif
 
     
     glGenTextures(1, &tex);
@@ -321,8 +334,11 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glEnable(GL_TEXTURE_2D);
 
-    assert(GLEW_ARB_fragment_shader);
+#if 0
     glUseProgram(glamor_priv->finish_access_prog[ax]);
+#else
+    glUseProgram(glamor_priv->finish_access_prog[ax + 2]);
+#endif
 
     x += drawable->x;
     y += drawable->y;
@@ -372,11 +388,17 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 
     glDisable(GL_TEXTURE_2D);
     glUseProgram(0);
+#if 0
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+#endif
     glDeleteTextures(1, &tex);
+#ifndef GLAMOR_GLES2
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+#endif
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);
     return;
