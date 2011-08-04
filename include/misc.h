@@ -256,19 +256,21 @@ version_compare(uint16_t a_major, uint16_t a_minor,
     SwapLongs((CARD32 *)(stuff + 1), LengthRestL(stuff))
 
 /* byte swap a 32-bit value */
-#define swapl(x, n) { \
-		 n = ((char *) (x))[0];\
+#define swapl(x) do { \
+		 char n = ((char *) (x))[0];\
 		 ((char *) (x))[0] = ((char *) (x))[3];\
 		 ((char *) (x))[3] = n;\
 		 n = ((char *) (x))[1];\
 		 ((char *) (x))[1] = ((char *) (x))[2];\
-		 ((char *) (x))[2] = n; }
+		 ((char *) (x))[2] = n;\
+	} while (0)
 
 /* byte swap a short */
-#define swaps(x, n) { \
-		 n = ((char *) (x))[0];\
+#define swaps(x) do { \
+		 char  n = ((char *) (x))[0];\
 		 ((char *) (x))[0] = ((char *) (x))[1];\
-		 ((char *) (x))[1] = n; }
+		 ((char *) (x))[1] = n;\
+	} while (0)
 
 /* copy 32-bit value from src to dst byteswapping on the way */
 #define cpswapl(src, dst) { \

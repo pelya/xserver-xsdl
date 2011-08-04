@@ -43,11 +43,10 @@ ProcXResQueryVersion (ClientPtr client)
     rep.server_major = SERVER_XRES_MAJOR_VERSION;
     rep.server_minor = SERVER_XRES_MINOR_VERSION;
     if (client->swapped) { 
-        int n;
-        swaps(&rep.sequenceNumber, n);
-        swapl(&rep.length, n);     
-        swaps(&rep.server_major, n);
-        swaps(&rep.server_minor, n);
+        swaps(&rep.sequenceNumber);
+        swapl(&rep.length);
+        swaps(&rep.server_major);
+        swaps(&rep.server_minor);
     }
     WriteToClient(client, sizeof (xXResQueryVersionReply), (char *)&rep);
     return Success;
@@ -78,10 +77,9 @@ ProcXResQueryClients (ClientPtr client)
     rep.num_clients = num_clients;
     rep.length = bytes_to_int32(rep.num_clients * sz_xXResClient);
     if (client->swapped) {
-        int n;
-        swaps (&rep.sequenceNumber, n);
-        swapl (&rep.length, n);
-        swapl (&rep.num_clients, n);
+        swaps(&rep.sequenceNumber);
+        swapl(&rep.length);
+        swapl(&rep.num_clients);
     }   
     WriteToClient (client, sizeof (xXResQueryClientsReply), (char *) &rep);
 
@@ -93,9 +91,8 @@ ProcXResQueryClients (ClientPtr client)
             scratch.resource_mask = RESOURCE_ID_MASK;
         
             if(client->swapped) {
-                int n;
-                swapl (&scratch.resource_base, n);
-                swapl (&scratch.resource_mask, n);
+                swapl(&scratch.resource_base);
+                swapl(&scratch.resource_mask);
             }
             WriteToClient (client, sz_xXResClient, (char *) &scratch);
         }
@@ -147,10 +144,9 @@ ProcXResQueryClientResources (ClientPtr client)
     rep.num_types = num_types;
     rep.length = bytes_to_int32(rep.num_types * sz_xXResType);
     if (client->swapped) {
-        int n;
-        swaps (&rep.sequenceNumber, n);
-        swapl (&rep.length, n);
-        swapl (&rep.num_types, n);
+        swaps(&rep.sequenceNumber);
+        swapl(&rep.length);
+        swapl(&rep.num_types);
     }   
 
     WriteToClient (client,sizeof(xXResQueryClientResourcesReply),(char*)&rep);
@@ -174,9 +170,8 @@ ProcXResQueryClientResources (ClientPtr client)
             scratch.count = counts[i];
 
             if(client->swapped) {
-                int n;
-                swapl (&scratch.resource_type, n);
-                swapl (&scratch.count, n);
+                swapl(&scratch.resource_type);
+                swapl(&scratch.count);
             }
             WriteToClient (client, sz_xXResType, (char *) &scratch);
         }
@@ -287,11 +282,10 @@ ProcXResQueryClientPixmapBytes (ClientPtr client)
     rep.bytes_overflow = 0;
 #endif
     if (client->swapped) {
-        int n;
-        swaps (&rep.sequenceNumber, n);
-        swapl (&rep.length, n);
-        swapl (&rep.bytes, n);
-        swapl (&rep.bytes_overflow, n);
+        swaps(&rep.sequenceNumber);
+        swapl(&rep.length);
+        swapl(&rep.bytes);
+        swapl(&rep.bytes_overflow);
     }
     WriteToClient (client,sizeof(xXResQueryClientPixmapBytesReply),(char*)&rep);
 
@@ -321,11 +315,9 @@ static int
 SProcXResQueryVersion (ClientPtr client)
 {
     REQUEST(xXResQueryVersionReq);
-    int n;
-
     REQUEST_SIZE_MATCH (xXResQueryVersionReq);
-    swaps(&stuff->client_major,n);
-    swaps(&stuff->client_minor,n);
+    swaps(&stuff->client_major);
+    swaps(&stuff->client_minor);
     return ProcXResQueryVersion(client);
 }
 
@@ -333,10 +325,8 @@ static int
 SProcXResQueryClientResources (ClientPtr client)
 {
     REQUEST(xXResQueryClientResourcesReq);
-    int n;
-
     REQUEST_SIZE_MATCH (xXResQueryClientResourcesReq);
-    swaps(&stuff->xid,n);
+    swaps(&stuff->xid);
     return ProcXResQueryClientResources(client);
 }
 
@@ -344,10 +334,8 @@ static int
 SProcXResQueryClientPixmapBytes (ClientPtr client)
 {
     REQUEST(xXResQueryClientPixmapBytesReq);
-    int n;
-
     REQUEST_SIZE_MATCH (xXResQueryClientPixmapBytesReq);
-    swaps(&stuff->xid,n);
+    swaps(&stuff->xid);
     return ProcXResQueryClientPixmapBytes(client);
 }
 
@@ -355,9 +343,7 @@ static int
 SProcResDispatch (ClientPtr client)
 {
     REQUEST(xReq);
-    int n;
-
-    swaps(&stuff->length,n);
+    swaps(&stuff->length);
 
     switch (stuff->data) {
     case X_XResQueryVersion:
