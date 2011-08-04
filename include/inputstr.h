@@ -602,4 +602,11 @@ static inline WindowPtr DeepestSpriteWin(SpritePtr sprite)
     return sprite->spriteTrace[sprite->spriteTraceGood - 1];
 }
 
+struct _InputOption {
+    char                *key;
+    char                *value;
+    struct _InputOption *next;
+};
+
+
 #endif /* INPUTSTRUCT_H */

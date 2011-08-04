@@ -879,35 +879,35 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
     if (!pInfo)
         return BadAlloc;
 
-    for (option = options; option; option = option->next) {
-        if (strcasecmp(option->key, "driver") == 0) {
+    nt_list_for_each_entry(option, options, next) {
+        if (strcasecmp(input_option_get_key(option), "driver") == 0) {
             if (pInfo->driver) {
                 rval = BadRequest;
                 goto unwind;
             }
-            pInfo->driver = xstrdup(option->value);
+            pInfo->driver = xstrdup(input_option_get_value(option));
             if (!pInfo->driver) {
                 rval = BadAlloc;
                 goto unwind;
             }
         }
 
-        if (strcasecmp(option->key, "name") == 0 ||
-            strcasecmp(option->key, "identifier") == 0) {
+        if (strcasecmp(input_option_get_key(option), "name") == 0 ||
+            strcasecmp(input_option_get_key(option), "identifier") == 0) {
             if (pInfo->name) {
                 rval = BadRequest;
                 goto unwind;
             }
-            pInfo->name = xstrdup(option->value);
+            pInfo->name = xstrdup(input_option_get_value(option));
             if (!pInfo->name) {
                 rval = BadAlloc;
                 goto unwind;
             }
         }
 
-        if (strcmp(option->key, "_source") == 0 &&
-            (strcmp(option->value, "server/hal") == 0 ||
-             strcmp(option->value, "server/udev") == 0)) {
+        if (strcmp(input_option_get_key(option), "_source") == 0 &&
+            (strcmp(input_option_get_value(option), "server/hal") == 0 ||
+             strcmp(input_option_get_value(option), "server/udev") == 0)) {
             is_auto = 1;
             if (!xf86Info.autoAddDevices) {
                 rval = BadMatch;
@@ -916,13 +916,11 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
         }
     }
 
-    for (option = options; option; option = option->next) {
-        /* Steal option key/value strings from the provided list.
-         * We need those strings, the InputOption list doesn't. */
-        pInfo->options = xf86addNewOption(pInfo->options,
-                                               option->key, option->value);
-        option->key = NULL;
-        option->value = NULL;
+    nt_list_for_each_entry(option, options, next) {
+        /* Copy option key/value strings from the provided list */
+        pInfo->options = xf86AddNewOption(pInfo->options,
+                                          input_option_get_key(option),
+                                          input_option_get_value(option));
     }
 
     /* Apply InputClass settings */

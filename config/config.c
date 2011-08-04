@@ -122,25 +122,3 @@ device_is_duplicate(const char *config_info)
     return FALSE;
 }
 
-/**
- * Allocate a new option and append to the list.
- *
- * @return A pointer to the newly allocated InputOption struct.
- */
-InputOption*
-add_option(InputOption **options, const char *key, const char *value)
-{
-    if (!value || *value == '\0')
-        return NULL;
-
-    for (; *options; options = &(*options)->next)
-        ;
-    *options = calloc(sizeof(**options), 1);
-    if (!*options) /* Yeesh. */
-        return NULL;
-    (*options)->key = strdup(key);
-    (*options)->value = strdup(value);
-    (*options)->next = NULL;
-
-    return *options;
-}

@@ -60,7 +60,7 @@ device_added(struct udev_device *udev_device)
     const char *syspath;
     const char *tags_prop;
     const char *key, *value, *tmp;
-    InputOption *options = NULL, *tmpo;
+    InputOption *input_options;
     InputAttributes attrs = {};
     DeviceIntPtr dev = NULL;
     struct udev_list_entry *set, *entry;
@@ -93,8 +93,9 @@ device_added(struct udev_device *udev_device)
         return;
     }
 
-    if (!add_option(&options, "_source", "server/udev"))
-        goto unwind;
+    input_options = input_option_new(NULL, "_source", "server/udev");
+    if (!input_options)
+        return;
 
     parent = udev_device_get_parent(udev_device);
     if (parent) {
@@ -127,10 +128,9 @@ device_added(struct udev_device *udev_device)
         name = "(unnamed)";
     else
         attrs.product = strdup(name);
-    add_option(&options, "name", name);
-
-    add_option(&options, "path", path);
-    add_option(&options, "device", path);
+    input_options = input_option_new(input_options, "name", name);
+    input_options = input_option_new(input_options, "path", path);
+    input_options = input_option_new(input_options, "device", path);
     if (path)
         attrs.device = strdup(path);
 
@@ -160,15 +160,15 @@ device_added(struct udev_device *udev_device)
             LOG_PROPERTY(path, key, value);
             tmp = key + sizeof(UDEV_XKB_PROP_KEY) - 1;
             if (!strcasecmp(tmp, "rules"))
-                add_option(&options, "xkb_rules", value);
+                input_options = input_option_new(input_options, "xkb_rules", value);
             else if (!strcasecmp(tmp, "layout"))
-                add_option(&options, "xkb_layout", value);
+                input_options = input_option_new(input_options, "xkb_layout", value);
             else if (!strcasecmp(tmp, "variant"))
-                add_option(&options, "xkb_variant", value);
+                input_options = input_option_new(input_options, "xkb_variant", value);
             else if (!strcasecmp(tmp, "model"))
-                add_option(&options, "xkb_model", value);
+                input_options = input_option_new(input_options, "xkb_model", value);
             else if (!strcasecmp(tmp, "options"))
-                add_option(&options, "xkb_options", value);
+                input_options = input_option_new(input_options, "xkb_options", value);
         } else if (!strcmp(key, "ID_VENDOR")) {
             LOG_PROPERTY(path, key, value);
             attrs.vendor = strdup(value);
@@ -193,22 +193,17 @@ device_added(struct udev_device *udev_device)
         }
     }
 
-    add_option(&options, "config_info", config_info);
+    input_options = input_option_new(input_options, "config_info", config_info);
 
     LogMessage(X_INFO, "config/udev: Adding input device %s (%s)\n",
                name, path);
-    rc = NewInputDeviceRequest(options, &attrs, &dev);
+    rc = NewInputDeviceRequest(input_options, &attrs, &dev);
     if (rc != Success)
         goto unwind;
 
  unwind:
     free(config_info);
-    while ((tmpo = options)) {
-        options = tmpo->next;
-        free(tmpo->key);        /* NULL if dev != NULL */
-        free(tmpo->value);      /* NULL if dev != NULL */
-        free(tmpo);
-    }
+    input_option_free_list(&input_options);
 
     free(attrs.usb_id);
     free(attrs.pnp_id);

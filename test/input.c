@@ -1308,6 +1308,95 @@ static void dix_get_master(void)
 }
 
 
+static void input_option_test(void)
+{
+    InputOption *list = NULL;
+    InputOption *opt;
+    const char *val;
+
+    printf("Testing input_option list interface\n");
+
+    list = input_option_new(list, "key", "value");
+    assert(list);
+    opt = input_option_find(list, "key");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "value") == 0);
+
+    list = input_option_new(list, "2", "v2");
+    opt = input_option_find(list, "key");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "value") == 0);
+
+    opt = input_option_find(list, "2");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "v2") == 0);
+
+    list = input_option_new(list, "3", "v3");
+
+    /* search, delete */
+    opt = input_option_find(list, "key");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "value") == 0);
+    list = input_option_free_element(list, "key");
+    opt = input_option_find(list, "key");
+    assert(opt == NULL);
+
+    opt = input_option_find(list, "2");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "v2") == 0);
+    list = input_option_free_element(list, "2");
+    opt = input_option_find(list, "2");
+    assert(opt == NULL);
+
+    opt = input_option_find(list, "3");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "v3") == 0);
+    list = input_option_free_element(list, "3");
+    opt = input_option_find(list, "3");
+    assert(opt == NULL);
+
+    /* list deletion */
+    list = input_option_new(list, "1", "v3");
+    list = input_option_new(list, "2", "v3");
+    list = input_option_new(list, "3", "v3");
+    input_option_free_list(&list);
+
+    assert(list == NULL);
+
+    list = input_option_new(list, "1", "v1");
+    list = input_option_new(list, "2", "v2");
+    list = input_option_new(list, "3", "v3");
+
+    /* value replacement */
+    opt = input_option_find(list, "2");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "v2") == 0);
+    input_option_set_value(opt, "foo");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "foo") == 0);
+    opt = input_option_find(list, "2");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "foo") == 0);
+
+    /* key replacement */
+    input_option_set_key(opt, "bar");
+    val = input_option_get_key(opt);
+    assert(strcmp(val, "bar") == 0);
+    opt = input_option_find(list, "bar");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "foo") == 0);
+
+    /* value replacement in input_option_new */
+    list = input_option_new(list, "bar", "foobar");
+    opt = input_option_find(list, "bar");
+    val = input_option_get_value(opt);
+    assert(strcmp(val, "foobar") == 0);
+
+    input_option_free_list(&list);
+    assert(list == NULL);
+}
+
+
 int main(int argc, char** argv)
 {
     dix_input_valuator_masks();
@@ -1324,6 +1413,7 @@ int main(int argc, char** argv)
     xi_unregister_handlers();
     dix_valuator_alloc();
     dix_get_master();
+    input_option_test();
 
     return 0;
 }
