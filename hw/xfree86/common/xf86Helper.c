@@ -1027,36 +1027,20 @@ xf86EnableDisableFBAccess(int scrnIndex, Bool enable)
     }
 }
 
-/* Print driver messages in the standard format */
-
-#undef PREFIX_SIZE
-#define PREFIX_SIZE 14
-
+/* Print driver messages in the standard format of
+   (<type>) <screen name>(<screen index>): <message> */
 void
 xf86VDrvMsgVerb(int scrnIndex, MessageType type, int verb, const char *format,
 		va_list args)
 {
-    char *tmpFormat;
-
     /* Prefix the scrnIndex name to the format string. */
     if (scrnIndex >= 0 && scrnIndex < xf86NumScreens &&
-	xf86Screens[scrnIndex]->name) {
-	tmpFormat = malloc(strlen(format) +
-			   strlen(xf86Screens[scrnIndex]->name) +
-			   PREFIX_SIZE + 1);
-	if (!tmpFormat)
-	    return;
-
-	snprintf(tmpFormat, PREFIX_SIZE + 1, "%s(%d): ",
-		 xf86Screens[scrnIndex]->name, scrnIndex);
-
-	strcat(tmpFormat, format);
-	LogVMessageVerb(type, verb, tmpFormat, args);
-	free(tmpFormat);
-    } else
+	xf86Screens[scrnIndex]->name)
+	LogHdrMessageVerb(type, verb, format, args, "%s(%d): ",
+	    xf86Screens[scrnIndex]->name, scrnIndex);
+    else
 	LogVMessageVerb(type, verb, format, args);
 }
-#undef PREFIX_SIZE
 
 /* Print driver messages, with verbose level specified directly */
 void
