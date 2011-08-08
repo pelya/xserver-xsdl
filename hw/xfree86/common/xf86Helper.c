@@ -1082,20 +1082,23 @@ xf86DrvMsg(int scrnIndex, MessageType type, const char *format, ...)
 }
 
 /* Print input driver messages in the standard format of
-   <driver>: <device name>: <message> */
+   (<type>) <driver>: <device name>: <message> */
 void
-xf86VIDrvMsgVerb(InputInfoPtr dev, MessageType type, int verb, const char *format,
-		 va_list args)
+xf86VIDrvMsgVerb(InputInfoPtr dev, MessageType type, int verb,
+		 const char *format, va_list args)
 {
-    char *msg;
+    const char *driverName = NULL;
+    const char *deviceName = NULL;
 
-    if (asprintf(&msg, "%s: %s: %s", dev->drv->driverName, dev->name, format)
-	== -1) {
-	LogVMessageVerb(type, verb, "%s", args);
-    } else {
-	LogVMessageVerb(type, verb, msg, args);
-	free(msg);
+    /* Prefix driver and device names to formatted message. */
+    if (dev) {
+	deviceName = dev->name;
+	if (dev->drv)
+	    driverName = dev->drv->driverName;
     }
+
+    LogHdrMessageVerb(type, verb, format, args, "%s: %s: ", driverName,
+	deviceName);
 }
 
 /* Print input driver message, with verbose level specified directly */
