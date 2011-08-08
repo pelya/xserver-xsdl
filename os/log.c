@@ -411,6 +411,61 @@ LogMessage(MessageType type, const char *format, ...)
     va_end(ap);
 }
 
+
+void
+LogVHdrMessageVerb(MessageType type, int verb, const char *msg_format,
+		   va_list msg_args, const char *hdr_format, va_list hdr_args)
+{
+    const char *type_str;
+    char tmpFormat[1024];
+    char *tmpFormat_end = &tmpFormat[sizeof(tmpFormat)];
+    char *p;
+    int left;
+
+    type_str = LogMessageTypeVerbString(type, verb);
+    if (!type_str)
+	return;
+
+    /* if type_str != "", copy it and ' ' to tmpFormat; set p after ' ' */
+    p = tmpFormat;
+    if (type_str[0] != '\0')
+	p += snprintf(tmpFormat, sizeof(tmpFormat), "%s ", type_str);
+
+    /* append as much of hdr as fits after type_str (if there was one) */
+    left = tmpFormat_end - p;
+    if (left > 1)
+	p += vsnprintf(p, left, hdr_format, hdr_args);
+
+    /* append as much of msg_format as will fit after hdr */
+    left = tmpFormat_end - p;
+    if (left > 1)
+	snprintf(p, left, "%s", msg_format);
+
+    LogVWrite(verb, tmpFormat, msg_args);
+}
+
+void
+LogHdrMessageVerb(MessageType type, int verb, const char *msg_format,
+		  va_list msg_args, const char *hdr_format, ...)
+{
+    va_list hdr_args;
+
+    va_start(hdr_args, hdr_format);
+    LogVHdrMessageVerb(type, verb, msg_format, msg_args, hdr_format, hdr_args);
+    va_end(hdr_args);
+}
+
+void
+LogHdrMessage(MessageType type, const char *msg_format, va_list msg_args,
+	      const char *hdr_format, ...)
+{
+    va_list hdr_args;
+
+    va_start(hdr_args, hdr_format);
+    LogVHdrMessageVerb(type, 1, msg_format, msg_args, hdr_format, hdr_args);
+    va_end(hdr_args);
+}
+
 void
 AbortServer(void) _X_NORETURN;
 
