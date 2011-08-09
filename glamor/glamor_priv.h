@@ -60,9 +60,15 @@
 #define GL_STREAM_DRAW                    0x88E0
 #define GL_STREAM_READ                    0x88E1
 #define GL_PACK_ROW_LENGTH                      0x0D02
+#define GL_UNPACK_ROW_LENGTH                    0x0CF2
 
 #define GLEW_MESA_pack_invert             0
 #define GL_PACK_INVERT_MESA               0x8758
+
+#define glMapBuffer(x, y)    NULL
+#define glUnmapBuffer(x)
+#define glRasterPos2i(x,y)
+#define glDrawPixels(x,y,z,a,b)
 
 #endif
 

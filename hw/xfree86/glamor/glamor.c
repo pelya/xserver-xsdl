@@ -306,6 +306,13 @@ glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
 	const char *version;
 	VisualPtr visual;
+        EGLint config_attribs[] = {
+#ifdef GLAMOR_GLES2
+        EGL_CONTEXT_CLIENT_VERSION, 2, 
+#endif
+          EGL_NONE
+    };
+
 
 	/* If serverGeneration != 1 then fd was closed during the last
 	 time closing screen, actually in eglTerminate(). */
@@ -327,7 +334,11 @@ glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 
 
 	glamor->display = eglGetDRMDisplayMESA(glamor->fd);
+#ifndef GLAMOR_GLES2
 	eglBindAPI(EGL_OPENGL_API);
+#else
+	eglBindAPI(EGL_OPENGL_ES_API);
+#endif
 	if (!eglInitialize(glamor->display, &glamor->major, &glamor->minor)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "eglInitialize() failed\n");
@@ -338,7 +349,7 @@ glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	xf86Msg(X_INFO, "%s: EGL version %s:", glamor_name, version);
 
 	glamor->context = eglCreateContext(glamor->display,
-					   NULL, EGL_NO_CONTEXT, NULL);
+					   NULL, EGL_NO_CONTEXT, config_attribs);
 	if (glamor->context == EGL_NO_CONTEXT) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "Failed to create EGL context\n");

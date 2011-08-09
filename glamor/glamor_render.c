@@ -377,7 +377,7 @@ glamor_set_composite_texture(ScreenPtr screen, int unit, PicturePtr picture,
   switch (picture->repeatType) {
   case RepeatNone:
 #ifdef GLAMOR_GLES2
-    assert(0);
+    assert(1);
 #endif
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);

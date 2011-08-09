@@ -141,6 +141,7 @@ void
 glamor_init_finish_access_shaders(ScreenPtr screen)
 {
   glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+#ifndef GLAMOR_GLES2
   const char *vs_source =
     "void main()\n"
     "{\n"
@@ -154,7 +155,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     "{\n"
     "	gl_FragColor = texture2D(sampler, gl_TexCoord[0].xy);\n"
     "}\n";
-    
+
   const char *aswizzle_source =
     "varying vec2 texcoords;\n"
     "uniform sampler2D sampler;\n"
@@ -162,6 +163,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     "{\n"
     " gl_FragColor = vec4(texture2D(sampler, gl_TexCoord[0].xy).rgb, 1);\n"
     "}\n";
+#endif
   const char *es_vs_source =
     "attribute vec4 v_position;\n"
     "attribute vec4 v_texcoord0;\n"
@@ -200,6 +202,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
   glamor_priv->finish_access_prog[3] = glCreateProgram();
 
   if (GLEW_ARB_fragment_shader) {
+#ifndef GLAMOR_GLES2
     vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, vs_source);
     fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, fs_source);
     glAttachShader(glamor_priv->finish_access_prog[0], vs_prog);
@@ -209,7 +212,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     aswizzle_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, aswizzle_source);
     glAttachShader(glamor_priv->finish_access_prog[1], avs_prog);
     glAttachShader(glamor_priv->finish_access_prog[1], aswizzle_prog);
-
+#endif
     es_vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, es_vs_source);
     es_fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, es_fs_source);
     glAttachShader(glamor_priv->finish_access_prog[2], es_vs_prog);
@@ -221,16 +224,18 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     glAttachShader(glamor_priv->finish_access_prog[3], es_aswizzle_prog);
  
   } else {
+#ifndef GLAMOR_GLES2
     vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, vs_source);
     glAttachShader(glamor_priv->finish_access_prog[0], vs_prog);
     ErrorF("Lack of framgment shader support.\n");
+#endif
   }
 
 
-
+#ifndef GLAMOR_GLES2
   glamor_link_glsl_prog(glamor_priv->finish_access_prog[0]);
   glamor_link_glsl_prog(glamor_priv->finish_access_prog[1]);
-
+#endif
   glBindAttribLocation(glamor_priv->finish_access_prog[2], GLAMOR_VERTEX_POS, "v_position");
   glBindAttribLocation(glamor_priv->finish_access_prog[2], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
   glamor_link_glsl_prog(glamor_priv->finish_access_prog[2]);
@@ -241,7 +246,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 
   if (GLEW_ARB_fragment_shader) {
     GLint sampler_uniform_location;
-
+#ifndef GLAMOR_GLES2
     sampler_uniform_location =
       glGetUniformLocation(glamor_priv->finish_access_prog[0], "sampler");
     glUseProgram(glamor_priv->finish_access_prog[0]);
@@ -253,7 +258,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     glUseProgram(glamor_priv->finish_access_prog[1]);
     glUniform1i(sampler_uniform_location, 0);
     glUseProgram(0);
-
+#endif
     sampler_uniform_location =
       glGetUniformLocation(glamor_priv->finish_access_prog[2], "sampler");
     glUseProgram(glamor_priv->finish_access_prog[2]);

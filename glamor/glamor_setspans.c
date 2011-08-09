@@ -43,6 +43,8 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     BoxRec *pbox;
     int x_off, y_off;
 
+    goto fail;
+
     if (glamor_get_tex_format_type_from_pixmap(dest_pixmap,
                                                &format, 
                                                &type, 

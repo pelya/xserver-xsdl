@@ -493,7 +493,8 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 		glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, drmmode_crtc->cursor);
 	}
 	glBindTexture(GL_TEXTURE_2D, drmmode_crtc->cursor_tex);
-#if GLAMOR_GLES2
+#ifdef GLAMOR_GLES2
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, 64, 64, 0,
 	  GL_BGRA,  GL_UNSIGNED_BYTE, image);
 #else

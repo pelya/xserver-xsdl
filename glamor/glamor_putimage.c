@@ -36,6 +36,7 @@ void
 glamor_init_putimage_shaders(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+#if 0
     const char *xybitmap_vs =
 	"uniform float x_bias;\n"
 	"uniform float x_scale;\n"
@@ -85,6 +86,7 @@ glamor_init_putimage_shaders(ScreenPtr screen)
 					   &glamor_priv->put_image_xybitmap_transform);
     glamor_priv->put_image_xybitmap_prog = prog;
     glUseProgram(0);
+#endif
 }
 
 
@@ -254,7 +256,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	glamor_get_screen_private(drawable->pScreen);
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    GLenum type, format;
+    GLenum type, format, iformat;
     RegionPtr clip;
     BoxPtr pbox;
     int nbox;
@@ -317,17 +319,27 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 #endif
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-#ifndef GLAMOR_GLES2
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride * 8 /
-		  pixmap->drawable.bitsPerPixel);
-#endif
-
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride * 8 /
+  		    pixmap->drawable.bitsPerPixel);
+    }
+    else {
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+//      glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    }
     
     glGenTextures(1, &tex);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+    if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
+      type = GL_UNSIGNED_BYTE;
+      iformat = format;
+    } 
+    else {
+      iformat = GL_RGBA;
+    }
+    glTexImage2D(GL_TEXTURE_2D, 0, iformat,
 		 w, h, 0,
 		 format, type, bits);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -396,9 +408,8 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 #endif
     glDeleteTextures(1, &tex);
-#ifndef GLAMOR_GLES2
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-#endif
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
+      glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);
     return;

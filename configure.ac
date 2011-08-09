@@ -1772,6 +1772,8 @@ AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 dnl glamor 
 
 AM_CONDITIONAL([GLAMOR], [test "x$XEPHYR" = xyes || test "x$GLAMOR_DDX" = xyes])
+AM_CONDITIONAL([GLAMOR_GLES2], [test "x$GLAMOR_GLES2" = xyes])
+AM_CONDITIONAL([GLAMOR_DDX], [test "x$GLAMOR_DDX" = xyes])
 
 GLAMOR=yes
 
