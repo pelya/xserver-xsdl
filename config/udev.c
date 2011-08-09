@@ -93,13 +93,7 @@ device_added(struct udev_device *udev_device)
         return;
     }
 
-    options = calloc(sizeof(*options), 1);
-    if (!options)
-        return;
-
-    options->key = strdup("_source");
-    options->value = strdup("server/udev");
-    if (!options->key || !options->value)
+    if (!add_option(&options, "_source", "server/udev"))
         goto unwind;
 
     parent = udev_device_get_parent(udev_device);

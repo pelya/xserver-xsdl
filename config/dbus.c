@@ -80,15 +80,7 @@ add_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
         MALFORMED_MESSAGE();
     }
 
-    options = calloc(sizeof(*options), 1);
-    if (!options) {
-        ErrorF("[config/dbus] couldn't allocate option\n");
-        return BadAlloc;
-    }
-
-    options->key = strdup("_source");
-    options->value = strdup("client/dbus");
-    if (!options->key || !options->value) {
+    if (!add_option(&options, "_source", "client/dbus")) {
         ErrorF("[config/dbus] couldn't allocate first key/value pair\n");
         ret = BadAlloc;
         goto unwind;

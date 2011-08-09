@@ -205,15 +205,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         free(parent);
     }
 
-    options = calloc(sizeof(*options), 1);
-    if (!options){
-        LogMessage(X_ERROR, "config/hal: couldn't allocate space for input options!\n");
-        goto unwind;
-    }
-
-    options->key = strdup("_source");
-    options->value = strdup("server/hal");
-    if (!options->key || !options->value) {
+    if (!add_option(&options, "_source", "server/hal")) {
         LogMessage(X_ERROR, "config/hal: couldn't allocate first key/value pair\n");
         goto unwind;
     }
