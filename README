@@ -14,7 +14,7 @@ diff -ur ../Downloads/glew-1.5.8/Makefile glew-1.5.8/Makefile
  endif
 -INCLUDE = -Iinclude
 +
-+NCLUDE = -Iinclude
++INCLUDE = -Iinclude
  CFLAGS = $(OPT) $(WARN) $(INCLUDE) $(CFLAGS.EXTRA)
 +ifeq ($(NO_GLX), 1)
 +CFLAGS += -D_NO_GLX_
