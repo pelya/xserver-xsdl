@@ -213,6 +213,7 @@ static void
 __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, GLuint tex)
 {
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+  glamor_screen_private *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
   unsigned int stride, row_length;
   void *texels;
   GLenum iformat;
@@ -229,15 +230,24 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
         break;
     }
 
+  if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
+    iformat = format;
+    type = GL_UNSIGNED_BYTE;
+  }
 
   stride = pixmap->devKind;
   row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
 
   glBindTexture(GL_TEXTURE_2D, tex);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-#ifndef GLAMOR_GLES2
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
-#endif
+
+  if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+  } 
+  else {
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+  }
+
   if (pixmap_priv->pbo && pixmap_priv->pbo_valid) {
     texels = NULL;
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixmap_priv->pbo);
@@ -524,15 +534,26 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
     ErrorF("Glamor: Invalid access code. %d\n", access);
     assert(0);
   }
- 
+  if (glamor_priv->gl_flavor == GLAMOR_GL_ES2)
+    data = malloc(stride * pixmap->drawable.height);
   row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
+  if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
+  }
+  else {
+    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+  //  glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+  }
 
   if (GLEW_MESA_pack_invert || glamor_priv->yInverted) {
 
-    if (!glamor_priv->yInverted) 
+    if (!glamor_priv->yInverted) {
+      assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP); 
       glPixelStorei(GL_PACK_INVERT_MESA, 1);
+    }
+    
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
     if (pixmap_priv->pbo == 0)
       glGenBuffers (1, &pixmap_priv->pbo);
     glBindBuffer (GL_PIXEL_PACK_BUFFER, pixmap_priv->pbo);
@@ -545,9 +566,16 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
     data = glMapBuffer (GL_PIXEL_PACK_BUFFER, gl_access);
     pixmap_priv->pbo_valid = TRUE;
 
-    if (!glamor_priv->yInverted) 
+    if (!glamor_priv->yInverted) {
+      assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
       glPixelStorei(GL_PACK_INVERT_MESA, 0);
+    }
     glBindBuffer (GL_PIXEL_PACK_BUFFER, 0);
+    } else {
+    glReadPixels (0, 0,
+                    row_length, pixmap->drawable.height,
+                    format, type, data);
+    }
   } else {
     data = malloc(stride * pixmap->drawable.height);
     assert(data);
@@ -588,7 +616,7 @@ _glamor_destroy_upload_pixmap(PixmapPtr pixmap)
 
   assert(pixmap_priv->gl_fbo == 0);
   if (pixmap_priv->fb)
-    glDeleteFramebuffersEXT(1, &pixmap_priv->fb);
+    glDeleteFramebuffers(1, &pixmap_priv->fb);
   if (pixmap_priv->tex)
     glDeleteTextures(1, &pixmap_priv->tex);
   if (pixmap_priv->pbo)

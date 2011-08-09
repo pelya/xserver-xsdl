@@ -379,6 +379,12 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_glyphs_init(screen);
     glamor_pixmap_init(screen);
 
+#ifdef GLAMOR_GLES2
+    glamor_priv->gl_flavor = GLAMOR_GL_ES2;
+#else
+    glamor_priv->gl_flavor = GLAMOR_GL_DESKTOP;
+#endif
+
     return TRUE;
 
 fail:
