@@ -45,6 +45,7 @@
 #include <GL/gl.h>
 #endif
 
+#define MESA_EGL_NO_X11_HEADERS
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
@@ -79,6 +80,10 @@ struct glamor_screen_private {
 	CloseScreenProcPtr CloseScreen;
 	int fd;
 	int cpp;
+
+	PFNEGLCREATEDRMIMAGEMESA egl_create_drm_image_mesa;
+	PFNEGLEXPORTDRMIMAGEMESA egl_export_drm_image_mesa;
+
 };
 
 static inline struct glamor_screen_private *
@@ -109,7 +114,7 @@ glamor_resize(ScrnInfoPtr scrn, int width, int height)
 
 	attribs[1] = width;
 	attribs[3] = height;
-	image =	 eglCreateDRMImageMESA(glamor->display, attribs);  
+	image =	 (glamor->egl_create_drm_image_mesa)(glamor->display, attribs);  
 	if (image == EGL_NO_IMAGE_KHR)
 		return FALSE;
 
@@ -131,7 +136,7 @@ glamor_frontbuffer_handle(ScrnInfoPtr scrn, uint32_t *handle, uint32_t *pitch)
 {
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
 	EGLint name;
-	eglExportDRMImageMESA (glamor->display, glamor->root, &name, (EGLint*) handle, (EGLint*) pitch);
+	(glamor->egl_export_drm_image_mesa)(glamor->display, glamor->root, &name, (EGLint*) handle, (EGLint*) pitch);
 }
 
 EGLImageKHR glamor_create_cursor_argb(ScrnInfoPtr scrn, int width, int height)
@@ -148,7 +153,7 @@ EGLImageKHR glamor_create_cursor_argb(ScrnInfoPtr scrn, int width, int height)
 
 	attribs[1] = width;
 	attribs[3] = height;
-	return	eglCreateDRMImageMESA(glamor->display, attribs); 
+	return	(glamor->egl_create_drm_image_mesa)(glamor->display, attribs); 
 }
 
 void glamor_destroy_cursor(ScrnInfoPtr scrn, EGLImageKHR cursor)
@@ -162,7 +167,7 @@ glamor_cursor_handle(ScrnInfoPtr scrn, EGLImageKHR cursor, uint32_t *handle, uin
 {
 	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
 	EGLint name;
-	eglExportDRMImageMESA (glamor->display, cursor, &name, (EGLint*) handle, (EGLint*) pitch);
+	(glamor->egl_export_drm_image_mesa)(glamor->display, cursor, &name, (EGLint*) handle, (EGLint*) pitch);
 	ErrorF("cursor stride: %d\n", *pitch);
 }
 
@@ -346,7 +351,16 @@ glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	}
 
 	version = eglQueryString(glamor->display, EGL_VERSION);
-	xf86Msg(X_INFO, "%s: EGL version %s:", glamor_name, version);
+	xf86Msg(X_INFO, "%s: EGL version %s:\n", glamor_name, version);
+
+	glamor->egl_create_drm_image_mesa = eglGetProcAddress("eglCreateDRMImageMESA");
+	glamor->egl_export_drm_image_mesa = eglGetProcAddress("eglExportDRMImageMESA");
+
+	if (!glamor->egl_create_drm_image_mesa || !glamor->egl_export_drm_image_mesa) {
+		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+			   "eglGetProcAddress() failed\n");
+		return FALSE;
+	}
 
 	glamor->context = eglCreateContext(glamor->display,
 					   NULL, EGL_NO_CONTEXT, config_attribs);
