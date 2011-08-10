@@ -49,6 +49,7 @@
 #include "eventstr.h"
 #include "xserver-properties.h"
 #include "inpututils.h"
+#include "optionstr.h"
 
 #define AtomFromName(x) MakeAtom(x, strlen(x), 1)
 
@@ -1074,7 +1075,7 @@ KdParseKbdOptions (KdKeyboardInfo *ki)
 {
     InputOption *option = NULL;
 
-    nt_list_for_each_entry(option, ki->options, next)
+    nt_list_for_each_entry(option, ki->options, list.next)
     {
         const char *key = input_option_get_key(option);
         const char *value = input_option_get_value(option);
@@ -1174,7 +1175,7 @@ KdParsePointerOptions (KdPointerInfo *pi)
 {
     InputOption *option = NULL;
 
-    nt_list_for_each_entry(option, pi->options, next)
+    nt_list_for_each_entry(option, pi->options, list.next)
     {
         const char *key = input_option_get_key(option);
         const char *value = input_option_get_value(option);
@@ -2222,7 +2223,7 @@ NewInputDeviceRequest(InputOption *options, InputAttributes *attrs,
     KdPointerInfo *pi = NULL;
     KdKeyboardInfo *ki = NULL;
 
-    nt_list_for_each_entry(option, options, next) {
+    nt_list_for_each_entry(option, options, list.next) {
         const char *key = input_option_get_key(option);
         const char *value = input_option_get_value(option);
 
@@ -2267,7 +2268,7 @@ NewInputDeviceRequest(InputOption *options, InputAttributes *attrs,
 
     /* FIXME: change this code below to use KdParseKbdOptions and
      * KdParsePointerOptions */
-    nt_list_for_each_entry(option, options, next) {
+    nt_list_for_each_entry(option, options, list.next) {
         const char *key = input_option_get_key(option);
         const char *value = input_option_get_value(option);
 
