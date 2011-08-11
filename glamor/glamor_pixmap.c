@@ -32,14 +32,9 @@ _glamor_pixmap_validate_filling(glamor_screen_private *glamor_priv,
 				 glamor_pixmap_private *pixmap_priv)
 {
     GLfloat vertices[8];
-#if 0
-    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
-    glEnableClientState(GL_VERTEX_ARRAY);
-#else
     glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                           2 * sizeof(float), vertices);
     glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-#endif
     glUseProgram(glamor_priv->solid_prog);
     glUniform4fv(glamor_priv->solid_color_uniform_location, 
       1, pixmap_priv->pending_op.fill.color4fv);
@@ -52,11 +47,7 @@ _glamor_pixmap_validate_filling(glamor_screen_private *glamor_priv,
     vertices[6] = -1;
     vertices[7] = 1;
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-#if 0
-    glDisableClientState(GL_VERTEX_ARRAY);
-#else
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-#endif
     glUseProgram(0);
     pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
 }
@@ -341,23 +332,14 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glEnable(GL_TEXTURE_2D);
-#if 0
   glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
-#else
-  glUseProgram(glamor_priv->finish_access_prog[no_alpha + 2]);
-#endif
 
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
   glDisable(GL_TEXTURE_2D);
   glUseProgram(0);
-#if 0
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-#else
   glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
   glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-#endif
   glDeleteTextures(1, &tex);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -516,7 +498,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   unsigned int stride, row_length, y;
   GLenum format, type, gl_access, gl_usage;
   int no_alpha;
-  uint8_t *data, *read;
+  uint8_t *data = NULL, *read;
   glamor_screen_private *glamor_priv =
     glamor_get_screen_private(pixmap->drawable.pScreen);
 

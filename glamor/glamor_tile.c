@@ -41,35 +41,20 @@ glamor_init_tile_shader(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     const char *tile_vs =
-#if 0
-#else
         "attribute vec4 v_position;\n"
         "attribute vec4 v_texcoord0;\n"
         "varying vec2 tile_texture;\n"
-#endif
 	"void main()\n"
 	"{\n"
-#if 0
-	"	gl_Position = gl_Vertex;\n"
-	"	gl_TexCoord[0] = gl_MultiTexCoord0;\n"
-#else
         "       gl_Position = v_position;\n"
         "       tile_texture = v_texcoord0.xy;\n"
-#endif
 	"}\n";
     const char *tile_fs =
-#if 0
-#else
         "varying vec2 tile_texture;\n"
-#endif
 	"uniform sampler2D sampler;\n"
 	"void main()\n"
 	"{\n"
-#if 0
-	"	gl_FragColor = texture2D(sampler, gl_TexCoord[0].xy);\n"
-#else
 	"	gl_FragColor = texture2D(sampler, tile_texture);\n"
-#endif
 	"}\n";
     GLint fs_prog, vs_prog;
     GLint sampler_uniform_location;
@@ -163,16 +148,10 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 				 tile_x2, tile_y2,
 				 glamor_priv->yInverted,
 				 source_texcoords);
-#if 0
-      glClientActiveTexture(GL_TEXTURE0);
-      glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, source_texcoords);
-      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-#else
       glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE,
                             2 * sizeof(float),
                             source_texcoords);
       glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-#endif
    } 
    else {
      GLAMOR_CHECK_PENDING_FILL(glamor_priv, src_pixmap_priv);
@@ -183,31 +162,17 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 				 glamor_priv->yInverted,
 				 vertices);
 
-#if 0
-    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
-    glEnableClientState(GL_VERTEX_ARRAY);
-#else
     glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                           2 * sizeof(float),
                          vertices);
     glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-#endif
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-#if 0
-    if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
-    glClientActiveTexture(GL_TEXTURE0);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisable(GL_TEXTURE_2D);
-    }
-    glDisableClientState(GL_VERTEX_ARRAY);
-#else
     if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glDisable(GL_TEXTURE_2D);
     }
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-#endif
     glUseProgram(0);
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);

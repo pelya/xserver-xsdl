@@ -235,7 +235,7 @@ typedef struct glamor_screen_private {
   int max_fbo_size;
 
   /* glamor_finishaccess */
-  GLint finish_access_prog[4];
+  GLint finish_access_prog[2];
 
   /* glamor_solid */
   GLint solid_prog;

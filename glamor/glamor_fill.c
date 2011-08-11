@@ -102,33 +102,11 @@ void
 glamor_init_solid_shader(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-    const char *solid_vs_only =
-#if 0
-#else
-        "attribute vec4 v_position;"
-#endif
-	"uniform vec4 color;\n"
-	"void main()\n"
-	"{\n"
-#if 0
-	"	gl_Position = gl_Vertex;\n"
-#else
-        "       gl_Position = v_position;\n"
-#endif
-	"	gl_Color = color;\n"
-	"}\n";
     const char *solid_vs =
-#if 0
-#else
         "attribute vec4 v_position;"
-#endif
 	"void main()\n"
 	"{\n"
-#if 0
-	"	gl_Position = gl_Vertex;\n"
-#else
         "       gl_Position = v_position;\n"
-#endif
 	"}\n";
     const char *solid_fs =
 	"uniform vec4 color;\n"
@@ -201,25 +179,16 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
  
     glUniform4fv(glamor_priv->solid_color_uniform_location, 1, color);
 
-#if 0
-    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
-    glEnableClientState(GL_VERTEX_ARRAY);
-#else
     glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                           2 * sizeof(float), vertices);
     glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-#endif
     pixmap_priv_get_scale(pixmap_priv, &xscale, &yscale);
 
     glamor_set_normalize_vcoords(xscale, yscale, x1, y1, x2, y2,
 				 glamor_priv->yInverted,
 				 vertices);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-#if 0
-    glDisableClientState(GL_VERTEX_ARRAY);
-#else
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-#endif
     glUseProgram(0);
     return TRUE;
 fail:

@@ -523,47 +523,25 @@ glamor_setup_composite_vbo(ScreenPtr screen)
 
   glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
 
-#if 0
-  glVertexPointer(2, GL_FLOAT, glamor_priv->vb_stride,
-		  (void *)((long)glamor_priv->vbo_offset));
-  glEnableClientState(GL_VERTEX_ARRAY);
-#else
   glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE, 
                         glamor_priv->vb_stride,
                        (void *)((long)glamor_priv->vbo_offset));
   glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-#endif
 
   if (glamor_priv->has_source_coords) {
-#if 0
-    glClientActiveTexture(GL_TEXTURE0);
-    glTexCoordPointer(2, GL_FLOAT, glamor_priv->vb_stride,
-		      (void *)(glamor_priv->vbo_offset + 2 * sizeof(float)));
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-#else
     glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE, 
                         glamor_priv->vb_stride,
                        (void *)((long)glamor_priv->vbo_offset + 2 * sizeof(float)));
     glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-#endif
   }
 
   if (glamor_priv->has_mask_coords) {
-#if 0
-    glClientActiveTexture(GL_TEXTURE1);
-    glTexCoordPointer(2, GL_FLOAT, glamor_priv->vb_stride,
-		      (void *)(glamor_priv->vbo_offset +
-			       (glamor_priv->has_source_coords ? 4 : 2) *
-			       sizeof(float)));
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-#else
     glVertexAttribPointer(GLAMOR_VERTEX_MASK, 2, GL_FLOAT, GL_FALSE, 
                         glamor_priv->vb_stride,
                        (void *)((long)glamor_priv->vbo_offset + 
 			       (glamor_priv->has_source_coords ? 4 : 2) *
                                sizeof(float)));
     glEnableVertexAttribArray(GLAMOR_VERTEX_MASK);
-#endif
   }
 }
 
@@ -1054,17 +1032,9 @@ glamor_composite_with_shader(CARD8 op,
   glamor_flush_composite_rects(screen);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
-#if 0
-  glClientActiveTexture(GL_TEXTURE0);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  glClientActiveTexture(GL_TEXTURE1);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState(GL_VERTEX_ARRAY);
-#else
   glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
   glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
   glDisableVertexAttribArray(GLAMOR_VERTEX_MASK);
-#endif
   REGION_UNINIT(dst->pDrawable->pScreen, &region);
   glDisable(GL_BLEND);
   glActiveTexture(GL_TEXTURE0);

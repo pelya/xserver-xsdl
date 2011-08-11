@@ -141,30 +141,7 @@ void
 glamor_init_finish_access_shaders(ScreenPtr screen)
 {
   glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-#ifndef GLAMOR_GLES2
   const char *vs_source =
-    "void main()\n"
-    "{\n"
-    "	gl_Position = gl_Vertex;\n"
-    "	gl_TexCoord[0] = gl_MultiTexCoord0;\n"
-    "}\n";
-  const char *fs_source =
-    "varying vec2 texcoords;\n"
-    "uniform sampler2D sampler;\n"
-    "void main()\n"
-    "{\n"
-    "	gl_FragColor = texture2D(sampler, gl_TexCoord[0].xy);\n"
-    "}\n";
-
-  const char *aswizzle_source =
-    "varying vec2 texcoords;\n"
-    "uniform sampler2D sampler;\n"
-    "void main()\n"
-    "{\n"
-    " gl_FragColor = vec4(texture2D(sampler, gl_TexCoord[0].xy).rgb, 1);\n"
-    "}\n";
-#endif
-  const char *es_vs_source =
     "attribute vec4 v_position;\n"
     "attribute vec4 v_texcoord0;\n"
     "varying vec2 source_texture;\n"
@@ -174,7 +151,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     "	source_texture = v_texcoord0.xy;\n"
     "}\n";
 
-  const char *es_fs_source =
+  const char *fs_source =
     "varying vec2 source_texture;\n"
     "uniform sampler2D sampler;\n"
     "void main()\n"
@@ -182,62 +159,37 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     "	gl_FragColor = texture2D(sampler, source_texture);\n"
     "}\n";
     
-  const char *es_aswizzle_source =
+  const char *set_alpha_source =
     "varying vec2 source_texture;\n"
-    "varying vec2 texcoords;\n"
     "uniform sampler2D sampler;\n"
     "void main()\n"
     "{\n"
     " gl_FragColor = vec4(texture2D(sampler, source_texture).rgb, 1);\n"
     "}\n";
-
-
-
-  GLint fs_prog, vs_prog, avs_prog, aswizzle_prog;
-  GLint es_fs_prog, es_vs_prog, es_avs_prog, es_aswizzle_prog;
+  GLint fs_prog, vs_prog, avs_prog, set_alpha_prog;
+  GLint sampler_uniform_location;
 
   glamor_priv->finish_access_prog[0] = glCreateProgram();
   glamor_priv->finish_access_prog[1] = glCreateProgram();
-  glamor_priv->finish_access_prog[2] = glCreateProgram();
-  glamor_priv->finish_access_prog[3] = glCreateProgram();
 
-#ifndef GLAMOR_GLES2
   vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, vs_source);
   fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, fs_source);
   glAttachShader(glamor_priv->finish_access_prog[0], vs_prog);
   glAttachShader(glamor_priv->finish_access_prog[0], fs_prog);
 
   avs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, vs_source);
-  aswizzle_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, aswizzle_source);
+  set_alpha_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, set_alpha_source);
   glAttachShader(glamor_priv->finish_access_prog[1], avs_prog);
-  glAttachShader(glamor_priv->finish_access_prog[1], aswizzle_prog);
-#endif
-  es_vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, es_vs_source);
-  es_fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, es_fs_source);
-  glAttachShader(glamor_priv->finish_access_prog[2], es_vs_prog);
-  glAttachShader(glamor_priv->finish_access_prog[2], es_fs_prog);
+  glAttachShader(glamor_priv->finish_access_prog[1], set_alpha_prog);
 
-  es_avs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, es_vs_source);
-  es_aswizzle_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, es_aswizzle_source);
-  glAttachShader(glamor_priv->finish_access_prog[3], es_avs_prog);
-  glAttachShader(glamor_priv->finish_access_prog[3], es_aswizzle_prog);
- 
-
-
-#ifndef GLAMOR_GLES2
+  glBindAttribLocation(glamor_priv->finish_access_prog[0], GLAMOR_VERTEX_POS, "v_position");
+  glBindAttribLocation(glamor_priv->finish_access_prog[0], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
   glamor_link_glsl_prog(glamor_priv->finish_access_prog[0]);
+
+  glBindAttribLocation(glamor_priv->finish_access_prog[1], GLAMOR_VERTEX_POS, "v_position");
+  glBindAttribLocation(glamor_priv->finish_access_prog[1], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
   glamor_link_glsl_prog(glamor_priv->finish_access_prog[1]);
-#endif
-  glBindAttribLocation(glamor_priv->finish_access_prog[2], GLAMOR_VERTEX_POS, "v_position");
-  glBindAttribLocation(glamor_priv->finish_access_prog[2], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
-  glamor_link_glsl_prog(glamor_priv->finish_access_prog[2]);
 
-  glBindAttribLocation(glamor_priv->finish_access_prog[3], GLAMOR_VERTEX_POS, "v_position");
-  glBindAttribLocation(glamor_priv->finish_access_prog[3], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
-  glamor_link_glsl_prog(glamor_priv->finish_access_prog[3]);
-
-  GLint sampler_uniform_location;
-#ifndef GLAMOR_GLES2
   sampler_uniform_location =
     glGetUniformLocation(glamor_priv->finish_access_prog[0], "sampler");
   glUseProgram(glamor_priv->finish_access_prog[0]);
@@ -249,19 +201,6 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
   glUseProgram(glamor_priv->finish_access_prog[1]);
   glUniform1i(sampler_uniform_location, 0);
   glUseProgram(0);
-#endif
-  sampler_uniform_location =
-    glGetUniformLocation(glamor_priv->finish_access_prog[2], "sampler");
-  glUseProgram(glamor_priv->finish_access_prog[2]);
-  glUniform1i(sampler_uniform_location, 0);
-  glUseProgram(0);
-
-  sampler_uniform_location =
-    glGetUniformLocation(glamor_priv->finish_access_prog[3], "sampler");
-  glUseProgram(glamor_priv->finish_access_prog[3]);
-  glUniform1i(sampler_uniform_location, 0);
-  glUseProgram(0);
- 
 }
 
 void

@@ -35,8 +35,8 @@
 void
 glamor_init_putimage_shaders(ScreenPtr screen)
 {
-    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 #if 0
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     const char *xybitmap_vs =
 	"uniform float x_bias;\n"
 	"uniform float x_scale;\n"
@@ -346,11 +346,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glEnable(GL_TEXTURE_2D);
 
-#if 0
     glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
-#else
-    glUseProgram(glamor_priv->finish_access_prog[no_alpha + 2]);
-#endif
 
     x += drawable->x;
     y += drawable->y;
@@ -400,13 +396,8 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 
     glDisable(GL_TEXTURE_2D);
     glUseProgram(0);
-#if 0
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-#else
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-#endif
     glDeleteTextures(1, &tex);
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
       glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
