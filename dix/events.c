@@ -408,6 +408,24 @@ static const Mask default_filter[128] =
 	CantBeFiltered		       /* MappingNotify */
 };
 
+static inline Mask
+GetEventFilterMask(DeviceIntPtr dev, int evtype)
+{
+    return filters[dev ? dev->id : 0][evtype];
+}
+
+static inline Mask
+GetXI2EventFilterMask(int evtype)
+{
+    return (1 << (evtype % 8));
+}
+
+static inline int
+GetXI2EventFilterOffset(int evtype)
+{
+    return (evtype / 8);
+}
+
 /**
  * For the given event, return the matching event filter. This filter may then
  * be AND'ed with the selected event mask.
@@ -429,12 +447,26 @@ GetEventFilter(DeviceIntPtr dev, xEvent *event)
     int evtype = 0;
 
     if (event->u.u.type != GenericEvent)
-        return filters[dev ? dev->id : 0][event->u.u.type];
+        return GetEventFilterMask(dev, event->u.u.type);
     else if ((evtype = xi2_get_type(event)))
-        return (1 << (evtype % 8));
+        return GetXI2EventFilterMask(evtype);
     ErrorF("[dix] Unknown event type %d. No filter\n", event->u.u.type);
     return 0;
 }
+
+/**
+ * Return the single byte of the device's XI2 mask that contains the mask
+ * for the event_type.
+ */
+static int
+GetXI2MaskByte(unsigned char xi2mask[][XI2MASKSIZE], DeviceIntPtr dev, int event_type)
+{
+    int byte = GetXI2EventFilterOffset(event_type);
+    return xi2mask[dev->id][byte] |
+           xi2mask[XIAllDevices][byte] |
+           (IsMaster(dev) ? xi2mask[XIAllMasterDevices][byte] : 0);
+}
+
 
 /**
  * Return the windows complete XI2 mask for the given XI2 event type.
@@ -452,9 +484,7 @@ GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
     evtype = ((xGenericEvent*)ev)->evtype;
     filter = GetEventFilter(dev, ev);
 
-    return ((inputMasks->xi2mask[dev->id][evtype/8] & filter) ||
-            inputMasks->xi2mask[XIAllDevices][evtype/8] ||
-            (inputMasks->xi2mask[XIAllMasterDevices][evtype/8] && IsMaster(dev)));
+    return (GetXI2MaskByte(inputMasks->xi2mask, dev, evtype) & filter);
 }
 
 Mask
@@ -465,10 +495,7 @@ GetEventMask(DeviceIntPtr dev, xEvent *event, InputClients* other)
     /* XI2 filters are only ever 8 bit, so let's return a 8 bit mask */
     if ((evtype = xi2_get_type(event)))
     {
-        int byte = evtype / 8;
-        return (other->xi2mask[dev->id][byte] |
-                other->xi2mask[XIAllDevices][byte] |
-                (IsMaster(dev)? other->xi2mask[XIAllMasterDevices][byte] : 0));
+        return GetXI2MaskByte(other->xi2mask, dev, evtype);
     } else if (core_get_type(event) != 0)
         return other->mask[XIAllDevices];
     else
@@ -4061,9 +4088,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             if (rc == Success)
             {
                 int evtype = xi2_get_type(xi2);
-                mask = grab->xi2mask[XIAllDevices][evtype/8] |
-                    grab->xi2mask[XIAllMasterDevices][evtype/8] |
-                    grab->xi2mask[thisDev->id][evtype/8];
+                mask = GetXI2MaskByte(grab->xi2mask, thisDev, evtype);
                 /* try XI2 event */
                 FixUpEventFromWindow(pSprite, xi2, grab->window, None, TRUE);
                 /* XXX: XACE */
@@ -4542,9 +4567,7 @@ DeviceEnterLeaveEvent(
     if (grab)
     {
         Mask mask;
-        mask = grab->xi2mask[XIAllDevices][type/8] |
-               grab->xi2mask[XIAllMasterDevices][type/8] |
-               grab->xi2mask[mouse->id][type/8];
+        mask = GetXI2MaskByte(grab->xi2mask, mouse, type);
         TryClientEvents(rClient(grab), mouse, (xEvent*)event, 1, mask,
                         filter, grab);
     } else {
