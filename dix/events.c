@@ -2503,44 +2503,45 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     int filter = 0;
     int type;
     OtherInputMasks *inputMasks = wOtherInputMasks(win);
-    xEvent ev;
 
-    /* XXX: this makes me gag */
-    type = GetXI2Type(event);
-    ev.u.u.type = GenericEvent; /* GetEventFilter only cares about type and evtype*/
-    ((xGenericEvent*)&ev)->extension = IReqCode;
-    ((xGenericEvent*)&ev)->evtype = type;
-    filter = GetEventFilter(dev, &ev);
-    if (type && inputMasks &&
-        ((inputMasks->xi2mask[XIAllDevices][type/8] & filter) ||
-         ((inputMasks->xi2mask[XIAllMasterDevices][type/8] & filter) && IsMaster(dev)) ||
-         (inputMasks->xi2mask[dev->id][type/8] & filter)))
-        rc |= EVENT_XI2_MASK;
+    if ((type = GetXI2Type(event)) != 0)
+    {
+        filter = GetXI2EventFilterMask(type);
 
-    type = GetXIType(event);
-    ev.u.u.type = type;
-    filter = GetEventFilter(dev, &ev);
+        if (inputMasks &&
+            (GetXI2MaskByte(inputMasks->xi2mask,  dev, type) & filter))
+            rc |= EVENT_XI2_MASK;
+    }
 
-    /* Check for XI mask */
-    if (type && inputMasks &&
-        (inputMasks->deliverableEvents[dev->id] & filter) &&
-        (inputMasks->inputEvents[dev->id] & filter))
-        rc |= EVENT_XI1_MASK;
+    if ((type = GetXIType(event)) != 0)
+    {
+        filter = GetEventFilterMask(dev, type);
 
-    /* Check for XI DontPropagate mask */
-    if (type && inputMasks &&
-        (inputMasks->dontPropagateMask[dev->id] & filter))
-        rc |= EVENT_DONT_PROPAGATE_MASK;
+        /* Check for XI mask */
+        if (inputMasks &&
+            (inputMasks->deliverableEvents[dev->id] & filter) &&
+            (inputMasks->inputEvents[dev->id] & filter))
+            rc |= EVENT_XI1_MASK;
 
-    /* Check for core mask */
-    type = GetCoreType(event);
-    if (type && (win->deliverableEvents & filter) &&
-        ((wOtherEventMasks(win) | win->eventMask) & filter))
-        rc |= EVENT_CORE_MASK;
+        /* Check for XI DontPropagate mask */
+        if (inputMasks && (inputMasks->dontPropagateMask[dev->id] & filter))
+            rc |= EVENT_DONT_PROPAGATE_MASK;
 
-    /* Check for core DontPropagate mask */
-    if (type && (filter & wDontPropagateMask(win)))
-        rc |= EVENT_DONT_PROPAGATE_MASK;
+    }
+
+    if ((type = GetCoreType(event)) != 0)
+    {
+        filter = GetEventFilterMask(dev, type);
+
+        /* Check for core mask */
+        if ((win->deliverableEvents & filter) &&
+            ((wOtherEventMasks(win) | win->eventMask) & filter))
+            rc |= EVENT_CORE_MASK;
+
+        /* Check for core DontPropagate mask */
+        if (filter & wDontPropagateMask(win))
+            rc |= EVENT_DONT_PROPAGATE_MASK;
+    }
 
     return rc;
 }
