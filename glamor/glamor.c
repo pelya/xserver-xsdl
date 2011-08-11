@@ -146,9 +146,11 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	return pixmap;
 
     switch (depth) {
+#if 0
     case 8:
         format = GL_ALPHA;
         break;
+#endif
     case 24:
         format = GL_RGB;
         break; 

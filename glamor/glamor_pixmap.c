@@ -219,9 +219,11 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
   GLenum iformat;
 
   switch (pixmap->drawable.depth) {
+#if 0
     case 8:
         iformat = GL_ALPHA;
         break;
+#endif
     case 24:
         iformat = GL_RGB;
         break; 
