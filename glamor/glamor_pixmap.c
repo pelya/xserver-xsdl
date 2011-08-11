@@ -359,6 +359,39 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, i
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void
+glamor_pixmap_ensure_fb(PixmapPtr pixmap)
+{
+  int status;
+  glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+  if (pixmap_priv->fb == 0)
+    glGenFramebuffers(1, &pixmap_priv->fb);
+  assert(pixmap_priv->tex != 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
+  glFramebufferTexture2D(GL_FRAMEBUFFER,
+                         GL_COLOR_ATTACHMENT0,
+			 GL_TEXTURE_2D,
+			 pixmap_priv->tex,
+			 0);
+    status = glCheckFramebufferStatus (GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        const char *str;
+        switch (status) {
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: str= "incomplete attachment"; break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: str= "incomplete/missing attachment"; break;
+        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: str= "incomplete draw buffer"; break;
+        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: str= "incomplete read buffer"; break;
+        case GL_FRAMEBUFFER_UNSUPPORTED: str= "unsupported"; break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: str= "incomplete multiple"; break;
+        default: str = "unknown error"; break;
+        }
+
+        LogMessageVerb(X_INFO, 0,
+                 "destination is framebuffer incomplete: %s [%#x]\n",
+                 str, status);
+        assert(0);
+    }
+}
 
 /*  
  * Prepare to upload a pixmap to texture memory.
@@ -393,21 +426,13 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int ax)
     glGenTextures(1, &pixmap_priv->tex);
 
   if (need_fbo) {
-    if (pixmap_priv->fb == 0) 
-      glGenFramebuffers(1, &pixmap_priv->fb);
     glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pixmap->drawable.width, 
 		 pixmap->drawable.height, 0,
 		 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
-			      GL_COLOR_ATTACHMENT0,
-			      GL_TEXTURE_2D,
-			      pixmap_priv->tex,
-			      0);
+    glamor_pixmap_ensure_fb(pixmap);
   }
  
   return 0;

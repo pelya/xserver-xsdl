@@ -74,14 +74,7 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
      */
     pixmap_priv->gl_fbo = 1;
     pixmap_priv->gl_tex = 1;
-    glGenFramebuffers(1, &pixmap_priv->fb);
-    glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
-                             GL_COLOR_ATTACHMENT0,
-                             GL_TEXTURE_2D,
-                             pixmap_priv->tex,
-                             0);
-
+    glamor_pixmap_ensure_fb(pixmap);
     screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
                               (((w * pixmap->drawable.bitsPerPixel +
                                  7) / 8) + 3) & ~3,

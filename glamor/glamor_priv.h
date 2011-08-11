@@ -62,6 +62,10 @@
 #define GL_PACK_ROW_LENGTH                      0x0D02
 #define GL_UNPACK_ROW_LENGTH                    0x0CF2
 
+#define GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER 0x8CDB
+#define GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER 0x8CDC
+#define GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE 0x8D56
+
 #define GLEW_MESA_pack_invert             0
 #define GL_PACK_INVERT_MESA               0x8758
 
@@ -802,6 +806,16 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access);
  **/
 void
 glamor_restore_pixmap_to_texture(PixmapPtr pixmap);
+/**
+ * Ensure to have a fbo attached to the pixmap. 
+ * If the pixmap already has one fbo then do nothing.
+ * Otherwise, it will generate a new fbo, and bind
+ * the pixmap's texture to the fbo. 
+ * The pixmap must has a valid texture before call this
+ * API, othersie, it will trigger a assert.
+ */
+void
+glamor_pixmap_ensure_fb(PixmapPtr pixmap);
 
 /**
  * Upload a pixmap to gl texture. Used by dynamic pixmap
