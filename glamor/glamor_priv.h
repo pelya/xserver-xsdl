@@ -37,8 +37,6 @@
 
 #ifdef GLAMOR_GLES2
 
-#define GLEW_ES_ONLY 1
-
 #define GL_BGRA                                 GL_BGRA_EXT
 #define GL_COLOR_INDEX                          0x1900
 #define GL_BITMAP                               0x1A00
@@ -49,7 +47,6 @@
 #define GL_UNSIGNED_SHORT_1_5_5_5_REV           0x8366
 #define GL_UNSIGNED_SHORT_4_4_4_4_REV           0x8365
 
-#define GLEW_ARB_fragment_shader                1
 #define GL_PIXEL_PACK_BUFFER              0x88EB
 #define GL_PIXEL_UNPACK_BUFFER            0x88EC
 #define GL_CLAMP_TO_BORDER                0x812D
@@ -66,7 +63,6 @@
 #define GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER 0x8CDC
 #define GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE 0x8D56
 
-#define GLEW_MESA_pack_invert             0
 #define GL_PACK_INVERT_MESA               0x8758
 
 #define glMapBuffer(x, y)    NULL
@@ -76,12 +72,13 @@
 
 #endif
 
-#ifdef GLAMOR_GLES2
 #define GL_GLEXT_PROTOTYPES
+#ifdef GLAMOR_GLES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #else
-#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
 #endif
 
 
@@ -90,19 +87,11 @@
 #endif
 
 
-#ifndef MAX_WIDTH
-#define MAX_WIDTH 4096
-#endif
-
-#ifndef MAX_HEIGHT
-#define MAX_HEIGHT 4096
-#endif
-
 #include "glamor_debug.h"
 
-#define glamor_check_fbo_width_height(_w_, _h_)    ((_w_) > 0 && (_h_) > 0 \
-                                                    && (_w_) < MAX_WIDTH   \
-                                                    && (_h_) < MAX_HEIGHT)
+#define glamor_check_fbo_size(_glamor_,_w_, _h_)    ((_w_) > 0 && (_h_) > 0 \
+                                                    && (_w_) < _glamor_->max_fbo_size  \
+                                                    && (_h_) < _glamor_->max_fbo_size)
 
 #define glamor_check_fbo_depth(_depth_) (			\
                                          _depth_ == 8		\
@@ -241,6 +230,9 @@ typedef struct glamor_screen_private {
   char *vb;
   int vb_stride;
   enum glamor_gl_flavor gl_flavor;
+  int has_pack_invert;
+  int has_fbo_blit;
+  int max_fbo_size;
 
   /* glamor_finishaccess */
   GLint finish_access_prog[4];
@@ -674,6 +666,15 @@ void glamor_set_transform_for_pixmap(PixmapPtr pixmap,
 				     glamor_transform_uniforms *uniform_locations);
 Bool glamor_change_window_attributes(WindowPtr pWin, unsigned long mask);
 RegionPtr glamor_bitmap_to_region(PixmapPtr pixmap);
+Bool glamor_gl_has_extension(char *extension);
+int  glamor_gl_get_version(void);
+
+#define GLAMOR_GL_VERSION_ENCODE(major, minor) ( \
+          ((major) * 256)                       \
+        + ((minor) *   1))
+
+
+
 
 /* glamor_fill.c */
 void glamor_fill(DrawablePtr drawable,

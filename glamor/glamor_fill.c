@@ -139,15 +139,10 @@ glamor_init_solid_shader(ScreenPtr screen)
     GLint fs_prog, vs_prog;
 
     glamor_priv->solid_prog = glCreateProgram();
-    if (GLEW_ARB_fragment_shader) {
-	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, solid_vs);
-	fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, solid_fs);
-	glAttachShader(glamor_priv->solid_prog, vs_prog);
-	glAttachShader(glamor_priv->solid_prog, fs_prog);
-    } else {
-	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, solid_vs_only);
-	glAttachShader(glamor_priv->solid_prog, vs_prog);
-    }
+    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, solid_vs);
+    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, solid_fs);
+    glAttachShader(glamor_priv->solid_prog, vs_prog);
+    glAttachShader(glamor_priv->solid_prog, fs_prog);
     
     glBindAttribLocation(glamor_priv->solid_prog, GLAMOR_VERTEX_POS, "v_position");
     glamor_link_glsl_prog(glamor_priv->solid_prog);

@@ -48,7 +48,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     int dst_x_off, dst_y_off, src_x_off, src_y_off, i;
 
-    if (!GLEW_EXT_framebuffer_blit) {
+    if (!glamor_priv->has_fbo_blit) {
 	glamor_delayed_fallback(screen,"no EXT_framebuffer_blit\n");
 	return FALSE;
     }
@@ -85,7 +85,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 
     for (i = 0; i < nbox; i++) {
       if(glamor_priv->yInverted) {
-	glBlitFramebufferEXT((box[i].x1 + dx + src_x_off),
+	glBlitFramebuffer((box[i].x1 + dx + src_x_off),
                              (box[i].y1 + src_y_off),
 			     (box[i].x2 + dx + src_x_off),
 			     (box[i].y2 + src_y_off),
@@ -101,7 +101,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 	int flip_src_y1 = src_pixmap->drawable.height - (box[i].y2 + src_y_off);
 	int flip_src_y2 = src_pixmap->drawable.height - (box[i].y1 + src_y_off);
 
-	glBlitFramebufferEXT(box[i].x1 + dx + src_x_off,
+	glBlitFramebuffer(box[i].x1 + dx + src_x_off,
 			     flip_src_y1,
 			     box[i].x2 + dx + src_x_off,
 			     flip_src_y2,

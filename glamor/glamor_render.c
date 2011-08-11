@@ -1154,6 +1154,7 @@ glamor_composite(CARD8 op,
   PicturePtr temp_src = source, temp_mask = mask;
   int x_temp_src, y_temp_src, x_temp_mask, y_temp_mask;
   glamor_composite_rect_t rect;
+  glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
   x_temp_src = x_source;
   y_temp_src = y_source;
@@ -1181,7 +1182,7 @@ glamor_composite(CARD8 op,
 	  && !GLAMOR_PIXMAP_PRIV_HAS_FBO(source_pixmap_priv) 
 	  && ((width * height * 4 
 	       < (source_pixmap->drawable.width * source_pixmap->drawable.height))
-	      || !(glamor_check_fbo_width_height(source_pixmap->drawable.width,
+	      || !(glamor_check_fbo_size(glamor_priv, source_pixmap->drawable.width,
 						 source_pixmap->drawable.height))))) {
     temp_src = glamor_convert_gradient_picture(screen, source, x_source, y_source, width, height);
     if (!temp_src) {
@@ -1197,7 +1198,7 @@ glamor_composite(CARD8 op,
 	      && (!GLAMOR_PIXMAP_PRIV_HAS_FBO(mask_pixmap_priv))
 	      && ((width * height * 4 
 		   < (mask_pixmap->drawable.width * mask_pixmap->drawable.height))
-		  || !(glamor_check_fbo_width_height(mask_pixmap->drawable.width,
+		  || !(glamor_check_fbo_size(glamor_priv, mask_pixmap->drawable.width,
 						     mask_pixmap->drawable.height)))))) {
     /* XXX if mask->pDrawable is the same as source->pDrawable, we have an opportunity
      * to do reduce one convertion. */

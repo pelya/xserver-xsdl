@@ -66,6 +66,12 @@ libxephyr_la_SOURCES = $(XEPHYR_SRCS)
 Xephyr_SOURCES = \
 	ephyrinit.c
 
+if GLAMOR_GLES2
+GLAMOR_GL_LIB = -lGLESv2
+else
+GLAMOR_GL_LIB = -lGL
+endif
+
 Xephyr_LDADD = 						\
 	libxephyr.la					\
 	libxephyr-hostx.la				\
@@ -74,7 +80,8 @@ Xephyr_LDADD = 						\
 	$(top_builddir)/exa/libexa.la			\
 	$(top_builddir)/glamor/libglamor.la		\
 	@KDRIVE_LIBS@					\
-	@XEPHYR_LIBS@
+	@XEPHYR_LIBS@                                   \
+        $(GLAMOR_GL_LIB)
 
 Xephyr_DEPENDENCIES =	\
 	libxephyr.la					\

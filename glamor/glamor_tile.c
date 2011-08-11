@@ -74,9 +74,6 @@ glamor_init_tile_shader(ScreenPtr screen)
     GLint fs_prog, vs_prog;
     GLint sampler_uniform_location;
 
-    if (!GLEW_ARB_fragment_shader)
-	return;
-
     glamor_priv->tile_prog = glCreateProgram();
     vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, tile_vs);
     fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, tile_fs);

@@ -15,7 +15,7 @@ if GLAMOR_GLES2
 glamor_la_CFLAGS+=-DGLAMOR_GLES2
 GLAMOR_GL_LIB = -lGLESv2
 else
-GLAMOR_GL_LIB = -L$(libdir)/../lib64 -lGLEW
+GLAMOR_GL_LIB = -lGL
 endif
 
 glamor_la_LDFLAGS =				 \

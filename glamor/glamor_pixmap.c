@@ -407,7 +407,7 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int ax)
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
   glamor_screen_private *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 
-  if (!glamor_check_fbo_width_height(pixmap->drawable.width , pixmap->drawable.height) 
+  if (!glamor_check_fbo_size(glamor_priv, pixmap->drawable.width , pixmap->drawable.height) 
       || !glamor_check_fbo_depth(pixmap->drawable.depth)) {
     glamor_fallback("upload failed reason: bad size or depth %d x %d @depth %d \n",
 		    pixmap->drawable.width, pixmap->drawable.height, pixmap->drawable.depth);
@@ -571,7 +571,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   //  glPixelStorei(GL_PACK_ROW_LENGTH, 0);
   }
 
-  if (GLEW_MESA_pack_invert || glamor_priv->yInverted) {
+  if (glamor_priv->has_pack_invert || glamor_priv->yInverted) {
 
     if (!glamor_priv->yInverted) {
       assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP); 

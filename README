@@ -2,48 +2,6 @@
 
 1. Prerequirement.
 Please install makedepend and libudev-devel firstly. 
-Glamor need patch glew-1.5.8, here is the patch:
-
-
-diff -ur ../Downloads/glew-1.5.8/Makefile glew-1.5.8/Makefile
---- ../Downloads/glew-1.5.8/Makefile    2011-01-31 22:17:27.000000000 +0800
-+++ glew-1.5.8/Makefile 2011-06-28 10:13:54.147700479 +0800
-@@ -63,8 +63,12 @@
- else
- OPT = $(POPT)
- endif
--INCLUDE = -Iinclude
-+
-+INCLUDE = -Iinclude
- CFLAGS = $(OPT) $(WARN) $(INCLUDE) $(CFLAGS.EXTRA)
-+ifeq ($(NO_GLX), 1)
-+CFLAGS += -D_NO_GLX_
-+endif
-
- LIB.SRCS = src/glew.c
- LIB.OBJS = $(LIB.SRCS:.c=.o)
-diff -ur ../Downloads/glew-1.5.8/src/glew.c glew-1.5.8/src/glew.c
---- ../Downloads/glew-1.5.8/src/glew.c  2011-01-31 22:17:27.000000000 +0800
-+++ glew-1.5.8/src/glew.c       2011-06-28 10:06:45.952700777 +0800
-@@ -11379,6 +11379,10 @@
- {
-   GLenum r;
-   if ( (r = glewContextInit()) ) return r;
-+#if defined(_NO_GLX_)
-+  return r;
-+#endif
-+
- #if defined(_WIN32)
-   return wglewContextInit();
- #elif !defined(__APPLE__) || defined(GLEW_APPLE_GLX) /* _UNIX */
-
-
-As xserver's glx extension code has conflicts with glew's glx related
-initialization, we have to disable it in glew currently. Please apply the
-above patch to glew and then build the glew as follow which will 
-workaround the problem.
-
-glew-1.5.8# NO_GLX=1 make
 
 2. Build xserver-glamor.
 

@@ -110,10 +110,11 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     GLuint tex;
     int type = GLAMOR_PIXMAP_TEXTURE;
     glamor_pixmap_private *pixmap_priv;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
-    if (!glamor_check_fbo_width_height(w,h)
+    if (!glamor_check_fbo_size(glamor_priv, w,h)
 	|| !glamor_check_fbo_depth(depth) 
 	|| usage == GLAMOR_CREATE_PIXMAP_CPU) {
 	/* MESA can only support upto MAX_WIDTH*MAX_HEIGHT fbo.
@@ -249,6 +250,7 @@ Bool
 glamor_init(ScreenPtr screen, unsigned int flags)
 {
     glamor_screen_private *glamor_priv;
+    int gl_version;
 
 #ifdef RENDER
     PictureScreenPtr ps = GetPictureScreenIfSet(screen);
@@ -271,7 +273,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	LogMessage(X_WARNING,
 		   "glamor%d: Failed to allocate screen private\n",
 		   screen->myNum);
-        return FALSE;
+        goto fail;
     }
 
     dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, glamor_priv);
@@ -281,36 +283,27 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         LogMessage(X_WARNING,
                    "glamor%d: Failed to allocate pixmap private\n",
                    screen->myNum);
-        return FALSE;
+        goto fail;;
+    }
+
+    gl_version = glamor_gl_get_version();
+
+    if (gl_version < GLAMOR_GL_VERSION_ENCODE(1,3))  {
+        ErrorF("Require Opengl 1.3 or latter.\n");
+        goto fail;
     }
 
 
-#ifndef GLAMOR_GLES2
-    glewInit();
-    if (!GLEW_EXT_framebuffer_object) {
-	ErrorF("GL_EXT_framebuffer_object required\n");
-	goto fail;
-    }
-    if (!GLEW_ARB_shader_objects) {
-	ErrorF("GL_ARB_shader_objects required\n");
-	goto fail;
-    }
-    if (!GLEW_ARB_vertex_shader) {
-	ErrorF("GL_ARB_vertex_shader required\n");
-	goto fail;
-    }
-
-    if (!GLEW_ARB_pixel_buffer_object) {
-	ErrorF("GL_ARB_pixel_buffer_object required\n");
-	goto fail;
-    }
- 
-    if (!GLEW_EXT_bgra) {
-	ErrorF("GL_EXT_bgra required\n");
+#ifdef GLAMOR_GLES2
+    if (!glamor_gl_has_extension("GL_EXT_texture_format_BGRA8888")) {
+	ErrorF("GL_EXT_texture_format_BGRA8888 required\n");
 	goto fail;
     }
 #endif
 
+    glamor_priv->has_pack_invert = glamor_gl_has_extension("GL_MESA_pack_invert");
+    glamor_priv->has_fbo_blit = glamor_gl_has_extension("GL_EXT_framebuffer_blit");
+    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size); 
 
     if (!RegisterBlockAndWakeupHandlers(glamor_block_handler,
 					glamor_wakeup_handler,

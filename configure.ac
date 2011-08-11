@@ -2036,15 +2036,6 @@ if test "$KDRIVE" = yes; then
         AC_MSG_ERROR([Xephyr dependencies missing])
     fi
 
-    AC_CHECK_LIB(GLEW, glewInit, [
-      AC_CHECK_HEADER(GL/glew.h, [], [
-        AC_MSG_ERROR([requires glew http://glew.sourceforge.net/])
-      ])
-    ], [
-      AC_MSG_ERROR([requires glew http://glew.sourceforge.net/])
-    ])
-    XEPHYR_LIBS="$XEPHYR_LIBS -lGLEW"
-
     # Xephyr needs nanosleep() which is in librt on Solaris
     AC_CHECK_FUNC([nanosleep], [],
         AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
