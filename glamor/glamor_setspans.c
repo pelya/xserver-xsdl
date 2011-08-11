@@ -36,6 +36,7 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		 DDXPointPtr points, int *widths, int n, int sorted)
 {
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
+    glamor_screen_private *glamor_priv;
     GLenum format, type;
     int no_alpha, i;
     uint8_t *drawpixels_src = (uint8_t *)src;
@@ -43,8 +44,10 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     BoxRec *pbox;
     int x_off, y_off;
 
+    glamor_priv = glamor_get_screen_private(drawable->pScreen);
 
-    goto fail;
+    if (glamor_priv->gl_flavor == GLAMOR_GL_ES2)
+      goto fail;
 
     if (glamor_get_tex_format_type_from_pixmap(dest_pixmap,
                                                &format, 
