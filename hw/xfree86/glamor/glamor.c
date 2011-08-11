@@ -353,8 +353,8 @@ glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	version = eglQueryString(glamor->display, EGL_VERSION);
 	xf86Msg(X_INFO, "%s: EGL version %s:\n", glamor_name, version);
 
-	glamor->egl_create_drm_image_mesa = eglGetProcAddress("eglCreateDRMImageMESA");
-	glamor->egl_export_drm_image_mesa = eglGetProcAddress("eglExportDRMImageMESA");
+	glamor->egl_create_drm_image_mesa = (PFNEGLCREATEDRMIMAGEMESA)eglGetProcAddress("eglCreateDRMImageMESA");
+	glamor->egl_export_drm_image_mesa = (PFNEGLEXPORTDRMIMAGEMESA)eglGetProcAddress("eglExportDRMImageMESA");
 
 	if (!glamor->egl_create_drm_image_mesa || !glamor->egl_export_drm_image_mesa) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
