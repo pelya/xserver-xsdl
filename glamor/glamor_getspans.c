@@ -41,7 +41,7 @@ glamor_get_spans(DrawablePtr drawable,
 {
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     GLenum format, type;
-    int ax;
+    int no_alpha;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(drawable->pScreen);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     int i;
@@ -56,7 +56,7 @@ glamor_get_spans(DrawablePtr drawable,
     if (glamor_get_tex_format_type_from_pixmap(pixmap,
                                                &format, 
                                                &type, 
-                                               &ax
+                                               &no_alpha
                                                )) {
       glamor_fallback("unknown depth. %d \n", 
                      drawable->depth);

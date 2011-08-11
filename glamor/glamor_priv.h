@@ -404,7 +404,7 @@ format_for_pixmap(PixmapPtr pixmap)
 
 /*
  * Map picture's format to the correct gl texture format and type.
- * xa is used to indicate whehter we need to wire alpha to 1. 
+ * no_alpha is used to indicate whehter we need to wire alpha to 1. 
  *
  * Return 0 if find a matched texture type. Otherwise return -1.
  **/
@@ -412,41 +412,41 @@ static inline int
 glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 					   GLenum *tex_format, 
 					   GLenum *tex_type,
-					   int *xa)
+					   int *no_alpha)
 {
-  *xa = 0;
+  *no_alpha = 0;
   switch (format) {
   case PICT_a1:
     *tex_format = GL_COLOR_INDEX;
     *tex_type = GL_BITMAP;
     break;
   case PICT_b8g8r8x8:
-    *xa = 1;
+    *no_alpha = 1;
   case PICT_b8g8r8a8:
     *tex_format = GL_BGRA;
     *tex_type = GL_UNSIGNED_INT_8_8_8_8;
     break;
 
   case PICT_x8r8g8b8:
-    *xa = 1;
+    *no_alpha = 1;
   case PICT_a8r8g8b8:
     *tex_format = GL_BGRA;
     *tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
     break;
   case PICT_x8b8g8r8:
-    *xa = 1;
+    *no_alpha = 1;
   case PICT_a8b8g8r8:
     *tex_format = GL_RGBA;
     *tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
     break;
   case PICT_x2r10g10b10:
-    *xa = 1;
+    *no_alpha = 1;
   case PICT_a2r10g10b10:
     *tex_format = GL_BGRA;
     *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
     break;
   case PICT_x2b10g10r10:
-    *xa = 1;
+    *no_alpha = 1;
   case PICT_a2b10g10r10:
     *tex_format = GL_RGBA;
     *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
@@ -461,14 +461,14 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
     *tex_type = GL_UNSIGNED_SHORT_5_6_5_REV;
     break;
   case PICT_x1b5g5r5:
-    *xa = 1;
+    *no_alpha = 1;
   case PICT_a1b5g5r5:
     *tex_format = GL_RGBA;
     *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
     break;
                
   case PICT_x1r5g5b5:
-    *xa = 1;
+    *no_alpha = 1;
   case PICT_a1r5g5b5:
     *tex_format = GL_BGRA;
     *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
@@ -478,14 +478,14 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
     *tex_type = GL_UNSIGNED_BYTE;
     break;
   case PICT_x4r4g4b4:
-    *xa = 1;
+    *no_alpha = 1;
   case PICT_a4r4g4b4:
     *tex_format = GL_BGRA;
     *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
     break;
 
   case PICT_x4b4g4r4:
-    *xa = 1;
+    *no_alpha = 1;
   case PICT_a4b4g4r4:
     *tex_format = GL_RGBA;
     *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;

@@ -37,18 +37,19 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 {
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
     GLenum format, type;
-    int ax, i;
+    int no_alpha, i;
     uint8_t *drawpixels_src = (uint8_t *)src;
     RegionPtr clip = fbGetCompositeClip(gc);
     BoxRec *pbox;
     int x_off, y_off;
+
 
     goto fail;
 
     if (glamor_get_tex_format_type_from_pixmap(dest_pixmap,
                                                &format, 
                                                &type, 
-                                               &ax
+                                               &no_alpha
                                                )) {
       glamor_fallback("unknown depth. %d \n", 
                      drawable->depth);

@@ -272,7 +272,8 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
  * */
 
 static void
-_glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, int ax, int flip)
+_glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, 
+                                 GLenum type, int no_alpha, int flip)
 {
 
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -299,7 +300,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, i
   /* Try fast path firstly, upload the pixmap to the texture attached
    * to the fbo directly. */
 
-  if (ax == 0 && !need_flip) {
+  if (no_alpha == 0 && !need_flip) {
     __glamor_upload_pixmap_to_texture(pixmap, format, type, pixmap_priv->tex);
     return;
   }
@@ -341,9 +342,9 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, i
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glEnable(GL_TEXTURE_2D);
 #if 0
-  glUseProgram(glamor_priv->finish_access_prog[ax]);
+  glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
 #else
-  glUseProgram(glamor_priv->finish_access_prog[ax + 2]);
+  glUseProgram(glamor_priv->finish_access_prog[no_alpha + 2]);
 #endif
 
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -397,13 +398,13 @@ glamor_pixmap_ensure_fb(PixmapPtr pixmap)
 
 /*  
  * Prepare to upload a pixmap to texture memory.
- * ax 1 means the format needs to wire alpha to 1.
+ * no_alpha equals 1 means the format needs to wire alpha to 1.
  * Two condtion need to setup a fbo for a pixmap
  * 1. !yInverted, we need to do flip if we are not yInverted.
- * 2. ax != 0, we need to wire the alpha.
+ * 2. no_alpha != 0, we need to wire the alpha.
  * */
 static int
-glamor_pixmap_upload_prepare(PixmapPtr pixmap, int ax)
+glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha)
 {
   int need_fbo;
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -419,7 +420,7 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int ax)
   if (GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) 
     return 0; 
 
-  if (ax != 0 || !glamor_priv->yInverted)
+  if (no_alpha != 0 || !glamor_priv->yInverted)
     need_fbo = 1;
   else
     need_fbo = 0;
@@ -444,16 +445,16 @@ enum glamor_pixmap_status
 glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 {
   GLenum format, type;
-  int ax;
+  int no_alpha;
 
   if (glamor_get_tex_format_type_from_pixmap(pixmap, 
 					     &format, 
 					     &type, 
-					     &ax)) {
+					     &no_alpha)) {
     glamor_fallback("Unknown pixmap depth %d.\n", pixmap->drawable.depth);
     return GLAMOR_UPLOAD_FAILED;
   }
-  if (glamor_pixmap_upload_prepare(pixmap, ax))
+  if (glamor_pixmap_upload_prepare(pixmap, no_alpha))
     return GLAMOR_UPLOAD_FAILED;
   glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DYNAMIC_UPLOAD,
 		      "Uploading pixmap %p  %dx%d depth%d.\n", 
@@ -461,7 +462,7 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 		      pixmap->drawable.width, 
 		      pixmap->drawable.height,
 		      pixmap->drawable.depth);
-  _glamor_upload_pixmap_to_texture(pixmap, format, type, ax, 1);
+  _glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha, 1);
   return GLAMOR_UPLOAD_DONE;
 }
 
@@ -485,16 +486,16 @@ void
 glamor_restore_pixmap_to_texture(PixmapPtr pixmap)
 {
   GLenum format, type;
-  int ax;
+  int no_alpha;
 
   if (glamor_get_tex_format_type_from_pixmap(pixmap, 
 					     &format, 
 					     &type, 
-					     &ax)) {
+					     &no_alpha)) {
     ErrorF("Unknown pixmap depth %d.\n", pixmap->drawable.depth);
     assert(0);
   }
-  _glamor_upload_pixmap_to_texture(pixmap, format, type, ax, 1);
+  _glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha, 1);
 }
 
 
@@ -514,7 +515,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
   unsigned int stride, row_length, y;
   GLenum format, type, gl_access, gl_usage;
-  int ax;
+  int no_alpha;
   uint8_t *data, *read;
   glamor_screen_private *glamor_priv =
     glamor_get_screen_private(pixmap->drawable.pScreen);
@@ -522,12 +523,10 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 
   if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
     return TRUE;
-  /* XXX we may don't need to validate it on GPU here,
-   * we can just validate it on CPU. */
   if (glamor_get_tex_format_type_from_pixmap(pixmap, 
 					     &format,
 					     &type, 
-					     &ax)) {
+					     &no_alpha)) {
     ErrorF("Unknown pixmap depth %d.\n", pixmap->drawable.depth);
     assert(0);  // Should never happen.
     return FALSE;
@@ -543,6 +542,8 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
  
   stride = pixmap->devKind;
   glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+  /* XXX we may don't need to validate it on GPU here,
+   * we can just validate it on CPU. */
   glamor_validate_pixmap(pixmap); 
   switch (access) {
   case GLAMOR_ACCESS_RO:
