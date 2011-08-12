@@ -1348,7 +1348,7 @@ xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval, 
 }
 
 /*
- * Set the valuator values to be in synch with dix/event.c
+ * Set the valuator values to be in sync with dix/event.c
  * DefineInitialRootWindow().
  */
 void
