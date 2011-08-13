@@ -4,8 +4,6 @@ noinst_LTLIBRARIES = libglamor.la
 # built (in hw/xfree86/os-support/solaris) until after glamor is built
 SOLARIS_ASM_CFLAGS=""
 
-SUBDIRS = glu3
-
 if XORG
 sdk_HEADERS = glamor.h
 endif
@@ -39,5 +37,4 @@ libglamor_la_SOURCES = \
         glamor_picture.c\
 	glamor_window.c\
 	glamor.h
-libglamor_la_LIBADD = \
-	glu3/libglu3.la
+
