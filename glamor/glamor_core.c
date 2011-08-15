@@ -133,7 +133,6 @@ Bool
 glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 {
   PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
-
   return glamor_download_pixmap_to_cpu(pixmap, access);
 }
 
@@ -154,17 +153,47 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
   const char *fs_source =
     "varying vec2 source_texture;\n"
     "uniform sampler2D sampler;\n"
+    "uniform int no_revert;"
+    "uniform int swap_rb;"
     "void main()\n"
     "{\n"
-    "	gl_FragColor = texture2D(sampler, source_texture);\n"
+    "   if (no_revert == 1) \n"
+    "    { \n"
+    "     if (swap_rb == 1)   \n"
+    "	  gl_FragColor = texture2D(sampler, source_texture).bgra;\n"
+    "     else \n"
+    "	  gl_FragColor = texture2D(sampler, source_texture).rgba;\n"
+    "    } \n"
+    "   else \n"
+    "    { \n"
+    "     if (swap_rb == 1)   \n"
+    "	    gl_FragColor = texture2D(sampler, source_texture).argb;\n"
+    "     else \n"
+    "	    gl_FragColor = texture2D(sampler, source_texture).abgr;\n"
+    "    } \n"
     "}\n";
     
   const char *set_alpha_source =
     "varying vec2 source_texture;\n"
     "uniform sampler2D sampler;\n"
+    "uniform int no_revert;"
+    "uniform int swap_rb;"
     "void main()\n"
     "{\n"
-    " gl_FragColor = vec4(texture2D(sampler, source_texture).rgb, 1);\n"
+    "   if (no_revert == 1) \n"
+    "    { \n"
+    "     if (swap_rb == 1)   \n"
+    "	  gl_FragColor = vec4(texture2D(sampler, source_texture).bgr, 1);\n"
+    "     else \n"
+    "	  gl_FragColor = vec4(texture2D(sampler, source_texture).rgb, 1);\n"
+    "    } \n"
+    "   else \n"
+    "    { \n"
+    "     if (swap_rb == 1)   \n"
+    "	  gl_FragColor = vec4(1,  texture2D(sampler, source_texture).rgb);\n"
+    "     else \n"
+    "	  gl_FragColor = vec4(1, texture2D(sampler, source_texture).bgr);\n"
+    "    } \n"
     "}\n";
   GLint fs_prog, vs_prog, avs_prog, set_alpha_prog;
   GLint sampler_uniform_location;
@@ -190,17 +219,31 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
   glBindAttribLocation(glamor_priv->finish_access_prog[1], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
   glamor_link_glsl_prog(glamor_priv->finish_access_prog[1]);
 
+  glamor_priv->finish_access_no_revert[0] = 
+    glGetUniformLocation(glamor_priv->finish_access_prog[0], "no_revert");
+
+  glamor_priv->finish_access_swap_rb[0] = 
+    glGetUniformLocation(glamor_priv->finish_access_prog[0], "swap_rb");
   sampler_uniform_location =
     glGetUniformLocation(glamor_priv->finish_access_prog[0], "sampler");
   glUseProgram(glamor_priv->finish_access_prog[0]);
   glUniform1i(sampler_uniform_location, 0);
+  glUniform1i(glamor_priv->finish_access_no_revert[0],1);
+  glUniform1i(glamor_priv->finish_access_swap_rb[0],0);
   glUseProgram(0);
 
+  glamor_priv->finish_access_no_revert[1] = 
+    glGetUniformLocation(glamor_priv->finish_access_prog[1], "no_revert");
+  glamor_priv->finish_access_swap_rb[1] = 
+    glGetUniformLocation(glamor_priv->finish_access_prog[1], "swap_rb");
   sampler_uniform_location =
     glGetUniformLocation(glamor_priv->finish_access_prog[1], "sampler");
   glUseProgram(glamor_priv->finish_access_prog[1]);
+  glUniform1i(glamor_priv->finish_access_no_revert[1],1);
   glUniform1i(sampler_uniform_location, 0);
+  glUniform1i(glamor_priv->finish_access_swap_rb[1],0);
   glUseProgram(0);
+
 }
 
 void
@@ -224,8 +267,9 @@ glamor_finish_access(DrawablePtr drawable)
     pixmap_priv->pbo_valid = FALSE;
     glDeleteBuffers(1, &pixmap_priv->pbo);
     pixmap_priv->pbo = 0;
-  } else
+  } else {
     free(pixmap->devPrivate.ptr);
+  }
 
   pixmap->devPrivate.ptr = NULL;
 }

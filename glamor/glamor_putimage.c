@@ -265,7 +265,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     float vertices[8], texcoords[8];
     GLfloat xscale, yscale, txscale, tyscale;
     GLuint tex;
-    int no_alpha;
+    int no_alpha, no_revert;
     if (image_format == XYBitmap) {
 	assert(depth == 1);
         goto fail;
@@ -290,7 +290,8 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     if (glamor_get_tex_format_type_from_pixmap(pixmap,
                                                &format, 
                                                &type, 
-                                               &no_alpha
+                                               &no_alpha,
+                                               &no_revert
                                                )) {
       glamor_fallback("unknown depth. %d \n", 
                      drawable->depth);
@@ -300,14 +301,6 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     /* XXX consider to reuse a function to do the following work. */
     glamor_set_destination_pixmap_priv_nc(pixmap_priv);
     glamor_validate_pixmap(pixmap);
-#if 0
-    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    glClientActiveTexture(GL_TEXTURE0);
-    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-#else
     glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                         2 * sizeof(float),
                         vertices);
@@ -317,7 +310,6 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
                         2 * sizeof(float),
                         texcoords);
     glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-#endif
 
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -333,20 +325,25 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
     if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
-      type = GL_UNSIGNED_BYTE;
       iformat = format;
     } 
     else {
       iformat = GL_RGBA;
     }
+
     glTexImage2D(GL_TEXTURE_2D, 0, iformat,
 		 w, h, 0,
 		 format, type, bits);
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#ifndef GLAMOR_GLES2
     glEnable(GL_TEXTURE_2D);
+#endif
 
     glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
+    glUniform1i(glamor_priv->finish_access_no_revert[no_alpha], no_revert);
+      glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha], 0);
 
     x += drawable->x;
     y += drawable->y;
@@ -394,7 +391,9 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
 
+#ifndef GLAMOR_GLES2
     glDisable(GL_TEXTURE_2D);
+#endif
     glUseProgram(0);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
@@ -409,9 +408,9 @@ fail:
     glamor_set_planemask(pixmap, ~0);
     glamor_fallback("to %p (%c)\n",
 		    drawable, glamor_get_drawable_location(drawable));
-    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
-	fbPutImage(drawable, gc, depth, x, y, w, h, left_pad, image_format,
+    if (glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RW)) {
+	fbPutImage(&pixmap->drawable, gc, depth, x, y, w, h, left_pad, image_format,
 		   bits);
-	glamor_finish_access(drawable);
+	glamor_finish_access(&pixmap->drawable);
     }
 }

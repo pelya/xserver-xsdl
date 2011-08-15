@@ -38,7 +38,7 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_screen_private *glamor_priv;
     GLenum format, type;
-    int no_alpha, i;
+    int no_alpha, no_revert, i;
     uint8_t *drawpixels_src = (uint8_t *)src;
     RegionPtr clip = fbGetCompositeClip(gc);
     BoxRec *pbox;
@@ -46,18 +46,23 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 
     glamor_priv = glamor_get_screen_private(drawable->pScreen);
 
-    if (glamor_priv->gl_flavor == GLAMOR_GL_ES2)
+    if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
+      glamor_fallback("ES2 fallback.\n");
       goto fail;
+    }
 
     if (glamor_get_tex_format_type_from_pixmap(dest_pixmap,
                                                &format, 
                                                &type, 
-                                               &no_alpha
+                                               &no_alpha,
+                                               &no_revert
                                                )) {
       glamor_fallback("unknown depth. %d \n", 
                      drawable->depth);
       goto fail;
     }
+
+
     if (glamor_set_destination_pixmap(dest_pixmap))
 	goto fail;
 

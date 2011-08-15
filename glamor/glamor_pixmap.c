@@ -83,12 +83,15 @@ glamor_validate_pixmap(PixmapPtr pixmap)
 void
 glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv)
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
-#ifndef GLAMOR_GLES2
-  glMatrixMode(GL_PROJECTION);                                                                                                                                                                  glLoadIdentity();
-  glMatrixMode(GL_MODELVIEW);                                                                                                                                                                   glLoadIdentity();                                        
-#endif
+//  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
 
+  glamor_pixmap_ensure_fb(pixmap_priv->container);
+#ifndef GLAMOR_GLES2
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();                                        
+#endif
   glViewport(0, 0,
 	     pixmap_priv->container->drawable.width,
 	     pixmap_priv->container->drawable.height);
@@ -199,7 +202,7 @@ glamor_set_alu(unsigned char alu)
  * Upload pixmap to a specified texture.
  * This texture may not be the one attached to it.
  **/
-
+int in_restore = 0;
 static void 
 __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, GLuint tex)
 {
@@ -225,7 +228,6 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
 
   if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
     iformat = format;
-    type = GL_UNSIGNED_BYTE;
   }
 
   stride = pixmap->devKind;
@@ -264,7 +266,8 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
 
 static void
 _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, 
-                                 GLenum type, int no_alpha, int flip)
+                                 GLenum type, int no_alpha, int no_revert, 
+                                 int flip)
 {
 
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -290,8 +293,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 
   /* Try fast path firstly, upload the pixmap to the texture attached
    * to the fbo directly. */
-
-  if (no_alpha == 0 && !need_flip) {
+  if (no_alpha == 0 && no_revert == 1 && !need_flip) {
     __glamor_upload_pixmap_to_texture(pixmap, format, type, pixmap_priv->tex);
     return;
   }
@@ -303,14 +305,6 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
     ptexcoords = texcoords_inv;
 
   /* Slow path, we need to flip y or wire alpha to 1. */
-#if 0
-  glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
-  glEnableClientState(GL_VERTEX_ARRAY);
-
-  glClientActiveTexture(GL_TEXTURE0);
-  glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, ptexcoords);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-#else
   glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                         2 * sizeof(float),
                         vertices);
@@ -319,10 +313,8 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
                         2 * sizeof(float),
                         ptexcoords);
   glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-#endif
-  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
-  glViewport(0, 0, pixmap->drawable.width, pixmap->drawable.height);
 
+  glamor_set_destination_pixmap_priv_nc(pixmap_priv);
   glGenTextures(1, &tex);
 
   __glamor_upload_pixmap_to_texture(pixmap, format, type, tex);
@@ -331,12 +323,18 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#ifndef GLAMOR_GLES2
   glEnable(GL_TEXTURE_2D);
+#endif
   glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
+  glUniform1i(glamor_priv->finish_access_no_revert[no_alpha], no_revert);
+      glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha],0);
 
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
+#ifndef GLAMOR_GLES2
   glDisable(GL_TEXTURE_2D);
+#endif
   glUseProgram(0);
   glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
   glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
@@ -386,7 +384,7 @@ glamor_pixmap_ensure_fb(PixmapPtr pixmap)
  * 2. no_alpha != 0, we need to wire the alpha.
  * */
 static int
-glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha)
+glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha, int no_revert)
 {
   int need_fbo;
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -402,7 +400,7 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha)
   if (GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) 
     return 0; 
 
-  if (no_alpha != 0 || !glamor_priv->yInverted)
+  if (no_alpha != 0 || no_revert == 0 || !glamor_priv->yInverted)
     need_fbo = 1;
   else
     need_fbo = 0;
@@ -427,16 +425,17 @@ enum glamor_pixmap_status
 glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 {
   GLenum format, type;
-  int no_alpha;
+  int no_alpha, no_revert;
 
   if (glamor_get_tex_format_type_from_pixmap(pixmap, 
 					     &format, 
 					     &type, 
-					     &no_alpha)) {
+					     &no_alpha,
+                                             &no_revert)) {
     glamor_fallback("Unknown pixmap depth %d.\n", pixmap->drawable.depth);
     return GLAMOR_UPLOAD_FAILED;
   }
-  if (glamor_pixmap_upload_prepare(pixmap, no_alpha))
+  if (glamor_pixmap_upload_prepare(pixmap, no_alpha, no_revert))
     return GLAMOR_UPLOAD_FAILED;
   glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DYNAMIC_UPLOAD,
 		      "Uploading pixmap %p  %dx%d depth%d.\n", 
@@ -444,7 +443,7 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 		      pixmap->drawable.width, 
 		      pixmap->drawable.height,
 		      pixmap->drawable.depth);
-  _glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha, 1);
+  _glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha, no_revert, 1);
   return GLAMOR_UPLOAD_DONE;
 }
 
@@ -468,18 +467,101 @@ void
 glamor_restore_pixmap_to_texture(PixmapPtr pixmap)
 {
   GLenum format, type;
-  int no_alpha;
+  int no_alpha, no_revert;
 
   if (glamor_get_tex_format_type_from_pixmap(pixmap, 
 					     &format, 
 					     &type, 
-					     &no_alpha)) {
+					     &no_alpha, 
+                                             &no_revert)) {
     ErrorF("Unknown pixmap depth %d.\n", pixmap->drawable.depth);
     assert(0);
   }
-  _glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha, 1);
+
+  in_restore = 1;
+  _glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha, no_revert, 1);
+  in_restore = 0;
 }
 
+/* 
+ * as gles2 only support a very small set of color format and
+ * type when do glReadPixel,  
+ * Before we use glReadPixels to get back a textured pixmap, 
+ * Use shader to convert it to a supported format and thus
+ * get a new temporary pixmap returned.
+ * */
+
+PixmapPtr
+glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum *format, 
+                               GLenum *type, int no_alpha, int no_revert)
+{
+    glamor_pixmap_private *source_priv;
+    glamor_screen_private *glamor_priv;
+    ScreenPtr screen;
+    PixmapPtr temp_pixmap;
+    glamor_pixmap_private *temp_pixmap_priv;
+    static float vertices[8] = {-1, -1,
+			      1, -1,
+			      1,  1,
+			      -1,  1};
+    static float texcoords[8] = {0, 0,
+				   1, 0,
+				   1, 1,
+				   0, 1};
+
+    int swap_rb = 0;
+
+    screen = source->drawable.pScreen;
+
+    glamor_priv = glamor_get_screen_private(screen);
+    source_priv = glamor_get_pixmap_private(source);
+    if (*format == GL_BGRA) {
+      *format = GL_RGBA;
+      swap_rb = 1;
+    }
+
+
+    temp_pixmap = (*screen->CreatePixmap)(screen,
+			                  source->drawable.width,
+					  source->drawable.height,
+					  source->drawable.depth,
+					  0);
+
+    temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
+
+    glBindTexture(GL_TEXTURE_2D, temp_pixmap_priv->tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, *format, source->drawable.width, 
+		 source->drawable.height, 0,
+		 *format, *type, NULL);
+    
+    glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
+                        2 * sizeof(float),
+                        vertices);
+    glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+    
+    glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE,
+                        2 * sizeof(float),
+                        texcoords);
+    glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, source_priv->tex);
+
+    glamor_set_destination_pixmap_priv_nc(temp_pixmap_priv);
+
+    glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
+    glUniform1i(glamor_priv->finish_access_no_revert[no_alpha], no_revert);
+      glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha], swap_rb);
+
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+    glUseProgram(0);
+    glFlush();
+    return temp_pixmap; 
+}
+ 
 
 /**
  * Move a pixmap to CPU memory.
@@ -497,18 +579,21 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
   unsigned int stride, row_length, y;
   GLenum format, type, gl_access, gl_usage;
-  int no_alpha;
+  int no_alpha, no_revert;
   uint8_t *data = NULL, *read;
+  PixmapPtr temp_pixmap = NULL;
+  ScreenPtr screen;
   glamor_screen_private *glamor_priv =
     glamor_get_screen_private(pixmap->drawable.pScreen);
-
-
+  
+  screen = pixmap->drawable.pScreen;
   if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
     return TRUE;
   if (glamor_get_tex_format_type_from_pixmap(pixmap, 
 					     &format,
 					     &type, 
-					     &no_alpha)) {
+					     &no_alpha,
+                                             &no_revert)) {
     ErrorF("Unknown pixmap depth %d.\n", pixmap->drawable.depth);
     assert(0);  // Should never happen.
     return FALSE;
@@ -521,13 +606,21 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 		      pixmap->drawable.width, 
 		      pixmap->drawable.height,
 		      pixmap->drawable.depth);
- 
+
   stride = pixmap->devKind;
+
   glamor_set_destination_pixmap_priv_nc(pixmap_priv);
   /* XXX we may don't need to validate it on GPU here,
    * we can just validate it on CPU. */
   glamor_validate_pixmap(pixmap); 
-  switch (access) {
+ 
+  if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
+    && ((format != GL_RGBA && format != GL_RGB && format != GL_ALPHA) || no_revert != 1)) {
+    
+    temp_pixmap = glamor_es2_pixmap_read_prepare(pixmap, &format, &type, no_alpha, no_revert);
+
+  } 
+ switch (access) {
   case GLAMOR_ACCESS_RO:
     gl_access = GL_READ_ONLY;
     gl_usage = GL_STREAM_READ;
@@ -544,9 +637,11 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
     ErrorF("Glamor: Invalid access code. %d\n", access);
     assert(0);
   }
-  if (glamor_priv->gl_flavor == GLAMOR_GL_ES2)
+  if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
     data = malloc(stride * pixmap->drawable.height);
+  }
   row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
+
   if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
@@ -582,8 +677,10 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
     }
     glBindBuffer (GL_PIXEL_PACK_BUFFER, 0);
     } else {
+    if (type == GL_UNSIGNED_SHORT_1_5_5_5_REV)
+      type = GL_UNSIGNED_SHORT_5_5_5_1;
     glReadPixels (0, 0,
-                    row_length, pixmap->drawable.height,
+                    pixmap->drawable.width, pixmap->drawable.height,
                     format, type, data);
     }
   } else {
@@ -614,6 +711,12 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 done:
   pixmap->devPrivate.ptr = data;
+
+  if (temp_pixmap) { 
+      glFlush();
+      (*screen->DestroyPixmap)(temp_pixmap);
+  }
+
   return TRUE;
 }
 
