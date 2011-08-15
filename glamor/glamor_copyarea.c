@@ -124,7 +124,8 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 			      BoxPtr box,
 			      int nbox,
 			      int dx,
-			      int dy)
+			      int dy
+                              )
 {
     glamor_screen_private *glamor_priv =
 	glamor_get_screen_private(dst->pScreen);
@@ -193,7 +194,9 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
+#ifndef GLAMOR_GLES2
       glEnable(GL_TEXTURE_2D);
+#endif
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
  
@@ -202,6 +205,8 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
                             texcoords);
       glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
       glUseProgram(glamor_priv->finish_access_prog[0]);
+      glUniform1i(glamor_priv->finish_access_no_revert[0], 1);
+      glUniform1i(glamor_priv->finish_access_swap_rb[0], 0);
  
    } 
     else {
@@ -231,7 +236,9 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
       glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+#ifndef GLAMOR_GLES2
       glDisable(GL_TEXTURE_2D);
+#endif
     }
     glUseProgram(0);
     /* The source texture is bound to a fbo, we have to flush it here. */
@@ -308,23 +315,29 @@ glamor_copy_n_to_n(DrawablePtr src,
 #endif
     glamor_calculate_boxes_bound(&bound, box, nbox);
 
-    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(src_pixmap_priv) 
+    /*  Overlaped indicate the src and dst are the same pixmap. */
+    if (overlaped || (!GLAMOR_PIXMAP_PRIV_HAS_FBO(src_pixmap_priv) 
 	&& ((bound.x2 - bound.x1) * (bound.y2 - bound.y1)
-	    * 4 > src_pixmap->drawable.width * src_pixmap->drawable.height)) {
+	    * 4 > src_pixmap->drawable.width * src_pixmap->drawable.height))) {
 
       temp_pixmap = (*screen->CreatePixmap)(screen,
 					 bound.x2 - bound.x1,
 					 bound.y2 - bound.y1,
 					 src_pixmap->drawable.depth,
-					 GLAMOR_CREATE_PIXMAP_CPU);
+					 overlaped ? 0 : GLAMOR_CREATE_PIXMAP_CPU);
       if (!temp_pixmap)
 	goto fail;
       glamor_transform_boxes(box, nbox, -bound.x1, -bound.y1);
       temp_src = &temp_pixmap->drawable;
-      fbCopyNtoN(src, temp_src, gc, box, nbox,
-		 temp_dx + bound.x1, temp_dy + bound.y1, 
-		 reverse, upsidedown, bitplane,
-		 closure);
+
+      if (overlaped)
+        glamor_copy_n_to_n_textured(src, temp_src, gc, box, nbox, 
+                                    temp_dx + bound.x1, temp_dy + bound.y1); 
+      else
+        fbCopyNtoN(src, temp_src, gc, box, nbox,
+	  	   temp_dx + bound.x1, temp_dy + bound.y1, 
+		   reverse, upsidedown, bitplane,
+		   closure);
       glamor_transform_boxes(box, nbox, bound.x1, bound.y1);
       temp_dx = -bound.x1;
       temp_dy = -bound.y1;
