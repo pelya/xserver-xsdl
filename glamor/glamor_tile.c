@@ -140,9 +140,11 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
       glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+#ifndef GLAMOR_GLES2
       glEnable(GL_TEXTURE_2D);
+#endif
       glamor_set_normalize_tcoords(src_xscale, src_yscale,
 				 tile_x1, tile_y1,
 				 tile_x2, tile_y2,
@@ -170,7 +172,9 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 
     if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+#ifndef GLAMOR_GLES2
     glDisable(GL_TEXTURE_2D);
+#endif
     }
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glUseProgram(0);
