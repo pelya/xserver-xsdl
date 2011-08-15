@@ -494,9 +494,14 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 	}
 	glBindTexture(GL_TEXTURE_2D, drmmode_crtc->cursor_tex);
 #ifdef GLAMOR_GLES2
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, 64, 64, 0,
-	  GL_BGRA,  GL_UNSIGNED_BYTE, image);
+       /* XXX Actually, the image is BGRA not RGBA, so the r and b
+        * should be swapped. But as normally, they are the same value
+        * ignore this currently, don't want to let CPU to do the swizzle.
+        * considering to put this function to the glamor rendering directory.
+        * Thus we can reuse the shader to do this.*/
+       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0,
+	  GL_RGBA,  GL_UNSIGNED_BYTE, image);
 #else
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 64);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0,
