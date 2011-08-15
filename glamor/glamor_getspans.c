@@ -41,9 +41,10 @@ glamor_get_spans(DrawablePtr drawable,
 {
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     GLenum format, type;
-    int no_alpha;
+    int no_alpha, no_revert;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(drawable->pScreen);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+    PixmapPtr temp_pixmap = NULL;
     int i;
     uint8_t *readpixels_dst = (uint8_t *)dst;
     int x_off, y_off;
@@ -56,7 +57,8 @@ glamor_get_spans(DrawablePtr drawable,
     if (glamor_get_tex_format_type_from_pixmap(pixmap,
                                                &format, 
                                                &type, 
-                                               &no_alpha
+                                               &no_alpha,
+                                               &no_revert
                                                )) {
       glamor_fallback("unknown depth. %d \n", 
                      drawable->depth);
@@ -65,7 +67,15 @@ glamor_get_spans(DrawablePtr drawable,
 
     glamor_set_destination_pixmap_priv_nc(pixmap_priv);
     glamor_validate_pixmap(pixmap);
- 
+
+    if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
+    /* XXX prepare whole pixmap is not efficient. */
+      temp_pixmap = glamor_es2_pixmap_read_prepare(pixmap, &format, 
+                                                   &type, no_alpha, no_revert);
+      pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
+      glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+    }
+
     glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
     for (i = 0; i < count; i++) {
       if (glamor_priv->yInverted) {
@@ -85,6 +95,8 @@ glamor_get_spans(DrawablePtr drawable,
 	}
        readpixels_dst += PixmapBytePad(widths[i], drawable->depth);
     }
+    if (temp_pixmap) 
+     pixmap->drawable.pScreen->DestroyPixmap(temp_pixmap);
     return;
 
 fail:
