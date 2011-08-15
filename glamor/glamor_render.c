@@ -376,11 +376,11 @@ glamor_set_composite_texture(ScreenPtr screen, int unit, PicturePtr picture,
   glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
   switch (picture->repeatType) {
   case RepeatNone:
-#ifdef GLAMOR_GLES2
-    assert(1);
-#endif
+#ifndef GLAMOR_GLES2
+    /* XXX  GLES2 doesn't support GL_CLAMP_TO_BORDER. */
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+#endif
     break;
   case RepeatNormal:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -407,8 +407,9 @@ glamor_set_composite_texture(ScreenPtr screen, int unit, PicturePtr picture,
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     break;
   }
-
+#ifndef GLAMOR_GLES2
   glEnable(GL_TEXTURE_2D);
+#endif
 }
 
 static void
@@ -1037,10 +1038,12 @@ glamor_composite_with_shader(CARD8 op,
   glDisableVertexAttribArray(GLAMOR_VERTEX_MASK);
   REGION_UNINIT(dst->pDrawable->pScreen, &region);
   glDisable(GL_BLEND);
+#ifndef GLAMOR_GLES2
   glActiveTexture(GL_TEXTURE0);
   glDisable(GL_TEXTURE_2D);
   glActiveTexture(GL_TEXTURE1);
   glDisable(GL_TEXTURE_2D);
+#endif
   glUseProgram(0);
   if (saved_source_format) 
     source->format = saved_source_format;
