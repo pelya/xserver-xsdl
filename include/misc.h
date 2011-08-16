@@ -256,20 +256,30 @@ version_compare(uint16_t a_major, uint16_t a_minor,
     SwapLongs((CARD32 *)(stuff + 1), LengthRestL(stuff))
 
 /* byte swap a 32-bit value */
+static inline void swap_uint32(uint32_t *x)
+{
+	char n = ((char *) &x)[0];
+	((char *) x)[0] = ((char *) x)[3];
+	((char *) x)[3] = n;
+	n = ((char *) x)[1];
+	((char *) x)[1] = ((char *) x)[2];
+	((char *) x)[2] = n;
+}
+
 #define swapl(x) do { \
-		 char n = ((char *) (x))[0];\
-		 ((char *) (x))[0] = ((char *) (x))[3];\
-		 ((char *) (x))[3] = n;\
-		 n = ((char *) (x))[1];\
-		 ((char *) (x))[1] = ((char *) (x))[2];\
-		 ((char *) (x))[2] = n;\
+		swap_uint32((uint32_t *)(x)); \
 	} while (0)
 
-/* byte swap a short */
+/* byte swap a 16-bit value */
+static inline void swap_uint16(uint16_t *x)
+{
+	char  n = ((char *) x)[0];
+	((char *) x)[0] = ((char *) x)[1];
+	((char *) x)[1] = n;
+}
+
 #define swaps(x) do { \
-		 char  n = ((char *) (x))[0];\
-		 ((char *) (x))[0] = ((char *) (x))[1];\
-		 ((char *) (x))[1] = n;\
+		swap_uint16((uint16_t *)(x)); \
 	} while (0)
 
 /* copy 32-bit value from src to dst byteswapping on the way */
