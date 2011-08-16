@@ -301,20 +301,18 @@ static inline void swap_uint16(uint16_t *x)
 	} while (0)
 
 /* copy 32-bit value from src to dst byteswapping on the way */
-#define cpswapl(src, dst) { \
+#define cpswapl(src, dst) do { \
 		if (sizeof((src)) != 4 || sizeof((dst)) != 4) \
 			wrong_size(); \
-                 ((char *)&(dst))[0] = ((char *) &(src))[3];\
-                 ((char *)&(dst))[1] = ((char *) &(src))[2];\
-                 ((char *)&(dst))[2] = ((char *) &(src))[1];\
-                 ((char *)&(dst))[3] = ((char *) &(src))[0]; }
+		(dst) = lswapl((src)); \
+	} while (0)
 
 /* copy short from src to dst byteswapping on the way */
-#define cpswaps(src, dst) { \
+#define cpswaps(src, dst) do { \
 		if (sizeof((src)) != 2 || sizeof((dst)) != 2) \
 			wrong_size(); \
-		 ((char *) &(dst))[0] = ((char *) &(src))[1];\
-		 ((char *) &(dst))[1] = ((char *) &(src))[0]; }
+		(dst) = lswaps((src)); \
+	} while (0)
 
 extern _X_EXPORT void SwapLongs(
     CARD32 *list,
