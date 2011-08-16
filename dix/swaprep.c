@@ -397,9 +397,9 @@ SwapFont(xQueryFontReply *pr, Bool hasGlyphs)
      * they are always 2 4 byte values */
     for(i = 0; i < nprops; i++)
     {
-	swapl(pby);
+	swapl((int *)pby);
 	pby += 4;
-	swapl(pby);
+	swapl((int *)pby);
 	pby += 4;
     }
     if (hasGlyphs)

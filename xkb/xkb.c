@@ -1109,7 +1109,7 @@ register unsigned	i;
 	    register int nSyms= outMap->nSyms;
 	    swaps(&outMap->nSyms);
 	    while (nSyms-->0) {
-		swapl(buf);
+		swapl((int *)buf);
 		buf+= 4;
 	    }
 	}
@@ -3646,21 +3646,21 @@ char *			desc;
         if (which&XkbKeycodesNameMask) {
             *((CARD32 *)desc)= xkb->names->keycodes;
             if (client->swapped) {
-                swapl(desc);
+                swapl((int *)desc);
             }
             desc+= 4;
         }
         if (which&XkbGeometryNameMask)  {
             *((CARD32 *)desc)= xkb->names->geometry;
             if (client->swapped) {
-                swapl(desc);
+                swapl((int *)desc);
             }
             desc+= 4;
         }
         if (which&XkbSymbolsNameMask) {
             *((CARD32 *)desc)= xkb->names->symbols;
             if (client->swapped) {
-                swapl(desc);
+                swapl((int *)desc);
             }
             desc+= 4;
         }
@@ -3675,14 +3675,14 @@ char *			desc;
         if (which&XkbTypesNameMask) {
             *((CARD32 *)desc)= (CARD32)xkb->names->types;
             if (client->swapped) {
-                swapl(desc);
+                swapl((int *)desc);
             }
             desc+= 4;
         }
         if (which&XkbCompatNameMask) {
             *((CARD32 *)desc)= (CARD32)xkb->names->compat;
             if (client->swapped) {
-                swapl(desc);
+                swapl((int *)desc);
             }
             desc+= 4;
         }

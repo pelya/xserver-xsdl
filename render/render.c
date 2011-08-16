@@ -2375,7 +2375,7 @@ SProcRenderCompositeGlyphs (ClientPtr client)
 	i = elt->len;
 	if (i == 0xff)
 	{
-	    swapl(buffer);
+	    swapl((int *)buffer);
 	    buffer += 4;
 	}
 	else
@@ -2388,14 +2388,14 @@ SProcRenderCompositeGlyphs (ClientPtr client)
 	    case 2:
 		while (i--)
 		{
-		    swaps(buffer);
+		    swaps((short *)buffer);
 		    buffer += 2;
 		}
 		break;
 	    case 4:
 		while (i--)
 		{
-		    swapl(buffer);
+		    swapl((int *)buffer);
 		    buffer += 4;
 		}
 		break;
