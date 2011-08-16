@@ -801,7 +801,8 @@ LIBUDEV="libudev >= 143"
 LIBSELINUX="libselinux >= 2.0.86"
 LIBDBUS="dbus-1 >= 1.0"
 LIBPIXMAN="pixman-1 >= 0.21.8"
-
+LIBEGL="egl >= 7.12.0"
+LIBGLESV2="glesv2 >= 7.11.0"
 dnl Pixman is always required, but we separate it out so we can link
 dnl specific modules against it
 PKG_CHECK_MODULES(PIXMAN, $LIBPIXMAN)
@@ -1779,14 +1780,21 @@ GLAMOR=yes
 
 if test "x$GLAMOR" = xyes; then 
    AC_DEFINE(GLAMOR,1,[Build Glamor])
+
    if test "x$GLAMOR_GLES2" = xyes; then
       AC_DEFINE(GLAMOR_GLES2,1,[Build glamor over GLES2])
+      PKG_CHECK_MODULES(GLESV2, $LIBGLESV2)
+      REQUIRED_LIBS="$REQUIRED_LIBS $LIBGLESV2"
    else 
       AC_DEFINE(GLAMOR_GL,1,[Build glamor over GL])
+      PKG_CHECK_MODULES(GL, $LIBGL)
+      REQUIRED_LIBS="$REQUIRED_LIBS $LIBGL"
    fi
 
    if test "x$GLAMOR_DDX" = xyes; then
      AC_DEFINE(GLAMOR_DDX,1,[Enable glamor ddx driver])
+     PKG_CHECK_MODULES(EGL, $LIBEGL)
+     REQUIRED_LIBS="$REQUIRED_LIBS $LIBEGL"
    fi
 fi
 

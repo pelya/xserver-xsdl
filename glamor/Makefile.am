@@ -9,13 +9,20 @@ sdk_HEADERS = glamor.h
 endif
 
 if GLAMOR_GLES2
-GLAMOR_GLES2_CFLAGS = -DGLAMOR_GLES2
+libglamor_la_LIBADD = $(GLESV2_LIBS)
+else
+libglamor_la_LIBADD = $(GL_LIBS)
+endif
+
+if XORG
+sdk_HEADERS = glamor.h
 endif
 
 INCLUDES = \
 	$(XORG_INCS)
 
-AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS) $(GLAMOR_GLES2_CFLAGS) $(LIBDRM_CFLAGS)
+
+AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS) $(LIBDRM_CFLAGS)
 
 libglamor_la_SOURCES = \
 	glamor.c \
@@ -37,4 +44,3 @@ libglamor_la_SOURCES = \
         glamor_picture.c\
 	glamor_window.c\
 	glamor.h
-

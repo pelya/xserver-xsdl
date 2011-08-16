@@ -13,15 +13,11 @@ glamor_la_CFLAGS =					\
 
 if GLAMOR_GLES2
 glamor_la_CFLAGS+=-DGLAMOR_GLES2
-GLAMOR_GL_LIB = -lGLESv2
-else
-GLAMOR_GL_LIB = -lGL
 endif
 
-glamor_la_LDFLAGS =				 \
-	-module -avoid-version -L$(libdir) -lEGL \
-        $(top_builddir)/glamor/libglamor.la      \
-        -L$(libdir)/../lib64 $(GLAMOR_GL_LIB)
+glamor_la_LDFLAGS = -module -avoid-version \
+                    $(top_builddir)/glamor/libglamor.la  \
+                     $(EGL_LIBS)
 
 glamor_ladir = $(moduledir)/drivers
 glamor_la_SOURCES =				\

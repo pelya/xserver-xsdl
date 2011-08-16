@@ -16,7 +16,8 @@ endif
 
 module_LTLIBRARIES = libfb.la \
                      libwfb.la \
-                     libshadow.la
+                     libshadow.la \
+                     libglamor_dix.la
 
 extsmoduledir = $(moduledir)/extensions
 extsmodule_LTLIBRARIES = $(RECORDMOD) \
@@ -33,6 +34,11 @@ INCLUDES = @XORG_INCS@ \
 libdbe_la_LDFLAGS = -avoid-version
 libdbe_la_LIBADD = $(top_builddir)/dbe/libdbe.la
 libdbe_la_SOURCES = dbemodule.c
+
+libglamor_dix_la_LDFLAGS = -avoid-version
+libglamor_dix_la_LIBADD = $(top_builddir)/glamor/libglamor.la
+libglamor_dix_la_SOURCES = 
+libglamor_dix_la_CFLAGS = $(AM_CFLAGS)
 
 libfb_la_LDFLAGS = -avoid-version
 libfb_la_LIBADD = $(top_builddir)/fb/libfb.la
