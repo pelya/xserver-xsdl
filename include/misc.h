@@ -255,6 +255,14 @@ version_compare(uint16_t a_major, uint16_t a_minor,
 #define SwapRestL(stuff) \
     SwapLongs((CARD32 *)(stuff + 1), LengthRestL(stuff))
 
+#ifdef __GNUC__
+void __attribute__((error("wrong sized variable passed to swap"))) wrong_size(void);
+#else
+static inline void wrong_size(void)
+{
+}
+#endif
+
 /* byte swap a 32-bit value */
 static inline void swap_uint32(uint32_t *x)
 {
@@ -267,6 +275,8 @@ static inline void swap_uint32(uint32_t *x)
 }
 
 #define swapl(x) do { \
+		if (sizeof(*(x)) != 4) \
+			wrong_size(); \
 		swap_uint32((uint32_t *)(x)); \
 	} while (0)
 
@@ -279,11 +289,15 @@ static inline void swap_uint16(uint16_t *x)
 }
 
 #define swaps(x) do { \
+		if (sizeof(*(x)) != 2) \
+			wrong_size(); \
 		swap_uint16((uint16_t *)(x)); \
 	} while (0)
 
 /* copy 32-bit value from src to dst byteswapping on the way */
 #define cpswapl(src, dst) { \
+		if (sizeof((src)) != 4 || sizeof((dst)) != 4) \
+			wrong_size(); \
                  ((char *)&(dst))[0] = ((char *) &(src))[3];\
                  ((char *)&(dst))[1] = ((char *) &(src))[2];\
                  ((char *)&(dst))[2] = ((char *) &(src))[1];\
@@ -291,6 +305,8 @@ static inline void swap_uint16(uint16_t *x)
 
 /* copy short from src to dst byteswapping on the way */
 #define cpswaps(src, dst) { \
+		if (sizeof((src)) != 2 || sizeof((dst)) != 2) \
+			wrong_size(); \
 		 ((char *) &(dst))[0] = ((char *) &(src))[1];\
 		 ((char *) &(dst))[1] = ((char *) &(src))[0]; }
 
