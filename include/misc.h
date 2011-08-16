@@ -267,6 +267,11 @@ void __attribute__((error("wrong sized variable passed to swap"))) wrong_size(vo
 static inline void wrong_size(void)
 {
 }
+
+static inline void __builtin_constant_p(int x)
+{
+	return 0;
+}
 #endif
 
 /* byte swap a 32-bit value */
@@ -283,7 +288,10 @@ static inline void swap_uint32(uint32_t *x)
 #define swapl(x) do { \
 		if (sizeof(*(x)) != 4) \
 			wrong_size(); \
-		swap_uint32((uint32_t *)(x)); \
+		if (__builtin_constant_p((uintptr_t)(x) & 3) && ((uintptr_t)(x) & 3) == 0) \
+			*(x) = lswapl(*(x)); \
+		else \
+			swap_uint32((uint32_t *)(x)); \
 	} while (0)
 
 /* byte swap a 16-bit value */
@@ -297,7 +305,10 @@ static inline void swap_uint16(uint16_t *x)
 #define swaps(x) do { \
 		if (sizeof(*(x)) != 2) \
 			wrong_size(); \
-		swap_uint16((uint16_t *)(x)); \
+		if (__builtin_constant_p((uintptr_t)(x) & 1) && ((uintptr_t)(x) & 1) == 0) \
+			*(x) = lswaps(*(x)); \
+		else \
+			swap_uint16((uint16_t *)(x)); \
 	} while (0)
 
 /* copy 32-bit value from src to dst byteswapping on the way */
