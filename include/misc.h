@@ -122,13 +122,19 @@ typedef struct _xReq *xReqPtr;
 
 
 /* byte swap a 32-bit literal */
-#define lswapl(x) ((((x) & 0xff) << 24) |\
-		   (((x) & 0xff00) << 8) |\
-		   (((x) & 0xff0000) >> 8) |\
-		   (((x) >> 24) & 0xff))
+static inline uint32_t lswapl(uint32_t x)
+{
+	return  ((x & 0xff) << 24) |
+		((x & 0xff00) << 8) |
+		((x & 0xff0000) >> 8) |
+		((x >> 24) & 0xff);
+}
 
-/* byte swap a short literal */
-#define lswaps(x) ((((x) & 0xff) << 8) | (((x) >> 8) & 0xff))
+/* byte swap a 16-bit literal */
+static inline uint16_t lswaps(uint16_t x)
+{
+	return ((x & 0xff) << 8) | ((x >> 8) & 0xff);
+}
 
 #undef min
 #undef max
