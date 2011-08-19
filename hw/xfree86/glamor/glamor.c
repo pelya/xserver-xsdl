@@ -304,6 +304,31 @@ glamor_close_screen_ddx(int scrnIndex, ScreenPtr screen)
 	return TRUE;
 }
 
+
+
+static Bool
+glamor_egl_has_extension(struct glamor_screen_private *glamor, char *extension)
+{
+  const char *egl_extensions;
+  char *pext;
+  int  ext_len;
+  ext_len = strlen(extension);
+ 
+  egl_extensions = (const char*)eglQueryString(glamor->display, EGL_EXTENSIONS);
+  pext = (char*)egl_extensions;
+ 
+  if (pext == NULL || extension == NULL)
+    return FALSE;
+  while((pext = strstr(pext, extension)) != NULL) {
+    if (pext[ext_len] == ' ' || pext[ext_len] == '\0')
+      return TRUE;
+    pext += ext_len;
+  }
+  return FALSE;
+}
+
+
+
 static Bool
 glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 {
@@ -352,6 +377,20 @@ glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 
 	version = eglQueryString(glamor->display, EGL_VERSION);
 	xf86Msg(X_INFO, "%s: EGL version %s:\n", glamor_name, version);
+
+#define GLAMOR_CHECK_EGL_EXTENSION(EXT)  \
+        if (!glamor_egl_has_extension(glamor, "EGL_" #EXT)) {  \
+               ErrorF("EGL_" #EXT "required.\n");  \
+               return FALSE;  \
+        } 
+
+        GLAMOR_CHECK_EGL_EXTENSION(MESA_drm_image);
+        GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_renderbuffer_image);
+#ifdef GLAMOR_GLES2
+        GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_gles2);
+#else
+        GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_opengl);
+#endif
 
 	glamor->egl_create_drm_image_mesa = (PFNEGLCREATEDRMIMAGEMESA)eglGetProcAddress("eglCreateDRMImageMESA");
 	glamor->egl_export_drm_image_mesa = (PFNEGLEXPORTDRMIMAGEMESA)eglGetProcAddress("eglExportDRMImageMESA");
