@@ -83,9 +83,7 @@ glamor_validate_pixmap(PixmapPtr pixmap)
 void
 glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv)
 {
-//  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
-
-  glamor_pixmap_ensure_fb(pixmap_priv->container);
+  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
 #ifndef GLAMOR_GLES2
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
