@@ -36,7 +36,6 @@
 #include "glamor.h"
 
 #ifdef GLAMOR_GLES2
-
 #define GL_BGRA                                 GL_BGRA_EXT
 #define GL_COLOR_INDEX                          0x1900
 #define GL_BITMAP                               0x1A00
@@ -77,9 +76,15 @@
 #ifdef GLAMOR_GLES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+
+#define GLAMOR_DEFAULT_PRECISION   \
+    "precision mediump float;\n" 
+
 #else
 #include <GL/gl.h>
 #include <GL/glext.h>
+
+#define GLAMOR_DEFAULT_PRECISION
 #endif
 
 

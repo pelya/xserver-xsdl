@@ -71,12 +71,14 @@ static GLuint
 glamor_create_composite_fs(struct shader_key *key)
 {
   const char *source_solid_fetch =
+    GLAMOR_DEFAULT_PRECISION
     "uniform vec4 source;\n"
     "vec4 get_source()\n"
     "{\n"
     "	return source;\n"
     "}\n";
   const char *source_alpha_pixmap_fetch =
+    GLAMOR_DEFAULT_PRECISION
     "varying vec2 source_texture;\n"
     "uniform sampler2D source_sampler;\n"
     "vec4 get_source()\n"
@@ -84,6 +86,7 @@ glamor_create_composite_fs(struct shader_key *key)
     "	return texture2D(source_sampler, source_texture);\n"
     "}\n";
   const char *source_pixmap_fetch =
+    GLAMOR_DEFAULT_PRECISION
     "varying vec2 source_texture;\n"
     "uniform sampler2D source_sampler;\n"
     "vec4 get_source()\n"
@@ -91,12 +94,14 @@ glamor_create_composite_fs(struct shader_key *key)
     "       return vec4(texture2D(source_sampler, source_texture).rgb, 1);\n"
     "}\n";
   const char *mask_solid_fetch =
+    GLAMOR_DEFAULT_PRECISION
     "uniform vec4 mask;\n"
     "vec4 get_mask()\n"
     "{\n"
     "	return mask;\n"
     "}\n";
   const char *mask_alpha_pixmap_fetch =
+    GLAMOR_DEFAULT_PRECISION
     "varying vec2 mask_texture;\n"
     "uniform sampler2D mask_sampler;\n"
     "vec4 get_mask()\n"
@@ -104,6 +109,7 @@ glamor_create_composite_fs(struct shader_key *key)
     "	return texture2D(mask_sampler, mask_texture);\n"
     "}\n";
   const char *mask_pixmap_fetch =
+    GLAMOR_DEFAULT_PRECISION
     "varying vec2 mask_texture;\n"
     "uniform sampler2D mask_sampler;\n"
     "vec4 get_mask()\n"
@@ -111,21 +117,25 @@ glamor_create_composite_fs(struct shader_key *key)
     "       return vec4(texture2D(mask_sampler, mask_texture).rgb, 1);\n"
     "}\n";
   const char *in_source_only =
+    GLAMOR_DEFAULT_PRECISION
     "void main()\n"
     "{\n"
     "	gl_FragColor = get_source();\n"
     "}\n";
   const char *in_normal =
+    GLAMOR_DEFAULT_PRECISION
     "void main()\n"
     "{\n"
     "	gl_FragColor = get_source() * get_mask().a;\n"
     "}\n";
   const char *in_ca_source =
+    GLAMOR_DEFAULT_PRECISION
     "void main()\n"
     "{\n"
     "	gl_FragColor = get_source() * get_mask();\n"
     "}\n";
   const char *in_ca_alpha =
+    GLAMOR_DEFAULT_PRECISION
     "void main()\n"
     "{\n"
     "	gl_FragColor = get_source().a * get_mask();\n"

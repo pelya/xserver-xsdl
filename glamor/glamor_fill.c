@@ -112,6 +112,7 @@ glamor_init_solid_shader(ScreenPtr screen)
         "       gl_Position = v_position;\n"
 	"}\n";
     const char *solid_fs =
+        GLAMOR_DEFAULT_PRECISION
 	"uniform vec4 color;\n"
 	"void main()\n"
 	"{\n"

@@ -50,6 +50,7 @@ glamor_init_tile_shader(ScreenPtr screen)
         "       tile_texture = v_texcoord0.xy;\n"
 	"}\n";
     const char *tile_fs =
+        GLAMOR_DEFAULT_PRECISION
         "varying vec2 tile_texture;\n"
 	"uniform sampler2D sampler;\n"
 	"void main()\n"

@@ -151,10 +151,11 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     "}\n";
 
   const char *fs_source =
+    GLAMOR_DEFAULT_PRECISION
     "varying vec2 source_texture;\n"
     "uniform sampler2D sampler;\n"
-    "uniform int no_revert;"
-    "uniform int swap_rb;"
+    "uniform int no_revert;\n"
+    "uniform int swap_rb;\n"
     "void main()\n"
     "{\n"
     "   if (no_revert == 1) \n"
@@ -174,10 +175,11 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     "}\n";
     
   const char *set_alpha_source =
+    GLAMOR_DEFAULT_PRECISION
     "varying vec2 source_texture;\n"
     "uniform sampler2D sampler;\n"
-    "uniform int no_revert;"
-    "uniform int swap_rb;"
+    "uniform int no_revert;\n"
+    "uniform int swap_rb;\n"
     "void main()\n"
     "{\n"
     "   if (no_revert == 1) \n"
