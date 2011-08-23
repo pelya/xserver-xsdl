@@ -47,16 +47,13 @@ glamor_poly_fill_rect(DrawablePtr drawable,
     int		    xorg, yorg;
     int		    n;
     register BoxPtr pbox;
-    int off_x, off_y;
     RegionPtr pClip = fbGetCompositeClip(gc);
-    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) {
 	goto fail;
     }
 
     xorg = drawable->x;
     yorg = drawable->y;
-    glamor_get_drawable_deltas(drawable, pixmap, &off_x, &off_y);
 
         while (nrect--) {
                 fullX1 = prect->x + xorg;
@@ -92,8 +89,8 @@ glamor_poly_fill_rect(DrawablePtr drawable,
                                 continue;
 	                glamor_fill(drawable,
 			            gc,
-				    x1 + off_x,
-				    y1 + off_y,
+				    x1,
+				    y1,
 				    x2 - x1,
                                     y2 - y1);
                 }

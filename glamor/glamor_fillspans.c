@@ -42,15 +42,11 @@ glamor_fill_spans(DrawablePtr drawable,
     int nbox;
     BoxPtr pbox;
     int x1, x2, y;
-    int off_x, off_y;
     RegionPtr pClip = fbGetCompositeClip(gc);
-    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
-
 
     if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) 
 	goto fail;
 
-    glamor_get_drawable_deltas(drawable, pixmap, &off_x, &off_y);
 	ppt = points;
         while (n--) {
                 x1 = ppt->x;
@@ -74,7 +70,7 @@ glamor_fill_spans(DrawablePtr drawable,
                         if (x2 <= x1)
                                 continue;
                         glamor_fill (drawable,gc,
-                                     x1 + off_x, y + off_y,
+                                     x1, y,
                                      x2 - x1 ,  1);
                         pbox++;
                 }
