@@ -35,19 +35,6 @@
 #include <errno.h>
 #include <xf86drm.h>
 
-#define GL_GLEXT_PROTOTYPES
-#define EGL_EGLEXT_PROTOTYPES
-#define EGL_DISPLAY_NO_X_MESA
-
-#if GLAMOR_GLES2
-#include <GLES2/gl2.h>
-#else
-#include <GL/gl.h>
-#endif
-
-#define MESA_EGL_NO_X11_HEADERS
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
 
 #include "../../../mi/micmap.h"
 #include <xf86Crtc.h>
@@ -70,27 +57,6 @@ glamor_identify(int flags)
 	xf86Msg(X_INFO, "%s: OpenGL accelerated X.org driver\n", glamor_name);
 }
 
-struct glamor_screen_private {
-	EGLDisplay display;
-	EGLContext context;
-	EGLImageKHR root;
-	EGLint major, minor;
-
-	CreateScreenResourcesProcPtr CreateScreenResources;
-	CloseScreenProcPtr CloseScreen;
-	int fd;
-	int cpp;
-
-	PFNEGLCREATEDRMIMAGEMESA egl_create_drm_image_mesa;
-	PFNEGLEXPORTDRMIMAGEMESA egl_export_drm_image_mesa;
-
-};
-
-static inline struct glamor_screen_private *
-glamor_get_screen_private(ScrnInfoPtr scrn)
-{
-	return (struct glamor_screen_private *) (scrn->driverPrivate);
-}
 
 Bool
 glamor_resize(ScrnInfoPtr scrn, int width, int height)
@@ -122,7 +88,7 @@ glamor_resize(ScrnInfoPtr scrn, int width, int height)
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, image); 
+	(glamor->egl_image_target_texture2d_oes)(GL_TEXTURE_2D, image); 
 
 	glamor_set_screen_pixmap_texture(screen, width, height, texture);
 	glamor->root = image;
@@ -394,8 +360,10 @@ glamor_screen_init_ddx(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 
 	glamor->egl_create_drm_image_mesa = (PFNEGLCREATEDRMIMAGEMESA)eglGetProcAddress("eglCreateDRMImageMESA");
 	glamor->egl_export_drm_image_mesa = (PFNEGLEXPORTDRMIMAGEMESA)eglGetProcAddress("eglExportDRMImageMESA");
+	glamor->egl_image_target_texture2d_oes = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglGetProcAddress("glEGLImageTargetTexture2DOES");
 
-	if (!glamor->egl_create_drm_image_mesa || !glamor->egl_export_drm_image_mesa) {
+	if (!glamor->egl_create_drm_image_mesa || !glamor->egl_export_drm_image_mesa ||
+			!glamor->egl_image_target_texture2d_oes) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "eglGetProcAddress() failed\n");
 		return FALSE;

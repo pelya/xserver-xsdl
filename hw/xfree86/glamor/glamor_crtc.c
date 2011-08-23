@@ -478,6 +478,7 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 {
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	ScrnInfoPtr scrn = crtc->scrn;
+	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
 
 	if (drmmode_crtc->cursor == NULL)
 	{
@@ -490,7 +491,7 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 				GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D,
 				GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, drmmode_crtc->cursor);
+		(glamor->egl_image_target_texture2d_oes)(GL_TEXTURE_2D, drmmode_crtc->cursor);
 	}
 	glBindTexture(GL_TEXTURE_2D, drmmode_crtc->cursor_tex);
 #ifdef GLAMOR_GLES2
