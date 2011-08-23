@@ -14,10 +14,14 @@ if RECORD
 RECORDMOD = librecord.la
 endif
 
+if GLAMOR
+LIBGLAMOR_DIX = libglamor_dix.la
+endif
+
 module_LTLIBRARIES = libfb.la \
                      libwfb.la \
                      libshadow.la \
-                     libglamor_dix.la
+                     $(LIBGLAMOR_DIX)
 
 extsmoduledir = $(moduledir)/extensions
 extsmodule_LTLIBRARIES = $(RECORDMOD) \
@@ -34,12 +38,12 @@ INCLUDES = @XORG_INCS@ \
 libdbe_la_LDFLAGS = -avoid-version
 libdbe_la_LIBADD = $(top_builddir)/dbe/libdbe.la
 libdbe_la_SOURCES = dbemodule.c
-
+if GLAMOR
 libglamor_dix_la_LDFLAGS = -avoid-version
 libglamor_dix_la_LIBADD = $(top_builddir)/glamor/libglamor.la
-libglamor_dix_la_SOURCES = 
+libglamor_dix_la_SOURCES = glamor_module.c
 libglamor_dix_la_CFLAGS = $(AM_CFLAGS)
-
+endif
 libfb_la_LDFLAGS = -avoid-version
 libfb_la_LIBADD = $(top_builddir)/fb/libfb.la
 libfb_la_SOURCES = $(top_builddir)/fb/fbcmap_mi.c fbmodule.c

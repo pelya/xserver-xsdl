@@ -646,7 +646,7 @@ AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest serv
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
 AC_ARG_ENABLE(standalone-xpbproxy, AS_HELP_STRING([--enable-standalone-xpbproxy], [Build a standalone xpbproxy (in addition to the one integrated into Xquartz as a separate thread) (default: no)]), [STANDALONE_XPBPROXY=$enableval], [STANDALONE_XPBPROXY=no])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
-#AC_ARG_ENABLE(glamor,         AS_HELP_STRING([--enable-glamor], [Build glamor server (default: no)]), [GLAMOR=$enableval], [GLAMOR=no])
+AC_ARG_ENABLE(glamor,         AS_HELP_STRING([--enable-glamor], [Build glamor dix module (default: no)]), [GLAMOR=$enableval], [GLAMOR=no])
 AC_ARG_ENABLE(glamor-ddx,     AS_HELP_STRING([--enable-glamor-ddx], [Build glamor ddx (default: no)]), [GLAMOR_DDX=$enableval], [GLAMOR_DDX=no])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
@@ -1772,11 +1772,9 @@ AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 
 dnl glamor 
 
-AM_CONDITIONAL([GLAMOR], [test "x$XEPHYR" = xyes || test "x$GLAMOR_DDX" = xyes])
+AM_CONDITIONAL([GLAMOR], [test "x$XEPHYR" = xyes || test "x$GLAMOR_DDX" = xyes || test "x$GLAMOR" = xyes])
 AM_CONDITIONAL([GLAMOR_GLES2], [test "x$GLAMOR_GLES2" = xyes])
 AM_CONDITIONAL([GLAMOR_DDX], [test "x$GLAMOR_DDX" = xyes])
-
-GLAMOR=yes
 
 if test "x$GLAMOR" = xyes; then 
    AC_DEFINE(GLAMOR,1,[Build Glamor])

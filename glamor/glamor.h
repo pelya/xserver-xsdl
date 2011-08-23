@@ -43,6 +43,6 @@
 #define GLAMOR_HOSTX            2
 #define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS | GLAMOR_HOSTX)
 
-Bool glamor_init(ScreenPtr screen, unsigned int flags);
-void glamor_fini(ScreenPtr screen);
-void glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h, unsigned int tex);
+extern _X_EXPORT Bool glamor_init(ScreenPtr screen, unsigned int flags);
+extern _X_EXPORT void glamor_fini(ScreenPtr screen);
+extern _X_EXPORT void glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h, unsigned int tex);
