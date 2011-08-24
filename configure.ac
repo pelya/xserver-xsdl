@@ -801,8 +801,8 @@ LIBUDEV="libudev >= 143"
 LIBSELINUX="libselinux >= 2.0.86"
 LIBDBUS="dbus-1 >= 1.0"
 LIBPIXMAN="pixman-1 >= 0.21.8"
-LIBEGL="egl >= 7.11.0"
-LIBGLESV2="glesv2 >= 7.11.0"
+LIBEGL="egl"
+LIBGLESV2="glesv2"
 dnl Pixman is always required, but we separate it out so we can link
 dnl specific modules against it
 PKG_CHECK_MODULES(PIXMAN, $LIBPIXMAN)
