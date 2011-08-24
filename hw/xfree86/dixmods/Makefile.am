@@ -34,6 +34,7 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/hw/xfree86/loader \
            -I$(top_srcdir)/miext/shadow \
            -I$(top_srcdir)/glx
+           
 
 libdbe_la_LDFLAGS = -avoid-version
 libdbe_la_LIBADD = $(top_builddir)/dbe/libdbe.la
@@ -41,8 +42,8 @@ libdbe_la_SOURCES = dbemodule.c
 if GLAMOR
 libglamor_dix_la_LDFLAGS = -avoid-version
 libglamor_dix_la_LIBADD = $(top_builddir)/glamor/libglamor.la
-libglamor_dix_la_SOURCES = glamor_module.c
-libglamor_dix_la_CFLAGS = $(AM_CFLAGS)
+libglamor_dix_la_SOURCES = glamor_module.c $(top_srcdir)/glamor/glamor_egl.c
+libglamor_dix_la_CFLAGS = $(AM_CFLAGS) -I$(top_srcdir)/glamor $(LIBDRM_CFLAGS)
 endif
 libfb_la_LDFLAGS = -avoid-version
 libfb_la_LIBADD = $(top_builddir)/fb/libfb.la

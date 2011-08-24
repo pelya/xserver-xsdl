@@ -43,6 +43,14 @@
 #define GLAMOR_HOSTX            2
 #define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS | GLAMOR_HOSTX)
 
+#define GLAMOR_EGL_EXTERNAL_BUFFER 3
+
 extern _X_EXPORT Bool glamor_init(ScreenPtr screen, unsigned int flags);
 extern _X_EXPORT void glamor_fini(ScreenPtr screen);
 extern _X_EXPORT void glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h, unsigned int tex);
+
+extern _X_EXPORT Bool glamor_egl_init(ScreenPtr screen, int fd);
+extern _X_EXPORT Bool glamor_create_egl_screen_image(ScreenPtr screen, int handle, int stride);
+extern _X_EXPORT Bool glamor_close_egl_screen(ScreenPtr screen);
+extern _X_EXPORT void glamor_free_egl_screen(int scrnIndex, int flags);
+
