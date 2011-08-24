@@ -42,6 +42,7 @@
 
 #if GLAMOR_GLES2
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -80,7 +81,7 @@ struct glamor_screen_private {
 	PFNEGLCREATEDRMIMAGEMESA egl_create_drm_image_mesa;
 	PFNEGLEXPORTDRMIMAGEMESA egl_export_drm_image_mesa;
         PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
-
+	PFNGLEGLIMAGETARGETTEXTURE2DOESPROC egl_image_target_texture2d_oes;
 };
 
 int xf86GlamorEGLPrivateIndex = -1;
@@ -128,7 +129,8 @@ _glamor_create_egl_screen_image(ScrnInfoPtr scrn, int width, int height, int str
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, image); 
+
+	(glamor->egl_image_target_texture2d_oes)(GL_TEXTURE_2D, image); 
 
 	glamor_set_screen_pixmap_texture(screen, width, height, texture);
 	glamor->root = image;
@@ -247,8 +249,12 @@ Bool glamor_egl_init(ScreenPtr screen, int fd)
         glamor->egl_create_image_khr = (PFNEGLCREATEIMAGEKHRPROC)
                                        eglGetProcAddress("eglCreateImageKHR");
 
+	glamor->egl_image_target_texture2d_oes = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)
+                                                 eglGetProcAddress("glEGLImageTargetTexture2DOES");
+
 	if (!glamor->egl_create_image_khr 
-            || !glamor->egl_export_drm_image_mesa) {
+            || !glamor->egl_export_drm_image_mesa
+            || !glamor->egl_image_target_texture2d_oes) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "eglGetProcAddress() failed\n");
 		return FALSE;
