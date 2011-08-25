@@ -1235,13 +1235,23 @@ DRI2CloseScreen(ScreenPtr pScreen)
 }
 
 extern ExtensionModule dri2ExtensionModule;
+extern Bool DRI2ModuleSetup(void);
+
+/* Called by InitExtensions() */
+Bool
+DRI2ModuleSetup(void)
+{
+    dri2DrawableRes = CreateNewResourceType(DRI2DrawableGone, "DRI2Drawable");
+    if (!dri2DrawableRes)
+	return FALSE;
+
+    return TRUE;
+}
 
 static pointer
 DRI2Setup(pointer module, pointer opts, int *errmaj, int *errmin)
 {
     static Bool setupDone = FALSE;
-
-    dri2DrawableRes = CreateNewResourceType(DRI2DrawableGone, "DRI2Drawable");
 
     if (!setupDone)
     {
