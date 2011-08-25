@@ -337,7 +337,36 @@ xf86_show_cursors (ScrnInfoPtr scrn)
 	    xf86_crtc_show_cursor (crtc);
     }
 }
-    
+
+void xf86CrtcTransformCursorPos (xf86CrtcPtr crtc, int *x, int *y)
+{
+    ScrnInfoPtr scrn = crtc->scrn;
+    ScreenPtr screen = scrn->pScreen;
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+    xf86CursorInfoPtr cursor_info = xf86_config->cursor_info;
+    xf86CursorScreenPtr ScreenPriv =
+	(xf86CursorScreenPtr)dixLookupPrivate(&screen->devPrivates,
+					      xf86CursorScreenKey);
+    struct pict_f_vector v;
+    int dx, dy;
+
+    v.v[0] = (*x + ScreenPriv->HotX) + 0.5;
+    v.v[1] = (*y + ScreenPriv->HotY) + 0.5;
+    v.v[2] = 1;
+    pixman_f_transform_point (&crtc->f_framebuffer_to_crtc, &v);
+    /* cursor will have 0.5 added to it already so floor is sufficent */
+    *x = floor (v.v[0]);
+    *y = floor (v.v[1]);
+    /*
+     * Transform position of cursor upper left corner
+     */
+    xf86_crtc_rotate_coord_back (crtc->rotation, cursor_info->MaxWidth,
+				 cursor_info->MaxHeight, ScreenPriv->HotX,
+				 ScreenPriv->HotY, &dx, &dy);
+    *x -= dx;
+    *y -= dy;
+}
+
 static void
 xf86_crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
 {
@@ -346,36 +375,12 @@ xf86_crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
     xf86CursorInfoPtr	cursor_info = xf86_config->cursor_info;
     DisplayModePtr	mode = &crtc->mode;
     Bool		in_range;
-    int			dx, dy;
 
     /*
      * Transform position of cursor on screen
      */
     if (crtc->transform_in_use && !crtc->driverIsPerformingTransform)
-    {
-	ScreenPtr	screen = scrn->pScreen;
-	xf86CursorScreenPtr ScreenPriv =
-	    (xf86CursorScreenPtr)dixLookupPrivate(&screen->devPrivates,
-						  xf86CursorScreenKey);
-	struct pict_f_vector   v;
-
-	v.v[0] = (x + ScreenPriv->HotX) + 0.5;
-	v.v[1] = (y + ScreenPriv->HotY) + 0.5;
-	v.v[2] = 1;
-	pixman_f_transform_point (&crtc->f_framebuffer_to_crtc, &v);
-	/* cursor will have 0.5 added to it already so floor is sufficent */
-	x = floor (v.v[0]);
-	y = floor (v.v[1]);
-	/*
-	 * Transform position of cursor upper left corner
-	 */
-	xf86_crtc_rotate_coord_back (crtc->rotation,
-				     cursor_info->MaxWidth,
-				     cursor_info->MaxHeight,
-				     ScreenPriv->HotX, ScreenPriv->HotY, &dx, &dy);
-	x -= dx;
-	y -= dy;
-   }
+	xf86CrtcTransformCursorPos(crtc, &x, &y);
     else
     {
 	x -= crtc->x;

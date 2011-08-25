@@ -948,6 +948,14 @@ xf86_hide_cursors (ScrnInfoPtr scrn);
 extern _X_EXPORT void
 xf86_cursors_fini (ScreenPtr screen);
 
+/**
+ * Transform the cursor's coordinates based on the crtc transform.  Normally
+ * this is done by the server, but if crtc->driverIsPerformingTransform is TRUE,
+ * then the server does not transform the cursor position automatically.
+ */
+extern _X_EXPORT void
+xf86CrtcTransformCursorPos (xf86CrtcPtr crtc, int *x, int *y);
+
 /*
  * For overlay video, compute the relevant CRTC and
  * clip video to that.
