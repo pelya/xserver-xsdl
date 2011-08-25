@@ -195,9 +195,8 @@ glamor_egl_has_extension(struct glamor_screen_private *glamor, char *extension)
 }
 
 
-Bool glamor_egl_init(ScreenPtr screen, int fd)
+Bool glamor_egl_init(ScrnInfoPtr scrn, int fd)
 {
-	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
 	struct glamor_screen_private *glamor;
 	const char *version;
         EGLint config_attribs[] = {
@@ -275,11 +274,6 @@ Bool glamor_egl_init(ScreenPtr screen, int fd)
 		return FALSE;
 	}
 
-	if (!glamor_init(screen, GLAMOR_INVERTED_Y_AXIS)) {
-		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-			   "Failed to initialize glamor\n");
-		return FALSE;
-	}
         return TRUE;
 }
 
