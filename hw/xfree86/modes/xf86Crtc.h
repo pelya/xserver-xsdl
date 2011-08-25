@@ -1,5 +1,6 @@
 /*
  * Copyright © 2006 Keith Packard
+ * Copyright © 2011 Aaron Plattner
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -223,7 +224,7 @@ typedef struct _xf86CrtcFuncs {
 
 } xf86CrtcFuncsRec, *xf86CrtcFuncsPtr;
 
-#define XF86_CRTC_VERSION 3
+#define XF86_CRTC_VERSION 4
 
 struct _xf86Crtc {
     /**
@@ -361,6 +362,19 @@ struct _xf86Crtc {
      * Clear the shadow
      */
     Bool	    shadowClear;
+
+    /**
+     * Indicates that the driver is handling the transform, so the shadow
+     * surface should be disabled.  The driver writes this field before calling
+     * xf86CrtcRotate to indicate that it is handling the transform (including
+     * rotation and reflection).
+     *
+     * Setting this flag also causes the server to stop adjusting the cursor
+     * image and position.
+     *
+     * Added in ABI version 4
+     */
+    Bool	    driverIsPerformingTransform;
 };
 
 typedef struct _xf86OutputFuncs {
