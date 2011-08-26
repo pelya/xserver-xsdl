@@ -291,13 +291,13 @@ acquire_vt:
 		    {
 			FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed");
 		    }
-	#if !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
+#if !defined(__OpenBSD__) && !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
 		    if (ioctl(xf86Info.consoleFd, KDENABIO, 0) < 0)
 		    {
 			FatalError("xf86OpenConsole: KDENABIO failed (%s)",
 				   strerror(errno));
 		    }
-	#endif
+#endif
 		    if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS) < 0)
 		    {
 			FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed");
@@ -648,7 +648,7 @@ xf86CloseConsole()
 	    VT.mode = VT_AUTO;
 	    ioctl(xf86Info.consoleFd, VT_SETMODE, &VT); /* dflt vt handling */
         }
-#if !defined(OpenBSD) && !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
+#if !defined(__OpenBSD__) && !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
         if (ioctl(xf86Info.consoleFd, KDDISABIO, 0) < 0)
         {
             xf86FatalError("xf86CloseConsole: KDDISABIO failed (%s)",
