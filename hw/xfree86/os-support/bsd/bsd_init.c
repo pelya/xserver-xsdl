@@ -210,9 +210,6 @@ xf86OpenConsole()
 		"%s: No console driver found\n\tSupported drivers: %s\n\t%s",
 		"xf86OpenConsole", cons_drivers, CHECK_DRIVER_MSG);
 	}
-#if 0 /* stdin is already closed in OsInit() */
-	fclose(stdin);
-#endif
 	xf86Info.consoleFd = fd;
 
 	switch (xf86Info.consType)
@@ -372,7 +369,6 @@ xf86OpenSyscons()
     int fd = -1;
     vtmode_t vtmode;
     char vtname[12];
-    struct stat status;
     long syscons_version;
     MessageType from;
 
@@ -425,19 +421,10 @@ xf86OpenSyscons()
 		{
 		    /*
 		     * All VTs are in use.  If initialVT was found, use it.
-		     * Otherwise, if stdin is a VT, use that one.
-		     * XXX stdin is already closed, so this won't work.
 		     */
 		    if (initialVT != -1)
 		    {
 			xf86Info.vtno = initialVT;
-		    }
-		    else if ((fstat(0, &status) >= 0)
-			     && S_ISCHR(status.st_mode)
-			     && (ioctl(0, VT_GETMODE, &vtmode) >= 0))
-		    {
-			/* stdin is a VT */
-			xf86Info.vtno = minor(status.st_rdev) + 1;
 		    }
 		    else
 		    {
@@ -508,7 +495,6 @@ xf86OpenPcvt()
     int fd = -1;
     vtmode_t vtmode;
     char vtname[12], *vtprefix;
-    struct stat status;
     struct pcvtid pcvt_version;
 
 #ifndef __OpenBSD__
@@ -554,19 +540,10 @@ xf86OpenPcvt()
 		{
 		    /*
 		     * All VTs are in use.  If initialVT was found, use it.
-		     * Otherwise, if stdin is a VT, use that one.
-		     * XXX stdin is already closed, so this won't work.
 		     */
 		    if (initialVT != -1)
 		    {
 			xf86Info.vtno = initialVT;
-		    }
-		    else if ((fstat(0, &status) >= 0)
-			     && S_ISCHR(status.st_mode)
-			     && (ioctl(0, VT_GETMODE, &vtmode) >= 0))
-		    {
-			/* stdin is a VT */
-			xf86Info.vtno = minor(status.st_rdev) + 1;
 		    }
 		    else
 		    {
