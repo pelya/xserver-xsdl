@@ -266,19 +266,15 @@
 #  else /* __bsdi__ */
 #   ifdef SYSCONS_SUPPORT
 #    define COMPAT_SYSCONS
-#    if defined(__NetBSD__) || defined(__OpenBSD__)
-#     include <machine/console.h>
+#    if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+#       if defined(__DragonFly__)  || (__FreeBSD_kernel_version >= 410000)
+#         include <sys/consio.h>
+#         include <sys/kbio.h>
+#       else
+#         include <machine/console.h>
+#       endif /* FreeBSD 4.1 RELEASE or lator */
 #    else
-#     if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
-#        if defined(__DragonFly__)  || (__FreeBSD_kernel_version >= 410000)
-#          include <sys/consio.h>
-#          include <sys/kbio.h>
-#        else
-#          include <machine/console.h>
-#        endif /* FreeBSD 4.1 RELEASE or lator */
-#     else
-#      include <sys/console.h>
-#     endif
+#     include <sys/console.h>
 #    endif
 #   endif /* SYSCONS_SUPPORT */
 #   if defined(PCVT_SUPPORT)

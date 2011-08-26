@@ -446,11 +446,7 @@ xf86OpenSyscons()
 	    }
 
 	    close(fd);
-#ifndef __OpenBSD__
 	    sprintf(vtname, "/dev/ttyv%01x", xf86Info.vtno - 1);
-#else 
-	    sprintf(vtname, "/dev/ttyC%01x", xf86Info.vtno - 1);
-#endif	    
 	    if ((fd = open(vtname, SYSCONS_CONSOLE_MODE, 0)) < 0)
 	    {
 		FatalError("xf86OpenSyscons: Cannot open %s (%s)",
