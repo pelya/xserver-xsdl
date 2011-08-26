@@ -111,7 +111,6 @@ xf86InfoRec xf86Info = {
     .caughtSignal               = FALSE,
     .currentScreen              = NULL,
 #ifdef CSRG_BASED
-    .screenFd                   = -1,
     .consType                   = -1,
 #endif
     .allowMouseOpenFail         = FALSE,

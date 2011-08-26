@@ -211,7 +211,6 @@ xf86OpenConsole()
 	fclose(stdin);
 #endif
 	xf86Info.consoleFd = fd;
-	xf86Info.screenFd = fd;
 
 	switch (xf86Info.consType)
 	{
@@ -688,22 +687,12 @@ xf86CloseConsole()
     case WSCONS:
       {
 	int mode = WSDISPLAYIO_MODE_EMUL;
-	ioctl(xf86Info.screenFd, WSDISPLAYIO_SMODE, &mode);
+	ioctl(xf86Info.consoleFd, WSDISPLAYIO_SMODE, &mode);
 	break;
       }
 #endif
     }
 
-    if (xf86Info.screenFd != xf86Info.consoleFd)
-    {
-	close(xf86Info.screenFd);
-	close(xf86Info.consoleFd);
-	if ((xf86Info.consoleFd = open("/dev/console",O_RDONLY,0)) <0)
-	{
-	    xf86FatalError("xf86CloseConsole: Cannot open /dev/console (%s)",
-			   strerror(errno));
-	}
-    }
     close(xf86Info.consoleFd);
     if (devConsoleFd >= 0)
 	close(devConsoleFd);
