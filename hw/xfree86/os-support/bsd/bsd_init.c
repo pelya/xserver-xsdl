@@ -41,7 +41,10 @@
 #include <errno.h>
 
 static Bool KeepTty = FALSE;
+
+#ifdef PCCONS_SUPPORT
 static int devConsoleFd = -1;
+#endif
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 static int VTnum = -1;
 static int initialVT = -1;
@@ -694,8 +697,10 @@ xf86CloseConsole()
     }
 
     close(xf86Info.consoleFd);
+#ifdef PCCONS_SUPPORT
     if (devConsoleFd >= 0)
 	close(devConsoleFd);
+#endif
     return;
 }
 
