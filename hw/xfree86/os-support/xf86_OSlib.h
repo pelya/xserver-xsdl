@@ -277,20 +277,14 @@
 #     include <sys/console.h>
 #    endif
 #   endif /* SYSCONS_SUPPORT */
-#   if defined(PCVT_SUPPORT)
+#   if defined(PCVT_SUPPORT) && !defined(__NetBSD__) && !defined(__OpenBSD__)
 #    if !defined(SYSCONS_SUPPORT)
       /* no syscons, so include pcvt specific header file */
 #     if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 #      include <machine/pcvt_ioctl.h>
 #     else
-#      if defined(__NetBSD__) || defined(__OpenBSD__)
-#       if !defined(WSCONS_SUPPORT)
-#        include <machine/pcvt_ioctl.h>
-#       endif /* WSCONS_SUPPORT */
-#      else
-#       include <sys/pcvt_ioctl.h>
-#      endif /* __NetBSD__ */
-#     endif /* __FreeBSD_kernel__ || __OpenBSD__ */
+#      include <sys/pcvt_ioctl.h>
+#     endif /* __FreeBSD_kernel__ */
 #    else /* pcvt and syscons: hard-code the ID magic */
 #     define VGAPCVTID _IOWR('V',113, struct pcvtid)
       struct pcvtid {
