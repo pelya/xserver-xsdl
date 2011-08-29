@@ -1099,6 +1099,11 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
     switch (type)
     {
         case MotionNotify:
+            if (!pDev->valuator)
+            {
+                ErrorF("[dix] motion events from device %d without valuators\n", pDev->id);
+                return 0;
+            }
             if (!mask_in || valuator_mask_num_valuators(mask_in) <= 0)
                 return 0;
             break;
@@ -1106,6 +1111,11 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
         case ButtonRelease:
             if (!pDev->button || !buttons)
                 return 0;
+            if (mask_in && valuator_mask_size(mask_in) > 0 && !pDev->valuator)
+            {
+                ErrorF("[dix] button event with valuator from device %d without valuators\n", pDev->id);
+                return 0;
+            }
             break;
         default:
             return 0;
