@@ -60,13 +60,16 @@
  * max texture size of the driver; this may need to actually come from
  * the driver.
  */
-#define CACHE_PICTURE_WIDTH 1024
 
 /* Maximum number of glyphs we buffer on the stack before flushing
  * rendering to the mask or destination surface.
  */
-#define GLYPH_BUFFER_SIZE 256
+#define GLYPH_BUFFER_SIZE 1024
 
+#define CACHE_PICTURE_SIZE  1024 
+#define GLYPH_MIN_SIZE 8
+#define GLYPH_MAX_SIZE 64
+#define GLYPH_CACHE_SIZE (CACHE_PICTURE_SIZE * CACHE_PICTURE_SIZE / (GLYPH_MIN_SIZE * GLYPH_MIN_SIZE))
 
 typedef struct {
     PicturePtr source;
@@ -74,76 +77,64 @@ typedef struct {
     int count;
 } glamor_glyph_buffer_t;
 
+struct glamor_glyph
+{
+  glamor_glyph_cache_t *cache;
+  uint16_t x, y;
+  uint16_t size, pos;
+};
+
 typedef enum {
     GLAMOR_GLYPH_SUCCESS,	/* Glyph added to render buffer */
     GLAMOR_GLYPH_FAIL,		/* out of memory, etc */
     GLAMOR_GLYPH_NEED_FLUSH,	/* would evict a glyph already in the buffer */
 } glamor_glyph_cache_result_t;
 
-void glamor_glyphs_init(ScreenPtr screen)
-{
-    glamor_screen_private *glamor_screen = glamor_get_screen_private(screen);
-    int i = 0;
 
-    memset(glamor_screen->glyph_caches, 0, sizeof(glamor_screen->glyph_caches));
-
-    glamor_screen->glyph_caches[i].format = PICT_a8;
-    glamor_screen->glyph_caches[i].glyph_width =
-	glamor_screen->glyph_caches[i].glyph_height = 16;
-    i++;
-    glamor_screen->glyph_caches[i].format = PICT_a8;
-    glamor_screen->glyph_caches[i].glyph_width =
-	glamor_screen->glyph_caches[i].glyph_height = 32;
-    i++;
-    glamor_screen->glyph_caches[i].format = PICT_a8r8g8b8;
-    glamor_screen->glyph_caches[i].glyph_width =
-	glamor_screen->glyph_caches[i].glyph_height = 16;
-    i++;
-    glamor_screen->glyph_caches[i].format = PICT_a8r8g8b8;
-    glamor_screen->glyph_caches[i].glyph_width =
-	glamor_screen->glyph_caches[i].glyph_height = 32;
-    i++;
-
-    assert(i == GLAMOR_NUM_GLYPH_CACHES);
-
-    for (i = 0; i < GLAMOR_NUM_GLYPH_CACHES; i++) {
-	glamor_screen->glyph_caches[i].columns =
-	    CACHE_PICTURE_WIDTH / glamor_screen->glyph_caches[i].glyph_width;
-	glamor_screen->glyph_caches[i].size = 256;
-	glamor_screen->glyph_caches[i].hash_size = 557;
-    }
-}
-
-static void glamor_unrealize_glyph_caches(ScreenPtr screen, unsigned int format)
-{
-    glamor_screen_private *glamor_screen = glamor_get_screen_private(screen);
-    int i;
-
-    for (i = 0; i < GLAMOR_NUM_GLYPH_CACHES; i++) {
-	glamor_glyph_cache_t *cache = &glamor_screen->glyph_caches[i];
-
-	if (cache->format != format)
-	    continue;
-
-	if (cache->picture) {
-	    FreePicture((pointer) cache->picture, (XID) 0);
-	    cache->picture = NULL;
-	}
-
-	if (cache->hash_entries) {
-	    free(cache->hash_entries);
-	    cache->hash_entries = NULL;
-	}
-
-	if (cache->glyphs) {
-	    free(cache->glyphs);
-	    cache->glyphs = NULL;
-	}
-	cache->glyph_count = 0;
-    }
-}
 
 #define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
+static DevPrivateKeyRec glamor_glyph_key;
+
+static inline struct glamor_glyph *
+glamor_glyph_get_private (GlyphPtr glyph)
+{
+  return dixGetPrivate (&glyph->devPrivates, &glamor_glyph_key);
+}
+
+static inline void
+glamor_glyph_set_private (GlyphPtr glyph, struct glamor_glyph *priv)
+{
+  dixSetPrivate (&glyph->devPrivates, &glamor_glyph_key, priv);
+}
+
+
+static void
+glamor_unrealize_glyph_caches (ScreenPtr pScreen)
+{
+  glamor_screen_private *glamor = glamor_get_screen_private (pScreen);
+  int i;
+
+  if (!glamor->glyph_cache_initialized)
+    return;
+
+  for (i = 0; i < GLAMOR_NUM_GLYPH_CACHE_FORMATS; i++)
+    {
+      glamor_glyph_cache_t *cache = &glamor->glyphCaches[i];
+
+      if (cache->picture)
+	FreePicture (cache->picture, 0);
+
+      if (cache->glyphs)
+	free (cache->glyphs);
+    }
+  glamor->glyph_cache_initialized = FALSE;
+}
+
+void
+glamor_glyphs_fini (ScreenPtr pScreen)
+{
+  glamor_unrealize_glyph_caches (pScreen);
+}
 
 /* All caches for a single format share a single pixmap for glyph storage,
  * allowing mixing glyphs of different sizes without paying a penalty
@@ -154,512 +145,221 @@ static void glamor_unrealize_glyph_caches(ScreenPtr screen, unsigned int format)
  * This function allocates the storage pixmap, and then fills in the
  * rest of the allocated structures for all caches with the given format.
  */
-static Bool glamor_realize_glyph_caches(ScreenPtr screen, unsigned int format)
+static Bool
+glamor_realize_glyph_caches (ScreenPtr pScreen)
 {
-    glamor_screen_private *glamor_screen = glamor_get_screen_private(screen);
-    int depth = PIXMAN_FORMAT_DEPTH(format);
-    PictFormatPtr pict_format;
-    PixmapPtr pixmap;
-    PicturePtr picture;
-    CARD32 component_alpha;
-    int height;
-    int i;
-    int error;
+  glamor_screen_private *glamor = glamor_get_screen_private (pScreen);
+  unsigned int formats[] = {
+    PIXMAN_a8,
+    PIXMAN_a8r8g8b8,
+  };
+  int i;
 
-    pict_format = PictureMatchFormat(screen, depth, format);
-    if (!pict_format)
-	return FALSE;
-
-    /* Compute the total vertical size needed for the format */
-
-    height = 0;
-    for (i = 0; i < GLAMOR_NUM_GLYPH_CACHES; i++) {
-	glamor_glyph_cache_t *cache = &glamor_screen->glyph_caches[i];
-	int rows;
-
-	if (cache->format != format)
-	    continue;
-
-	cache->y_offset = height;
-
-	rows = (cache->size + cache->columns - 1) / cache->columns;
-	height += rows * cache->glyph_height;
-    }
-
-    /* Now allocate the pixmap and picture */
-
-    pixmap = screen->CreatePixmap(screen,
-				  CACHE_PICTURE_WIDTH,
-				  height, depth,
-				  0);
-    if (!pixmap)
-	return FALSE;
-
-    component_alpha = NeedsComponent(pict_format->format);
-    picture = CreatePicture(0, &pixmap->drawable, pict_format,
-			    CPComponentAlpha, &component_alpha,
-			    serverClient, &error);
-
-    screen->DestroyPixmap(pixmap);	/* picture holds a refcount */
-
-    if (!picture)
-	return FALSE;
-
-    /* And store the picture in all the caches for the format */
-
-    for (i = 0; i < GLAMOR_NUM_GLYPH_CACHES; i++) {
-	glamor_glyph_cache_t *cache = &glamor_screen->glyph_caches[i];
-	int j;
-
-	if (cache->format != format)
-	    continue;
-
-	cache->picture = picture;
-	cache->picture->refcnt++;
-	cache->hash_entries = malloc(sizeof(int) * cache->hash_size);
-	cache->glyphs =
-	    malloc(sizeof(glamor_cached_glyph_t) * cache->size);
-	cache->glyph_count = 0;
-
-	if (!cache->hash_entries || !cache->glyphs)
-	    goto bail;
-
-	for (j = 0; j < cache->hash_size; j++)
-	    cache->hash_entries[j] = -1;
-
-	cache->eviction_position = rand() % cache->size;
-    }
-
-    /* Each cache references the picture individually */
-    FreePicture(picture, 0);
+  if (glamor->glyph_cache_initialized)
     return TRUE;
 
- bail:
-    glamor_unrealize_glyph_caches(screen, format);
+  glamor->glyph_cache_initialized = TRUE;
+  memset (glamor->glyphCaches, 0, sizeof (glamor->glyphCaches));
+
+  for (i = 0; i < sizeof (formats) / sizeof (formats[0]); i++)
+    {
+      glamor_glyph_cache_t *cache = &glamor->glyphCaches[i];
+      PixmapPtr pixmap;
+      PicturePtr picture;
+      CARD32 component_alpha;
+      int depth = PIXMAN_FORMAT_DEPTH (formats[i]);
+      int error;
+      PictFormatPtr pPictFormat =
+	PictureMatchFormat (pScreen, depth, formats[i]);
+      if (!pPictFormat)
+	goto bail;
+
+      /* Now allocate the pixmap and picture */
+      pixmap = pScreen->CreatePixmap (pScreen,
+				      CACHE_PICTURE_SIZE, CACHE_PICTURE_SIZE,
+				      depth, 0);
+      if (!pixmap)
+	goto bail;
+
+      component_alpha = NeedsComponent (pPictFormat->format);
+      picture = CreatePicture (0, &pixmap->drawable, pPictFormat,
+			       CPComponentAlpha, &component_alpha,
+			       serverClient, &error);
+
+      pScreen->DestroyPixmap (pixmap);
+      if (!picture)
+	goto bail;
+
+      ValidatePicture (picture);
+
+      cache->picture = picture;
+      cache->glyphs = calloc (sizeof (GlyphPtr), GLYPH_CACHE_SIZE);
+      if (!cache->glyphs)
+	goto bail;
+
+      cache->evict = rand () % GLYPH_CACHE_SIZE;
+    }
+  assert (i == GLAMOR_NUM_GLYPH_CACHE_FORMATS);
+
+  return TRUE;
+
+bail:
+  glamor_unrealize_glyph_caches (pScreen);
+  return FALSE;
+}
+
+
+Bool
+glamor_glyphs_init (ScreenPtr pScreen)
+{
+  if (!dixRegisterPrivateKey (&glamor_glyph_key, PRIVATE_GLYPH, 0))
     return FALSE;
+
+  /* Skip pixmap creation if we don't intend to use it. */
+
+  return glamor_realize_glyph_caches (pScreen);
 }
-
-void glamor_glyphs_fini(ScreenPtr screen)
-{
-    glamor_screen_private *glamor_screen = glamor_get_screen_private(screen);
-    int i;
-
-    for (i = 0; i < GLAMOR_NUM_GLYPH_CACHES; i++) {
-	glamor_glyph_cache_t *cache = &glamor_screen->glyph_caches[i];
-
-	if (cache->picture)
-	    glamor_unrealize_glyph_caches(screen, cache->format);
-    }
-}
-
-static int
-glamor_glyph_cache_hash_lookup(glamor_glyph_cache_t * cache, GlyphPtr glyph)
-{
-    int slot;
-
-    slot = (*(CARD32 *) glyph->sha1) % cache->hash_size;
-
-    while (TRUE) {		/* hash table can never be full */
-	int entryPos = cache->hash_entries[slot];
-	if (entryPos == -1)
-	    return -1;
-
-	if (memcmp(glyph->sha1, cache->glyphs[entryPos].sha1,
-		   sizeof(glyph->sha1)) == 0) {
-	    return entryPos;
-	}
-
-	slot--;
-	if (slot < 0)
-	    slot = cache->hash_size - 1;
-    }
-}
-
-static void
-glamor_glyph_cache_hash_insert(glamor_glyph_cache_t * cache, GlyphPtr glyph, int pos)
-{
-    int slot;
-
-    memcpy(cache->glyphs[pos].sha1, glyph->sha1, sizeof(glyph->sha1));
-
-    slot = (*(CARD32 *) glyph->sha1) % cache->hash_size;
-
-    while (TRUE) {		/* hash table can never be full */
-	if (cache->hash_entries[slot] == -1) {
-	    cache->hash_entries[slot] = pos;
-	    return;
-	}
-
-	slot--;
-	if (slot < 0)
-	    slot = cache->hash_size - 1;
-    }
-}
-
-static void glamor_glyph_cache_hash_remove(glamor_glyph_cache_t * cache, int pos)
-{
-    int slot;
-    int emptied_slot = -1;
-
-    slot = (*(CARD32 *) cache->glyphs[pos].sha1) % cache->hash_size;
-
-    while (TRUE) {		/* hash table can never be full */
-	int entryPos = cache->hash_entries[slot];
-
-	if (entryPos == -1)
-	    return;
-
-	if (entryPos == pos) {
-	    cache->hash_entries[slot] = -1;
-	    emptied_slot = slot;
-	} else if (emptied_slot != -1) {
-	    /* See if we can move this entry into the emptied slot,
-	     * we can't do that if if entry would have hashed
-	     * between the current position and the emptied slot.
-	     * (taking wrapping into account). Bad positions
-	     * are:
-	     *
-	     * |   XXXXXXXXXX             |
-	     *     i         j
-	     *
-	     * |XXX                   XXXX|
-	     *     j                  i
-	     *
-	     * i - slot, j - emptied_slot
-	     *
-	     * (Knuth 6.4R)
-	     */
-
-	    int entry_slot = (*(CARD32 *) cache->glyphs[entryPos].sha1) %
-		cache->hash_size;
-
-	    if (!((entry_slot >= slot && entry_slot < emptied_slot) ||
-		  (emptied_slot < slot
-		   && (entry_slot < emptied_slot
-		       || entry_slot >= slot)))) {
-		cache->hash_entries[emptied_slot] = entryPos;
-		cache->hash_entries[slot] = -1;
-		emptied_slot = slot;
-	    }
-	}
-
-	slot--;
-	if (slot < 0)
-	    slot = cache->hash_size - 1;
-    }
-}
-
-#define CACHE_X(pos) (((pos) % cache->columns) * cache->glyph_width)
-#define CACHE_Y(pos) (cache->y_offset + ((pos) / cache->columns) * cache->glyph_height)
 
 /* The most efficient thing to way to upload the glyph to the screen
  * is to use CopyArea; glamor pixmaps are always offscreen.
  */
-static Bool
-glamor_glyph_cache_upload_glyph(ScreenPtr screen,
-				glamor_glyph_cache_t * cache,
-				int pos, GlyphPtr glyph)
+static void
+glamor_glyph_cache_upload_glyph (ScreenPtr screen,
+				 glamor_glyph_cache_t * cache,
+				 GlyphPtr glyph, int x, int y)
 {
-    PicturePtr glyph_picture = GlyphPicture(glyph)[screen->myNum];
-    PixmapPtr glyph_pixmap = (PixmapPtr) glyph_picture->pDrawable;
-    PixmapPtr cache_pixmap = (PixmapPtr) cache->picture->pDrawable;
-    PixmapPtr scratch;
-    GCPtr gc;
+  PicturePtr pGlyphPicture = GlyphPicture (glyph)[screen->myNum];
+  PixmapPtr pGlyphPixmap = (PixmapPtr) pGlyphPicture->pDrawable;
+  PixmapPtr pCachePixmap = (PixmapPtr) cache->picture->pDrawable;
+  PixmapPtr scratch;
+  GCPtr gc;
 
-    /* UploadToScreen only works if bpp match */
-    if (glyph_pixmap->drawable.bitsPerPixel !=
-	cache_pixmap->drawable.bitsPerPixel)
-	return FALSE;
+  gc = GetScratchGC (pCachePixmap->drawable.depth, screen);
+  if (!gc)
+    return;
 
-    gc = GetScratchGC(cache_pixmap->drawable.depth, screen);
-    ValidateGC(&cache_pixmap->drawable, gc);
+  ValidateGC (&pCachePixmap->drawable, gc);
 
-    /* Create a temporary bo to stream the updates to the cache */
+  scratch = pGlyphPixmap;
 #if 0
-    scratch = screen->CreatePixmap(screen,
-				   glyph->info.width,
-				   glyph->info.height,
-				   glyph_pixmap->drawable.depth,
-				   0);
-    if (scratch) {
-	(void)glamor_copy_area(&glyph_pixmap->drawable,
-			       &scratch->drawable,
-			       gc,
-			       0, 0,
-			       glyph->info.width, glyph->info.height,
-			       0, 0);
-    } else {
-	scratch = glyph_pixmap;
-    }
-#endif
-    scratch = glyph_pixmap;
-    (void)glamor_copy_area(&scratch->drawable,
-			   &cache_pixmap->drawable,
-			   gc,
-			   0, 0, glyph->info.width, glyph->info.height,
-			   CACHE_X(pos), CACHE_Y(pos));
+  /* Create a temporary bo to stream the updates to the cache */
+  if (pGlyphPixmap->drawable.depth != pCachePixmap->drawable.depth ||
+      !uxa_pixmap_is_offscreen (scratch))
+    {
+      scratch = screen->CreatePixmap (screen,
+				      glyph->info.width,
+				      glyph->info.height,
+				      pCachePixmap->drawable.depth, 0);
+      if (scratch)
+	{
+	  if (pGlyphPixmap->drawable.depth != pCachePixmap->drawable.depth)
+	    {
+	      PicturePtr picture;
+	      int error;
 
-    if (scratch != glyph_pixmap)
-	screen->DestroyPixmap(scratch);
-
-    FreeScratchGC(gc);
-
-    return TRUE;
-}
-
-static glamor_glyph_cache_result_t
-glamor_glyph_cache_buffer_glyph(ScreenPtr screen,
-				glamor_glyph_cache_t * cache,
-				glamor_glyph_buffer_t * buffer,
-				GlyphPtr glyph, int x_glyph, int y_glyph)
-{
-    glamor_composite_rect_t *rect;
-    int pos;
-
-    if (buffer->source && buffer->source != cache->picture)
-	return GLAMOR_GLYPH_NEED_FLUSH;
-
-    if (!cache->picture) {
-	if (!glamor_realize_glyph_caches(screen, cache->format))
-	    return GLAMOR_GLYPH_FAIL;
-    }
-
-    DBG_GLYPH_CACHE(("(%d,%d,%s): buffering glyph %lx\n",
-		     cache->glyph_width, cache->glyph_height,
-		     cache->format == PICT_a8 ? "A" : "ARGB",
-		     (long)*(CARD32 *) glyph->sha1));
-
-    pos = glamor_glyph_cache_hash_lookup(cache, glyph);
-    if (pos != -1) {
-	DBG_GLYPH_CACHE(("  found existing glyph at %d\n", pos));
-    } else {
-	if (cache->glyph_count < cache->size) {
-	    /* Space remaining; we fill from the start */
-	    pos = cache->glyph_count;
-	    cache->glyph_count++;
-	    DBG_GLYPH_CACHE(("  storing glyph in free space at %d\n", pos));
-
-	    glamor_glyph_cache_hash_insert(cache, glyph, pos);
-
-	} else {
-	    /* Need to evict an entry. We have to see if any glyphs
-	     * already in the output buffer were at this position in
-	     * the cache
-	     */
-
-	    pos = cache->eviction_position;
-	    DBG_GLYPH_CACHE(("  evicting glyph at %d\n", pos));
-	    if (buffer->count) {
-		int x, y;
-		int i;
-
-		x = CACHE_X(pos);
-		y = CACHE_Y(pos);
-
-		for (i = 0; i < buffer->count; i++) {
-		    if (buffer->rects[i].x_src == x
-			&& buffer->rects[i].y_src == y) {
-			DBG_GLYPH_CACHE(("  must flush buffer\n"));
-			return GLAMOR_GLYPH_NEED_FLUSH;
-		    }
+	      picture = CreatePicture (0, &scratch->drawable,
+				       PictureMatchFormat (screen,
+							   pCachePixmap->
+							   drawable.depth,
+							   cache->picture->
+							   format), 0, NULL,
+				       serverClient, &error);
+	      if (picture)
+		{
+		  ValidatePicture (picture);
+		  uxa_composite (PictOpSrc, pGlyphPicture, NULL, picture,
+				 0, 0,
+				 0, 0,
+				 0, 0, glyph->info.width, glyph->info.height);
+		  FreePicture (picture, 0);
 		}
 	    }
-
-	    /* OK, we're all set, swap in the new glyph */
-	    glamor_glyph_cache_hash_remove(cache, pos);
-	    glamor_glyph_cache_hash_insert(cache, glyph, pos);
-
-	    /* And pick a new eviction position */
-	    cache->eviction_position = rand() % cache->size;
-	}
-
-	/* Now actually upload the glyph into the cache picture; if
-	 * we can't do it with UploadToScreen (because the glyph is
-	 * offscreen, etc), we fall back to CompositePicture.
-	 */
-	if (!glamor_glyph_cache_upload_glyph(screen, cache, pos, glyph)) {
-	    CompositePicture(PictOpSrc,
-			     GlyphPicture(glyph)[screen->myNum],
-			     None,
-			     cache->picture,
-			     0, 0,
-			     0, 0,
-			     CACHE_X(pos),
-			     CACHE_Y(pos),
-			     glyph->info.width,
-			     glyph->info.height);
-	}
-
-    }
-
-    buffer->source = cache->picture;
-
-    rect = &buffer->rects[buffer->count];
-    rect->x_src = CACHE_X(pos);
-    rect->y_src = CACHE_Y(pos);
-    rect->x_dst = x_glyph - glyph->info.x;
-    rect->y_dst = y_glyph - glyph->info.y;
-    rect->width = glyph->info.width;
-    rect->height = glyph->info.height;
-
-    buffer->count++;
-
-    return GLAMOR_GLYPH_SUCCESS;
-}
-
-#undef CACHE_X
-#undef CACHE_Y
-
-static glamor_glyph_cache_result_t
-glamor_buffer_glyph(ScreenPtr screen,
-		    glamor_glyph_buffer_t *buffer,
-		    GlyphPtr glyph, int x_glyph, int y_glyph)
-{
-    glamor_screen_private *glamor_screen = glamor_get_screen_private(screen);
-    unsigned int format = (GlyphPicture(glyph)[screen->myNum])->format;
-    int width = glyph->info.width;
-    int height = glyph->info.height;
-    glamor_composite_rect_t *rect;
-    PicturePtr source;
-    int i;
-
-    if (buffer->count == GLYPH_BUFFER_SIZE)
-	return GLAMOR_GLYPH_NEED_FLUSH;
-
-    if (PICT_FORMAT_BPP(format) == 1)
-	format = PICT_a8;
-
-    for (i = 0; i < GLAMOR_NUM_GLYPH_CACHES; i++) {
-	glamor_glyph_cache_t *cache = &glamor_screen->glyph_caches[i];
-
-	if (format == cache->format &&
-	    width <= cache->glyph_width &&
-	    height <= cache->glyph_height) {
-	    glamor_glyph_cache_result_t result =
-		glamor_glyph_cache_buffer_glyph(screen,
-						&glamor_screen->glyph_caches[i],
-						buffer,
-						glyph, x_glyph,
-						y_glyph);
-	    switch (result) {
-	    case GLAMOR_GLYPH_FAIL:
-		break;
-	    case GLAMOR_GLYPH_SUCCESS:
-	    case GLAMOR_GLYPH_NEED_FLUSH:
-		return result;
+	  else
+	    {
+	      glamor_copy_area (&pGlyphPixmap->drawable,
+				&scratch->drawable,
+				gc,
+				0, 0,
+				glyph->info.width, glyph->info.height, 0, 0);
 	    }
 	}
+      else
+	{
+	  scratch = pGlyphPixmap;
+	}
     }
-
-    /* Couldn't find the glyph in the cache, use the glyph picture directly */
-
-    source = GlyphPicture(glyph)[screen->myNum];
-    if (buffer->source && buffer->source != source)
-	return GLAMOR_GLYPH_NEED_FLUSH;
-
-    buffer->source = source;
-
-    rect = &buffer->rects[buffer->count];
-    rect->x_src = 0;
-    rect->y_src = 0;
-    rect->x_dst = x_glyph - glyph->info.x;
-    rect->y_dst = y_glyph - glyph->info.y;
-    rect->width = glyph->info.width;
-    rect->height = glyph->info.height;
-
-    buffer->count++;
-
-    return GLAMOR_GLYPH_SUCCESS;
-}
-
-static void glamor_glyphs_to_mask(PicturePtr mask,
-				  glamor_glyph_buffer_t *buffer)
-{
-#ifdef RENDER
-    
-    glamor_composite_rects(PictOpAdd, buffer->source, mask,
-			   buffer->count, buffer->rects);
 #endif
+  glamor_copy_area (&scratch->drawable, &pCachePixmap->drawable, gc,
+		    0, 0, glyph->info.width, glyph->info.height, x, y);
 
-    buffer->count = 0;
-    buffer->source = NULL;
+  if (scratch != pGlyphPixmap)
+    screen->DestroyPixmap (scratch);
+
+  FreeScratchGC (gc);
 }
 
-static void
-glamor_glyphs_to_dst(CARD8 op,
-		     PicturePtr src,
-		     PicturePtr dst,
-		     glamor_glyph_buffer_t *buffer,
-		     INT16 x_src, INT16 y_src, INT16 x_dst, INT16 y_dst)
+
+void
+glamor_glyph_unrealize (ScreenPtr screen, GlyphPtr glyph)
 {
-    int i;
+  struct glamor_glyph *priv;
 
-    for (i = 0; i < buffer->count; i++) {
-	glamor_composite_rect_t *rect = &buffer->rects[i];
+  /* Use Lookup in case we have not attached to this glyph. */
+  priv = dixLookupPrivate (&glyph->devPrivates, &glamor_glyph_key);
+  if (priv == NULL)
+    return;
 
-	CompositePicture(op,
-			 src,
-			 buffer->source,
-			 dst,
-			 x_src + rect->x_dst - x_dst,
-			 y_src + rect->y_dst - y_dst,
-			 rect->x_src,
-			 rect->y_src,
-			 rect->x_dst,
-			 rect->y_dst, rect->width, rect->height);
-    }
+  priv->cache->glyphs[priv->pos] = NULL;
 
-    buffer->count = 0;
-    buffer->source = NULL;
+  glamor_glyph_set_private (glyph, NULL);
+  free (priv);
 }
 
 /* Cut and paste from render/glyph.c - probably should export it instead */
 static void
-glamor_glyph_extents(int nlist,
-		     GlyphListPtr list, GlyphPtr *glyphs, BoxPtr extents)
+glamor_glyph_extents (int nlist,
+		      GlyphListPtr list, GlyphPtr * glyphs, BoxPtr extents)
 {
-    int x1, x2, y1, y2;
-    int n;
-    GlyphPtr glyph;
-    int x, y;
+  int x1, x2, y1, y2;
+  int x, y, n;
 
-    x = 0;
-    y = 0;
-    extents->x1 = MAXSHORT;
-    extents->x2 = MINSHORT;
-    extents->y1 = MAXSHORT;
-    extents->y2 = MINSHORT;
-    while (nlist--) {
-	x += list->xOff;
-	y += list->yOff;
-	n = list->len;
-	list++;
-	while (n--) {
-	    glyph = *glyphs++;
-	    x1 = x - glyph->info.x;
-	    if (x1 < MINSHORT)
-		x1 = MINSHORT;
-	    y1 = y - glyph->info.y;
-	    if (y1 < MINSHORT)
-		y1 = MINSHORT;
-	    x2 = x1 + glyph->info.width;
-	    if (x2 > MAXSHORT)
-		x2 = MAXSHORT;
-	    y2 = y1 + glyph->info.height;
-	    if (y2 > MAXSHORT)
-		y2 = MAXSHORT;
-	    if (x1 < extents->x1)
-		extents->x1 = x1;
-	    if (x2 > extents->x2)
-		extents->x2 = x2;
-	    if (y1 < extents->y1)
-		extents->y1 = y1;
-	    if (y2 > extents->y2)
-		extents->y2 = y2;
-	    x += glyph->info.xOff;
-	    y += glyph->info.yOff;
+  x1 = y1 = MAXSHORT;
+  x2 = y2 = MINSHORT;
+  x = y = 0;
+  while (nlist--)
+    {
+      x += list->xOff;
+      y += list->yOff;
+      n = list->len;
+      list++;
+      while (n--)
+	{
+	  GlyphPtr glyph = *glyphs++;
+	  int v;
+
+	  v = x - glyph->info.x;
+	  if (v < x1)
+	    x1 = v;
+	  v += glyph->info.width;
+	  if (v > x2)
+	    x2 = v;
+
+	  v = y - glyph->info.y;
+	  if (v < y1)
+	    y1 = v;
+	  v += glyph->info.height;
+	  if (v > y2)
+	    y2 = v;
+
+	  x += glyph->info.xOff;
+	  y += glyph->info.yOff;
 	}
     }
+
+  extents->x1 = x1 < MINSHORT ? MINSHORT : x1;
+  extents->x2 = x2 > MAXSHORT ? MAXSHORT : x2;
+  extents->y1 = y1 < MINSHORT ? MINSHORT : y1;
+  extents->y2 = y2 > MAXSHORT ? MAXSHORT : y2;
 }
 
 /**
@@ -667,217 +367,494 @@ glamor_glyph_extents(int nlist,
  * bounding box, which appears to be good enough to catch most cases at least.
  */
 static Bool
-glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs)
+glamor_glyphs_intersect (int nlist, GlyphListPtr list, GlyphPtr * glyphs)
 {
-    int x1, x2, y1, y2;
-    int n;
-    GlyphPtr glyph;
-    int x, y;
-    BoxRec extents;
-    Bool first = TRUE;
+  int x1, x2, y1, y2;
+  int n;
+  int x, y;
+  BoxRec extents;
+  Bool first = TRUE;
 
-    x = 0;
-    y = 0;
-    extents.x1 = 0;
-    extents.y1 = 0;
-    extents.x2 = 0;
-    extents.y2 = 0;
-    while (nlist--) {
-	x += list->xOff;
-	y += list->yOff;
-	n = list->len;
-	list++;
-	while (n--) {
-	    glyph = *glyphs++;
+  x = 0;
+  y = 0;
+  extents.x1 = 0;
+  extents.y1 = 0;
+  extents.x2 = 0;
+  extents.y2 = 0;
+  while (nlist--)
+    {
+      x += list->xOff;
+      y += list->yOff;
+      n = list->len;
+      list++;
+      while (n--)
+	{
+	  GlyphPtr glyph = *glyphs++;
 
-	    if (glyph->info.width == 0 || glyph->info.height == 0) {
-		x += glyph->info.xOff;
-		y += glyph->info.yOff;
-		continue;
+	  if (glyph->info.width == 0 || glyph->info.height == 0)
+	    {
+	      x += glyph->info.xOff;
+	      y += glyph->info.yOff;
+	      continue;
 	    }
 
-	    x1 = x - glyph->info.x;
-	    if (x1 < MINSHORT)
-		x1 = MINSHORT;
-	    y1 = y - glyph->info.y;
-	    if (y1 < MINSHORT)
-		y1 = MINSHORT;
-	    x2 = x1 + glyph->info.width;
-	    if (x2 > MAXSHORT)
-		x2 = MAXSHORT;
-	    y2 = y1 + glyph->info.height;
-	    if (y2 > MAXSHORT)
-		y2 = MAXSHORT;
+	  x1 = x - glyph->info.x;
+	  if (x1 < MINSHORT)
+	    x1 = MINSHORT;
+	  y1 = y - glyph->info.y;
+	  if (y1 < MINSHORT)
+	    y1 = MINSHORT;
+	  x2 = x1 + glyph->info.width;
+	  if (x2 > MAXSHORT)
+	    x2 = MAXSHORT;
+	  y2 = y1 + glyph->info.height;
+	  if (y2 > MAXSHORT)
+	    y2 = MAXSHORT;
 
-	    if (first) {
-		extents.x1 = x1;
-		extents.y1 = y1;
-		extents.x2 = x2;
-		extents.y2 = y2;
-		first = FALSE;
-	    } else {
-		if (x1 < extents.x2 && x2 > extents.x1 &&
-		    y1 < extents.y2 && y2 > extents.y1) {
-		    return TRUE;
+	  if (first)
+	    {
+	      extents.x1 = x1;
+	      extents.y1 = y1;
+	      extents.x2 = x2;
+	      extents.y2 = y2;
+	      first = FALSE;
+	    }
+	  else
+	    {
+	      if (x1 < extents.x2 && x2 > extents.x1 &&
+		  y1 < extents.y2 && y2 > extents.y1)
+		{
+		  return TRUE;
 		}
 
-		if (x1 < extents.x1)
-		    extents.x1 = x1;
-		if (x2 > extents.x2)
-		    extents.x2 = x2;
-		if (y1 < extents.y1)
-		    extents.y1 = y1;
-		if (y2 > extents.y2)
-		    extents.y2 = y2;
+	      if (x1 < extents.x1)
+		extents.x1 = x1;
+	      if (x2 > extents.x2)
+		extents.x2 = x2;
+	      if (y1 < extents.y1)
+		extents.y1 = y1;
+	      if (y2 > extents.y2)
+		extents.y2 = y2;
 	    }
-	    x += glyph->info.xOff;
-	    y += glyph->info.yOff;
+	  x += glyph->info.xOff;
+	  y += glyph->info.yOff;
 	}
     }
 
-    return FALSE;
+  return FALSE;
+}
+
+
+static inline unsigned int
+glamor_glyph_size_to_count (int size)
+{
+  size /= GLYPH_MIN_SIZE;
+  return size * size;
+}
+
+static inline unsigned int
+glamor_glyph_count_to_mask (int count)
+{
+  return ~(count - 1);
+}
+
+static inline unsigned int
+glamor_glyph_size_to_mask (int size)
+{
+  return glamor_glyph_count_to_mask (glamor_glyph_size_to_count (size));
+}
+
+static PicturePtr
+glamor_glyph_cache (ScreenPtr screen, GlyphPtr glyph, int *out_x, int *out_y)
+{
+  glamor_screen_private *glamor = glamor_get_screen_private (screen);
+  PicturePtr glyph_picture = GlyphPicture (glyph)[screen->myNum];
+  glamor_glyph_cache_t *cache =
+    &glamor->glyphCaches[PICT_FORMAT_RGB (glyph_picture->format) != 0];
+  struct glamor_glyph *priv = NULL;
+  int size, mask, pos, s;
+
+  if (glyph->info.width > GLYPH_MAX_SIZE
+      || glyph->info.height > GLYPH_MAX_SIZE)
+    return NULL;
+
+  for (size = GLYPH_MIN_SIZE; size <= GLYPH_MAX_SIZE; size *= 2)
+    if (glyph->info.width <= size && glyph->info.height <= size)
+      break;
+
+  s = glamor_glyph_size_to_count (size);
+  mask = glamor_glyph_count_to_mask (s);
+  pos = (cache->count + s - 1) & mask;
+  if (pos < GLYPH_CACHE_SIZE)
+    {
+      cache->count = pos + s;
+    }
+  else
+    {
+      for (s = size; s <= GLYPH_MAX_SIZE; s *= 2)
+	{
+	  int i = cache->evict & glamor_glyph_size_to_mask (s);
+	  GlyphPtr evicted = cache->glyphs[i];
+	  if (evicted == NULL)
+	    continue;
+
+	  priv = glamor_glyph_get_private (evicted);
+	  if (priv->size >= s)
+	    {
+	      cache->glyphs[i] = NULL;
+	      glamor_glyph_set_private (evicted, NULL);
+	      pos = cache->evict & glamor_glyph_size_to_mask (size);
+	    }
+	  else
+	    priv = NULL;
+	  break;
+	}
+      if (priv == NULL)
+	{
+	  int count = glamor_glyph_size_to_count (size);
+	  mask = glamor_glyph_count_to_mask (count);
+	  pos = cache->evict & mask;
+	  for (s = 0; s < count; s++)
+	    {
+	      GlyphPtr evicted = cache->glyphs[pos + s];
+	      if (evicted != NULL)
+		{
+		  if (priv != NULL)
+		    free (priv);
+
+		  priv = glamor_glyph_get_private (evicted);
+		  glamor_glyph_set_private (evicted, NULL);
+		  cache->glyphs[pos + s] = NULL;
+		}
+	    }
+	}
+      /* And pick a new eviction position */
+      cache->evict = rand () % GLYPH_CACHE_SIZE;
+    }
+
+  if (priv == NULL)
+    {
+      priv = malloc (sizeof (struct glamor_glyph));
+      if (priv == NULL)
+	return NULL;
+    }
+
+  glamor_glyph_set_private (glyph, priv);
+  cache->glyphs[pos] = glyph;
+
+  priv->cache = cache;
+  priv->size = size;
+  priv->pos = pos;
+  s =
+    pos / ((GLYPH_MAX_SIZE / GLYPH_MIN_SIZE) *
+	   (GLYPH_MAX_SIZE / GLYPH_MIN_SIZE));
+  priv->x = s % (CACHE_PICTURE_SIZE / GLYPH_MAX_SIZE) * GLYPH_MAX_SIZE;
+  priv->y = (s / (CACHE_PICTURE_SIZE / GLYPH_MAX_SIZE)) * GLYPH_MAX_SIZE;
+  for (s = GLYPH_MIN_SIZE; s < GLYPH_MAX_SIZE; s *= 2)
+    {
+      if (pos & 1)
+	priv->x += s;
+      if (pos & 2)
+	priv->y += s;
+      pos >>= 2;
+    }
+
+  glamor_glyph_cache_upload_glyph (screen, cache, glyph, priv->x, priv->y);
+
+  *out_x = priv->x;
+  *out_y = priv->y;
+  return cache->picture;
+}
+
+static glamor_glyph_cache_result_t
+glamor_buffer_glyph (ScreenPtr screen,
+		     glamor_glyph_buffer_t * buffer,
+		     GlyphPtr glyph, int x_glyph, int y_glyph)
+{
+  glamor_screen_private *glamor_screen = glamor_get_screen_private (screen);
+  unsigned int format = (GlyphPicture (glyph)[screen->myNum])->format;
+  glamor_composite_rect_t *rect;
+  PicturePtr source;
+  struct glamor_glyph *priv;
+  int x, y;
+  PicturePtr glyph_picture = GlyphPicture (glyph)[screen->myNum];
+  glamor_glyph_cache_t *cache; 
+
+  if (PICT_FORMAT_BPP (format) == 1)
+    format = PICT_a8;
+
+  cache = &glamor_screen->glyphCaches[PICT_FORMAT_RGB (glyph_picture->format) != 0];
+
+  if (buffer->source && buffer->source != cache->picture)
+    return GLAMOR_GLYPH_NEED_FLUSH;
+
+  if (buffer->count == GLYPH_BUFFER_SIZE)
+    return GLAMOR_GLYPH_NEED_FLUSH;
+
+  priv = glamor_glyph_get_private (glyph);
+
+  if (priv)
+    {
+      rect = &buffer->rects[buffer->count++];
+      rect->x_src = priv->x;
+      rect->y_src = priv->y;
+      if (buffer->source == NULL) buffer->source = priv->cache->picture;
+    }
+  else
+    {
+      source = glamor_glyph_cache (screen, glyph, &x, &y);
+      if (source != NULL)
+	{
+	  rect = &buffer->rects[buffer->count++];
+	  rect->x_src = x;
+	  rect->y_src = y;
+          if (buffer->source == NULL) buffer->source = source;
+	}
+      else
+	{
+	  source = GlyphPicture (glyph)[screen->myNum];
+	  if (buffer->source && buffer->source != source)
+	    return GLAMOR_GLYPH_NEED_FLUSH;
+	  buffer->source = source;
+
+	  rect = &buffer->rects[buffer->count++];
+	  rect->x_src = 0;
+	  rect->y_src = 0;
+	}
+    }
+
+  rect->x_dst = x_glyph - glyph->info.x;
+  rect->y_dst = y_glyph - glyph->info.y;
+  rect->width = glyph->info.width;
+  rect->height = glyph->info.height;
+
+  /* Couldn't find the glyph in the cache, use the glyph picture directly */
+
+  return GLAMOR_GLYPH_SUCCESS;
+}
+
+
+static void
+glamor_glyphs_flush_mask (PicturePtr mask, glamor_glyph_buffer_t * buffer)
+{
+#ifdef RENDER
+  glamor_composite_rects (PictOpAdd, buffer->source, NULL, mask,
+			  buffer->count, buffer->rects);
+#endif
+  buffer->count = 0;
+  buffer->source = NULL;
+}
+
+static void
+glamor_glyphs_via_mask (CARD8 op,
+			PicturePtr src,
+			PicturePtr dst,
+			PictFormatPtr mask_format,
+			INT16 x_src,
+			INT16 y_src,
+			int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+{
+  PixmapPtr mask_pixmap = 0;
+  PicturePtr mask;
+  ScreenPtr screen = dst->pDrawable->pScreen;
+  int width = 0, height = 0;
+  int x, y;
+  int x_dst = list->xOff, y_dst = list->yOff;
+  int n;
+  GlyphPtr glyph;
+  int error;
+  BoxRec extents = { 0, 0, 0, 0 };
+  CARD32 component_alpha;
+  glamor_glyph_buffer_t buffer;
+
+  GCPtr gc;
+
+  glamor_glyph_extents (nlist, list, glyphs, &extents);
+
+  if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
+    return;
+  width = extents.x2 - extents.x1;
+  height = extents.y2 - extents.y1;
+
+  if (mask_format->depth == 1)
+    {
+      PictFormatPtr a8Format = PictureMatchFormat (screen, 8, PICT_a8);
+
+      if (a8Format)
+	mask_format = a8Format;
+    }
+
+  mask_pixmap = screen->CreatePixmap (screen, width, height,
+				      mask_format->depth,
+				      CREATE_PIXMAP_USAGE_SCRATCH);
+  if (!mask_pixmap)
+    return;
+  component_alpha = NeedsComponent (mask_format->format);
+  mask = CreatePicture (0, &mask_pixmap->drawable,
+			mask_format, CPComponentAlpha,
+			&component_alpha, serverClient, &error);
+  if (!mask)
+    {
+      screen->DestroyPixmap (mask_pixmap);
+      return;
+    }
+  gc = GetScratchGC (mask_pixmap->drawable.depth, screen);
+  ValidateGC (&mask_pixmap->drawable, gc);
+  glamor_fill (&mask_pixmap->drawable, gc, 0, 0, width, height);
+  FreeScratchGC (gc);
+  x = -extents.x1;
+  y = -extents.y1;
+
+  buffer.count = 0;
+  buffer.source = NULL;
+  while (nlist--)
+    {
+      x += list->xOff;
+      y += list->yOff;
+      n = list->len;
+      while (n--)
+	{
+	  glyph = *glyphs++;
+
+	  if (glyph->info.width > 0 && glyph->info.height > 0 &&
+	      glamor_buffer_glyph (screen, &buffer, glyph, x,
+				   y) == GLAMOR_GLYPH_NEED_FLUSH)
+	    {
+
+	      glamor_glyphs_flush_mask (mask, &buffer);
+
+	      glamor_buffer_glyph (screen, &buffer, glyph, x, y);
+	    }
+
+	  x += glyph->info.xOff;
+	  y += glyph->info.yOff;
+	}
+      list++;
+    }
+
+  if (buffer.count)
+      glamor_glyphs_flush_mask (mask, &buffer);
+
+  x = extents.x1;
+  y = extents.y1;
+  CompositePicture (op,
+		    src,
+		    mask,
+		    dst,
+		    x_src + x - x_dst,
+		    y_src + y - y_dst, 0, 0, x, y, width, height);
+  FreePicture (mask, 0);
+  screen->DestroyPixmap (mask_pixmap);
+}
+
+static void
+glamor_glyphs_flush_dst (CARD8 op,
+			 PicturePtr src,
+			 PicturePtr dst,
+			 glamor_glyph_buffer_t * buffer,
+			 INT16 x_src, INT16 y_src, INT16 x_dst, INT16 y_dst)
+{
+  int i;
+  glamor_composite_rect_t *rect = &buffer->rects[0];
+  for (i = 0; i < buffer->count; i++, rect++)
+    {
+      rect->x_mask = rect->x_src;
+      rect->y_mask = rect->y_src;
+      rect->x_src = x_src + rect->x_dst - x_dst;
+      rect->y_src = y_src + rect->y_dst - y_dst;
+    }
+
+  glamor_composite_rects (op, src, buffer->source, dst,
+			  buffer->count, &buffer->rects[0]);
+
+  buffer->count = 0;
+  buffer->source = NULL;
+}
+
+static void
+glamor_glyphs_to_dst (CARD8 op,
+		      PicturePtr src,
+		      PicturePtr dst,
+		      INT16 x_src,
+		      INT16 y_src,
+		      int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+{
+  ScreenPtr screen = dst->pDrawable->pScreen;
+  int x = 0, y = 0;
+  int x_dst = list->xOff, y_dst = list->yOff;
+  int n;
+  GlyphPtr glyph;
+  glamor_glyph_buffer_t buffer;
+
+  buffer.count = 0;
+  buffer.source = NULL;
+  while (nlist--)
+    {
+      x += list->xOff;
+      y += list->yOff;
+      n = list->len;
+      while (n--)
+	{
+	  glyph = *glyphs++;
+
+	  if (glyph->info.width > 0 && glyph->info.height > 0 &&
+	      glamor_buffer_glyph (screen, &buffer, glyph, x,
+				   y) == GLAMOR_GLYPH_NEED_FLUSH)
+	    {
+	      glamor_glyphs_flush_dst (op, src, dst,
+				       &buffer, x_src, y_src, x_dst, y_dst);
+	      glamor_buffer_glyph (screen, &buffer, glyph, x, y);
+	    }
+
+	  x += glyph->info.xOff;
+	  y += glyph->info.yOff;
+	}
+      list++;
+    }
+
+  if (buffer.count)
+      glamor_glyphs_flush_dst (op, src, dst, &buffer,
+			       x_src, y_src, x_dst, y_dst);
 }
 
 void
-glamor_glyphs(CARD8 op,
-	      PicturePtr src,
-	      PicturePtr dst,
-	      PictFormatPtr mask_format,
-	      INT16 x_src,
-	      INT16 y_src, int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+glamor_glyphs (CARD8 op,
+	       PicturePtr src,
+	       PicturePtr dst,
+	       PictFormatPtr mask_format,
+	       INT16 x_src,
+	       INT16 y_src, int nlist, GlyphListPtr list, GlyphPtr * glyphs)
 {
-    PicturePtr picture;
-    PixmapPtr mask_pixmap = 0;
-    PicturePtr mask;
-    ScreenPtr screen = dst->pDrawable->pScreen;
-    int width = 0, height = 0;
-    int x, y;
-    int x_dst = list->xOff, y_dst = list->yOff;
-    int n;
-    GlyphPtr glyph;
-    int error;
-    BoxRec extents = { 0, 0, 0, 0 };
-    CARD32 component_alpha;
-    glamor_glyph_buffer_t buffer;
+  /* If we don't have a mask format but all the glyphs have the same format
+   * and don't intersect, use the glyph format as mask format for the full
+   * benefits of the glyph cache.
+   */
+  if (!mask_format)
+    {
+      Bool same_format = TRUE;
+      int i;
 
-    /* If we don't have a mask format but all the glyphs have the same format
-     * and don't intersect, use the glyph format as mask format for the full
-     * benefits of the glyph cache.
-     */
-    if (!mask_format) {
-	Bool same_format = TRUE;
-	int i;
+      mask_format = list[0].format;
 
-	mask_format = list[0].format;
-
-	for (i = 0; i < nlist; i++) {
-	    if (mask_format->format != list[i].format->format) {
-		same_format = FALSE;
-		break;
+      for (i = 0; i < nlist; i++)
+	{
+	  if (mask_format->format != list[i].format->format)
+	    {
+	      same_format = FALSE;
+	      break;
 	    }
 	}
 
-	if (!same_format || (mask_format->depth != 1 &&
-			     glamor_glyphs_intersect(nlist, list,
-						     glyphs))) {
-	    mask_format = NULL;
+      if (!same_format || (mask_format->depth != 1 &&
+			   glamor_glyphs_intersect (nlist, list, glyphs)))
+	{
+	  mask_format = NULL;
 	}
     }
 
-    if (mask_format) {
-	GCPtr gc;
-	xRectangle rect;
-
-	glamor_glyph_extents(nlist, list, glyphs, &extents);
-
-	if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
-	    return;
-	width = extents.x2 - extents.x1;
-	height = extents.y2 - extents.y1;
-
-	if (mask_format->depth == 1) {
-	    PictFormatPtr a8Format =
-		PictureMatchFormat(screen, 8, PICT_a8);
-
-	    if (a8Format)
-		mask_format = a8Format;
-	}
-
-	mask_pixmap = screen->CreatePixmap(screen, width, height,
-					   mask_format->depth,
-					   CREATE_PIXMAP_USAGE_SCRATCH);
-	if (!mask_pixmap)
-	    return;
-	component_alpha = NeedsComponent(mask_format->format);
-	mask = CreatePicture(0, &mask_pixmap->drawable,
-			      mask_format, CPComponentAlpha,
-			      &component_alpha, serverClient, &error);
-	if (!mask) {
-	    screen->DestroyPixmap(mask_pixmap);
-	    return;
-	}
-	gc = GetScratchGC(mask_pixmap->drawable.depth, screen);
-	ValidateGC(&mask_pixmap->drawable, gc);
-	rect.x = 0;
-	rect.y = 0;
-	rect.width = width;
-	rect.height = height;
-	gc->ops->PolyFillRect(&mask_pixmap->drawable, gc, 1, &rect);
-	FreeScratchGC(gc);
-	x = -extents.x1;
-	y = -extents.y1;
-    } else {
-	mask = dst;
-	x = 0;
-	y = 0;
-    }
-    buffer.count = 0;
-    buffer.source = NULL;
-    while (nlist--) {
-	x += list->xOff;
-	y += list->yOff;
-	n = list->len;
-	while (n--) {
-	    glyph = *glyphs++;
-	    picture = GlyphPicture(glyph)[screen->myNum];
-
-	    if (glyph->info.width > 0 && glyph->info.height > 0 &&
-		glamor_buffer_glyph(screen, &buffer, glyph, x,
-				    y) == GLAMOR_GLYPH_NEED_FLUSH) {
-		if (mask_format)
-		    glamor_glyphs_to_mask(mask, &buffer);
-		else
-		    glamor_glyphs_to_dst(op, src, dst,
-					 &buffer, x_src, y_src,
-					 x_dst, y_dst);
-
-		glamor_buffer_glyph(screen, &buffer, glyph, x, y);
-	    }
-
-	    x += glyph->info.xOff;
-	    y += glyph->info.yOff;
-	}
-	list++;
-    }
-
-    if (buffer.count) {
-	if (mask_format)
-	    glamor_glyphs_to_mask(mask, &buffer);
-	else
-	    glamor_glyphs_to_dst(op, src, dst, &buffer,
-				 x_src, y_src, x_dst, y_dst);
-    }
-
-    if (mask_format) {
-	x = extents.x1;
-	y = extents.y1;
-	CompositePicture(op,
-			 src,
-			 mask,
-			 dst,
-			 x_src + x - x_dst,
-			 y_src + y - y_dst, 0, 0, x, y, width, height);
-	FreePicture(mask, 0);
-	screen->DestroyPixmap(mask_pixmap);
-    }
+  if (mask_format)
+    glamor_glyphs_via_mask (op, src, dst, mask_format,
+			    x_src, y_src, nlist, list, glyphs);
+  else
+    glamor_glyphs_to_dst (op, src, dst, x_src, y_src, nlist, list, glyphs);
 }

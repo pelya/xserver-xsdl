@@ -1405,7 +1405,7 @@ glamor_trapezoids(CARD8 op,
 
 void
 glamor_composite_rects(CARD8 op,
-		       PicturePtr src, PicturePtr dst,
+		       PicturePtr src, PicturePtr mask, PicturePtr dst,
 		       int nrect, glamor_composite_rect_t *rects)
 {
   int n;
@@ -1414,7 +1414,7 @@ glamor_composite_rects(CARD8 op,
   ValidatePicture(src);
   ValidatePicture(dst);
 
-  if (glamor_composite_with_shader(op, src, NULL, dst, nrect, rects))
+  if (glamor_composite_with_shader(op, src, mask, dst, nrect, rects))
     return;
 
   n = nrect;
@@ -1423,10 +1423,10 @@ glamor_composite_rects(CARD8 op,
   while (n--) {
     CompositePicture(op,
 		     src,
-		     NULL,
+		     mask,
 		     dst,
 		     r->x_src, r->y_src,
-		     0, 0,
+		     r->x_mask, r->y_mask,
 		     r->x_dst, r->y_dst,
 		     r->width, r->height);
     r++;

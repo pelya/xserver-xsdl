@@ -138,38 +138,16 @@ typedef struct {
   INT16 height;
 } glamor_composite_rect_t;
 
-typedef struct {
-  unsigned char sha1[20];
-} glamor_cached_glyph_t;
+#define GLAMOR_NUM_GLYPH_CACHES 4
+#define GLAMOR_NUM_GLYPH_CACHE_FORMATS 2
 
 typedef struct {
-  /* The identity of the cache, statically configured at initialization */
-  unsigned int format;
-  int glyph_width;
-  int glyph_height;
-
-  /* Size of cache; eventually this should be dynamically determined */
-  int size;
-
-  /* Hash table mapping from glyph sha1 to position in the glyph; we use
-   * open addressing with a hash table size determined based on size and large
-   * enough so that we always have a good amount of free space, so we can
-   * use linear probing. (Linear probing is preferrable to double hashing
-   * here because it allows us to easily remove entries.)
-   */
-  int *hash_entries;
-  int hash_size;
-
-  glamor_cached_glyph_t *glyphs;
-  int glyph_count;		/* Current number of glyphs */
-
-  PicturePtr picture;	/* Where the glyphs of the cache are stored */
-  int y_offset;		/* y location within the picture where the cache starts */
-  int columns;		/* Number of columns the glyphs are layed out in */
-  int eviction_position;	/* Next random position to evict a glyph */
+        PicturePtr picture;     /* Where the glyphs of the cache are stored */
+        GlyphPtr *glyphs;
+        uint16_t count;
+        uint16_t evict;
 } glamor_glyph_cache_t;
 
-#define GLAMOR_NUM_GLYPH_CACHES 4
 
 enum glamor_vertex_type {
      GLAMOR_VERTEX_POS,
@@ -268,6 +246,10 @@ typedef struct glamor_screen_private {
   glamor_glyph_cache_t glyph_caches[GLAMOR_NUM_GLYPH_CACHES];
   char delayed_fallback_string[GLAMOR_DELAYED_STRING_MAX + 1];
   int  delayed_fallback_pending;
+
+  glamor_glyph_cache_t glyphCaches[GLAMOR_NUM_GLYPH_CACHE_FORMATS];
+  Bool glyph_cache_initialized;
+
 } glamor_screen_private;
 
 typedef enum glamor_access {
@@ -838,7 +820,6 @@ glamor_get_spans(DrawablePtr drawable,
 		 char *dst_start);
 
 /* glamor_glyphs.c */
-void glamor_glyphs_init(ScreenPtr screen);
 void glamor_glyphs_fini(ScreenPtr screen);
 void glamor_glyphs(CARD8 op,
 		   PicturePtr pSrc,
@@ -888,7 +869,7 @@ void glamor_trapezoids(CARD8 op,
 		       int ntrap, xTrapezoid *traps);
 void glamor_init_composite_shaders(ScreenPtr screen);
 void glamor_composite_rects(CARD8 op,
-			    PicturePtr src, PicturePtr dst,
+			    PicturePtr src, PicturePtr mask, PicturePtr dst,
 			    int nrect, glamor_composite_rect_t *rects);
 
 /* glamor_tile.c */
@@ -999,7 +980,7 @@ glamor_picture_format_fixup(PicturePtr picture, glamor_pixmap_private *pixmap_pr
 
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD 
-//#define GLAMOR_DELAYED_FILLING
+#define GLAMOR_DELAYED_FILLING
 
 
 #include"glamor_utils.h" 
