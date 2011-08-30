@@ -359,6 +359,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     ps->CreatePicture = glamor_create_picture;
     glamor_priv->saved_destroy_picture = ps->DestroyPicture; 
     ps->DestroyPicture = glamor_destroy_picture;
+
+    glamor_priv->saved_unrealize_glyph = ps->UnrealizeGlyph;
+    ps->UnrealizeGlyph = glamor_glyph_unrealize;
 #endif
     glamor_init_solid_shader(screen);
     glamor_init_tile_shader(screen);

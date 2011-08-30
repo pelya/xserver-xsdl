@@ -205,6 +205,7 @@ typedef struct glamor_screen_private {
   TrianglesProcPtr saved_triangles;
   CreatePictureProcPtr saved_create_picture;
   DestroyPictureProcPtr saved_destroy_picture;
+  UnrealizeGlyphProcPtr saved_unrealize_glyph;
 
   int yInverted;
   int screen_fbo;
@@ -828,6 +829,8 @@ void glamor_glyphs(CARD8 op,
 		   INT16 xSrc,
 		   INT16 ySrc, int nlist, GlyphListPtr list, GlyphPtr * glyphs);
 
+void
+glamor_glyph_unrealize (ScreenPtr screen, GlyphPtr glyph);
 /* glamor_setspans.c */
 void glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		      DDXPointPtr points, int *widths, int n, int sorted);
