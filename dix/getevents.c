@@ -859,6 +859,15 @@ queueEventList(DeviceIntPtr device, InternalEvent *events, int nevents)
         mieqEnqueue(device, &events[i]);
 }
 
+static void
+event_set_root_coordinates(DeviceEvent* event, double x, double y)
+{
+    event->root_x = trunc(x);
+    event->root_y = trunc(y);
+    event->root_x_frac = x - trunc(x);
+    event->root_y_frac = y - trunc(y);
+}
+
 /**
  * Generate internal events representing this keyboard event and enqueue
  * them on the event queue.
@@ -955,6 +964,13 @@ GetKeyboardEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
     clipValuators(pDev, &mask);
 
     set_valuators(pDev, event, &mask);
+
+    if (!IsFloating(pDev)) {
+            DeviceIntPtr master = GetMaster(pDev, MASTER_POINTER);
+            event_set_root_coordinates(event,
+                                       master->last.valuators[0],
+                                       master->last.valuators[1]);
+    }
 
     return num_events;
 }
@@ -1158,10 +1174,7 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
     }
 
     /* root_x and root_y must be in screen co-ordinates */
-    event->root_x = trunc(screenx);
-    event->root_y = trunc(screeny);
-    event->root_x_frac = screenx - trunc(screenx);
-    event->root_y_frac = screeny - trunc(screeny);
+    event_set_root_coordinates(event, screenx, screeny);
 
     if (flags & POINTER_EMULATED) {
         raw->flags = XIPointerEmulated;
