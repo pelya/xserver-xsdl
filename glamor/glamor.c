@@ -364,7 +364,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_init_tile_shader(screen);
     glamor_init_putimage_shaders(screen);
     glamor_init_finish_access_shaders(screen);
-    glamor_glyphs_init(screen);
     glamor_pixmap_init(screen);
 
 #ifdef GLAMOR_GLES2

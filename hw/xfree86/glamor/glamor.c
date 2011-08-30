@@ -233,7 +233,8 @@ glamor_create_screen_resources_ddx(ScreenPtr screen)
 	screen->CreateScreenResources = glamor->CreateScreenResources;
 	if (!(*screen->CreateScreenResources) (screen))
 		return FALSE;
-
+        if (!glamor_glyphs_init(screen))
+                return FALSE;
 
 	if (!xf86SetDesiredModes(scrn))
 		return FALSE;

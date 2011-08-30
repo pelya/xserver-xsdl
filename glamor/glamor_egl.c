@@ -51,6 +51,8 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#define GLAMOR_FOR_XORG
+
 #include <glamor.h>
 
 #define GLAMOR_VERSION_MAJOR 0

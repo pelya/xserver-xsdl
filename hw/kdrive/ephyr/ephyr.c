@@ -684,6 +684,7 @@ ephyrInitScreen (ScreenPtr pScreen)
   return TRUE;
 }
 
+
 Bool
 ephyrFinishInitScreen (ScreenPtr pScreen)
 {
@@ -700,6 +701,7 @@ ephyrFinishInitScreen (ScreenPtr pScreen)
 
   return TRUE;
 }
+extern Bool ephyr_glamor;
 
 Bool
 ephyrCreateResources (ScreenPtr pScreen)
@@ -710,14 +712,16 @@ ephyrCreateResources (ScreenPtr pScreen)
 
   EPHYR_LOG("mark pScreen=%p mynum=%d shadow=%d",
             pScreen, pScreen->myNum, scrpriv->shadow);
-
   if (scrpriv->shadow) 
     return KdShadowSet (pScreen, 
 			scrpriv->randr, 
 			ephyrShadowUpdate, 
 			ephyrWindowLinear);
-  else
+  else {
+    if (ephyr_glamor)
+      if (!glamor_glyphs_init(pScreen)) return FALSE;
     return ephyrSetInternalDamage(pScreen); 
+  }
 }
 
 void
