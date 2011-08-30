@@ -37,6 +37,7 @@
 #include "xkbstr.h"
 #include "inpututils.h"
 #include "eventstr.h"
+#include "scrnintstr.h"
 
 /* Check if a button map change is okay with the device.
  * Returns -1 for BadValue, as it collides with MappingBusy. */
@@ -617,6 +618,13 @@ void init_device_event(DeviceEvent *event, DeviceIntPtr dev, Time ms)
     event->time = ms;
     event->deviceid = dev->id;
     event->sourceid = dev->id;
+}
+
+Bool
+point_on_screen(ScreenPtr pScreen, int x, int y)
+{
+    return x >= pScreen->x && x < pScreen->x + pScreen->width &&
+           y >= pScreen->y && y < pScreen->y + pScreen->height;
 }
 
 /**

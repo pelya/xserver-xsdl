@@ -525,13 +525,6 @@ SyntheticMotion(DeviceIntPtr dev, int x, int y) {
 static void PostNewCursor(DeviceIntPtr pDev);
 
 static Bool
-pointOnScreen(ScreenPtr pScreen, int x, int y)
-{
-    return x >= pScreen->x && x < pScreen->x + pScreen->width &&
-           y >= pScreen->y && y < pScreen->y + pScreen->height;
-}
-
-static Bool
 XineramaSetCursorPosition(
     DeviceIntPtr pDev,
     int x,
@@ -550,13 +543,13 @@ XineramaSetCursorPosition(
     x += screenInfo.screens[0]->x;
     y += screenInfo.screens[0]->y;
 
-    if(!pointOnScreen(pScreen, x, y))
+    if(!point_on_screen(pScreen, x, y))
     {
 	FOR_NSCREENS(i)
 	{
 	    if(i == pScreen->myNum)
 		continue;
-	    if(pointOnScreen(screenInfo.screens[i], x, y))
+	    if(point_on_screen(screenInfo.screens[i], x, y))
 	    {
 		pScreen = screenInfo.screens[i];
 		break;
