@@ -1403,6 +1403,12 @@ winDoRandRScreenSetSize(ScreenPtr pScreen,
                         CARD16 height, CARD32 mmWidth, CARD32 mmHeight);
 
 /*
+ * winmsgwindow.c
+ */
+Bool
+winCreateMsgWindowThread(void);
+
+/*
  * END DDX and DIX Function Prototypes
  */
 
