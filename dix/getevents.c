@@ -919,6 +919,11 @@ GetKeyboardEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
        (key_code < 8 || key_code > 255))
         return 0;
 
+    if (mask_in && valuator_mask_size(mask_in) > 1) {
+        ErrorF("[dix] the server does not handle valuator masks with "
+                "keyboard events. This is a bug. You may fix it.\n");
+    }
+
     num_events = 1;
 
     events = UpdateFromMaster(events, pDev, DEVCHANGE_KEYBOARD_EVENT, &num_events);
