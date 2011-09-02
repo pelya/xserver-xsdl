@@ -6240,6 +6240,9 @@ char *			str;
 	swaps(&rep.unsupported,n);
 	swaps(&rep.nDeviceLedFBs,n);
 	swapl(&rep.type,n);
+	swaps(&rep.dfltKbdFB, n);
+	swaps(&rep.dfltLedFB, n);
+	swapl(&rep.devType, n);
     }
     WriteToClient(client,SIZEOF(xkbGetDeviceInfoReply), (char *)&rep);
 
