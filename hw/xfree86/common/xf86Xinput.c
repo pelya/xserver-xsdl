@@ -266,6 +266,34 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
     }
 }
 
+static void
+ApplyTransformationMatrix(DeviceIntPtr dev)
+{
+    InputInfoPtr pInfo = (InputInfoPtr)dev->public.devicePrivate;
+    char *str;
+    int rc;
+    float matrix[9] = {0};
+
+    if (!dev->valuator)
+        return;
+
+    str = xf86SetStrOption(pInfo->options, "TransformationMatrix", NULL);
+    if (!str)
+        return;
+
+    rc = sscanf(str, "%f %f %f %f %f %f %f %f %f", &matrix[0], &matrix[1], &matrix[2],
+                &matrix[3], &matrix[4], &matrix[5], &matrix[6], &matrix[7], &matrix[8]);
+    if (rc != 9) {
+        xf86Msg(X_ERROR, "%s: invalid format for transformation matrix. Ignoring configuration.\n",
+                pInfo->name);
+        return;
+    }
+
+    XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_TRANSFORM),
+                           XIGetKnownProperty(XATOM_FLOAT), 32,
+                           PropModeReplace, 9, matrix, FALSE);
+}
+
 /***********************************************************************
  *
  * xf86ProcessCommonOptions --
@@ -755,6 +783,7 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
 static int
 xf86InputDevicePostInit(DeviceIntPtr dev) {
     ApplyAccelerationSettings(dev);
+    ApplyTransformationMatrix(dev);
     return Success;
 }
 
