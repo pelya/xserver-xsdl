@@ -746,7 +746,7 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
 }
 
 /*
- * Apply backend-specific initialization. Invoked after ActiveteDevice(),
+ * Apply backend-specific initialization. Invoked after ActivateDevice(),
  * i.e. after the driver successfully completed DEVICE_INIT and the device
  * is advertised.
  * @param dev the device
