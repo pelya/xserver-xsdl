@@ -1345,25 +1345,6 @@ xf86ScaleAxis(int	Cx,
     return X;
 }
 
-/*
- * This function checks the given screen against the current screen and
- * makes changes if appropriate. It should be called from an XInput driver's
- * ReadInput function before any events are posted, if the device is screen
- * specific like a touch screen.
- */
-void
-xf86XInputSetScreen(InputInfoPtr	pInfo,
-		    int			screen_number,
-		    int			x,
-		    int			y)
-{
-    if (miPointerGetScreen(pInfo->dev) !=
-          screenInfo.screens[screen_number]) {
-	miPointerSetScreen(pInfo->dev, screen_number, x, y);
-    }
-}
-
-
 Bool
 xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval, int maxval,
 			   int resolution, int min_res, int max_res, int mode)
