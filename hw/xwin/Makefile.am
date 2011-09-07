@@ -127,7 +127,6 @@ SRCS =	InitInput.c \
 	winresource.h \
 	winwindow.h \
 	XWin.rc \
-	$(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c \
 	$(top_srcdir)/fb/fbcmap_mi.c \
@@ -153,11 +152,12 @@ XWin_SOURCES = $(SRCS)
 AM_CPPFLAGS = -I$(top_srcdir)/miext/rootless
 
 XWIN_SYS_LIBS += -ldxguid
-XWIN_LIBS += 	$(top_builddir)/pseudoramiX/libPseudoramiX.la
-
+XWIN_LIBS += 	$(top_builddir)/pseudoramiX/libPseudoramiX.la \
+                $(top_builddir)/Xext/libXextdpmsstubs.la
 XWin_DEPENDENCIES = $(MULTIWINDOWEXTWM_LIBS) $(XWIN_GLX_LIBS) $(XWIN_LIBS) $(XSERVER_LIBS)
 XWin_LDADD = $(MULTIWINDOW_LIBS) $(MULTIWINDOWEXTWM_LIBS) $(XWIN_GLX_LIBS) $(XWIN_GLX_LINK_FLAGS) $(XWIN_LIBS) $(MAIN_LIB) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) $(XWIN_SYS_LIBS)
 XWin_LDFLAGS = -mwindows -static -Wl,--disable-stdcall-fixup
+
 
 .rc.o:
 	$(AM_V_GEN)$(WINDRES) --use-temp-file -i $< --input-format=rc -o $@ -O coff -I $(top_builddir)/include

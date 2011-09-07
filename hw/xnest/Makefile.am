@@ -42,7 +42,6 @@ SRCS =	Args.c \
 	XNPixmap.h \
 	XNWindow.h \
 	xnest-config.h \
-	$(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c
 
@@ -51,7 +50,8 @@ libfbcmap_a_CFLAGS = $(AM_CFLAGS)
 
 XNEST_LIBS = \
         @XNEST_LIBS@ \
-	libfbcmap.a
+	libfbcmap.a \
+	$(top_builddir)/Xext/libXextdpmsstubs.la
 
 Xnest_SOURCES = $(SRCS)
 
