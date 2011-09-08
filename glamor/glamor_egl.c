@@ -54,7 +54,7 @@
 #define GLAMOR_FOR_XORG
 
 #include <glamor.h>
-#include <glamor_gl_dispatch.h>
+#include "glamor_gl_dispatch.h"
 
 #define GLAMOR_VERSION_MAJOR 0
 #define GLAMOR_VERSION_MINOR 1
@@ -68,13 +68,12 @@ glamor_identify(int flags)
 	xf86Msg(X_INFO, "%s: OpenGL accelerated X.org driver based.\n", glamor_name);
 }
 
-struct glamor_screen_private {
+struct glamor_egl_screen_private {
 	EGLDisplay display;
 	EGLContext context;
 	EGLImageKHR root;
 	EGLint major, minor;
         
-
 	CreateScreenResourcesProcPtr CreateScreenResources;
 	CloseScreenProcPtr CloseScreen;
 	int fd;
@@ -90,19 +89,15 @@ struct glamor_screen_private {
 
 int xf86GlamorEGLPrivateIndex = -1;
 
-static struct glamor_screen_private* glamor_get_egl_screen_private(ScrnInfoPtr scrn)
+static struct glamor_egl_screen_private* glamor_get_egl_screen_private(ScrnInfoPtr scrn)
 {
-        return (struct glamor_screen_private *)  scrn->privates[xf86GlamorEGLPrivateIndex].ptr;
+        return (struct glamor_egl_screen_private *)  scrn->privates[xf86GlamorEGLPrivateIndex].ptr;
 }
 
-static Bool
-_glamor_create_egl_screen_image(ScrnInfoPtr scrn, int width, int height, int stride)
+static EGLImageKHR
+_glamor_create_egl_image(struct glamor_egl_screen_private *glamor_egl, int width, int height, int stride, int name)
 {
-
-	struct glamor_screen_private *glamor = glamor_get_egl_screen_private(scrn);
-	ScreenPtr screen = screenInfo.screens[scrn->scrnIndex];
 	EGLImageKHR image;
-	GLuint texture;
 	EGLint attribs[] = {
 		EGL_WIDTH,	0,
 		EGL_HEIGHT,	0,
@@ -113,64 +108,122 @@ _glamor_create_egl_screen_image(ScrnInfoPtr scrn, int width, int height, int str
 		EGL_NONE
 	};
 
-        if (glamor->root) {
-          eglDestroyImageKHR(glamor->display, glamor->root);
-	  glamor->root = EGL_NO_IMAGE_KHR;
-        }
-          
+         
 	attribs[1] = width;
 	attribs[3] = height;
         attribs[5] = stride / 4;
-        image = glamor->egl_create_image_khr (glamor->display, 
-                                              glamor->context,
-                                              EGL_DRM_BUFFER_MESA,
-                                              (void*)glamor->front_buffer_handle,
-                                              attribs);   
+        image = glamor_egl->egl_create_image_khr (glamor_egl->display, 
+                                                  glamor_egl->context,
+                                                  EGL_DRM_BUFFER_MESA,
+                                                  (void*)name,
+                                                  attribs);   
 	if (image == EGL_NO_IMAGE_KHR)
-		return FALSE;
+		return EGL_NO_IMAGE_KHR;
 
-	glamor->dispatch->glGenTextures(1, &texture);
-	glamor->dispatch->glBindTexture(GL_TEXTURE_2D, texture);
-	glamor->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glamor->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	(glamor->egl_image_target_texture2d_oes)(GL_TEXTURE_2D, image); 
-
-	glamor_set_screen_pixmap_texture(screen, width, height, texture);
-	glamor->root = image;
-	return TRUE;
+	return image;
 }
+
+static int
+glamor_get_flink_name(int fd, int handle, int *name)
+{
+        struct drm_gem_flink flink;
+        flink.handle = handle;
+        if (ioctl(fd, DRM_IOCTL_GEM_FLINK, &flink) < 0) 
+           return FALSE;
+        *name = flink.name;
+        return TRUE;
+}
+
+static Bool
+glamor_create_texture_from_image(struct glamor_egl_screen_private *glamor_egl, EGLImageKHR image, GLuint *texture)
+{
+	glamor_egl->dispatch->glGenTextures(1, texture);
+	glamor_egl->dispatch->glBindTexture(GL_TEXTURE_2D, *texture);
+	glamor_egl->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glamor_egl->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	(glamor_egl->egl_image_target_texture2d_oes)(GL_TEXTURE_2D, image); 
+        return TRUE;
+}
+
 
 Bool
 glamor_create_egl_screen_image(ScreenPtr screen, int handle, int stride)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
-	struct glamor_screen_private *glamor = glamor_get_egl_screen_private(scrn);
-        struct drm_gem_flink flink;
-        flink.handle = handle;
+	struct glamor_egl_screen_private *glamor_egl = glamor_get_egl_screen_private(scrn);
+	EGLImageKHR image;
+	GLuint texture;
 
-        if (ioctl(glamor->fd, DRM_IOCTL_GEM_FLINK, &flink) < 0) {
-           xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+        if (!glamor_get_flink_name(glamor_egl->fd, handle, &glamor_egl->front_buffer_handle)) {
+          xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 	       "Couldn't flink front buffer handle\n");
-           return FALSE;
+          return FALSE;
         }
 
-        glamor->front_buffer_handle = flink.name;
+        if (glamor_egl->root) {
+          eglDestroyImageKHR(glamor_egl->display, glamor_egl->root);
+	  glamor_egl->root = EGL_NO_IMAGE_KHR;
+        }
+ 
+        image = _glamor_create_egl_image( glamor_egl, 
+                                          scrn->virtualX, 
+                                          scrn->virtualY, 
+                                          stride, 
+                                          glamor_egl->front_buffer_handle);
+        if (image == EGL_NO_IMAGE_KHR)
+          return FALSE;
+        
+        glamor_create_texture_from_image(glamor_egl, image, &texture);
+	glamor_set_screen_pixmap_texture(screen, scrn->virtualX, scrn->virtualY, texture);
+	glamor_egl->root = image;
+        return TRUE;
+}
 
-        return _glamor_create_egl_screen_image(scrn, scrn->virtualX, scrn->virtualY, stride);
+/*
+ * This function will be called from the dri buffer allocation.
+ * It is somehow very familiar with the create screen image.
+ */
+Bool
+glamor_create_egl_pixmap_image(PixmapPtr pixmap, int handle, int stride)
+{
+	ScreenPtr screen = pixmap->drawable.pScreen;
+	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	struct glamor_egl_screen_private *glamor_egl = glamor_get_egl_screen_private(scrn);
+	EGLImageKHR image;
+	GLuint texture;
+        int name;
+        if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
+          xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+	       "Couldn't flink pixmap handle\n");
+          return FALSE;
+        }
+
+        image = _glamor_create_egl_image( glamor_egl, 
+                                          pixmap->drawable.width, 
+                                          pixmap->drawable.height, 
+                                          stride, 
+                                          name);
+        if (image == EGL_NO_IMAGE_KHR)
+          return FALSE;
+
+        glamor_create_texture_from_image(glamor_egl, image, &texture);
+        glamor_set_pixmap_texture(pixmap, pixmap->drawable.width, pixmap->drawable.height, texture);
+        return TRUE;
 }
 
 Bool
 glamor_close_egl_screen(ScreenPtr screen)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
-	struct glamor_screen_private *glamor = glamor_get_egl_screen_private(scrn);
+	struct glamor_egl_screen_private *glamor_egl = glamor_get_egl_screen_private(scrn);
 	glamor_fini(screen);
 
-        eglDestroyImageKHR(glamor->display, glamor->root);
+        eglDestroyImageKHR(glamor_egl->display, glamor_egl->root);
 
 
-	glamor->root = EGL_NO_IMAGE_KHR;
+	glamor_egl->root = EGL_NO_IMAGE_KHR;
 
 	return TRUE;
 }
@@ -178,14 +231,14 @@ glamor_close_egl_screen(ScreenPtr screen)
 
 
 static Bool
-glamor_egl_has_extension(struct glamor_screen_private *glamor, char *extension)
+glamor_egl_has_extension(struct glamor_egl_screen_private *glamor_egl, char *extension)
 {
   const char *egl_extensions;
   char *pext;
   int  ext_len;
   ext_len = strlen(extension);
  
-  egl_extensions = (const char*)eglQueryString(glamor->display, EGL_EXTENSIONS);
+  egl_extensions = (const char*)eglQueryString(glamor_egl->display, EGL_EXTENSIONS);
   pext = (char*)egl_extensions;
  
   if (pext == NULL || extension == NULL)
@@ -201,7 +254,7 @@ glamor_egl_has_extension(struct glamor_screen_private *glamor, char *extension)
 
 Bool glamor_egl_init(ScrnInfoPtr scrn, int fd)
 {
-	struct glamor_screen_private *glamor;
+	struct glamor_egl_screen_private *glamor_egl;
 	const char *version;
         EGLint config_attribs[] = {
 #ifdef GLAMOR_GLES2
@@ -211,30 +264,30 @@ Bool glamor_egl_init(ScrnInfoPtr scrn, int fd)
         };
 
         glamor_identify(0);
-        glamor = calloc(sizeof(*glamor), 1);
+        glamor_egl = calloc(sizeof(*glamor_egl), 1);
         if (xf86GlamorEGLPrivateIndex == -1) 
            xf86GlamorEGLPrivateIndex = xf86AllocateScrnInfoPrivateIndex();      
 
-        scrn->privates[xf86GlamorEGLPrivateIndex].ptr = glamor;
+        scrn->privates[xf86GlamorEGLPrivateIndex].ptr = glamor_egl;
 
-        glamor->fd = fd;
-	glamor->display = eglGetDRMDisplayMESA(glamor->fd);
+        glamor_egl->fd = fd;
+	glamor_egl->display = eglGetDRMDisplayMESA(glamor_egl->fd);
 #ifndef GLAMOR_GLES2
 	eglBindAPI(EGL_OPENGL_API);
 #else
 	eglBindAPI(EGL_OPENGL_ES_API);
 #endif
-	if (!eglInitialize(glamor->display, &glamor->major, &glamor->minor)) {
+	if (!eglInitialize(glamor_egl->display, &glamor_egl->major, &glamor_egl->minor)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "eglInitialize() failed\n");
 		return FALSE;
 	}
 
-	version = eglQueryString(glamor->display, EGL_VERSION);
+	version = eglQueryString(glamor_egl->display, EGL_VERSION);
 	xf86Msg(X_INFO, "%s: EGL version %s:\n", glamor_name, version);
 
 #define GLAMOR_CHECK_EGL_EXTENSION(EXT)  \
-        if (!glamor_egl_has_extension(glamor, "EGL_" #EXT)) {  \
+        if (!glamor_egl_has_extension(glamor_egl, "EGL_" #EXT)) {  \
                ErrorF("EGL_" #EXT "required.\n");  \
                return FALSE;  \
         } 
@@ -247,36 +300,38 @@ Bool glamor_egl_init(ScrnInfoPtr scrn, int fd)
         GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_opengl);
 #endif
 
-	glamor->egl_export_drm_image_mesa = (PFNEGLEXPORTDRMIMAGEMESA)
+	glamor_egl->egl_export_drm_image_mesa = (PFNEGLEXPORTDRMIMAGEMESA)
                                             eglGetProcAddress("eglExportDRMImageMESA");
-        glamor->egl_create_image_khr = (PFNEGLCREATEIMAGEKHRPROC)
+        glamor_egl->egl_create_image_khr = (PFNEGLCREATEIMAGEKHRPROC)
                                        eglGetProcAddress("eglCreateImageKHR");
 
-	glamor->egl_image_target_texture2d_oes = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)
+	glamor_egl->egl_image_target_texture2d_oes = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)
                                                  eglGetProcAddress("glEGLImageTargetTexture2DOES");
 
-	if (!glamor->egl_create_image_khr 
-            || !glamor->egl_export_drm_image_mesa
-            || !glamor->egl_image_target_texture2d_oes) {
+	if (!glamor_egl->egl_create_image_khr 
+            || !glamor_egl->egl_export_drm_image_mesa
+            || !glamor_egl->egl_image_target_texture2d_oes) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "eglGetProcAddress() failed\n");
 		return FALSE;
 	}
 
-	glamor->context = eglCreateContext(glamor->display,
+	glamor_egl->context = eglCreateContext(glamor_egl->display,
 					   NULL, EGL_NO_CONTEXT, config_attribs);
-	if (glamor->context == EGL_NO_CONTEXT) {
+	if (glamor_egl->context == EGL_NO_CONTEXT) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "Failed to create EGL context\n");
 		return FALSE;
 	}
 
-	if (!eglMakeCurrent(glamor->display,
-			    EGL_NO_SURFACE, EGL_NO_SURFACE, glamor->context)) {
+	if (!eglMakeCurrent(glamor_egl->display,
+			    EGL_NO_SURFACE, EGL_NO_SURFACE, glamor_egl->context)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "Failed to make EGL context current\n");
 		return FALSE;
 	}
+
+        
 
         return TRUE;
 }
@@ -285,25 +340,27 @@ void
 glamor_free_egl_screen(int scrnIndex, int flags)
 {
 	ScrnInfoPtr scrn = xf86Screens[scrnIndex];
-	struct glamor_screen_private *glamor = glamor_get_egl_screen_private(scrn);
+	struct glamor_egl_screen_private *glamor_egl = glamor_get_egl_screen_private(scrn);
 
-	if (glamor != NULL)
+	if (glamor_egl != NULL)
 	{
 	  if (!(flags & GLAMOR_EGL_EXTERNAL_BUFFER)) {
-            eglMakeCurrent(glamor->display,
+            eglMakeCurrent(glamor_egl->display,
                          EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 
-	    eglTerminate(glamor->display);
+	    eglTerminate(glamor_egl->display);
           }
-	  free(glamor);
+	  free(glamor_egl);
 	}
 }
+
+/* egl version. */
 
 Bool
 glamor_gl_dispatch_init(ScreenPtr screen, struct glamor_gl_dispatch *dispatch, int gl_version)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
-	struct glamor_screen_private *glamor_egl = glamor_get_egl_screen_private(scrn);
+	struct glamor_egl_screen_private *glamor_egl = glamor_get_egl_screen_private(scrn);
         if (!glamor_gl_dispatch_init_impl(dispatch, gl_version, eglGetProcAddress))
           return FALSE;
         glamor_egl->dispatch = dispatch; 
