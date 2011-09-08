@@ -159,4 +159,384 @@ glamor_transform_boxes(BoxPtr boxes, int nbox, int dx, int dy)
       boxes[i].y2 += dy;
     }
 }
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+#define ALIGN(i,m)	(((i) + (m) - 1) & ~((m) - 1))
+#define MIN(a,b)	((a) < (b) ? (a) : (b))
+
+#define glamor_check_fbo_size(_glamor_,_w_, _h_)    ((_w_) > 0 && (_h_) > 0 \
+                                                    && (_w_) < _glamor_->max_fbo_size  \
+                                                    && (_h_) < _glamor_->max_fbo_size)
+
+#define glamor_check_fbo_depth(_depth_) (			\
+                                         _depth_ == 8		\
+	                                 || _depth_ == 15	\
+                                         || _depth_ == 16	\
+                                         || _depth_ == 24	\
+                                         || _depth_ == 30	\
+                                         || _depth_ == 32)
+
+
+#define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv->is_picture == 1)
+#define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv->gl_fbo == 1)
+
+#define GLAMOR_PIXMAP_PRIV_NEED_VALIDATE(pixmap_priv)  \
+	(GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv) \
+	&& (pixmap_priv->pending_op.type != GLAMOR_PENDING_NONE))
+
+#define GLAMOR_PIXMAP_PRIV_NO_PENDING(pixmap_priv)   \
+	(pixmap_priv->pending_op.type == GLAMOR_PENDING_NONE)
+
+#define GLAMOR_CHECK_PENDING_FILL(_dispatch_, _glamor_priv_, _pixmap_priv_) do \
+  { \
+      if (_pixmap_priv_->pending_op.type == GLAMOR_PENDING_FILL) { \
+        _dispatch_->glUseProgram(_glamor_priv_->solid_prog); \
+        _dispatch_->glUniform4fv(_glamor_priv_->solid_color_uniform_location, 1,  \
+                        _pixmap_priv_->pending_op.fill.color4fv); \
+      } \
+  } while(0)
+ 
+
+/**
+ * Borrow from uxa.
+ */
+static inline CARD32
+format_for_depth(int depth)
+{
+  switch (depth) {
+  case 1: return PICT_a1;
+  case 4: return PICT_a4;
+  case 8: return PICT_a8;
+  case 15: return PICT_x1r5g5b5;
+  case 16: return PICT_r5g6b5;
+  default:
+  case 24: return PICT_x8r8g8b8;
+#if XORG_VERSION_CURRENT >= 10699900
+  case 30: return PICT_x2r10g10b10;
+#endif
+  case 32: return PICT_a8r8g8b8;
+  }
+}
+
+static inline CARD32
+format_for_pixmap(PixmapPtr pixmap)
+{
+  glamor_pixmap_private *pixmap_priv;
+  PictFormatShort pict_format;
+
+  pixmap_priv = glamor_get_pixmap_private(pixmap);
+  if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv))
+    pict_format = pixmap_priv->pict_format;
+  else
+    pict_format = format_for_depth(pixmap->drawable.depth);
+
+  return pict_format;
+}
+
+/*
+ * Map picture's format to the correct gl texture format and type.
+ * no_alpha is used to indicate whehter we need to wire alpha to 1. 
+ *
+ * Return 0 if find a matched texture type. Otherwise return -1.
+ **/
+#ifndef GLAMOR_GLES2
+static inline int 
+glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
+					   GLenum *tex_format, 
+					   GLenum *tex_type,
+					   int *no_alpha,
+                                           int *no_revert)
+{
+  *no_alpha = 0;
+  *no_revert = 1;
+  switch (format) {
+  case PICT_a1:
+    *tex_format = GL_COLOR_INDEX;
+    *tex_type = GL_BITMAP;
+    break;
+  case PICT_b8g8r8x8:
+    *no_alpha = 1;
+  case PICT_b8g8r8a8:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_INT_8_8_8_8;
+    break;
+
+  case PICT_x8r8g8b8:
+    *no_alpha = 1;
+  case PICT_a8r8g8b8:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+    break;
+  case PICT_x8b8g8r8:
+    *no_alpha = 1;
+  case PICT_a8b8g8r8:
+    *tex_format = GL_RGBA;
+    *tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+    break;
+  case PICT_x2r10g10b10:
+    *no_alpha = 1;
+  case PICT_a2r10g10b10:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
+    break;
+  case PICT_x2b10g10r10:
+    *no_alpha = 1;
+  case PICT_a2b10g10r10:
+    *tex_format = GL_RGBA;
+    *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
+    break;
+ 
+  case PICT_r5g6b5:
+    *tex_format = GL_RGB;
+    *tex_type = GL_UNSIGNED_SHORT_5_6_5;
+    break;
+  case PICT_b5g6r5:
+    *tex_format = GL_RGB;
+    *tex_type = GL_UNSIGNED_SHORT_5_6_5_REV;
+    break;
+  case PICT_x1b5g5r5:
+    *no_alpha = 1;
+  case PICT_a1b5g5r5:
+    *tex_format = GL_RGBA;
+    *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+    break;
+               
+  case PICT_x1r5g5b5:
+    *no_alpha = 1;
+  case PICT_a1r5g5b5:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+    break;
+  case PICT_a8:
+    *tex_format = GL_ALPHA;
+    *tex_type = GL_UNSIGNED_BYTE;
+    break;
+  case PICT_x4r4g4b4:
+    *no_alpha = 1;
+  case PICT_a4r4g4b4:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
+    break;
+
+  case PICT_x4b4g4r4:
+    *no_alpha = 1;
+  case PICT_a4b4g4r4:
+    *tex_format = GL_RGBA;
+    *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
+    break;
+ 
+  default:
+    LogMessageVerb(X_INFO, 0, "fail to get matched format for %x \n", format);
+    return -1;
+  }
+  return 0;
+}
+#else
+#define IS_LITTLE_ENDIAN  (IMAGE_BYTE_ORDER == LSBFirst)
+
+static inline int 
+glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
+					   GLenum *tex_format, 
+					   GLenum *tex_type,
+					   int *no_alpha,
+                                           int *no_revert)
+{
+  *no_alpha = 0;
+  *no_revert = IS_LITTLE_ENDIAN;
+
+  switch (format) {
+  case PICT_b8g8r8x8:
+    *no_alpha = 1;
+  case PICT_b8g8r8a8:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_BYTE;
+    *no_revert = !IS_LITTLE_ENDIAN;
+    break;
+
+  case PICT_x8r8g8b8:
+    *no_alpha = 1;
+  case PICT_a8r8g8b8:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_BYTE;
+    break;
+
+  case PICT_x8b8g8r8:
+    *no_alpha = 1;
+  case PICT_a8b8g8r8:
+    *tex_format = GL_RGBA;
+    *tex_type = GL_UNSIGNED_BYTE;
+    break;
+
+  case PICT_x2r10g10b10:
+    *no_alpha = 1;
+  case PICT_a2r10g10b10:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_INT_10_10_10_2;
+    *no_revert = TRUE;
+    break;
+
+  case PICT_x2b10g10r10:
+    *no_alpha = 1;
+  case PICT_a2b10g10r10:
+    *tex_format = GL_RGBA;
+    *tex_type = GL_UNSIGNED_INT_10_10_10_2;
+    *no_revert = TRUE;
+    break;
+ 
+  case PICT_r5g6b5:
+    *tex_format = GL_RGB;
+    *tex_type = GL_UNSIGNED_SHORT_5_6_5;
+    *no_revert = TRUE;
+    break;
+
+  case PICT_b5g6r5:
+    *tex_format = GL_RGB;
+    *tex_type = GL_UNSIGNED_SHORT_5_6_5;
+    *no_revert = FALSE;
+    break;
+
+  case PICT_x1b5g5r5:
+    *no_alpha = 1;
+  case PICT_a1b5g5r5:
+    *tex_format = GL_RGBA;
+    *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+    *no_revert = TRUE;
+    break;
+               
+  case PICT_x1r5g5b5:
+    *no_alpha = 1;
+  case PICT_a1r5g5b5:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+    *no_revert = TRUE;
+    break;
+
+  case PICT_a8:
+    *tex_format = GL_ALPHA;
+    *tex_type = GL_UNSIGNED_BYTE;
+    *no_revert = TRUE;
+    break;
+
+  case PICT_x4r4g4b4:
+    *no_alpha = 1;
+  case PICT_a4r4g4b4:
+    *tex_format = GL_BGRA;
+    *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
+    *no_revert = TRUE;
+    break;
+
+  case PICT_x4b4g4r4:
+    *no_alpha = 1;
+  case PICT_a4b4g4r4:
+    *tex_format = GL_RGBA;
+    *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
+    *no_revert = TRUE;
+    break;
+ 
+  default:
+    LogMessageVerb(X_INFO, 0, "fail to get matched format for %x \n", format);
+    return -1;
+  }
+  return 0;
+}
+
+
+#endif
+
+
+static inline int 
+glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
+                                       GLenum *format, 
+                                       GLenum *type, 
+                                       int *no_alpha,
+                                       int *no_revert)
+{
+  glamor_pixmap_private *pixmap_priv;
+  PictFormatShort pict_format;
+
+  pixmap_priv = glamor_get_pixmap_private(pixmap);
+  if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv))
+    pict_format = pixmap_priv->pict_format;
+  else
+    pict_format = format_for_depth(pixmap->drawable.depth);
+
+  return glamor_get_tex_format_type_from_pictformat(pict_format, 
+						    format, type, 
+                                                    no_alpha, no_revert);  
+}
+
+
+/* borrowed from uxa */
+static inline Bool
+glamor_get_rgba_from_pixel(CARD32 pixel,
+			   float * red,
+			   float * green,
+			   float * blue,
+			   float * alpha,
+			   CARD32 format)
+{
+  int rbits, bbits, gbits, abits;
+  int rshift, bshift, gshift, ashift;
+
+  rbits = PICT_FORMAT_R(format);
+  gbits = PICT_FORMAT_G(format);
+  bbits = PICT_FORMAT_B(format);
+  abits = PICT_FORMAT_A(format);
+
+  if (PICT_FORMAT_TYPE(format) == PICT_TYPE_A) {
+    rshift = gshift = bshift = ashift = 0;
+  } else if (PICT_FORMAT_TYPE(format) == PICT_TYPE_ARGB) {
+    bshift = 0;
+    gshift = bbits;
+    rshift = gshift + gbits;
+    ashift = rshift + rbits;
+  } else if (PICT_FORMAT_TYPE(format) == PICT_TYPE_ABGR) {
+    rshift = 0;
+    gshift = rbits;
+    bshift = gshift + gbits;
+    ashift = bshift + bbits;
+#if XORG_VERSION_CURRENT >= 10699900
+  } else if (PICT_FORMAT_TYPE(format) == PICT_TYPE_BGRA) {
+    ashift = 0;
+    rshift = abits;
+    if (abits == 0)
+      rshift = PICT_FORMAT_BPP(format) - (rbits+gbits+bbits);
+    gshift = rshift + rbits;
+    bshift = gshift + gbits;
+#endif
+  } else {
+    return FALSE;
+  }
+#define COLOR_INT_TO_FLOAT(_fc_, _p_, _s_, _bits_)	\
+  *_fc_ = (((_p_) >> (_s_)) & (( 1 << (_bits_)) - 1))	\
+    / (float)((1<<(_bits_)) - 1) 
+
+  if (rbits) 
+    COLOR_INT_TO_FLOAT(red, pixel, rshift, rbits);
+  else
+    *red = 0;
+
+  if (gbits) 
+    COLOR_INT_TO_FLOAT(green, pixel, gshift, gbits);
+  else
+    *green = 0;
+
+  if (bbits) 
+    COLOR_INT_TO_FLOAT(blue, pixel, bshift, bbits);
+  else
+    *blue = 0;
+
+  if (abits) 
+    COLOR_INT_TO_FLOAT(alpha, pixel, ashift, abits);
+  else
+    *alpha = 1;
+
+  return TRUE;
+}
+
+
+
+
+
+
 #endif
