@@ -59,7 +59,7 @@ glamor_get_drawable_pixmap(DrawablePtr drawable)
 	return (PixmapPtr)drawable;
 }
 
-static void
+void
 glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
@@ -111,6 +111,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     int type = GLAMOR_PIXMAP_TEXTURE;
     glamor_pixmap_private *pixmap_priv;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
@@ -141,6 +142,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
     pixmap_priv->container = pixmap;
+    pixmap_priv->glamor_priv = glamor_priv;
 
     if (w == 0 || h == 0 || type == GLAMOR_PIXMAP_MEMORY)
 	return pixmap;
@@ -160,11 +162,11 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     }
 
     /* Create the texture used to store the pixmap's data. */
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0,
+    dispatch->glGenTextures(1, &tex);
+    dispatch->glBindTexture(GL_TEXTURE_2D, tex);
+    dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0,
                  format, GL_UNSIGNED_BYTE, NULL);
 
     glamor_set_pixmap_texture(pixmap, w, h, tex);
@@ -210,14 +212,16 @@ glamor_create_screen_pixmap(ScreenPtr screen, int w, int h, int depth,
 static Bool
 glamor_destroy_pixmap(PixmapPtr pixmap)
 {
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
+    glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
     if (pixmap->refcnt == 1) {
 	glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
         if (pixmap_priv->fb)
-	  glDeleteFramebuffers(1, &pixmap_priv->fb);
+	  dispatch->glDeleteFramebuffers(1, &pixmap_priv->fb);
         if (pixmap_priv->tex)
-	  glDeleteTextures(1, &pixmap_priv->tex);
+	  dispatch->glDeleteTextures(1, &pixmap_priv->tex);
         if (pixmap_priv->pbo)
-          glDeleteBuffers(1, &pixmap_priv->pbo);
+          dispatch->glDeleteBuffers(1, &pixmap_priv->pbo);
         dixFreePrivates(pixmap->devPrivates, PRIVATE_PIXMAP);
     }
 
@@ -227,7 +231,8 @@ glamor_destroy_pixmap(PixmapPtr pixmap)
 static void
 glamor_block_handler(void *data, OSTimePtr timeout, void *last_select_mask)
 {
-    glFlush();
+    glamor_gl_dispatch *dispatch = data;
+    dispatch->glFlush();
 }
 
 static void
@@ -295,6 +300,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         goto fail;
     }
 
+    glamor_gl_dispatch_init(screen, &glamor_priv->dispatch, gl_version);
 
 #ifdef GLAMOR_GLES2
     if (!glamor_gl_has_extension("GL_EXT_texture_format_BGRA8888")) {
@@ -305,11 +311,11 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glamor_priv->has_pack_invert = glamor_gl_has_extension("GL_MESA_pack_invert");
     glamor_priv->has_fbo_blit = glamor_gl_has_extension("GL_EXT_framebuffer_blit");
-    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size); 
+    glamor_priv->dispatch.glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size); 
 
     if (!RegisterBlockAndWakeupHandlers(glamor_block_handler,
 					glamor_wakeup_handler,
-					NULL)) {
+					(void*)&glamor_priv->dispatch)) {
 	goto fail;
     }
 

@@ -54,6 +54,7 @@
 #define GLAMOR_FOR_XORG
 
 #include <glamor.h>
+#include <glamor_gl_dispatch.h>
 
 #define GLAMOR_VERSION_MAJOR 0
 #define GLAMOR_VERSION_MINOR 1
@@ -84,6 +85,7 @@ struct glamor_screen_private {
 	PFNEGLEXPORTDRMIMAGEMESA egl_export_drm_image_mesa;
         PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
 	PFNGLEGLIMAGETARGETTEXTURE2DOESPROC egl_image_target_texture2d_oes;
+        struct glamor_gl_dispatch *dispatch;
 };
 
 int xf86GlamorEGLPrivateIndex = -1;
@@ -127,10 +129,10 @@ _glamor_create_egl_screen_image(ScrnInfoPtr scrn, int width, int height, int str
 	if (image == EGL_NO_IMAGE_KHR)
 		return FALSE;
 
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glamor->dispatch->glGenTextures(1, &texture);
+	glamor->dispatch->glBindTexture(GL_TEXTURE_2D, texture);
+	glamor->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glamor->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	(glamor->egl_image_target_texture2d_oes)(GL_TEXTURE_2D, image); 
 
@@ -295,4 +297,15 @@ glamor_free_egl_screen(int scrnIndex, int flags)
           }
 	  free(glamor);
 	}
+}
+
+Bool
+glamor_gl_dispatch_init(ScreenPtr screen, struct glamor_gl_dispatch *dispatch, int gl_version)
+{
+	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	struct glamor_screen_private *glamor_egl = glamor_get_egl_screen_private(scrn);
+        if (!glamor_gl_dispatch_init_impl(dispatch, gl_version, eglGetProcAddress))
+          return FALSE;
+        glamor_egl->dispatch = dispatch; 
+        return TRUE;
 }

@@ -16,6 +16,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#include "glamor_gl_dispatch.h"
 struct glamor_screen_private {
 	EGLDisplay display;
 	EGLContext context;
@@ -30,6 +31,7 @@ struct glamor_screen_private {
 	PFNEGLCREATEDRMIMAGEMESA egl_create_drm_image_mesa;
 	PFNEGLEXPORTDRMIMAGEMESA egl_export_drm_image_mesa;
 	PFNGLEGLIMAGETARGETTEXTURE2DOESPROC egl_image_target_texture2d_oes;
+        struct glamor_gl_dispatch *dispatch;
 };
 
 inline struct glamor_screen_private *

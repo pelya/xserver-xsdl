@@ -584,6 +584,18 @@ glamor_setup(pointer module, pointer opts, int *errmaj, int *errmin)
    }
 }
 
+Bool
+glamor_gl_dispatch_init(ScreenPtr screen, struct glamor_gl_dispatch *dispatch, int gl_version)
+{
+        ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+        struct glamor_screen_private *glamor_egl = glamor_get_screen_private(scrn);
+        if (!glamor_gl_dispatch_init_impl(dispatch, gl_version, eglGetProcAddress))
+          return FALSE;
+        glamor_egl->dispatch = dispatch;
+        return TRUE;
+}
+
+
 static XF86ModuleVersionInfo glamor_version_info = {
 	glamor_name,
 	MODULEVENDORSTRING,

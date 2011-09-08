@@ -36,15 +36,14 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		 DDXPointPtr points, int *widths, int n, int sorted)
 {
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
-    glamor_screen_private *glamor_priv;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(drawable->pScreen);
+    glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
     GLenum format, type;
     int no_alpha, no_revert, i;
     uint8_t *drawpixels_src = (uint8_t *)src;
     RegionPtr clip = fbGetCompositeClip(gc);
     BoxRec *pbox;
     int x_off, y_off;
-
-    glamor_priv = glamor_get_screen_private(drawable->pScreen);
 
     if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
       glamor_fallback("ES2 fallback.\n");
@@ -69,7 +68,7 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     glamor_validate_pixmap(dest_pixmap);
     if (!glamor_set_planemask(dest_pixmap, gc->planemask))
 	goto fail;
-    glamor_set_alu(gc->alu);
+    glamor_set_alu(dispatch, gc->alu);
     if (!glamor_set_planemask(dest_pixmap, gc->planemask))
 	goto fail;
 
@@ -82,14 +81,14 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	while (n--) {
 	    if (pbox->y1 > points[i].y)
 		break;
-	    glScissor(pbox->x1,
+	    dispatch->glScissor(pbox->x1,
 		      points[i].y + y_off,
 		      pbox->x2 - pbox->x1,
 		      1);
-	    glEnable(GL_SCISSOR_TEST);
-	    glRasterPos2i(points[i].x + x_off,
+	    dispatch->glEnable(GL_SCISSOR_TEST);
+	    dispatch->glRasterPos2i(points[i].x + x_off,
 			  points[i].y + y_off);
-	    glDrawPixels(widths[i],
+	    dispatch->glDrawPixels(widths[i],
 			 1,
 			 format, type,
 			 drawpixels_src);
@@ -97,8 +96,8 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	    drawpixels_src += PixmapBytePad(widths[i], drawable->depth);
     }
     glamor_set_planemask(dest_pixmap, ~0);
-    glamor_set_alu(GXcopy);
-    glDisable(GL_SCISSOR_TEST);
+    glamor_set_alu(dispatch, GXcopy);
+    dispatch->glDisable(GL_SCISSOR_TEST);
     return;
 fail:
 

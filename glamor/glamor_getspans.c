@@ -44,6 +44,7 @@ glamor_get_spans(DrawablePtr drawable,
     int no_alpha, no_revert;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(drawable->pScreen);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+    glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
     PixmapPtr temp_pixmap = NULL;
     int i;
     uint8_t *readpixels_dst = (uint8_t *)dst;
@@ -79,14 +80,14 @@ glamor_get_spans(DrawablePtr drawable,
     glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
     for (i = 0; i < count; i++) {
       if (glamor_priv->yInverted) {
-	glReadPixels(points[i].x + x_off,
+	dispatch->glReadPixels(points[i].x + x_off,
 		     (points[i].y + y_off),
 		     widths[i],
 		     1,
 		     format, type,
 		     readpixels_dst);
  	} else {
-	glReadPixels(points[i].x + x_off,
+	dispatch->glReadPixels(points[i].x + x_off,
 		     pixmap->drawable.height - 1 - (points[i].y + y_off),
 		     widths[i],
 		     1,

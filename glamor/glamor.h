@@ -52,10 +52,12 @@ extern _X_EXPORT Bool glamor_init(ScreenPtr screen, unsigned int flags);
 extern _X_EXPORT void glamor_fini(ScreenPtr screen);
 extern _X_EXPORT void glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h, unsigned int tex);
 extern _X_EXPORT Bool glamor_glyphs_init (ScreenPtr pScreen);
+void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex);
 
 #ifdef GLAMOR_FOR_XORG
 extern _X_EXPORT Bool glamor_egl_init(ScrnInfoPtr scrn, int fd);
 extern _X_EXPORT Bool glamor_create_egl_screen_image(ScreenPtr screen, int handle, int stride);
+extern _X_EXPORT Bool glamor_create_egl_pixmap_image(PixmapPtr pixmap, int handle, int stride);
 extern _X_EXPORT Bool glamor_close_egl_screen(ScreenPtr screen);
 extern _X_EXPORT void glamor_free_egl_screen(int scrnIndex, int flags);
 #endif

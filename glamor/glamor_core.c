@@ -54,49 +54,24 @@ glamor_get_drawable_location(const DrawablePtr drawable)
     return 'f';
 }
 
-
-void
-glamor_get_transform_uniform_locations(GLint prog,
-				       glamor_transform_uniforms *uniform_locations)
-{
-  uniform_locations->x_bias = glGetUniformLocation(prog, "x_bias");
-  uniform_locations->x_scale = glGetUniformLocation(prog, "x_scale");
-  uniform_locations->y_bias = glGetUniformLocation(prog, "y_bias");
-  uniform_locations->y_scale = glGetUniformLocation(prog, "y_scale");
-}
-
-/* We don't use a full matrix for our transformations because it's
- * wasteful when all we want is to rescale to NDC and possibly do a flip
- * if it's the front buffer.
- */
-void
-glamor_set_transform_for_pixmap(PixmapPtr pixmap,
-				glamor_transform_uniforms *uniform_locations)
-{
-  glUniform1f(uniform_locations->x_bias, -pixmap->drawable.width / 2.0f);
-  glUniform1f(uniform_locations->x_scale, 2.0f / pixmap->drawable.width);
-  glUniform1f(uniform_locations->y_bias, -pixmap->drawable.height / 2.0f);
-  glUniform1f(uniform_locations->y_scale, -2.0f / pixmap->drawable.height);
-}
-
 GLint
-glamor_compile_glsl_prog(GLenum type, const char *source)
+glamor_compile_glsl_prog(glamor_gl_dispatch *dispatch, GLenum type, const char *source)
 {
   GLint ok;
   GLint prog;
 
-  prog = glCreateShader(type);
-  glShaderSource(prog, 1, (const GLchar **)&source, NULL);
-  glCompileShader(prog);
-  glGetShaderiv(prog, GL_COMPILE_STATUS, &ok);
+  prog = dispatch->glCreateShader(type);
+  dispatch->glShaderSource(prog, 1, (const GLchar **)&source, NULL);
+  dispatch->glCompileShader(prog);
+  dispatch->glGetShaderiv(prog, GL_COMPILE_STATUS, &ok);
   if (!ok) {
     GLchar *info;
     GLint size;
 
-    glGetShaderiv(prog, GL_INFO_LOG_LENGTH, &size);
+    dispatch->glGetShaderiv(prog, GL_INFO_LOG_LENGTH, &size);
     info = malloc(size);
 
-    glGetShaderInfoLog(prog, size, NULL, info);
+    dispatch->glGetShaderInfoLog(prog, size, NULL, info);
     ErrorF("Failed to compile %s: %s\n",
 	   type == GL_FRAGMENT_SHADER ? "FS" : "VS",
 	   info);
@@ -108,20 +83,20 @@ glamor_compile_glsl_prog(GLenum type, const char *source)
 }
 
 void
-glamor_link_glsl_prog(GLint prog)
+glamor_link_glsl_prog(glamor_gl_dispatch *dispatch, GLint prog)
 {
   GLint ok;
 
-  glLinkProgram(prog);
-  glGetProgramiv(prog, GL_LINK_STATUS, &ok);
+  dispatch->glLinkProgram(prog);
+  dispatch->glGetProgramiv(prog, GL_LINK_STATUS, &ok);
   if (!ok) {
     GLchar *info;
     GLint size;
 
-    glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &size);
+    dispatch->glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &size);
     info = malloc(size);
 
-    glGetProgramInfoLog(prog, size, NULL, info);
+    dispatch->glGetProgramInfoLog(prog, size, NULL, info);
     ErrorF("Failed to link: %s\n",
 	   info);
     FatalError("GLSL link failure\n");
@@ -140,6 +115,7 @@ void
 glamor_init_finish_access_shaders(ScreenPtr screen)
 {
   glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+  glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
   const char *vs_source =
     "attribute vec4 v_position;\n"
     "attribute vec4 v_texcoord0;\n"
@@ -200,51 +176,51 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
   GLint fs_prog, vs_prog, avs_prog, set_alpha_prog;
   GLint sampler_uniform_location;
 
-  glamor_priv->finish_access_prog[0] = glCreateProgram();
-  glamor_priv->finish_access_prog[1] = glCreateProgram();
+  glamor_priv->finish_access_prog[0] = dispatch->glCreateProgram();
+  glamor_priv->finish_access_prog[1] = dispatch->glCreateProgram();
 
-  vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, vs_source);
-  fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, fs_source);
-  glAttachShader(glamor_priv->finish_access_prog[0], vs_prog);
-  glAttachShader(glamor_priv->finish_access_prog[0], fs_prog);
+  vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, vs_source);
+  fs_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER, fs_source);
+  dispatch->glAttachShader(glamor_priv->finish_access_prog[0], vs_prog);
+  dispatch->glAttachShader(glamor_priv->finish_access_prog[0], fs_prog);
 
-  avs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, vs_source);
-  set_alpha_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, set_alpha_source);
-  glAttachShader(glamor_priv->finish_access_prog[1], avs_prog);
-  glAttachShader(glamor_priv->finish_access_prog[1], set_alpha_prog);
+  avs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, vs_source);
+  set_alpha_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER, set_alpha_source);
+  dispatch->glAttachShader(glamor_priv->finish_access_prog[1], avs_prog);
+  dispatch->glAttachShader(glamor_priv->finish_access_prog[1], set_alpha_prog);
 
-  glBindAttribLocation(glamor_priv->finish_access_prog[0], GLAMOR_VERTEX_POS, "v_position");
-  glBindAttribLocation(glamor_priv->finish_access_prog[0], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
-  glamor_link_glsl_prog(glamor_priv->finish_access_prog[0]);
+  dispatch->glBindAttribLocation(glamor_priv->finish_access_prog[0], GLAMOR_VERTEX_POS, "v_position");
+  dispatch->glBindAttribLocation(glamor_priv->finish_access_prog[0], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
+  glamor_link_glsl_prog(dispatch, glamor_priv->finish_access_prog[0]);
 
-  glBindAttribLocation(glamor_priv->finish_access_prog[1], GLAMOR_VERTEX_POS, "v_position");
-  glBindAttribLocation(glamor_priv->finish_access_prog[1], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
-  glamor_link_glsl_prog(glamor_priv->finish_access_prog[1]);
+  dispatch->glBindAttribLocation(glamor_priv->finish_access_prog[1], GLAMOR_VERTEX_POS, "v_position");
+  dispatch->glBindAttribLocation(glamor_priv->finish_access_prog[1], GLAMOR_VERTEX_SOURCE, "v_texcoord0");
+  glamor_link_glsl_prog(dispatch, glamor_priv->finish_access_prog[1]);
 
   glamor_priv->finish_access_no_revert[0] = 
-    glGetUniformLocation(glamor_priv->finish_access_prog[0], "no_revert");
+    dispatch->glGetUniformLocation(glamor_priv->finish_access_prog[0], "no_revert");
 
   glamor_priv->finish_access_swap_rb[0] = 
-    glGetUniformLocation(glamor_priv->finish_access_prog[0], "swap_rb");
+    dispatch->glGetUniformLocation(glamor_priv->finish_access_prog[0], "swap_rb");
   sampler_uniform_location =
-    glGetUniformLocation(glamor_priv->finish_access_prog[0], "sampler");
-  glUseProgram(glamor_priv->finish_access_prog[0]);
-  glUniform1i(sampler_uniform_location, 0);
-  glUniform1i(glamor_priv->finish_access_no_revert[0],1);
-  glUniform1i(glamor_priv->finish_access_swap_rb[0],0);
-  glUseProgram(0);
+    dispatch->glGetUniformLocation(glamor_priv->finish_access_prog[0], "sampler");
+  dispatch->glUseProgram(glamor_priv->finish_access_prog[0]);
+  dispatch->glUniform1i(sampler_uniform_location, 0);
+  dispatch->glUniform1i(glamor_priv->finish_access_no_revert[0],1);
+  dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[0],0);
+  dispatch->glUseProgram(0);
 
   glamor_priv->finish_access_no_revert[1] = 
-    glGetUniformLocation(glamor_priv->finish_access_prog[1], "no_revert");
+    dispatch->glGetUniformLocation(glamor_priv->finish_access_prog[1], "no_revert");
   glamor_priv->finish_access_swap_rb[1] = 
-    glGetUniformLocation(glamor_priv->finish_access_prog[1], "swap_rb");
+    dispatch->glGetUniformLocation(glamor_priv->finish_access_prog[1], "swap_rb");
   sampler_uniform_location =
-    glGetUniformLocation(glamor_priv->finish_access_prog[1], "sampler");
-  glUseProgram(glamor_priv->finish_access_prog[1]);
-  glUniform1i(glamor_priv->finish_access_no_revert[1],1);
-  glUniform1i(sampler_uniform_location, 0);
-  glUniform1i(glamor_priv->finish_access_swap_rb[1],0);
-  glUseProgram(0);
+    dispatch->glGetUniformLocation(glamor_priv->finish_access_prog[1], "sampler");
+  dispatch->glUseProgram(glamor_priv->finish_access_prog[1]);
+  dispatch->glUniform1i(glamor_priv->finish_access_no_revert[1],1);
+  dispatch->glUniform1i(sampler_uniform_location, 0);
+  dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[1],0);
+  dispatch->glUseProgram(0);
 
 }
 
@@ -254,6 +230,7 @@ glamor_finish_access(DrawablePtr drawable)
   PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
   glamor_screen_private *glamor_priv = glamor_get_screen_private(drawable->pScreen);
+  glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
     
   if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
     return;
@@ -264,10 +241,10 @@ glamor_finish_access(DrawablePtr drawable)
 
   if (pixmap_priv->pbo != 0 && pixmap_priv->pbo_valid) {
     assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
-    glBindBuffer (GL_PIXEL_PACK_BUFFER, 0);
-    glBindBuffer (GL_PIXEL_UNPACK_BUFFER, 0);
+    dispatch->glBindBuffer (GL_PIXEL_PACK_BUFFER, 0);
+    dispatch->glBindBuffer (GL_PIXEL_UNPACK_BUFFER, 0);
     pixmap_priv->pbo_valid = FALSE;
-    glDeleteBuffers(1, &pixmap_priv->pbo);
+    dispatch->glDeleteBuffers(1, &pixmap_priv->pbo);
     pixmap_priv->pbo = 0;
   } else {
     free(pixmap->devPrivate.ptr);

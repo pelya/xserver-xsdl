@@ -105,6 +105,7 @@ void
 glamor_init_solid_shader(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
     const char *solid_vs =
         "attribute vec4 v_position;"
 	"void main()\n"
@@ -120,17 +121,17 @@ glamor_init_solid_shader(ScreenPtr screen)
 	"}\n";
     GLint fs_prog, vs_prog;
 
-    glamor_priv->solid_prog = glCreateProgram();
-    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, solid_vs);
-    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, solid_fs);
-    glAttachShader(glamor_priv->solid_prog, vs_prog);
-    glAttachShader(glamor_priv->solid_prog, fs_prog);
+    glamor_priv->solid_prog = dispatch->glCreateProgram();
+    vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, solid_vs);
+    fs_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER, solid_fs);
+    dispatch->glAttachShader(glamor_priv->solid_prog, vs_prog);
+    dispatch->glAttachShader(glamor_priv->solid_prog, fs_prog);
     
-    glBindAttribLocation(glamor_priv->solid_prog, GLAMOR_VERTEX_POS, "v_position");
-    glamor_link_glsl_prog(glamor_priv->solid_prog);
+    dispatch->glBindAttribLocation(glamor_priv->solid_prog, GLAMOR_VERTEX_POS, "v_position");
+    glamor_link_glsl_prog(dispatch, glamor_priv->solid_prog);
 
     glamor_priv->solid_color_uniform_location =
-	glGetUniformLocation(glamor_priv->solid_prog, "color");
+	dispatch->glGetUniformLocation(glamor_priv->solid_prog, "color");
 }
 
 Bool
@@ -140,6 +141,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     ScreenPtr screen = pixmap->drawable.pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+    glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
     int x1 = x;
     int x2 = x + width;
     int y1 = y;
@@ -151,7 +153,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
         glamor_fallback("dest %p has no fbo.\n", pixmap);
 	goto fail;
     }
-    glamor_set_alu(alu);
+    glamor_set_alu(dispatch, alu);
     if (!glamor_set_planemask(pixmap, planemask)) {
       glamor_fallback("Failedto set planemask  in glamor_solid.\n");
       goto fail;
@@ -178,24 +180,24 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glamor_set_destination_pixmap_priv_nc(pixmap_priv);
     glamor_validate_pixmap(pixmap);
 
-    glUseProgram(glamor_priv->solid_prog);
+    dispatch->glUseProgram(glamor_priv->solid_prog);
  
-    glUniform4fv(glamor_priv->solid_color_uniform_location, 1, color);
+    dispatch->glUniform4fv(glamor_priv->solid_color_uniform_location, 1, color);
 
-    glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
+    dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                           2 * sizeof(float), vertices);
-    glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+    dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
     pixmap_priv_get_scale(pixmap_priv, &xscale, &yscale);
 
     glamor_set_normalize_vcoords(xscale, yscale, x1, y1, x2, y2,
 				 glamor_priv->yInverted,
 				 vertices);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    glUseProgram(0);
+    dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    dispatch->glUseProgram(0);
     return TRUE;
 fail:
-    glamor_set_alu(GXcopy);
+    glamor_set_alu(dispatch, GXcopy);
     glamor_set_planemask(pixmap, ~0);
     return FALSE;
 }

@@ -31,12 +31,13 @@ static void
 _glamor_pixmap_validate_filling(glamor_screen_private *glamor_priv, 
 				 glamor_pixmap_private *pixmap_priv)
 {
+    glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
     GLfloat vertices[8];
-    glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
+    dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                           2 * sizeof(float), vertices);
-    glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-    glUseProgram(glamor_priv->solid_prog);
-    glUniform4fv(glamor_priv->solid_color_uniform_location, 
+    dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+    dispatch->glUseProgram(glamor_priv->solid_prog);
+    dispatch->glUniform4fv(glamor_priv->solid_color_uniform_location, 
       1, pixmap_priv->pending_op.fill.color4fv);
     vertices[0] = -1;
     vertices[1] = -1;
@@ -46,9 +47,9 @@ _glamor_pixmap_validate_filling(glamor_screen_private *glamor_priv,
     vertices[5] = 1;
     vertices[6] = -1;
     vertices[7] = 1;
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    glUseProgram(0);
+    dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    dispatch->glUseProgram(0);
     pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
 }
 
@@ -83,14 +84,15 @@ glamor_validate_pixmap(PixmapPtr pixmap)
 void
 glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv)
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
+  glamor_gl_dispatch *dispatch = &pixmap_priv->glamor_priv->dispatch;
+  dispatch->glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
 #ifndef GLAMOR_GLES2
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();                                        
+  dispatch->glMatrixMode(GL_PROJECTION);
+  dispatch->glLoadIdentity();
+  dispatch->glMatrixMode(GL_MODELVIEW);
+  dispatch->glLoadIdentity();                                        
 #endif
-  glViewport(0, 0,
+  dispatch->glViewport(0, 0,
 	     pixmap_priv->container->drawable.width,
 	     pixmap_priv->container->drawable.height);
 
@@ -130,59 +132,59 @@ glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask)
 
 
 void
-glamor_set_alu(unsigned char alu)
+glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 {
 #ifndef GLAMOR_GLES2
   if (alu == GXcopy) {
-    glDisable(GL_COLOR_LOGIC_OP);
+    dispatch->glDisable(GL_COLOR_LOGIC_OP);
     return;
   }
-  glEnable(GL_COLOR_LOGIC_OP);
+  dispatch->glEnable(GL_COLOR_LOGIC_OP);
   switch (alu) {
   case GXclear:
-    glLogicOp(GL_CLEAR);
+    dispatch->glLogicOp(GL_CLEAR);
     break;
   case GXand:
-    glLogicOp(GL_AND);
+    dispatch->glLogicOp(GL_AND);
     break;
   case GXandReverse:
-    glLogicOp(GL_AND_REVERSE);
+    dispatch->glLogicOp(GL_AND_REVERSE);
     break;
   case GXandInverted:
-    glLogicOp(GL_AND_INVERTED);
+    dispatch->glLogicOp(GL_AND_INVERTED);
     break;
   case GXnoop:
-    glLogicOp(GL_NOOP);
+    dispatch->glLogicOp(GL_NOOP);
     break;
   case GXxor:
-    glLogicOp(GL_XOR);
+    dispatch->glLogicOp(GL_XOR);
     break;
   case GXor:
-    glLogicOp(GL_OR);
+    dispatch->glLogicOp(GL_OR);
     break;
   case GXnor:
-    glLogicOp(GL_NOR);
+    dispatch->glLogicOp(GL_NOR);
     break;
   case GXequiv:
-    glLogicOp(GL_EQUIV);
+    dispatch->glLogicOp(GL_EQUIV);
     break;
   case GXinvert:
-    glLogicOp(GL_INVERT);
+    dispatch->glLogicOp(GL_INVERT);
     break;
   case GXorReverse:
-    glLogicOp(GL_OR_REVERSE);
+    dispatch->glLogicOp(GL_OR_REVERSE);
     break;
   case GXcopyInverted:
-    glLogicOp(GL_COPY_INVERTED);
+    dispatch->glLogicOp(GL_COPY_INVERTED);
     break;
   case GXorInverted:
-    glLogicOp(GL_OR_INVERTED);
+    dispatch->glLogicOp(GL_OR_INVERTED);
     break;
   case GXnand:
-    glLogicOp(GL_NAND);
+    dispatch->glLogicOp(GL_NAND);
     break;
   case GXset:
-    glLogicOp(GL_SET);
+    dispatch->glLogicOp(GL_SET);
     break;
   default:
     FatalError("unknown logic op\n");
@@ -206,6 +208,7 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
 {
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
   glamor_screen_private *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
+  glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
   unsigned int stride, row_length;
   void *texels;
   GLenum iformat;
@@ -231,24 +234,24 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type, 
   stride = pixmap->devKind;
   row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
 
-  glBindTexture(GL_TEXTURE_2D, tex);
+  dispatch->glBindTexture(GL_TEXTURE_2D, tex);
 
   if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+    dispatch->glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    dispatch->glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
   } 
   else {
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    dispatch->glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   }
 
   if (pixmap_priv->pbo && pixmap_priv->pbo_valid) {
     texels = NULL;
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixmap_priv->pbo);
+    dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixmap_priv->pbo);
   }
   else
     texels = pixmap->devPrivate.ptr;
 
-  glTexImage2D(GL_TEXTURE_2D, 
+  dispatch->glTexImage2D(GL_TEXTURE_2D, 
 	       0, 
 	       iformat,
 	       pixmap->drawable.width, 
@@ -271,6 +274,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
   glamor_screen_private *glamor_priv =
     glamor_get_screen_private(pixmap->drawable.pScreen);
+  glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
   static float vertices[8] = {-1, -1,
 			      1, -1,
 			      1,  1,
@@ -303,41 +307,41 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
     ptexcoords = texcoords_inv;
 
   /* Slow path, we need to flip y or wire alpha to 1. */
-  glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
+  dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                         2 * sizeof(float),
                         vertices);
-  glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-  glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE,
+  dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+  dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE,
                         2 * sizeof(float),
                         ptexcoords);
-  glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+  dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
   glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-  glGenTextures(1, &tex);
+  dispatch->glGenTextures(1, &tex);
 
   __glamor_upload_pixmap_to_texture(pixmap, format, type, tex);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, tex);
+  dispatch->glActiveTexture(GL_TEXTURE0);
+  dispatch->glBindTexture(GL_TEXTURE_2D, tex);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 #ifndef GLAMOR_GLES2
-  glEnable(GL_TEXTURE_2D);
+  dispatch->glEnable(GL_TEXTURE_2D);
 #endif
-  glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
-  glUniform1i(glamor_priv->finish_access_no_revert[no_alpha], no_revert);
-      glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha],0);
+  dispatch->glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
+  dispatch->glUniform1i(glamor_priv->finish_access_no_revert[no_alpha], no_revert);
+      dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha],0);
 
-  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+  dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 #ifndef GLAMOR_GLES2
-  glDisable(GL_TEXTURE_2D);
+  dispatch->glDisable(GL_TEXTURE_2D);
 #endif
-  glUseProgram(0);
-  glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-  glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-  glDeleteTextures(1, &tex);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  dispatch->glUseProgram(0);
+  dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+  dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+  dispatch->glDeleteTextures(1, &tex);
+  dispatch->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void
@@ -345,16 +349,18 @@ glamor_pixmap_ensure_fb(PixmapPtr pixmap)
 {
   int status;
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+  glamor_gl_dispatch *dispatch = &pixmap_priv->glamor_priv->dispatch;
+
   if (pixmap_priv->fb == 0)
-    glGenFramebuffers(1, &pixmap_priv->fb);
+    dispatch->glGenFramebuffers(1, &pixmap_priv->fb);
   assert(pixmap_priv->tex != 0);
-  glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
-  glFramebufferTexture2D(GL_FRAMEBUFFER,
+  dispatch->glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fb);
+  dispatch->glFramebufferTexture2D(GL_FRAMEBUFFER,
                          GL_COLOR_ATTACHMENT0,
 			 GL_TEXTURE_2D,
 			 pixmap_priv->tex,
 			 0);
-    status = glCheckFramebufferStatus (GL_FRAMEBUFFER);
+    status = dispatch->glCheckFramebufferStatus (GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
         const char *str;
         switch (status) {
@@ -387,6 +393,7 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha, int no_revert)
   int need_fbo;
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
   glamor_screen_private *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
+  glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
   if (!glamor_check_fbo_size(glamor_priv, pixmap->drawable.width , pixmap->drawable.height) 
       || !glamor_check_fbo_depth(pixmap->drawable.depth)) {
@@ -404,13 +411,13 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha, int no_revert)
     need_fbo = 0;
 
   if (pixmap_priv->tex == 0) 
-    glGenTextures(1, &pixmap_priv->tex);
+    dispatch->glGenTextures(1, &pixmap_priv->tex);
 
   if (need_fbo) {
-    glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pixmap->drawable.width, 
+    dispatch->glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
+    dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    dispatch->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pixmap->drawable.width, 
 		 pixmap->drawable.height, 0,
 		 GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glamor_pixmap_ensure_fb(pixmap);
@@ -498,6 +505,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum *format,
     ScreenPtr screen;
     PixmapPtr temp_pixmap;
     glamor_pixmap_private *temp_pixmap_priv;
+    glamor_gl_dispatch *dispatch;
     static float vertices[8] = {-1, -1,
 			      1, -1,
 			      1,  1,
@@ -513,6 +521,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum *format,
 
     glamor_priv = glamor_get_screen_private(screen);
     source_priv = glamor_get_pixmap_private(source);
+    dispatch = &glamor_priv->dispatch;
     if (*format == GL_BGRA) {
       *format = GL_RGBA;
       swap_rb = 1;
@@ -527,36 +536,35 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum *format,
 
     temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
 
-    glBindTexture(GL_TEXTURE_2D, temp_pixmap_priv->tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, *format, source->drawable.width, 
+    dispatch->glBindTexture(GL_TEXTURE_2D, temp_pixmap_priv->tex);
+    dispatch->glTexImage2D(GL_TEXTURE_2D, 0, *format, source->drawable.width, 
 		 source->drawable.height, 0,
 		 *format, *type, NULL);
     
-    glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
+    dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                         2 * sizeof(float),
                         vertices);
-    glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+    dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
     
-    glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE,
+    dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT, GL_FALSE,
                         2 * sizeof(float),
                         texcoords);
-    glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+    dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, source_priv->tex);
+    dispatch->glActiveTexture(GL_TEXTURE0);
+    dispatch->glBindTexture(GL_TEXTURE_2D, source_priv->tex);
 
     glamor_set_destination_pixmap_priv_nc(temp_pixmap_priv);
 
-    glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
-    glUniform1i(glamor_priv->finish_access_no_revert[no_alpha], no_revert);
-      glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha], swap_rb);
+    dispatch->glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
+    dispatch->glUniform1i(glamor_priv->finish_access_no_revert[no_alpha], no_revert);
+      dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha], swap_rb);
 
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-    glUseProgram(0);
-    glFlush();
+    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+    dispatch->glUseProgram(0);
     return temp_pixmap; 
 }
  
@@ -583,6 +591,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   ScreenPtr screen;
   glamor_screen_private *glamor_priv =
     glamor_get_screen_private(pixmap->drawable.pScreen);
+  glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
   
   screen = pixmap->drawable.pScreen;
   if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
@@ -641,43 +650,43 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
   row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
 
   if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
+    dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
   }
   else {
-    glPixelStorei(GL_PACK_ALIGNMENT, 4);
-  //  glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+    dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 4);
+  //  dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, 0);
   }
-
   if (glamor_priv->has_pack_invert || glamor_priv->yInverted) {
 
     if (!glamor_priv->yInverted) {
       assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP); 
-      glPixelStorei(GL_PACK_INVERT_MESA, 1);
+      dispatch->glPixelStorei(GL_PACK_INVERT_MESA, 1);
     }
     
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
     if (pixmap_priv->pbo == 0)
-      glGenBuffers (1, &pixmap_priv->pbo);
-    glBindBuffer (GL_PIXEL_PACK_BUFFER, pixmap_priv->pbo);
-    glBufferData (GL_PIXEL_PACK_BUFFER,
+      dispatch->glGenBuffers (1, &pixmap_priv->pbo);
+    dispatch->glBindBuffer (GL_PIXEL_PACK_BUFFER, pixmap_priv->pbo);
+    dispatch->glBufferData (GL_PIXEL_PACK_BUFFER,
 		     stride * pixmap->drawable.height,
 		     NULL, gl_usage);
-    glReadPixels (0, 0,
+    dispatch->glReadPixels (0, 0,
                     row_length, pixmap->drawable.height,
                     format, type, 0);
-    data = glMapBuffer (GL_PIXEL_PACK_BUFFER, gl_access);
+    data = dispatch->glMapBuffer (GL_PIXEL_PACK_BUFFER, gl_access);
     pixmap_priv->pbo_valid = TRUE;
 
     if (!glamor_priv->yInverted) {
       assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
-      glPixelStorei(GL_PACK_INVERT_MESA, 0);
+      dispatch->glPixelStorei(GL_PACK_INVERT_MESA, 0);
     }
-    glBindBuffer (GL_PIXEL_PACK_BUFFER, 0);
+    dispatch->glBindBuffer (GL_PIXEL_PACK_BUFFER, 0);
+
     } else {
     if (type == GL_UNSIGNED_SHORT_1_5_5_5_REV)
       type = GL_UNSIGNED_SHORT_5_5_5_1;
-    glReadPixels (0, 0,
+    dispatch->glReadPixels (0, 0,
                     pixmap->drawable.width, pixmap->drawable.height,
                     format, type, data);
     }
@@ -686,32 +695,31 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
     assert(data);
     if (access != GLAMOR_ACCESS_WO) {
       if (pixmap_priv->pbo == 0)
-	glGenBuffers(1, &pixmap_priv->pbo);
-      glBindBuffer(GL_PIXEL_PACK_BUFFER, pixmap_priv->pbo);
-      glBufferData(GL_PIXEL_PACK_BUFFER,
+	dispatch->glGenBuffers(1, &pixmap_priv->pbo);
+      dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, pixmap_priv->pbo);
+      dispatch->glBufferData(GL_PIXEL_PACK_BUFFER,
 		      stride * pixmap->drawable.height,
 		      NULL, GL_STREAM_READ);
-      glReadPixels (0, 0, row_length, pixmap->drawable.height,
+      dispatch->glReadPixels (0, 0, row_length, pixmap->drawable.height,
 		    format, type, 0);
-      read = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+      read = dispatch->glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 	  
       for (y = 0; y < pixmap->drawable.height; y++)
 	memcpy(data + y * stride,
 	       read + (pixmap->drawable.height - y - 1) * stride, stride);
-      glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-      glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+      dispatch->glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+      dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
       pixmap_priv->pbo_valid = FALSE;
-      glDeleteBuffers(1, &pixmap_priv->pbo);
+      dispatch->glDeleteBuffers(1, &pixmap_priv->pbo);
       pixmap_priv->pbo = 0;
     }
   }
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  dispatch->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 done:
   pixmap->devPrivate.ptr = data;
 
   if (temp_pixmap) { 
-      glFlush();
       (*screen->DestroyPixmap)(temp_pixmap);
   }
 
@@ -724,14 +732,15 @@ static void
 _glamor_destroy_upload_pixmap(PixmapPtr pixmap)
 {
   glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+  glamor_gl_dispatch *dispatch = &pixmap_priv->glamor_priv->dispatch;
 
   assert(pixmap_priv->gl_fbo == 0);
   if (pixmap_priv->fb)
-    glDeleteFramebuffers(1, &pixmap_priv->fb);
+    dispatch->glDeleteFramebuffers(1, &pixmap_priv->fb);
   if (pixmap_priv->tex)
-    glDeleteTextures(1, &pixmap_priv->tex);
+    dispatch->glDeleteTextures(1, &pixmap_priv->tex);
   if (pixmap_priv->pbo)
-    glDeleteBuffers(1, &pixmap_priv->pbo);
+    dispatch->glDeleteBuffers(1, &pixmap_priv->pbo);
   pixmap_priv->fb = pixmap_priv->tex = pixmap_priv->pbo = 0;
 
 }

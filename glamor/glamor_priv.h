@@ -178,6 +178,8 @@ enum shader_in {
   SHADER_IN_COUNT,
 };
 
+#include "glamor_gl_dispatch.h"
+
 struct glamor_screen_private;
 struct glamor_pixmap_private;
 typedef void (*glamor_pixmap_validate_function_t)(struct glamor_screen_private*, 
@@ -251,6 +253,7 @@ typedef struct glamor_screen_private {
   glamor_glyph_cache_t glyphCaches[GLAMOR_NUM_GLYPH_CACHE_FORMATS];
   Bool glyph_cache_initialized;
 
+  struct glamor_gl_dispatch dispatch; 
 } glamor_screen_private;
 
 typedef enum glamor_access {
@@ -310,18 +313,18 @@ typedef struct glamor_pixmap_private {
   PictFormatShort pict_format;
   glamor_pending_op pending_op;
   PixmapPtr container;
+  glamor_screen_private *glamor_priv;
 } glamor_pixmap_private;
 
-#define GLAMOR_CHECK_PENDING_FILL(_glamor_priv_, _pixmap_priv_) do \
+#define GLAMOR_CHECK_PENDING_FILL(_dispatch_, _glamor_priv_, _pixmap_priv_) do \
   { \
       if (_pixmap_priv_->pending_op.type == GLAMOR_PENDING_FILL) { \
-        glUseProgram(_glamor_priv_->solid_prog); \
-        glUniform4fv(_glamor_priv_->solid_color_uniform_location, 1,  \
+        _dispatch_->glUseProgram(_glamor_priv_->solid_prog); \
+        _dispatch_->glUniform4fv(_glamor_priv_->solid_color_uniform_location, 1,  \
                         _pixmap_priv_->pending_op.fill.color4fv); \
       } \
   } while(0)
  
-
 /* 
  * Pixmap dynamic status, used by dynamic upload feature.
  *
@@ -752,8 +755,8 @@ Bool glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 		    unsigned char alu, unsigned long planemask,
 		    unsigned long fg_pixel, unsigned long bg_pixel,
 		    int stipple_x, int stipple_y);
-GLint glamor_compile_glsl_prog(GLenum type, const char *source);
-void glamor_link_glsl_prog(GLint prog);
+GLint glamor_compile_glsl_prog(glamor_gl_dispatch *dispatch, GLenum type, const char *source);
+void glamor_link_glsl_prog(glamor_gl_dispatch *dispatch, GLint prog);
 void glamor_get_color_4f_from_pixel(PixmapPtr pixmap, unsigned long fg_pixel,
 				    GLfloat *color);
 
@@ -770,7 +773,7 @@ PixmapPtr
 glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum *format, 
                                GLenum *type, int no_alpha, int no_revert);
 
-void glamor_set_alu(unsigned char alu);
+void glamor_set_alu(struct glamor_gl_dispatch * dispatch, unsigned char alu);
 Bool glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask);
 void glamor_get_transform_uniform_locations(GLint prog,
 					    glamor_transform_uniforms *uniform_locations);
