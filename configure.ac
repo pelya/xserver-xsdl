@@ -1674,8 +1674,8 @@ if test "x$XORG" = xyes; then
 		xorg_bus_bsdpci="yes"
 		;;
 	  *)
-		XORG_OS_SUBDIR="unknown"
-		AC_MSG_ERROR([m4_text_wrap(m4_join([ ],
+		XORG_OS_SUBDIR="stub"
+		AC_MSG_NOTICE([m4_text_wrap(m4_join([ ],
 		[Your OS is unknown. Xorg currently only supports Linux,],
 		[Free/Open/Net/DragonFlyBSD, Solaris/OpenSolaris, & GNU Hurd.],
 		[If you are interested in porting Xorg to your platform,],
@@ -2176,6 +2176,7 @@ hw/xfree86/os-support/hurd/Makefile
 hw/xfree86/os-support/misc/Makefile
 hw/xfree86/os-support/linux/Makefile
 hw/xfree86/os-support/solaris/Makefile
+hw/xfree86/os-support/stub/Makefile
 hw/xfree86/parser/Makefile
 hw/xfree86/ramdac/Makefile
 hw/xfree86/shadowfb/Makefile
