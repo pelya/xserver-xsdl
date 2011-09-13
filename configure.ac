@@ -1698,9 +1698,6 @@ if test "x$XORG" = xyes; then
 	if test "x$SUPPORT_PC98" = xyes; then
 		AC_DEFINE(SUPPORT_PC98, 1, [Support PC98])
 	fi
-	if test "x$XORG_OS_PCI" = x ; then
-		XORG_OS_PCI=$XORG_OS
-	fi
 	if test "x$DGA" = xauto; then
 		PKG_CHECK_MODULES(DGA, $DGAPROTO, [DGA=yes], [DGA=no])
 	fi
