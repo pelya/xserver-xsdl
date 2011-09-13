@@ -582,9 +582,6 @@ AC_ARG_ENABLE(install-libxf86config,
 AC_ARG_ENABLE(visibility,     AC_HELP_STRING([--enable-visibility], [Enable symbol visibility (default: auto)]),
 				[SYMBOL_VISIBILITY=$enableval],
 				[SYMBOL_VISIBILITY=auto])
-AC_ARG_ENABLE(pc98,     	AC_HELP_STRING([--enable-pc98], [Enable PC98 support in Xorg (default: auto)]),
-				[SUPPORT_PC98=$enableval],
-				[SUPPORT_PC98=auto])
 
 dnl GLX build options
 AC_ARG_ENABLE(aiglx,          AS_HELP_STRING([--enable-aiglx], [Build accelerated indirect GLX (default: enabled)]),
@@ -1654,9 +1651,6 @@ if test "x$XORG" = xyes; then
 			XORG_CFLAGS="${XORG_CFLAGS} "'$(SOLARIS_ASM_CFLAGS)'
 		fi
 		AC_SUBST([SOLARIS_ASM_CFLAGS])
-		if test "x$SUPPORT_PC98" = xauto; then
-			SUPPORT_PC98="no"
-		fi
 		;;
 	  gnu*)
 		XORG_OS_SUBDIR="hurd"
@@ -1679,18 +1673,9 @@ if test "x$XORG" = xyes; then
 		xorg_bus_sparc="yes"
 		;;
 	  i*86)
-		if test "x$SUPPORT_PC98" = xauto; then
-			SUPPORT_PC98="yes"
-		fi
 		;;
 	esac
 
-	if test "x$SUPPORT_PC98" = xauto; then
-		SUPPORT_PC98="no"
-	fi
-	if test "x$SUPPORT_PC98" = xyes; then
-		AC_DEFINE(SUPPORT_PC98, 1, [Support PC98])
-	fi
 	if test "x$DGA" = xauto; then
 		PKG_CHECK_MODULES(DGA, $DGAPROTO, [DGA=yes], [DGA=no])
 	fi
