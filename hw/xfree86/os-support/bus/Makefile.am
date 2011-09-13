@@ -12,7 +12,7 @@ PLATFORM_SOURCES = Sbus.c
 sdk_HEADERS += xf86Sbus.h
 endif
 
-libbus_la_SOURCES = $(PCI_SOURCES) $(PLATFORM_SOURCES)
+libbus_la_SOURCES = $(PCI_SOURCES) $(PLATFORM_SOURCES) nobus.c
 
 INCLUDES = $(XORG_INCS)
 
