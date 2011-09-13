@@ -1573,7 +1573,6 @@ if test "x$XORG" = xyes; then
 		if test "x$LNXAPM" = xyes; then
 			XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
 		fi
-	  	XORG_OS="linux"
 		XORG_OS_SUBDIR="linux"
 		xorg_bus_linuxpci="yes"
 		linux_acpi="no"
@@ -1593,12 +1592,10 @@ if test "x$XORG" = xyes; then
 		esac
 		;;
 	  freebsd* | kfreebsd*-gnu | dragonfly*)
-	  	XORG_OS="freebsd"
 		XORG_OS_SUBDIR="bsd"
 		xorg_bus_bsdpci="yes"
 		;;
 	  netbsd*)
-	  	XORG_OS="netbsd"
 		XORG_OS_SUBDIR="bsd"
 		xorg_bus_bsdpci="yes"
 		;;
@@ -1607,12 +1604,10 @@ if test "x$XORG" = xyes; then
 			-o "x$ac_cv_BSD_KQUEUE_APM" = xyes; then
 			XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
 		fi
-	  	XORG_OS="openbsd"
 		XORG_OS_SUBDIR="bsd"
 		xorg_bus_bsdpci="yes"
 		;;
 	  solaris*)
-	  	XORG_OS="solaris"
 		XORG_OS_SUBDIR="solaris"
 		XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
 		# Use the same stubs as BSD for old functions, since we now
@@ -1664,14 +1659,12 @@ if test "x$XORG" = xyes; then
 		fi
 		;;
 	  gnu*)
-	  	XORG_OS="gnu"
 		XORG_OS_SUBDIR="hurd"
 		# Use the same stubs as BSD for old functions, since we now
 		# use libpciaccess for PCI
 		xorg_bus_bsdpci="yes"
 		;;
 	  *)
-	  	XORG_OS="unknown"
 		XORG_OS_SUBDIR="unknown"
 		AC_MSG_ERROR([m4_text_wrap(m4_join([ ],
 		[Your OS is unknown. Xorg currently only supports Linux,],
@@ -1726,7 +1719,6 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([XORG_LIBS])
 	AC_SUBST([XORG_SYS_LIBS])
 	AC_SUBST([XORG_INCS])
-	AC_SUBST([XORG_OS])
 	AC_SUBST([XORG_OS_SUBDIR])
 	AC_SUBST([XORG_CFLAGS])
 
