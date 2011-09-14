@@ -784,11 +784,6 @@ VIDMODEPROTO="xf86vidmodeproto >= 2.2.99.1"
 WINDOWSWMPROTO="windowswmproto"
 APPLEWMPROTO="applewmproto >= 1.4"
 
-dnl Core modules for most extensions, et al.
-SDK_REQUIRED_MODULES="[xproto >= 7.0.22] [randrproto >= 1.2.99.3] [renderproto >= 0.11] [xextproto >= 7.1.99] [inputproto >= 2.0.99.1] [kbproto >= 1.0.3] fontsproto"
-# Make SDK_REQUIRED_MODULES available for inclusion in xorg-server.pc
-AC_SUBST(SDK_REQUIRED_MODULES)
-
 dnl List of libraries that require a specific version
 LIBAPPLEWM="applewm >= 1.4"
 LIBDMX="dmx >= 1.0.99.1"
@@ -809,6 +804,11 @@ dnl Pixman is always required, but we separate it out so we can link
 dnl specific modules against it
 PKG_CHECK_MODULES(PIXMAN, $LIBPIXMAN)
 REQUIRED_LIBS="$REQUIRED_LIBS $LIBPIXMAN $LIBXFONT xau"
+
+dnl Core modules for most extensions, et al.
+SDK_REQUIRED_MODULES="[xproto >= 7.0.22] [randrproto >= 1.2.99.3] [renderproto >= 0.11] [xextproto >= 7.1.99] [inputproto >= 2.0.99.1] [kbproto >= 1.0.3] fontsproto $LIBPIXMAN"
+# Make SDK_REQUIRED_MODULES available for inclusion in xorg-server.pc
+AC_SUBST(SDK_REQUIRED_MODULES)
 
 REQUIRED_MODULES="[fixesproto >= 5.0] [damageproto >= 1.1] [xcmiscproto >= 1.2.0] [xtrans >= 1.2.2] [bigreqsproto >= 1.1.0] $SDK_REQUIRED_MODULES"
 
@@ -1583,6 +1583,7 @@ if test "x$XORG" = xyes; then
 	if test "x$PCI" = xyes; then
 
 	PKG_CHECK_MODULES([PCIACCESS], $LIBPCIACCESS)
+	SDK_REQUIRED_MODULES="$SDK_REQUIRED_MODULES $LIBPCIACCESS"
 	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $GLX_SYS_LIBS"
 	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
 
