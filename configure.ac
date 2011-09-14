@@ -702,10 +702,6 @@ AM_CONDITIONAL(SECURE_RPC, [test "x$SECURE_RPC" = xyes])
 AM_CONDITIONAL(INT10_VM86, [test "x$INT10" = xvm86])
 AM_CONDITIONAL(INT10_X86EMU, [test "x$INT10" = xx86emu])
 AM_CONDITIONAL(INT10_STUB, [test "x$INT10" = xstub])
-if test "x$INT10" = xyes; then
-	dnl VM86 headers
-	AC_CHECK_HEADERS([sys/vm86.h sys/io.h])
-fi
 
 dnl Handle installing libxf86config
 AM_CONDITIONAL(INSTALL_LIBXF86CONFIG, [test "x$INSTALL_LIBXF86CONFIG" = xyes])
