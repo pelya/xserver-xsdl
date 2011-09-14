@@ -5224,6 +5224,8 @@ CloseDownEvents(void)
     InputEventList = NULL;
 }
 
+#define SEND_EVENT_BIT 0x80
+
 /**
  * Server-side protocol handling for SendEvent request.
  *
@@ -5240,6 +5242,16 @@ ProcSendEvent(ClientPtr client)
     REQUEST(xSendEventReq);
 
     REQUEST_SIZE_MATCH(xSendEventReq);
+
+    /* libXext and other extension libraries may set the bit indicating
+     * that this event came from a SendEvent request so remove it
+     * since otherwise the event type may fail the range checks
+     * and cause an invalid BadValue error to be returned.
+     *
+     * This is safe to do since we later add the SendEvent bit (0x80)
+     * back in once we send the event to the client */
+
+    stuff->event.u.u.type &= ~(SEND_EVENT_BIT);
 
     /* The client's event type must be a core event type or one defined by an
 	extension. */
@@ -5298,7 +5310,7 @@ ProcSendEvent(ClientPtr client)
 	client->errorValue = stuff->propagate;
 	return BadValue;
     }
-    stuff->event.u.u.type |= 0x80;
+    stuff->event.u.u.type |= SEND_EVENT_BIT;
     if (stuff->propagate)
     {
 	for (;pWin; pWin = pWin->parent)
