@@ -719,6 +719,11 @@ case $host_os in
 		XV=no
 		;;
 	darwin*)
+		PCI=no
+		INT10MODULE=no
+		VGAHW=no
+		VBE=no
+		DRM=no
 		DRI2=no
 
 		if test x$XQUARTZ = xauto; then
