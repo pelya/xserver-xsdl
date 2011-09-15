@@ -168,11 +168,6 @@
 #  define POSIX_TTY
 # endif /* SVR4 */
 
-
-# if defined(sun) && defined(HAS_USL_VTS)
-#  define USE_VT_SYSREQ
-# endif
-
 #endif /* (SYSV || SVR4) */
 
 /**************************************************************************/
@@ -207,7 +202,6 @@
 #  define LDSMAP PIO_SCRNMAP
 #  define LDNMAP LDSMAP
 #  define CLEARDTR_SUPPORT
-#  define USE_VT_SYSREQ
 # endif
 
 # define POSIX_TTY
@@ -342,10 +336,6 @@
 #endif
 
 # define CLEARDTR_SUPPORT
-
-# if defined(SYSCONS_SUPPORT) || defined(PCVT_SUPPORT) || defined(WSCONS_SUPPORT)
-#  define USE_VT_SYSREQ
-# endif
 
 #endif
 /* __FreeBSD_kernel__ || __NetBSD__ || __OpenBSD__ || __bsdi__ */

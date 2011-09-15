@@ -96,7 +96,6 @@ InputInfoPtr xf86InputDevs = NULL;
 xf86InfoRec xf86Info = {
     .consoleFd                  = -1,
     .vtno                       = -1,
-    .vtSysreq                   = FALSE,
     .lastEventTime              = -1,
     .vtRequestsPending          = FALSE,
 #ifdef sun

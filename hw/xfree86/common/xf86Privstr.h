@@ -57,7 +57,6 @@ typedef enum {
 typedef struct {
     int			consoleFd;
     int			vtno;
-    Bool		vtSysreq;
 
     /* event handler part */
     int			lastEventTime;

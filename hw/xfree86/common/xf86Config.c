@@ -670,7 +670,6 @@ typedef enum {
     FLAG_DISABLEVIDMODE,
     FLAG_ALLOWNONLOCAL,
     FLAG_ALLOWMOUSEOPENFAIL,
-    FLAG_VTSYSREQ,
     FLAG_SAVER_BLANKTIME,
     FLAG_DPMS_STANDBYTIME,
     FLAG_DPMS_SUSPENDTIME,
@@ -710,8 +709,6 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_ALLOWNONLOCAL,		"AllowNonLocalXvidtune",	OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_ALLOWMOUSEOPENFAIL,	"AllowMouseOpenFail",		OPTV_BOOLEAN,
-	{0}, FALSE },
-  { FLAG_VTSYSREQ,		"VTSysReq",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_SAVER_BLANKTIME,	"BlankTime"		,	OPTV_INTEGER,
 	{0}, FALSE },
@@ -849,16 +846,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 
     if (xf86GetOptValBool(FlagOptions, FLAG_ALLOWMOUSEOPENFAIL, &value))
 	xf86Info.allowMouseOpenFail = value;
-
-    if (xf86GetOptValBool(FlagOptions, FLAG_VTSYSREQ, &value)) {
-#ifdef USE_VT_SYSREQ
-	xf86Info.vtSysreq = value;
-	xf86Msg(X_CONFIG, "VTSysReq %s\n", value ? "enabled" : "disabled");
-#else
-	if (value)
-	    xf86Msg(X_WARNING, "VTSysReq is not supported on this OS\n");
-#endif
-    }
 
     xf86Info.pmFlag = TRUE;
     if (xf86GetOptValBool(FlagOptions, FLAG_NOPM, &value)) 
