@@ -52,21 +52,6 @@
 #include "xf86_OSlib.h"
 #include "Pci.h"
 
-static const struct pci_id_match match_host_bridge = {
-    PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY,
-    (PCI_CLASS_BRIDGE << 16) | (PCI_SUBCLASS_BRIDGE_HOST << 8),
-    0x0000ffff00, 0
-};
-
-#define MAX_DOMAINS 257
-static pointer DomainMmappedIO[MAX_DOMAINS];
-
-void
-linuxPciInit(void)
-{
-    memset(DomainMmappedIO, 0, sizeof(DomainMmappedIO));
-}
-
 /**
  * \bug
  * The generation of the procfs file name for the domain != 0 case may not be 
@@ -153,15 +138,6 @@ linuxPciOpenFile(struct pci_device *dev, Bool write)
  * functionality is almost, but not quite there yet.  Alpha and other kernel
  * ports to multi-domain architectures still need to implement this.
  *
- * This scheme is also predicated on the use of an IOADDRESS compatible type to
- * designate I/O addresses.  Although IOADDRESS is defined as an unsigned
- * integral type, it is actually the virtual address of, i.e. a pointer to, the
- * I/O port to access.  And so, the inX/outX macros in "compiler.h" need to be
- * #define'd appropriately (as is done on SPARC's).
- *
- * Another requirement to port this scheme to another multi-domain architecture
- * is to add the appropriate entries in the pciControllerSizes array below.
- *
  * TO DO:  Address the deleterious reaction some host bridges have to master
  *         aborts.  This is already done for secondary PCI buses, but not yet
  *         for accesses to primary buses (except for the SPARC port, where
@@ -221,67 +197,6 @@ get_parent_bridge(struct pci_device *dev)
     pci_iterator_destroy(iter);
 
     return bridge;
-}
-
-/*
- * This is ugly, but until I can extract this information from the kernel,
- * it'll have to do.  The default I/O space size is 64K, and 4G for memory.
- * Anything else needs to go in this table.  (PowerPC folk take note.)
- *
- * Note that Linux/SPARC userland is 32-bit, so 4G overflows to zero here.
- *
- * Please keep this table in ascending vendor/device order.
- */
-static const struct pciSizes {
-    unsigned short vendor, device;
-    unsigned long io_size, mem_size;
-} pciControllerSizes[] = {
-    {
-	PCI_VENDOR_SUN, PCI_CHIP_PSYCHO,
-	1U << 16, 1U << 31
-    },
-    {
-	PCI_VENDOR_SUN, PCI_CHIP_SCHIZO,
-	1U << 24, 1U << 31	/* ??? */
-    },
-    {
-	PCI_VENDOR_SUN, PCI_CHIP_SABRE,
-	1U << 24, (unsigned long)(1ULL << 32)
-    },
-    {
-	PCI_VENDOR_SUN, PCI_CHIP_HUMMINGBIRD,
-	1U << 24, (unsigned long)(1ULL << 32)
-    }
-};
-#define NUM_SIZES (sizeof(pciControllerSizes) / sizeof(pciControllerSizes[0]))
-
-static const struct pciSizes *
-linuxGetSizesStruct(const struct pci_device *dev)
-{
-    static const struct pciSizes default_size = {
-	0, 0, 1U << 16, (unsigned long)(1ULL << 32)
-    };
-    int          i;
-
-    /* Look up vendor/device */
-    if (dev != NULL) {
-	for (i = 0;  i < NUM_SIZES;  i++) {
-	    if ((dev->vendor_id == pciControllerSizes[i].vendor)
-		&& (dev->device_id == pciControllerSizes[i].device)) {
-		return & pciControllerSizes[i];
-	    }
-	}
-    }
-
-    /* Default to 64KB I/O and 4GB memory. */
-    return & default_size;
-}
-
-static __inline__ unsigned long
-linuxGetIOSize(const struct pci_device *dev)
-{
-    const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
-    return sizes->io_size;
 }
 
 static pointer
@@ -406,45 +321,3 @@ xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
     }
     return addr;
 }
-
-/**
- * Map I/O space in this domain
- *
- * Each domain has a legacy ISA I/O space.  This routine will try to
- * map it using the Linux sysfs legacy_io interface.  If that fails,
- * it'll fall back to using /proc/bus/pci.
- *
- * If the legacy_io interface \b does exist, the file descriptor (\c fd below)
- * will be saved in the \c DomainMmappedIO array in the upper bits of the
- * pointer.  Callers will do I/O with small port numbers (<64k values), so
- * the platform I/O code can extract the port number and the \c fd, \c lseek
- * to the port number in the legacy_io file, and issue the read or write.
- *
- * This has no means of returning failure, so all errors are fatal
- */
-IOADDRESS
-xf86MapLegacyIO(struct pci_device *dev)
-{
-    const int domain = dev->domain;
-    struct pci_device *bridge = get_parent_bridge(dev);
-    int fd;
-
-    if (domain >= MAX_DOMAINS)
-	FatalError("xf86MapLegacyIO():  domain out of range\n");
-
-    if (DomainMmappedIO[domain] == NULL) {
-	/* Permanently map all of I/O space */
-	fd = linuxOpenLegacy(bridge, "legacy_io");
-	if (fd < 0) {
-	    DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, bridge,
-						  0, linuxGetIOSize(bridge),
-						  PCIIOC_MMAP_IS_IO);
-	}
-	else { /* legacy_io file exists, encode fd */
-	    DomainMmappedIO[domain] = (pointer)(intptr_t)(fd << 24);
-	}
-    }
-
-    return (IOADDRESS)DomainMmappedIO[domain];
-}
-

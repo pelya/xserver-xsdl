@@ -742,7 +742,6 @@ typedef struct _ScrnInfoRec {
     unsigned long	biosBase;		/* Base address of video BIOS */
     unsigned long	memPhysBase;		/* Physical address of FB */
     unsigned long 	fbOffset;		/* Offset of FB in the above */
-    IOADDRESS    	domainIOBase;		/* Domain I/O base address */
     int			memClk;			/* memory clock */
     int			textClockFreq;		/* clock of text mode */
     Bool		flipPixels;		/* swap default black/white */

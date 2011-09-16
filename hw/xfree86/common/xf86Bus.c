@@ -308,7 +308,6 @@ xf86AddEntityToScreen(ScrnInfoPtr pScrn, int entityIndex)
     pScrn->entityInstanceList = xnfrealloc(pScrn->entityInstanceList,
 				    pScrn->numEntities * sizeof(int));
     pScrn->entityInstanceList[pScrn->numEntities - 1] = 0;
-    pScrn->domainIOBase = xf86Entities[entityIndex]->domainIO;
 }
 
 void
