@@ -17,7 +17,7 @@
 #include <EGL/eglext.h>
 
 #include "glamor_gl_dispatch.h"
-struct glamor_screen_private {
+struct glamor_ddx_screen_private {
 	EGLDisplay display;
 	EGLContext context;
 	EGLImageKHR root;
@@ -34,10 +34,10 @@ struct glamor_screen_private {
         struct glamor_gl_dispatch *dispatch;
 };
 
-inline struct glamor_screen_private *
-glamor_get_screen_private(ScrnInfoPtr scrn)
+inline struct glamor_ddx_screen_private *
+glamor_ddx_get_screen_private(ScrnInfoPtr scrn)
 {
-	return (struct glamor_screen_private *) (scrn->driverPrivate);
+	return (struct glamor_ddx_screen_private *) (scrn->driverPrivate);
 }
 
 Bool glamor_resize(ScrnInfoPtr scrn, int width, int height);

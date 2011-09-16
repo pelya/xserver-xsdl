@@ -478,7 +478,7 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 {
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	ScrnInfoPtr scrn = crtc->scrn;
-	struct glamor_screen_private *glamor = glamor_get_screen_private(scrn);
+	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
 
 	if (drmmode_crtc->cursor == NULL)
 	{
