@@ -16,25 +16,31 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#include <gbm.h>
 #include "glamor_gl_dispatch.h"
 struct glamor_ddx_screen_private {
 	EGLDisplay display;
 	EGLContext context;
 	EGLImageKHR root;
+        struct gbm_bo *root_bo;
+        struct gbm_bo *cursor_bo;
+
 	EGLint major, minor;
 
 	CreateScreenResourcesProcPtr CreateScreenResources;
 	CloseScreenProcPtr CloseScreen;
 	int fd;
 	int cpp;
+        struct gbm_device *gbm;
 
 	PFNEGLCREATEDRMIMAGEMESA egl_create_drm_image_mesa;
 	PFNEGLEXPORTDRMIMAGEMESA egl_export_drm_image_mesa;
+        PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
 	PFNGLEGLIMAGETARGETTEXTURE2DOESPROC egl_image_target_texture2d_oes;
         struct glamor_gl_dispatch *dispatch;
 };
 
-inline struct glamor_ddx_screen_private *
+inline static struct glamor_ddx_screen_private *
 glamor_ddx_get_screen_private(ScrnInfoPtr scrn)
 {
 	return (struct glamor_ddx_screen_private *) (scrn->driverPrivate);
