@@ -372,10 +372,22 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
 	int ret = TRUE;
 	int i;
 	int fb_id;
+        uint32_t handle, pitch;
 	drmModeModeInfo kmode;
 
-	if (!drmmode_update_fb(scrn, scrn->virtualX, scrn->virtualY))
-		return FALSE;
+        if (drmmode->fb_id == 0) {
+
+	        glamor_frontbuffer_handle(scrn, &handle, &pitch);
+                ret = drmModeAddFB(drmmode->fd,
+                                   scrn->virtualX, scrn->virtualY,
+                                   scrn->depth, scrn->bitsPerPixel,
+                                   pitch, handle,
+                                   &drmmode->fb_id);
+                if (ret < 0) {
+                        ErrorF("failed to add fb\n");
+                        return FALSE;
+                }
+        }
 
 	saved_mode = crtc->mode;
 	saved_x = crtc->x;

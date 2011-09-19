@@ -70,11 +70,18 @@ glamor_resize(ScrnInfoPtr scrn, int width, int height)
 	if (glamor->root != EGL_NO_IMAGE_KHR &&
 	    scrn->virtualX == width && scrn->virtualY == height)
 		return TRUE;
+        else if (scrn->virtualX != width || scrn->virtualY != height) {
 
-        glamor->root_bo = gbm_bo_create(glamor->gbm, width, height,
+            if (glamor->root != EGL_NO_IMAGE_KHR) {
+              eglDestroyImageKHR(glamor->display, glamor->root);
+              gbm_bo_destroy(glamor->root_bo);
+              glamor->root = EGL_NO_IMAGE_KHR;
+            }
+            glamor->root_bo = gbm_bo_create(glamor->gbm, width, height,
                                         GBM_BO_FORMAT_ARGB8888,
                                         GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
-
+        }
+        
 	if (glamor->root_bo == NULL)
 		return FALSE;
 
@@ -206,10 +213,8 @@ glamor_ddx_enter_vt(int scrnIndex, int flags)
 			   "drmSetMaster failed: %s\n", strerror(errno));
 		return FALSE;
 	}
-#if 0
         if (!xf86SetDesiredModes(scrn))
 	  return FALSE;
-#endif               
 	return TRUE;
 }
 
@@ -227,15 +232,15 @@ glamor_ddx_create_screen_resources(ScreenPtr screen)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
 	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
+        int width = scrn->virtualX;
+        int height = scrn->virtualY;
 
 	screen->CreateScreenResources = glamor->CreateScreenResources;
 	if (!(*screen->CreateScreenResources) (screen))
 		return FALSE;
         if (!glamor_glyphs_init(screen))
                 return FALSE;
-
-	if (!xf86SetDesiredModes(scrn))
-		return FALSE;
+        glamor_resize(scrn, width, height);
 
 	return TRUE;
 }
@@ -293,7 +298,23 @@ glamor_egl_has_extension(struct glamor_ddx_screen_private *glamor, char *extensi
   return FALSE;
 }
 
+static Bool
+glamor_ddx_init_front_buffer(ScrnInfoPtr scrn)
+{
+	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
+        int width = scrn->virtualX;
+        int height = scrn->virtualY;
 
+        glamor->root_bo = gbm_bo_create(glamor->gbm, width, height,
+                                        GBM_BO_FORMAT_ARGB8888,
+                                        GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+
+	if (glamor->root_bo == NULL)
+		return FALSE;
+
+        /* XXX shall we update displayWidth here ? */
+        return TRUE;
+}
 
 static Bool
 glamor_ddx_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
@@ -304,10 +325,10 @@ glamor_ddx_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	VisualPtr visual;
         EGLint config_attribs[] = {
 #ifdef GLAMOR_GLES2
-        EGL_CONTEXT_CLIENT_VERSION, 2, 
+          EGL_CONTEXT_CLIENT_VERSION, 2, 
 #endif
           EGL_NONE
-    };
+        };
 
 
 	/* If serverGeneration != 1 then fd was closed during the last
@@ -397,6 +418,9 @@ glamor_ddx_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 		return FALSE;
 	if (!miSetPixmapDepths())
 		return FALSE;
+
+        if (!glamor_ddx_init_front_buffer(scrn))
+                return FALSE;
 
 	if (!fbScreenInit(screen, NULL,
 			  scrn->virtualX, scrn->virtualY,
