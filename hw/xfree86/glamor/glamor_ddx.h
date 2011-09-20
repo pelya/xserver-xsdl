@@ -1,43 +1,23 @@
 #ifndef GLAMOR_DDX_H
 #define GLAMOR_DDX_H
 
-#define GL_GLEXT_PROTOTYPES
-#define EGL_EGLEXT_PROTOTYPES
-#define EGL_DISPLAY_NO_X_MESA
-
-#if GLAMOR_GLES2
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#else
-#include <GL/gl.h>
-#endif
-
-#define MESA_EGL_NO_X11_HEADERS
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-
 #include <gbm.h>
-#include "glamor_gl_dispatch.h"
+#define GLAMOR_FOR_XORG 1
+#include <glamor.h>
 struct glamor_ddx_screen_private {
-	EGLDisplay display;
-	EGLContext context;
-	EGLImageKHR root;
         struct gbm_bo *root_bo;
         struct gbm_bo *cursor_bo;
-
-	EGLint major, minor;
+        struct gbm_device *gbm;
 
 	CreateScreenResourcesProcPtr CreateScreenResources;
 	CloseScreenProcPtr CloseScreen;
 	int fd;
 	int cpp;
-        struct gbm_device *gbm;
+};
 
-	PFNEGLCREATEDRMIMAGEMESA egl_create_drm_image_mesa;
-	PFNEGLEXPORTDRMIMAGEMESA egl_export_drm_image_mesa;
-        PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
-	PFNGLEGLIMAGETARGETTEXTURE2DOESPROC egl_image_target_texture2d_oes;
-        struct glamor_gl_dispatch *dispatch;
+struct glamor_gbm_cursor {
+       struct gbm_bo *cursor_bo;
+       PixmapPtr cursor_pixmap;
 };
 
 inline static struct glamor_ddx_screen_private *
@@ -46,15 +26,15 @@ glamor_ddx_get_screen_private(ScrnInfoPtr scrn)
 	return (struct glamor_ddx_screen_private *) (scrn->driverPrivate);
 }
 
-Bool glamor_resize(ScrnInfoPtr scrn, int width, int height);
+Bool glamor_front_buffer_resize(ScrnInfoPtr scrn, int width, int height);
 void glamor_frontbuffer_handle(ScrnInfoPtr scrn,
 			       uint32_t *handle, uint32_t *pitch);
 Bool glamor_load_cursor(ScrnInfoPtr scrn,
-			CARD32 *image, int width, int height);
+			int width, int height);
 
-void glamor_cursor_handle(ScrnInfoPtr scrn, EGLImageKHR image, uint32_t *handle, uint32_t *pitch);
-EGLImageKHR glamor_create_cursor_argb(ScrnInfoPtr scrn, int width, int height);
-void glamor_destroy_cursor(ScrnInfoPtr scrn, EGLImageKHR cursor);
+void glamor_cursor_handle(struct glamor_gbm_cursor *cursor, uint32_t *handle, uint32_t *pitch);
+Bool glamor_create_cursor(ScrnInfoPtr scrn, struct glamor_gbm_cursor *cursor, int width, int height);
+void glamor_destroy_cursor(ScrnInfoPtr scrn, struct glamor_gbm_cursor *cursor) ;
 
 Bool drmmode_pre_init(ScrnInfoPtr scrn, int fd, int cpp);
 void drmmode_closefb(ScrnInfoPtr scrn);

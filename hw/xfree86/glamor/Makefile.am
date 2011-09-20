@@ -9,14 +9,13 @@ glamor_la_CFLAGS =					\
 	-I$(top_srcdir)/hw/xfree86/ddc			\
 	-I$(top_srcdir)/hw/xfree86/ramdac		\
 	-I$(top_srcdir)/hw/xfree86/i2c			\
-	-I$(top_srcdir)/glamor
+        -I$(top_srcdir)/glamor
 
 if GLAMOR_GLES2
 glamor_la_CFLAGS+=-DGLAMOR_GLES2
 endif
 
 glamor_la_LDFLAGS = -module -avoid-version \
-                    $(top_builddir)/glamor/libglamor.la  \
                      $(EGL_LIBS)
 
 glamor_ladir = $(moduledir)/drivers

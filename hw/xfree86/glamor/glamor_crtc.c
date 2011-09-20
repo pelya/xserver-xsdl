@@ -50,23 +50,6 @@
 #include <xorgVersion.h>
 #include <libkms/libkms.h>
 
-#define GL_GLEXT_PROTOTYPES
-#define EGL_EGLEXT_PROTOTYPES
-#define EGL_DISPLAY_NO_X_MESA
-
-#if GLAMOR_GLES2
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#ifndef GL_BGRA
-#define GL_BGRA GL_BGRA_EXT
-#endif
-#else
-#include <GL/gl.h>
-#endif
-
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-
 #include "glamor_ddx.h"
 
 typedef struct {
@@ -85,8 +68,7 @@ typedef struct {
     drmmode_ptr drmmode;
     drmModeCrtcPtr mode_crtc;
     uint32_t rotate_fb_id;
-    EGLImageKHR cursor;
-    unsigned int cursor_tex;
+    struct glamor_gbm_cursor *cursor;
 } drmmode_crtc_private_rec, *drmmode_crtc_private_ptr;
 
 typedef struct {
@@ -341,7 +323,7 @@ drmmode_update_fb (ScrnInfoPtr scrn, int width, int height)
 	if (drmmode->fb_id != 0 &&
 	    scrn->virtualX == width && scrn->virtualY == height) 
 		return TRUE;
-	if (!glamor_resize(scrn, width, height))
+	if (!glamor_front_buffer_resize(scrn, width, height))
 		return FALSE;
 	if (drmmode->fb_id != 0)
 		drmModeRmFB(drmmode->fd, drmmode->fb_id);
@@ -490,37 +472,33 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 {
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	ScrnInfoPtr scrn = crtc->scrn;
+	ScreenPtr screen = screenInfo.screens[scrn->scrnIndex];
 	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
+        GCPtr gc;
 
 	if (drmmode_crtc->cursor == NULL)
 	{
-	     drmmode_crtc->cursor = glamor_create_cursor_argb(scrn, 64, 64);
-	     if (drmmode_crtc->cursor == EGL_NO_IMAGE_KHR)
+             drmmode_crtc->cursor = calloc(1, sizeof(*drmmode_crtc->cursor));
+             if (drmmode_crtc->cursor == NULL) {
+                ErrorF("Failed to allocate cursor.\n");
+                return;
+             }
+	     if (!glamor_create_cursor(scrn, drmmode_crtc->cursor, 64, 64)) {
+                free(drmmode_crtc->cursor);
+                drmmode_crtc->cursor = NULL;
+                ErrorF("Failed to create glamor cursor.\n");
 		return;
-		glGenTextures(1, &drmmode_crtc->cursor_tex);
-		glBindTexture(GL_TEXTURE_2D, drmmode_crtc->cursor_tex);
-		glTexParameteri(GL_TEXTURE_2D,
-				GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D,
-				GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		(glamor->egl_image_target_texture2d_oes)(GL_TEXTURE_2D, drmmode_crtc->cursor);
+             }
 	}
-	glBindTexture(GL_TEXTURE_2D, drmmode_crtc->cursor_tex);
-#ifdef GLAMOR_GLES2
-       /* XXX Actually, the image is BGRA not RGBA, so the r and b
-        * should be swapped. But as normally, they are the same value
-        * ignore this currently, don't want to let CPU to do the swizzle.
-        * considering to put this function to the glamor rendering directory.
-        * Thus we can reuse the shader to do this.*/
-       glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0,
-	  GL_RGBA,  GL_UNSIGNED_BYTE, image);
-#else
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 64);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0,
-	  GL_BGRA,  GL_UNSIGNED_INT_8_8_8_8_REV, image);
-#endif
 
+        gc = GetScratchGC (drmmode_crtc->cursor->cursor_pixmap->drawable.depth, screen);
+        if (!gc)
+          return;
+
+        ValidateGC (&drmmode_crtc->cursor->cursor_pixmap->drawable, gc);
+        (*gc->ops->PutImage)(&drmmode_crtc->cursor->cursor_pixmap->drawable, gc, 
+                             32, 0, 0, 64, 64, 0, ZPixmap, (char*)image); 
+        FreeScratchGC (gc);
 }
 
 
@@ -537,13 +515,12 @@ drmmode_hide_cursor (xf86CrtcPtr crtc)
 static void
 drmmode_show_cursor (xf86CrtcPtr crtc)
 {
-	ScrnInfoPtr scrn = crtc->scrn;
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	drmmode_ptr drmmode = drmmode_crtc->drmmode;
 	uint32_t handle, stride;
 
 	ErrorF("show cursor\n");
-	glamor_cursor_handle(scrn, drmmode_crtc->cursor, &handle, &stride);
+	glamor_cursor_handle(drmmode_crtc->cursor, &handle, &stride);
 
 	drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
 			 handle, 64, 64);
@@ -654,8 +631,9 @@ drmmode_crtc_destroy(xf86CrtcPtr crtc)
 	ScrnInfoPtr scrn = crtc->scrn;
         if (drmmode_crtc->cursor) {
           drmmode_hide_cursor(crtc);
-          glDeleteTextures(1, &drmmode_crtc->cursor_tex);
 	  glamor_destroy_cursor(scrn, drmmode_crtc->cursor);
+          free(drmmode_crtc->cursor);
+          drmmode_crtc->cursor = NULL;
         }
         free(drmmode_crtc->cursor);
         crtc->driver_private = NULL;

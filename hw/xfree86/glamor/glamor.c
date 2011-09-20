@@ -41,9 +41,9 @@
 #include "../../../mi/micmap.h"
 #include <xf86Crtc.h>
 #include <xf86.h>
-#define GC XORG_GC
+//#define GC XORG_GC
 #include <glamor.h>
-#undef GC
+//#undef GC
 
 #include "glamor_ddx.h"
 
@@ -59,50 +59,50 @@ glamor_ddx_identify(int flags)
 	xf86Msg(X_INFO, "Standalone %s: OpenGL accelerated X.org driver\n", glamor_ddx_name);
 }
 
-Bool
-glamor_resize(ScrnInfoPtr scrn, int width, int height)
+static Bool
+glamor_ddx_init_front_buffer(ScrnInfoPtr scrn, int width, int height)
 {
 	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
-	ScreenPtr screen = screenInfo.screens[scrn->scrnIndex];
-	EGLImageKHR image;
-	GLuint texture;
 
-	if (glamor->root != EGL_NO_IMAGE_KHR &&
-	    scrn->virtualX == width && scrn->virtualY == height)
-		return TRUE;
-        else if (scrn->virtualX != width || scrn->virtualY != height) {
-
-            if (glamor->root != EGL_NO_IMAGE_KHR) {
-              eglDestroyImageKHR(glamor->display, glamor->root);
-              gbm_bo_destroy(glamor->root_bo);
-              glamor->root = EGL_NO_IMAGE_KHR;
-            }
-            glamor->root_bo = gbm_bo_create(glamor->gbm, width, height,
+        glamor->root_bo = gbm_bo_create(glamor->gbm, width, height,
                                         GBM_BO_FORMAT_ARGB8888,
                                         GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
-        }
-        
+
 	if (glamor->root_bo == NULL)
 		return FALSE;
 
-        image = glamor->egl_create_image_khr(glamor->display, NULL, EGL_NATIVE_PIXMAP_KHR, glamor->root_bo, NULL);
+        scrn->virtualX = width;
+        scrn->virtualY = height; 
+        /* XXX shall we update displayWidth here ? */
+        return TRUE;
+}
 
-	if (image == EGL_NO_IMAGE_KHR) {
-                gbm_bo_destroy(glamor->root_bo);
-                return FALSE;
-        }
+static Bool
+glamor_create_screen_image(ScrnInfoPtr scrn)
+{
+	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
+	ScreenPtr screen = screenInfo.screens[scrn->scrnIndex];
+	unsigned int handle, stride;
+        handle = gbm_bo_get_handle(glamor->root_bo).u32;
+        stride = gbm_bo_get_pitch(glamor->root_bo);
+        return glamor_create_egl_screen_image(screen, handle, stride);
+}
 
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	(glamor->egl_image_target_texture2d_oes)(GL_TEXTURE_2D, image); 
+Bool
+glamor_front_buffer_resize(ScrnInfoPtr scrn, int width, int height)
+{
+	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
+	ScreenPtr screen = screenInfo.screens[scrn->scrnIndex];
 
-	glamor_set_screen_pixmap_texture(screen, width, height, texture);
-	glamor->root = image;
-	scrn->virtualX = width;
-	scrn->virtualY = height;
-	return TRUE;
+        if (glamor->root_bo != NULL) {
+          glamor_close_egl_screen(screen);
+          gbm_bo_destroy(glamor->root_bo);
+          glamor->root_bo = NULL;
+        } 
+
+        if (!glamor_ddx_init_front_buffer(scrn, width, height)) 
+           return FALSE;
+        return glamor_create_screen_image(scrn);
 }
 
 void
@@ -113,32 +113,56 @@ glamor_frontbuffer_handle(ScrnInfoPtr scrn, uint32_t *handle, uint32_t *pitch)
         *pitch = gbm_bo_get_pitch(glamor->root_bo);
 }
 
-EGLImageKHR glamor_create_cursor_argb(ScrnInfoPtr scrn, int width, int height)
+Bool
+glamor_create_cursor(ScrnInfoPtr scrn, struct glamor_gbm_cursor *cursor, int width, int height)
 {
 	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
-        glamor->cursor_bo = gbm_bo_create(glamor->gbm, width, height,
+	ScreenPtr screen = screenInfo.screens[scrn->scrnIndex];
+        unsigned int handle, stride;
+        
+
+        if (cursor->cursor_pixmap) 
+          glamor_destroy_cursor(scrn, cursor);
+
+        cursor->cursor_pixmap = screen->CreatePixmap(screen, 0, 0, 32, 0);
+        if (cursor->cursor_pixmap == NULL)
+           return FALSE;
+        screen->ModifyPixmapHeader(cursor->cursor_pixmap, width, height, 0, 0, 0, 0);
+        cursor->cursor_bo = gbm_bo_create(glamor->gbm, width, height,
                                           GBM_BO_FORMAT_ARGB8888,
-                                          GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING | GBM_BO_USE_CURSOR_64X64);
+                                          GBM_BO_USE_SCANOUT 
+                                          | GBM_BO_USE_RENDERING 
+                                          | GBM_BO_USE_CURSOR_64X64);
 
-	if (glamor->cursor_bo == NULL)
-		return EGL_NO_IMAGE_KHR;
+	if (cursor->cursor_bo == NULL) 
+          goto fail; 
+        glamor_cursor_handle(cursor, &handle, &stride);
+        if (!glamor_create_egl_pixmap_image(cursor->cursor_pixmap, handle, stride))
+          goto fail;
 
-        return glamor->egl_create_image_khr(glamor->display, NULL, EGL_NATIVE_PIXMAP_KHR, glamor->cursor_bo, NULL);
+        return TRUE;
+
+fail:
+        glamor_destroy_cursor(scrn, cursor);
+        return FALSE; 
 }
 
-void glamor_destroy_cursor(ScrnInfoPtr scrn, EGLImageKHR cursor)
+void glamor_destroy_cursor(ScrnInfoPtr scrn, struct glamor_gbm_cursor *cursor)
 {
-	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
-        eglDestroyImageKHR(glamor->display, cursor);
-        gbm_bo_destroy(glamor->cursor_bo);
+	ScreenPtr screen = screenInfo.screens[scrn->scrnIndex];
+        if (cursor->cursor_pixmap)
+          screen->DestroyPixmap(cursor->cursor_pixmap);
+        if (cursor->cursor_bo)
+          gbm_bo_destroy(cursor->cursor_bo);  
+        cursor->cursor_bo = NULL;
+        cursor->cursor_pixmap = NULL;
 }
 
 void
-glamor_cursor_handle(ScrnInfoPtr scrn, EGLImageKHR cursor, uint32_t *handle, uint32_t *pitch)
+glamor_cursor_handle(struct glamor_gbm_cursor *cursor, uint32_t *handle, uint32_t *pitch)
 {
-	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
-        *handle = gbm_bo_get_handle(glamor->cursor_bo).u32;
-        *pitch = gbm_bo_get_pitch(glamor->cursor_bo);
+        *handle = gbm_bo_get_handle(cursor->cursor_bo).u32;
+        *pitch = gbm_bo_get_pitch(cursor->cursor_bo);
 	ErrorF("cursor stride: %d\n", *pitch);
 }
 
@@ -189,6 +213,9 @@ glamor_ddx_pre_init(ScrnInfoPtr scrn, int flags)
 	if (!xf86LoadSubModule(scrn, "fb"))
 	  goto fail;
 
+	if (!xf86LoadSubModule(scrn, "glamor_dix"))
+	  goto fail;
+
 	return TRUE;
 
 fail:
@@ -232,16 +259,16 @@ glamor_ddx_create_screen_resources(ScreenPtr screen)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
 	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
-        int width = scrn->virtualX;
-        int height = scrn->virtualY;
 
 	screen->CreateScreenResources = glamor->CreateScreenResources;
 	if (!(*screen->CreateScreenResources) (screen))
 		return FALSE;
         if (!glamor_glyphs_init(screen))
                 return FALSE;
-        glamor_resize(scrn, width, height);
-
+        if (glamor->root_bo == NULL)
+                return FALSE;
+        if (!glamor_create_screen_image(scrn))
+                return FALSE;
 	return TRUE;
 }
 
@@ -258,62 +285,14 @@ glamor_ddx_close_screen(int scrnIndex, ScreenPtr screen)
 		glamor_ddx_leave_vt(scrnIndex, 0);
 
 	glamor_fini(screen);
-
-        eglDestroyImageKHR(glamor->display, glamor->root);
+        glamor_close_egl_screen(screen);
         gbm_bo_destroy(glamor->root_bo);
-
-	eglMakeCurrent(glamor->display,
-		       EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-	eglTerminate(glamor->display);
 
 	drmmode_closefb(scrn);
 	
 	glamor->fd = -1;
 
-	glamor->root = EGL_NO_IMAGE_KHR;
-
 	return TRUE;
-}
-
-
-
-static Bool
-glamor_egl_has_extension(struct glamor_ddx_screen_private *glamor, char *extension)
-{
-  const char *egl_extensions;
-  char *pext;
-  int  ext_len;
-  ext_len = strlen(extension);
- 
-  egl_extensions = (const char*)eglQueryString(glamor->display, EGL_EXTENSIONS);
-  pext = (char*)egl_extensions;
- 
-  if (pext == NULL || extension == NULL)
-    return FALSE;
-  while((pext = strstr(pext, extension)) != NULL) {
-    if (pext[ext_len] == ' ' || pext[ext_len] == '\0')
-      return TRUE;
-    pext += ext_len;
-  }
-  return FALSE;
-}
-
-static Bool
-glamor_ddx_init_front_buffer(ScrnInfoPtr scrn)
-{
-	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
-        int width = scrn->virtualX;
-        int height = scrn->virtualY;
-
-        glamor->root_bo = gbm_bo_create(glamor->gbm, width, height,
-                                        GBM_BO_FORMAT_ARGB8888,
-                                        GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
-
-	if (glamor->root_bo == NULL)
-		return FALSE;
-
-        /* XXX shall we update displayWidth here ? */
-        return TRUE;
 }
 
 static Bool
@@ -321,16 +300,7 @@ glamor_ddx_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
 	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
-	const char *version;
 	VisualPtr visual;
-        EGLint config_attribs[] = {
-#ifdef GLAMOR_GLES2
-          EGL_CONTEXT_CLIENT_VERSION, 2, 
-#endif
-          EGL_NONE
-        };
-
-
 	/* If serverGeneration != 1 then fd was closed during the last
 	 time closing screen, actually in eglTerminate(). */
 
@@ -354,62 +324,7 @@ glamor_ddx_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
           return FALSE;
         }
 
-	glamor->display = eglGetDisplay(glamor->gbm); 
-#ifndef GLAMOR_GLES2
-	eglBindAPI(EGL_OPENGL_API);
-#else
-	eglBindAPI(EGL_OPENGL_ES_API);
-#endif
-	if (!eglInitialize(glamor->display, &glamor->major, &glamor->minor)) {
-		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-			   "eglInitialize() failed\n");
-		return FALSE;
-	}
-
-	version = eglQueryString(glamor->display, EGL_VERSION);
-	xf86Msg(X_INFO, "%s: EGL version %s:\n", glamor_ddx_name, version);
-
-#define GLAMOR_CHECK_EGL_EXTENSION(EXT)  \
-        if (!glamor_egl_has_extension(glamor, "EGL_" #EXT)) {  \
-               ErrorF("EGL_" #EXT "required.\n");  \
-               return FALSE;  \
-        } 
-
-        GLAMOR_CHECK_EGL_EXTENSION(MESA_drm_image);
-        GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_renderbuffer_image);
-#ifdef GLAMOR_GLES2
-        GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_gles2);
-#else
-        GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_opengl);
-#endif
-
-	glamor->egl_create_drm_image_mesa = (PFNEGLCREATEDRMIMAGEMESA)eglGetProcAddress("eglCreateDRMImageMESA");
-        glamor->egl_create_image_khr = (PFNEGLCREATEIMAGEKHRPROC)
-                                       eglGetProcAddress("eglCreateImageKHR");
-	glamor->egl_export_drm_image_mesa = (PFNEGLEXPORTDRMIMAGEMESA)eglGetProcAddress("eglExportDRMImageMESA");
-	glamor->egl_image_target_texture2d_oes = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglGetProcAddress("glEGLImageTargetTexture2DOES");
-
-	if (!glamor->egl_create_drm_image_mesa || !glamor->egl_export_drm_image_mesa ||
-			!glamor->egl_image_target_texture2d_oes) {
-		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-			   "eglGetProcAddress() failed\n");
-		return FALSE;
-	}
-
-	glamor->context = eglCreateContext(glamor->display,
-					   NULL, EGL_NO_CONTEXT, config_attribs);
-	if (glamor->context == EGL_NO_CONTEXT) {
-		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-			   "Failed to create EGL context\n");
-		return FALSE;
-	}
-
-	if (!eglMakeCurrent(glamor->display,
-			    EGL_NO_SURFACE, EGL_NO_SURFACE, glamor->context)) {
-		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-			   "Failed to make EGL context current\n");
-		return FALSE;
-	}
+	glamor_egl_init(scrn, glamor->fd);
 
 	miClearVisualTypes();
 	if (!miSetVisualTypes(scrn->depth,
@@ -419,7 +334,7 @@ glamor_ddx_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	if (!miSetPixmapDepths())
 		return FALSE;
 
-        if (!glamor_ddx_init_front_buffer(scrn))
+        if (!glamor_ddx_init_front_buffer(scrn, scrn->virtualX, scrn->virtualY))
                 return FALSE;
 
 	if (!fbScreenInit(screen, NULL,
@@ -612,18 +527,6 @@ glamor_ddx_setup(pointer module, pointer opts, int *errmaj, int *errmin)
       return NULL;
    }
 }
-
-Bool
-glamor_gl_dispatch_init(ScreenPtr screen, struct glamor_gl_dispatch *dispatch, int gl_version)
-{
-        ScrnInfoPtr scrn = xf86Screens[screen->myNum];
-        struct glamor_ddx_screen_private *glamor_egl = glamor_ddx_get_screen_private(scrn);
-        if (!glamor_gl_dispatch_init_impl(dispatch, gl_version, eglGetProcAddress))
-          return FALSE;
-        glamor_egl->dispatch = dispatch;
-        return TRUE;
-}
-
 
 static XF86ModuleVersionInfo glamor_ddx_version_info = {
 	glamor_ddx_name,
