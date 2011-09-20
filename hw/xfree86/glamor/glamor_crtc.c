@@ -512,6 +512,34 @@ drmmode_hide_cursor (xf86CrtcPtr crtc)
 			 0, 64, 64);
 }
 
+
+static void
+_drmmode_destroy_cursor(xf86CrtcPtr crtc)
+{
+       drmmode_crtc_private_ptr
+       drmmode_crtc = crtc->driver_private;
+
+       if (drmmode_crtc->cursor == NULL)
+         return;
+       drmmode_hide_cursor(crtc);
+       glamor_destroy_cursor(crtc->scrn, drmmode_crtc->cursor);
+       free(drmmode_crtc->cursor);
+       drmmode_crtc->cursor = NULL;
+}
+
+static void
+drmmode_destroy_cursor(ScrnInfoPtr scrn)
+{
+       int i;
+       xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+
+       for (i = 0; i < xf86_config->num_crtc; i++) 
+             _drmmode_destroy_cursor(xf86_config->crtc[i]);
+}
+
+
+
+
 static void
 drmmode_show_cursor (xf86CrtcPtr crtc)
 {
@@ -629,12 +657,7 @@ drmmode_crtc_destroy(xf86CrtcPtr crtc)
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 
 	ScrnInfoPtr scrn = crtc->scrn;
-        if (drmmode_crtc->cursor) {
-          drmmode_hide_cursor(crtc);
-	  glamor_destroy_cursor(scrn, drmmode_crtc->cursor);
-          free(drmmode_crtc->cursor);
-          drmmode_crtc->cursor = NULL;
-        }
+        _drmmode_destroy_cursor(crtc);
         free(drmmode_crtc->cursor);
         crtc->driver_private = NULL;
 }
@@ -1538,6 +1561,8 @@ void drmmode_closefb(ScrnInfoPtr scrn)
 
 	drmmode_crtc = xf86_config->crtc[0]->driver_private;
 	drmmode = drmmode_crtc->drmmode;
+
+        drmmode_destroy_cursor(scrn);
 
 	drmModeRmFB(drmmode->fd, drmmode->fb_id);
 	drmmode->fb_id = 0;
