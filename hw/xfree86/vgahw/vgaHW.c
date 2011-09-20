@@ -163,67 +163,67 @@ static CARD8 defaultDAC[768] =
 static void
 stdWriteCrtc(vgaHWPtr hwp, CARD8 index, CARD8 value)
 {
-    outb(hwp->IOBase + hwp->PIOOffset + VGA_CRTC_INDEX_OFFSET, index);
-    outb(hwp->IOBase + hwp->PIOOffset + VGA_CRTC_DATA_OFFSET, value);
+    pci_io_write8(hwp->io, hwp->IOBase + VGA_CRTC_INDEX_OFFSET, index);
+    pci_io_write8(hwp->io, hwp->IOBase + VGA_CRTC_DATA_OFFSET, value);
 }
 
 static CARD8
 stdReadCrtc(vgaHWPtr hwp, CARD8 index)
 {
-    outb(hwp->IOBase + hwp->PIOOffset + VGA_CRTC_INDEX_OFFSET, index);
-    return inb(hwp->IOBase + hwp->PIOOffset + VGA_CRTC_DATA_OFFSET);
+    pci_io_write8(hwp->io, hwp->IOBase + VGA_CRTC_INDEX_OFFSET, index);
+    return pci_io_read8(hwp->io, hwp->IOBase + VGA_CRTC_DATA_OFFSET);
 }
 
 static void
 stdWriteGr(vgaHWPtr hwp, CARD8 index, CARD8 value)
 {
-    outb(hwp->PIOOffset + VGA_GRAPH_INDEX, index);
-    outb(hwp->PIOOffset + VGA_GRAPH_DATA, value);
+    pci_io_write8(hwp->io, VGA_GRAPH_INDEX, index);
+    pci_io_write8(hwp->io, VGA_GRAPH_DATA, value);
 }
 
 static CARD8
 stdReadGr(vgaHWPtr hwp, CARD8 index)
 {
-    outb(hwp->PIOOffset + VGA_GRAPH_INDEX, index);
-    return inb(hwp->PIOOffset + VGA_GRAPH_DATA);
+    pci_io_write8(hwp->io, VGA_GRAPH_INDEX, index);
+    return pci_io_read8(hwp->io, VGA_GRAPH_DATA);
 }
 
 static void
 stdWriteSeq(vgaHWPtr hwp, CARD8 index, CARD8 value)
 {
-    outb(hwp->PIOOffset + VGA_SEQ_INDEX, index);
-    outb(hwp->PIOOffset + VGA_SEQ_DATA, value);
+    pci_io_write8(hwp->io, VGA_SEQ_INDEX, index);
+    pci_io_write8(hwp->io, VGA_SEQ_DATA, value);
 }
 
 static CARD8
 stdReadSeq(vgaHWPtr hwp, CARD8 index)
 {
-    outb(hwp->PIOOffset + VGA_SEQ_INDEX, index);
-    return inb(hwp->PIOOffset + VGA_SEQ_DATA);
+    pci_io_write8(hwp->io, VGA_SEQ_INDEX, index);
+    return pci_io_read8(hwp->io, VGA_SEQ_DATA);
 }
 
 static CARD8
 stdReadST00(vgaHWPtr hwp)
 {
-    return inb(hwp->PIOOffset + VGA_IN_STAT_0);
+    return pci_io_read8(hwp->io, VGA_IN_STAT_0);
 }
 
 static CARD8
 stdReadST01(vgaHWPtr hwp)
 {
-    return inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
+    return pci_io_read8(hwp->io, hwp->IOBase + VGA_IN_STAT_1_OFFSET);
 }
 
 static CARD8
 stdReadFCR(vgaHWPtr hwp)
 {
-    return inb(hwp->PIOOffset + VGA_FEATURE_R);
+    return pci_io_read8(hwp->io, VGA_FEATURE_R);
 }
 
 static void
 stdWriteFCR(vgaHWPtr hwp, CARD8 value)
 {
-    outb(hwp->IOBase + hwp->PIOOffset + VGA_FEATURE_W_OFFSET,value);
+    pci_io_write8(hwp->io, hwp->IOBase + VGA_FEATURE_W_OFFSET,value);
 }
 
 static void
@@ -234,9 +234,9 @@ stdWriteAttr(vgaHWPtr hwp, CARD8 index, CARD8 value)
     else
 	index |= 0x20;
 
-    (void) inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
-    outb(hwp->PIOOffset + VGA_ATTR_INDEX, index);
-    outb(hwp->PIOOffset + VGA_ATTR_DATA_W, value);
+    (void) pci_io_read8(hwp->io, hwp->IOBase + VGA_IN_STAT_1_OFFSET);
+    pci_io_write8(hwp->io, VGA_ATTR_INDEX, index);
+    pci_io_write8(hwp->io, VGA_ATTR_DATA_W, value);
 }
 
 static CARD8
@@ -247,85 +247,85 @@ stdReadAttr(vgaHWPtr hwp, CARD8 index)
     else
 	index |= 0x20;
 
-    (void) inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
-    outb(hwp->PIOOffset + VGA_ATTR_INDEX, index);
-    return inb(hwp->PIOOffset + VGA_ATTR_DATA_R);
+    (void) pci_io_read8(hwp->io, hwp->IOBase + VGA_IN_STAT_1_OFFSET);
+    pci_io_write8(hwp->io, VGA_ATTR_INDEX, index);
+    return pci_io_read8(hwp->io, VGA_ATTR_DATA_R);
 }
 
 static void
 stdWriteMiscOut(vgaHWPtr hwp, CARD8 value)
 {
-    outb(hwp->PIOOffset + VGA_MISC_OUT_W, value);
+    pci_io_write8(hwp->io, VGA_MISC_OUT_W, value);
 }
 
 static CARD8
 stdReadMiscOut(vgaHWPtr hwp)
 {
-    return inb(hwp->PIOOffset + VGA_MISC_OUT_R);
+    return pci_io_read8(hwp->io, VGA_MISC_OUT_R);
 }
 
 static void
 stdEnablePalette(vgaHWPtr hwp)
 {
-    (void) inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
-    outb(hwp->PIOOffset + VGA_ATTR_INDEX, 0x00);
+    (void) pci_io_read8(hwp->io, hwp->IOBase + VGA_IN_STAT_1_OFFSET);
+    pci_io_write8(hwp->io, VGA_ATTR_INDEX, 0x00);
     hwp->paletteEnabled = TRUE;
 }
 
 static void
 stdDisablePalette(vgaHWPtr hwp)
 {
-    (void) inb(hwp->IOBase + hwp->PIOOffset + VGA_IN_STAT_1_OFFSET);
-    outb(hwp->PIOOffset + VGA_ATTR_INDEX, 0x20);
+    (void) pci_io_read8(hwp->io, hwp->IOBase + VGA_IN_STAT_1_OFFSET);
+    pci_io_write8(hwp->io, VGA_ATTR_INDEX, 0x20);
     hwp->paletteEnabled = FALSE;
 }
 
 static void
 stdWriteDacMask(vgaHWPtr hwp, CARD8 value)
 {
-    outb(hwp->PIOOffset + VGA_DAC_MASK, value);
+    pci_io_write8(hwp->io, VGA_DAC_MASK, value);
 }
 
 static CARD8
 stdReadDacMask(vgaHWPtr hwp)
 {
-    return inb(hwp->PIOOffset + VGA_DAC_MASK);
+    return pci_io_read8(hwp->io, VGA_DAC_MASK);
 }
 
 static void
 stdWriteDacReadAddr(vgaHWPtr hwp, CARD8 value)
 {
-    outb(hwp->PIOOffset + VGA_DAC_READ_ADDR, value);
+    pci_io_write8(hwp->io, VGA_DAC_READ_ADDR, value);
 }
 
 static void
 stdWriteDacWriteAddr(vgaHWPtr hwp, CARD8 value)
 {
-    outb(hwp->PIOOffset + VGA_DAC_WRITE_ADDR, value);
+    pci_io_write8(hwp->io, VGA_DAC_WRITE_ADDR, value);
 }
 
 static void
 stdWriteDacData(vgaHWPtr hwp, CARD8 value)
 {
-    outb(hwp->PIOOffset + VGA_DAC_DATA, value);
+    pci_io_write8(hwp->io, VGA_DAC_DATA, value);
 }
 
 static CARD8
 stdReadDacData(vgaHWPtr hwp)
 {
-    return inb(hwp->PIOOffset + VGA_DAC_DATA);
+    return pci_io_read8(hwp->io, VGA_DAC_DATA);
 }
 
 static CARD8
 stdReadEnable(vgaHWPtr hwp)
 {
-    return inb(hwp->PIOOffset + VGA_ENABLE);
+    return pci_io_read8(hwp->io, VGA_ENABLE);
 }
 
 static void
 stdWriteEnable(vgaHWPtr hwp, CARD8 value)
 {
-    outb(hwp->PIOOffset + VGA_ENABLE, value);
+    pci_io_write8(hwp->io, VGA_ENABLE, value);
 }
 
 void
@@ -353,9 +353,10 @@ vgaHWSetStdFuncs(vgaHWPtr hwp)
     hwp->writeDacReadAddr	= stdWriteDacReadAddr;
     hwp->writeDacData		= stdWriteDacData;
     hwp->readDacData		= stdReadDacData;
-    hwp->PIOOffset		= 0;
     hwp->readEnable		= stdReadEnable;
     hwp->writeEnable		= stdWriteEnable;
+
+    hwp->io = pci_legacy_open_io(hwp->dev, 0, 64 * 1024);
 }
 
 /*
@@ -1719,7 +1720,9 @@ vgaHWFreeHWRec(ScrnInfoPtr scrp)
 	vgaHWPtr hwp = VGAHWPTR(scrp);
 
 	if (!hwp)
-	    return;
+            return;
+
+        pci_device_close_io(hwp->dev, hwp->io);
 
 	free(hwp->FontInfo1);
 	free(hwp->FontInfo2);
@@ -1789,8 +1792,7 @@ vgaHWGetIOBase(vgaHWPtr hwp)
     hwp->IOBase = (hwp->readMiscOut(hwp) & 0x01) ?
 				VGA_IOBASE_COLOR : VGA_IOBASE_MONO;
     xf86DrvMsgVerb(hwp->pScrn->scrnIndex, X_INFO, 3,
-	"vgaHWGetIOBase: hwp->IOBase is 0x%04x, hwp->PIOOffset is 0x%04lx\n",
-	hwp->IOBase, hwp->PIOOffset);
+	"vgaHWGetIOBase: hwp->IOBase is 0x%04x\n", hwp->IOBase);
 }
 
 
@@ -1995,11 +1997,12 @@ SaveScreenProcPtr vgaHWSaveScreenWeak(void)
 void
 xf86GetClocks(ScrnInfoPtr pScrn, int num, Bool (*ClockFunc)(ScrnInfoPtr, int),
 	      void (*ProtectRegs)(ScrnInfoPtr, Bool),
-	      void (*BlankScreen)(ScrnInfoPtr, Bool), IOADDRESS vertsyncreg,
+	      void (*BlankScreen)(ScrnInfoPtr, Bool), unsigned long vertsyncreg,
 	      int maskval, int knownclkindex, int knownclkvalue)
 {
     register int status = vertsyncreg;
     unsigned long i, cnt, rcnt, sync;
+    vgaHWPtr hwp = VGAHWPTR(pScrn);
 
     /* First save registers that get written on */
     (*ClockFunc)(pScrn, CLK_REG_SAVE);
@@ -2026,22 +2029,22 @@ xf86GetClocks(ScrnInfoPtr pScrn, int num, Bool (*ClockFunc)(ScrnInfoPtr, int),
 	cnt  = 0;
 	sync = 200000;
 
-	while ((inb(status) & maskval) == 0x00)
+	while ((pci_io_read8(hwp->io, status) & maskval) == 0x00)
 	    if (sync-- == 0) goto finish;
 	/* Something appears to be happening, so reset sync count */
 	sync = 200000;
-	while ((inb(status) & maskval) == maskval)
+	while ((pci_io_read8(hwp->io, status) & maskval) == maskval)
 	    if (sync-- == 0) goto finish;
 	/* Something appears to be happening, so reset sync count */
 	sync = 200000;
-	while ((inb(status) & maskval) == 0x00)
+	while ((pci_io_read8(hwp->io, status) & maskval) == 0x00)
 	    if (sync-- == 0) goto finish;
 
 	for (rcnt = 0; rcnt < 5; rcnt++)
 	{
-	    while (!(inb(status) & maskval))
+	    while (!(pci_io_read8(hwp->io, status) & maskval))
 		cnt++;
-	    while ((inb(status) & maskval))
+	    while ((pci_io_read8(hwp->io, status) & maskval))
 		cnt++;
 	}
 
