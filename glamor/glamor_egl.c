@@ -40,6 +40,8 @@
 #define EGL_EGLEXT_PROTOTYPES
 #define EGL_DISPLAY_NO_X_MESA
 
+#include <gbm.h>
+
 #if GLAMOR_GLES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
@@ -79,6 +81,7 @@ struct glamor_egl_screen_private {
 	int fd;
         int front_buffer_handle;
 	int cpp;
+        struct gbm_device *gbm;
 
 	PFNEGLCREATEDRMIMAGEMESA egl_create_drm_image_mesa;
 	PFNEGLEXPORTDRMIMAGEMESA egl_export_drm_image_mesa;
@@ -184,6 +187,8 @@ glamor_create_egl_screen_image(ScreenPtr screen, int handle, int stride)
 /*
  * This function will be called from the dri buffer allocation.
  * It is somehow very familiar with the create screen image.
+ * XXX the egl image here is not stored at any data structure.
+ * Does this cause a leak problem?
  */
 Bool
 glamor_create_egl_pixmap_image(PixmapPtr pixmap, int handle, int stride)
@@ -271,7 +276,18 @@ Bool glamor_egl_init(ScrnInfoPtr scrn, int fd)
         scrn->privates[xf86GlamorEGLPrivateIndex].ptr = glamor_egl;
 
         glamor_egl->fd = fd;
-	glamor_egl->display = eglGetDRMDisplayMESA(glamor_egl->fd);
+
+        glamor_egl->display = eglGetDRMDisplayMESA(glamor_egl->fd);
+
+        if (glamor_egl->display == EGL_NO_DISPLAY) {
+          glamor_egl->gbm = gbm_create_device(glamor_egl->fd);
+          if (glamor_egl->gbm == NULL) {
+            ErrorF("couldn't get display device\n");
+            return FALSE;
+          }
+        }
+
+	glamor_egl->display = eglGetDisplay(glamor_egl->gbm);
 #ifndef GLAMOR_GLES2
 	eglBindAPI(EGL_OPENGL_API);
 #else
