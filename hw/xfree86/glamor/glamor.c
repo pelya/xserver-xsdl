@@ -287,11 +287,8 @@ glamor_ddx_close_screen(int scrnIndex, ScreenPtr screen)
 	glamor_fini(screen);
         glamor_close_egl_screen(screen);
         gbm_bo_destroy(glamor->root_bo);
-
 	drmmode_closefb(scrn);
 	
-	glamor->fd = -1;
-
 	return TRUE;
 }
 
@@ -301,22 +298,6 @@ glamor_ddx_screen_init(int scrnIndex, ScreenPtr screen, int argc, char **argv)
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
 	struct glamor_ddx_screen_private *glamor = glamor_ddx_get_screen_private(scrn);
 	VisualPtr visual;
-	/* If serverGeneration != 1 then fd was closed during the last
-	 time closing screen, actually in eglTerminate(). */
-
-	if (glamor->fd == -1 && serverGeneration != 1) {
-	  glamor->fd = open(dri_device_name, O_RDWR);
-	  if (glamor->fd == -1 ) {
-	    ErrorF("Failed to open %s: %s\n", dri_device_name, strerror(errno));
-	    return FALSE;
-	  }
-	if (drmmode_pre_init(scrn, glamor->fd, glamor->cpp) == FALSE) {
-		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-			   "Kernel modesetting setup failed\n");
-            return FALSE;
-	}
-
-	}
 
         glamor->gbm = gbm_create_device(glamor->fd);
         if (glamor->gbm == NULL) {
