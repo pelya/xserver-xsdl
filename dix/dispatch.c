@@ -3582,7 +3582,7 @@ ProcInitialConnection(ClientPtr client)
 		     bytes_to_int32(prefix->nbytesAuthString);
     if (client->swapped)
     {
-	swaps(&stuff->length, whichbyte);
+	swaps(&stuff->length);
     }
     ResetCurrentRequest(client);
     return Success;
