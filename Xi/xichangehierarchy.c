@@ -434,7 +434,7 @@ ProcXIChangeHierarchy(ClientPtr client)
     any = (xXIAnyHierarchyChangeInfo*)&stuff[1];
     while(stuff->num_changes--)
     {
-        SWAPIF(swapl(&any->type));
+        SWAPIF(swaps(&any->type));
         SWAPIF(swaps(&any->length));
 
         required_len += any->length;

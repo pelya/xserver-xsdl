@@ -1117,7 +1117,7 @@ ProcRRGetPanning (ClientPtr client)
     if (client->swapped) {
 	swaps(&rep.sequenceNumber);
 	swapl(&rep.length);
-	swaps(&rep.timestamp);
+	swapl(&rep.timestamp);
 	swaps(&rep.left);
 	swaps(&rep.top);
 	swaps(&rep.width);
@@ -1197,7 +1197,7 @@ sendReply:
     if (client->swapped) {
 	swaps(&rep.sequenceNumber);
 	swapl(&rep.length);
-	swaps(&rep.newTimestamp);
+	swapl(&rep.newTimestamp);
     }
     WriteToClient(client, sizeof(xRRSetPanningReply), (char *)&rep);
     return Success;

@@ -6190,7 +6190,6 @@ char *			str;
 	swaps(&rep.supported);
 	swaps(&rep.unsupported);
 	swaps(&rep.nDeviceLedFBs);
-	swapl(&rep.type);
     }
     WriteToClient(client,SIZEOF(xkbGetDeviceInfoReply), (char *)&rep);
 

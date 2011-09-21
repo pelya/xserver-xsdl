@@ -281,7 +281,7 @@ SwapButtonInfo(DeviceIntPtr dev, xXIButtonInfo* info)
     swaps(&info->sourceid);
 
     for (i = 0, btn = (Atom*)&info[1]; i < info->num_buttons; i++, btn++)
-        swaps(btn);
+        swapl(btn);
 
     swaps(&info->num_buttons);
 }

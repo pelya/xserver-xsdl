@@ -464,7 +464,7 @@ ProcXF86VidModeGetAllModeLines(ClientPtr client)
 	    swaps(&mdinf.hsyncstart);
 	    swaps(&mdinf.hsyncend);
 	    swaps(&mdinf.htotal);
-	    swaps(&mdinf.hskew);
+	    swapl(&mdinf.hskew);
 	    swaps(&mdinf.vdisplay);
 	    swaps(&mdinf.vsyncstart);
 	    swaps(&mdinf.vsyncend);
@@ -1846,7 +1846,7 @@ SProcXF86VidModeSwitchToMode(ClientPtr client)
     REQUEST(xXF86VidModeSwitchToModeReq);
     swaps(&stuff->length);
     REQUEST_SIZE_MATCH(xXF86VidModeSwitchToModeReq);
-    swaps(&stuff->screen);
+    swapl(&stuff->screen);
     return ProcXF86VidModeSwitchToMode(client);
 }
 

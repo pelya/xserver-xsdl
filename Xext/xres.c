@@ -28,14 +28,8 @@ ProcXResQueryVersion (ClientPtr client)
 {
     REQUEST(xXResQueryVersionReq);
     xXResQueryVersionReply rep;
-    CARD16 client_major, client_minor;  /* not used */
 
     REQUEST_SIZE_MATCH (xXResQueryVersionReq);
-
-    client_major = stuff->client_major;
-    client_minor = stuff->client_minor;
-    (void) client_major;
-    (void) client_minor;
 
     rep.type = X_Reply;
     rep.length = 0;
@@ -316,8 +310,6 @@ SProcXResQueryVersion (ClientPtr client)
 {
     REQUEST(xXResQueryVersionReq);
     REQUEST_SIZE_MATCH (xXResQueryVersionReq);
-    swaps(&stuff->client_major);
-    swaps(&stuff->client_minor);
     return ProcXResQueryVersion(client);
 }
 
@@ -326,7 +318,7 @@ SProcXResQueryClientResources (ClientPtr client)
 {
     REQUEST(xXResQueryClientResourcesReq);
     REQUEST_SIZE_MATCH (xXResQueryClientResourcesReq);
-    swaps(&stuff->xid);
+    swapl(&stuff->xid);
     return ProcXResQueryClientResources(client);
 }
 
@@ -335,7 +327,7 @@ SProcXResQueryClientPixmapBytes (ClientPtr client)
 {
     REQUEST(xXResQueryClientPixmapBytesReq);
     REQUEST_SIZE_MATCH (xXResQueryClientPixmapBytesReq);
-    swaps(&stuff->xid);
+    swapl(&stuff->xid);
     return ProcXResQueryClientPixmapBytes(client);
 }
 

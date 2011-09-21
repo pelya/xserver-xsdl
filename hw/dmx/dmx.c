@@ -653,10 +653,10 @@ static int ProcDMXGetDesktopAttributes(ClientPtr client)
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
-        swapl(&rep.width);
-        swapl(&rep.height);
-        swapl(&rep.shiftX);
-        swapl(&rep.shiftY);
+        swaps(&rep.width);
+        swaps(&rep.height);
+        swaps(&rep.shiftX);
+        swaps(&rep.shiftY);
     }
     WriteToClient(client, sizeof(xDMXGetDesktopAttributesReply), (char *)&rep);
     return Success;
@@ -891,7 +891,7 @@ static int SProcDMXForceWindowCreation(ClientPtr client)
 
     swaps(&stuff->length);
     REQUEST_SIZE_MATCH(xDMXForceWindowCreationReq);
-    swaps(&stuff->window);
+    swapl(&stuff->window);
     return ProcDMXForceWindowCreation(client);
 }
 
