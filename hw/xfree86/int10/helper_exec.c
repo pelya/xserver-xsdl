@@ -347,7 +347,7 @@ x_inw(CARD16 port)
 	struct timeval tv;
 
 	/*
-	 * Emulate a PC98's timer.  Typical resolution is 3.26 usec.
+	 * Emulate a PC's timer.  Typical resolution is 3.26 usec.
 	 * Approximate this by dividing by 3.
 	 */
 	X_GETTIMEOFDAY(&tv);
