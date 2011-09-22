@@ -295,10 +295,17 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     gl_version = glamor_gl_get_version();
 
+#ifndef GLAMOR_GLES2
     if (gl_version < GLAMOR_GL_VERSION_ENCODE(1,3))  {
-        ErrorF("Require Opengl 1.3 or latter.\n");
+        ErrorF("Require OpenGL version 1.3 or latter.\n");
         goto fail;
     }
+#else
+    if (gl_version < GLAMOR_GL_VERSION_ENCODE(2,0))  {
+        ErrorF("Require Open GLES2.0 or latter.\n");
+        goto fail;
+    }
+#endif
 
     glamor_gl_dispatch_init(screen, &glamor_priv->dispatch, gl_version);
 
