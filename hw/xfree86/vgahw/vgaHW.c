@@ -1706,9 +1706,6 @@ vgaHWGetHWRec(ScrnInfoPtr scrp)
     hwp->MapSize = 0;
     hwp->pScrn = scrp;
 
-    /* Initialise the function pointers with the standard VGA versions */
-    vgaHWSetStdFuncs(hwp);
-
     hwp->dev = xf86GetPciInfoForEntity(scrp->entityList[0]);
 
     return TRUE;
