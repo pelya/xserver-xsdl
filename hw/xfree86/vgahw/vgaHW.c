@@ -1709,7 +1709,6 @@ vgaHWGetHWRec(ScrnInfoPtr scrp)
     /* Initialise the function pointers with the standard VGA versions */
     vgaHWSetStdFuncs(hwp);
 
-    hwp->PIOOffset = scrp->domainIOBase;
     hwp->dev = xf86GetPciInfoForEntity(scrp->entityList[0]);
 
     return TRUE;
