@@ -40,7 +40,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 extern _X_EXPORT int InitProximityClassDeviceStruct(
 	DeviceIntPtr           /* dev */);
 
-extern _X_EXPORT void InitValuatorAxisStruct(
+extern _X_EXPORT Bool InitValuatorAxisStruct(
 	DeviceIntPtr           /* dev */,
 	int                    /* axnum */,
 	Atom                   /* label */,

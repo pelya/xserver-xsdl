@@ -1067,16 +1067,16 @@ InitProximityClassDeviceStruct(DeviceIntPtr dev)
  *
  * @see InitValuatorClassDeviceStruct
  */
-void
+Bool
 InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval, int maxval,
 		       int resolution, int min_res, int max_res, int mode)
 {
     AxisInfoPtr ax;
 
     if (!dev || !dev->valuator || minval > maxval)
-        return;
+        return FALSE;
     if (axnum >= dev->valuator->numAxes)
-        return;
+        return FALSE;
 
     ax = dev->valuator->axes + axnum;
 
@@ -1090,6 +1090,8 @@ InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval, int 
 
     if (mode & OutOfProximity)
         dev->proximity->in_proximity = FALSE;
+
+    return TRUE;
 }
 
 static void
