@@ -1073,7 +1073,7 @@ InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval, int 
 {
     AxisInfoPtr ax;
 
-    if (!dev || !dev->valuator || minval > maxval)
+    if (!dev || !dev->valuator || (minval > maxval && mode == Absolute))
         return FALSE;
     if (axnum >= dev->valuator->numAxes)
         return FALSE;
