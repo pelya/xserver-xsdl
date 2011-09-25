@@ -635,7 +635,7 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
             SetBit(ptr, i);
             axisval->integral = trunc(ev->valuators.data[i]);
             axisval->frac = (ev->valuators.data[i] - axisval->integral) *
-                            (1UL << 32);
+                            (1 << 16) * (1 << 16);
             axisval++;
         }
     }
@@ -679,10 +679,12 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
         {
             SetBit(ptr, i);
             axisval->integral = trunc(ev->valuators.data[i]);
-            axisval->frac = ev->valuators.data[i] - axisval->integral;
+            axisval->frac = (ev->valuators.data[i] - axisval->integral) *
+                            (1 << 16) * (1 << 16);
             axisval_raw->integral = trunc(ev->valuators.data_raw[i]);
-            axisval_raw->frac = ev->valuators.data_raw[i] -
-                                axisval_raw->integral;
+            axisval_raw->frac =
+                (ev->valuators.data_raw[i] - axisval_raw->integral) *
+                  (1 << 16) * (1 << 16);
             axisval++;
             axisval_raw++;
         }
