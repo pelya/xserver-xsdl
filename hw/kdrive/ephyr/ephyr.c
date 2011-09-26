@@ -718,8 +718,12 @@ ephyrCreateResources (ScreenPtr pScreen)
 			ephyrShadowUpdate, 
 			ephyrWindowLinear);
   else {
-    if (ephyr_glamor)
+    if (ephyr_glamor) {
+      KdScreenPriv(pScreen);
+      KdScreenInfo	*screen = pScreenPriv->screen;
       if (!glamor_glyphs_init(pScreen)) return FALSE;
+      glamor_set_screen_pixmap_texture(pScreen, screen->width, screen->height, 0);
+    }
     return ephyrSetInternalDamage(pScreen); 
   }
 }
