@@ -73,8 +73,14 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
      * to it.
      */
     pixmap_priv->gl_fbo = 1;
-    pixmap_priv->gl_tex = 1;
-    glamor_pixmap_ensure_fb(pixmap);
+    if (tex != 0) {
+      glamor_pixmap_ensure_fb(pixmap);
+      pixmap_priv->gl_tex = 1;
+    }
+    else {
+      pixmap_priv->fb = 0;
+      pixmap_priv->gl_tex = 0;
+    }
     screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
                               (((w * pixmap->drawable.bitsPerPixel +
                                  7) / 8) + 3) & ~3,
@@ -172,42 +178,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     glamor_set_pixmap_texture(pixmap, w, h, tex);
     return pixmap;
 }
-
-
-/**
- * For Xephyr use only. set up the screen pixmap to correct state. 
- **/
-static PixmapPtr
-glamor_create_screen_pixmap(ScreenPtr screen, int w, int h, int depth,
-		     unsigned int usage)
-{
-    PixmapPtr pixmap;
-    glamor_pixmap_private *pixmap_priv;
-    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-    assert(w ==0 && h == 0);
-
-    glamor_priv->screen_fbo = 0; 
-    pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
-
-    if (dixAllocatePrivates(&pixmap->devPrivates, PRIVATE_PIXMAP) != TRUE) {
-        fbDestroyPixmap(pixmap);
-	ErrorF("Fail to allocate privates for PIXMAP.\n");
-	return NullPixmap;
-    }	 
-
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
-    pixmap_priv->tex = 0; 
-    pixmap_priv->gl_fbo = 1;
-    pixmap_priv->gl_tex = 0;
-    pixmap_priv->container = pixmap;
-    pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
-    
-    screen->CreatePixmap = glamor_create_pixmap;
-    return pixmap;
-}
-
-
-
 
 static Bool
 glamor_destroy_pixmap(PixmapPtr pixmap)
@@ -334,11 +304,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     screen->CreateGC = glamor_create_gc;
 
     glamor_priv->saved_create_pixmap = screen->CreatePixmap;
-
-    if (flags & GLAMOR_HOSTX)
-      screen->CreatePixmap = glamor_create_screen_pixmap;
-    else
-      screen->CreatePixmap = glamor_create_pixmap;
+    screen->CreatePixmap = glamor_create_pixmap;
 
     glamor_priv->saved_destroy_pixmap = screen->DestroyPixmap;
     screen->DestroyPixmap = glamor_destroy_pixmap;
