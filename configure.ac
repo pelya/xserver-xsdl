@@ -803,6 +803,7 @@ LIBDBUS="dbus-1 >= 1.0"
 LIBPIXMAN="pixman-1 >= 0.21.8"
 LIBEGL="egl"
 LIBGLESV2="glesv2"
+LIBGBM="gbm"
 dnl Pixman is always required, but we separate it out so we can link
 dnl specific modules against it
 PKG_CHECK_MODULES(PIXMAN, $LIBPIXMAN)
@@ -1796,6 +1797,7 @@ if test "x$GLAMOR" = xyes; then
    if test "x$GLAMOR_DDX" = xyes; then
      AC_DEFINE(GLAMOR_DDX,1,[Enable glamor ddx driver])
      PKG_CHECK_MODULES(EGL, $LIBEGL)
+     PKG_CHECK_MODULES(EGL, $LIBGBM)
      REQUIRED_LIBS="$REQUIRED_LIBS $LIBEGL"
    fi
 fi
