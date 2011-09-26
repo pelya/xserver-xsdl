@@ -20,7 +20,7 @@ glamor_la_LDFLAGS = -module -avoid-version \
 
 glamor_ladir = $(moduledir)/drivers
 glamor_la_SOURCES =				\
-	glamor.c				\
+	glamor_ddx.c				\
 	glamor_crtc.c				\
 	glamor_ddx.h
 
