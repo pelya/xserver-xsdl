@@ -516,8 +516,7 @@ drmmode_hide_cursor (xf86CrtcPtr crtc)
 static void
 _drmmode_destroy_cursor(xf86CrtcPtr crtc)
 {
-       drmmode_crtc_private_ptr
-       drmmode_crtc = crtc->driver_private;
+       drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 
        if (drmmode_crtc->cursor == NULL)
          return;
@@ -654,11 +653,8 @@ drmmode_crtc_gamma_set(xf86CrtcPtr crtc,
 static void
 drmmode_crtc_destroy(xf86CrtcPtr crtc)
 {
-	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
-
 	ScrnInfoPtr scrn = crtc->scrn;
         _drmmode_destroy_cursor(crtc);
-        free(drmmode_crtc->cursor);
         crtc->driver_private = NULL;
 }
 
