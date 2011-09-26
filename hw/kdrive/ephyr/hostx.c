@@ -1532,3 +1532,15 @@ ephyr_glamor_paint_rect (EphyrScreenInfo screen,
 			  host_screen->win_width, host_screen->win_height);
 #endif
 }
+
+struct glamor_gl_dispatch;
+extern Bool 
+glamor_gl_dispatch_init_impl(struct glamor_gl_dispatch *dispatch, int gl_version, void* func);
+
+Bool
+glamor_gl_dispatch_init(void *screen, struct glamor_gl_dispatch *dispatch, int gl_version)
+{
+        if (!glamor_gl_dispatch_init_impl(dispatch, gl_version, glXGetProcAddress))
+          return FALSE;
+        return TRUE;
+}
