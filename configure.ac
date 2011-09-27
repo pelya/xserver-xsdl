@@ -822,6 +822,15 @@ if test "x$CONFIG_UDEV" = xyes; then
 		AC_MSG_ERROR([udev configuration API requested, but libudev is not installed])
 	fi
 	AC_DEFINE(CONFIG_UDEV, 1, [Use libudev for input hotplug])
+
+	SAVE_LIBS=$LIBS
+	SAVE_CFLAGS=$CFLAGS
+	CFLAGS=$UDEV_CFLAGS
+	LIBS=$UDEV_LIBS
+	AC_CHECK_FUNCS([udev_monitor_filter_add_match_tag])
+	AC_CHECK_FUNCS([udev_enumerate_add_match_tag])
+	LIBS=$SAVE_LIBS
+	CFLAGS=$SAVE_CFLAGS
 fi
 
 dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
