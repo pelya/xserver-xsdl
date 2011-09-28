@@ -279,7 +279,7 @@ static inline int __builtin_constant_p(int x)
 /* byte swap a 32-bit value */
 static inline void swap_uint32(uint32_t *x)
 {
-	char n = ((char *) &x)[0];
+	char n = ((char *) x)[0];
 	((char *) x)[0] = ((char *) x)[3];
 	((char *) x)[3] = n;
 	n = ((char *) x)[1];
