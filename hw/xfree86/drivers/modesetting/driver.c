@@ -638,24 +638,6 @@ static void
 LeaveVT(int scrnIndex, int flags)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
-    modesettingPtr ms = modesettingPTR(pScrn);
-    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
-    int o;
-
-    for (o = 0; o < config->num_crtc; o++) {
-	xf86CrtcPtr crtc = config->crtc[o];
-
-	//	cursor_destroy(crtc);
-
-	if (crtc->rotatedPixmap || crtc->rotatedData) {
-	    crtc->funcs->shadow_destroy(crtc, crtc->rotatedPixmap,
-					crtc->rotatedData);
-	    crtc->rotatedPixmap = NULL;
-	    crtc->rotatedData = NULL;
-	}
-    }
-
-    drmModeRmFB(ms->fd, ms->fb_id);
 
     pScrn->vtSema = FALSE;
 }
