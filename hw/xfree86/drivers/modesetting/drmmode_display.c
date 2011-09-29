@@ -108,11 +108,13 @@ static int dumb_bo_map(int fd, struct dumb_bo *bo)
 	return 0;
 }
 
+#if 0
 static int dumb_bo_unmap(int fd, struct dumb_bo *bo)
 {
 	bo->map_count--;
 	return 0;
 }
+#endif
 
 static int dumb_bo_destroy(int fd, struct dumb_bo *bo)
 {
@@ -260,7 +262,6 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
 		     Rotation rotation, int x, int y)
 {
 	ScrnInfoPtr pScrn = crtc->scrn;
-	//	RADEONInfoPtr info = RADEONPTR(pScrn);
 	xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	drmmode_ptr drmmode = drmmode_crtc->drmmode;
@@ -273,11 +274,8 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
 	int i;
 	int fb_id;
 	drmModeModeInfo kmode;
-	int pitch;
-	uint32_t tiling_flags = 0;
 	int height;
 
-	pitch = pScrn->displayWidth;
 	height = pScrn->virtualY;
 
 	if (drmmode->fb_id == 0) {
@@ -795,7 +793,6 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num, int *num_dv
 	drmModePropertyPtr props;
 	char name[32];
 	int i;
-	const char *s;
 
 	koutput = drmModeGetConnector(drmmode->fd, drmmode->mode_res->connectors[num]);
 	if (!koutput)
@@ -938,10 +935,7 @@ drmmode_xf86crtc_resize (ScrnInfoPtr scrn, int width, int height)
 	ScreenPtr   screen = screenInfo.screens[scrn->scrnIndex];
 	uint32_t    old_fb_id;
 	int	    i, pitch, old_width, old_height, old_pitch;
-	int screen_size;
 	int cpp = (scrn->bitsPerPixel + 1) / 8;
-	struct dumb_bo *front_bo;
-	uint32_t tiling_flags = 0;
 	PixmapPtr ppix = screen->GetScreenPixmap(screen);
 	void *new_pixels;
 
@@ -949,12 +943,12 @@ drmmode_xf86crtc_resize (ScrnInfoPtr scrn, int width, int height)
 		return TRUE;
 
 	xf86DrvMsg(scrn->scrnIndex, X_INFO,
-		   "Allocate new frame buffer %dx%d stride %d\n",
-		   width, height, pitch / cpp);
+		   "Allocate new frame buffer %dx%d stride\n",
+		   width, height);
 
 	old_width = scrn->virtualX;
 	old_height = scrn->virtualY;
-	old_pitch = scrn->displayWidth;
+	old_pitch = drmmode->front_bo->pitch;
 	old_fb_id = drmmode->fb_id;
 	old_front = drmmode->front_bo;
 
@@ -1009,7 +1003,7 @@ drmmode_xf86crtc_resize (ScrnInfoPtr scrn, int width, int height)
 	drmmode->front_bo = old_front;
 	scrn->virtualX = old_width;
 	scrn->virtualY = old_height;
-	scrn->displayWidth = old_pitch;
+	scrn->displayWidth = old_pitch / cpp;
 	drmmode->fb_id = old_fb_id;
 
 	return FALSE;
@@ -1021,11 +1015,9 @@ static const xf86CrtcConfigFuncsRec drmmode_xf86crtc_config_funcs = {
 
 Bool drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp)
 {
-	xf86CrtcConfigPtr xf86_config;
 	int i, num_dvi = 0, num_hdmi = 0;
 
 	xf86CrtcConfigInit(pScrn, &drmmode_xf86crtc_config_funcs);
-	xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
 
 	drmmode->scrn = pScrn;
 	drmmode->cpp = cpp;

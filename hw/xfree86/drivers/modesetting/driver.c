@@ -33,6 +33,7 @@
 #include "config.h"
 #endif
 
+#include <unistd.h>
 #include <fcntl.h>
 #include "xf86.h"
 #include "xf86_OSproc.h"
@@ -199,8 +200,6 @@ ms_pci_probe(DriverPtr driver,
 	     int entity_num, struct pci_device *dev, intptr_t match_data)
 {
     ScrnInfoPtr scrn = NULL;
-    EntityInfoPtr entity;
-    DevUnion *private;
 
     scrn = xf86ConfigPciEntity(scrn, 0, entity_num, NULL,
 			       NULL, NULL, NULL, NULL, NULL);
@@ -239,14 +238,11 @@ ms_pci_probe(DriverPtr driver,
 static Bool
 Probe(DriverPtr drv, int flags)
 {
-    int i, numUsed, numDevSections, *usedChips;
-    EntPtr msEnt = NULL;
-    DevUnion *pPriv;
+    int i, numDevSections;
     GDevPtr *devSections;
     Bool foundScreen = FALSE;
-    int numDevs;
     char *dev;
-    ScrnInfoPtr scrn;
+    ScrnInfoPtr scrn = NULL;
 
     /* For now, just bail out for PROBE_DETECT. */
     if (flags & PROBE_DETECT)
@@ -268,7 +264,7 @@ Probe(DriverPtr drv, int flags)
 		int entity;
 		entity = xf86ClaimFbSlot(drv, 0, devSections[i], TRUE);
 		scrn = xf86ConfigFbEntity(scrn, 0, entity,
-					   NULL, NULL, NULL, NULL);
+					  NULL, NULL, NULL, NULL);
 	    }
 
 	    if (scrn)
@@ -376,17 +372,11 @@ FreeRec(ScrnInfoPtr pScrn)
 static Bool
 PreInit(ScrnInfoPtr pScrn, int flags)
 {
-    xf86CrtcConfigPtr xf86_config;
     modesettingPtr ms;
-    MessageType from = X_PROBED;
     rgb defaultWeight = { 0, 0, 0 };
     EntityInfoPtr pEnt;
     EntPtr msEnt = NULL;
     char *BusID;
-    int i;
-    char *s;
-    int num_pipe;
-    int max_width, max_height;
 
     if (pScrn->numEntities != 1)
 	return FALSE;
@@ -526,7 +516,6 @@ CreateScreenResources(ScreenPtr pScreen)
     modesettingPtr ms = modesettingPTR(pScrn);
     PixmapPtr rootPixmap;
     Bool ret;
-    int flags;
     void *pixels;
     pScreen->CreateScreenResources = ms->createScreenResources;
     ret = pScreen->CreateScreenResources(pScreen);
@@ -567,9 +556,6 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     modesettingPtr ms = modesettingPTR(pScrn);
     VisualPtr visual;
-    unsigned long sys_mem;
-    int c;
-    MessageType from;
     int ret;
 
     ErrorF("ms is %p\n", ms);
