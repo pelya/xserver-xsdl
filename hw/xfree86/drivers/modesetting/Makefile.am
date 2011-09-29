@@ -25,19 +25,16 @@ SUBDIRS =
 # _ladir passes a dummy rpath to libtool so the thing will actually link
 # TODO: -nostdlib/-Bstatic/-lgcc platform magic, not installing the .a, etc.
 
-AM_CFLAGS = @WARN_CFLAGS@ @XORG_CFLAGS@ @DRI_CFLAGS@ @PCIACCESS_CFLAGS@ \
-	-I@GALLIUM_DIR@/src/gallium/include \
-	-I@GALLIUM_DIR@/src/gallium/auxiliary
+AM_CFLAGS = @XORG_CFLAGS@ @DRM_CFLAGS@ @UDEV_CFLAGS@
 
 modesetting_drv_la_LTLIBRARIES = modesetting_drv.la
-modesetting_drv_la_LDFLAGS = -module -avoid-version -ldrm
+modesetting_drv_la_LDFLAGS = -module -avoid-version
+modesetting_drv_la_LIBADD = @UDEV_LIBS@ @DRM_LIBS@
 modesetting_drv_ladir = @moduledir@/drivers
 
 modesetting_drv_la_SOURCES = \
 	 driver.c \
 	 driver.h \
-	 output.c \
-	 crtc.c \
-	 dri2.c
+	 drmmode_display.c
 
 EXTRA_DIST =

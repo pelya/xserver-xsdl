@@ -30,9 +30,8 @@
 #include <errno.h>
 #include <drm.h>
 #include <xf86drm.h>
-#include <xf86drmMode.h>
-#include <xf86mm.h>
 
+#include "drmmode_display.h"
 #define DRV_ERROR(msg)	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, msg);
 
 typedef struct
@@ -72,10 +71,7 @@ typedef struct _modesettingRec
 
     void *driver;
 
-    /* dri2 */
-    drm_context_t context;
-    drm_hw_lock_t *lock;
-    int lock_held;
+    drmmode_rec drmmode;
 } modesettingRec, *modesettingPtr;
 
 #define modesettingPTR(p) ((modesettingPtr)((p)->driverPrivate))
