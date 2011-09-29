@@ -33,49 +33,33 @@
 #endif
 
 struct dumb_bo {
-  uint32_t handle;
-  uint32_t size;
-  void *ptr;
-  int map_count;
-  uint32_t pitch;
+    uint32_t handle;
+    uint32_t size;
+    void *ptr;
+    int map_count;
+    uint32_t pitch;
 };
 
 typedef struct {
-  int fd;
-  unsigned fb_id;
-  drmModeResPtr mode_res;
-  drmModeFBPtr mode_fb;
-  int cpp;
-  ScrnInfoPtr scrn;
+    int fd;
+    unsigned fb_id;
+    drmModeResPtr mode_res;
+    drmModeFBPtr mode_fb;
+    int cpp;
+    ScrnInfoPtr scrn;
 #ifdef HAVE_UDEV
-  struct udev_monitor *uevent_monitor;
-  InputHandlerProc uevent_handler;
+    struct udev_monitor *uevent_monitor;
+    InputHandlerProc uevent_handler;
 #endif
-  drmEventContext event_context;
-  struct dumb_bo *front_bo;
+    drmEventContext event_context;
+    struct dumb_bo *front_bo;
 } drmmode_rec, *drmmode_ptr;
-
-typedef struct {
-  drmmode_ptr drmmode;
-  unsigned old_fb_id;
-  int flip_count;
-  void *event_data;
-  unsigned int fe_frame;
-  unsigned int fe_tv_sec;
-  unsigned int fe_tv_usec;
-} drmmode_flipdata_rec, *drmmode_flipdata_ptr;
-
-typedef struct {
-  drmmode_flipdata_ptr flipdata;
-  Bool dispatch_me;
-} drmmode_flipevtcarrier_rec, *drmmode_flipevtcarrier_ptr;
 
 typedef struct {
     drmmode_ptr drmmode;
     drmModeCrtcPtr mode_crtc;
     int hw_id;
     struct dumb_bo *cursor_bo;
-  //    struct radeon_bo *rotate_bo;
     unsigned rotate_fb_id;
     uint16_t lut_r[256], lut_g[256], lut_b[256];
 } drmmode_crtc_private_rec, *drmmode_crtc_private_ptr;
@@ -103,21 +87,13 @@ typedef struct {
 
 
 extern Bool drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp);
-//extern Bool drmmode_set_bufmgr(ScrnInfoPtr pScrn, drmmode_ptr drmmode, struct radeon_bo_manager *bufmgr);
-//extern void drmmode_set_cursor(ScrnInfoPtr scrn, drmmode_ptr drmmode, int id, struct radeon_bo *bo);
 void drmmode_adjust_frame(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int x, int y, int flags);
 extern Bool drmmode_set_desired_modes(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
-extern void drmmode_copy_fb(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 extern Bool drmmode_setup_colormap(ScreenPtr pScreen, ScrnInfoPtr pScrn);
 
 extern void drmmode_uevent_init(ScrnInfoPtr scrn, drmmode_ptr drmmode);
 extern void drmmode_uevent_fini(ScrnInfoPtr scrn, drmmode_ptr drmmode);
 
-extern int drmmode_get_height_align(ScrnInfoPtr scrn, uint32_t tiling);
-extern int drmmode_get_pitch_align(ScrnInfoPtr scrn, int bpe, uint32_t tiling);
-extern int drmmode_get_base_align(ScrnInfoPtr scrn, int bpe, uint32_t tiling);
-
-//Bool radeon_do_pageflip(ScrnInfoPtr scrn, struct radeon_bo *new_front, void *data, int ref_crtc_hw_id);
 Bool drmmode_create_initial_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 void *drmmode_map_front_bo(drmmode_ptr drmmode);
 Bool drmmode_map_cursor_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
