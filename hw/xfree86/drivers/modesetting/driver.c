@@ -462,10 +462,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 	return FALSE;
     }
 
-#ifdef DRI2
-    xf86LoadSubModule(pScrn, "dri2");
-#endif
-
     return TRUE;
     fail:
     return FALSE;
