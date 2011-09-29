@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
-                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"[
+ <!ENTITY % defs SYSTEM "/xserver/doc/xml/xserver.ent"> %defs;
+]>
 
 <!-- lifted from troff+ms+XMan by doclifter -->
 <book id="porting">
 
 <bookinfo>
    <title>X11 Input Extension Porting Document</title>
-   <releaseinfo>X Version 11, Release 6.7</releaseinfo>
    <authorgroup>
       <author>
          <firstname>George</firstname><surname>Sachs</surname>
          <affiliation><orgname>Hewlett-Packard</orgname></affiliation>
       </author>
    </authorgroup>
+   <releaseinfo>X server version &xserver.version;</releaseinfo>
    <corpname>X Consortium Standard</corpname>
    <copyright><year>1989</year><holder>Hewlett-Packard Company</holder></copyright>
    <copyright><year>1990</year><holder>Hewlett-Packard Company</holder></copyright>
