@@ -1016,6 +1016,17 @@ static const xf86CrtcConfigFuncsRec drmmode_xf86crtc_config_funcs = {
 Bool drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp)
 {
 	int i, num_dvi = 0, num_hdmi = 0;
+	int ret;
+
+	/* check for dumb capability */
+	{
+		uint64_t value = 0;
+		ret = drmGetCap(drmmode->fd, DRM_CAP_DUMB_BUFFER, &value);
+		if (ret > 0 || value != 1) {
+			xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "KMS doesn't support dumb interface\n");
+			return FALSE;
+		}
+	}
 
 	xf86CrtcConfigInit(pScrn, &drmmode_xf86crtc_config_funcs);
 
