@@ -1329,6 +1329,12 @@ void drmmode_free_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 {
 	xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
 	int i;
+
+	if (drmmode->fb_id) {
+		drmModeRmFB(drmmode->fd, drmmode->fb_id);
+		drmmode->fb_id = 0;
+	}
+
 	dumb_bo_destroy(drmmode->fd, drmmode->front_bo);
 	drmmode->front_bo = NULL;
 

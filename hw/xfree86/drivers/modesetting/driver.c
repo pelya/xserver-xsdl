@@ -570,31 +570,17 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     unsigned long sys_mem;
     int c;
     MessageType from;
+    int ret;
 
-    /* deal with server regeneration */
-    if (ms->fd < 0) {
-	char *BusID;
-
-	BusID = malloc(64);
-	sprintf(BusID, "PCI:%d:%d:%d",
-#if XSERVER_LIBPCIACCESS
-		((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
-		ms->PciInfo->dev, ms->PciInfo->func
-#else
-		((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
-		((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
-		((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
-#endif
-	    );
-
-	ms->fd = drmOpen(NULL, BusID);
-
-	if (ms->fd < 0)
-	    return FALSE;
-    }
-
+    ErrorF("ms is %p\n", ms);
     pScrn->pScreen = pScreen;
 
+    ret = drmSetMaster(ms->fd);
+    if (ret) {
+        ErrorF("Unable to set master\n");
+        return FALSE;
+    }
+      
     /* HW dependent - FIXME */
     pScrn->displayWidth = pScrn->virtualX;
     if (!drmmode_create_initial_bos(pScrn, &ms->drmmode))
@@ -716,7 +702,9 @@ EnterVT(int scrnIndex, int flags)
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
     modesettingPtr ms = modesettingPTR(pScrn);
 
-    if (!xf86SetDesiredModes(pScrn))
+    pScrn->vtSema = TRUE;
+
+    if (!drmmode_set_desired_modes(pScrn, &ms->drmmode))
 	return FALSE;
 
     return TRUE;
@@ -752,8 +740,8 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
 
     pScreen->CreateScreenResources = ms->createScreenResources;
     pScreen->BlockHandler = ms->BlockHandler;
-    drmClose(ms->fd);
-    ms->fd = -1;
+
+    drmDropMaster(ms->fd);
 
     pScrn->vtSema = FALSE;
     pScreen->CloseScreen = ms->CloseScreen;
