@@ -31,6 +31,7 @@
 #include "config.h"
 #endif
 
+#include <fcntl.h>
 #include "xf86.h"
 #include "xf86_OSproc.h"
 #include "compiler.h"
@@ -68,18 +69,19 @@ static Bool ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc,
 		       char **argv);
 static Bool PreInit(ScrnInfoPtr pScrn, int flags);
 
-#if XSERVER_LIBPCIACCESS
-static Bool
-pci_probe(DriverPtr driver,
-	  int entity_num, struct pci_device *device, intptr_t match_data);
-#else
 static Bool Probe(DriverPtr drv, int flags);
-#endif
+static Bool ms_pci_probe(DriverPtr driver,
+			 int entity_num, struct pci_device *device,
+			 intptr_t match_data);
 
-#if XSERVER_LIBPCIACCESS
-static const struct pci_id_match device_match[] = {
-    {0x8086, 0x0046, 0xffff, 0xffff, 0, 0, 0},
-    {0, 0, 0},
+#ifdef XSERVER_LIBPCIACCESS
+static const struct pci_id_match ms_device_match[] = {
+    {
+	PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY,
+	0x00030000, 0x00ffffff, 0
+    },
+
+    { 0, 0, 0 },
 };
 #endif
 
@@ -87,38 +89,29 @@ _X_EXPORT DriverRec modesetting = {
     1,
     "modesetting",
     Identify,
-#if XSERVER_LIBPCIACCESS
-    NULL,
-#else
     Probe,
-#endif
     AvailableOptions,
     NULL,
     0,
     NULL,
-#if XSERVER_LIBPCIACCESS
-    device_match,
-    pci_probe
-#endif
+    ms_device_match,
+    ms_pci_probe,
 };
 
 static SymTabRec Chipsets[] = {
-    {0x0046, "Intel Graphics Device"},
+    {0, "kms" },
     {-1, NULL}
-};
-
-static PciChipsets PciDevices[] = {
-    {0x2592, 0x0046, RES_SHARED_VGA},
-    {-1, -1, RES_UNDEFINED}
 };
 
 typedef enum
 {
     OPTION_SW_CURSOR,
+    OPTION_DEVICE_PATH,
 } modesettingOpts;
 
 static const OptionInfoRec Options[] = {
     {OPTION_SW_CURSOR, "SWcursor", OPTV_BOOLEAN, {0}, FALSE},
+    {OPTION_DEVICE_PATH, "kmsdev", OPTV_STRING, {0}, FALSE },
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
@@ -171,6 +164,27 @@ Identify(int flags)
 		      Chipsets);
 }
 
+static Bool probe_hw(char *dev)
+{
+    int fd;
+    if (dev)
+	fd = open(dev, O_RDWR, 0);
+    else {
+	dev = getenv("KMSDEVICE");
+	if ((NULL == dev) || ((fd = open(dev, O_RDWR, 0)) == -1)) {
+	    dev = "/dev/dri/card0";
+	    fd = open(dev,O_RDWR, 0);
+	}
+    }
+    if (fd == -1) {
+	xf86DrvMsg(-1, X_ERROR,"open %s: %s\n", dev, strerror(errno));
+	return FALSE;
+    }
+    close(fd);
+    return TRUE;
+
+}
+
 static const OptionInfoRec *
 AvailableOptions(int chipid, int busid)
 {
@@ -179,25 +193,26 @@ AvailableOptions(int chipid, int busid)
 
 #if XSERVER_LIBPCIACCESS
 static Bool
-pci_probe(DriverPtr driver,
-	  int entity_num, struct pci_device *device, intptr_t match_data)
+ms_pci_probe(DriverPtr driver,
+	     int entity_num, struct pci_device *dev, intptr_t match_data)
 {
     ScrnInfoPtr scrn = NULL;
     EntityInfoPtr entity;
     DevUnion *private;
 
-    scrn = xf86ConfigPciEntity(scrn, 0, entity_num, PciDevices,
+    scrn = xf86ConfigPciEntity(scrn, 0, entity_num, NULL,
 			       NULL, NULL, NULL, NULL, NULL);
-    if (scrn != NULL) {
-	scrn->driverVersion = 1;
-	scrn->driverName = "modesetting";
-	scrn->name = "modesetting";
-	scrn->Probe = NULL;
+    if (scrn) {
+	char *devpath;
+	GDevPtr devSection = xf86GetDevFromEntity(scrn->entityList[0],
+						  scrn->entityInstanceList[0]);
 
-	entity = xf86GetEntityInfo(entity_num);
-
-	switch (device->device_id) {
-	case 0x0046:
+	devpath = xf86FindOptionValue(devSection->options, "kmsdev");
+	if (probe_hw(devpath)) {
+	    scrn->driverVersion = 1;
+	    scrn->driverName = "modesetting";
+	    scrn->name = "modeset";
+	    scrn->Probe = NULL;
 	    scrn->PreInit = PreInit;
 	    scrn->ScreenInit = ScreenInit;
 	    scrn->SwitchMode = SwitchMode;
@@ -206,12 +221,19 @@ pci_probe(DriverPtr driver,
 	    scrn->LeaveVT = LeaveVT;
 	    scrn->FreeScreen = FreeScreen;
 	    scrn->ValidMode = ValidMode;
-	    break;
-	}
+
+	    xf86DrvMsg(scrn->scrnIndex, X_CONFIG,
+		       "claimed PCI slot %d@%d:%d:%d\n", 
+		       dev->bus, dev->domain, dev->dev, dev->func);
+	    xf86DrvMsg(scrn->scrnIndex, X_INFO,
+		       "using %s\n", devpath ? devpath : "default device");
+	} else
+	    scrn = NULL;
     }
     return scrn != NULL;
 }
-#else
+#endif
+
 static Bool
 Probe(DriverPtr drv, int flags)
 {
@@ -220,9 +242,13 @@ Probe(DriverPtr drv, int flags)
     DevUnion *pPriv;
     GDevPtr *devSections;
     Bool foundScreen = FALSE;
-    pciVideoPtr *VideoInfo;
-    pciVideoPtr *ppPci;
     int numDevs;
+    char *dev;
+    ScrnInfoPtr scrn;
+
+    /* For now, just bail out for PROBE_DETECT. */
+    if (flags & PROBE_DETECT)
+	return FALSE;
 
     /*
      * Find the config file Device sections that match this
@@ -232,110 +258,41 @@ Probe(DriverPtr drv, int flags)
 	return FALSE;
     }
 
-    /*
-     * This probing is just checking the PCI data the server already
-     * collected.
-     */
-    if (!(VideoInfo = xf86GetPciVideoInfo()))
-	return FALSE;
+    for (i = 0; i < numDevSections; i++) {
 
-#if 0
-    numUsed = 0;
-    for (ppPci = VideoInfo; ppPci != NULL && *ppPci != NULL; ppPci++) {
-	for (numDevs = 0; numDevs < numDevSections; numDevs++) {
-	    if (devSections[numDevs]->busID && *devSections[numDevs]->busID) {
-		if (xf86ComparePciBusString
-		    (devSections[numDevs]->busID, (*ppPci)->bus,
-		     (*ppPci)->device, (*ppPci)->func)) {
-		    /* Claim slot */
-		    if (xf86CheckPciSlot((*ppPci)->bus, (*ppPci)->device,
-					 (*ppPci)->func)) {
-			usedChips[numUsed++] =
-			    xf86ClaimPciSlot((*ppPci)->bus, (*ppPci)->device,
-					     (*ppPci)->func, drv,
-					     (*ppPci)->chipType, NULL, TRUE);
-			ErrorF("CLAIMED %d %d %d\n", (*ppPci)->bus,
-			       (*ppPci)->device, (*ppPci)->func);
-		    }
-		}
+	dev = xf86FindOptionValue(devSections[i]->options,"kmsdev");
+	if (devSections[i]->busID) {
+	    if (probe_hw(dev)) {
+		int entity;
+		entity = xf86ClaimFbSlot(drv, 0, devSections[i], TRUE);
+		scrn = xf86ConfigFbEntity(scrn, 0, entity,
+					   NULL, NULL, NULL, NULL);
 	    }
-	}
-    }
-#else
-    /* Look for Intel i8xx devices. */
-    numUsed = xf86MatchPciInstances("modesetting", PCI_VENDOR_INTEL,
-				    Chipsets, PciDevices,
-				    devSections, numDevSections,
-				    drv, &usedChips);
-#endif
 
-    if (flags & PROBE_DETECT) {
-	if (numUsed > 0)
-	    foundScreen = TRUE;
-    } else {
-	for (i = 0; i < numUsed; i++) {
-	    ScrnInfoPtr pScrn = NULL;
-
-	    /* Allocate new ScrnInfoRec and claim the slot */
-	    if ((pScrn = xf86ConfigPciEntity(pScrn, 0, usedChips[i],
-					     PciDevices, NULL, NULL, NULL,
-					     NULL, NULL))) {
-		EntityInfoPtr pEnt;
-
-		pEnt = xf86GetEntityInfo(usedChips[i]);
-
-		pScrn->driverVersion = 1;
-		pScrn->driverName = "modesetting";
-		pScrn->name = "modesetting";
-		pScrn->Probe = Probe;
+	    if (scrn)
 		foundScreen = TRUE;
-		{
-		    /* Allocate an entity private if necessary */
-		    if (modesettingEntityIndex < 0)
-			modesettingEntityIndex =
-			    xf86AllocateEntityPrivateIndex();
+		scrn->driverVersion = 1;
+		scrn->driverName = "modesetting";
+		scrn->name = "modesetting";
+		scrn->Probe = Probe;
+		scrn->PreInit = PreInit;
+		scrn->ScreenInit = ScreenInit;
+		scrn->SwitchMode = SwitchMode;
+		scrn->AdjustFrame = AdjustFrame;
+		scrn->EnterVT = EnterVT;
+		scrn->LeaveVT = LeaveVT;
+		scrn->FreeScreen = FreeScreen;
+		scrn->ValidMode = ValidMode;
 
-		    pPriv = xf86GetEntityPrivate(pScrn->entityList[0],
-						 modesettingEntityIndex);
-		    if (!pPriv->ptr) {
-			pPriv->ptr = xnfcalloc(sizeof(EntRec), 1);
-			msEnt = pPriv->ptr;
-			msEnt->lastInstance = -1;
-		    } else {
-			msEnt = pPriv->ptr;
-		    }
-
-		    /*
-		     * Set the entity instance for this instance of the driver.
-		     * For dual head per card, instance 0 is the "master"
-		     * instance, driving the primary head, and instance 1 is
-		     * the "slave".
-		     */
-		    msEnt->lastInstance++;
-		    xf86SetEntityInstanceForScreen(pScrn,
-						   pScrn->entityList[0],
-						   msEnt->lastInstance);
-		    pScrn->PreInit = PreInit;
-		    pScrn->ScreenInit = ScreenInit;
-		    pScrn->SwitchMode = SwitchMode;
-		    pScrn->AdjustFrame = AdjustFrame;
-		    pScrn->EnterVT = EnterVT;
-		    pScrn->LeaveVT = LeaveVT;
-		    pScrn->FreeScreen = FreeScreen;
-		    pScrn->ValidMode = ValidMode;
-		    break;
-		}
-	    } else
-		ErrorF("FAILED PSCRN\n");
+		xf86DrvMsg(scrn->scrnIndex, X_INFO,
+			   "using %s\n", dev ? dev : "default device");
 	}
     }
 
-    free(usedChips);
     free(devSections);
 
     return foundScreen;
 }
-#endif
 
 static Bool
 GetRec(ScrnInfoPtr pScrn)
