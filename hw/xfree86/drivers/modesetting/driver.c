@@ -558,7 +558,6 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     VisualPtr visual;
     int ret;
 
-    ErrorF("ms is %p\n", ms);
     pScrn->pScreen = pScreen;
 
     ret = drmSetMaster(ms->fd);
