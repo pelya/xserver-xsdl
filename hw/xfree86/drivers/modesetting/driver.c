@@ -1,5 +1,6 @@
 /*
  * Copyright 2008 Tungsten Graphics, Inc., Cedar Park, Texas.
+ * Copyright 2011 Dave Airlie
  * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -23,7 +24,8 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  *
- * Author: Alan Hourihane <alanh@tungstengraphics.com>
+ * Original Author: Alan Hourihane <alanh@tungstengraphics.com>
+ * Rewrite: Dave Airlie <airlied@redhat.com> 
  *
  */
 
