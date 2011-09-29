@@ -49,6 +49,7 @@
 #include "xf86Crtc.h"
 #include "miscstruct.h"
 #include "dixstruct.h"
+#include "shadow.h"
 #include "xf86xv.h"
 #include <X11/extensions/Xv.h>
 #include <xorg-server.h>
@@ -110,11 +111,13 @@ typedef enum
 {
     OPTION_SW_CURSOR,
     OPTION_DEVICE_PATH,
+    OPTION_SHADOW_FB,
 } modesettingOpts;
 
 static const OptionInfoRec Options[] = {
     {OPTION_SW_CURSOR, "SWcursor", OPTV_BOOLEAN, {0}, FALSE},
     {OPTION_DEVICE_PATH, "kmsdev", OPTV_STRING, {0}, FALSE },
+    {OPTION_SHADOW_FB, "ShadowFB", OPTV_BOOLEAN, {0}, FALSE },
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
@@ -472,6 +475,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 	ms->SWCursor = TRUE;
     }
 
+    ms->shadow_enable = xf86ReturnOptValBool(ms->Options, OPTION_SHADOW_FB, TRUE);
+
     ms->drmmode.fd = ms->fd;
     if (drmmode_pre_init(pScrn, &ms->drmmode, pScrn->bitsPerPixel / 8) == FALSE) {
 	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "KMS setup failed\n");
@@ -504,9 +509,29 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 	return FALSE;
     }
 
+    if (ms->shadow_enable) {
+	if (!xf86LoadSubModule(pScrn, "shadow")) {
+	    return FALSE;
+	}
+    }
+
     return TRUE;
     fail:
     return FALSE;
+}
+
+static void *
+msShadowWindow(ScreenPtr screen, CARD32 row, CARD32 offset, int mode,
+	       CARD32 *size, void *closure)
+{
+    ScrnInfoPtr pScrn = xf86Screens[screen->myNum];
+    modesettingPtr ms = modesettingPTR(pScrn);
+    int stride;
+
+    stride = (pScrn->displayWidth * pScrn->bitsPerPixel) / 8;
+    *size = stride;
+
+    return ((uint8_t *)ms->drmmode.front_bo->ptr + row * stride + offset);
 }
 
 static Bool
@@ -532,8 +557,18 @@ CreateScreenResources(ScreenPtr pScreen)
 	return FALSE;
 
     rootPixmap = pScreen->GetScreenPixmap(pScreen);
+
+    if (ms->shadow_enable)
+	pixels = ms->shadow_fb;
+    
     if (!pScreen->ModifyPixmapHeader(rootPixmap, -1, -1, -1, -1, -1, pixels))
 	FatalError("Couldn't adjust screen pixmap\n");
+
+    if (ms->shadow_enable) {
+	if (!shadowAdd(pScreen, rootPixmap, shadowUpdatePackedWeak(),
+		       msShadowWindow, 0, 0))
+	    return FALSE;
+    }
 
     ms->damage = DamageCreate(NULL, NULL, DamageReportNone, TRUE,
                               pScreen, rootPixmap);
@@ -548,6 +583,15 @@ CreateScreenResources(ScreenPtr pScreen)
 	return FALSE;
     }
     return ret;
+}
+
+static Bool
+msShadowInit(ScreenPtr pScreen)
+{
+    if (!shadowSetup(pScreen)) {
+	return FALSE;
+    }
+    return TRUE;
 }
 
 static Bool
@@ -571,6 +615,13 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     if (!drmmode_create_initial_bos(pScrn, &ms->drmmode))
 	return FALSE;
 
+    if (ms->shadow_enable) {
+	ms->shadow_fb = calloc(1, pScrn->displayWidth * pScrn->virtualY *
+			       ((pScrn->bitsPerPixel + 7) >> 3));
+	if (!ms->shadow_fb)
+	    ms->shadow_enable = FALSE;
+    }	
+    
     miClearVisualTypes();
 
     if (!miSetVisualTypes(pScrn->depth,
@@ -607,6 +658,12 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 
     fbPictureInit(pScreen, NULL, 0);
 
+    if (ms->shadow_enable && !msShadowInit(pScreen)) {
+	xf86DrvMsg(scrnIndex, X_ERROR,
+		   "shadow fb init failed\n");
+	return FALSE;
+    }
+  
     ms->createScreenResources = pScreen->CreateScreenResources;
     pScreen->CreateScreenResources = CreateScreenResources;
 
@@ -715,6 +772,11 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
 	ms->damage = NULL;
     }
 
+    if (ms->shadow_enable) {
+	shadowRemove(pScreen, pScreen->GetScreenPixmap(pScreen));
+	free(ms->shadow_fb);
+	ms->shadow_fb = NULL;
+    }
     drmmode_uevent_fini(pScrn, &ms->drmmode);
 
     drmmode_free_bos(pScrn, &ms->drmmode);
