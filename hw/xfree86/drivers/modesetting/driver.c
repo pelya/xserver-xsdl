@@ -307,6 +307,58 @@ GetRec(ScrnInfoPtr pScrn)
     return TRUE;
 }
 
+static void dispatch_dirty(ScreenPtr pScreen)
+{
+    ScrnInfoPtr scrn = xf86Screens[pScreen->myNum];
+    modesettingPtr ms = modesettingPTR(scrn);
+    RegionPtr dirty = DamageRegion(ms->damage);
+    unsigned num_cliprects = REGION_NUM_RECTS(dirty);
+
+    if (num_cliprects) {
+	drmModeClip *clip = alloca(num_cliprects * sizeof(drmModeClip));
+	BoxPtr rect = REGION_RECTS(dirty);
+	int i, ret;
+	    
+	/* XXX no need for copy? */
+	for (i = 0; i < num_cliprects; i++, rect++) {
+	    clip[i].x1 = rect->x1;
+	    clip[i].y1 = rect->y1;
+	    clip[i].x2 = rect->x2;
+	    clip[i].y2 = rect->y2;
+	}
+
+	/* TODO query connector property to see if this is needed */
+	ret = drmModeDirtyFB(ms->fd, ms->fb_id, clip, num_cliprects);
+	if (ret) {
+	    if (ret == -EINVAL) {
+		ms->dirty_enabled = FALSE;
+		DamageUnregister(&pScreen->GetScreenPixmap(pScreen)->drawable, ms->damage);
+		DamageDestroy(ms->damage);
+		ms->damage = NULL;
+		xf86DrvMsg(scrn->scrnIndex, X_INFO, "Disabling kernel dirty updates, not required.\n");
+		return;
+	    } else
+		ErrorF("%s: failed to send dirty (%i, %s)\n",
+		       __func__, ret, strerror(-ret));
+	}
+	
+	DamageEmpty(ms->damage);
+    }
+}
+
+static void msBlockHandler(int i, pointer blockData, pointer pTimeout,
+			   pointer pReadmask)
+{
+    ScreenPtr pScreen = screenInfo.screens[i];
+    modesettingPtr ms = modesettingPTR(xf86Screens[pScreen->myNum]);
+
+    pScreen->BlockHandler = ms->BlockHandler;
+    pScreen->BlockHandler(i, blockData, pTimeout, pReadmask);
+    pScreen->BlockHandler = msBlockHandler;
+    if (ms->dirty_enabled)
+	dispatch_dirty(pScreen);
+}
+
 static void
 FreeRec(ScrnInfoPtr pScrn)
 {
@@ -494,6 +546,18 @@ CreateScreenResources(ScreenPtr pScreen)
     if (!pScreen->ModifyPixmapHeader(rootPixmap, -1, -1, -1, -1, -1, pixels))
 	FatalError("Couldn't adjust screen pixmap\n");
 
+    ms->damage = DamageCreate(NULL, NULL, DamageReportNone, TRUE,
+                              pScreen, rootPixmap);
+
+    if (ms->damage) {
+	DamageRegister(&rootPixmap->drawable, ms->damage);
+	ms->dirty_enabled = TRUE;
+	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Damage tracking initialized\n");
+    } else {
+	xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+		   "Failed to create screen damage record\n");
+	return FALSE;
+    }
     return ret;
 }
 
@@ -596,6 +660,9 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     ms->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = CloseScreen;
 
+    ms->BlockHandler = pScreen->BlockHandler;
+    pScreen->BlockHandler = msBlockHandler;
+
     if (!xf86CrtcScreenInit(pScreen))
 	return FALSE;
 
@@ -669,6 +736,12 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
     modesettingPtr ms = modesettingPTR(pScrn);
 
+    if (ms->damage) {
+	DamageUnregister(&pScreen->GetScreenPixmap(pScreen)->drawable, ms->damage);
+	DamageDestroy(ms->damage);
+	ms->damage = NULL;
+    }
+
     drmmode_uevent_fini(pScrn, &ms->drmmode);
 
     drmmode_free_bos(pScrn, &ms->drmmode);
@@ -678,7 +751,7 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
     }
 
     pScreen->CreateScreenResources = ms->createScreenResources;
-
+    pScreen->BlockHandler = ms->BlockHandler;
     drmClose(ms->fd);
     ms->fd = -1;
 

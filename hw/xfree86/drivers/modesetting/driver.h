@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <drm.h>
 #include <xf86drm.h>
+#include <damage.h>
 
 #include "drmmode_display.h"
 #define DRV_ERROR(msg)	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, msg);
@@ -68,10 +69,13 @@ typedef struct _modesettingRec
     unsigned int SaveGeneration;
 
     CreateScreenResourcesProcPtr createScreenResources;
-
+    ScreenBlockHandlerProcPtr BlockHandler;
     void *driver;
 
     drmmode_rec drmmode;
+
+    DamagePtr damage;
+    Bool dirty_enabled;
 } modesettingRec, *modesettingPtr;
 
 #define modesettingPTR(p) ((modesettingPtr)((p)->driverPrivate))
