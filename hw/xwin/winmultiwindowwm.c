@@ -1582,6 +1582,8 @@ winDeinitMultiWindowWM (void)
 #define HINT_SIZEBOX	(1l<<2)
 #define HINT_CAPTION	(1l<<3)
 #define HINT_NOMAXIMIZE (1L<<4)
+#define HINT_NOMINIMIZE (1L<<5)
+#define HINT_NOSYSMENU  (1L<<6)
 /* These two are used on their own */
 #define HINT_MAX	(1L<<0)
 #define HINT_MIN	(1L<<1)
@@ -1640,6 +1642,16 @@ winApplyHints (Display *pDisplay, Window iWindow, HWND hWnd, HWND *zstyle)
 	if (mwm_hint->decorations & MwmDecorBorder) hint |= HINT_BORDER;
 	if (mwm_hint->decorations & MwmDecorHandle) hint |= HINT_SIZEBOX;
 	if (mwm_hint->decorations & MwmDecorTitle) hint |= HINT_CAPTION;
+	if (!(mwm_hint->decorations & MwmDecorMenu)) hint |= HINT_NOSYSMENU;
+	if (!(mwm_hint->decorations & MwmDecorMinimize)) hint |= HINT_NOMINIMIZE;
+	if (!(mwm_hint->decorations & MwmDecorMaximize)) hint |= HINT_NOMAXIMIZE;
+      }
+      else
+      {
+        /*
+           MwmDecorAll means all decorations *except* those specified by other flag
+           bits that are set.  Not yet implemented.
+        */
       }
     }
     if (mwm_hint) XFree(mwm_hint);
@@ -1737,6 +1749,12 @@ winApplyHints (Display *pDisplay, Window iWindow, HWND hWnd, HWND *zstyle)
 
   if (hint & HINT_NOMAXIMIZE)
     style = style & ~WS_MAXIMIZEBOX;
+
+  if (hint & HINT_NOMINIMIZE)
+    style = style & ~WS_MINIMIZEBOX;
+
+  if (hint & HINT_NOSYSMENU)
+    style = style & ~WS_SYSMENU;
 
   SetWindowLongPtr (hWnd, GWL_STYLE, style);
 }
