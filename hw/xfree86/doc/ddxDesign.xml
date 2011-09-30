@@ -20,7 +20,7 @@
 <article id="ddxDesign">
   <articleinfo>
 
-    <title>XFree86 DDX Design (Xorg server version &xserver.version;)</title>
+    <title>XFree86 DDX Design</title>
 
     <authorgroup>
       <corpauthor><ulink url="http://www.xfree86.org/">
