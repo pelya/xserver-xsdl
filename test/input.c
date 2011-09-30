@@ -1199,14 +1199,19 @@ static void dix_input_valuator_masks(void)
     assert(valuator_mask_num_valuators(mask) == num_vals);
     for (i = 0; i < nvaluators; i++)
     {
+        double val;
         if (i < first_val || i >= first_val + num_vals)
+        {
             assert(!valuator_mask_isset(mask, i));
-        else
+            assert(!valuator_mask_fetch_double(mask, i, &val));
+        } else
         {
             assert(valuator_mask_isset(mask, i));
             assert(valuator_mask_get(mask, i) == val_ranged[i - first_val]);
             assert(valuator_mask_get_double(mask, i) ==
                     val_ranged[i - first_val]);
+            assert(valuator_mask_fetch_double(mask, i, &val));
+            assert(val_ranged[i - first_val] == val);
         }
     }
 
@@ -1218,10 +1223,18 @@ static void dix_input_valuator_masks(void)
 
     for (i = 0; i < nvaluators; i++)
     {
+        double a, b;
         assert(valuator_mask_isset(mask, i) == valuator_mask_isset(copy, i));
+
+        if (!valuator_mask_isset(mask, i))
+            continue;
+
         assert(valuator_mask_get(mask, i) == valuator_mask_get(copy, i));
         assert(valuator_mask_get_double(mask, i) ==
                 valuator_mask_get_double(copy, i));
+        assert(valuator_mask_fetch_double(mask, i, &a));
+        assert(valuator_mask_fetch_double(copy, i, &b));
+        assert(a == b);
     }
 
     valuator_mask_free(&mask);
