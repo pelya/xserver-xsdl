@@ -23,10 +23,8 @@
     <title>XFree86 DDX Design</title>
 
     <authorgroup>
-      <corpauthor><ulink url="http://www.xfree86.org/">
-	The XFree86 Project, Inc.</ulink></corpauthor>
-      <corpauthor><ulink url="http://www.x.org/">
-	The X.Org Foundation, Inc.</ulink></corpauthor>
+      <corpauthor>The XFree86 Project</corpauthor>
+      <corpauthor>The X.Org Foundation</corpauthor>
 
       <othercredit>
 	<firstname>Jim</firstname><surname>Gettys</surname>
