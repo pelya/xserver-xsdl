@@ -1020,6 +1020,14 @@ transform(struct pixman_f_transform *m, double *x, double *y)
     *y = p.v[1];
 }
 
+/**
+ * Apply the device's transformation matrix to the valuator mask and replace
+ * the scaled values in mask. This transformation only applies to valuators
+ * 0 and 1, others will be untouched.
+ *
+ * @param dev The device the valuators came from
+ * @param[in,out] mask The valuator mask.
+ */
 static void
 transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
 {
