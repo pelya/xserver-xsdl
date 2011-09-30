@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
  "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+ <!ENTITY % xorg-defs SYSTEM "defs.ent"> %xorg-defs;
  <!ENTITY % defs SYSTEM "/xserver/doc/xml/xserver.ent"> %defs;
  <!-- config file keyword markup -->
  <!-- specific config file keywords -->
@@ -34,6 +35,7 @@
     </authorgroup>
 
     <pubdate>&xserver.reldate;</pubdate>
+    <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
     <releaseinfo>Xorg server version &xserver.version;</releaseinfo>
 
   </articleinfo>
