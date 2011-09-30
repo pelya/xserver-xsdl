@@ -760,8 +760,9 @@ accelPointer(DeviceIntPtr dev, ValuatorMask* valuators, CARD32 ms)
  * miPointerSetPosition() and then scale back into device coordinates (if
  * needed). miPSP will change x/y if the screen was crossed.
  *
- * The coordinates provided are always absolute. The parameter mode whether
- * it was relative or absolute movement that landed us at those coordinates.
+ * The coordinates provided are always absolute. The parameter mode
+ * specifies whether it was relative or absolute movement that landed us at
+ * those coordinates.
  *
  * @param dev The device to be moved.
  * @param mode Movement mode (Absolute or Relative)
