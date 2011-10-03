@@ -693,7 +693,7 @@ UpdateFromMaster(InternalEvent* events, DeviceIntPtr dev, int type, int *num_eve
  * @param mask Valuator data for this event.
  */
 static void
-moveAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
+clipAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
 {
     int i;
 
@@ -1146,7 +1146,7 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
         }
 
         transformAbsolute(pDev, &mask);
-        moveAbsolute(pDev, &mask);
+        clipAbsolute(pDev, &mask);
     } else {
         if (flags & POINTER_ACCELERATE)
             accelPointer(pDev, &mask, ms);
