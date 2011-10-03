@@ -753,6 +753,37 @@ accelPointer(DeviceIntPtr dev, ValuatorMask* valuators, CARD32 ms)
 }
 
 /**
+ * Scale from absolute screen coordinates to absolute coordinates in the
+ * device's coordinate range.
+ *
+ * @param dev The device to scale for.
+ * @param[in, out] mask The mask in sceen coordinates, modified in place to
+ * contain device coordinate range.
+ */
+static void
+scale_from_screen(DeviceIntPtr dev, ValuatorMask *mask)
+{
+    double scaled;
+    ScreenPtr scr = miPointerGetScreen(dev);
+
+    if (valuator_mask_isset(mask, 0))
+    {
+        scaled = rescaleValuatorAxis(valuator_mask_get_double(mask, 0),
+                                     NULL, dev->valuator->axes + 0,
+                                     scr->width);
+        valuator_mask_set_double(mask, 0, scaled);
+    }
+    if (valuator_mask_isset(mask, 1))
+    {
+        scaled = rescaleValuatorAxis(valuator_mask_get_double(mask, 1),
+                                     NULL, dev->valuator->axes + 1,
+                                     scr->height);
+        valuator_mask_set_double(mask, 1, scaled);
+    }
+}
+
+
+/**
  * If we have HW cursors, this actually moves the visible sprite. If not, we
  * just do all the screen crossing, etc.
  *
@@ -1136,24 +1167,7 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
     if (flags & POINTER_ABSOLUTE)
     {
         if (flags & POINTER_SCREEN) /* valuators are in screen coords */
-        {
-            double scaled;
-
-            if (valuator_mask_isset(&mask, 0))
-            {
-                scaled = rescaleValuatorAxis(valuator_mask_get_double(&mask, 0),
-                                             NULL, pDev->valuator->axes + 0,
-                                             scr->width);
-                valuator_mask_set_double(&mask, 0, scaled);
-            }
-            if (valuator_mask_isset(&mask, 1))
-            {
-                scaled = rescaleValuatorAxis(valuator_mask_get_double(&mask, 1),
-                                             NULL, pDev->valuator->axes + 1,
-                                             scr->height);
-                valuator_mask_set_double(&mask, 1, scaled);
-            }
-        }
+            scale_from_screen(pDev, &mask);
 
         transformAbsolute(pDev, &mask);
         clipAbsolute(pDev, &mask);
