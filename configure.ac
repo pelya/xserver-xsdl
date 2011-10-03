@@ -723,7 +723,7 @@ case $host_os in
 			AC_CACHE_CHECK([whether to build Xquartz],xorg_cv_Carbon_framework,[
 		 		save_LDFLAGS=$LDFLAGS
 				LDFLAGS="$LDFLAGS -framework Carbon"
-				AC_LINK_IFELSE([char FSFindFolder(); int main() { FSFindFolder(); return 0;}],
+				AC_LINK_IFELSE([AC_LANG_SOURCE([char FSFindFolder(); int main() { FSFindFolder(); return 0;}])],
 				               [xorg_cv_Carbon_framework=yes],
 				               [xorg_cv_Carbon_framework=no])
 			        LDFLAGS=$save_LDFLAGS])
@@ -874,12 +874,12 @@ AC_DEFINE_UNQUOTED([USE_SIGIO_BY_DEFAULT], [$USE_SIGIO_BY_DEFAULT_VALUE],
 		   [Use SIGIO handlers for input device events by default])
 
 AC_MSG_CHECKING([for glibc...])
-AC_PREPROC_IFELSE([
+AC_PREPROC_IFELSE([AC_LANG_SOURCE([
 #include <features.h>
 #ifndef __GLIBC__
 #error
 #endif
-], glibc=yes, glibc=no)
+])], glibc=yes, glibc=no)
 AC_MSG_RESULT([$glibc])
 
 AC_CHECK_FUNCS([clock_gettime], [have_clock_gettime=yes],
@@ -903,7 +903,7 @@ if ! test "x$have_clock_gettime" = xno; then
         CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=200112L"
     fi
 
-    AC_RUN_IFELSE([
+    AC_RUN_IFELSE([AC_LANG_SOURCE([
 #include <time.h>
 
 int main(int argc, char *argv[[]]) {
@@ -914,7 +914,7 @@ int main(int argc, char *argv[[]]) {
     else
         return 1;
 }
-    ], [MONOTONIC_CLOCK=yes], [MONOTONIC_CLOCK=no],
+    ])], [MONOTONIC_CLOCK=yes], [MONOTONIC_CLOCK=no],
        [MONOTONIC_CLOCK="cross compiling"])
 
     LIBS="$LIBS_SAVE"
