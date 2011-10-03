@@ -1363,15 +1363,15 @@ xf86XInputSetScreen(InputInfoPtr	pInfo,
 }
 
 
-void
+Bool
 xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval, int maxval,
 			   int resolution, int min_res, int max_res, int mode)
 {
     if (!dev || !dev->valuator)
-        return;
+        return FALSE;
 
-    InitValuatorAxisStruct(dev, axnum, label, minval, maxval, resolution, min_res,
-			   max_res, mode);
+    return InitValuatorAxisStruct(dev, axnum, label, minval, maxval, resolution, min_res,
+				  max_res, mode);
 }
 
 /*
