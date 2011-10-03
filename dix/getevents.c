@@ -833,8 +833,7 @@ positionSprite(DeviceIntPtr dev, int mode, ValuatorMask *mask,
      * screenx back into device co-ordinates. */
     isx = trunc(*screenx);
     isy = trunc(*screeny);
-    miPointerSetPosition(dev, mode, &isx, &isy);
-    scr = miPointerGetScreen(dev);
+    scr = miPointerSetPosition(dev, mode, &isx, &isy);
     if (isx != trunc(*screenx))
     {
         *screenx -= trunc(*screenx) - isx;

@@ -131,7 +131,7 @@ extern _X_EXPORT void miPointerGetPosition(
 
 /* Moves the cursor to the specified position.  May clip the co-ordinates:
  * x and y are modified in-place. */
-extern _X_EXPORT void miPointerSetPosition(
+extern _X_EXPORT ScreenPtr miPointerSetPosition(
     DeviceIntPtr pDev,
     int mode,
     int *x,

@@ -574,7 +574,7 @@ miPointerMoveNoEvent (DeviceIntPtr pDev, ScreenPtr pScreen,
  * @param[in,out] y The y coordinate in screen coordinates (in regards to total
  * desktop size)
  */
-void
+ScreenPtr
 miPointerSetPosition(DeviceIntPtr pDev, int mode, int *x, int *y)
 {
     miPointerScreenPtr	pScreenPriv;
@@ -584,12 +584,12 @@ miPointerSetPosition(DeviceIntPtr pDev, int mode, int *x, int *y)
     miPointerPtr        pPointer; 
 
     if (!pDev || !pDev->coreEvents)
-        return;
+        return NULL;
 
     pPointer = MIPOINTER(pDev);
     pScreen = pPointer->pScreen;
     if (!pScreen)
-	return;	    /* called before ready */
+	return NULL;    /* called before ready */
 
     if (*x < 0 || *x >= pScreen->width || *y < 0 || *y >= pScreen->height)
     {
@@ -622,11 +622,11 @@ miPointerSetPosition(DeviceIntPtr pDev, int mode, int *x, int *y)
     if (pScreen->ConstrainCursorHarder)
        pScreen->ConstrainCursorHarder(pDev, pScreen, mode, x, y);
 
-    if (pPointer->x == *x && pPointer->y == *y &&
-            pPointer->pScreen == pScreen)
-        return;
+    if (pPointer->x != *x || pPointer->y != *y ||
+            pPointer->pScreen != pScreen)
+        miPointerMoveNoEvent(pDev, pScreen, *x, *y);
 
-    miPointerMoveNoEvent(pDev, pScreen, *x, *y);
+    return pScreen;
 }
 
 /**
