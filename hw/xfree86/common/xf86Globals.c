@@ -123,7 +123,7 @@ xf86InfoRec xf86Info = {
     .log                        = LogNone,
     .disableRandR               = FALSE,
     .randRFrom                  = X_DEFAULT,
-#if defined(CONFIG_HAL) || defined(CONFIG_UDEV)
+#if defined(CONFIG_HAL) || defined(CONFIG_UDEV) || defined(CONFIG_WSCONS)
     .forceInputDevices          = FALSE,
     .autoAddDevices             = TRUE,
     .autoEnableDevices          = TRUE

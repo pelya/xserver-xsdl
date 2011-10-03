@@ -1318,12 +1318,14 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     if (!xf86Info.forceInputDevices && !(foundPointer && foundKeyboard)) {
-#if defined(CONFIG_HAL) || defined(CONFIG_UDEV)
+#if defined(CONFIG_HAL) || defined(CONFIG_UDEV) || defined(CONFIG_WSCONS)
 	const char *config_backend;
 #if defined(CONFIG_HAL)
 	config_backend = "HAL";
-#else
+#elif defined(CONFIG_UDEV)
 	config_backend = "udev";
+#else
+	config_backend = "wscons";
 #endif
 	xf86Msg(X_INFO, "The server relies on %s to provide the list of "
 	                "input devices.\n\tIf no devices become available, "
