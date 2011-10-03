@@ -844,12 +844,6 @@ positionSprite(DeviceIntPtr dev, int mode, ValuatorMask *mask,
         y = rescaleValuatorAxis(*screeny, NULL, dev->valuator->axes + 1,
                                 scr->height);
 
-    /* Update the MD's co-ordinates, which are always in screen space. */
-    if (!IsMaster(dev) || !IsFloating(dev)) {
-        DeviceIntPtr master = GetMaster(dev, MASTER_POINTER);
-        master->last.valuators[0] = *screenx;
-        master->last.valuators[1] = *screeny;
-    }
 
     if (valuator_mask_isset(mask, 0))
         valuator_mask_set_double(mask, 0, x);
@@ -1187,6 +1181,13 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
     {
         if (valuator_mask_isset(&mask, i))
             pDev->last.valuators[i] = valuator_mask_get_double(&mask, i);
+    }
+
+    /* Update the MD's co-ordinates, which are always in screen space. */
+    if (!IsMaster(pDev) || !IsFloating(pDev)) {
+        DeviceIntPtr master = GetMaster(pDev, MASTER_POINTER);
+        master->last.valuators[0] = screenx;
+        master->last.valuators[1] = screeny;
     }
 
     event = &events->device_event;
