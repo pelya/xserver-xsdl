@@ -46,7 +46,6 @@ typedef struct
 typedef struct _modesettingRec
 {
     int fd;
-    unsigned int fb_id;
 
     EntPtr entityPrivate;
 

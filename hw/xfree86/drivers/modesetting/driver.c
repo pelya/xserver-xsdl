@@ -327,7 +327,7 @@ static void dispatch_dirty(ScreenPtr pScreen)
 	}
 
 	/* TODO query connector property to see if this is needed */
-	ret = drmModeDirtyFB(ms->fd, ms->fb_id, clip, num_cliprects);
+	ret = drmModeDirtyFB(ms->fd, ms->drmmode.fb_id, clip, num_cliprects);
 	if (ret) {
 	    if (ret == -EINVAL) {
 		ms->dirty_enabled = FALSE;
