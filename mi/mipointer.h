@@ -134,8 +134,8 @@ extern _X_EXPORT void miPointerGetPosition(
 extern _X_EXPORT ScreenPtr miPointerSetPosition(
     DeviceIntPtr pDev,
     int mode,
-    int *x,
-    int *y);
+    double *x,
+    double *y);
 
 extern _X_EXPORT void miPointerUpdateSprite(
     DeviceIntPtr pDev);

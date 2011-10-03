@@ -805,8 +805,8 @@ static ScreenPtr
 positionSprite(DeviceIntPtr dev, int mode, ValuatorMask *mask,
                double *screenx, double *screeny)
 {
-    int isx, isy; /* screen {x, y}, in int */
     double x, y;
+    double tmpx, tmpy;
     ScreenPtr scr = miPointerGetScreen(dev);
 
     if (!dev->valuator || dev->valuator->numAxes < 2)
@@ -827,25 +827,22 @@ positionSprite(DeviceIntPtr dev, int mode, ValuatorMask *mask,
     *screeny = rescaleValuatorAxis(y, dev->valuator->axes + 1, NULL,
                                    scr->height);
 
+    tmpx = *screenx;
+    tmpy = *screeny;
     /* miPointerSetPosition takes care of crossing screens for us, as well as
-     * clipping to the current screen.  In the event we actually change screen,
-     * we just drop the float component on the floor, then convert from
-     * screenx back into device co-ordinates. */
-    isx = trunc(*screenx);
-    isy = trunc(*screeny);
-    scr = miPointerSetPosition(dev, mode, &isx, &isy);
-    if (isx != trunc(*screenx))
-    {
-        *screenx -= trunc(*screenx) - isx;
+     * clipping to the current screen. */
+    scr = miPointerSetPosition(dev, mode, screenx, screeny);
+
+    /* If we were constrained, rescale x/y from the screen coordinates so
+     * the device valuators reflect the correct position. For screen
+     * crossing this doesn't matter much, the coords would be 0 or max.
+     */
+    if (tmpx != *screenx)
         x = rescaleValuatorAxis(*screenx, NULL, dev->valuator->axes + 0,
                                 scr->width);
-    }
-    if (isy != trunc(*screeny))
-    {
-        *screeny -= trunc(*screeny) - isy;
+    if (tmpy != *screeny)
         y = rescaleValuatorAxis(*screeny, NULL, dev->valuator->axes + 1,
                                 scr->height);
-    }
 
     /* Update the MD's co-ordinates, which are always in screen space. */
     if (!IsMaster(dev) || !IsFloating(dev)) {
