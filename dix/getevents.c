@@ -797,20 +797,20 @@ scale_from_screen(DeviceIntPtr dev, ValuatorMask *mask)
  *
  * @param dev The device to be moved.
  * @param mode Movement mode (Absolute or Relative)
- * @param scr Screen the device's sprite is currently on.
  * @param mask Mask of axis values for this event
  * @param screenx Screen x coordinate the sprite is on after the update.
  * @param screeny Screen y coordinate the sprite is on after the update.
  */
-static void
-positionSprite(DeviceIntPtr dev, int mode, ScreenPtr scr, ValuatorMask *mask,
+static ScreenPtr
+positionSprite(DeviceIntPtr dev, int mode, ValuatorMask *mask,
                double *screenx, double *screeny)
 {
     int isx, isy; /* screen {x, y}, in int */
     double x, y;
+    ScreenPtr scr = miPointerGetScreen(dev);
 
     if (!dev->valuator || dev->valuator->numAxes < 2)
-        return;
+        return scr;
 
     if (valuator_mask_isset(mask, 0))
         x = valuator_mask_get_double(mask, 0);
@@ -859,6 +859,8 @@ positionSprite(DeviceIntPtr dev, int mode, ScreenPtr scr, ValuatorMask *mask,
         valuator_mask_set_double(mask, 0, x);
     if (valuator_mask_isset(mask, 1))
         valuator_mask_set_double(mask, 1, y);
+
+    return scr;
 }
 
 /**
@@ -1124,7 +1126,6 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
     DeviceEvent *event;
     RawDeviceEvent *raw;
     double screenx = 0.0, screeny = 0.0;
-    ScreenPtr scr = miPointerGetScreen(pDev);
     ValuatorMask mask;
 
     switch (type)
@@ -1180,7 +1181,7 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
     if ((flags & POINTER_NORAW) == 0)
         set_raw_valuators(raw, &mask, raw->valuators.data);
 
-    positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative, scr,
+    positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative,
                    &mask, &screenx, &screeny);
     updateHistory(pDev, &mask, ms);
 
