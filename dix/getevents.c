@@ -713,7 +713,7 @@ clipAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
  * Move the device's pointer by the values given in @valuators.
  *
  * @param dev The device whose pointer is to be moved.
- * @param mask Valuator data for this event.
+ * @param[in,out] mask Valuator data for this event, modified in-place.
  */
 static void
 moveRelative(DeviceIntPtr dev, ValuatorMask *mask)
