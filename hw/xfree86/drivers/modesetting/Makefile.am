@@ -35,6 +35,7 @@ modesetting_drv_ladir = @moduledir@/drivers
 modesetting_drv_la_SOURCES = \
 	 driver.c \
 	 driver.h \
-	 drmmode_display.c
+	 drmmode_display.c \
+	 drmmode_display.h
 
 EXTRA_DIST =
