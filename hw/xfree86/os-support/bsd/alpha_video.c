@@ -33,12 +33,10 @@
 
 #include <sys/param.h>
 #ifndef __NetBSD__
-#  include <sys/sysctl.h>
-#  if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-#      include <machine/sysarch.h>
-#   endif
-# else
-#  include <machine/sysarch.h>
+#include <sys/sysctl.h>
+#endif
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__NetBSD__)
+#include <machine/sysarch.h>
 #endif
 
 #include "xf86Axp.h"
