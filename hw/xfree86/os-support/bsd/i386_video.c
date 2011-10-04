@@ -88,7 +88,6 @@ static int  devMemFd = -1;
 #ifdef HAS_APERTURE_DRV
 #define DEV_APERTURE "/dev/xf86"
 #endif
-#define DEV_MEM "/dev/mem"
 
 static pointer mapVidMem(int, unsigned long, unsigned long, int);
 static void unmapVidMem(int, pointer, unsigned long);

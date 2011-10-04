@@ -45,9 +45,7 @@
 /* Video Memory Mapping section                                            */
 /***************************************************************************/
 
-#ifndef __OpenBSD__
-#define DEV_MEM "/dev/mem"
-#else
+#ifdef __OpenBSD__
 #define DEV_MEM "/dev/xf86"
 #endif
 

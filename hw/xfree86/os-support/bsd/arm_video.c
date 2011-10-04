@@ -113,8 +113,6 @@ struct memAccess ioMemInfo = { CONSOLE_GET_IO_INFO, NULL, NULL,
 static Bool useDevMem = FALSE;
 static int  devMemFd = -1;
 
-#define DEV_MEM "/dev/mem"
-
 static pointer mapVidMem(int, unsigned long, unsigned long, int);
 static void unmapVidMem(int, pointer, unsigned long);
 
