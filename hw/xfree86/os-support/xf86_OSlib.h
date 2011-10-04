@@ -378,10 +378,6 @@
 #define DEV_MEM "/dev/mem"
 #endif
 
-#ifndef VT_SYSREQ_DEFAULT
-#define VT_SYSREQ_DEFAULT FALSE
-#endif
-
 #define SYSCALL(call) while(((call) == -1) && (errno == EINTR))
 
 #define XF86_OS_PRIVS
