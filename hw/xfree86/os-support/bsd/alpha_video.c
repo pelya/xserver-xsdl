@@ -58,8 +58,6 @@ extern unsigned long dense_base(void);
 static int axpSystem = -1;
 static unsigned long hae_thresh;
 static unsigned long hae_mask;
-static unsigned long bus_base;
-static unsigned long sparse_size;
 
 static unsigned long
 memory_base(void)
@@ -290,7 +288,6 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
                 axpSystem = bsdGetAXP(); 
 	    hae_thresh = xf86AXPParams[axpSystem].hae_thresh;
             hae_mask = xf86AXPParams[axpSystem].hae_mask;
-            sparse_size = xf86AXPParams[axpSystem].size;
 #endif /* __NetBSD__ */
 	}
 	pVidMem->initialised = TRUE;
