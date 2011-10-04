@@ -269,8 +269,9 @@ RecordFlushReplyBuffer(
  *	  device events and EndOfData, pClient is NULL.
  *	category is the category of the protocol element, as defined
  *	  by the RECORD spec.
- *	data is a pointer to the protocol data, and datalen is its length
- *	  in bytes.
+ *	data is a pointer to the protocol data, and datalen - padlen
+ *	  is its length in bytes.
+ *	padlen is the number of pad bytes from a zeroed array.
  *	futurelen is the number of bytes that will be sent in subsequent
  *	  calls to this function to complete this protocol element.  
  *	  In those subsequent calls, futurelen will be -1 to indicate
@@ -290,7 +291,7 @@ RecordFlushReplyBuffer(
  */
 static void
 RecordAProtocolElement(RecordContextPtr pContext, ClientPtr pClient,
-		       int category, pointer data, int datalen, int futurelen)
+		       int category, pointer data, int datalen, int padlen, int futurelen)
 {
     CARD32 elemHeaderData[2];
     int numElemHeaders = 0;
@@ -399,15 +400,20 @@ RecordAProtocolElement(RecordContextPtr pContext, ClientPtr pClient,
 	}
 	if (datalen)
 	{
+	    static char padBuffer[3]; /* as in FlushClient */
 	    memcpy(pContext->replyBuffer + pContext->numBufBytes,
-		   data, datalen);
-	    pContext->numBufBytes += datalen;
+		   data, datalen - padlen);
+	    pContext->numBufBytes += datalen - padlen;
+	    memcpy(pContext->replyBuffer + pContext->numBufBytes,
+		   padBuffer, padlen);
+	    pContext->numBufBytes += padlen;
 	}
     }
     else
+    {
 	RecordFlushReplyBuffer(pContext, (pointer)elemHeaderData,
-			       numElemHeaders, (pointer)data, datalen);
-
+			       numElemHeaders, (pointer)data, datalen - padlen);
+    }
 } /* RecordAProtocolElement */
 
 
@@ -485,19 +491,19 @@ RecordABigRequest(RecordContextPtr pContext, ClientPtr client, xReq *stuff)
     /* record the request header */
     bytesLeft = client->req_len << 2;
     RecordAProtocolElement(pContext, client, XRecordFromClient,
-			   (pointer)stuff, SIZEOF(xReq), bytesLeft);
+			   (pointer)stuff, SIZEOF(xReq), 0, bytesLeft);
 
     /* reinsert the extended length field that was squished out */
     bigLength = client->req_len + bytes_to_int32(sizeof(bigLength));
     if (client->swapped)
 	swapl(&bigLength, n);
     RecordAProtocolElement(pContext, client, XRecordFromClient,
-		(pointer)&bigLength, sizeof(bigLength), /* continuation */ -1);
+               (pointer)&bigLength, sizeof(bigLength), 0, /* continuation */ -1);
     bytesLeft -= sizeof(bigLength);
 
     /* record the rest of the request after the length */
     RecordAProtocolElement(pContext, client, XRecordFromClient,
-		(pointer)(stuff + 1), bytesLeft, /* continuation */ -1);
+               (pointer)(stuff + 1), bytesLeft, 0, /* continuation */ -1);
 } /* RecordABigRequest */
 
 
@@ -544,7 +550,7 @@ RecordARequest(ClientPtr client)
 		    RecordABigRequest(pContext, client, stuff);
 		else
 		    RecordAProtocolElement(pContext, client, XRecordFromClient,
-				(pointer)stuff, client->req_len << 2, 0);
+				(pointer)stuff, client->req_len << 2, 0, 0);
 	    }
 	    else /* extension, check minor opcode */
 	    {
@@ -568,7 +574,7 @@ RecordARequest(ClientPtr client)
 			else
 			    RecordAProtocolElement(pContext, client, 
 					XRecordFromClient, (pointer)stuff,
-					client->req_len << 2, 0);
+					client->req_len << 2, 0, 0);
 			break;
 		    }			    
 		} /* end for each minor op info */
@@ -621,7 +627,8 @@ RecordAReply(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 	    if (pContext->continuedReply)
 	    {
 		RecordAProtocolElement(pContext, client, XRecordFromServer,
-		   (pointer)pri->replyData, pri->dataLenBytes, /* continuation */ -1);
+		   (pointer)pri->replyData, pri->dataLenBytes,
+			    pri->padBytes, /* continuation */ -1);
 		if (!pri->bytesRemaining)
 		    pContext->continuedReply = 0;
 	    }
@@ -631,7 +638,7 @@ RecordAReply(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 		if (majorop <= 127)
 		{ /* core reply */
 		    RecordAProtocolElement(pContext, client, XRecordFromServer,
-		       (pointer)pri->replyData, pri->dataLenBytes, pri->bytesRemaining);
+		       (pointer)pri->replyData, pri->dataLenBytes, 0, pri->bytesRemaining);
 		    if (pri->bytesRemaining)
 			pContext->continuedReply = 1;
 		}
@@ -653,7 +660,7 @@ RecordAReply(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 			{
 			    RecordAProtocolElement(pContext, client, 
 				XRecordFromServer, (pointer)pri->replyData,
-				pri->dataLenBytes, pri->bytesRemaining);
+				pri->dataLenBytes, 0, pri->bytesRemaining);
 			    if (pri->bytesRemaining)
 				pContext->continuedReply = 1;
 			    break;
@@ -725,7 +732,7 @@ RecordADeliveredEventOrError(CallbackListPtr *pcbl, pointer nulldata, pointer ca
 			
 		    }
 		    RecordAProtocolElement(pContext, pClient,
-			XRecordFromServer, pEvToRecord, SIZEOF(xEvent), 0);
+			XRecordFromServer, pEvToRecord, SIZEOF(xEvent), 0, 0);
 		}
 	    } /* end for each event */
 	} /* end this client is on this context */
@@ -776,7 +783,7 @@ RecordSendProtocolEvents(RecordClientsAndProtocolPtr pRCAP,
 	    }
 
 	    RecordAProtocolElement(pContext, NULL,
-		    XRecordFromServer,  pEvToRecord, SIZEOF(xEvent), 0);
+		    XRecordFromServer,  pEvToRecord, SIZEOF(xEvent), 0, 0);
 	    /* make sure device events get flushed in the absence
 	     * of other client activity
 	     */
@@ -2420,7 +2427,7 @@ ProcRecordEnableContext(ClientPtr client)
     assert(numEnabledContexts > 0);
 
     /* send StartOfData */
-    RecordAProtocolElement(pContext, NULL, XRecordStartOfData, NULL, 0, 0);
+    RecordAProtocolElement(pContext, NULL, XRecordStartOfData, NULL, 0, 0, 0);
     RecordFlushReplyBuffer(pContext, NULL, 0, NULL, 0);
     return Success;
 } /* ProcRecordEnableContext */
@@ -2451,7 +2458,7 @@ RecordDisableContext(RecordContextPtr pContext)
     if (!pContext->pRecordingClient) return;
     if (!pContext->pRecordingClient->clientGone)
     {
-	RecordAProtocolElement(pContext, NULL, XRecordEndOfData, NULL, 0, 0);
+	RecordAProtocolElement(pContext, NULL, XRecordEndOfData, NULL, 0, 0, 0);
 	RecordFlushReplyBuffer(pContext, NULL, 0, NULL, 0);
 	/* Re-enable request processing on this connection. */
 	AttendClient(pContext->pRecordingClient);
@@ -2775,7 +2782,7 @@ RecordConnectionSetupInfo(RecordContextPtr pContext, NewClientInfoRec *pci)
 	SwapConnSetupPrefix(pci->prefix, (xConnSetupPrefix*)pConnSetup);
 	SwapConnSetupInfo((char*)pci->setup, (char*)(pConnSetup + prefixsize));
 	RecordAProtocolElement(pContext, pci->client, XRecordClientStarted,
-			       (pointer)pConnSetup, prefixsize + restsize, 0);
+			       (pointer)pConnSetup, prefixsize + restsize, 0, 0);
 	free(pConnSetup);
     }
     else
@@ -2784,9 +2791,9 @@ RecordConnectionSetupInfo(RecordContextPtr pContext, NewClientInfoRec *pci)
 	 * data in two pieces
 	 */
 	RecordAProtocolElement(pContext, pci->client, XRecordClientStarted,
-			(pointer)pci->prefix, prefixsize, restsize);
+			(pointer)pci->prefix, prefixsize, 0, restsize);
 	RecordAProtocolElement(pContext, pci->client, XRecordClientStarted,
-			(pointer)pci->setup, restsize, /* continuation */ -1);
+			(pointer)pci->setup, restsize, 0, /* continuation */ -1);
     }
 } /* RecordConnectionSetupInfo */
 
@@ -2863,7 +2870,7 @@ RecordAClientStateChange(CallbackListPtr *pcbl, pointer nulldata, pointer callda
 	    {
 		if (pContext->pRecordingClient && pRCAP->clientDied)
 		    RecordAProtocolElement(pContext, pClient,
-					   XRecordClientDied, NULL, 0, 0);
+					   XRecordClientDied, NULL, 0, 0, 0);
 		RecordDeleteClientFromRCAP(pRCAP, pos);
 	    }
 	}
