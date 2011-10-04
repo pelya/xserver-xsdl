@@ -363,6 +363,10 @@
 #define DEV_MEM "/dev/mem"
 #endif
 
+#ifndef MAP_FAILED
+#define MAP_FAILED ((void *)-1)
+#endif
+
 #define SYSCALL(call) while(((call) == -1) && (errno == EINTR))
 
 #define XF86_OS_PRIVS

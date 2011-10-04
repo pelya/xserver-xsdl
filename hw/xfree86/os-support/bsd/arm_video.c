@@ -97,11 +97,6 @@ struct memAccess ioMemInfo = { CONSOLE_GET_IO_INFO, NULL, NULL,
 #define MAP_FLAGS (MAP_FILE | MAP_SHARED)
 #endif
 
-#ifndef MAP_FAILED
-#define MAP_FAILED ((caddr_t)-1)
-#endif
-
-
 #define BUS_BASE	0L
 #define BUS_BASE_BWX	0L
 

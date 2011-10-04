@@ -52,10 +52,6 @@
 #define MAP_FLAGS (MAP_FILE | MAP_SHARED)
 #endif
 
-#ifndef MAP_FAILED
-#define MAP_FAILED ((caddr_t)-1)
-#endif
-
 axpDevice bsdGetAXP(void);
 
 #ifndef __NetBSD__
