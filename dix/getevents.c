@@ -1330,21 +1330,22 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
         double val, adj;
         int axis;
 
+        /* Up is negative on valuators, down positive */
         switch (buttons) {
         case 4:
-            adj = 1.0;
+            adj = -1.0;
             axis = v_scroll_axis;
             break;
         case 5:
-            adj = -1.0;
+            adj = 1.0;
             axis = v_scroll_axis;
             break;
         case 6:
-            adj = 1.0;
+            adj = -1.0;
             axis = h_scroll_axis;
             break;
         case 7:
-            adj = -1.0;
+            adj = 1.0;
             axis = h_scroll_axis;
             break;
         default:
