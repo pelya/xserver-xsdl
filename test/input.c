@@ -1480,8 +1480,6 @@ _test_double_fp16_values(double orig_d)
 {
     FP1616 first_fp16, final_fp16;
     double final_d;
-    char first_fp16_s[64];
-    char final_fp16_s[64];
 
     if (orig_d > 0x7FFF) {
         printf("Test out of range\n");
@@ -1492,10 +1490,15 @@ _test_double_fp16_values(double orig_d)
     final_d = fp1616_to_double(first_fp16);
     final_fp16 = double_to_fp1616(final_d);
 
-    snprintf(first_fp16_s, sizeof(first_fp16_s), "%d + %u * 2^-16", (first_fp16 & 0xffff0000) >> 16, first_fp16 & 0xffff);
-    snprintf(final_fp16_s, sizeof(final_fp16_s), "%d + %u * 2^-16", (final_fp16 & 0xffff0000) >> 16, final_fp16 & 0xffff);
-
-    printf("FP16: original double: %f first fp16: %s, re-encoded double: %f, final fp16: %s\n", orig_d, first_fp16_s, final_d, final_fp16_s);
+    /* {
+     *    char first_fp16_s[64];
+     *    char final_fp16_s[64];
+     *    snprintf(first_fp16_s, sizeof(first_fp16_s), "%d + %u * 2^-16", (first_fp16 & 0xffff0000) >> 16, first_fp16 & 0xffff);
+     *    snprintf(final_fp16_s, sizeof(final_fp16_s), "%d + %u * 2^-16", (final_fp16 & 0xffff0000) >> 16, final_fp16 & 0xffff);
+     *
+     *    printf("FP16: original double: %f first fp16: %s, re-encoded double: %f, final fp16: %s\n", orig_d, first_fp16_s, final_d, final_fp16_s);
+     * }
+     */
 
     /* since we lose precision, we only do rough range testing */
     assert(final_d > orig_d - 0.1);
