@@ -379,7 +379,7 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     rgb defaultWeight = { 0, 0, 0 };
     EntityInfoPtr pEnt;
     EntPtr msEnt = NULL;
-    char *BusID;
+    char *BusID, *devicename;
 
     if (pScrn->numEntities != 1)
 	return FALSE;
@@ -421,22 +421,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 	}
     }
 
-    BusID = malloc(64);
-    sprintf(BusID, "PCI:%d:%d:%d",
-#if XSERVER_LIBPCIACCESS
-	    ((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
-	    ms->PciInfo->dev, ms->PciInfo->func
-#else
-	    ((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
-	    ((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
-	    ((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
-#endif
-	);
-
-    ms->fd = drmOpen(NULL, BusID);
-    if (ms->fd < 0)
-	return FALSE;
-
     pScrn->monitor = pScrn->confScreen->monitor;
     pScrn->progClock = TRUE;
     pScrn->rgbBits = 8;
@@ -459,17 +443,41 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     }
     xf86PrintDepthBpp(pScrn);
 
-    if (!xf86SetWeight(pScrn, defaultWeight, defaultWeight))
-	return FALSE;
-    if (!xf86SetDefaultVisual(pScrn, -1))
-	return FALSE;
-
     /* Process the options */
     xf86CollectOptions(pScrn, NULL);
     if (!(ms->Options = malloc(sizeof(Options))))
 	return FALSE;
     memcpy(ms->Options, Options, sizeof(Options));
     xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, ms->Options);
+
+    devicename = xf86GetOptValString(ms->Options, OPTION_DEVICE_PATH);
+    if (!devicename) {
+       BusID = malloc(64);
+       sprintf(BusID, "PCI:%d:%d:%d",
+#if XSERVER_LIBPCIACCESS
+	        ((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
+	        ms->PciInfo->dev, ms->PciInfo->func
+#else
+	        ((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
+	        ((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
+	        ((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
+#endif
+	    );
+
+       ms->fd = drmOpen(NULL, BusID);
+    } else {
+       ms->fd = open(devicename, O_RDWR, 0);
+    }
+    if (ms->fd < 0)
+	return FALSE;
+
+
+
+
+    if (!xf86SetWeight(pScrn, defaultWeight, defaultWeight))
+	return FALSE;
+    if (!xf86SetDefaultVisual(pScrn, -1))
+	return FALSE;
 
     if (xf86ReturnOptValBool(ms->Options, OPTION_SW_CURSOR, FALSE)) {
 	ms->SWCursor = TRUE;
