@@ -1072,7 +1072,10 @@ UnloadModuleOrDriver(ModuleDescPtr mod)
     if (mod == NULL || mod->name == NULL)
 	return;
 
-    xf86MsgVerb(X_INFO, 3, "UnloadModule: \"%s\"\n", mod->name);
+    if (mod->parent)
+	xf86MsgVerb(X_INFO, 3, "UnloadSubModule: \"%s\"\n", mod->name);
+    else
+	xf86MsgVerb(X_INFO, 3, "UnloadModule: \"%s\"\n", mod->name);
 
     if ((mod->TearDownProc) && (mod->TearDownData))
 	mod->TearDownProc(mod->TearDownData);
@@ -1092,23 +1095,8 @@ UnloadSubModule(pointer _mod)
 {
     ModuleDescPtr mod = (ModuleDescPtr)_mod;
 
-    if (mod == NULL || mod->name == NULL)
-	return;
-
-    xf86MsgVerb(X_INFO, 3, "UnloadSubModule: \"%s\"\n", mod->name);
-
-    if ((mod->TearDownProc) && (mod->TearDownData))
-	mod->TearDownProc(mod->TearDownData);
-    LoaderUnload(mod->name, mod->handle);
-
     RemoveChild(mod);
-
-    if (mod->child)
-	UnloadModuleOrDriver(mod->child);
-
-    free(mod->path);
-    free(mod->name);
-    free(mod);
+    UnloadModuleOrDriver(mod);
 }
 
 static void
@@ -1135,6 +1123,7 @@ RemoveChild(ModuleDescPtr child)
     }
     if (mdp == child)
 	prevsib->sib = child->sib;
+    child->sib = NULL;
     return;
 }
 
