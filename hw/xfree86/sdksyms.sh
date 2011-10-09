@@ -52,7 +52,9 @@ cat > sdksyms.c << EOF
  */
 #include "geext.h"
 #include "geint.h"
+#ifdef MITSHM
 #include "shmint.h"
+#endif
 #include "syncsdk.h"
 #if XINERAMA
 # include "panoramiXsrv.h"
