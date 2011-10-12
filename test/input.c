@@ -1309,17 +1309,17 @@ static void dix_get_master(void)
     SpriteInfoRec ptr_sprite, kbd_sprite;
     SpriteInfoRec floating_sprite;
 
-    memset(&vcp, 0, sizeof(DeviceIntRec));
-    memset(&vck, 0, sizeof(DeviceIntRec));
-    memset(&ptr, 0, sizeof(DeviceIntRec));
-    memset(&kbd, 0, sizeof(DeviceIntRec));
-    memset(&floating, 0, sizeof(DeviceIntRec));
+    memset(&vcp, 0, sizeof(vcp));
+    memset(&vck, 0, sizeof(vck));
+    memset(&ptr, 0, sizeof(ptr));
+    memset(&kbd, 0, sizeof(kbd));
+    memset(&floating, 0, sizeof(floating));
 
-    memset(&vcp_sprite, 0, sizeof(DeviceIntRec));
-    memset(&vck_sprite, 0, sizeof(DeviceIntRec));
-    memset(&ptr_sprite, 0, sizeof(DeviceIntRec));
-    memset(&kbd_sprite, 0, sizeof(DeviceIntRec));
-    memset(&floating_sprite, 0, sizeof(DeviceIntRec));
+    memset(&vcp_sprite, 0, sizeof(vcp_sprite));
+    memset(&vck_sprite, 0, sizeof(vck_sprite));
+    memset(&ptr_sprite, 0, sizeof(ptr_sprite));
+    memset(&kbd_sprite, 0, sizeof(kbd_sprite));
+    memset(&floating_sprite, 0, sizeof(floating_sprite));
 
     vcp.type = MASTER_POINTER;
     vck.type = MASTER_KEYBOARD;
