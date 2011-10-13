@@ -2060,13 +2060,28 @@ xf86TargetPreferred(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
 		if (o == p)
 		    continue;
 
-		for (mode = output->probed_modes; mode; mode = mode->next) {
-		    Rotation r = output->initial_rotation;
-		    if (xf86ModeWidth(mode, r) == pref_width &&
-			    xf86ModeHeight(mode, r) == pref_height) {
+		/*
+		 * First see if the preferred mode matches on the next
+		 * output as well.  This catches the common case of identical
+		 * monitors and makes sure they all have the same timings
+		 * and refresh.  If that fails, we fall back to trying to
+		 * match just width & height.
+		 */
+		mode = xf86OutputHasPreferredMode(output, pref_width,
+						  pref_height);
+		if (mode && xf86ModesEqual(mode, preferred[p])) {
 			preferred[o] = mode;
 			match = TRUE;
-		    }
+		} else {
+			for (mode = output->probed_modes; mode;
+			     mode = mode->next) {
+				Rotation r = output->initial_rotation;
+				if (xf86ModeWidth(mode, r) == pref_width &&
+				    xf86ModeHeight(mode, r) == pref_height) {
+					preferred[o] = mode;
+					match = TRUE;
+				}
+			}
 		}
 
 		all_match &= match;
