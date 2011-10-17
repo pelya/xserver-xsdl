@@ -295,7 +295,7 @@ LockServer(void)
     FatalError("Could not create lock file in %s\n", tmp);
   (void) sprintf(pid_str, "%10ld\n", (long)getpid());
   (void) write(lfd, pid_str, 11);
-  (void) chmod(tmp, 0444);
+  (void) fchmod(lfd, 0444);
   (void) close(lfd);
 
   /*
