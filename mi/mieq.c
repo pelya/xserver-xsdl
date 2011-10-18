@@ -60,7 +60,8 @@ in this Software without prior written authorization from The Open Group.
 #endif
 
 /* Maximum size should be initial size multiplied by a power of 2 */
-#define QUEUE_INITIAL_SIZE                 128
+#define QUEUE_INITIAL_SIZE                 256
+#define QUEUE_RESERVED_SIZE                 64
 #define QUEUE_MAXIMUM_SIZE                4096
 #define QUEUE_DROP_BACKTRACE_FREQUENCY     100
 #define QUEUE_DROP_BACKTRACE_MAX            10
@@ -205,6 +206,26 @@ mieqFini(void)
     free(miEventQueue.events);
 }
 
+/* This function will determine if the given event is allowed to used the reserved
+ * queue space.
+ */
+static Bool
+mieqReservedCandidate(InternalEvent *e) {
+    switch(e->any.type) {
+        case ET_KeyRelease:
+        case ET_ButtonRelease:
+#if XFreeXDGA
+        case ET_DGAEvent:
+#endif
+        case ET_RawKeyRelease:
+        case ET_RawButtonRelease:
+        case ET_XQuartz:
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+
 /*
  * Must be reentrant with ProcessInputEvents.  Assumption: mieqEnqueue
  * will never be interrupted.  If this is called from both signal
@@ -220,6 +241,7 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
     int                    isMotion = 0;
     int                    evlen;
     Time                   time;
+    size_t                 n_enqueued;
 
 #ifdef XQUARTZ
     wait_for_server_init();
@@ -228,6 +250,8 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 
     verify_internal_event(e);
 
+    n_enqueued = mieqNumEnqueued(&miEventQueue);
+
     /* avoid merging events from different devices */
     if (e->any.type == ET_Motion)
         isMotion = pDev->id;
@@ -235,7 +259,8 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
     if (isMotion && isMotion == miEventQueue.lastMotion &&
         oldtail != miEventQueue.head) {
         oldtail = (oldtail - 1) % miEventQueue.nevents;
-    } else if (((oldtail + 1) % miEventQueue.nevents) == miEventQueue.head) {
+    } else if ((n_enqueued + 1 == miEventQueue.nevents) ||
+               ((n_enqueued + 1 >= miEventQueue.nevents - QUEUE_RESERVED_SIZE) && !mieqReservedCandidate(e))) {
         /* Toss events which come in late.  Usually this means your server's
          * stuck in an infinite loop somewhere, but SIGIO is still getting
          * handled.
@@ -517,9 +542,9 @@ mieqProcessInputEvents(void)
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
 
-    /* Grow our queue if we are reaching capacity: > 50% full */
+    /* Grow our queue if we are reaching capacity: < 2 * QUEUE_RESERVED_SIZE remaining */
     n_enqueued = mieqNumEnqueued(&miEventQueue);
-    if (n_enqueued >= (miEventQueue.nevents >> 1) &&
+    if (n_enqueued >= (miEventQueue.nevents - (2 * QUEUE_RESERVED_SIZE)) &&
         miEventQueue.nevents < QUEUE_MAXIMUM_SIZE) {
         ErrorF("[mi] Increasing EQ size to %lu to prevent dropped events.\n", miEventQueue.nevents << 1);
         if (!mieqGrowQueue(&miEventQueue, miEventQueue.nevents << 1)) {
