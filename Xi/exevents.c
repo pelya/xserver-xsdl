@@ -651,7 +651,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to, DeviceChangedEvent *dc
  * Send an XI2 DeviceChangedEvent to all interested clients.
  */
 void
-XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChangedEvent *dce)
+XISendDeviceChangedEvent(DeviceIntPtr device, DeviceChangedEvent *dce)
 {
     xXIDeviceChangedEvent *dcce;
     int rc;
@@ -665,7 +665,7 @@ XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChanged
 
     /* we don't actually swap if there's a NullClient, swapping is done
      * later when event is delivered. */
-    SendEventToAllWindows(master, XI_DeviceChangedMask, (xEvent*)dcce, 1);
+    SendEventToAllWindows(device, XI_DeviceChangedMask, (xEvent*)dcce, 1);
     free(dcce);
 }
 
@@ -699,7 +699,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
 
     /* FIXME: the classes may have changed since we generated the event. */
     DeepCopyDeviceClasses(slave, device, dce);
-    XISendDeviceChangedEvent(slave, device, dce);
+    XISendDeviceChangedEvent(device, dce);
 }
 
 /**
