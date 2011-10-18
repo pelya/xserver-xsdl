@@ -748,6 +748,26 @@ static void test_values_XIDeviceChangedEvent(DeviceChangedEvent *in,
 
                 }
                 break;
+            case XIScrollClass:
+                {
+                    xXIScrollInfo *s = (xXIScrollInfo*)any;
+                    assert(s->length ==
+                             bytes_to_int32(sizeof(xXIScrollInfo)));
+
+                    assert(s->sourceid == in->sourceid);
+                    assert(s->number < in->num_valuators);
+                    switch(s->type)
+                    {
+                        case XIScrollTypeVertical:
+                            assert(in->valuators[s->number].scroll.type == SCROLL_TYPE_VERTICAL);
+                            break;
+                        case XIScrollTypeHorizontal:
+                            assert(in->valuators[s->number].scroll.type == SCROLL_TYPE_HORIZONTAL);
+                            break;
+                    }
+                    if (s->flags & XIScrollFlagPreferred)
+                        assert(in->valuators[s->number].scroll.flags & SCROLL_FLAG_PREFERRED);
+                }
             default:
                 printf("Invalid class type.\n\n");
                 assert(1);
