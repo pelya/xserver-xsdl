@@ -40,6 +40,7 @@
 #include "dixgrabs.h"
 #include "eventstr.h"
 #include "inpututils.h"
+#include "mi.h"
 #include "assert.h"
 
 /**
@@ -1606,6 +1607,73 @@ dix_double_fp_conversion(void)
     }
 }
 
+/* The mieq test verifies that events added to the queue come out in the same
+ * order that they went in.
+ */
+static uint32_t mieq_test_event_last_processed;
+
+static void
+mieq_test_event_handler(int screenNum, InternalEvent *ie, DeviceIntPtr dev) {
+    RawDeviceEvent *e = (RawDeviceEvent *)ie;
+
+    assert(e->type == ET_RawMotion);
+    assert(e->flags > mieq_test_event_last_processed);
+    mieq_test_event_last_processed = e->flags;
+}
+
+static void _mieq_test_generate_events(uint32_t start, uint32_t count) {
+    count += start;
+    while (start < count) {
+        RawDeviceEvent e = {0};
+        e.header = ET_Internal;
+        e.type = ET_RawMotion;
+        e.length = sizeof(e);
+        e.time = GetTimeInMillis();
+        e.flags = start;
+
+        mieqEnqueue(NULL, (InternalEvent*)&e);
+
+        start++;
+    }
+}
+
+#define mieq_test_generate_events(c) { _mieq_test_generate_events(next, c); next += c; }
+
+static void
+mieq_test(void) {
+    uint32_t next = 1;
+
+    mieq_test_event_last_processed = 0;
+    mieqInit();
+    mieqSetHandler(ET_RawMotion, mieq_test_event_handler);
+
+    /* Enough to fit the buffer but trigger a grow */
+    mieq_test_generate_events(180);
+
+    /* We should resize to 512 now */
+    mieqProcessInputEvents();
+
+    /* Some should now get dropped */
+    mieq_test_generate_events(500);
+
+    /* Tell us how many got dropped, 1024 now */
+    mieqProcessInputEvents();
+
+    /* Now make it 2048 */
+    mieq_test_generate_events(900);
+    mieqProcessInputEvents();
+
+    /* Now make it 4096 (max) */
+    mieq_test_generate_events(1950);
+    mieqProcessInputEvents();
+
+    /* Now overflow one last time with the maximal queue and reach the verbosity limit */
+    mieq_test_generate_events(10000);
+    mieqProcessInputEvents();
+
+    mieqFini();
+}
+
 int main(int argc, char** argv)
 {
     dix_double_fp_conversion();
@@ -1624,6 +1692,7 @@ int main(int argc, char** argv)
     dix_valuator_alloc();
     dix_get_master();
     input_option_test();
+    mieq_test();
 
     return 0;
 }
