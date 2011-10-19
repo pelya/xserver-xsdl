@@ -1103,6 +1103,8 @@ SetScrollValuator(DeviceIntPtr dev, int axnum, enum ScrollType type, double incr
 {
     AxisInfoPtr ax;
     int *current_ax;
+    InternalEvent dce;
+    DeviceIntPtr master;
 
     if (!dev || !dev->valuator || axnum >= dev->valuator->numAxes)
         return FALSE;
@@ -1139,7 +1141,16 @@ SetScrollValuator(DeviceIntPtr dev, int axnum, enum ScrollType type, double incr
     ax->scroll.type = type;
     ax->scroll.increment = increment;
     ax->scroll.flags = flags;
-    /* FIXME: generate DeviceChanged Events */
+
+    master = GetMaster(dev, MASTER_ATTACHED);
+    CreateClassesChangedEvent(&dce, master, dev, DEVCHANGE_POINTER_EVENT | DEVCHANGE_DEVICE_CHANGE);
+    XISendDeviceChangedEvent(dev, &dce.changed_event);
+
+    /* if the current slave is us, update the master. If not, we'll update
+     * whenever the next slave switch happens anyway. CMDC sends the event
+     * for us */
+    if (master && master->lastSlave == dev)
+        ChangeMasterDeviceClasses(master, &dce.changed_event);
 
     return TRUE;
 }
