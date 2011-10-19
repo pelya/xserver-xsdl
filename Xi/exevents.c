@@ -699,6 +699,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
 
     /* FIXME: the classes may have changed since we generated the event. */
     DeepCopyDeviceClasses(slave, device, dce);
+    dce->deviceid = device->id;
     XISendDeviceChangedEvent(device, dce);
 }
 
