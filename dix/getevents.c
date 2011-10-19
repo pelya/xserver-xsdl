@@ -218,7 +218,7 @@ CreateClassesChangedEvent(InternalEvent* event,
     dce = &event->changed_event;
     memset(dce, 0, sizeof(DeviceChangedEvent));
     dce->deviceid = slave->id;
-    dce->masterid = master->id;
+    dce->masterid = master ? master->id : 0;
     dce->header = ET_Internal;
     dce->length = sizeof(DeviceChangedEvent);
     dce->type = ET_DeviceChanged;
