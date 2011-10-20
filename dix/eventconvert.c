@@ -49,6 +49,7 @@
 #include "inpututils.h"
 #include "xiquerydevice.h"
 #include "xkbsrv.h"
+#include "inpututils.h"
 
 
 static int countValuators(DeviceEvent *ev, int *first);
@@ -686,9 +687,7 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
         if (BitIsOn(ev->valuators.mask, i))
         {
             SetBit(ptr, i);
-            axisval->integral = trunc(ev->valuators.data[i]);
-            axisval->frac = (ev->valuators.data[i] - axisval->integral) *
-                            (1 << 16) * (1 << 16);
+            *axisval = double_to_fp3232(ev->valuators.data[i]);
             axisval++;
         }
     }
@@ -732,13 +731,8 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
         if (BitIsOn(ev->valuators.mask, i))
         {
             SetBit(ptr, i);
-            axisval->integral = trunc(ev->valuators.data[i]);
-            axisval->frac = (ev->valuators.data[i] - axisval->integral) *
-                            (1 << 16) * (1 << 16);
-            axisval_raw->integral = trunc(ev->valuators.data_raw[i]);
-            axisval_raw->frac =
-                (ev->valuators.data_raw[i] - axisval_raw->integral) *
-                  (1 << 16) * (1 << 16);
+            *axisval =  double_to_fp3232(ev->valuators.data[i]);
+            *axisval_raw = double_to_fp3232(ev->valuators.data_raw[i]);
             axisval++;
             axisval_raw++;
         }
