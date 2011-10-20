@@ -422,4 +422,5 @@ void __glXScreenDestroy(__GLXscreen *screen)
     free(screen->GLXvendor);
     free(screen->GLXextensions);
     free(screen->GLextensions);
+    free(screen->visuals);
 }
