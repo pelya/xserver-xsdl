@@ -30,6 +30,7 @@
 #include "eventstr.h"
 #include "eventconvert.h"
 #include "exevents.h"
+#include "inpututils.h"
 #include <X11/extensions/XI2proto.h>
 
 static void test_values_XIRawEvent(RawDeviceEvent *in, xXIRawEvent *out,
@@ -104,8 +105,7 @@ static void test_values_XIRawEvent(RawDeviceEvent *in, xXIRawEvent *out,
             value = (FP3232*)(((unsigned char*)&out[1]) + out->valuators_len * 4);
             value += nvals;
 
-            vi.integral = trunc(in->valuators.data[i]);
-            vi.frac = in->valuators.data[i] - vi.integral;
+            vi = double_to_fp3232(in->valuators.data[i]);
 
             vo.integral = value->integral;
             vo.frac = value->frac;
@@ -120,8 +120,7 @@ static void test_values_XIRawEvent(RawDeviceEvent *in, xXIRawEvent *out,
 
             raw_value = value + bits_set;
 
-            vi.integral = trunc(in->valuators.data_raw[i]);
-            vi.frac = in->valuators.data_raw[i] - vi.integral;
+            vi = double_to_fp3232(in->valuators.data_raw[i]);
 
             vo.integral = raw_value->integral;
             vo.frac = raw_value->frac;
