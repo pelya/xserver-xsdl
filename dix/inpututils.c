@@ -539,6 +539,42 @@ valuator_mask_get(const ValuatorMask *mask, int valuator)
 }
 
 /**
+ * Set value to the requested valuator. If the mask bit is set for this
+ * valuator, value contains the requested valuator value and TRUE is
+ * returned.
+ * If the mask bit is not set for this valuator, value is unchanged and
+ * FALSE is returned.
+ */
+Bool
+valuator_mask_fetch_double(const ValuatorMask *mask, int valuator, double *value)
+{
+    if (valuator_mask_isset(mask, valuator))
+    {
+        *value = valuator_mask_get_double(mask, valuator);
+        return TRUE;
+    } else
+        return FALSE;
+}
+
+/**
+ * Set value to the requested valuator. If the mask bit is set for this
+ * valuator, value contains the requested valuator value and TRUE is
+ * returned.
+ * If the mask bit is not set for this valuator, value is unchanged and
+ * FALSE is returned.
+ */
+Bool
+valuator_mask_fetch(const ValuatorMask *mask, int valuator, int *value)
+{
+    if (valuator_mask_isset(mask, valuator))
+    {
+        *value = valuator_mask_get(mask, valuator);
+        return TRUE;
+    } else
+        return FALSE;
+}
+
+/**
  * Remove the valuator from the mask.
  */
 void
