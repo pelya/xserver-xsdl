@@ -2,7 +2,7 @@
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
 Copyright 2000 VA Linux Systems, Inc.
-Copyright (c) 2002, 2009 Apple Computer, Inc.
+Copyright (c) 2002, 2009-2011 Apple Inc.
 All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
@@ -410,21 +410,107 @@ SProcAppleDRIQueryVersion(
 }
 
 static int
+SProcAppleDRIQueryDirectRenderingCapable(
+    register ClientPtr client
+)
+{
+    REQUEST(xAppleDRIQueryDirectRenderingCapableReq);
+    swaps(&stuff->length);
+    swapl(&stuff->screen);
+    return ProcAppleDRIQueryDirectRenderingCapable(client);
+}
+
+static int
+SProcAppleDRIAuthConnection(
+    register ClientPtr client
+)
+{
+    REQUEST(xAppleDRIAuthConnectionReq);
+    swaps(&stuff->length);
+    swapl(&stuff->screen);
+    swapl(&stuff->magic);
+    return ProcAppleDRIAuthConnection(client);
+}
+
+static int
+SProcAppleDRICreateSurface(
+    register ClientPtr client
+)
+{
+    REQUEST(xAppleDRICreateSurfaceReq);
+    swaps(&stuff->length);
+    swapl(&stuff->screen);
+    swapl(&stuff->drawable);
+    swapl(&stuff->client_id);
+    return ProcAppleDRICreateSurface(client);
+}
+
+static int
+SProcAppleDRIDestroySurface(
+    register ClientPtr client
+)
+{
+    REQUEST(xAppleDRIDestroySurfaceReq);
+    swaps(&stuff->length);
+    swapl(&stuff->screen);
+    swapl(&stuff->drawable);
+    return ProcAppleDRIDestroySurface(client);
+}
+
+static int
+SProcAppleDRICreatePixmap(
+    register ClientPtr client
+)
+{
+    REQUEST(xAppleDRICreatePixmapReq);
+    swaps(&stuff->length);
+    swapl(&stuff->screen);
+    swapl(&stuff->drawable);
+    return ProcAppleDRICreatePixmap(client);
+}
+
+static int
+SProcAppleDRIDestroyPixmap(
+    register ClientPtr client
+)
+{
+    REQUEST(xAppleDRIDestroyPixmapReq);
+    swaps(&stuff->length);
+    swapl(&stuff->drawable);
+    return ProcAppleDRIDestroyPixmap(client);
+}
+
+static int
 SProcAppleDRIDispatch (
     register ClientPtr client
 )
 {
     REQUEST(xReq);
 
-    /* It is bound to be non-local when there is byte swapping */
-    if (!LocalClient(client))
-        return DRIErrorBase + AppleDRIClientNotLocal;
-
-    /* only local clients are allowed DRI access */
     switch (stuff->data)
     {
     case X_AppleDRIQueryVersion:
         return SProcAppleDRIQueryVersion(client);
+    case X_AppleDRIQueryDirectRenderingCapable:
+        return SProcAppleDRIQueryDirectRenderingCapable(client);
+    }
+
+    if (!LocalClient(client))
+        return DRIErrorBase + AppleDRIClientNotLocal;
+
+    switch (stuff->data)
+    {
+    case X_AppleDRIAuthConnection:
+        return SProcAppleDRIAuthConnection(client);
+    case X_AppleDRICreateSurface:
+        return SProcAppleDRICreateSurface(client);
+    case X_AppleDRIDestroySurface:
+        return SProcAppleDRIDestroySurface(client);
+    case X_AppleDRICreatePixmap:
+	return SProcAppleDRICreatePixmap(client);
+    case X_AppleDRIDestroyPixmap:
+	return SProcAppleDRIDestroyPixmap(client);
+
     default:
         return BadRequest;
     }
