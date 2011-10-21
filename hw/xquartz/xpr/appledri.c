@@ -280,7 +280,7 @@ ProcAppleDRICreatePixmap(ClientPtr client)
 		
     /* No need for swapping, because this only runs if LocalClient is true. */
     rep.type = X_Reply;
-    rep.length = sizeof(rep) + rep.stringLength;
+    rep.length = bytes_to_int32(rep.stringLength);
     rep.sequenceNumber = client->sequence;
     rep.width = width;
     rep.height = height;
