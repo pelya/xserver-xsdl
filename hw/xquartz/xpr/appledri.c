@@ -91,7 +91,6 @@ ProcAppleDRIQueryVersion(
 )
 {
     xAppleDRIQueryVersionReply rep;
-    register int n;
 
     REQUEST_SIZE_MATCH(xAppleDRIQueryVersionReq);
     rep.type = X_Reply;
@@ -101,8 +100,12 @@ ProcAppleDRIQueryVersion(
     rep.minorVersion = SERVER_APPLEDRI_MINOR_VERSION;
     rep.patchVersion = SERVER_APPLEDRI_PATCH_VERSION;
     if (client->swapped) {
+        register int n;
         swaps(&rep.sequenceNumber, n);
         swapl(&rep.length, n);
+        swaps(&rep.majorVersion, n);
+        swaps(&rep.minorVersion, n);
+        swapl(&rep.patchVersion, n);
     }
     WriteToClient(client, sizeof(xAppleDRIQueryVersionReply), (char *)&rep);
     return Success;
@@ -134,6 +137,12 @@ ProcAppleDRIQueryDirectRenderingCapable(
     if (!LocalClient(client))
         rep.isCapable = 0;
 
+    if (client->swapped) {
+        register int n;
+        swaps(&rep.sequenceNumber, n);
+        swapl(&rep.length, n);
+    }
+
     WriteToClient(client, 
         sizeof(xAppleDRIQueryDirectRenderingCapableReply), (char *)&rep);
     return Success;
@@ -158,6 +167,14 @@ ProcAppleDRIAuthConnection(
         ErrorF("Failed to authenticate %u\n", (unsigned int)stuff->magic);
         rep.authenticated = 0;
     }
+
+    if (client->swapped) {
+        register int n;
+        swaps(&rep.sequenceNumber, n);
+        swapl(&rep.length, n);
+        swapl(&rep.authenticated, n); /* Yes, this is a CARD32 ... sigh */
+    }
+
     WriteToClient(client, sizeof(xAppleDRIAuthConnectionReply), (char *)&rep);
     return Success;
 }
@@ -216,6 +233,15 @@ ProcAppleDRICreateSurface(
     rep.key_0 = key[0];
     rep.key_1 = key[1];
     rep.uid = sid;
+
+    if (client->swapped) {
+        register int n;
+        swaps(&rep.sequenceNumber, n);
+        swapl(&rep.length, n);
+        swapl(&rep.key_0, n);
+        swapl(&rep.key_1, n);
+        swapl(&rep.uid, n);
+    }
 
     WriteToClient(client, sizeof(xAppleDRICreateSurfaceReply), (char *)&rep);
     return Success;
@@ -278,7 +304,6 @@ ProcAppleDRICreatePixmap(ClientPtr client)
 	
     rep.stringLength = strlen(path) + 1;
 		
-    /* No need for swapping, because this only runs if LocalClient is true. */
     rep.type = X_Reply;
     rep.length = bytes_to_int32(rep.stringLength);
     rep.sequenceNumber = client->sequence;
@@ -291,8 +316,20 @@ ProcAppleDRICreatePixmap(ClientPtr client)
     if(sizeof(rep) != sz_xAppleDRICreatePixmapReply)
 	ErrorF("error sizeof(rep) is %zu\n", sizeof(rep)); 
     
-    WriteReplyToClient(client, sizeof(rep), &rep);
-    (void)WriteToClient(client, rep.stringLength, path);
+    if (client->swapped) {
+        register int n;
+        swaps(&rep.sequenceNumber, n);
+        swapl(&rep.length, n);
+        swapl(&rep.stringLength, n);
+        swapl(&rep.width, n);
+        swapl(&rep.height, n);
+        swapl(&rep.pitch, n);
+        swapl(&rep.bpp, n);
+        swapl(&rep.size, n);
+    }
+
+    WriteToClient(client, sizeof(rep), &rep);
+    WriteToClient(client, rep.stringLength, path);
 
     return Success;
 }
