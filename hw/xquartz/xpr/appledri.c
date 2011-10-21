@@ -102,6 +102,9 @@ ProcAppleDRIQueryVersion(
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
+        swaps(&rep.majorVersion);
+        swaps(&rep.minorVersion);
+        swapl(&rep.patchVersion);
     }
     WriteToClient(client, sizeof(xAppleDRIQueryVersionReply), (char *)&rep);
     return Success;
@@ -133,6 +136,11 @@ ProcAppleDRIQueryDirectRenderingCapable(
     if (!LocalClient(client))
         rep.isCapable = 0;
 
+    if (client->swapped) {
+        swaps(&rep.sequenceNumber);
+        swapl(&rep.length);
+    }
+
     WriteToClient(client, 
         sizeof(xAppleDRIQueryDirectRenderingCapableReply), (char *)&rep);
     return Success;
@@ -157,6 +165,13 @@ ProcAppleDRIAuthConnection(
         ErrorF("Failed to authenticate %u\n", (unsigned int)stuff->magic);
         rep.authenticated = 0;
     }
+
+    if (client->swapped) {
+        swaps(&rep.sequenceNumber);
+        swapl(&rep.length);
+        swapl(&rep.authenticated); /* Yes, this is a CARD32 ... sigh */
+    }
+
     WriteToClient(client, sizeof(xAppleDRIAuthConnectionReply), (char *)&rep);
     return Success;
 }
@@ -215,6 +230,14 @@ ProcAppleDRICreateSurface(
     rep.key_0 = key[0];
     rep.key_1 = key[1];
     rep.uid = sid;
+
+    if (client->swapped) {
+        swaps(&rep.sequenceNumber);
+        swapl(&rep.length);
+        swapl(&rep.key_0);
+        swapl(&rep.key_1);
+        swapl(&rep.uid);
+    }
 
     WriteToClient(client, sizeof(xAppleDRICreateSurfaceReply), (char *)&rep);
     return Success;
@@ -277,7 +300,6 @@ ProcAppleDRICreatePixmap(ClientPtr client)
 	
     rep.stringLength = strlen(path) + 1;
 		
-    /* No need for swapping, because this only runs if LocalClient is true. */
     rep.type = X_Reply;
     rep.length = bytes_to_int32(rep.stringLength);
     rep.sequenceNumber = client->sequence;
@@ -290,8 +312,19 @@ ProcAppleDRICreatePixmap(ClientPtr client)
     if(sizeof(rep) != sz_xAppleDRICreatePixmapReply)
 	ErrorF("error sizeof(rep) is %zu\n", sizeof(rep)); 
     
-    WriteReplyToClient(client, sizeof(rep), &rep);
-    (void)WriteToClient(client, rep.stringLength, path);
+    if (client->swapped) {
+        swaps(&rep.sequenceNumber);
+        swapl(&rep.length);
+        swapl(&rep.stringLength);
+        swapl(&rep.width);
+        swapl(&rep.height);
+        swapl(&rep.pitch);
+        swapl(&rep.bpp);
+        swapl(&rep.size);
+    }
+
+    WriteToClient(client, sizeof(rep), &rep);
+    WriteToClient(client, rep.stringLength, path);
 
     return Success;
 }
