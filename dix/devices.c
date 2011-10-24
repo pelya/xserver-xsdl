@@ -985,6 +985,8 @@ CloseDownDevices(void)
 {
     DeviceIntPtr dev;
 
+    OsBlockSignals();
+
     /* Float all SDs before closing them. Note that at this point resources
      * (e.g. cursors) have been freed already, so we can't just call
      * AttachDevice(NULL, dev, NULL). Instead, we have to forcibly set master
@@ -1007,6 +1009,8 @@ CloseDownDevices(void)
     inputInfo.keyboard = NULL;
     inputInfo.pointer = NULL;
     XkbDeleteRulesDflts();
+
+    OsReleaseSignals();
 }
 
 /**
