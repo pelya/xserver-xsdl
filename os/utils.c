@@ -1664,13 +1664,11 @@ CheckUserParameters(int argc, char **argv, char **envp)
 		    if (!eq)
 			continue;
 		    len = eq - envp[i];
-		    e = malloc(len + 1);
+		    e = strndup(envp[i], len);
 		    if (!e) {
 			bad = InternalError;
 			break;
 		    }
-		    strncpy(e, envp[i], len);
-		    e[len] = 0;
 		    if (len >= 4 &&
 			(strcmp(e + len - 4, "PATH") == 0 ||
 			 strcmp(e, "TERMCAP") == 0)) {
