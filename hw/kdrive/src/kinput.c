@@ -1049,10 +1049,15 @@ KdGetOptions (InputOption **options, char *string)
     if (strchr(string, '='))
     {
         tam_key = (strchr(string, '=') - string);
-        key = malloc(tam_key);
+        key = malloc(tam_key + 1);
+        if (!key)
+            goto out;
+
         strncpy(key, string, tam_key);
         key[tam_key] = '\0';
         value = strdup(strchr(string, '=') + 1);
+        if (!value)
+            goto out;
     }
     else
     {
@@ -1064,6 +1069,7 @@ KdGetOptions (InputOption **options, char *string)
     if (newopt)
         *options = newopt;
 
+out:
     free(key);
     free(value);
 
