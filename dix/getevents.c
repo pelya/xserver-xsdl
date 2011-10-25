@@ -209,7 +209,7 @@ void
 CreateClassesChangedEvent(InternalEvent* event,
                           DeviceIntPtr master,
                           DeviceIntPtr slave,
-                          int type)
+                          int flags)
 {
     int i;
     DeviceChangedEvent *dce;
@@ -218,13 +218,12 @@ CreateClassesChangedEvent(InternalEvent* event,
     dce = &event->changed_event;
     memset(dce, 0, sizeof(DeviceChangedEvent));
     dce->deviceid = slave->id;
-    dce->masterid = master->id;
+    dce->masterid = master ? master->id : 0;
     dce->header = ET_Internal;
     dce->length = sizeof(DeviceChangedEvent);
     dce->type = ET_DeviceChanged;
     dce->time = ms;
-    dce->flags = type;
-    dce->flags |= DEVCHANGE_SLAVE_SWITCH;
+    dce->flags = flags;
     dce->sourceid = slave->id;
 
     if (slave->button)
@@ -243,6 +242,7 @@ CreateClassesChangedEvent(InternalEvent* event,
             dce->valuators[i].resolution = slave->valuator->axes[i].resolution;
             dce->valuators[i].mode = slave->valuator->axes[i].mode;
             dce->valuators[i].name = slave->valuator->axes[i].label;
+            dce->valuators[i].scroll = slave->valuator->axes[i].scroll;
         }
     }
     if (slave->key)
@@ -673,7 +673,7 @@ UpdateFromMaster(InternalEvent* events, DeviceIntPtr dev, int type, int *num_eve
 
     if (master && master->last.slave != dev)
     {
-        CreateClassesChangedEvent(events, master, dev, type);
+        CreateClassesChangedEvent(events, master, dev, type | DEVCHANGE_SLAVE_SWITCH);
         if (IsPointerDevice(master))
         {
             updateSlaveDeviceCoords(master, dev);
