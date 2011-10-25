@@ -1,5 +1,4 @@
 if ENABLE_UNIT_TESTS
-if HAVE_LD_WRAP
 SUBDIRS= . xi2
 noinst_PROGRAMS = xkb input xtest list misc fixes xfree86
 check_LTLIBRARIES = libxservertest.la
@@ -42,5 +41,4 @@ libxservertest_la_LIBADD = \
             $(top_builddir)/os/libos.la \
             @XORG_LIBS@
 libxservertest_la_DEPENDENCIES = $(libxservertest_la_LIBADD)
-endif
 endif
