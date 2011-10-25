@@ -4,6 +4,7 @@ noinst_PROGRAMS = xkb input xtest list misc fixes xfree86
 check_LTLIBRARIES = libxservertest.la
 
 TESTS=$(noinst_PROGRAMS)
+TESTS_ENVIRONMENT = $(XORG_MALLOC_DEBUG_ENV)
 
 AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
 INCLUDES = $(XORG_INCS) -I$(top_srcdir)/hw/xfree86/parser \
