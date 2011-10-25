@@ -910,35 +910,38 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
         return BadAlloc;
 
     nt_list_for_each_entry(option, options, list.next) {
-        if (strcasecmp(input_option_get_key(option), "driver") == 0) {
+        const char *key = input_option_get_key(option);
+        const char *value = input_option_get_value(option);
+
+        if (strcasecmp(key, "driver") == 0) {
             if (pInfo->driver) {
                 rval = BadRequest;
                 goto unwind;
             }
-            pInfo->driver = xstrdup(input_option_get_value(option));
+            pInfo->driver = xstrdup(value);
             if (!pInfo->driver) {
                 rval = BadAlloc;
                 goto unwind;
             }
         }
 
-        if (strcasecmp(input_option_get_key(option), "name") == 0 ||
-            strcasecmp(input_option_get_key(option), "identifier") == 0) {
+        if (strcasecmp(key, "name") == 0 ||
+            strcasecmp(key, "identifier") == 0) {
             if (pInfo->name) {
                 rval = BadRequest;
                 goto unwind;
             }
-            pInfo->name = xstrdup(input_option_get_value(option));
+            pInfo->name = xstrdup(value);
             if (!pInfo->name) {
                 rval = BadAlloc;
                 goto unwind;
             }
         }
 
-        if (strcmp(input_option_get_key(option), "_source") == 0 &&
-            (strcmp(input_option_get_value(option), "server/hal") == 0 ||
-             strcmp(input_option_get_value(option), "server/udev") == 0 ||
-             strcmp(input_option_get_value(option), "server/wscons") == 0)) {
+        if (strcmp(key, "_source") == 0 &&
+            (strcmp(value, "server/hal") == 0 ||
+             strcmp(value, "server/udev") == 0 ||
+             strcmp(value, "server/wscons") == 0)) {
             is_auto = 1;
             if (!xf86Info.autoAddDevices) {
                 rval = BadMatch;
