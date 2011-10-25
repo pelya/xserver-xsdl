@@ -492,6 +492,10 @@ extern _X_EXPORT size_t strlcpy(char *dst, const char *src, size_t siz);
 extern _X_EXPORT size_t strlcat(char *dst, const char *src, size_t siz);
 #endif
 
+#ifndef HAVE_STRNDUP
+extern _X_EXPORT char * strndup(const char *str, size_t n);
+#endif
+
 /* Logging. */
 typedef enum _LogParameter {
     XLOG_FLUSH,

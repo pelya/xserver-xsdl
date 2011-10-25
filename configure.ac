@@ -218,6 +218,8 @@ AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \
 		strtol getopt getopt_long vsnprintf walkcontext backtrace \
 		getisax getzoneid shmctl64 strcasestr ffs vasprintf])
 AC_FUNC_ALLOCA
+AC_CHECK_FUNCS([strndup], [HAVE_STRNDUP=yes], [HAVE_STRNDUP=no])
+AM_CONDITIONAL(NEED_STRNDUP, [test x$HAVE_STRNDUP = xno])
 dnl Old HAS_* names used in os/*.c.
 AC_CHECK_FUNC([getdtablesize],
 	AC_DEFINE(HAS_GETDTABLESIZE, 1, [Have the 'getdtablesize' function.]))

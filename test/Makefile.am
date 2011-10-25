@@ -1,6 +1,6 @@
 if ENABLE_UNIT_TESTS
 SUBDIRS= . xi2
-noinst_PROGRAMS = xkb input xtest list misc fixes xfree86
+noinst_PROGRAMS = xkb input xtest list misc fixes xfree86 string
 check_LTLIBRARIES = libxservertest.la
 
 TESTS=$(noinst_PROGRAMS)
