@@ -1441,7 +1441,7 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
     rc = CheckGrabValues(client, param);
     if (rc != Success)
         return rc;
-    if (k == NULL)
+    if ((dev->id != XIAllDevices && dev->id != XIAllMasterDevices) && k == NULL)
 	return BadMatch;
     if (grabtype == GRABTYPE_XI)
     {
