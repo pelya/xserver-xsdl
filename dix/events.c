@@ -414,7 +414,7 @@ GetEventFilterMask(DeviceIntPtr dev, int evtype)
     return filters[dev ? dev->id : 0][evtype];
 }
 
-static inline Mask
+inline Mask
 GetXI2EventFilterMask(int evtype)
 {
     return (1 << (evtype % 8));
@@ -452,7 +452,7 @@ GetEventFilter(DeviceIntPtr dev, xEvent *event)
  * Return the single byte of the device's XI2 mask that contains the mask
  * for the event_type.
  */
-static int
+int
 GetXI2MaskByte(XI2Mask *mask, DeviceIntPtr dev, int event_type)
 {
     /* we just return the matching filter because that's the only use
