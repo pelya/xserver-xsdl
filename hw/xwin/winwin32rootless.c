@@ -640,8 +640,6 @@ winMWExtWMRestackFrame (RootlessFrameID wid, RootlessFrameID nextWid)
       SetWindowPos (pRLWinPriv->hWnd, pRLNextWinPriv->hWnd,
 		    0, 0, 0, 0,
 		    SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
-#if 0
-#endif
     }
 #if CYGMULTIWINDOW_DEBUG
   winDebug ("winMWExtWMRestackFrame - done (%08x)\n", (int) pRLWinPriv);
