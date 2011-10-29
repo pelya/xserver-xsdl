@@ -800,20 +800,17 @@ void InitOutput(ScreenInfo *pScreenInfo, int argc, char *argv[])
 /* RATS: Assuming the fp string (which comes from the command-line argv
          vector) is NULL-terminated, the buffer is large enough for the
          strcpy. */ 
-static void dmxSetDefaultFontPath(char *fp)
+static void dmxSetDefaultFontPath(const char *fp)
 {
-    int fplen = strlen(fp) + 1;
-    
     if (dmxFontPath) {
-	int len;
+	int fplen = strlen(fp) + 1;
+	int len = strlen(dmxFontPath);
 
-	len = strlen(dmxFontPath);
 	dmxFontPath = realloc(dmxFontPath, len+fplen+1);
 	dmxFontPath[len] = ',';
 	strncpy(&dmxFontPath[len+1], fp, fplen);
     } else {
-	dmxFontPath = malloc(fplen);
-	strncpy(dmxFontPath, fp, fplen);
+	dmxFontPath = strdup(fp);
     }
 
     defaultFontPath = dmxFontPath;
