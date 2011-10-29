@@ -386,7 +386,7 @@ CreateWellKnownSockets(void)
 
     FD_ZERO (&WellKnownConnections);
 
-    sprintf (port, "%d", atoi (display));
+    snprintf (port, sizeof(port), "%d", atoi (display));
 
     if ((_XSERVTransMakeAllCOTSServerListeners (port, &partial,
 	&ListenTransCount, &ListenTransConns) >= 0) &&
@@ -1266,7 +1266,7 @@ void ListenOnOpenFD(int fd, int noxauth) {
         strcpy(port, display_env);
     } else {
         /* Just some default so things don't break and die. */
-        sprintf(port, ":%d", atoi(display));
+        snprintf(port, sizeof(port), ":%d", atoi(display));
     }
 
     /* Make our XtransConnInfo

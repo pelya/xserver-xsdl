@@ -258,7 +258,7 @@ LockServer(void)
    */
   tmppath = LOCK_DIR;
 
-  sprintf(port, "%d", atoi(display));
+  snprintf(port, sizeof(port), "%d", atoi(display));
   len = strlen(LOCK_PREFIX) > strlen(LOCK_TMP_PREFIX) ? strlen(LOCK_PREFIX) :
 						strlen(LOCK_TMP_PREFIX);
   len += strlen(tmppath) + strlen(port) + strlen(LOCK_SUFFIX) + 1;
@@ -295,7 +295,7 @@ LockServer(void)
   }
   if (lfd < 0)
     FatalError("Could not create lock file in %s\n", tmp);
-  (void) sprintf(pid_str, "%10ld\n", (long)getpid());
+  snprintf(pid_str, sizeof(pid_str), "%10ld\n", (long)getpid());
   (void) write(lfd, pid_str, 11);
   (void) fchmod(lfd, 0444);
   (void) close(lfd);
