@@ -138,7 +138,7 @@ static int dmxErrorHandler(Display *dpy, XErrorEvent *ev)
         for (ext = dpy->ext_procs;
              ext && ext->codes.major_opcode != ev->request_code;
              ext = ext->next);
-        if (ext) strncpy(buf, ext->name, sizeof(buf));
+        if (ext) strlcpy(buf, ext->name, sizeof(buf));
         else     buf[0] = '\0';
     }
     dmxLog(dmxWarning, "                 Major opcode: %d (%s)\n",

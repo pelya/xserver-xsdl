@@ -1235,8 +1235,7 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
 #endif /* __GLIBC __ */
                 xchomp(line);
                 if (isdigit(line[0])) {
-                    strncpy(vendor_str, line, 4);
-                    vendor_str[4] = '\0';
+                    strlcpy(vendor_str, line, sizeof(vendor_str));
                     vendor = (int)strtol(vendor_str, NULL, 16);
                     if ((strlen(&line[4])) == 0) {
                         chip_str[0] = '\0';
@@ -1248,8 +1247,7 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
                             chip = -1;
                         } else {
                             /* Ok, it's a real ID */
-                            strncpy(chip_str, &line[4], 4);
-                            chip_str[4] = '\0';
+                            strlcpy(chip_str, &line[4], sizeof(chip_str));
                             chip = (int)strtol(chip_str, NULL, 16);
                         }
                     }

@@ -1756,8 +1756,7 @@ siHostnameAddrMatch(int family, pointer addr, int len,
 	if (siAddrLen >= sizeof(hostname)) 
 	    return FALSE;
 
-	strncpy(hostname, siAddr, siAddrLen);
-	hostname[siAddrLen] = '\0';
+	strlcpy(hostname, siAddr, siAddrLen + 1);
 
 	if (getaddrinfo(hostname, NULL, NULL, &addresses) == 0) {
 	    for (a = addresses ; a != NULL ; a = a->ai_next) {
@@ -1786,8 +1785,7 @@ siHostnameAddrMatch(int family, pointer addr, int len,
 	if (siAddrLen >= sizeof(hostname)) 
 	    return FALSE;
 
-	strncpy(hostname, siAddr, siAddrLen);
-	hostname[siAddrLen] = '\0';
+	strlcpy(hostname, siAddr, siAddrLen + 1);
 
 	if ((hp = _XGethostbyname(hostname, hparams)) != NULL) {
 #ifdef h_addr				/* new 4.3bsd version of gethostent */

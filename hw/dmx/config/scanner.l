@@ -153,7 +153,7 @@ static int getdimension(int token, const char *text, int leng)
     char *tmp = dmxConfigAlloc(leng+1);
     int  x, y;
 
-    strncpy(tmp, text, leng);
+    strlcpy(tmp, text, leng+1);
     x = strtol(tmp, &endptr, 10);
     while (*endptr && !isdigit(*endptr)) ++endptr;
     y = strtol(endptr, NULL, 10);

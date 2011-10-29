@@ -281,8 +281,10 @@ again:
 				if (builtinConfig[builtinIndex] == NULL)
 					ret = NULL;
 				else {
-					ret = strncpy(configBuf, builtinConfig[builtinIndex],
-							CONFIG_BUF_LEN);
+					strlcpy(configBuf,
+						builtinConfig[builtinIndex],
+						CONFIG_BUF_LEN);
+					ret = configBuf;
 					builtinIndex++;
 				}
 			}

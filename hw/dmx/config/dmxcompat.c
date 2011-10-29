@@ -94,8 +94,7 @@ static void dmxVDLDisplayEntry(const char *buf,
     char       *end;
 
     pt   = strchr(buf, ' ');
-    strncpy(name, buf, pt-buf);
-    name[pt-buf] = '\0';
+    strlcpy(name, buf, 1+pt-buf);
     *len  = strlen(name);
     
     *x     = strtol(pt, &end, 10);

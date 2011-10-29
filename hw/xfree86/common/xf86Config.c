@@ -195,8 +195,7 @@ xf86ValidateFontPath(char *path)
 	dirlen = p1 - path_elem;
       else
 	dirlen = strlen(path_elem);
-      strncpy(dir_elem, path_elem, dirlen);
-      dir_elem[dirlen] = '\0';
+      strlcpy(dir_elem, path_elem, dirlen + 1);
       flag = stat(dir_elem, &stat_buf);
       if (flag == 0)
 	if (!S_ISDIR(stat_buf.st_mode))

@@ -81,8 +81,7 @@ char	*rtrn,*tmp;
 	if (len>BUFFER_SIZE)
 	    len= BUFFER_SIZE-2;
 	rtrn= tbGetBuffer(len);
-	strncpy(rtrn,atmstr,len);
-	rtrn[len]= '\0';
+	strlcpy(rtrn,atmstr,len);
     }
     else {
 	rtrn= tbGetBuffer(1);
