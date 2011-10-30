@@ -101,8 +101,6 @@ static int builtinIndex = 0;
 static int configPos = 0;		/* current readers position */
 static int configLineNo = 0;	/* linenumber */
 static char *configBuf, *configRBuf;	/* buffer for lines */
-static char *configPath;		/* path to config file */
-static char *configDirPath;		/* path to config dir */
 static char *configSection = NULL;	/* name of current section being parsed */
 static int numFiles = 0;		/* number of config files */
 static int curFileIndex = 0;		/* index of current config file */
@@ -894,7 +892,8 @@ xf86initConfigFiles(void)
  * of the located files.
  *
  * The return value is a pointer to the actual name of the file that was
- * opened.  When no file is found, the return value is NULL.
+ * opened.  When no file is found, the return value is NULL. The caller should
+ * free() the returned value.
  *
  * The escape sequences allowed in the search path are defined above.
  *
@@ -916,7 +915,7 @@ xf86initConfigFiles(void)
 							"%P/lib/X11/%X"
 #endif
 
-const char *
+char *
 xf86openConfigFile(const char *path, const char *cmdline, const char *projroot)
 {
 	if (!path || !path[0])
@@ -925,8 +924,7 @@ xf86openConfigFile(const char *path, const char *cmdline, const char *projroot)
 		projroot = PROJECTROOT;
 
 	/* Search for a config file */
-	configPath = OpenConfigFile(path, cmdline, projroot, XCONFIGFILE);
-	return configPath;
+	return OpenConfigFile(path, cmdline, projroot, XCONFIGFILE);
 }
 
 /*
@@ -939,12 +937,13 @@ xf86openConfigFile(const char *path, const char *cmdline, const char *projroot)
  * fails if it is not found.
  *
  * The return value is a pointer to the actual name of the direcoty that was
- * opened.  When no directory is found, the return value is NULL.
+ * opened.  When no directory is found, the return value is NULL. The caller
+ * should free() the returned value.
  *
  * The escape sequences allowed in the search path are defined above.
  *
  */
-const char *
+char *
 xf86openConfigDirFiles(const char *path, const char *cmdline,
 		       const char *projroot)
 {
@@ -954,8 +953,7 @@ xf86openConfigDirFiles(const char *path, const char *cmdline,
 		projroot = PROJECTROOT;
 
 	/* Search for the multiconf directory */
-	configDirPath = OpenConfigDir(path, cmdline, projroot, XCONFIGDIR);
-	return configDirPath;
+	return OpenConfigDir(path, cmdline, projroot, XCONFIGDIR);
 }
 
 void
@@ -963,10 +961,6 @@ xf86closeConfigFile (void)
 {
 	int i;
 
-	free (configPath);
-	configPath = NULL;
-	free (configDirPath);
-	configDirPath = NULL;
 	free (configRBuf);
 	configRBuf = NULL;
 	free (configBuf);
