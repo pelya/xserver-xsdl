@@ -800,14 +800,12 @@ AddConfigDirFiles(const char *dirpath, struct dirent **list, int num)
 				       "files opened\n");
 				warnOnce = TRUE;
 			}
-			free(list[i]);
 			continue;
 		}
 
 		path = malloc(PATH_MAX + 1);
 		snprintf(path, PATH_MAX + 1, "%s/%s", dirpath,
 			 list[i]->d_name);
-		free(list[i]);
 		file = fopen(path, "r");
 		if (!file) {
 			free(path);
@@ -858,8 +856,10 @@ OpenConfigDir(const char *path, const char *cmdline, const char *projroot,
 		if (!found) {
 			free(dirpath);
 			dirpath = NULL;
-			free(list);
 		}
+		while (num--)
+			free(list[num]);
+		free(list);
 	}
 
 	free(pathcopy);
