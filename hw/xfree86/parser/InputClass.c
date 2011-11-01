@@ -182,6 +182,7 @@ xf86parseInputClassSection(void)
                 Error(QUOTE_MSG, "MatchIsKeyboard");
             ptr->is_keyboard.set = xf86getBoolValue(&ptr->is_keyboard.val,
                                                     val.str);
+            free(val.str);
             if (!ptr->is_keyboard.set)
                 Error(BOOL_MSG, "MatchIsKeyboard");
             break;
@@ -190,6 +191,7 @@ xf86parseInputClassSection(void)
                 Error(QUOTE_MSG, "MatchIsPointer");
             ptr->is_pointer.set = xf86getBoolValue(&ptr->is_pointer.val,
                                                    val.str);
+            free(val.str);
             if (!ptr->is_pointer.set)
                 Error(BOOL_MSG, "MatchIsPointer");
             break;
@@ -198,6 +200,7 @@ xf86parseInputClassSection(void)
                 Error(QUOTE_MSG, "MatchIsJoystick");
             ptr->is_joystick.set = xf86getBoolValue(&ptr->is_joystick.val,
                                                     val.str);
+            free(val.str);
             if (!ptr->is_joystick.set)
                 Error(BOOL_MSG, "MatchIsJoystick");
             break;
@@ -206,6 +209,7 @@ xf86parseInputClassSection(void)
                 Error(QUOTE_MSG, "MatchIsTablet");
             ptr->is_tablet.set = xf86getBoolValue(&ptr->is_tablet.val,
                                                   val.str);
+            free(val.str);
             if (!ptr->is_tablet.set)
                 Error(BOOL_MSG, "MatchIsTablet");
             break;
@@ -214,6 +218,7 @@ xf86parseInputClassSection(void)
                 Error(QUOTE_MSG, "MatchIsTouchpad");
             ptr->is_touchpad.set = xf86getBoolValue(&ptr->is_touchpad.val,
                                                     val.str);
+            free(val.str);
             if (!ptr->is_touchpad.set)
                 Error(BOOL_MSG, "MatchIsTouchpad");
             break;
@@ -222,6 +227,7 @@ xf86parseInputClassSection(void)
                 Error(QUOTE_MSG, "MatchIsTouchscreen");
             ptr->is_touchscreen.set = xf86getBoolValue(&ptr->is_touchscreen.val,
                                                        val.str);
+            free(val.str);
             if (!ptr->is_touchscreen.set)
                 Error(BOOL_MSG, "MatchIsTouchscreen");
             break;
