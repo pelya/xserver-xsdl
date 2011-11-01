@@ -334,12 +334,12 @@ static char *buf;
 char *
 XkbKeysymText(KeySym sym,unsigned format)
 {
-static char buf[32],*rtrn;
+static char buf[32];
 
     if (sym==NoSymbol)
-	 strcpy(rtrn=buf,"NoSymbol");
-    else sprintf(rtrn=buf, "0x%lx", (long)sym);
-    return rtrn;
+	 strcpy(buf,"NoSymbol");
+    else sprintf(buf, "0x%lx", (long)sym);
+    return buf;
 }
 
 char *
