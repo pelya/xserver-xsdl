@@ -82,16 +82,6 @@ static struct pci_slot_match xf86IsolateDevice = {
     PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, 0
 };
 
-void
-xf86FormatPciBusNumber(int busnum, char *buffer)
-{
-    /* 'buffer' should be at least 8 characters long */
-    if (busnum < 256)
-	sprintf(buffer, "%d", busnum);
-    else
-	sprintf(buffer, "%d@%d", busnum & 0x00ff, busnum >> 8);
-}
-
 /*
  * xf86Bus.c interface
  */
@@ -1346,7 +1336,12 @@ xf86PciConfigureNewDev(void *busData, struct pci_device *pVideo,
 
     pVideo = (struct pci_device *) busData;
 
-    xf86FormatPciBusNumber(pVideo->bus, busnum);
+    if (pVideo->bus < 256)
+	snprintf(busnum, sizeof(busnum), "%d", pVideo->bus);
+    else
+	snprintf(busnum, sizeof(busnum), "%d@%d",
+		 pVideo->bus & 0x00ff, pVideo->bus >> 8);
+
     XNFasprintf(&GDev->busID, "PCI:%s:%d:%d",
 		busnum, pVideo->dev, pVideo->func);
 
