@@ -107,16 +107,8 @@ void DoShowOptions (void) {
 					i,xf86DriverList[i]->driverName,vers->vendor
 				);
 				for (p = pOption; p->name != NULL; p++) {
-					const char *opttype = optionTypeToSting(p->type);
-					/* XXX: Why overallocate by 2 bytes?
-					 * Otherwise, this would be strdup()
-					 */
-					char *optname = malloc(strlen(p->name) + 2 + 1);
-					if (!optname) {
-						continue;                      
-					}
-					sprintf(optname, "%s", p->name);
-					ErrorF ("\t%s:%s\n", optname,opttype);
+					ErrorF ("\t%s:%s\n", p->name,
+						optionTypeToSting(p->type));
 				}
 				ErrorF ("}\n");
 			}
