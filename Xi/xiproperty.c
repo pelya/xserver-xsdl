@@ -386,7 +386,7 @@ change_property(ClientPtr client, DeviceIntPtr dev, Atom property, Atom type,
  * If name is NULL, None is returned.
  */
 Atom
-XIGetKnownProperty(char *name)
+XIGetKnownProperty(const char *name)
 {
     int i;
 
