@@ -492,6 +492,8 @@ DeepCopyKeyboardClasses(DeviceIntPtr from, DeviceIntPtr to)
 
 }
 
+/* FIXME: this should really be shared with the InitValuatorAxisClassRec and
+ * similar */
 static void
 DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
