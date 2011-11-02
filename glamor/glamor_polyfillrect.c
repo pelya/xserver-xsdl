@@ -39,72 +39,69 @@
 
 void
 glamor_poly_fill_rect(DrawablePtr drawable,
-		      GCPtr gc,
-		      int nrect,
-		      xRectangle *prect)
+		      GCPtr gc, int nrect, xRectangle * prect)
 {
-    int		    fullX1, fullX2, fullY1, fullY2;
-    int		    xorg, yorg;
-    int		    n;
-    register BoxPtr pbox;
-    RegionPtr pClip = fbGetCompositeClip(gc);
-    if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) {
-	goto fail;
-    }
+	int fullX1, fullX2, fullY1, fullY2;
+	int xorg, yorg;
+	int n;
+	register BoxPtr pbox;
 
-    xorg = drawable->x;
-    yorg = drawable->y;
-
-        while (nrect--) {
-                fullX1 = prect->x + xorg;
-                fullY1 = prect->y + yorg;
-                fullX2 = fullX1 + (int)prect->width;
-                fullY2 = fullY1 + (int)prect->height;
-                prect++;
-
-                n = REGION_NUM_RECTS(pClip);
-                pbox = REGION_RECTS(pClip);
-                /*
-                 * clip the rectangle to each box in the clip region
-                 * this is logically equivalent to calling Intersect(),
-                 * but rectangles may overlap each other here.
-                 */
-                while (n--) {
-                        int x1 = fullX1;
-                        int x2 = fullX2;
-                        int y1 = fullY1;
-                        int y2 = fullY2;
-
-                        if (pbox->x1 > x1)
-                                x1 = pbox->x1;
-                        if (pbox->x2 < x2)
-                                x2 = pbox->x2;
-                        if (pbox->y1 > y1)
-                                y1 = pbox->y1;
-                        if (pbox->y2 < y2)
-                                y2 = pbox->y2;
-                        pbox++;
-
-                        if (x1 >= x2 || y1 >= y2)
-                                continue;
-	                glamor_fill(drawable,
-			            gc,
-				    x1,
-				    y1,
-				    x2 - x1,
-                                    y2 - y1);
-                }
-    }
-    return;
-
-fail:
-    glamor_fallback(" to %p (%c)\n",
-		    drawable, glamor_get_drawable_location(drawable));
-    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
-	if (glamor_prepare_access_gc(gc)) {
-	    fbPolyFillRect(drawable, gc, nrect, prect );
-	    glamor_finish_access_gc(gc);
+	RegionPtr pClip = fbGetCompositeClip(gc);
+	if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) {
+		goto fail;
 	}
-	glamor_finish_access(drawable);
-    }
+
+	xorg = drawable->x;
+	yorg = drawable->y;
+
+	while (nrect--) {
+		fullX1 = prect->x + xorg;
+		fullY1 = prect->y + yorg;
+		fullX2 = fullX1 + (int) prect->width;
+		fullY2 = fullY1 + (int) prect->height;
+		prect++;
+
+		n = REGION_NUM_RECTS(pClip);
+		pbox = REGION_RECTS(pClip);
+		/*
+		 * clip the rectangle to each box in the clip region
+		 * this is logically equivalent to calling Intersect(),
+		 * but rectangles may overlap each other here.
+		 */
+		while (n--) {
+			int x1 = fullX1;
+			int x2 = fullX2;
+			int y1 = fullY1;
+			int y2 = fullY2;
+
+			if (pbox->x1 > x1)
+				x1 = pbox->x1;
+			if (pbox->x2 < x2)
+				x2 = pbox->x2;
+			if (pbox->y1 > y1)
+				y1 = pbox->y1;
+			if (pbox->y2 < y2)
+				y2 = pbox->y2;
+			pbox++;
+
+			if (x1 >= x2 || y1 >= y2)
+				continue;
+			if (!glamor_fill(drawable, gc, x1, y1, x2 - x1,
+					 y2 - y1))
+				goto fail;
+		}
+	}
+	return;
+
+      fail:
+	glamor_fallback(" to %p (%c)\n",
+			drawable, glamor_get_drawable_location(drawable));
+	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
+		if (glamor_prepare_access_gc(gc)) {
+			fbPolyFillRect(drawable, gc, nrect, prect);
+			glamor_finish_access_gc(gc);
+		}
+		glamor_finish_access(drawable);
+	}
+	return;
 }

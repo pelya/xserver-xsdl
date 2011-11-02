@@ -34,41 +34,42 @@
 
 
 static void
-glamor_fixup_window_pixmap(DrawablePtr pDrawable, PixmapPtr *ppPixmap)
+glamor_fixup_window_pixmap(DrawablePtr pDrawable, PixmapPtr * ppPixmap)
 {
-    PixmapPtr pPixmap = *ppPixmap;
-    glamor_pixmap_private *pixmap_priv;
+	PixmapPtr pPixmap = *ppPixmap;
+	glamor_pixmap_private *pixmap_priv;
 
-    if (pPixmap->drawable.bitsPerPixel != pDrawable->bitsPerPixel)
-    {
-        pixmap_priv = glamor_get_pixmap_private(pPixmap);
-        if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
-          glamor_fallback("pixmap %p has no fbo\n", pPixmap);
-          goto fail;
-        }
-        glamor_debug_output(GLAMOR_DEBUG_UNIMPL, "To be implemented.\n");
-    }
-    return;
+	if (pPixmap->drawable.bitsPerPixel != pDrawable->bitsPerPixel) {
+		pixmap_priv = glamor_get_pixmap_private(pPixmap);
+		if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+			glamor_fallback("pixmap %p has no fbo\n", pPixmap);
+			goto fail;
+		}
+		glamor_debug_output(GLAMOR_DEBUG_UNIMPL,
+				    "To be implemented.\n");
+	}
+	return;
 
-fail:
-     GLAMOR_PANIC(" We can't fall back to fbFixupWindowPixmap, as the fb24_32ReformatTile"
-		  " is broken for glamor. \n");
+      fail:
+	GLAMOR_PANIC
+	    (" We can't fall back to fbFixupWindowPixmap, as the fb24_32ReformatTile"
+	     " is broken for glamor. \n");
 }
 
 Bool
 glamor_change_window_attributes(WindowPtr pWin, unsigned long mask)
 {
-    if (mask & CWBackPixmap) {
-       if (pWin->backgroundState == BackgroundPixmap) 
-         glamor_fixup_window_pixmap(&pWin->drawable, &pWin->background.pixmap);
-    }
+	if (mask & CWBackPixmap) {
+		if (pWin->backgroundState == BackgroundPixmap)
+			glamor_fixup_window_pixmap(&pWin->drawable,
+						   &pWin->
+						   background.pixmap);
+	}
 
-    if (mask & CWBorderPixmap) {
-       if (pWin->borderIsPixel == FALSE)
-         glamor_fixup_window_pixmap(&pWin->drawable, &pWin->border.pixmap);
-    }
-    return TRUE;
+	if (mask & CWBorderPixmap) {
+		if (pWin->borderIsPixel == FALSE)
+			glamor_fixup_window_pixmap(&pWin->drawable,
+						   &pWin->border.pixmap);
+	}
+	return TRUE;
 }
-
-
-

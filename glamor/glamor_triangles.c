@@ -33,29 +33,24 @@
 #include "glamor_priv.h"
 
 void
-glamor_triangles (CARD8	    op,
-	     PicturePtr    pSrc,
-	     PicturePtr    pDst,
-	     PictFormatPtr maskFormat,
-	     INT16	    xSrc,
-	     INT16	    ySrc,
-	     int	    ntris,
-	     xTriangle    *tris)
-{ 
+glamor_triangles(CARD8 op,
+		 PicturePtr pSrc,
+		 PicturePtr pDst,
+		 PictFormatPtr maskFormat,
+		 INT16 xSrc, INT16 ySrc, int ntris, xTriangle * tris)
+{
 
-    if (glamor_prepare_access(pDst->pDrawable, GLAMOR_ACCESS_RW)) {
-	if (pSrc->pDrawable == NULL ||
-	    glamor_prepare_access(pSrc->pDrawable, GLAMOR_ACCESS_RO))
-	{
+	if (glamor_prepare_access(pDst->pDrawable, GLAMOR_ACCESS_RW)) {
+		if (pSrc->pDrawable == NULL ||
+		    glamor_prepare_access(pSrc->pDrawable,
+					  GLAMOR_ACCESS_RO)) {
 
-                fbTriangles(op, 
-                            pSrc, pDst, maskFormat, xSrc, ySrc, ntris, tris);
-	}
-	    if (pSrc->pDrawable != NULL)
-		glamor_finish_access(pSrc->pDrawable);
+			fbTriangles(op, pSrc, pDst, maskFormat, xSrc,
+				    ySrc, ntris, tris);
+		}
+		if (pSrc->pDrawable != NULL)
+			glamor_finish_access(pSrc->pDrawable);
 
-	glamor_finish_access(pDst->pDrawable);
+		glamor_finish_access(pDst->pDrawable);
 	}
 }
-
-

@@ -39,25 +39,43 @@
 #include "fb.h"
 #include "fbpict.h"
 
-#endif /* GLAMOR_H */
+#endif				/* GLAMOR_H */
 
 
-#define GLAMOR_INVERTED_Y_AXIS  1
-#define GLAMOR_HOSTX            2
-#define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS | GLAMOR_HOSTX)
+#define GLAMOR_INVERTED_Y_AXIS  	1
+#define GLAMOR_USE_SCREEN		2
+#define GLAMOR_USE_PICTURE_SCREEN 	4
+
+#define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS  		\
+				 | GLAMOR_USE_SCREEN 			\
+                                 | GLAMOR_USE_PICTURE_SCREEN)
 
 #define GLAMOR_EGL_EXTERNAL_BUFFER 3
 
 extern _X_EXPORT Bool glamor_init(ScreenPtr screen, unsigned int flags);
 extern _X_EXPORT void glamor_fini(ScreenPtr screen);
-extern _X_EXPORT void glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h, unsigned int tex);
-extern _X_EXPORT Bool glamor_glyphs_init (ScreenPtr pScreen);
-void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex);
+extern _X_EXPORT void glamor_set_screen_pixmap_texture(ScreenPtr screen,
+						       int w, int h,
+						       unsigned int tex);
+extern _X_EXPORT Bool glamor_glyphs_init(ScreenPtr pScreen);
+void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h,
+			       unsigned int tex);
+
+extern _X_EXPORT void glamor_destroy_textured_pixmap(PixmapPtr pixmap);
+extern _X_EXPORT void glamor_block_handler(ScreenPtr screen);
 
 #ifdef GLAMOR_FOR_XORG
 extern _X_EXPORT Bool glamor_egl_init(ScrnInfoPtr scrn, int fd);
-extern _X_EXPORT Bool glamor_create_egl_screen_image(ScreenPtr screen, int handle, int stride);
-extern _X_EXPORT Bool glamor_create_egl_pixmap_image(PixmapPtr pixmap, int handle, int stride);
-extern _X_EXPORT Bool glamor_close_egl_screen(ScreenPtr screen);
-extern _X_EXPORT void glamor_free_egl_screen(int scrnIndex, int flags);
+extern _X_EXPORT Bool glamor_egl_create_textured_screen(ScreenPtr screen,
+							int handle,
+							int stride);
+extern _X_EXPORT Bool glamor_egl_create_textured_pixmap(PixmapPtr pixmap,
+							int handle,
+							int stride);
+
+extern _X_EXPORT Bool glamor_egl_close_screen(ScreenPtr screen);
+extern _X_EXPORT void glamor_egl_free_screen(int scrnIndex, int flags);
+
+extern _X_EXPORT Bool glamor_egl_init_textured_pixmap(ScreenPtr screen);
+extern _X_EXPORT void glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap);
 #endif

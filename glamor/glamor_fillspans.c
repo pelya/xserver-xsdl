@@ -32,58 +32,54 @@
 
 void
 glamor_fill_spans(DrawablePtr drawable,
-		  GCPtr	gc,
-		  int n,
-		  DDXPointPtr points,
-		  int *widths,
-		  int sorted)
+		  GCPtr gc,
+		  int n, DDXPointPtr points, int *widths, int sorted)
 {
-    DDXPointPtr ppt;
-    int nbox;
-    BoxPtr pbox;
-    int x1, x2, y;
-    RegionPtr pClip = fbGetCompositeClip(gc);
+	DDXPointPtr ppt;
+	int nbox;
+	BoxPtr pbox;
+	int x1, x2, y;
+	RegionPtr pClip = fbGetCompositeClip(gc);
 
-    if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) 
-	goto fail;
+	if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
+		goto fail;
 
 	ppt = points;
-        while (n--) {
-                x1 = ppt->x;
-                y = ppt->y;
-                x2 = x1 + (int)*widths;
-                ppt++;
-                widths++;
+	while (n--) {
+		x1 = ppt->x;
+		y = ppt->y;
+		x2 = x1 + (int) *widths;
+		ppt++;
+		widths++;
 
-                nbox = REGION_NUM_RECTS(pClip);
-                pbox = REGION_RECTS(pClip);
-                while (nbox--) {
-                        if (pbox->y1 > y || pbox->y2 <= y)
-                                continue;
+		nbox = REGION_NUM_RECTS(pClip);
+		pbox = REGION_RECTS(pClip);
+		while (nbox--) {
+			if (pbox->y1 > y || pbox->y2 <= y)
+				continue;
 
-                        if (x1 < pbox->x1)
-                                x1 = pbox->x1;
+			if (x1 < pbox->x1)
+				x1 = pbox->x1;
 
-                        if (x2 > pbox->x2)
-                                x2 = pbox->x2;
+			if (x2 > pbox->x2)
+				x2 = pbox->x2;
 
-                        if (x2 <= x1)
-                                continue;
-                        glamor_fill (drawable,gc,
-                                     x1, y,
-                                     x2 - x1 ,  1);
-                        pbox++;
-                }
-        }
-    return;
-fail:
-    glamor_fallback("to %p (%c)\n", drawable,
-		    glamor_get_drawable_location(drawable));
-    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
-	if (glamor_prepare_access_gc(gc)) {
-	    fbFillSpans(drawable, gc, n, points, widths, sorted);
-	    glamor_finish_access_gc(gc);
+			if (x2 <= x1)
+				continue;
+			glamor_fill(drawable, gc, x1, y, x2 - x1, 1);
+			pbox++;
+		}
 	}
-	glamor_finish_access(drawable);
-    }
+	return;
+      fail:
+	glamor_fallback("to %p (%c)\n", drawable,
+			glamor_get_drawable_location(drawable));
+	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
+		if (glamor_prepare_access_gc(gc)) {
+			fbFillSpans(drawable, gc, n, points, widths,
+				    sorted);
+			glamor_finish_access_gc(gc);
+		}
+		glamor_finish_access(drawable);
+	}
 }

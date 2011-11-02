@@ -34,77 +34,73 @@
 void
 glamor_get_spans(DrawablePtr drawable,
 		 int wmax,
-		 DDXPointPtr points,
-		 int *widths,
-		 int count,
-		 char *dst)
+		 DDXPointPtr points, int *widths, int count, char *dst)
 {
-    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
-    GLenum format, type;
-    int no_alpha, no_revert;
-    glamor_screen_private *glamor_priv = glamor_get_screen_private(drawable->pScreen);
-    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
-    PixmapPtr temp_pixmap = NULL;
-    int i;
-    uint8_t *readpixels_dst = (uint8_t *)dst;
-    int x_off, y_off;
+	PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
+	GLenum format, type;
+	int no_alpha, no_revert;
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(drawable->pScreen);
+	glamor_pixmap_private *pixmap_priv =
+	    glamor_get_pixmap_private(pixmap);
+	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	PixmapPtr temp_pixmap = NULL;
+	int i;
+	uint8_t *readpixels_dst = (uint8_t *) dst;
+	int x_off, y_off;
 
-    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
-        glamor_fallback("pixmap has no fbo.\n");
-	goto fail;
-    }
-
-    if (glamor_get_tex_format_type_from_pixmap(pixmap,
-                                               &format, 
-                                               &type, 
-                                               &no_alpha,
-                                               &no_revert
-                                               )) {
-      glamor_fallback("unknown depth. %d \n", 
-                     drawable->depth);
-      goto fail;
-    }
-
-    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-    glamor_validate_pixmap(pixmap);
-
-    if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
-    /* XXX prepare whole pixmap is not efficient. */
-      temp_pixmap = glamor_es2_pixmap_read_prepare(pixmap, &format, 
-                                                   &type, no_alpha, no_revert);
-      pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
-      glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-    }
-
-    glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
-    for (i = 0; i < count; i++) {
-      if (glamor_priv->yInverted) {
-	dispatch->glReadPixels(points[i].x + x_off,
-		     (points[i].y + y_off),
-		     widths[i],
-		     1,
-		     format, type,
-		     readpixels_dst);
- 	} else {
-	dispatch->glReadPixels(points[i].x + x_off,
-		     pixmap->drawable.height - 1 - (points[i].y + y_off),
-		     widths[i],
-		     1,
-		     format, type,
-		     readpixels_dst);
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+		glamor_fallback("pixmap has no fbo.\n");
+		goto fail;
 	}
-       readpixels_dst += PixmapBytePad(widths[i], drawable->depth);
-    }
-    if (temp_pixmap) 
-     pixmap->drawable.pScreen->DestroyPixmap(temp_pixmap);
-    return;
 
-fail:
-    glamor_fallback("from %p (%c)\n", drawable,
-		    glamor_get_drawable_location(drawable));
-    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RO)) {
-	fbGetSpans(drawable, wmax, points, widths, count, dst);
-	glamor_finish_access(drawable);
-    }
+	if (glamor_get_tex_format_type_from_pixmap(pixmap,
+						   &format,
+						   &type, &no_alpha,
+						   &no_revert)) {
+		glamor_fallback("unknown depth. %d \n", drawable->depth);
+		goto fail;
+	}
+
+	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+	glamor_validate_pixmap(pixmap);
+
+	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
+		/* XXX prepare whole pixmap is not efficient. */
+		temp_pixmap =
+		    glamor_es2_pixmap_read_prepare(pixmap, &format,
+						   &type, no_alpha,
+						   no_revert);
+		pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
+		glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+	}
+
+	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
+	for (i = 0; i < count; i++) {
+		if (glamor_priv->yInverted) {
+			dispatch->glReadPixels(points[i].x + x_off,
+					       (points[i].y + y_off),
+					       widths[i], 1, format,
+					       type, readpixels_dst);
+		} else {
+			dispatch->glReadPixels(points[i].x + x_off,
+					       pixmap->drawable.height -
+					       1 - (points[i].y + y_off),
+					       widths[i], 1, format,
+					       type, readpixels_dst);
+		}
+		readpixels_dst +=
+		    PixmapBytePad(widths[i], drawable->depth);
+	}
+	if (temp_pixmap)
+		pixmap->drawable.pScreen->DestroyPixmap(temp_pixmap);
+	return;
+
+      fail:
+	glamor_fallback("from %p (%c)\n", drawable,
+			glamor_get_drawable_location(drawable));
+	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RO)) {
+		fbGetSpans(drawable, wmax, points, widths, count, dst);
+		glamor_finish_access(drawable);
+	}
 }

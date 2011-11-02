@@ -9,36 +9,36 @@
 /* Upload picture to texture.  We may need to flip the y axis or
  * wire alpha to 1. So we may conditional create fbo for the picture.
  * */
-enum glamor_pixmap_status 
+enum glamor_pixmap_status
 glamor_upload_picture_to_texture(PicturePtr picture)
 {
-  PixmapPtr pixmap;
-  glamor_pixmap_private *pixmap_priv;
-  assert(picture->pDrawable);
-  pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
-  pixmap_priv = glamor_get_pixmap_private(pixmap);
+	PixmapPtr pixmap;
+	glamor_pixmap_private *pixmap_priv;
+	assert(picture->pDrawable);
+	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-  assert(GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) == 1);
-  return glamor_upload_pixmap_to_texture(pixmap);
+	assert(GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) == 1);
+	return glamor_upload_pixmap_to_texture(pixmap);
 }
 
 
 Bool
 glamor_prepare_access_picture(PicturePtr picture, glamor_access_t access)
 {
-  if (!picture || !picture->pDrawable)
-    return TRUE;
-    
-  return glamor_prepare_access(picture->pDrawable, access);
+	if (!picture || !picture->pDrawable)
+		return TRUE;
+
+	return glamor_prepare_access(picture->pDrawable, access);
 }
 
 void
 glamor_finish_access_picture(PicturePtr picture)
 {
-  if (!picture || !picture->pDrawable)
-    return;
-    
-  glamor_finish_access(picture->pDrawable);
+	if (!picture || !picture->pDrawable)
+		return;
+
+	glamor_finish_access(picture->pDrawable);
 }
 
 /* 
@@ -49,45 +49,48 @@ glamor_finish_access_picture(PicturePtr picture)
 int
 glamor_create_picture(PicturePtr picture)
 {
-  PixmapPtr pixmap;
-  glamor_pixmap_private *pixmap_priv;
-  glamor_screen_private *glamor_priv;
+	PixmapPtr pixmap;
+	glamor_pixmap_private *pixmap_priv;
+	glamor_screen_private *glamor_priv;
 
-  if (!picture || !picture->pDrawable)
-    return 0;
+	if (!picture || !picture->pDrawable)
+		return 0;
 
-  glamor_priv = glamor_get_screen_private(picture->pDrawable->pScreen);
-  pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
-  pixmap_priv = glamor_get_pixmap_private(pixmap);
-  assert(pixmap_priv);
+	glamor_priv =
+	    glamor_get_screen_private(picture->pDrawable->pScreen);
+	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	assert(pixmap_priv);
 
-  pixmap_priv->is_picture = 1;
-  pixmap_priv->pict_format = picture->format;
-  return glamor_priv->saved_create_picture(picture);
+	pixmap_priv->is_picture = 1;
+	pixmap_priv->pict_format = picture->format;
+	return glamor_priv->saved_create_picture(picture);
 }
 
 void
 glamor_destroy_picture(PicturePtr picture)
 {
-  PixmapPtr pixmap;
-  glamor_pixmap_private *pixmap_priv;
-  glamor_screen_private *glamor_priv;
+	PixmapPtr pixmap;
+	glamor_pixmap_private *pixmap_priv;
+	glamor_screen_private *glamor_priv;
 
-  if (!picture || !picture->pDrawable)
-    return;
+	if (!picture || !picture->pDrawable)
+		return;
 
-  glamor_priv = glamor_get_screen_private(picture->pDrawable->pScreen);
-  pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
-  pixmap_priv = glamor_get_pixmap_private(pixmap);
-  assert(pixmap_priv);
+	glamor_priv =
+	    glamor_get_screen_private(picture->pDrawable->pScreen);
+	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	assert(pixmap_priv);
 
-  pixmap_priv->is_picture = 0;
-  pixmap_priv->pict_format = 0;
-  glamor_priv->saved_destroy_picture(picture);
+	pixmap_priv->is_picture = 0;
+	pixmap_priv->pict_format = 0;
+	glamor_priv->saved_destroy_picture(picture);
 }
 
-void glamor_picture_format_fixup(PicturePtr picture, glamor_pixmap_private *pixmap_priv)
+void
+glamor_picture_format_fixup(PicturePtr picture,
+			    glamor_pixmap_private * pixmap_priv)
 {
-  pixmap_priv->pict_format = picture->format;
+	pixmap_priv->pict_format = picture->format;
 }
-

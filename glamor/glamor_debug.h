@@ -11,7 +11,8 @@
 #define GLAMOR_DEBUG_TEXTURE_DYNAMIC_UPLOAD   3
 
 extern void
-AbortServer(void) _X_NORETURN;
+AbortServer(void)
+    _X_NORETURN;
 
 #define GLAMOR_PANIC(_format_, ...)			\
   do {							\
@@ -19,9 +20,9 @@ AbortServer(void) _X_NORETURN;
 		   " at %32s line %d: " _format_ "\n",	\
 		   __FUNCTION__, __LINE__,		\
 		   ##__VA_ARGS__ );			\
-    AbortServer();					\
+    exit(1);                                            \
   } while(0)
-                        
+
 
 
 
