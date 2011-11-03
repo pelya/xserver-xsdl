@@ -551,7 +551,8 @@ CreateScreenResources(ScreenPtr pScreen)
 
     drmmode_uevent_init(pScrn, &ms->drmmode);
 
-    drmmode_map_cursor_bos(pScrn, &ms->drmmode);
+    if (!ms->SWCursor)
+        drmmode_map_cursor_bos(pScrn, &ms->drmmode);
     pixels = drmmode_map_front_bo(&ms->drmmode);
     if (!pixels)
 	return FALSE;
