@@ -181,6 +181,14 @@ UngrabAllDevices(Bool kill_client)
 }
 
 GrabPtr
+AllocGrab(void)
+{
+    GrabPtr grab = calloc(1, sizeof(GrabRec));
+
+    return grab;
+}
+
+GrabPtr
 CreateGrab(
     int client,
     DeviceIntPtr device,
@@ -196,7 +204,7 @@ CreateGrab(
 {
     GrabPtr grab;
 
-    grab = calloc(1, sizeof(GrabRec));
+    grab = AllocGrab();
     if (!grab)
 	return (GrabPtr)NULL;
     grab->resource = FakeClientID(client);
@@ -226,7 +234,7 @@ CreateGrab(
 
 }
 
-static void
+void
 FreeGrab(GrabPtr pGrab)
 {
     free(pGrab->modifiersDetail.pMask);
