@@ -622,4 +622,10 @@ static inline WindowPtr DeepestSpriteWin(SpritePtr sprite)
     return sprite->spriteTrace[sprite->spriteTraceGood - 1];
 }
 
+struct _XI2Mask {
+    unsigned char **masks;      /* event mask in masks[deviceid][event type byte] */
+    size_t nmasks;              /* number of masks */
+    size_t mask_size;           /* size of each mask in bytes */
+};
+
 #endif /* INPUTSTRUCT_H */
