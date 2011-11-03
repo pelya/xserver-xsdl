@@ -469,10 +469,11 @@ GetXI2MaskByte(unsigned char xi2mask[][XI2MASKSIZE], DeviceIntPtr dev, int event
 
 
 /**
- * Return the windows complete XI2 mask for the given XI2 event type.
+ * @return TRUE if the mask is set for this event from this device on the
+ * window, or FALSE otherwise.
  */
-Mask
-GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
+Bool
+WindowXI2MaskIsset(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
 {
     OtherInputMasks *inputMasks = wOtherInputMasks(win);
     int filter;
@@ -484,7 +485,7 @@ GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
     evtype = ((xGenericEvent*)ev)->evtype;
     filter = GetEventFilter(dev, ev);
 
-    return (GetXI2MaskByte(inputMasks->xi2mask, dev, evtype) & filter);
+    return !!(GetXI2MaskByte(inputMasks->xi2mask, dev, evtype) & filter);
 }
 
 Mask
@@ -2075,7 +2076,7 @@ GetClientsForDelivery(DeviceIntPtr dev, WindowPtr win,
     {
         OtherInputMasks *inputMasks = wOtherInputMasks(win);
         /* Has any client selected for the event? */
-        if (!GetWindowXI2Mask(dev, win, events))
+        if (!WindowXI2MaskIsset(dev, win, events))
             goto out;
         *clients = inputMasks->inputClients;
     } else {
@@ -4632,7 +4633,7 @@ DeviceEnterLeaveEvent(
         TryClientEvents(rClient(grab), mouse, (xEvent*)event, 1, mask,
                         filter, grab);
     } else {
-        if (!GetWindowXI2Mask(mouse, pWin, (xEvent*)event))
+        if (!WindowXI2MaskIsset(mouse, pWin, (xEvent*)event))
             goto out;
         DeliverEventsToWindow(mouse, pWin, (xEvent*)event, 1, filter,
                               NullGrab);
