@@ -757,3 +757,54 @@ bail:
     fflush(stderr);
     exit(0);
 }
+
+/* Xorg -showopts:
+ *   For each driver module installed, print out the list
+ *   of options and their argument types, then exit
+ *
+ * Author:  Marcus Schaefer, ms@suse.de
+ */
+
+void DoShowOptions (void) {
+	int  i = 0;
+	char **vlist  = 0;
+	char *pSymbol = 0;
+	XF86ModuleData *initData = 0;
+	if (! (vlist = xf86DriverlistFromCompile())) {
+		ErrorF("Missing output drivers\n");
+		goto bail;
+	}
+	xf86LoadModules (vlist,0);
+	free(vlist);
+	for (i = 0; i < xf86NumDrivers; i++) {
+		if (xf86DriverList[i]->AvailableOptions) {
+			OptionInfoPtr pOption = (OptionInfoPtr)(*xf86DriverList[i]->AvailableOptions)(0,0);
+			if (! pOption) {
+				ErrorF ("(EE) Couldn't read option table for %s driver\n",
+					xf86DriverList[i]->driverName
+				);
+				continue;
+			}
+			XNFasprintf(&pSymbol, "%sModuleData",
+				    xf86DriverList[i]->driverName);
+			initData = LoaderSymbol (pSymbol);
+			if (initData) {
+				XF86ModuleVersionInfo *vers = initData->vers;
+				OptionInfoPtr p;
+				ErrorF ("Driver[%d]:%s[%s] {\n",
+					i,xf86DriverList[i]->driverName,vers->vendor
+				);
+				for (p = pOption; p->name != NULL; p++) {
+					ErrorF ("\t%s:%s\n", p->name,
+						optionTypeToString(p->type));
+				}
+				ErrorF ("}\n");
+			}
+		}
+	}
+	bail:
+	OsCleanup (TRUE);
+	AbortDDX (EXIT_ERR_DRIVERS);
+	fflush (stderr);
+	exit (0);
+}
