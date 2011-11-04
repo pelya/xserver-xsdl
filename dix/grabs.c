@@ -246,6 +246,40 @@ FreeGrab(GrabPtr pGrab)
     free(pGrab);
 }
 
+Bool
+CopyGrab(GrabPtr dst, const GrabPtr src)
+{
+    Mask *mdetails_mask = NULL;
+    Mask *details_mask = NULL;
+
+    if (src->cursor)
+        src->cursor->refcnt++;
+
+    if (src->modifiersDetail.pMask) {
+        int len = MasksPerDetailMask * sizeof(Mask);
+        mdetails_mask = malloc(len);
+        if (!mdetails_mask)
+            return FALSE;
+        memcpy(mdetails_mask, src->modifiersDetail.pMask, len);
+    }
+
+    if (src->detail.pMask) {
+        int len = MasksPerDetailMask * sizeof(Mask);
+        details_mask = malloc(len);
+        if (!details_mask) {
+            free(mdetails_mask);
+            return FALSE;
+        }
+        memcpy(details_mask, src->detail.pMask, len);
+    }
+
+    *dst = *src;
+    dst->modifiersDetail.pMask = mdetails_mask;
+    dst->detail.pMask = details_mask;
+
+    return TRUE;
+}
+
 int
 DeletePassiveGrab(pointer value, XID id)
 {
