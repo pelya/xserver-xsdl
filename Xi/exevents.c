@@ -1678,6 +1678,13 @@ MakeInputMasks(WindowPtr pWin)
     return TRUE;
 }
 
+static void
+FreeInputMask(OtherInputMasks **imask)
+{
+    free(*imask);
+    *imask = NULL;
+}
+
 void
 RecalculateDeviceDeliverableEvents(WindowPtr pWin)
 {
@@ -1737,8 +1744,9 @@ InputClientGone(WindowPtr pWin, XID id)
 		FreeInputClient(&other);
 	    } else if (!(other->next)) {
 		if (ShouldFreeInputMasks(pWin, TRUE)) {
-		    wOtherInputMasks(pWin)->inputClients = other->next;
-		    free(wOtherInputMasks(pWin));
+		    OtherInputMasks *mask = wOtherInputMasks(pWin);
+		    mask->inputClients = other->next;
+		    FreeInputMask(&mask);
 		    pWin->optional->inputMasks = (OtherInputMasks *) NULL;
 		    CheckWindowOptionalNeed(pWin);
 		    FreeInputClient(&other);
