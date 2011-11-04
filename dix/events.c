@@ -1509,8 +1509,8 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
 	grabinfo->grabTime = time;
     if (grab->cursor)
 	grab->cursor->refcnt++;
-    CopyGrab(&grabinfo->activeGrab, grab);
-    grabinfo->grab = &grabinfo->activeGrab;
+    CopyGrab(grabinfo->activeGrab, grab);
+    grabinfo->grab = grabinfo->activeGrab;
     grabinfo->fromPassiveGrab = isPassive;
     grabinfo->implicitGrab = autoGrab & ImplicitGrabMask;
     PostNewCursor(mouse);
@@ -1586,8 +1586,8 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
 	grabinfo->grabTime = syncEvents.time;
     else
 	grabinfo->grabTime = time;
-    CopyGrab(&grabinfo->activeGrab, grab);
-    grabinfo->grab = &grabinfo->activeGrab;
+    CopyGrab(grabinfo->activeGrab, grab);
+    grabinfo->grab = grabinfo->activeGrab;
     grabinfo->fromPassiveGrab = passive;
     grabinfo->implicitGrab = passive & ImplicitGrabMask;
     CheckGrabForSyncs(keybd, (Bool)grab->keyboardMode, (Bool)grab->pointerMode);
