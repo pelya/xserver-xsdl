@@ -2024,20 +2024,25 @@ CheckDeviceGrabAndHintWindow(WindowPtr pWin, int type,
 	dev->valuator->motionHintWindow = pWin;
     else if ((type == DeviceButtonPress) && (!grab) &&
 	     (deliveryMask & DeviceButtonGrabMask)) {
-	GrabRec tempGrab;
+	GrabPtr tempGrab;
 
-	tempGrab.device = dev;
-	tempGrab.resource = client->clientAsMask;
-	tempGrab.window = pWin;
-	tempGrab.ownerEvents =
+	tempGrab = AllocGrab();
+	if (!tempGrab)
+	    return;
+
+	tempGrab->device = dev;
+	tempGrab->resource = client->clientAsMask;
+	tempGrab->window = pWin;
+	tempGrab->ownerEvents =
 	    (deliveryMask & DeviceOwnerGrabButtonMask) ? TRUE : FALSE;
-	tempGrab.eventMask = deliveryMask;
-	tempGrab.keyboardMode = GrabModeAsync;
-	tempGrab.pointerMode = GrabModeAsync;
-	tempGrab.confineTo = NullWindow;
-	tempGrab.cursor = NullCursor;
-        tempGrab.next = NULL;
-	(*dev->deviceGrab.ActivateGrab) (dev, &tempGrab, currentTime, TRUE);
+	tempGrab->eventMask = deliveryMask;
+	tempGrab->keyboardMode = GrabModeAsync;
+	tempGrab->pointerMode = GrabModeAsync;
+	tempGrab->confineTo = NullWindow;
+	tempGrab->cursor = NullCursor;
+	tempGrab->next = NULL;
+	(*dev->deviceGrab.ActivateGrab) (dev, tempGrab, currentTime, TRUE);
+	FreeGrab(tempGrab);
     }
 }
 

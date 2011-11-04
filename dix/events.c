@@ -1976,7 +1976,7 @@ static BOOL
 ActivateImplicitGrab(DeviceIntPtr dev, ClientPtr client, WindowPtr win,
                      xEvent *event, Mask deliveryMask)
 {
-    GrabRec tempGrab;
+    GrabPtr tempGrab;
     OtherInputMasks *inputMasks;
     CARD8 type = event->u.u.type;
     GrabType grabtype;
@@ -1990,30 +1990,33 @@ ActivateImplicitGrab(DeviceIntPtr dev, ClientPtr client, WindowPtr win,
     else
         return FALSE;
 
-    memset(&tempGrab, 0, sizeof(GrabRec));
-    tempGrab.next = NULL;
-    tempGrab.device = dev;
-    tempGrab.resource = client->clientAsMask;
-    tempGrab.window = win;
-    tempGrab.ownerEvents = (deliveryMask & OwnerGrabButtonMask) ? TRUE : FALSE;
-    tempGrab.eventMask = deliveryMask;
-    tempGrab.keyboardMode = GrabModeAsync;
-    tempGrab.pointerMode = GrabModeAsync;
-    tempGrab.confineTo = NullWindow;
-    tempGrab.cursor = NullCursor;
-    tempGrab.type = type;
-    tempGrab.grabtype = grabtype;
+    tempGrab = AllocGrab();
+    if (!tempGrab)
+        return FALSE;
+    tempGrab->next = NULL;
+    tempGrab->device = dev;
+    tempGrab->resource = client->clientAsMask;
+    tempGrab->window = win;
+    tempGrab->ownerEvents = (deliveryMask & OwnerGrabButtonMask) ? TRUE : FALSE;
+    tempGrab->eventMask = deliveryMask;
+    tempGrab->keyboardMode = GrabModeAsync;
+    tempGrab->pointerMode = GrabModeAsync;
+    tempGrab->confineTo = NullWindow;
+    tempGrab->cursor = NullCursor;
+    tempGrab->type = type;
+    tempGrab->grabtype = grabtype;
 
     /* get the XI and XI2 device mask */
     inputMasks = wOtherInputMasks(win);
-    tempGrab.deviceMask = (inputMasks) ? inputMasks->inputEvents[dev->id]: 0;
+    tempGrab->deviceMask = (inputMasks) ? inputMasks->inputEvents[dev->id]: 0;
 
     if (inputMasks)
-        memcpy(tempGrab.xi2mask, inputMasks->xi2mask,
-               sizeof(tempGrab.xi2mask));
+        memcpy(tempGrab->xi2mask, inputMasks->xi2mask,
+               sizeof(tempGrab->xi2mask));
 
-    (*dev->deviceGrab.ActivateGrab)(dev, &tempGrab,
+    (*dev->deviceGrab.ActivateGrab)(dev, tempGrab,
                                     currentTime, TRUE | ImplicitGrabMask);
+    FreeGrab(tempGrab);
     return TRUE;
 }
 
@@ -3657,7 +3660,7 @@ CheckPassiveGrabsOnWindow(
 {
     SpritePtr pSprite = device->spriteInfo->sprite;
     GrabPtr grab = wPassiveGrabs(pWin);
-    GrabRec tempGrab;
+    GrabPtr tempGrab;
     GrabInfoPtr grabinfo;
 #define CORE_MATCH      0x1
 #define XI_MATCH        0x2
@@ -3666,27 +3669,30 @@ CheckPassiveGrabsOnWindow(
 
     if (!grab)
 	return NULL;
+
+    tempGrab = AllocGrab();
+
     /* Fill out the grab details, but leave the type for later before
      * comparing */
     switch (event->any.type)
     {
         case ET_KeyPress:
         case ET_KeyRelease:
-            tempGrab.detail.exact = event->device_event.detail.key;
+            tempGrab->detail.exact = event->device_event.detail.key;
             break;
         case ET_ButtonPress:
         case ET_ButtonRelease:
-            tempGrab.detail.exact = event->device_event.detail.button;
+            tempGrab->detail.exact = event->device_event.detail.button;
             break;
         default:
-            tempGrab.detail.exact = 0;
+            tempGrab->detail.exact = 0;
             break;
     }
-    tempGrab.window = pWin;
-    tempGrab.device = device;
-    tempGrab.detail.pMask = NULL;
-    tempGrab.modifiersDetail.pMask = NULL;
-    tempGrab.next = NULL;
+    tempGrab->window = pWin;
+    tempGrab->device = device;
+    tempGrab->detail.pMask = NULL;
+    tempGrab->modifiersDetail.pMask = NULL;
+    tempGrab->next = NULL;
     for (; grab; grab = grab->next)
     {
 	DeviceIntPtr	gdev;
@@ -3711,29 +3717,29 @@ CheckPassiveGrabsOnWindow(
 
         if (gdev && gdev->key)
             xkbi= gdev->key->xkbInfo;
-	tempGrab.modifierDevice = grab->modifierDevice;
-        tempGrab.modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
+        tempGrab->modifierDevice = grab->modifierDevice;
+        tempGrab->modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
 
         /* Check for XI2 and XI grabs first */
-        tempGrab.type = GetXI2Type(event);
-        tempGrab.grabtype = GRABTYPE_XI2;
-        if (GrabMatchesSecond(&tempGrab, grab, FALSE))
+        tempGrab->type = GetXI2Type(event);
+        tempGrab->grabtype = GRABTYPE_XI2;
+        if (GrabMatchesSecond(tempGrab, grab, FALSE))
             match = XI2_MATCH;
 
         if (!match)
         {
-            tempGrab.grabtype = GRABTYPE_XI;
-            if ((tempGrab.type = GetXIType(event)) &&
-                (GrabMatchesSecond(&tempGrab, grab, FALSE)))
+            tempGrab->grabtype = GRABTYPE_XI;
+            if ((tempGrab->type = GetXIType(event)) &&
+                (GrabMatchesSecond(tempGrab, grab, FALSE)))
                 match = XI_MATCH;
         }
 
         /* Check for a core grab (ignore the device when comparing) */
         if (!match && checkCore)
         {
-            tempGrab.grabtype = GRABTYPE_CORE;
-            if ((tempGrab.type = GetCoreType(event)) &&
-                (GrabMatchesSecond(&tempGrab, grab, TRUE)))
+            tempGrab->grabtype = GRABTYPE_CORE;
+            if ((tempGrab->type = GetCoreType(event)) &&
+                (GrabMatchesSecond(tempGrab, grab, TRUE)))
                 match = CORE_MATCH;
         }
 
@@ -3761,7 +3767,7 @@ CheckPassiveGrabsOnWindow(
                Since XGrabDeviceButton requires to specify the
                modifierDevice explicitly, we don't override this choice.
                */
-            if (tempGrab.type < GenericEvent)
+            if (tempGrab->type < GenericEvent)
             {
                 grab->device = device;
                 grab->modifierDevice = GetMaster(device, MASTER_KEYBOARD);
@@ -3800,7 +3806,7 @@ CheckPassiveGrabsOnWindow(
         if (match & (XI_MATCH | CORE_MATCH))
         {
             event->device_event.corestate &= 0x1f00;
-            event->device_event.corestate |= tempGrab.modifiersDetail.exact &
+            event->device_event.corestate |= tempGrab->modifiersDetail.exact &
                                               (~0x1f00);
         }
 
@@ -3861,6 +3867,7 @@ CheckPassiveGrabsOnWindow(
         break;
     }
 
+    FreeGrab(tempGrab);
     return grab;
 #undef CORE_MATCH
 #undef XI_MATCH
@@ -5078,29 +5085,30 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	*status = GrabFrozen;
     else
     {
-	GrabRec tempGrab;
+	GrabPtr tempGrab;
 
-        /* Otherwise segfaults happen on grabbed MPX devices */
-        memset(&tempGrab, 0, sizeof(GrabRec));
+	tempGrab = AllocGrab();
 
-        tempGrab.next = NULL;
-	tempGrab.window = pWin;
-	tempGrab.resource = client->clientAsMask;
-	tempGrab.ownerEvents = ownerEvents;
-	tempGrab.keyboardMode = keyboard_mode;
-	tempGrab.pointerMode = pointer_mode;
+	tempGrab->next = NULL;
+	tempGrab->window = pWin;
+	tempGrab->resource = client->clientAsMask;
+	tempGrab->ownerEvents = ownerEvents;
+	tempGrab->keyboardMode = keyboard_mode;
+	tempGrab->pointerMode = pointer_mode;
 	if (grabtype == GRABTYPE_CORE)
-	    tempGrab.eventMask = mask->core;
+	    tempGrab->eventMask = mask->core;
 	else if (grabtype == GRABTYPE_XI)
-	    tempGrab.eventMask = mask->xi;
+	    tempGrab->eventMask = mask->xi;
 	else
-	    memcpy(tempGrab.xi2mask, mask->xi2mask, sizeof(tempGrab.xi2mask));
-	tempGrab.device = dev;
-	tempGrab.cursor = cursor;
-	tempGrab.confineTo = confineTo;
-	tempGrab.grabtype = grabtype;
-	(*grabInfo->ActivateGrab)(dev, &tempGrab, time, FALSE);
+	    memcpy(tempGrab->xi2mask, mask->xi2mask, sizeof(tempGrab->xi2mask));
+	tempGrab->device = dev;
+	tempGrab->cursor = cursor;
+	tempGrab->confineTo = confineTo;
+	tempGrab->grabtype = grabtype;
+	(*grabInfo->ActivateGrab)(dev, tempGrab, time, FALSE);
 	*status = GrabSuccess;
+
+	FreeGrab(tempGrab);
     }
     return Success;
 }
@@ -5419,7 +5427,7 @@ ProcUngrabKey(ClientPtr client)
 {
     REQUEST(xUngrabKeyReq);
     WindowPtr pWin;
-    GrabRec tempGrab;
+    GrabPtr tempGrab;
     DeviceIntPtr keybd = PickKeyboard(client);
     int rc;
 
@@ -5441,21 +5449,27 @@ ProcUngrabKey(ClientPtr client)
 	client->errorValue = stuff->modifiers;
 	return BadValue;
     }
-    tempGrab.resource = client->clientAsMask;
-    tempGrab.device = keybd;
-    tempGrab.window = pWin;
-    tempGrab.modifiersDetail.exact = stuff->modifiers;
-    tempGrab.modifiersDetail.pMask = NULL;
-    tempGrab.modifierDevice = keybd;
-    tempGrab.type = KeyPress;
-    tempGrab.grabtype = GRABTYPE_CORE;
-    tempGrab.detail.exact = stuff->key;
-    tempGrab.detail.pMask = NULL;
-    tempGrab.next = NULL;
+    tempGrab = AllocGrab();
+    if (!tempGrab)
+        return BadAlloc;
+    tempGrab->resource = client->clientAsMask;
+    tempGrab->device = keybd;
+    tempGrab->window = pWin;
+    tempGrab->modifiersDetail.exact = stuff->modifiers;
+    tempGrab->modifiersDetail.pMask = NULL;
+    tempGrab->modifierDevice = keybd;
+    tempGrab->type = KeyPress;
+    tempGrab->grabtype = GRABTYPE_CORE;
+    tempGrab->detail.exact = stuff->key;
+    tempGrab->detail.pMask = NULL;
+    tempGrab->next = NULL;
 
-    if (!DeletePassiveGrabFromList(&tempGrab))
-	return BadAlloc;
-    return Success;
+    if (!DeletePassiveGrabFromList(tempGrab))
+        rc = BadAlloc;
+
+    FreeGrab(tempGrab);
+
+    return rc;
 }
 
 /**
@@ -5619,7 +5633,7 @@ ProcUngrabButton(ClientPtr client)
 {
     REQUEST(xUngrabButtonReq);
     WindowPtr pWin;
-    GrabRec tempGrab;
+    GrabPtr tempGrab;
     int rc;
     DeviceIntPtr ptr;
 
@@ -5636,21 +5650,26 @@ ProcUngrabButton(ClientPtr client)
 
     ptr = PickPointer(client);
 
-    tempGrab.resource = client->clientAsMask;
-    tempGrab.device = ptr;
-    tempGrab.window = pWin;
-    tempGrab.modifiersDetail.exact = stuff->modifiers;
-    tempGrab.modifiersDetail.pMask = NULL;
-    tempGrab.modifierDevice = GetMaster(ptr, MASTER_KEYBOARD);
-    tempGrab.type = ButtonPress;
-    tempGrab.detail.exact = stuff->button;
-    tempGrab.grabtype = GRABTYPE_CORE;
-    tempGrab.detail.pMask = NULL;
-    tempGrab.next = NULL;
+    tempGrab = AllocGrab();
+    if (!tempGrab)
+        return BadAlloc;
+    tempGrab->resource = client->clientAsMask;
+    tempGrab->device = ptr;
+    tempGrab->window = pWin;
+    tempGrab->modifiersDetail.exact = stuff->modifiers;
+    tempGrab->modifiersDetail.pMask = NULL;
+    tempGrab->modifierDevice = GetMaster(ptr, MASTER_KEYBOARD);
+    tempGrab->type = ButtonPress;
+    tempGrab->detail.exact = stuff->button;
+    tempGrab->grabtype = GRABTYPE_CORE;
+    tempGrab->detail.pMask = NULL;
+    tempGrab->next = NULL;
 
-    if (!DeletePassiveGrabFromList(&tempGrab))
-	return BadAlloc;
-    return Success;
+    if (!DeletePassiveGrabFromList(tempGrab))
+        rc = BadAlloc;
+
+    FreeGrab(tempGrab);
+    return rc;
 }
 
 /**

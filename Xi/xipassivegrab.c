@@ -253,7 +253,7 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
 {
     DeviceIntPtr dev, mod_dev;
     WindowPtr win;
-    GrabRec tempGrab;
+    GrabPtr tempGrab;
     uint32_t* modifiers;
     int i, rc;
 
@@ -293,29 +293,36 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
 
     mod_dev = (IsFloating(dev)) ? dev : GetMaster(dev, MASTER_KEYBOARD);
 
-    tempGrab.resource = client->clientAsMask;
-    tempGrab.device = dev;
-    tempGrab.window = win;
+
+    tempGrab = AllocGrab();
+    if (!tempGrab)
+        return BadAlloc;
+
+    tempGrab->resource = client->clientAsMask;
+    tempGrab->device = dev;
+    tempGrab->window = win;
     switch(stuff->grab_type)
     {
-        case XIGrabtypeButton:  tempGrab.type = XI_ButtonPress; break;
-        case XIGrabtypeKeycode:  tempGrab.type = XI_KeyPress;    break;
-        case XIGrabtypeEnter:   tempGrab.type = XI_Enter;       break;
-        case XIGrabtypeFocusIn: tempGrab.type = XI_FocusIn;     break;
+        case XIGrabtypeButton:  tempGrab->type = XI_ButtonPress; break;
+        case XIGrabtypeKeycode:  tempGrab->type = XI_KeyPress;    break;
+        case XIGrabtypeEnter:   tempGrab->type = XI_Enter;       break;
+        case XIGrabtypeFocusIn: tempGrab->type = XI_FocusIn;     break;
     }
-    tempGrab.grabtype = GRABTYPE_XI2;
-    tempGrab.modifierDevice = mod_dev;
-    tempGrab.modifiersDetail.pMask = NULL;
-    tempGrab.detail.exact = stuff->detail;
-    tempGrab.detail.pMask = NULL;
+    tempGrab->grabtype = GRABTYPE_XI2;
+    tempGrab->modifierDevice = mod_dev;
+    tempGrab->modifiersDetail.pMask = NULL;
+    tempGrab->detail.exact = stuff->detail;
+    tempGrab->detail.pMask = NULL;
 
     modifiers = (uint32_t*)&stuff[1];
 
     for (i = 0; i < stuff->num_modifiers; i++, modifiers++)
     {
-        tempGrab.modifiersDetail.exact = *modifiers;
-        DeletePassiveGrabFromList(&tempGrab);
+        tempGrab->modifiersDetail.exact = *modifiers;
+        DeletePassiveGrabFromList(tempGrab);
     }
+
+    FreeGrab(tempGrab);
 
     return Success;
 }
