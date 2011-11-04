@@ -215,7 +215,7 @@ char *str,buf[BUFFER_SIZE];
     return rtrn;
 }
 
-static char *modNames[XkbNumModifiers] = {
+static const char *modNames[XkbNumModifiers] = {
     "Shift", "Lock", "Control", "Mod1", "Mod2", "Mod3", "Mod4", "Mod5"
 };
 
@@ -367,15 +367,15 @@ char *buf;
 
 /***====================================================================***/
 
-static char *siMatchText[5] = {
+static const char *siMatchText[5] = {
 	"NoneOf", "AnyOfOrNone", "AnyOf", "AllOf", "Exactly"
 };
 
-char *
+const char *
 XkbSIMatchText(unsigned type,unsigned format)
 {
 static char buf[40];
-char *rtrn;
+const char *rtrn;
 
     switch (type&XkbSI_OpMask) {
 	case XkbSI_NoneOf:	rtrn= siMatchText[0]; break;
@@ -397,7 +397,7 @@ char *rtrn;
 
 /***====================================================================***/
 
-static char *imWhichNames[]= {
+static const char *imWhichNames[]= {
 	"base",
 	"latched",
 	"locked",
@@ -448,7 +448,7 @@ char *		buf;
     return buf;
 }
 
-static char *ctrlNames[] = {
+static const char *ctrlNames[] = {
 	"repeatKeys",
 	"slowKeys",
 	"bounceKeys",
@@ -616,7 +616,7 @@ char *	buf;
     return buf;
 }
 
-static char *actionTypeNames[XkbSA_NumActions]= {
+static const char *actionTypeNames[XkbSA_NumActions]= {
     "NoAction", 
     "SetMods",      "LatchMods",    "LockMods", 
     "SetGroup",     "LatchGroup",   "LockGroup",
@@ -631,11 +631,11 @@ static char *actionTypeNames[XkbSA_NumActions]= {
     "DeviceBtn",    "LockDeviceBtn"
 };
 
-char *
+const char *
 XkbActionTypeText(unsigned type,unsigned format)
 {
 static char buf[32];
-char *rtrn;
+const char *rtrn;
 
     if (type<=XkbSA_LastAction) {
 	rtrn= actionTypeNames[type];
@@ -652,7 +652,7 @@ char *rtrn;
 /***====================================================================***/
 
 static int
-TryCopyStr(char *to,char *from,int *pLeft)
+TryCopyStr(char *to,const char *from,int *pLeft)
 {
 register int len;
     if (*pLeft>0) {
