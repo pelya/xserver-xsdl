@@ -1631,6 +1631,7 @@ SelectForWindow(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client,
 static void
 FreeInputClient(InputClientsPtr *other)
 {
+    xi2mask_free(&(*other)->xi2mask);
     free(*other);
     *other = NULL;
 }
@@ -1653,6 +1654,9 @@ AddExtensionClient(WindowPtr pWin, ClientPtr client, Mask mask, int mskidx)
 	return BadAlloc;
     if (!pWin->optional->inputMasks && !MakeInputMasks(pWin))
 	goto bail;
+    others->xi2mask = xi2mask_new();
+    if (!others->xi2mask)
+        goto bail;
     others->mask[mskidx] = mask;
     others->resource = FakeClientID(client->index);
     others->next = pWin->optional->inputMasks->inputClients;
@@ -1674,6 +1678,12 @@ MakeInputMasks(WindowPtr pWin)
     imasks = calloc(1, sizeof(struct _OtherInputMasks));
     if (!imasks)
 	return FALSE;
+    imasks->xi2mask = xi2mask_new();
+    if (!imasks->xi2mask)
+    {
+        free(imasks);
+        return FALSE;
+    }
     pWin->optional->inputMasks = imasks;
     return TRUE;
 }
@@ -1681,6 +1691,7 @@ MakeInputMasks(WindowPtr pWin)
 static void
 FreeInputMask(OtherInputMasks **imask)
 {
+    xi2mask_free(&(*imask)->xi2mask);
     free(*imask);
     *imask = NULL;
 }
@@ -1691,20 +1702,17 @@ RecalculateDeviceDeliverableEvents(WindowPtr pWin)
     InputClientsPtr others;
     struct _OtherInputMasks *inputMasks;	/* default: NULL */
     WindowPtr pChild, tmp;
-    int i, j;
+    int i;
 
     pChild = pWin;
     while (1) {
 	if ((inputMasks = wOtherInputMasks(pChild)) != 0) {
-            for (i = 0; i < EMASKSIZE; i++)
-                memset(inputMasks->xi2mask[i], 0, sizeof(inputMasks->xi2mask[i]));
+            xi2mask_zero(inputMasks->xi2mask, -1);
 	    for (others = inputMasks->inputClients; others;
 		 others = others->next) {
 		for (i = 0; i < EMASKSIZE; i++)
 		    inputMasks->inputEvents[i] |= others->mask[i];
-                for (i = 0; i < EMASKSIZE; i++)
-                    for (j = 0; j < XI2MASKSIZE; j++)
-                        inputMasks->xi2mask[i][j] |= others->xi2mask[i][j];
+                xi2mask_merge(inputMasks->xi2mask, others->xi2mask);
 	    }
 	    for (i = 0; i < EMASKSIZE; i++)
 		inputMasks->deliverableEvents[i] = inputMasks->inputEvents[i];
@@ -2188,14 +2196,12 @@ XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
 	for (others = wOtherInputMasks(win)->inputClients; others;
 	     others = others->next) {
 	    if (SameClient(others, client)) {
-                memset(others->xi2mask[dev->id], 0,
-                       sizeof(others->xi2mask[dev->id]));
+                xi2mask_zero(others->xi2mask, dev->id);
                 break;
             }
         }
     }
 
-    len = min(len, sizeof(others->xi2mask[dev->id]));
 
     if (len && !others)
     {
@@ -2204,11 +2210,14 @@ XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
         others= wOtherInputMasks(win)->inputClients;
     }
 
-    if (others)
-        memset(others->xi2mask[dev->id], 0, sizeof(others->xi2mask[dev->id]));
+    if (others) {
+        xi2mask_zero(others->xi2mask, dev->id);
+        len = min(len, xi2mask_mask_size(others->xi2mask));
+    }
 
-    if (len)
-        memcpy(others->xi2mask[dev->id], mask, len);
+    if (len) {
+        xi2mask_set_one_mask(others->xi2mask, dev->id, mask, len);
+    }
 
     RecalculateDeviceDeliverableEvents(win);
 

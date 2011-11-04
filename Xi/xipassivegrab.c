@@ -44,6 +44,7 @@
 #include "xipassivegrab.h"
 #include "dixgrabs.h"
 #include "misc.h"
+#include "inpututils.h"
 
 int
 SProcXIPassiveGrabDevice(ClientPtr client)
@@ -82,7 +83,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     int i, ret = Success;
     uint32_t *modifiers;
     xXIGrabModifierInfo *modifiers_failed;
-    GrabMask mask;
+    GrabMask mask = { 0 };
     GrabParameters param;
     void *tmp;
     int mask_len;
@@ -124,9 +125,12 @@ ProcXIPassiveGrabDevice(ClientPtr client)
                                stuff->mask_len * 4) != Success)
         return BadValue;
 
-    mask_len = min(sizeof(mask.xi2mask[stuff->deviceid]), stuff->mask_len * 4);
-    memset(mask.xi2mask, 0, sizeof(mask.xi2mask));
-    memcpy(mask.xi2mask[stuff->deviceid], &stuff[1], mask_len * 4);
+    mask.xi2mask = xi2mask_new();
+    if (!mask.xi2mask)
+        return BadAlloc;
+
+    mask_len = min(xi2mask_mask_size(mask.xi2mask), stuff->mask_len * 4);
+    xi2mask_set_one_mask(mask.xi2mask, stuff->deviceid, (unsigned char*)&stuff[1], mask_len * 4);
 
     rep.repType = X_Reply;
     rep.RepType = X_XIPassiveGrabDevice;
@@ -212,6 +216,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
 
     free(modifiers_failed);
 out:
+    xi2mask_free(&mask.xi2mask);
     return ret;
 }
 

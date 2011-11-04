@@ -118,7 +118,7 @@ typedef struct _InputClients {
     XID			resource; /**< id for putting into resource manager */
     Mask		mask[EMASKSIZE]; /**< Actual XI event mask, deviceid is index */
     /** XI2 event masks. One per device, each bit is a mask of (1 << type) */
-    unsigned char       xi2mask[EMASKSIZE][XI2MASKSIZE];
+    struct _XI2Mask     *xi2mask;
 } InputClients;
 
 /**
@@ -148,7 +148,7 @@ typedef struct _OtherInputMasks {
     /** The clients that selected for events */
     InputClientsPtr	inputClients;
     /* XI2 event masks. One per device, each bit is a mask of (1 << type) */
-    unsigned char       xi2mask[EMASKSIZE][XI2MASKSIZE];
+    struct _XI2Mask     *xi2mask;
 } OtherInputMasks;
 
 /*
@@ -176,7 +176,7 @@ typedef enum {
 union _GrabMask {
     Mask core;
     Mask xi;
-    char xi2mask[EMASKSIZE][XI2MASKSIZE];
+    struct _XI2Mask *xi2mask;
 };
 
 /**
@@ -210,7 +210,7 @@ typedef struct _GrabRec {
     Mask		eventMask;
     Mask                deviceMask;     
     /* XI2 event masks. One per device, each bit is a mask of (1 << type) */
-    unsigned char       xi2mask[EMASKSIZE][XI2MASKSIZE];
+    struct _XI2Mask *xi2mask;
 } GrabRec;
 
 /**

@@ -420,12 +420,6 @@ GetXI2EventFilterMask(int evtype)
     return (1 << (evtype % 8));
 }
 
-static inline int
-GetXI2EventFilterOffset(int evtype)
-{
-    return (evtype / 8);
-}
-
 /**
  * For the given event, return the matching event filter. This filter may then
  * be AND'ed with the selected event mask.
@@ -459,12 +453,15 @@ GetEventFilter(DeviceIntPtr dev, xEvent *event)
  * for the event_type.
  */
 static int
-GetXI2MaskByte(unsigned char xi2mask[][XI2MASKSIZE], DeviceIntPtr dev, int event_type)
+GetXI2MaskByte(XI2Mask *mask, DeviceIntPtr dev, int event_type)
 {
-    int byte = GetXI2EventFilterOffset(event_type);
-    return xi2mask[dev->id][byte] |
-           xi2mask[XIAllDevices][byte] |
-           (IsMaster(dev) ? xi2mask[XIAllMasterDevices][byte] : 0);
+    /* we just return the matching filter because that's the only use
+     * for this mask anyway.
+     */
+    if (xi2mask_isset(mask, dev, event_type))
+        return GetXI2EventFilterMask(event_type);
+    else
+        return 0;
 }
 
 
@@ -476,16 +473,14 @@ Bool
 WindowXI2MaskIsset(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
 {
     OtherInputMasks *inputMasks = wOtherInputMasks(win);
-    int filter;
     int evtype;
 
     if (!inputMasks || xi2_get_type(ev) == 0)
         return 0;
 
     evtype = ((xGenericEvent*)ev)->evtype;
-    filter = GetEventFilter(dev, ev);
 
-    return !!(GetXI2MaskByte(inputMasks->xi2mask, dev, evtype) & filter);
+    return xi2mask_isset(inputMasks->xi2mask, dev, evtype);
 }
 
 Mask
@@ -2011,8 +2006,7 @@ ActivateImplicitGrab(DeviceIntPtr dev, ClientPtr client, WindowPtr win,
     tempGrab->deviceMask = (inputMasks) ? inputMasks->inputEvents[dev->id]: 0;
 
     if (inputMasks)
-        memcpy(tempGrab->xi2mask, inputMasks->xi2mask,
-               sizeof(tempGrab->xi2mask));
+        xi2mask_merge(tempGrab->xi2mask, inputMasks->xi2mask);
 
     (*dev->deviceGrab.ActivateGrab)(dev, tempGrab,
                                     currentTime, TRUE | ImplicitGrabMask);
@@ -2561,10 +2555,7 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
 
     if ((type = GetXI2Type(event)) != 0)
     {
-        filter = GetXI2EventFilterMask(type);
-
-        if (inputMasks &&
-            (GetXI2MaskByte(inputMasks->xi2mask,  dev, type) & filter))
+        if (inputMasks && xi2mask_isset(inputMasks->xi2mask, dev, type))
             rc |= EVENT_XI2_MASK;
     }
 
@@ -4155,12 +4146,11 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             if (rc == Success)
             {
                 int evtype = xi2_get_type(xi2);
-                mask = GetXI2MaskByte(grab->xi2mask, thisDev, evtype);
+                mask = xi2mask_isset(grab->xi2mask, thisDev, evtype);
                 /* try XI2 event */
                 FixUpEventFromWindow(pSprite, xi2, grab->window, None, TRUE);
                 /* XXX: XACE */
-                deliveries = TryClientEvents(rClient(grab), thisDev, xi2, 1, mask,
-                        GetEventFilter(thisDev, xi2), grab);
+                deliveries = TryClientEvents(rClient(grab), thisDev, xi2, 1, mask, 1, grab);
             } else if (rc != BadMatch)
                 ErrorF("[dix] %s: XI2 conversion failed in DGE (%d, %d). Skipping delivery.\n",
                         thisDev->name, event->any.type, rc);
@@ -4634,9 +4624,8 @@ DeviceEnterLeaveEvent(
     if (grab)
     {
         Mask mask;
-        mask = GetXI2MaskByte(grab->xi2mask, mouse, type);
-        TryClientEvents(rClient(grab), mouse, (xEvent*)event, 1, mask,
-                        filter, grab);
+        mask = xi2mask_isset(grab->xi2mask, mouse, type);
+        TryClientEvents(rClient(grab), mouse, (xEvent*)event, 1, mask, 1, grab);
     } else {
         if (!WindowXI2MaskIsset(mouse, pWin, (xEvent*)event))
             goto out;
@@ -5100,7 +5089,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	else if (grabtype == GRABTYPE_XI)
 	    tempGrab->eventMask = mask->xi;
 	else
-	    memcpy(tempGrab->xi2mask, mask->xi2mask, sizeof(tempGrab->xi2mask));
+            xi2mask_merge(tempGrab->xi2mask, mask->xi2mask);
 	tempGrab->device = dev;
 	tempGrab->cursor = cursor;
 	tempGrab->confineTo = confineTo;
