@@ -657,6 +657,7 @@ AC_MSG_CHECKING([to see if we can install the Xorg server as root])
 if test "x$SETUID" = "xauto" ; then
 	case $host_os in
 	    cygwin*)		SETUID="no"  ;;
+	    mingw*)		SETUID="no"  ;;
 	    darwin*)		SETUID="no"  ;;
 	    *)
 	   	case $host_cpu in
