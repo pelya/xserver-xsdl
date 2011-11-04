@@ -307,10 +307,10 @@ extern _X_EXPORT void OsReleaseSignals (void);
 extern _X_EXPORT void OsAbort (void) _X_NORETURN;
 
 #if !defined(WIN32)
-extern _X_EXPORT int System(char *);
-extern _X_EXPORT pointer Popen(char *, char *);
+extern _X_EXPORT int System(const char *);
+extern _X_EXPORT pointer Popen(const char *, const char *);
 extern _X_EXPORT int Pclose(pointer);
-extern _X_EXPORT pointer Fopen(char *, char *);
+extern _X_EXPORT pointer Fopen(const char *, const char *);
 extern _X_EXPORT int Fclose(pointer);
 #else
 #define System(a) system(a)

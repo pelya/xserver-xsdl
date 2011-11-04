@@ -1252,7 +1252,7 @@ OsAbort (void)
  */
 
 int
-System(char *command)
+System(const char *command)
 {
     int pid, p;
     void (*csig)(int);
@@ -1302,7 +1302,7 @@ static struct pid {
 OsSigHandlerPtr old_alarm = NULL; /* XXX horrible awful hack */
 
 pointer
-Popen(char *command, char *type)
+Popen(const char *command, const char *type)
 {
     struct pid *cur;
     FILE *iop;
@@ -1388,7 +1388,7 @@ Popen(char *command, char *type)
 
 /* fopen that drops privileges */
 pointer
-Fopen(char *file, char *type)
+Fopen(const char *file, const char *type)
 {
     FILE *iop;
 #ifndef HAS_SAVED_IDS_AND_SETEUID
