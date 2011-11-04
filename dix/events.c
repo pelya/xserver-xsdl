@@ -3788,14 +3788,13 @@ CheckPassiveGrabsOnWindow(
         }
 
         if (!activate)
-        {
-            return grab;
-        }
+            break;
         else if (!GetXIType(event) && !GetCoreType(event))
         {
             ErrorF("Event type %d in CheckPassiveGrabsOnWindow is neither"
                    " XI 1.x nor core\n", event->any.type);
-            return NULL;
+            grab = NULL;
+            break;
         }
 
         /* The only consumers of corestate are Xi 1.x and core events, which
@@ -3861,9 +3860,10 @@ CheckPassiveGrabsOnWindow(
         }
 
         free(xE);
-        return grab;
+        break;
     }
-    return NULL;
+
+    return grab;
 #undef CORE_MATCH
 #undef XI_MATCH
 #undef XI2_MATCH
