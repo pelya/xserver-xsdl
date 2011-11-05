@@ -48,7 +48,7 @@
 static struct dev_properties
 {
     Atom type;
-    char *name;
+    const char *name;
 } dev_properties[] = {
     {0, XI_PROP_ENABLED},
     {0, XI_PROP_XTEST_DEVICE},

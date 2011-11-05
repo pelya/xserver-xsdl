@@ -603,7 +603,7 @@ DeviceSetXTestProperty(DeviceIntPtr dev, Atom property,
  * This only creates the pair, Activate/Enable Device
  * still need to be called.
  */
-int AllocXTestDevice (ClientPtr client, char* name,
+int AllocXTestDevice (ClientPtr client, const char* name,
                      DeviceIntPtr* ptr, DeviceIntPtr* keybd,
                      DeviceIntPtr master_ptr, DeviceIntPtr master_keybd)
 {

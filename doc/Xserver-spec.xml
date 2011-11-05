@@ -565,7 +565,7 @@ should be called by InitExtensions.
 	ExtensionEntry *AddExtension(name, NumEvents,NumErrors,
 		MainProc, SwappedMainProc, CloseDownProc, MinorOpcodeProc)
 
-		char *name;  /*Null terminate string; case matters*/
+		const char *name;  /*Null terminate string; case matters*/
 		int NumEvents;
 		int NumErrors;
 		int (* MainProc)(ClientPtr);/*Called if client matches server order*/
