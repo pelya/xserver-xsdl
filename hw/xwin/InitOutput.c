@@ -739,7 +739,7 @@ winUseMsg(void)
 
     ErrorF("-fullscreen\n" "\tRun the server in fullscreen mode.\n");
 
-    ErrorF("-hostintitle\n"
+    ErrorF("-[no]hostintitle\n"
            "\tIn multiwindow mode, add remote host names to window titles.\n");
 
     ErrorF("-ignoreinput\n" "\tIgnore keyboard and mouse input.\n");

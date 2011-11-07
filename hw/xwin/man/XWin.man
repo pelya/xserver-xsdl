@@ -167,9 +167,10 @@ on its own is equivalent to \fB\-resize=randr\fP
 
 .SH OPTIONS FOR MULTIWINDOW MODE
 .TP 8
-.B \-hostintitle
+.B \-[no]hostintitle
 Add the host name to the window title for X applications which are running
 on remote hosts, when that information is available and it's useful to do so.
+The default is enabled.
 
 .SH OPTIONS CONTROLLING WINDOWS INTEGRATION
 .TP 8
