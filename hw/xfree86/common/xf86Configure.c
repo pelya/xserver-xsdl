@@ -58,17 +58,17 @@ Bool xf86DoConfigurePass1 = TRUE;
 static Bool foundMouse = FALSE;
 
 #if   defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
-static char *DFLT_MOUSE_DEV = "/dev/sysmouse";
-static char *DFLT_MOUSE_PROTO = "auto";
+static const char *DFLT_MOUSE_DEV = "/dev/sysmouse";
+static const char *DFLT_MOUSE_PROTO = "auto";
 #elif defined(linux)
-static char DFLT_MOUSE_DEV[] = "/dev/input/mice";
-static char DFLT_MOUSE_PROTO[] = "auto";
+static const char *DFLT_MOUSE_DEV = "/dev/input/mice";
+static const char *DFLT_MOUSE_PROTO = "auto";
 #elif defined(WSCONS_SUPPORT)
-static char *DFLT_MOUSE_DEV = "/dev/wsmouse";
-static char *DFLT_MOUSE_PROTO = "wsmouse";
+static const char *DFLT_MOUSE_DEV = "/dev/wsmouse";
+static const char *DFLT_MOUSE_PROTO = "wsmouse";
 #else
-static char *DFLT_MOUSE_DEV = "/dev/mouse";
-static char *DFLT_MOUSE_PROTO = "auto";
+static const char *DFLT_MOUSE_DEV = "/dev/mouse";
+static const char *DFLT_MOUSE_PROTO = "auto";
 #endif
 
 /*
@@ -516,9 +516,9 @@ void
 DoConfigure(void)
 {
     int i,j, screennum = -1;
-    char *home = NULL;
+    const char *home = NULL;
     char filename[PATH_MAX];
-    char *addslash = "";
+    const char *addslash = "";
     XF86ConfigPtr xf86config = NULL;
     char **vlist, **vl;
     int *dev2screen;

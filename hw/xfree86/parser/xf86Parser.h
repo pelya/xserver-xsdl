@@ -479,7 +479,7 @@ XF86ConfigRec, *XF86ConfigPtr;
 typedef struct
 {
 	int token;			/* id of the token */
-	char *name;			/* pointer to the LOWERCASED name */
+	const char *name;		/* pointer to the LOWERCASED name */
 }
 xf86ConfigSymTabRec, *xf86ConfigSymTabPtr;
 

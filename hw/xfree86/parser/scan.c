@@ -90,7 +90,7 @@
 #define CONFIG_BUF_LEN     1024
 #define CONFIG_MAX_FILES   64
 
-static int StringToToken (char *, xf86ConfigSymTabRec *);
+static int StringToToken (const char *, xf86ConfigSymTabRec *);
 
 static struct {
 	FILE *file;
@@ -992,11 +992,11 @@ xf86setBuiltinConfig(const char *config[])
 }
 
 void
-xf86parseError (char *format,...)
+xf86parseError (const char *format,...)
 {
 	va_list ap;
-	char *filename = numFiles ? configFiles[curFileIndex].path :
-			 "<builtin configuration>";
+	const char *filename = numFiles ? configFiles[curFileIndex].path
+					: "<builtin configuration>";
 
 	ErrorF ("Parse error on line %d of section %s in file %s\n\t",
 		 configLineNo, configSection, filename);
@@ -1008,11 +1008,11 @@ xf86parseError (char *format,...)
 }
 
 void
-xf86validationError (char *format,...)
+xf86validationError (const char *format,...)
 {
 	va_list ap;
-	char *filename = numFiles ? configFiles[curFileIndex].path :
-			 "<builtin configuration>";
+	const char *filename = numFiles ? configFiles[curFileIndex].path
+					: "<builtin configuration>";
 
 	ErrorF ("Data incomplete in file %s\n\t", filename);
 	va_start (ap, format);
@@ -1023,7 +1023,7 @@ xf86validationError (char *format,...)
 }
 
 void
-xf86setSection (char *section)
+xf86setSection (const char *section)
 {
 	free(configSection);
 	configSection = strdup(section);
@@ -1040,7 +1040,7 @@ xf86getStringToken (xf86ConfigSymTabRec * tab)
 }
 
 static int
-StringToToken (char *str, xf86ConfigSymTabRec * tab)
+StringToToken (const char *str, xf86ConfigSymTabRec * tab)
 {
 	int i;
 

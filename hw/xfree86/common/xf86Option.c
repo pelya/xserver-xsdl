@@ -187,7 +187,7 @@ LookupRealOption(XF86OptionPtr optlist, const char *name, double deflt,
 
 
 static char *
-LookupStrOption(XF86OptionPtr optlist, const char *name, char *deflt, Bool markUsed)
+LookupStrOption(XF86OptionPtr optlist, const char *name, const char *deflt, Bool markUsed)
 {
     OptionInfoRec o;
 
@@ -243,7 +243,7 @@ xf86SetRealOption(XF86OptionPtr optlist, const char *name, double deflt)
 
 
 char *
-xf86SetStrOption(XF86OptionPtr optlist, const char *name, char *deflt)
+xf86SetStrOption(XF86OptionPtr optlist, const char *name, const char *deflt)
 {
     return LookupStrOption(optlist, name, deflt, TRUE);
 }
@@ -416,7 +416,7 @@ xf86FindOption(XF86OptionPtr options, const char *name)
 }
 
 
-char *
+const char *
 xf86FindOptionValue(XF86OptionPtr options, const char *name)
 {
     return xf86findOptionValue(options, name);

@@ -248,9 +248,9 @@ xf86ModulelistFromConfig(pointer **optlist)
 {
     int count = 0, i = 0;
     char **modulearray;
-    char *ignore[] = { "GLcore", "speedo", "bitmap", "drm",
-		       "freetype", "type1",
-		       NULL };
+    const char *ignore[] = { "GLcore", "speedo", "bitmap", "drm",
+                             "freetype", "type1",
+                             NULL };
     pointer *optarray;
     XF86LoadPtr modp;
     Bool found;
@@ -522,7 +522,7 @@ fixup_video_driver_list(char **drivers)
 }
 
 static char **
-GenerateDriverlist(char * dirname)
+GenerateDriverlist(const char * dirname)
 {
     char **ret;
     const char *subdirs[] = { dirname, NULL };
@@ -553,7 +553,7 @@ xf86DriverlistFromCompile(void)
  *      available is printed.
  */
 static void
-xf86ConfigError(char *msg, ...)
+xf86ConfigError(const char *msg, ...)
 {
     va_list ap;
 
@@ -2301,7 +2301,7 @@ ConfigStatus
 xf86HandleConfigFile(Bool autoconfig)
 {
     const char *filename, *dirname, *sysdirname;
-    char *filesearch, *dirsearch;
+    const char *filesearch, *dirsearch;
     MessageType filefrom = X_DEFAULT;
     MessageType dirfrom = X_DEFAULT;
     char *scanptr;

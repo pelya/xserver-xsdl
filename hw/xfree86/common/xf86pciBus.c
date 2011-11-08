@@ -1062,7 +1062,7 @@ videoPtrToDriverList(struct pci_device *dev,
     int i;
     /* Add more entries here if we ever return more than 4 drivers for
        any device */
-    char *driverList[5] = { NULL, NULL, NULL, NULL, NULL };
+    const char *driverList[5] = { NULL, NULL, NULL, NULL, NULL };
 
     switch (dev->vendor_id)
     {
