@@ -123,6 +123,7 @@ typedef struct _Client {
     
     DeviceIntPtr clientPtr;
     ClientIdPtr  clientIds;
+    unsigned short majorOp, minorOp;
 }           ClientRec;
 
 /*
