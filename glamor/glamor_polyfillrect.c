@@ -87,7 +87,7 @@ glamor_poly_fill_rect(DrawablePtr drawable,
 			if (x1 >= x2 || y1 >= y2)
 				continue;
 			if (!glamor_fill(drawable, gc, x1, y1, x2 - x1,
-					 y2 - y1))
+					 y2 - y1, TRUE))
 				goto fail;
 		}
 	}

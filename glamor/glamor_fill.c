@@ -34,7 +34,7 @@
 
 Bool
 glamor_fill(DrawablePtr drawable,
-	    GCPtr gc, int x, int y, int width, int height)
+	    GCPtr gc, int x, int y, int width, int height, Bool fallback)
 {
 	PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(drawable);
 	int off_x, off_y;
@@ -80,7 +80,9 @@ glamor_fill(DrawablePtr drawable,
 		break;
 	}
 	return TRUE;
+
       fail:
+	if (!fallback) return FALSE;
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 		if (glamor_prepare_access_gc(gc)) {
 			fbFill(drawable, gc, x, y, width, height);
@@ -89,7 +91,6 @@ glamor_fill(DrawablePtr drawable,
 		glamor_finish_access(drawable);
 	}
 	return TRUE;
-
 }
 
 void

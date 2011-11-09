@@ -79,3 +79,10 @@ extern _X_EXPORT void glamor_egl_free_screen(int scrnIndex, int flags);
 extern _X_EXPORT Bool glamor_egl_init_textured_pixmap(ScreenPtr screen);
 extern _X_EXPORT void glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap);
 #endif
+
+extern _X_EXPORT Bool glamor_fill_spans_nf(DrawablePtr drawable,
+					   GCPtr gc,
+					   int n, DDXPointPtr points, 
+					   int *widths, int sorted);
+
+

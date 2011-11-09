@@ -30,10 +30,10 @@
  */
 #include "glamor_priv.h"
 
-void
-glamor_fill_spans(DrawablePtr drawable,
+static Bool
+_glamor_fill_spans(DrawablePtr drawable,
 		  GCPtr gc,
-		  int n, DDXPointPtr points, int *widths, int sorted)
+		  int n, DDXPointPtr points, int *widths, int sorted, Bool fallback)
 {
 	DDXPointPtr ppt;
 	int nbox;
@@ -66,12 +66,15 @@ glamor_fill_spans(DrawablePtr drawable,
 
 			if (x2 <= x1)
 				continue;
-			glamor_fill(drawable, gc, x1, y, x2 - x1, 1);
+			if (!glamor_fill(drawable, gc, x1, y, x2 - x1, 1, fallback))
+				goto fail;
 			pbox++;
 		}
 	}
-	return;
+	return TRUE;
+
       fail:
+	if (!fallback) return FALSE;
 	glamor_fallback("to %p (%c)\n", drawable,
 			glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
@@ -82,4 +85,24 @@ glamor_fill_spans(DrawablePtr drawable,
 		}
 		glamor_finish_access(drawable);
 	}
+	return TRUE;
 }
+
+
+void
+glamor_fill_spans(DrawablePtr drawable,
+		  GCPtr gc,
+		  int n, DDXPointPtr points, int *widths, int sorted)
+{
+	_glamor_fill_spans(drawable, gc, n, points, widths, sorted, TRUE);
+}
+
+Bool
+glamor_fill_spans_nf(DrawablePtr drawable,
+		     GCPtr gc,
+		     int n, DDXPointPtr points, int *widths, int sorted)
+{
+	return _glamor_fill_spans(drawable, gc, n, points, widths, sorted, FALSE);
+}
+
+

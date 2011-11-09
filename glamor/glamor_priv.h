@@ -370,7 +370,7 @@ int glamor_gl_get_version(void);
 
 /* glamor_fill.c */
 Bool glamor_fill(DrawablePtr drawable,
-		 GCPtr gc, int x, int y, int width, int height);
+		 GCPtr gc, int x, int y, int width, int height, Bool fallback);
 Bool glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 		  unsigned char alu, unsigned long planemask,
 		  unsigned long fg_pixel);

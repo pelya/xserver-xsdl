@@ -690,7 +690,7 @@ glamor_glyphs_via_mask(CARD8 op,
 	}
 	gc = GetScratchGC(mask_pixmap->drawable.depth, screen);
 	ValidateGC(&mask_pixmap->drawable, gc);
-	glamor_fill(&mask_pixmap->drawable, gc, 0, 0, width, height);
+	glamor_fill(&mask_pixmap->drawable, gc, 0, 0, width, height, TRUE);
 	FreeScratchGC(gc);
 	x = -extents.x1;
 	y = -extents.y1;
