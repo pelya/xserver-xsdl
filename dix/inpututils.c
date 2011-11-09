@@ -972,8 +972,9 @@ xi2mask_isset(XI2Mask* mask, const DeviceIntPtr dev, int event_type)
 {
     int set = 0;
 
-    if (dev->id < 0 || dev->id >= mask->nmasks || event_type >= mask->mask_size)
-        return 0;
+    BUG_WARN(dev->id < 0);
+    BUG_WARN(dev->id >= mask->nmasks);
+    BUG_WARN(bits_to_bytes(event_type + 1) > mask->mask_size);
 
     set = !!BitIsOn(mask->masks[XIAllDevices], event_type);
     if (!set)
@@ -990,8 +991,9 @@ xi2mask_isset(XI2Mask* mask, const DeviceIntPtr dev, int event_type)
 void
 xi2mask_set(XI2Mask *mask, int deviceid, int event_type)
 {
-    if (deviceid < 0 || deviceid >= mask->nmasks || event_type >= mask->mask_size)
-        return;
+    BUG_WARN(deviceid < 0);
+    BUG_WARN(deviceid >= mask->nmasks);
+    BUG_WARN(bits_to_bytes(event_type + 1) > mask->mask_size);
 
     SetBit(mask->masks[deviceid], event_type);
 }
@@ -1005,8 +1007,7 @@ xi2mask_zero(XI2Mask *mask, int deviceid)
 {
     int i;
 
-    if (deviceid > 0 && deviceid >= mask->nmasks)
-        return;
+    BUG_WARN(deviceid > 0 && deviceid >= mask->nmasks);
 
     if (deviceid >= 0)
         memset(mask->masks[deviceid], 0, mask->mask_size);
@@ -1055,8 +1056,8 @@ xi2mask_mask_size(const XI2Mask *mask)
 void
 xi2mask_set_one_mask(XI2Mask *xi2mask, int deviceid, const unsigned char *mask, size_t mask_size)
 {
-    if (deviceid < 0 || deviceid >= xi2mask->nmasks)
-        return;
+    BUG_WARN(deviceid < 0);
+    BUG_WARN(deviceid >= xi2mask->nmasks);
 
     memcpy(xi2mask->masks[deviceid], mask, min(xi2mask->mask_size, mask_size));
 }
@@ -1067,8 +1068,8 @@ xi2mask_set_one_mask(XI2Mask *xi2mask, int deviceid, const unsigned char *mask, 
 const unsigned char*
 xi2mask_get_one_mask(const XI2Mask *mask, int deviceid)
 {
-    if (deviceid < 0 || deviceid >= mask->nmasks)
-        return NULL;
+    BUG_WARN(deviceid < 0);
+    BUG_WARN(deviceid >= mask->nmasks);
 
     return mask->masks[deviceid];
 }
