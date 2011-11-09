@@ -337,7 +337,7 @@ static int
 SELinuxSendItemsToClient(ClientPtr client, SELinuxListItemRec *items,
 			 int size, int count)
 {
-    int rc, k, n, pos = 0;
+    int rc, k, pos = 0;
     SELinuxListItemsReply rep;
     CARD32 *buf;
 
