@@ -85,4 +85,8 @@ extern _X_EXPORT Bool glamor_fill_spans_nf(DrawablePtr drawable,
 					   int n, DDXPointPtr points, 
 					   int *widths, int sorted);
 
+extern _X_EXPORT Bool glamor_poly_fill_rect_nf(DrawablePtr drawable,
+					       GCPtr gc, 
+					       int nrect, 
+					       xRectangle * prect);
 

@@ -37,9 +37,9 @@
  * GC PolyFillRect implementation, taken straight from fb_fill.c
  */
 
-void
-glamor_poly_fill_rect(DrawablePtr drawable,
-		      GCPtr gc, int nrect, xRectangle * prect)
+static Bool
+_glamor_poly_fill_rect(DrawablePtr drawable,
+		      GCPtr gc, int nrect, xRectangle * prect, Bool fallback)
 {
 	int fullX1, fullX2, fullY1, fullY2;
 	int xorg, yorg;
@@ -87,13 +87,14 @@ glamor_poly_fill_rect(DrawablePtr drawable,
 			if (x1 >= x2 || y1 >= y2)
 				continue;
 			if (!glamor_fill(drawable, gc, x1, y1, x2 - x1,
-					 y2 - y1, TRUE))
+					 y2 - y1, fallback))
 				goto fail;
 		}
 	}
-	return;
+	return TRUE;
 
       fail:
+	if (!fallback) return FALSE;
 	glamor_fallback(" to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
@@ -103,5 +104,20 @@ glamor_poly_fill_rect(DrawablePtr drawable,
 		}
 		glamor_finish_access(drawable);
 	}
-	return;
+	return TRUE;
+}
+
+
+void
+glamor_poly_fill_rect(DrawablePtr drawable,
+		      GCPtr gc, int nrect, xRectangle * prect)
+{
+	_glamor_poly_fill_rect(drawable, gc, nrect, prect, TRUE);
+}
+
+Bool
+glamor_poly_fill_rect_nf(DrawablePtr drawable,
+		         GCPtr gc, int nrect, xRectangle * prect)
+{
+	return _glamor_poly_fill_rect(drawable, gc, nrect, prect, FALSE);
 }

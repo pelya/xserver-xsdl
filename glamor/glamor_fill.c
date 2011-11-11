@@ -144,7 +144,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	GLfloat color[4];
 	float vertices[8];
 	GLfloat xscale, yscale;
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+	if (!pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
 		glamor_fallback("dest %p has no fbo.\n", pixmap);
 		goto fail;
 	}
