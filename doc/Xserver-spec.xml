@@ -43,7 +43,7 @@
     </author>
     <publisher><publishername>The X.Org Foundation</publishername></publisher>
     <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
-    <releaseinfo>X server version &xserver.version;</releaseinfo>
+    <releaseinfo>X Server Version &xserver.version;</releaseinfo>
     <copyright><year>1994</year><holder>X Consortium, Inc.</holder></copyright>
     <copyright><year>2004</year><holder>X.org Foundation, Inc.</holder></copyright>
     <legalnotice>

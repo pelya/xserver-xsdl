@@ -34,7 +34,7 @@
 
     <pubdate>&xserver.reldate;</pubdate>
     <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
-    <releaseinfo>Xorg server version &xserver.version;</releaseinfo>
+    <releaseinfo>X Server Version &xserver.version;</releaseinfo>
 
   </articleinfo>
 
