@@ -53,6 +53,7 @@ typedef struct {
 #endif
     drmEventContext event_context;
     struct dumb_bo *front_bo;
+    Bool sw_cursor;
 } drmmode_rec, *drmmode_ptr;
 
 typedef struct {

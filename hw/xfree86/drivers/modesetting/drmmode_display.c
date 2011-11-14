@@ -402,12 +402,23 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	int i;
 	uint32_t *ptr;
-
+	uint32_t handle = drmmode_crtc->cursor_bo->handle;
+	int ret;
 	/* cursor should be mapped already */
 	ptr = (uint32_t *)(drmmode_crtc->cursor_bo->ptr);
 
 	for (i = 0; i < 64 * 64; i++)
 		ptr[i] = image[i];// cpu_to_le32(image[i]);
+
+	ret = drmModeSetCursor(drmmode_crtc->drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, handle, 64, 64);
+	if (ret) {
+		xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
+		xf86CursorInfoPtr	cursor_info = xf86_config->cursor_info;
+		
+		cursor_info->MaxWidth = cursor_info->MaxHeight = 0;
+		drmmode_crtc->drmmode->sw_cursor = TRUE;
+		/* fallback to swcursor */
+	}
 }
 
 

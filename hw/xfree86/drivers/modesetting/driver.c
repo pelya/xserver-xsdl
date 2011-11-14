@@ -477,7 +477,7 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 	return FALSE;
 
     if (xf86ReturnOptValBool(ms->Options, OPTION_SW_CURSOR, FALSE)) {
-	ms->SWCursor = TRUE;
+	ms->drmmode.sw_cursor = TRUE;
     }
 
     ms->shadow_enable = xf86ReturnOptValBool(ms->Options, OPTION_SHADOW_FB, TRUE);
@@ -681,7 +681,7 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     miDCInitialize(pScreen, xf86GetPointerScreenFuncs());
 
     /* Need to extend HWcursor support to handle mask interleave */
-    if (!ms->SWCursor)
+    if (!ms->drmmode.sw_cursor)
 	xf86_cursors_init(pScreen, 64, 64,
 			  HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64 |
 			  HARDWARE_CURSOR_ARGB);
