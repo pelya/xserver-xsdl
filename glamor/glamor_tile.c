@@ -110,7 +110,6 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 
 	src_pixmap_priv = glamor_get_pixmap_private(tile);
 	dst_pixmap_priv = glamor_get_pixmap_private(pixmap);
-	goto fail;
 
 	if (src_pixmap_priv == NULL || dst_pixmap_priv == NULL)
 		goto fail;
