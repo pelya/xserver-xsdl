@@ -334,16 +334,16 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	glamor_priv->dispatch.glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE,
 					    &glamor_priv->max_fbo_size);
 
-	if (!RegisterBlockAndWakeupHandlers(_glamor_block_handler,
-					    _glamor_wakeup_handler,
-					    (void *)
-					    &glamor_priv->dispatch)) {
-		goto fail;
-	}
-
 	glamor_set_debug_level(&glamor_debug_level);
 
 	if (flags & GLAMOR_USE_SCREEN) {
+		if (!RegisterBlockAndWakeupHandlers(_glamor_block_handler,
+						    _glamor_wakeup_handler,
+						    (void *)
+						    &glamor_priv->dispatch)) {
+			goto fail;
+		}
+
 		glamor_priv->saved_close_screen = screen->CloseScreen;
 		screen->CloseScreen = glamor_close_screen;
 
