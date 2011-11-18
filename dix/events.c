@@ -3635,6 +3635,207 @@ BorderSizeNotEmpty(DeviceIntPtr pDev, WindowPtr pWin)
 }
 
 /**
+ * Check an individual grab against an event to determine if a passive grab
+ * should be activated.
+ * If activate is true and a passive grab is found, it will be activated, and
+ * the event will be delivered to the client.
+ *
+ * @param device The device of the event to check.
+ * @param grab The grab to check.
+ * @param event The current device event.
+ * @param checkCore Check for core grabs too.
+ * @param activate Whether to activate a matching grab.
+ * @param tempGrab A pre-allocated temporary grab record for matching. This
+ *        must have the window and device values filled in.
+ * @param[out] grab_return The modified value of grab, to be used in the
+ * caller for grab activation if a this function returns TRUE. May be NULL.
+ *
+ * @return Whether the grab matches the event.
+ */
+static Bool
+CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
+                 Bool checkCore, Bool activate, GrabPtr tempGrab, GrabPtr *grab_return)
+{
+    static const int CORE_MATCH = 0x1;
+    static const int XI_MATCH = 0x2;
+    static const int XI2_MATCH = 0x4;
+    SpritePtr pSprite = device->spriteInfo->sprite;
+    GrabInfoPtr grabinfo;
+    DeviceIntPtr gdev;
+    XkbSrvInfoPtr xkbi = NULL;
+    xEvent *xE = NULL;
+    int match = 0;
+    int count;
+    int rc;
+
+    gdev = grab->modifierDevice;
+    if (grab->grabtype == GRABTYPE_CORE)
+    {
+        gdev = GetMaster(device, KEYBOARD_OR_FLOAT);
+    } else if (grab->grabtype == GRABTYPE_XI2)
+    {
+        /* if the device is an attached slave device, gdev must be the
+         * attached master keyboard. Since the slave may have been
+         * reattached after the grab, the modifier device may not be the
+         * same. */
+        if (!IsMaster(grab->device) && !IsFloating(device))
+            gdev = GetMaster(device, MASTER_KEYBOARD);
+    }
+
+    if (gdev && gdev->key)
+        xkbi= gdev->key->xkbInfo;
+    tempGrab->modifierDevice = grab->modifierDevice;
+    tempGrab->modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
+
+    /* Check for XI2 and XI grabs first */
+    tempGrab->type = GetXI2Type(event->any.type);
+    tempGrab->grabtype = GRABTYPE_XI2;
+    if (GrabMatchesSecond(tempGrab, grab, FALSE))
+        match = XI2_MATCH;
+
+    if (!match)
+    {
+        tempGrab->grabtype = GRABTYPE_XI;
+        if ((tempGrab->type = GetXIType(event->any.type)) &&
+            (GrabMatchesSecond(tempGrab, grab, FALSE)))
+            match = XI_MATCH;
+    }
+
+    /* Check for a core grab (ignore the device when comparing) */
+    if (!match && checkCore)
+    {
+        tempGrab->grabtype = GRABTYPE_CORE;
+        if ((tempGrab->type = GetCoreType(event->any.type)) &&
+            (GrabMatchesSecond(tempGrab, grab, TRUE)))
+            match = CORE_MATCH;
+    }
+
+    if (!match || (grab->confineTo &&
+                   (!grab->confineTo->realized ||
+                    !BorderSizeNotEmpty(device, grab->confineTo))))
+        return FALSE;
+
+    *grab_return = grab;
+    grabinfo = &device->deviceGrab;
+    /* In some cases a passive core grab may exist, but the client
+     * already has a core grab on some other device. In this case we
+     * must not get the grab, otherwise we may never ungrab the
+     * device.
+     */
+
+    if (grab->grabtype == GRABTYPE_CORE)
+    {
+        DeviceIntPtr other;
+        BOOL interfering = FALSE;
+
+        /* A passive grab may have been created for a different device
+           than it is assigned to at this point in time.
+           Update the grab's device and modifier device to reflect the
+           current state.
+           Since XGrabDeviceButton requires to specify the
+           modifierDevice explicitly, we don't override this choice.
+         */
+        if (tempGrab->type < GenericEvent)
+        {
+            grab->device = device;
+            grab->modifierDevice = GetMaster(device, MASTER_KEYBOARD);
+        }
+
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            GrabPtr othergrab = other->deviceGrab.grab;
+            if (othergrab && othergrab->grabtype == GRABTYPE_CORE &&
+                SameClient(grab, rClient(othergrab)) &&
+                ((IsPointerDevice(grab->device) &&
+                 IsPointerDevice(othergrab->device)) ||
+                 (IsKeyboardDevice(grab->device) &&
+                  IsKeyboardDevice(othergrab->device))))
+            {
+                interfering = TRUE;
+                break;
+            }
+        }
+        if (interfering)
+            return FALSE;
+    }
+
+    if (!activate)
+        return TRUE;
+    else if (!GetXIType(event->any.type) && !GetCoreType(event->any.type))
+    {
+        ErrorF("Event type %d in CheckPassiveGrabsOnWindow is neither"
+               " XI 1.x nor core\n", event->any.type);
+        *grab_return = NULL;
+        return TRUE;
+    }
+
+    /* The only consumers of corestate are Xi 1.x and core events, which
+     * are guaranteed to come from DeviceEvents. */
+    if (match & (XI_MATCH | CORE_MATCH))
+    {
+        event->device_event.corestate &= 0x1f00;
+        event->device_event.corestate |= tempGrab->modifiersDetail.exact &
+                                          (~0x1f00);
+    }
+
+    if (match & CORE_MATCH)
+    {
+        rc = EventToCore(event, &xE, &count);
+        if (rc != Success)
+        {
+            if (rc != BadMatch)
+                ErrorF("[dix] %s: core conversion failed in CPGFW "
+                        "(%d, %d).\n", device->name, event->any.type, rc);
+            return TRUE;
+        }
+    } else if (match & XI2_MATCH)
+    {
+        rc = EventToXI2(event, &xE);
+        if (rc != Success)
+        {
+            if (rc != BadMatch)
+                ErrorF("[dix] %s: XI2 conversion failed in CPGFW "
+                        "(%d, %d).\n", device->name, event->any.type, rc);
+            return TRUE;
+        }
+        count = 1;
+    } else
+    {
+        rc = EventToXI(event, &xE, &count);
+        if (rc != Success)
+        {
+            if (rc != BadMatch)
+                ErrorF("[dix] %s: XI conversion failed in CPGFW "
+                        "(%d, %d).\n", device->name, event->any.type, rc);
+            return TRUE;
+        }
+    }
+
+    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
+
+    if (xE)
+    {
+        FixUpEventFromWindow(pSprite, xE, grab->window, None, TRUE);
+
+        /* XXX: XACE? */
+        TryClientEvents(rClient(grab), device, xE, count,
+                        GetEventFilter(device, xE),
+                        GetEventFilter(device, xE), grab);
+    }
+
+    if (grabinfo->sync.state == FROZEN_NO_EVENT)
+    {
+        if (!grabinfo->sync.event)
+            grabinfo->sync.event = calloc(1, sizeof(DeviceEvent));
+        *grabinfo->sync.event = event->device_event;
+        grabinfo->sync.state = FROZEN_WITH_EVENT;
+    }
+
+    free(xE);
+    return TRUE;
+}
+
+/**
  * "CheckPassiveGrabsOnWindow" checks to see if the event passed in causes a
  * passive grab set on the window to be activated.
  * If activate is true and a passive grab is found, it will be activated,
@@ -3655,14 +3856,8 @@ CheckPassiveGrabsOnWindow(
     BOOL checkCore,
     BOOL activate)
 {
-    SpritePtr pSprite = device->spriteInfo->sprite;
     GrabPtr grab = wPassiveGrabs(pWin);
     GrabPtr tempGrab;
-    GrabInfoPtr grabinfo;
-#define CORE_MATCH      0x1
-#define XI_MATCH        0x2
-#define XI2_MATCH        0x4
-    int match = 0;
 
     if (!grab)
 	return NULL;
@@ -3690,185 +3885,14 @@ CheckPassiveGrabsOnWindow(
     tempGrab->detail.pMask = NULL;
     tempGrab->modifiersDetail.pMask = NULL;
     tempGrab->next = NULL;
+
     for (; grab; grab = grab->next)
-    {
-	DeviceIntPtr	gdev;
-	XkbSrvInfoPtr	xkbi = NULL;
-	xEvent *xE = NULL;
-        int count, rc;
-
-	gdev= grab->modifierDevice;
-        if (grab->grabtype == GRABTYPE_CORE)
-        {
-            gdev = GetMaster(device, KEYBOARD_OR_FLOAT);
-        } else if (grab->grabtype == GRABTYPE_XI2)
-        {
-            /* if the device is an attached slave device, gdev must be the
-             * attached master keyboard. Since the slave may have been
-             * reattached after the grab, the modifier device may not be the
-             * same. */
-            if (!IsMaster(grab->device) && !IsFloating(device))
-                gdev = GetMaster(device, MASTER_KEYBOARD);
-        }
-
-
-        if (gdev && gdev->key)
-            xkbi= gdev->key->xkbInfo;
-        tempGrab->modifierDevice = grab->modifierDevice;
-        tempGrab->modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
-
-        /* Check for XI2 and XI grabs first */
-        tempGrab->type = GetXI2Type(event->any.type);
-        tempGrab->grabtype = GRABTYPE_XI2;
-        if (GrabMatchesSecond(tempGrab, grab, FALSE))
-            match = XI2_MATCH;
-
-        if (!match)
-        {
-            tempGrab->grabtype = GRABTYPE_XI;
-            if ((tempGrab->type = GetXIType(event->any.type)) &&
-                (GrabMatchesSecond(tempGrab, grab, FALSE)))
-                match = XI_MATCH;
-        }
-
-        /* Check for a core grab (ignore the device when comparing) */
-        if (!match && checkCore)
-        {
-            tempGrab->grabtype = GRABTYPE_CORE;
-            if ((tempGrab->type = GetCoreType(event->any.type)) &&
-                (GrabMatchesSecond(tempGrab, grab, TRUE)))
-                match = CORE_MATCH;
-        }
-
-        if (!match || (grab->confineTo &&
-                       (!grab->confineTo->realized ||
-                        !BorderSizeNotEmpty(device, grab->confineTo))))
-            continue;
-
-        grabinfo = &device->deviceGrab;
-        /* In some cases a passive core grab may exist, but the client
-         * already has a core grab on some other device. In this case we
-         * must not get the grab, otherwise we may never ungrab the
-         * device.
-         */
-
-        if (grab->grabtype == GRABTYPE_CORE)
-        {
-            DeviceIntPtr other;
-            BOOL interfering = FALSE;
-
-            /* A passive grab may have been created for a different device
-               than it is assigned to at this point in time.
-               Update the grab's device and modifier device to reflect the
-               current state.
-               Since XGrabDeviceButton requires to specify the
-               modifierDevice explicitly, we don't override this choice.
-               */
-            if (tempGrab->type < GenericEvent)
-            {
-                grab->device = device;
-                grab->modifierDevice = GetMaster(device, MASTER_KEYBOARD);
-            }
-
-            for (other = inputInfo.devices; other; other = other->next)
-            {
-                GrabPtr othergrab = other->deviceGrab.grab;
-                if (othergrab && othergrab->grabtype == GRABTYPE_CORE &&
-                    SameClient(grab, rClient(othergrab)) &&
-                    ((IsPointerDevice(grab->device) &&
-                     IsPointerDevice(othergrab->device)) ||
-                     (IsKeyboardDevice(grab->device) &&
-                      IsKeyboardDevice(othergrab->device))))
-                {
-                    interfering = TRUE;
-                    break;
-                }
-            }
-            if (interfering)
-                continue;
-        }
-
-        if (!activate)
+        if (CheckPassiveGrab(device, grab, event, checkCore, activate,
+                             tempGrab, &grab))
             break;
-        else if (!GetXIType(event->any.type) && !GetCoreType(event->any.type))
-        {
-            ErrorF("Event type %d in CheckPassiveGrabsOnWindow is neither"
-                   " XI 1.x nor core\n", event->any.type);
-            grab = NULL;
-            break;
-        }
-
-        /* The only consumers of corestate are Xi 1.x and core events, which
-         * are guaranteed to come from DeviceEvents. */
-        if (match & (XI_MATCH | CORE_MATCH))
-        {
-            event->device_event.corestate &= 0x1f00;
-            event->device_event.corestate |= tempGrab->modifiersDetail.exact &
-                                              (~0x1f00);
-        }
-
-        if (match & CORE_MATCH)
-        {
-            rc = EventToCore(event, &xE, &count);
-            if (rc != Success)
-            {
-                if (rc != BadMatch)
-                    ErrorF("[dix] %s: core conversion failed in CPGFW "
-                            "(%d, %d).\n", device->name, event->any.type, rc);
-                continue;
-            }
-        } else if (match & XI2_MATCH)
-        {
-            rc = EventToXI2(event, &xE);
-            if (rc != Success)
-            {
-                if (rc != BadMatch)
-                    ErrorF("[dix] %s: XI2 conversion failed in CPGFW "
-                            "(%d, %d).\n", device->name, event->any.type, rc);
-                continue;
-            }
-            count = 1;
-        } else
-        {
-            rc = EventToXI(event, &xE, &count);
-            if (rc != Success)
-            {
-                if (rc != BadMatch)
-                    ErrorF("[dix] %s: XI conversion failed in CPGFW "
-                            "(%d, %d).\n", device->name, event->any.type, rc);
-                continue;
-            }
-        }
-
-        (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
-
-        if (xE)
-        {
-            FixUpEventFromWindow(pSprite, xE, grab->window, None, TRUE);
-
-            /* XXX: XACE? */
-            TryClientEvents(rClient(grab), device, xE, count,
-                            GetEventFilter(device, xE),
-                            GetEventFilter(device, xE), grab);
-        }
-
-        if (grabinfo->sync.state == FROZEN_NO_EVENT)
-        {
-            if (!grabinfo->sync.event)
-                grabinfo->sync.event = calloc(1, sizeof(DeviceEvent));
-            *grabinfo->sync.event = event->device_event;
-            grabinfo->sync.state = FROZEN_WITH_EVENT;
-        }
-
-        free(xE);
-        break;
-    }
 
     FreeGrab(tempGrab);
     return grab;
-#undef CORE_MATCH
-#undef XI_MATCH
-#undef XI2_MATCH
 }
 
 /**
