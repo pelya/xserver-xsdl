@@ -1132,11 +1132,13 @@ NoticeEventTime(InternalEvent *ev)
 void
 EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
 {
-    QdEventPtr	tail = *syncEvents.pendtail;
+    QdEventPtr	tail;
     QdEventPtr	qe;
     SpritePtr	pSprite = device->spriteInfo->sprite;
     int		eventlen;
     DeviceEvent *event = &ev->device_event;
+
+    tail = list_last_entry(&syncEvents.pending, QdEventRec, next);
 
     NoticeTime((InternalEvent*)event);
 
@@ -1196,15 +1198,13 @@ EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
     qe = malloc(sizeof(QdEventRec) + eventlen);
     if (!qe)
 	return;
-    qe->next = (QdEventPtr)NULL;
+    list_init(&qe->next);
     qe->device = device;
     qe->pScreen = pSprite->hotPhys.pScreen;
     qe->months = currentTime.months;
     qe->event = (InternalEvent *)(qe + 1);
     memcpy(qe->event, event, eventlen);
-    if (tail)
-	syncEvents.pendtail = &tail->next;
-    *syncEvents.pendtail = qe;
+    list_append(&qe->next, &syncEvents.pending);
 }
 
 /**
@@ -1216,22 +1216,20 @@ EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
  * If there is none, we're done. If there is at least one device that is not
  * frozen, then re-run from the beginning of the event queue.
  */
-static void
+void
 PlayReleasedEvents(void)
 {
-    QdEventPtr *prev, qe;
+    QdEventPtr tmp;
+    QdEventPtr qe;
     DeviceIntPtr dev;
     DeviceIntPtr pDev;
 
-    prev = &syncEvents.pending;
-    while ( (qe = *prev) )
-    {
+restart:
+    list_for_each_entry_safe(qe, tmp, &syncEvents.pending, next) {
 	if (!qe->device->deviceGrab.sync.frozen)
 	{
-	    *prev = qe->next;
-            pDev = qe->device;
-	    if (*syncEvents.pendtail == *prev)
-		syncEvents.pendtail = prev;
+	    list_del(&qe->next);
+	    pDev = qe->device;
 	    if (qe->event->any.type == ET_Motion)
 		CheckVirtualMotion(pDev, qe, NullWindow);
 	    syncEvents.time.months = qe->months;
@@ -1268,12 +1266,11 @@ PlayReleasedEvents(void)
 		;
 	    if (!dev)
 		break;
+
 	    /* Playing the event may have unfrozen another device. */
 	    /* So to play it safe, restart at the head of the queue */
-	    prev = &syncEvents.pending;
+	    goto restart;
 	}
-	else
-	    prev = &qe->next;
     }
 }
 
@@ -1314,7 +1311,8 @@ ComputeFreezes(void)
     for (dev = inputInfo.devices; dev; dev = dev->next)
 	FreezeThaw(dev, dev->deviceGrab.sync.other ||
                 (dev->deviceGrab.sync.state >= FROZEN));
-    if (syncEvents.playingEvents || (!replayDev && !syncEvents.pending))
+    if (syncEvents.playingEvents ||
+        (!replayDev && list_is_empty(&syncEvents.pending)))
 	return;
     syncEvents.playingEvents = TRUE;
     if (replayDev)
@@ -5258,6 +5256,7 @@ void
 InitEvents(void)
 {
     int i;
+    QdEventPtr qe, tmp;
 
     inputInfo.numDevices = 0;
     inputInfo.devices = (DeviceIntPtr)NULL;
@@ -5271,13 +5270,10 @@ InitEvents(void)
 
     syncEvents.replayDev = (DeviceIntPtr)NULL;
     syncEvents.replayWin = NullWindow;
-    while (syncEvents.pending)
-    {
-	QdEventPtr next = syncEvents.pending->next;
-	free(syncEvents.pending);
-	syncEvents.pending = next;
-    }
-    syncEvents.pendtail = &syncEvents.pending;
+    if (syncEvents.pending.next)
+        list_for_each_entry_safe(qe, tmp, &syncEvents.pending, next)
+            free(qe);
+    list_init(&syncEvents.pending);
     syncEvents.playingEvents = FALSE;
     syncEvents.time.months = 0;
     syncEvents.time.milliseconds = 0;	/* hardly matters */

@@ -575,7 +575,7 @@ extern _X_EXPORT InputInfo inputInfo;
 /* for keeping the events for devices grabbed synchronously */
 typedef struct _QdEvent *QdEventPtr;
 typedef struct _QdEvent {
-    QdEventPtr		next;
+    struct list		next;
     DeviceIntPtr	device;
     ScreenPtr		pScreen;	/* what screen the pointer was on */
     unsigned long	months;		/* milliseconds is in the event */
@@ -591,8 +591,8 @@ typedef struct _QdEvent {
  * replayed and processed as if they would come from the device directly.
  */
 typedef struct _EventSyncInfo {
-    QdEventPtr          pending, /**<  list of queued events */
-                        *pendtail; /**< last event in list */
+    struct list         pending;
+
     /** The device to replay events for. Only set in AllowEvents(), in which
      * case it is set to the device specified in the request. */
     DeviceIntPtr        replayDev;      /* kludgy rock to put flag for */
