@@ -30,6 +30,7 @@
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
+#include <xorg-server.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -129,7 +130,7 @@ _glamor_egl_create_image(struct glamor_egl_screen_private *glamor_egl,
 	image = glamor_egl->egl_create_image_khr(glamor_egl->display,
 						 glamor_egl->context,
 						 EGL_DRM_BUFFER_MESA,
-						 (void *) name, attribs);
+						 (void *) (uintptr_t)name, attribs);
 	if (image == EGL_NO_IMAGE_KHR)
 		return EGL_NO_IMAGE_KHR;
 
