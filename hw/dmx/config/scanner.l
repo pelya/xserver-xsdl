@@ -39,6 +39,7 @@
 
 #include "dmxparse.h"
 #include "parser.h"
+#include "os.h"
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
