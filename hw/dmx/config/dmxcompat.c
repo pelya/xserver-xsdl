@@ -42,6 +42,7 @@
 #include <dmx-config.h>
 #endif
 
+#include "os.h"
 #include "dmxconfig.h"
 #include "dmxparse.h"
 #include "dmxcompat.h"
