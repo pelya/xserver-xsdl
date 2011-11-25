@@ -548,6 +548,8 @@ void FixUpEventFromWindow(SpritePtr pSprite,
 extern WindowPtr XYToWindow(SpritePtr pSprite, int x, int y);
 extern int EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event,
                               WindowPtr win);
+extern Bool ActivatePassiveGrab(DeviceIntPtr dev, GrabPtr grab,
+                                InternalEvent *ev);
 /**
  * Masks specifying the type of event to deliver for an InternalEvent; used
  * by EventIsDeliverable.

@@ -3635,38 +3635,128 @@ BorderSizeNotEmpty(DeviceIntPtr pDev, WindowPtr pWin)
 }
 
 /**
+ * Activate the given passive grab. If the grab is activated successfully, the
+ * event has been delivered to the client.
+ *
+ * @param device The device of the event to check.
+ * @param grab The grab to check.
+ * @param event The current device event.
+ *
+ * @return Whether the grab has been activated.
+ */
+Bool
+ActivatePassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event)
+{
+    SpritePtr pSprite = device->spriteInfo->sprite;
+    GrabInfoPtr grabinfo = &device->deviceGrab;
+    xEvent *xE = NULL;
+    int count;
+    int rc;
+
+    if (!GetXIType(event->any.type) && !GetCoreType(event->any.type))
+    {
+        ErrorF("Event type %d in CheckPassiveGrabsOnWindow is neither"
+               " XI 1.x nor core\n", event->any.type);
+        return FALSE;
+    }
+
+    /* The only consumers of corestate are Xi 1.x and core events, which
+     * are guaranteed to come from DeviceEvents. */
+    if (grab->grabtype == GRABTYPE_XI || grab->grabtype == GRABTYPE_CORE)
+    {
+        DeviceIntPtr gdev;
+
+        event->device_event.corestate &= 0x1f00;
+
+        if (grab->grabtype == GRABTYPE_CORE)
+            gdev = GetMaster(device, KEYBOARD_OR_FLOAT);
+        else
+            gdev = grab->modifierDevice;
+
+        if (gdev && gdev->key && gdev->key->xkbInfo)
+            event->device_event.corestate |=
+                gdev->key->xkbInfo->state.grab_mods & (~0x1f00);
+    }
+
+    if (grab->grabtype == GRABTYPE_CORE)
+    {
+        rc = EventToCore(event, &xE, &count);
+        if (rc != Success)
+        {
+            BUG_WARN_MSG(rc != BadMatch,"[dix] %s: core conversion failed"
+                         "(%d, %d).\n", device->name, event->any.type, rc);
+            return FALSE;
+        }
+    } else if (grab->grabtype == GRABTYPE_XI2)
+    {
+        rc = EventToXI2(event, &xE);
+        if (rc != Success)
+        {
+            if (rc != BadMatch)
+                BUG_WARN_MSG(rc != BadMatch,"[dix] %s: XI2 conversion failed"
+                             "(%d, %d).\n", device->name, event->any.type, rc);
+            return FALSE;
+        }
+        count = 1;
+    } else
+    {
+        rc = EventToXI(event, &xE, &count);
+        if (rc != Success)
+        {
+            if (rc != BadMatch)
+                BUG_WARN_MSG(rc != BadMatch,"[dix] %s: XI conversion failed"
+                             "(%d, %d).\n", device->name, event->any.type, rc);
+            return FALSE;
+        }
+    }
+
+    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
+
+    if (xE)
+    {
+        FixUpEventFromWindow(pSprite, xE, grab->window, None, TRUE);
+
+        /* XXX: XACE? */
+        TryClientEvents(rClient(grab), device, xE, count,
+                        GetEventFilter(device, xE),
+                        GetEventFilter(device, xE), grab);
+    }
+
+    if (grabinfo->sync.state == FROZEN_NO_EVENT)
+    {
+        if (!grabinfo->sync.event)
+            grabinfo->sync.event = calloc(1, sizeof(DeviceEvent));
+        *grabinfo->sync.event = event->device_event;
+        grabinfo->sync.state = FROZEN_WITH_EVENT;
+    }
+
+    free(xE);
+    return TRUE;
+}
+
+/**
  * Check an individual grab against an event to determine if a passive grab
  * should be activated.
- * If activate is true and a passive grab is found, it will be activated, and
- * the event will be delivered to the client.
  *
  * @param device The device of the event to check.
  * @param grab The grab to check.
  * @param event The current device event.
  * @param checkCore Check for core grabs too.
- * @param activate Whether to activate a matching grab.
  * @param tempGrab A pre-allocated temporary grab record for matching. This
  *        must have the window and device values filled in.
- * @param[out] grab_return The modified value of grab, to be used in the
- * caller for grab activation if a this function returns TRUE. May be NULL.
  *
  * @return Whether the grab matches the event.
  */
 static Bool
 CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
-                 Bool checkCore, Bool activate, GrabPtr tempGrab, GrabPtr *grab_return)
+                 Bool checkCore, GrabPtr tempGrab)
 {
     static const int CORE_MATCH = 0x1;
     static const int XI_MATCH = 0x2;
     static const int XI2_MATCH = 0x4;
-    SpritePtr pSprite = device->spriteInfo->sprite;
-    GrabInfoPtr grabinfo;
     DeviceIntPtr gdev;
     XkbSrvInfoPtr xkbi = NULL;
-    xEvent *xE = NULL;
     int match = 0;
-    int count;
-    int rc;
 
     gdev = grab->modifierDevice;
     if (grab->grabtype == GRABTYPE_CORE)
@@ -3715,8 +3805,6 @@ CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
                     !BorderSizeNotEmpty(device, grab->confineTo))))
         return FALSE;
 
-    *grab_return = grab;
-    grabinfo = &device->deviceGrab;
     /* In some cases a passive core grab may exist, but the client
      * already has a core grab on some other device. In this case we
      * must not get the grab, otherwise we may never ungrab the
@@ -3759,79 +3847,6 @@ CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
             return FALSE;
     }
 
-    if (!activate)
-        return TRUE;
-    else if (!GetXIType(event->any.type) && !GetCoreType(event->any.type))
-    {
-        ErrorF("Event type %d in CheckPassiveGrabsOnWindow is neither"
-               " XI 1.x nor core\n", event->any.type);
-        *grab_return = NULL;
-        return TRUE;
-    }
-
-    /* The only consumers of corestate are Xi 1.x and core events, which
-     * are guaranteed to come from DeviceEvents. */
-    if (match & (XI_MATCH | CORE_MATCH))
-    {
-        event->device_event.corestate &= 0x1f00;
-        event->device_event.corestate |= tempGrab->modifiersDetail.exact &
-                                          (~0x1f00);
-    }
-
-    if (match & CORE_MATCH)
-    {
-        rc = EventToCore(event, &xE, &count);
-        if (rc != Success)
-        {
-            if (rc != BadMatch)
-                ErrorF("[dix] %s: core conversion failed in CPGFW "
-                        "(%d, %d).\n", device->name, event->any.type, rc);
-            return TRUE;
-        }
-    } else if (match & XI2_MATCH)
-    {
-        rc = EventToXI2(event, &xE);
-        if (rc != Success)
-        {
-            if (rc != BadMatch)
-                ErrorF("[dix] %s: XI2 conversion failed in CPGFW "
-                        "(%d, %d).\n", device->name, event->any.type, rc);
-            return TRUE;
-        }
-        count = 1;
-    } else
-    {
-        rc = EventToXI(event, &xE, &count);
-        if (rc != Success)
-        {
-            if (rc != BadMatch)
-                ErrorF("[dix] %s: XI conversion failed in CPGFW "
-                        "(%d, %d).\n", device->name, event->any.type, rc);
-            return TRUE;
-        }
-    }
-
-    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
-
-    if (xE)
-    {
-        FixUpEventFromWindow(pSprite, xE, grab->window, None, TRUE);
-
-        /* XXX: XACE? */
-        TryClientEvents(rClient(grab), device, xE, count,
-                        GetEventFilter(device, xE),
-                        GetEventFilter(device, xE), grab);
-    }
-
-    if (grabinfo->sync.state == FROZEN_NO_EVENT)
-    {
-        if (!grabinfo->sync.event)
-            grabinfo->sync.event = calloc(1, sizeof(DeviceEvent));
-        *grabinfo->sync.event = event->device_event;
-        grabinfo->sync.state = FROZEN_WITH_EVENT;
-    }
-
-    free(xE);
     return TRUE;
 }
 
@@ -3887,9 +3902,15 @@ CheckPassiveGrabsOnWindow(
     tempGrab->next = NULL;
 
     for (; grab; grab = grab->next)
-        if (CheckPassiveGrab(device, grab, event, checkCore, activate,
-                             tempGrab, &grab))
-            break;
+    {
+        if (!CheckPassiveGrab(device, grab, event, checkCore, tempGrab))
+            continue;
+
+        if (activate && !ActivatePassiveGrab(device, grab, event))
+            continue;
+
+        break;
+    }
 
     FreeGrab(tempGrab);
     return grab;
