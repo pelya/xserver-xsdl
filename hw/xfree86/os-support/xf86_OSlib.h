@@ -208,12 +208,8 @@ extern _X_HIDDEN char xf86SolarisFbDev[PATH_MAX];
 #endif                          /* __linux__ || __GLIBC__ */
 
 /**************************************************************************/
-/* 386BSD and derivatives,  BSD/386                                       */
+/* System is BSD-like                                                     */
 /**************************************************************************/
-
-#if defined(__386BSD__) && (defined(__FreeBSD__) || defined(__NetBSD__))
-#undef __386BSD__
-#endif
 
 #ifdef CSRG_BASED
 #include <sys/ioctl.h>
