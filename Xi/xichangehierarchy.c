@@ -203,6 +203,19 @@ unwind:
 }
 
 static int
+disable_clientpointer(DeviceIntPtr dev)
+{
+    int i;
+
+    for (i = 0; i < currentMaxClients; i++)
+    {
+        ClientPtr client = clients[i];
+        if (client && client->clientPtr == dev)
+            client->clientPtr = NULL;
+    }
+}
+
+static int
 remove_master(ClientPtr client, xXIRemoveMasterInfo *r,
               int flags[MAXDEVICES])
 {
@@ -251,6 +264,8 @@ remove_master(ClientPtr client, xXIRemoveMasterInfo *r,
                          DixDestroyAccess);
     if (rc != Success)
         goto unwind;
+
+    disable_clientpointer(ptr);
 
     /* Disabling sends the devices floating, reattach them if
      * desired. */
