@@ -94,23 +94,11 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
-#undef HAVE_DOPRNT
-
 /* Have execinfo.h */
 #undef HAVE_EXECINFO_H
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
-
-/* Define to 1 if you have the `geteuid' function. */
-#undef HAVE_GETEUID
-
-/* Define to 1 if you have the `getisax' function. */
-#undef HAVE_GETISAX
-
-/* Define to 1 if you have the `getuid' function. */
-#undef HAVE_GETUID
 
 /* Define to 1 if you have the `getzoneid' function. */
 #undef HAVE_GETZONEID
@@ -136,9 +124,6 @@
 /* Define to 1 if you have the libdispatch (GCD) available */
 #undef HAVE_LIBDISPATCH
 
-/* Define to 1 if you have the `link' function. */
-#undef HAVE_LINK
-
 /* Define to 1 if you have the <linux/agpgart.h> header file. */
 #undef HAVE_LINUX_AGPGART_H
 
@@ -147,9 +132,6 @@
 
 /* Define to 1 if you have the <linux/fb.h> header file. */
 #undef HAVE_LINUX_FB_H
-
-/* Define to 1 if you have the `mkstemp' function. */
-#undef HAVE_MKSTEMP
 
 /* Define to 1 if you have the <ndbm.h> header file. */
 #undef HAVE_NDBM_H
@@ -181,9 +163,6 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strchr' function. */
-#undef HAVE_STRCHR
-
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -192,12 +171,6 @@
 
 /* Define to 1 if you have the `strndup' function. */
 #undef HAVE_STRNDUP
-
-/* Define to 1 if you have the `strrchr' function. */
-#undef HAVE_STRRCHR
-
-/* Define to 1 if you have the `strtol' function. */
-#undef HAVE_STRTOL
 
 /* Define to 1 if SYSV IPC is available */
 #undef HAVE_SYSV_IPC
@@ -233,9 +206,6 @@
 
 /* Have /dev/urandom */
 #undef HAVE_URANDOM
-
-/* Define to 1 if you have the `vprintf' function. */
-#undef HAVE_VPRINTF
 
 /* Define to 1 if you have the `vasprintf' function. */
 #undef HAVE_VASPRINTF
