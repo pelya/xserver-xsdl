@@ -141,7 +141,8 @@ __list_add(struct list *entry,
 }
 
 /**
- * Insert a new element after the given list head.
+ * Insert a new element after the given list head. The new element does not
+ * need to be initialised as empty list.
  * The list changes from:
  *      head → some element → ...
  * to
