@@ -1558,7 +1558,8 @@ if test "x$XORG" = xyes; then
 	    fi
 	    if test x$have_visibility != xno; then
 		save_CFLAGS="$CFLAGS"
-		CFLAGS="$CFLAGS $VISIBILITY_CFLAGS"
+		proto_inc=`$PKG_CONFIG --cflags xproto`
+		CFLAGS="$CFLAGS $VISIBILITY_CFLAGS $proto_inc"
 		AC_TRY_COMPILE(
 		    [#include <X11/Xfuncproto.h>
 		     extern _X_HIDDEN int hidden_int;
