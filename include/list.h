@@ -97,14 +97,8 @@
 
 /**
  * The linkage struct for list nodes. This struct must be part of your
- * to-be-linked struct.
- *
- * Example:
- * struct foo {
- *      int a;
- *      void *b;
- *      struct list *mylist;
- * }
+ * to-be-linked struct. struct list is required for both the head of the
+ * list and for each list node.
  *
  * Position and name of the struct list field is irrelevant.
  * There are no requirements that elements of a list are of the same type.
@@ -119,7 +113,7 @@ struct list {
  * Initialize the list as an empty list.
  *
  * Example:
- * list_init(&foo->mylist);
+ * list_init(&bar->foos);
  *
  * @param The list to initialized.
  */
@@ -150,7 +144,7 @@ __list_add(struct list *entry,
  *
  * Example:
  * struct foo *newfoo = malloc(...);
- * list_add(&newfoo->mylist, &foo->mylist);
+ * list_add(&newfoo->entry, &bar->foos);
  *
  * @param entry The new element to prepend to the list.
  * @param head The existing list.
@@ -171,7 +165,7 @@ list_add(struct list *entry, struct list *head)
  *
  * Example:
  * struct foo *newfoo = malloc(...);
- * list_append(&newfoo->mylist, &foo->mylist);
+ * list_append(&newfoo->entry, &bar->foos);
  *
  * @param entry The new element to prepend to the list.
  * @param head The existing list.
@@ -200,7 +194,7 @@ __list_del(struct list *prev, struct list *next)
  * the list but rather reset the list as empty list.
  *
  * Example:
- * list_del(&newfoo->mylist);
+ * list_del(&foo->entry);
  *
  * @param entry The element to remove.
  */
@@ -215,7 +209,7 @@ list_del(struct list *entry)
  * Check if the list is empty.
  *
  * Example:
- * list_is_empty(&foo->mylist);
+ * list_is_empty(&bar->foos);
  *
  * @return True if the list contains one or more elements or False otherwise.
  */
@@ -230,7 +224,7 @@ list_is_empty(struct list *head)
  *
  * Example:
  * struct foo* f;
- * f = container_of(&foo->mylist, struct foo, mylist);
+ * f = container_of(&foo->entry, struct foo, entry);
  * assert(f == foo);
  *
  * @param ptr Pointer to the struct list.
@@ -254,7 +248,7 @@ list_is_empty(struct list *head)
  *
  * Example:
  * struct foo *first;
- * first = list_first_entry(&foo->mylist, struct foo, mylist);
+ * first = list_first_entry(&bar->foos, struct foo, foos);
  *
  * @param ptr The list head
  * @param type Data type of the list element to retrieve
@@ -269,7 +263,7 @@ list_is_empty(struct list *head)
  *
  * Example:
  * struct foo *first;
- * first = list_last_entry(&foo->mylist, struct foo, mylist);
+ * first = list_last_entry(&bar->foos, struct foo, foos);
  *
  * @param ptr The list head
  * @param type Data type of the list element to retrieve
@@ -287,7 +281,7 @@ list_is_empty(struct list *head)
  *
  * Example:
  * struct foo *iterator;
- * list_for_each_entry(iterator, &foo->mylist, mylist) {
+ * list_for_each_entry(iterator, &bar->foos, entry) {
  *      [modify iterator]
  * }
  *
