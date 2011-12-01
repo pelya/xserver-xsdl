@@ -213,31 +213,14 @@ AC_CHECK_FUNC([dlopen], [],
 AC_SUBST(DLOPEN_LIBS)
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS([vsnprintf walkcontext backtrace \
-		getzoneid shmctl64 strcasestr ffs vasprintf])
-AC_CHECK_FUNCS([strndup], [HAVE_STRNDUP=yes], [HAVE_STRNDUP=no])
-AM_CONDITIONAL(NEED_STRNDUP, [test x$HAVE_STRNDUP = xno])
-dnl Old HAS_* names used in os/*.c.
-AC_CHECK_FUNC([getdtablesize],
-	AC_DEFINE(HAS_GETDTABLESIZE, 1, [Have the 'getdtablesize' function.]))
-AC_CHECK_FUNC([getifaddrs],
-	AC_DEFINE(HAS_GETIFADDRS, 1, [Have the 'getifaddrs' function.]))
-AC_CHECK_FUNC([getpeereid],
-	AC_DEFINE(HAS_GETPEEREID, 1, [Have the 'getpeereid' function.]))
-AC_CHECK_FUNC([getpeerucred],
-	AC_DEFINE(HAS_GETPEERUCRED, 1, [Have the 'getpeerucred' function.]))
-AC_CHECK_FUNC([strlcat], HAVE_STRLCAT=yes, HAVE_STRLCAT=no)
-AM_CONDITIONAL(NEED_STRLCAT, [test x$HAVE_STRLCAT = xno])	
-AC_CHECK_FUNC([strlcpy], AC_DEFINE(HAS_STRLCPY, 1, [Have the 'strlcpy' function]))
+AC_CHECK_FUNCS([backtrace ffs \
+	getdtablesize getifaddrs getpeereid getpeerucred getzoneid \
+	mmap shmctl64 strncasecmp vasprintf vsnprintf walkcontext])
+AC_REPLACE_FUNCS([strcasecmp strcasestr strlcat strlcpy strndup])
 
-AM_CONDITIONAL(NEED_VSNPRINTF, [test x$HAVE_VSNPRINTF = xno])
-
-dnl Check for mmap support for Xvfb
-AC_CHECK_FUNC([mmap], AC_DEFINE(HAS_MMAP, 1, [Have the 'mmap' function.]))
-
-dnl Find the math libary
+dnl Find the math libary, then check for cbrt function in it.
 AC_CHECK_LIB(m, sqrt)
-AC_CHECK_LIB(m, cbrt, AC_DEFINE(HAVE_CBRT, 1, [Have the 'cbrt' function]))
+AC_CHECK_FUNCS([cbrt])
 
 AC_CHECK_HEADERS([ndbm.h dbm.h rpcsvc/dbm.h])
 
@@ -1237,13 +1220,6 @@ AC_SUBST([XKB_DFLT_OPTIONS])
 XKB_LIB='$(top_builddir)/xkb/libxkb.la'
 XKB_STUB_LIB='$(top_builddir)/xkb/libxkbstubs.la'
 REQUIRED_MODULES="$REQUIRED_MODULES xkbfile"
-
-AC_CHECK_FUNC(strcasecmp, [], AC_DEFINE([NEED_STRCASECMP], 1,
-                                        [Do not have 'strcasecmp'.]))
-AC_CHECK_FUNC(strncasecmp, [], AC_DEFINE([NEED_STRNCASECMP], 1,
-                                        [Do not have 'strncasecmp'.]))
-AC_CHECK_FUNC(strcasestr, [], AC_DEFINE([NEED_STRCASESTR], 1,
-                                       [Do not have 'strcasestr'.]))
 
 PKG_CHECK_MODULES([XDMCP], [xdmcp], [have_libxdmcp="yes"], [have_libxdmcp="no"])
 if test "x$have_libxdmcp" = xyes; then
