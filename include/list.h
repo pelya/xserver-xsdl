@@ -28,6 +28,7 @@
 
 /**
  * @file Classic doubly-link circular list implementation.
+ * For real usage examples of the linked list, see the file test/list.c
  *
  * Example:
  * We need to keep a list of struct foo in the parent struct bar, i.e. what
