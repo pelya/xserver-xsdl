@@ -36,16 +36,16 @@
  *
  *     struct bar {
  *          ...
- *          struct foo *foos; -----> struct foo {}, struct foo {}, struct foo{}
+ *          struct foo *list_of_foos; -----> struct foo {}, struct foo {}, struct foo{}
  *          ...
  *     }
  *
- * We need one list head in bar and a list element in all foos (both are of
+ * We need one list head in bar and a list element in all list_of_foos (both are of
  * data type 'struct list').
  *
  *     struct bar {
  *          ...
- *          struct list foos;
+ *          struct list list_of_foos;
  *          ...
  *     }
  *
@@ -59,27 +59,27 @@
  *
  *     struct bar bar;
  *     ...
- *     list_init(&bar.foos);
+ *     list_init(&bar.list_of_foos);
  *
  * Then we create the first element and add it to this list:
  *
  *     struct foo *foo = malloc(...);
  *     ....
- *     list_add(&foo->entry, &bar.foos);
+ *     list_add(&foo->entry, &bar.list_of_foos);
  *
  * Repeat the above for each element you want to add to the list. Deleting
  * works with the element itself.
  *      list_del(&foo->entry);
  *      free(foo);
  *
- * Note: calling list_del(&bar.foos) will set bar.foos to an empty
+ * Note: calling list_del(&bar.list_of_foos) will set bar.list_of_foos to an empty
  * list again.
  *
  * Looping through the list requires a 'struct foo' as iterator and the
  * name of the field the subnodes use.
  *
  * struct foo *iterator;
- * list_for_each_entry(iterator, &bar.foos, entry) {
+ * list_for_each_entry(iterator, &bar.list_of_foos, entry) {
  *      if (iterator->something == ...)
  *             ...
  * }
@@ -88,7 +88,7 @@
  * loop. You need to run the safe for-each loop instead:
  *
  * struct foo *iterator, *next;
- * list_for_each_entry_safe(iterator, next, &bar.foos, entry) {
+ * list_for_each_entry_safe(iterator, next, &bar.list_of_foos, entry) {
  *      if (...)
  *              list_del(&iterator->entry);
  * }
@@ -113,7 +113,7 @@ struct list {
  * Initialize the list as an empty list.
  *
  * Example:
- * list_init(&bar->foos);
+ * list_init(&bar->list_of_foos);
  *
  * @param The list to initialized.
  */
@@ -144,7 +144,7 @@ __list_add(struct list *entry,
  *
  * Example:
  * struct foo *newfoo = malloc(...);
- * list_add(&newfoo->entry, &bar->foos);
+ * list_add(&newfoo->entry, &bar->list_of_foos);
  *
  * @param entry The new element to prepend to the list.
  * @param head The existing list.
@@ -165,7 +165,7 @@ list_add(struct list *entry, struct list *head)
  *
  * Example:
  * struct foo *newfoo = malloc(...);
- * list_append(&newfoo->entry, &bar->foos);
+ * list_append(&newfoo->entry, &bar->list_of_foos);
  *
  * @param entry The new element to prepend to the list.
  * @param head The existing list.
@@ -209,7 +209,7 @@ list_del(struct list *entry)
  * Check if the list is empty.
  *
  * Example:
- * list_is_empty(&bar->foos);
+ * list_is_empty(&bar->list_of_foos);
  *
  * @return True if the list contains one or more elements or False otherwise.
  */
@@ -248,7 +248,7 @@ list_is_empty(struct list *head)
  *
  * Example:
  * struct foo *first;
- * first = list_first_entry(&bar->foos, struct foo, foos);
+ * first = list_first_entry(&bar->list_of_foos, struct foo, list_of_foos);
  *
  * @param ptr The list head
  * @param type Data type of the list element to retrieve
@@ -263,7 +263,7 @@ list_is_empty(struct list *head)
  *
  * Example:
  * struct foo *first;
- * first = list_last_entry(&bar->foos, struct foo, foos);
+ * first = list_last_entry(&bar->list_of_foos, struct foo, list_of_foos);
  *
  * @param ptr The list head
  * @param type Data type of the list element to retrieve
@@ -281,7 +281,7 @@ list_is_empty(struct list *head)
  *
  * Example:
  * struct foo *iterator;
- * list_for_each_entry(iterator, &bar->foos, entry) {
+ * list_for_each_entry(iterator, &bar->list_of_foos, entry) {
  *      [modify iterator]
  * }
  *
