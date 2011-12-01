@@ -262,6 +262,21 @@ list_is_empty(struct list *head)
 #define list_first_entry(ptr, type, member) \
     list_entry((ptr)->next, type, member)
 
+/**
+ * Retrieve the last list entry for the given listpointer.
+ *
+ * Example:
+ * struct foo *first;
+ * first = list_last_entry(&foo->mylist, struct foo, mylist);
+ *
+ * @param ptr The list head
+ * @param type Data type of the list element to retrieve
+ * @param member Member name of the struct list field in the list element.
+ * @return A pointer to the last list element.
+ */
+#define list_last_entry(ptr, type, member) \
+    list_entry((ptr)->prev, type, member)
+
 #define __container_of(ptr, sample, member)				\
     (void *)((char *)(ptr)						\
 	     - ((char *)&(sample)->member - (char *)(sample)))
