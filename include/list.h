@@ -159,6 +159,28 @@ list_add(struct list *entry, struct list *head)
     __list_add(entry, head, head->next);
 }
 
+/**
+ * Append a new element to the end of the list given with this list head.
+ *
+ * The list changes from:
+ *      head → some element → ... → lastelement
+ * to
+ *      head → some element → ... → lastelement → new element
+ *
+ * Example:
+ * struct foo *newfoo = malloc(...);
+ * list_append(&newfoo->mylist, &foo->mylist);
+ *
+ * @param entry The new element to prepend to the list.
+ * @param head The existing list.
+ */
+static inline void
+list_append(struct list *entry, struct list *head)
+{
+    __list_add(entry, head->prev, head);
+}
+
+
 static inline void
 __list_del(struct list *prev, struct list *next)
 {
