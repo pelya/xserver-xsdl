@@ -1,7 +1,8 @@
-xkb
+fixes
 input
-xtest
 list
 misc
-fixes
 string
+xfree86
+xkb
+xtest
