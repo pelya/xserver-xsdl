@@ -1002,11 +1002,9 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
                 deactivateDeviceGrab = TRUE;
             break;
         case ET_ButtonPress:
-            event->detail.button = b->map[key];
-            if (!event->detail.button) { /* there's no button 0 */
-                event->detail.button = key;
+            if (b->map[key] == 0) /* there's no button 0 */
                 return;
-            }
+            event->detail.button = b->map[key];
             if (!grab && CheckDeviceGrabs(device, event, 0))
             {
                 /* if a passive grab was activated, the event has been sent
@@ -1015,11 +1013,9 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
             }
             break;
         case ET_ButtonRelease:
-            event->detail.button = b->map[key];
-            if (!event->detail.button) { /* there's no button 0 */
-                event->detail.button = key;
+            if (b->map[key] == 0) /* there's no button 0 */
                 return;
-            }
+            event->detail.button = b->map[key];
             if (grab && !b->buttonsDown &&
                 device->deviceGrab.fromPassiveGrab &&
                 (device->deviceGrab.grab->type == ButtonPress ||
