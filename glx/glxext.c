@@ -281,8 +281,6 @@ glxClientCallback(CallbackListPtr *list, pointer closure, pointer data)
          ** By default, assume that the client supports
          ** GLX major version 1 minor version 0 protocol.
          */
-        cl->GLClientmajorVersion = 1;
-        cl->GLClientminorVersion = 0;
         cl->client = pClient;
         break;
 

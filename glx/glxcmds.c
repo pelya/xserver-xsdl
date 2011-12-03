@@ -2396,8 +2396,6 @@ __glXDisp_ClientInfo(__GLXclientState * cl, GLbyte * pc)
     if (!memchr(buf, 0, (client->req_len << 2) - sizeof(xGLXClientInfoReq)))
         return BadLength;
 
-    cl->GLClientmajorVersion = req->major;
-    cl->GLClientminorVersion = req->minor;
     free(cl->GLClientextensions);
     cl->GLClientextensions = strdup(buf);
 
