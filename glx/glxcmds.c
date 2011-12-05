@@ -276,8 +276,14 @@ DoCreateContext(__GLXclientState * cl, GLXContextID gcId,
     /*
      ** Allocate memory for the new context
      */
-    if (!isDirect)
-        glxc = pGlxScreen->createContext(pGlxScreen, config, shareglxc);
+    if (!isDirect) {
+        /* Without any attributes, the only error that the driver should be
+         * able to generate is BadAlloc.  As result, just drop the error
+         * returned from the driver on the floor.
+         */
+        glxc = pGlxScreen->createContext(pGlxScreen, config, shareglxc,
+                                         0, NULL, &err);
+    }
     else
         glxc = __glXdirectContextCreate(pGlxScreen, config, shareglxc);
     if (!glxc) {
