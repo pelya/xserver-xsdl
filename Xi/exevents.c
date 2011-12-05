@@ -885,7 +885,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     int key = 0, rootX, rootY;
     ButtonClassPtr b;
     int ret = 0;
-    int state, i;
+    int corestate, i;
     DeviceIntPtr mouse = NULL, kbd = NULL;
     DeviceEvent *event = &ev->device_event;
 
@@ -915,9 +915,9 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
             mouse = NULL;
     }
 
-    /* State needs to be assembled BEFORE the device is updated. */
-    state = (kbd && kbd->key) ? XkbStateFieldFromRec(&kbd->key->xkbInfo->state) : 0;
-    state |= (mouse && mouse->button) ? (mouse->button->state) : 0;
+    /* core state needs to be assembled BEFORE the device is updated. */
+    corestate = (kbd && kbd->key) ? XkbStateFieldFromRec(&kbd->key->xkbInfo->state) : 0;
+    corestate |= (mouse && mouse->button) ? (mouse->button->state) : 0;
 
     for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
         if (BitIsOn(mouse->button->down, i))
@@ -965,7 +965,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
             event->root_x = rootX;
             event->root_y = rootY;
             NoticeEventTime((InternalEvent*)event);
-            event->corestate = state;
+            event->corestate = corestate;
             key = event->detail.key;
             break;
         default:
