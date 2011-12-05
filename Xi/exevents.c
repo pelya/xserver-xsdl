@@ -1033,7 +1033,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
 
     if (grab)
         DeliverGrabbedEvent((InternalEvent*)event, device, deactivateDeviceGrab);
-    else if (device->focus && !IsPointerEvent((InternalEvent*)ev))
+    else if (device->focus && !IsPointerEvent(ev))
         DeliverFocusedEvent(device, (InternalEvent*)event,
                             GetSpriteWindow(device));
     else
