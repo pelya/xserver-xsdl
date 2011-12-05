@@ -400,6 +400,11 @@ extern int DeliverDeviceEvents(
     WindowPtr /* stopAt */,
     DeviceIntPtr /* dev */);
 
+extern int DeliverOneGrabbedEvent(
+    InternalEvent* /* event*/,
+    DeviceIntPtr /* dev */,
+    enum InputLevel /* level */);
+
 extern void InitializeSprite(
     DeviceIntPtr /* pDev */,
     WindowPtr    /* pWin */);

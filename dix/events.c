@@ -4061,6 +4061,75 @@ unwind:
     return;
 }
 
+
+int
+DeliverOneGrabbedEvent(InternalEvent *event, DeviceIntPtr dev, enum InputLevel level)
+{
+    SpritePtr pSprite = dev->spriteInfo->sprite;
+    int rc;
+    xEvent *xE = NULL;
+    int count = 0;
+    int deliveries = 0;
+    Mask mask;
+    GrabInfoPtr grabinfo = &dev->deviceGrab;
+    GrabPtr grab = grabinfo->grab;
+    Mask filter;
+
+    switch(level)
+    {
+        case XI2:
+            rc = EventToXI2(event, &xE);
+            count = 1;
+            if (rc == Success)
+            {
+                int evtype = xi2_get_type(xE);
+                mask = xi2mask_isset(grab->xi2mask, dev, evtype);
+                filter = 1;
+            }
+            break;
+        case XI:
+            if (grabinfo->fromPassiveGrab && grabinfo->implicitGrab)
+                mask = grab->deviceMask;
+            else
+                mask = grab->eventMask;
+            rc = EventToXI(event, &xE, &count);
+            if (rc == Success)
+                filter = GetEventFilter(dev, xE);
+            break;
+        case CORE:
+            rc = EventToCore(event, &xE, &count);
+            mask = grab->eventMask;
+            if (rc == Success)
+                filter = GetEventFilter(dev, xE);
+            break;
+        default:
+            BUG_WARN_MSG(1, "Invalid input level %d\n", level);
+            return 0;
+    }
+
+    if (rc == Success)
+    {
+        FixUpEventFromWindow(pSprite, xE, grab->window, None, TRUE);
+        if (XaceHook(XACE_SEND_ACCESS, 0, dev,
+                    grab->window, xE, count) ||
+                XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                    grab->window, xE, count))
+            deliveries = 1; /* don't send, but pretend we did */
+        else if (level != CORE || !IsInterferingGrab(rClient(grab), dev, xE))
+        {
+            deliveries = TryClientEvents(rClient(grab), dev,
+                    xE, count, mask, filter,
+                    grab);
+        }
+    } else
+        BUG_WARN_MSG(rc != BadMatch, "%s: conversion to mode %d failed on %d with %d\n",
+                dev->name, level, event->any.type, rc);
+
+    free(xE);
+    return deliveries;
+}
+
+
 /**
  * Deliver an event from a device that is currently grabbed. Uses
  * DeliverDeviceEvents() for further delivery if a ownerEvents is set on the
@@ -4080,10 +4149,6 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     DeviceIntPtr dev;
     SpritePtr pSprite = thisDev->spriteInfo->sprite;
     BOOL sendCore = FALSE;
-    int rc, count = 0;
-    xEvent *xi = NULL;
-    xEvent *xi2 = NULL;
-    xEvent *core = NULL;
 
     grabinfo = &thisDev->deviceGrab;
     grab = grabinfo->grab;
@@ -4119,88 +4184,27 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     }
     if (!deliveries)
     {
-        Mask mask;
-
         /* XXX: In theory, we could pass the internal events through to
          * everything and only convert just before hitting the wire. We can't
          * do that yet, so DGE is the last stop for internal events. From here
          * onwards, we deal with core/XI events.
          */
 
-        mask = grab->eventMask;
-
         sendCore = (IsMaster(thisDev) && thisDev->coreEvents);
         /* try core event */
         if (sendCore && grab->grabtype == GRABTYPE_CORE)
         {
-            rc = EventToCore(event, &core, &count);
-            if (rc == Success)
-            {
-                FixUpEventFromWindow(pSprite, core, grab->window, None, TRUE);
-                if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                            grab->window, core, count) ||
-                        XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                            grab->window, core, count))
-                    deliveries = 1; /* don't send, but pretend we did */
-                else if (!IsInterferingGrab(rClient(grab), thisDev, core))
-                {
-                    deliveries = TryClientEvents(rClient(grab), thisDev,
-                            core, count, mask,
-                            GetEventFilter(thisDev, core),
-                            grab);
-                }
-            } else
-                BUG_WARN_MSG(rc != BadMatch, "%s: Core conversion failed on %d with %d\n",
-                             thisDev->name, event->any.type, rc);
+            deliveries = DeliverOneGrabbedEvent(event, thisDev, CORE);
         }
 
         if (!deliveries)
         {
-            rc = EventToXI2(event, &xi2);
-            if (rc == Success)
-            {
-                int evtype = xi2_get_type(xi2);
-                mask = xi2mask_isset(grab->xi2mask, thisDev, evtype);
-                /* try XI2 event */
-                FixUpEventFromWindow(pSprite, xi2, grab->window, None, TRUE);
-                /* XXX: XACE */
-                deliveries = TryClientEvents(rClient(grab), thisDev, xi2, 1, mask, 1, grab);
-            } else
-                BUG_WARN_MSG(rc != BadMatch, "%s: XI2 conversion failed on %d with %d\n",
-                             thisDev->name, event->any.type, rc);
+            deliveries = DeliverOneGrabbedEvent(event, thisDev, XI2);
         }
 
         if (!deliveries)
         {
-            rc = EventToXI(event, &xi, &count);
-            if (rc == Success)
-            {
-                /* try XI event */
-                if (grabinfo->fromPassiveGrab  &&
-                        grabinfo->implicitGrab)
-                    mask = grab->deviceMask;
-                else
-                    mask = grab->eventMask;
-
-                FixUpEventFromWindow(pSprite, xi, grab->window, None, TRUE);
-
-                if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                            grab->window, xi, count) ||
-                        XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                            grab->window, xi, count))
-                    deliveries = 1; /* don't send, but pretend we did */
-                else
-                {
-                    deliveries =
-                        TryClientEvents(rClient(grab), thisDev,
-                                xi, count,
-                                mask,
-                                GetEventFilter(thisDev, xi),
-                                grab);
-                }
-            } else
-                BUG_WARN_MSG(rc != BadMatch, "%s: XI conversion failed on %d with %d\n",
-                             thisDev->name, event->any.type, rc);
+            deliveries = DeliverOneGrabbedEvent(event, thisDev, XI);
         }
 
         if (deliveries && (event->any.type == ET_Motion))
@@ -4232,10 +4236,6 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 	    break;
 	}
     }
-
-    free(core);
-    free(xi);
-    free(xi2);
 
     return deliveries;
 }
