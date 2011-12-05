@@ -251,20 +251,20 @@ DoCreateContext(__GLXclientState * cl, GLXContextID gcId,
                              &shareglxc, &err))
             return err;
 
-        if (shareglxc->isDirect) {
-            /*
-             ** NOTE: no support for sharing display lists between direct
-             ** contexts, even if they are in the same address space.
-             */
-#if 0
-            /* Disabling this code seems to allow shared display lists
-             * and texture objects to work.  We'll leave it disabled for now.
-             */
+        /* Page 26 (page 32 of the PDF) of the GLX 1.4 spec says:
+         *
+         *     "The server context state for all sharing contexts must exist
+         *     in a single address space or a BadMatch error is generated."
+         *
+         * If the share context is indirect, force the new context to also be
+         * indirect.  If the shard context is direct but the new context
+         * cannot be direct, generate BadMatch.
+         */
+        if (shareglxc->isDirect && !isDirect) {
             client->errorValue = shareList;
             return BadMatch;
-#endif
         }
-        else {
+        else if (!shareglxc->isDirect) {
             /*
              ** Create an indirect context regardless of what the client asked
              ** for; this way we can share display list space with shareList.
