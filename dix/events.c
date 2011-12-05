@@ -4149,8 +4149,9 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
                             GetEventFilter(thisDev, core),
                             grab);
                 }
-            } else if (rc != BadMatch)
-                ErrorF("[dix] DeliverGrabbedEvent. Core conversion failed.\n");
+            } else
+                BUG_WARN_MSG(rc != BadMatch, "%s: Core conversion failed on %d with %d\n",
+                             thisDev->name, event->any.type, rc);
         }
 
         if (!deliveries)
@@ -4164,9 +4165,9 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
                 FixUpEventFromWindow(pSprite, xi2, grab->window, None, TRUE);
                 /* XXX: XACE */
                 deliveries = TryClientEvents(rClient(grab), thisDev, xi2, 1, mask, 1, grab);
-            } else if (rc != BadMatch)
-                ErrorF("[dix] %s: XI2 conversion failed in DGE (%d, %d). Skipping delivery.\n",
-                        thisDev->name, event->any.type, rc);
+            } else
+                BUG_WARN_MSG(rc != BadMatch, "%s: XI2 conversion failed on %d with %d\n",
+                             thisDev->name, event->any.type, rc);
         }
 
         if (!deliveries)
@@ -4197,9 +4198,9 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
                                 GetEventFilter(thisDev, xi),
                                 grab);
                 }
-            } else if (rc != BadMatch)
-                ErrorF("[dix] %s: XI conversion failed in DGE (%d, %d). Skipping delivery.\n",
-                        thisDev->name, event->any.type, rc);
+            } else
+                BUG_WARN_MSG(rc != BadMatch, "%s: XI conversion failed on %d with %d\n",
+                             thisDev->name, event->any.type, rc);
         }
 
         if (deliveries && (event->any.type == ET_Motion))
