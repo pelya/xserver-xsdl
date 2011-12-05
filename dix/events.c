@@ -2592,6 +2592,57 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     return rc;
 }
 
+static int
+DeliverEvent(DeviceIntPtr dev, xEvent *xE, int count,
+             WindowPtr win, Window child, GrabPtr grab)
+{
+    SpritePtr pSprite = dev->spriteInfo->sprite;
+    Mask filter;
+    int deliveries = 0;
+
+    if (XaceHook(XACE_SEND_ACCESS, NULL, dev, win, xE, count) == Success) {
+        filter = GetEventFilter(dev, xE);
+        FixUpEventFromWindow(pSprite, xE, win, child, FALSE);
+        deliveries = DeliverEventsToWindow(dev, win, xE, count,
+                filter, grab);
+    }
+
+    return deliveries;
+}
+
+static int
+DeliverOneEvent(InternalEvent *event, DeviceIntPtr dev, enum InputLevel level,
+                WindowPtr win, Window child, GrabPtr grab)
+{
+    xEvent *xE = NULL;
+    int count = 0;
+    int deliveries = 0;
+    int rc;
+
+    switch(level)
+    {
+        case XI2:
+            rc = EventToXI2(event, &xE);
+            count = 1;
+            break;
+        case XI:
+            rc = EventToXI(event, &xE, &count);
+            break;
+        case CORE:
+            rc = EventToCore(event, &xE, &count);
+            break;
+    }
+
+    if (rc == Success)
+    {
+        deliveries = DeliverEvent(dev, xE, count, win, child, grab);
+        free(xE);
+    } else
+        BUG_WARN_MSG(rc != BadMatch, "%s: conversion to level %d failed with rc %d\n",
+                     dev->name, level, rc);
+    return deliveries;
+}
+
 /**
  * Deliver events caused by input devices.
  *
@@ -2615,12 +2666,9 @@ int
 DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                     WindowPtr stopAt, DeviceIntPtr dev)
 {
-    SpritePtr pSprite = dev->spriteInfo->sprite;
     Window child = None;
-    Mask filter;
     int deliveries = 0;
-    xEvent *xE = NULL, *core = NULL;
-    int rc, mask, count = 0;
+    int mask;
 
     verify_internal_event(event);
 
@@ -2631,64 +2679,32 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
             /* XI2 events first */
             if (mask & EVENT_XI2_MASK)
             {
-                xEvent *xi2 = NULL;
-                rc = EventToXI2(event, &xi2);
-                if (rc == Success)
-                {
-                    /* XXX: XACE */
-                    filter = GetEventFilter(dev, xi2);
-                    FixUpEventFromWindow(pSprite, xi2, pWin, child, FALSE);
-                    deliveries = DeliverEventsToWindow(dev, pWin, xi2, 1,
-                                                       filter, grab);
-                    free(xi2);
-                    if (deliveries > 0)
-                        goto unwind;
-                } else if (rc != BadMatch)
-                    ErrorF("[dix] %s: XI2 conversion failed in DDE (%d).\n",
-                            dev->name, rc);
+                deliveries = DeliverOneEvent(event, dev, XI2, pWin, child, grab);
+                if (deliveries > 0)
+                    break;
             }
 
             /* XI events */
             if (mask & EVENT_XI1_MASK)
             {
-                rc = EventToXI(event, &xE, &count);
-                if (rc == Success) {
-                    if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count) == Success) {
-                        filter = GetEventFilter(dev, xE);
-                        FixUpEventFromWindow(pSprite, xE, pWin, child, FALSE);
-                        deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
-                                                           filter, grab);
-                        if (deliveries > 0)
-                            goto unwind;
-                    }
-                } else if (rc != BadMatch)
-                    ErrorF("[dix] %s: XI conversion failed in DDE (%d, %d). Skipping delivery.\n",
-                            dev->name, event->any.type, rc);
+                deliveries = DeliverOneEvent(event, dev, XI, pWin, child, grab);
+                if (deliveries > 0)
+                    break;
             }
 
             /* Core event */
             if ((mask & EVENT_CORE_MASK) && IsMaster(dev) && dev->coreEvents)
             {
-                rc = EventToCore(event, &core, &count);
-                if (rc == Success) {
-                    if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, core, count) == Success) {
-                        filter = GetEventFilter(dev, core);
-                        FixUpEventFromWindow(pSprite, core, pWin, child, FALSE);
-                        deliveries = DeliverEventsToWindow(dev, pWin, core,
-                                                           count, filter, grab);
-                        if (deliveries > 0)
-                            goto unwind;
-                    }
-                } else if (rc != BadMatch)
-                        ErrorF("[dix] %s: Core conversion failed in DDE (%d, %d).\n",
-                                dev->name, event->any.type, rc);
+                deliveries = DeliverOneEvent(event, dev, CORE, pWin, child, grab);
+                if (deliveries > 0)
+                    break;
             }
 
             if ((deliveries < 0) || (pWin == stopAt) ||
                 (mask & EVENT_DONT_PROPAGATE_MASK))
             {
                 deliveries = 0;
-                goto unwind;
+                break;
             }
         }
 
@@ -2696,9 +2712,6 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
         pWin = pWin->parent;
     }
 
-unwind:
-    free(core);
-    free(xE);
     return deliveries;
 }
 
