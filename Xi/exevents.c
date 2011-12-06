@@ -704,6 +704,29 @@ ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
 }
 
 /**
+ * Add state and motionMask to the filter for this event. The protocol
+ * supports some extra masks for motion when a button is down:
+ * ButtonXMotionMask and the DeviceButtonMotionMask to trigger only when at
+ * least one button (or that specific button is down). These masks need to
+ * be added to the filters for core/XI motion events.
+ *
+ * @param device The device to update the mask for
+ * @param state The current button state mask
+ * @param motion_mask The motion mask (DeviceButtonMotionMask or 0)
+ */
+static void
+UpdateDeviceMotionMask(DeviceIntPtr device, unsigned short state,
+                       Mask motion_mask)
+{
+    Mask mask;
+
+    mask = DevicePointerMotionMask | state | motion_mask;
+    SetMaskForEvent(device->id, mask, DeviceMotionNotify);
+    mask = PointerMotionMask | state | motion_mask;
+    SetMaskForEvent(device->id, mask, MotionNotify);
+}
+
+/**
  * Update the device state according to the data in the event.
  *
  * return values are
@@ -801,7 +824,6 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
 	    device->valuator->motionHintWindow = NullWindow;
 	set_key_up(device, key, KEY_PROCESSED);
     } else if (event->type == ET_ButtonPress) {
-        Mask mask;
         if (!b)
             return DONT_PROCESS;
 
@@ -818,13 +840,8 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         if (b->map[key] <= 5)
 	    b->state |= (Button1Mask >> 1) << b->map[key];
 
-        /* Add state and motionMask to the filter for this event */
-        mask = DevicePointerMotionMask | b->state | b->motionMask;
-        SetMaskForEvent(device->id, mask, DeviceMotionNotify);
-        mask = PointerMotionMask | b->state | b->motionMask;
-        SetMaskForEvent(device->id, mask, MotionNotify);
+        UpdateDeviceMotionMask(device, b->state, b->motionMask);
     } else if (event->type == ET_ButtonRelease) {
-        Mask mask;
         if (!b)
             return DONT_PROCESS;
 
@@ -859,11 +876,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
 	if (b->map[key] <= 5)
 	    b->state &= ~((Button1Mask >> 1) << b->map[key]);
 
-        /* Add state and motionMask to the filter for this event */
-        mask = DevicePointerMotionMask | b->state | b->motionMask;
-        SetMaskForEvent(device->id, mask, DeviceMotionNotify);
-        mask = PointerMotionMask | b->state | b->motionMask;
-        SetMaskForEvent(device->id, mask, MotionNotify);
+        UpdateDeviceMotionMask(device,  b->state, b->motionMask);
     } else if (event->type == ET_ProximityIn)
 	device->proximity->in_proximity = TRUE;
     else if (event->type == ET_ProximityOut)
