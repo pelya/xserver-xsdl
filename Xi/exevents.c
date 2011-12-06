@@ -726,6 +726,32 @@ UpdateDeviceMotionMask(DeviceIntPtr device, unsigned short state,
     SetMaskForEvent(device->id, mask, MotionNotify);
 }
 
+static void
+IncreaseButtonCount(DeviceIntPtr dev, int key, CARD8 *buttons_down,
+                    Mask *motion_mask, unsigned short *state)
+{
+    if (dev->valuator)
+        dev->valuator->motionHintWindow = NullWindow;
+
+    (*buttons_down)++;
+    *motion_mask = DeviceButtonMotionMask;
+    if (dev->button->map[key] <= 5)
+        *state |= (Button1Mask >> 1) << dev->button->map[key];
+}
+
+static void
+DecreaseButtonCount(DeviceIntPtr dev, int key, CARD8 *buttons_down,
+                    Mask *motion_mask, unsigned short *state)
+{
+    if (dev->valuator)
+        dev->valuator->motionHintWindow = NullWindow;
+
+    if (*buttons_down >= 1 && !--(*buttons_down))
+        *motion_mask = 0;
+    if (dev->button->map[key] <= 5)
+        *state &= ~((Button1Mask >> 1) << dev->button->map[key]);
+}
+
 /**
  * Update the device state according to the data in the event.
  *
@@ -831,15 +857,11 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
             return DONT_PROCESS;
 
         set_button_down(device, key, BUTTON_PROCESSED);
-	if (device->valuator)
-	    device->valuator->motionHintWindow = NullWindow;
+
         if (!b->map[key])
             return DONT_PROCESS;
-        b->buttonsDown++;
-	b->motionMask = DeviceButtonMotionMask;
-        if (b->map[key] <= 5)
-	    b->state |= (Button1Mask >> 1) << b->map[key];
 
+        IncreaseButtonCount(device, key, &b->buttonsDown, &b->motionMask, &b->state);
         UpdateDeviceMotionMask(device, b->state, b->motionMask);
     } else if (event->type == ET_ButtonRelease) {
         if (!b)
@@ -867,15 +889,10 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
             }
         }
         set_button_up(device, key, BUTTON_PROCESSED);
-	if (device->valuator)
-	    device->valuator->motionHintWindow = NullWindow;
         if (!b->map[key])
             return DONT_PROCESS;
-        if (b->buttonsDown >= 1 && !--b->buttonsDown)
-	    b->motionMask = 0;
-	if (b->map[key] <= 5)
-	    b->state &= ~((Button1Mask >> 1) << b->map[key]);
 
+        DecreaseButtonCount(device, key, &b->buttonsDown, &b->motionMask, &b->state);
         UpdateDeviceMotionMask(device,  b->state, b->motionMask);
     } else if (event->type == ET_ProximityIn)
 	device->proximity->in_proximity = TRUE;
