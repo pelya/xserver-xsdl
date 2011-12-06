@@ -2014,13 +2014,6 @@ ActivateImplicitGrab(DeviceIntPtr dev, ClientPtr client, WindowPtr win,
     return TRUE;
 }
 
-enum EventDeliveryState {
-    EVENT_DELIVERED,     /**< Event has been delivered to a client  */
-    EVENT_NOT_DELIVERED, /**< Event was not delivered to any client */
-    EVENT_SKIP,          /**< Event can be discarded by the caller  */
-    EVENT_REJECTED,      /**< Event was rejected for delivery to the client */
-};
-
 /**
  * Attempt event delivery to the client owning the window.
  */

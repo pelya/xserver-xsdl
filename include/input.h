@@ -560,6 +560,13 @@ extern int EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event,
 #define EVENT_XI2_MASK                (1 << 3) /**< XI2 mask set on window */
 /* @} */
 
+enum EventDeliveryState {
+    EVENT_DELIVERED,     /**< Event has been delivered to a client  */
+    EVENT_NOT_DELIVERED, /**< Event was not delivered to any client */
+    EVENT_SKIP,          /**< Event can be discarded by the caller  */
+    EVENT_REJECTED,      /**< Event was rejected for delivery to the client */
+};
+
 /* Implemented by the DDX. */
 extern _X_EXPORT int NewInputDeviceRequest(
     InputOption *options,
