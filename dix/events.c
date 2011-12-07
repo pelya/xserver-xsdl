@@ -2553,13 +2553,13 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     int type;
     OtherInputMasks *inputMasks = wOtherInputMasks(win);
 
-    if ((type = GetXI2Type(event)) != 0)
+    if ((type = GetXI2Type(event->any.type)) != 0)
     {
         if (inputMasks && xi2mask_isset(inputMasks->xi2mask, dev, type))
             rc |= EVENT_XI2_MASK;
     }
 
-    if ((type = GetXIType(event)) != 0)
+    if ((type = GetXIType(event->any.type)) != 0)
     {
         filter = GetEventFilterMask(dev, type);
 
@@ -2575,7 +2575,7 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
 
     }
 
-    if ((type = GetCoreType(event)) != 0)
+    if ((type = GetCoreType(event->any.type)) != 0)
     {
         filter = GetEventFilterMask(dev, type);
 
@@ -3712,7 +3712,7 @@ CheckPassiveGrabsOnWindow(
         tempGrab->modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
 
         /* Check for XI2 and XI grabs first */
-        tempGrab->type = GetXI2Type(event);
+        tempGrab->type = GetXI2Type(event->any.type);
         tempGrab->grabtype = GRABTYPE_XI2;
         if (GrabMatchesSecond(tempGrab, grab, FALSE))
             match = XI2_MATCH;
@@ -3720,7 +3720,7 @@ CheckPassiveGrabsOnWindow(
         if (!match)
         {
             tempGrab->grabtype = GRABTYPE_XI;
-            if ((tempGrab->type = GetXIType(event)) &&
+            if ((tempGrab->type = GetXIType(event->any.type)) &&
                 (GrabMatchesSecond(tempGrab, grab, FALSE)))
                 match = XI_MATCH;
         }
@@ -3729,7 +3729,7 @@ CheckPassiveGrabsOnWindow(
         if (!match && checkCore)
         {
             tempGrab->grabtype = GRABTYPE_CORE;
-            if ((tempGrab->type = GetCoreType(event)) &&
+            if ((tempGrab->type = GetCoreType(event->any.type)) &&
                 (GrabMatchesSecond(tempGrab, grab, TRUE)))
                 match = CORE_MATCH;
         }
@@ -3784,7 +3784,7 @@ CheckPassiveGrabsOnWindow(
 
         if (!activate)
             break;
-        else if (!GetXIType(event) && !GetCoreType(event))
+        else if (!GetXIType(event->any.type) && !GetCoreType(event->any.type))
         {
             ErrorF("Event type %d in CheckPassiveGrabsOnWindow is neither"
                    " XI 1.x nor core\n", event->any.type);
