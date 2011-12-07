@@ -3653,13 +3653,6 @@ ActivatePassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event)
     int count;
     int rc;
 
-    if (!GetXIType(event->any.type) && !GetCoreType(event->any.type))
-    {
-        ErrorF("Event type %d in CheckPassiveGrabsOnWindow is neither"
-               " XI 1.x nor core\n", event->any.type);
-        return FALSE;
-    }
-
     /* The only consumers of corestate are Xi 1.x and core events, which
      * are guaranteed to come from DeviceEvents. */
     if (grab->grabtype == GRABTYPE_XI || grab->grabtype == GRABTYPE_CORE)
