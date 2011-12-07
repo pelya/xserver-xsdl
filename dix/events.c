@@ -3727,6 +3727,30 @@ ActivatePassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event)
     return TRUE;
 }
 
+static BOOL
+CoreGrabInterferes(DeviceIntPtr device, GrabPtr grab)
+{
+    DeviceIntPtr other;
+    BOOL interfering = FALSE;
+
+    for (other = inputInfo.devices; other; other = other->next)
+    {
+        GrabPtr othergrab = other->deviceGrab.grab;
+        if (othergrab && othergrab->grabtype == GRABTYPE_CORE &&
+                SameClient(grab, rClient(othergrab)) &&
+                ((IsPointerDevice(grab->device) &&
+                  IsPointerDevice(othergrab->device)) ||
+                 (IsKeyboardDevice(grab->device) &&
+                  IsKeyboardDevice(othergrab->device))))
+        {
+            interfering = TRUE;
+            break;
+        }
+    }
+
+    return interfering;
+}
+
 /**
  * Check an individual grab against an event to determine if a passive grab
  * should be activated.
@@ -3806,9 +3830,6 @@ CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
 
     if (grab->grabtype == GRABTYPE_CORE)
     {
-        DeviceIntPtr other;
-        BOOL interfering = FALSE;
-
         /* A passive grab may have been created for a different device
            than it is assigned to at this point in time.
            Update the grab's device and modifier device to reflect the
@@ -3822,21 +3843,7 @@ CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
             grab->modifierDevice = GetMaster(device, MASTER_KEYBOARD);
         }
 
-        for (other = inputInfo.devices; other; other = other->next)
-        {
-            GrabPtr othergrab = other->deviceGrab.grab;
-            if (othergrab && othergrab->grabtype == GRABTYPE_CORE &&
-                SameClient(grab, rClient(othergrab)) &&
-                ((IsPointerDevice(grab->device) &&
-                 IsPointerDevice(othergrab->device)) ||
-                 (IsKeyboardDevice(grab->device) &&
-                  IsKeyboardDevice(othergrab->device))))
-            {
-                interfering = TRUE;
-                break;
-            }
-        }
-        if (interfering)
+        if (CoreGrabInterferes(device, grab))
             return FALSE;
     }
 
