@@ -3751,6 +3751,62 @@ CoreGrabInterferes(DeviceIntPtr device, GrabPtr grab)
     return interfering;
 }
 
+enum MatchFlags {
+    NO_MATCH    = 0x0,
+    CORE_MATCH  = 0x1,
+    XI_MATCH    = 0x2,
+    XI2_MATCH   = 0x4,
+};
+
+/**
+ * Match the grab against the temporary grab on the given input level.
+ * Modifies the temporary grab pointer.
+ *
+ * @param grab The grab to match against
+ * @param tmp The temporary grab to use for matching
+ * @param level The input level we want to match on
+ * @param event_type Wire protocol event type
+ *
+ * @return The respective matched flag or 0 for no match
+ */
+static enum MatchFlags
+MatchForType(const GrabPtr grab, GrabPtr tmp, enum InputLevel level, int event_type)
+{
+    enum MatchFlags match;
+    BOOL ignore_device = FALSE;
+    int grabtype;
+    int evtype;
+
+    switch(level)
+    {
+        case XI2:
+            grabtype = GRABTYPE_XI2;
+            evtype = GetXI2Type(event_type);
+            BUG_WARN(!evtype);
+            match = XI2_MATCH;
+            break;
+        case XI:
+            grabtype = GRABTYPE_XI;
+            evtype = GetXIType(event_type);
+            match = XI_MATCH;
+            break;
+        case CORE:
+            grabtype = GRABTYPE_CORE;
+            evtype = GetCoreType(event_type);
+            match = CORE_MATCH;
+            ignore_device = TRUE;
+            break;
+    }
+
+    tmp->grabtype = grabtype;
+    tmp->type = evtype;
+
+    if (tmp->type && GrabMatchesSecond(tmp, grab, ignore_device))
+        return match;
+
+    return NO_MATCH;
+}
+
 /**
  * Check an individual grab against an event to determine if a passive grab
  * should be activated.
@@ -3768,12 +3824,9 @@ static Bool
 CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
                  Bool checkCore, GrabPtr tempGrab)
 {
-    static const int CORE_MATCH = 0x1;
-    static const int XI_MATCH = 0x2;
-    static const int XI2_MATCH = 0x4;
     DeviceIntPtr gdev;
     XkbSrvInfoPtr xkbi = NULL;
-    int match = 0;
+    enum MatchFlags match = 0;
 
     gdev = grab->modifierDevice;
     if (grab->grabtype == GRABTYPE_CORE)
@@ -3795,27 +3848,13 @@ CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
     tempGrab->modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
 
     /* Check for XI2 and XI grabs first */
-    tempGrab->type = GetXI2Type(event->any.type);
-    tempGrab->grabtype = GRABTYPE_XI2;
-    if (GrabMatchesSecond(tempGrab, grab, FALSE))
-        match = XI2_MATCH;
+    match = MatchForType(grab, tempGrab, XI2, GetXI2Type(event->any.type));
 
     if (!match)
-    {
-        tempGrab->grabtype = GRABTYPE_XI;
-        if ((tempGrab->type = GetXIType(event->any.type)) &&
-            (GrabMatchesSecond(tempGrab, grab, FALSE)))
-            match = XI_MATCH;
-    }
+        match = MatchForType(grab, tempGrab, XI, GetXIType(event->any.type));
 
-    /* Check for a core grab (ignore the device when comparing) */
     if (!match && checkCore)
-    {
-        tempGrab->grabtype = GRABTYPE_CORE;
-        if ((tempGrab->type = GetCoreType(event->any.type)) &&
-            (GrabMatchesSecond(tempGrab, grab, TRUE)))
-            match = CORE_MATCH;
-    }
+        match = MatchForType(grab, tempGrab, CORE, GetCoreType(event->any.type));
 
     if (!match || (grab->confineTo &&
                    (!grab->confineTo->realized ||
