@@ -3816,7 +3816,7 @@ CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
            Since XGrabDeviceButton requires to specify the
            modifierDevice explicitly, we don't override this choice.
          */
-        if (tempGrab->type < GenericEvent)
+        if (grab->type < GenericEvent)
         {
             grab->device = device;
             grab->modifierDevice = GetMaster(device, MASTER_KEYBOARD);
