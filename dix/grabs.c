@@ -61,6 +61,7 @@ SOFTWARE.
 #include "xace.h"
 #include "exevents.h"
 #include "inpututils.h"
+#include "client.h"
 
 #define BITMASK(i) (((Mask)1) << ((i) & 31))
 #define MASKIDX(i) ((i) >> 5)
@@ -77,25 +78,41 @@ PrintDeviceGrabInfo(DeviceIntPtr dev)
     int i, j;
     GrabInfoPtr devGrab = &dev->deviceGrab;
     GrabPtr grab = devGrab->grab;
+    Bool clientIdPrinted = FALSE;
 
-    ErrorF("Active grab 0x%lx (%s) on device '%s' (%d):",
+    ErrorF("Active grab 0x%lx (%s) on device '%s' (%d):\n",
            (unsigned long) grab->resource,
            (grab->grabtype == GRABTYPE_XI2) ? "xi2" :
             ((grab->grabtype == GRABTYPE_CORE) ? "core" : "xi1"),
            dev->name, dev->id);
 
     client = clients[CLIENT_ID(grab->resource)];
-    if (client && GetLocalClientCreds(client, &lcc) != -1)
+    if (client)
     {
-        ErrorF("      client pid %ld uid %ld gid %ld\n",
-               (lcc->fieldsSet & LCC_PID_SET) ? (long) lcc->pid : 0,
-               (lcc->fieldsSet & LCC_UID_SET) ? (long) lcc->euid : 0,
-               (lcc->fieldsSet & LCC_GID_SET) ? (long) lcc->egid : 0);
-        FreeLocalClientCreds(lcc);
+        pid_t clientpid = GetClientPid(client);
+        const char *cmdname = GetClientCmdName(client);
+        const char *cmdargs = GetClientCmdArgs(client);
+
+        if ((clientpid > 0) && (cmdname != NULL))
+        {
+            ErrorF("      client pid %ld %s %s\n",
+                   (long) clientpid, cmdname, cmdargs ? cmdargs : "");
+            clientIdPrinted = TRUE;
+        }
+        else if (GetLocalClientCreds(client, &lcc) != -1)
+        {
+            ErrorF("      client pid %ld uid %ld gid %ld\n",
+                   (lcc->fieldsSet & LCC_PID_SET) ? (long) lcc->pid : 0,
+                   (lcc->fieldsSet & LCC_UID_SET) ? (long) lcc->euid : 0,
+                   (lcc->fieldsSet & LCC_GID_SET) ? (long) lcc->egid : 0);
+            FreeLocalClientCreds(lcc);
+            clientIdPrinted = TRUE;
+        }
     }
-    else
+    if (!clientIdPrinted)
     {
-        ErrorF("      (no client information available)\n");
+        ErrorF("      (no client information available for client %d)\n",
+               CLIENT_ID(grab->resource));
     }
 
     /* XXX is this even correct? */
