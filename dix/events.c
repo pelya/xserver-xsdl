@@ -2693,12 +2693,13 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                     break;
             }
 
-            if ((deliveries < 0) || (pWin == stopAt) ||
-                (mask & EVENT_DONT_PROPAGATE_MASK))
-            {
-                deliveries = 0;
-                break;
-            }
+        }
+
+        if ((deliveries < 0) || (pWin == stopAt) ||
+            (mask & EVENT_DONT_PROPAGATE_MASK))
+        {
+            deliveries = 0;
+            break;
         }
 
         child = pWin->drawable.id;
