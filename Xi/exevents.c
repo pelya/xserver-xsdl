@@ -1001,9 +1001,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
         case ET_KeyRelease:
             if (grab && device->deviceGrab.fromPassiveGrab &&
                 (key == device->deviceGrab.activatingKey) &&
-                (device->deviceGrab.grab->type == KeyPress ||
-                 device->deviceGrab.grab->type == DeviceKeyPress ||
-                 device->deviceGrab.grab->type == XI_KeyPress))
+                GrabIsKeyboardGrab(device->deviceGrab.grab))
                 deactivateDeviceGrab = TRUE;
             break;
         case ET_ButtonPress:
@@ -1023,9 +1021,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
             event->detail.button = b->map[key];
             if (grab && !b->buttonsDown &&
                 device->deviceGrab.fromPassiveGrab &&
-                (device->deviceGrab.grab->type == ButtonPress ||
-                 device->deviceGrab.grab->type == DeviceButtonPress ||
-                 device->deviceGrab.grab->type == XI_ButtonPress))
+                GrabIsPointerGrab(device->deviceGrab.grab))
                 deactivateDeviceGrab = TRUE;
         default:
             break;

@@ -60,6 +60,7 @@ SOFTWARE.
 #include "dixgrabs.h"
 #include "xace.h"
 #include "exevents.h"
+#include "exglobals.h"
 #include "inpututils.h"
 
 #define BITMASK(i) (((Mask)1) << ((i) & 31))
@@ -736,4 +737,20 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
     return ok;
 
 #undef UPDATE
+}
+
+Bool
+GrabIsPointerGrab(GrabPtr grab)
+{
+    return (grab->type == ButtonPress ||
+            grab->type == DeviceButtonPress ||
+            grab->type == XI_ButtonPress);
+}
+
+Bool
+GrabIsKeyboardGrab(GrabPtr grab)
+{
+   return (grab->type == KeyPress ||
+           grab->type == DeviceKeyPress ||
+           grab->type == XI_KeyPress);
 }

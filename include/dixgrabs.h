@@ -64,4 +64,6 @@ extern _X_EXPORT int AddPassiveGrabToList(
 extern _X_EXPORT Bool DeletePassiveGrabFromList(
 	GrabPtr /* pMinuendGrab */);
 
+extern Bool GrabIsPointerGrab(GrabPtr grab);
+extern Bool GrabIsKeyboardGrab(GrabPtr grab);
 #endif /* DIXGRABS_H */
