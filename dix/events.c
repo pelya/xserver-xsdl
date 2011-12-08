@@ -3717,12 +3717,8 @@ ActivatePassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event)
     }
 
     if (grabinfo->sync.state == FROZEN_NO_EVENT)
-    {
-        if (!grabinfo->sync.event)
-            grabinfo->sync.event = calloc(1, sizeof(DeviceEvent));
-        *grabinfo->sync.event = event->device_event;
         grabinfo->sync.state = FROZEN_WITH_EVENT;
-    }
+    *grabinfo->sync.event = event->device_event;
 
     free(xE);
     return TRUE;
@@ -4310,8 +4306,6 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 	case FREEZE_NEXT_EVENT:
 	    grabinfo->sync.state = FROZEN_WITH_EVENT;
 	    FreezeThaw(thisDev, TRUE);
-	    if (!grabinfo->sync.event)
-		grabinfo->sync.event = calloc(1, sizeof(InternalEvent));
 	    *grabinfo->sync.event = event->device_event;
 	    break;
 	}
