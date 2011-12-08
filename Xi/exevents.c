@@ -915,7 +915,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     int key = 0, rootX, rootY;
     ButtonClassPtr b;
     int ret = 0;
-    int corestate, i;
+    int corestate;
     DeviceIntPtr mouse = NULL, kbd = NULL;
     DeviceEvent *event = &ev->device_event;
 
@@ -945,33 +945,8 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
             mouse = NULL;
     }
 
-    /* core state needs to be assembled BEFORE the device is updated. */
-    corestate = (kbd && kbd->key) ? XkbStateFieldFromRec(&kbd->key->xkbInfo->state) : 0;
-    corestate |= (mouse && mouse->button) ? (mouse->button->state) : 0;
-
-    for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
-        if (BitIsOn(mouse->button->down, i))
-            SetBit(event->buttons, i);
-
-    if (kbd && kbd->key)
-    {
-        XkbStatePtr state;
-        /* we need the state before the event happens */
-        if (event->type == ET_KeyPress || event->type == ET_KeyRelease)
-            state = &kbd->key->xkbInfo->prev_state;
-        else
-            state = &kbd->key->xkbInfo->state;
-
-        event->mods.base = state->base_mods;
-        event->mods.latched = state->latched_mods;
-        event->mods.locked = state->locked_mods;
-        event->mods.effective = state->mods;
-
-        event->group.base = state->base_group;
-        event->group.latched = state->latched_group;
-        event->group.locked = state->locked_group;
-        event->group.effective = state->group;
-    }
+    corestate = event_get_corestate(mouse, kbd);
+    event_set_state(mouse, kbd, event);
 
     ret = UpdateDeviceState(device, event);
     if (ret == DONT_PROCESS)
