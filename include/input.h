@@ -102,6 +102,12 @@ SOFTWARE.
 #define RevertToFollowKeyboard	3
 #endif
 
+enum InputLevel {
+    CORE,
+    XI,
+    XI2,
+};
+
 typedef unsigned long Leds;
 typedef struct _OtherClients *OtherClientsPtr;
 typedef struct _InputClients *InputClientsPtr;

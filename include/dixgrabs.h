@@ -40,7 +40,7 @@ extern GrabPtr CreateGrab(
 	DeviceIntPtr /* device */,
 	DeviceIntPtr /* modDevice */,
 	WindowPtr /* window */,
-        GrabType /* grabtype */,
+        enum InputLevel /* grabtype */,
         GrabMask * /* mask */,
         struct _GrabParameters * /* param */,
 	int /* type */,
