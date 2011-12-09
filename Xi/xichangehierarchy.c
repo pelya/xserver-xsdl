@@ -200,7 +200,7 @@ unwind:
     return rc;
 }
 
-static int
+static void
 disable_clientpointer(DeviceIntPtr dev)
 {
     int i;
