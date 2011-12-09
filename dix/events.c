@@ -2532,27 +2532,27 @@ FixUpEventFromWindow(
  * client.
  *
  * @param[in] dev The device this event is being sent for.
- * @param[in] event The event that is to be sent.
+ * @param[in] evtype The event type of the event that is to be sent.
  * @param[in] win The current event window.
  *
  * @return Bitmask of ::EVENT_XI2_MASK, ::EVENT_XI1_MASK, ::EVENT_CORE_MASK, and
  *         ::EVENT_DONT_PROPAGATE_MASK.
  */
 int
-EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
+EventIsDeliverable(DeviceIntPtr dev, int evtype, WindowPtr win)
 {
     int rc = 0;
     int filter = 0;
     int type;
     OtherInputMasks *inputMasks = wOtherInputMasks(win);
 
-    if ((type = GetXI2Type(event->any.type)) != 0)
+    if ((type = GetXI2Type(evtype)) != 0)
     {
         if (inputMasks && xi2mask_isset(inputMasks->xi2mask, dev, type))
             rc |= EVENT_XI2_MASK;
     }
 
-    if ((type = GetXIType(event->any.type)) != 0)
+    if ((type = GetXIType(evtype)) != 0)
     {
         filter = GetEventFilterMask(dev, type);
 
@@ -2568,7 +2568,7 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
 
     }
 
-    if ((type = GetCoreType(event->any.type)) != 0)
+    if ((type = GetCoreType(evtype)) != 0)
     {
         filter = GetEventFilterMask(dev, type);
 
@@ -2667,7 +2667,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
 
     while (pWin)
     {
-        if ((mask = EventIsDeliverable(dev, event, pWin)))
+        if ((mask = EventIsDeliverable(dev, event->any.type, pWin)))
         {
             /* XI2 events first */
             if (mask & EVENT_XI2_MASK)

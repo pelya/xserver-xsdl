@@ -552,8 +552,7 @@ void FixUpEventFromWindow(SpritePtr pSprite,
                           Window child,
                           Bool calcChild);
 extern WindowPtr XYToWindow(SpritePtr pSprite, int x, int y);
-extern int EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event,
-                              WindowPtr win);
+extern int EventIsDeliverable(DeviceIntPtr dev, int evtype, WindowPtr win);
 extern Bool ActivatePassiveGrab(DeviceIntPtr dev, GrabPtr grab,
                                 InternalEvent *ev);
 /**
