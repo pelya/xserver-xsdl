@@ -388,16 +388,14 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 		glamor_priv->saved_triangles = ps->Triangles;
 		ps->Triangles = glamor_triangles;
 
-		glamor_priv->saved_create_picture = ps->CreatePicture;
-		ps->CreatePicture = glamor_create_picture;
-
-		glamor_priv->saved_destroy_picture = ps->DestroyPicture;
-		ps->DestroyPicture = glamor_destroy_picture;
-
 		glamor_priv->saved_unrealize_glyph = ps->UnrealizeGlyph;
 		ps->UnrealizeGlyph = glamor_glyph_unrealize;
 	}
+	glamor_priv->saved_create_picture = ps->CreatePicture;
+	ps->CreatePicture = glamor_create_picture;
 
+	glamor_priv->saved_destroy_picture = ps->DestroyPicture;
+	ps->DestroyPicture = glamor_destroy_picture;
 	glamor_init_composite_shaders(screen);
 #endif
 	glamor_init_solid_shader(screen);
