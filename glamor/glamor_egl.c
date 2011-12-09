@@ -108,7 +108,7 @@ glamor_egl_get_screen_private(ScrnInfoPtr scrn)
 
 static EGLImageKHR
 _glamor_egl_create_image(struct glamor_egl_screen_private *glamor_egl,
-			 int width, int height, int stride, int name)
+			 int width, int height, int stride, int name, int depth)
 {
 	EGLImageKHR image;
 	EGLint attribs[] = {
@@ -126,7 +126,9 @@ _glamor_egl_create_image(struct glamor_egl_screen_private *glamor_egl,
 
 	attribs[1] = width;
 	attribs[3] = height;
-	attribs[5] = stride / 4;
+	attribs[5] = stride;
+	if (depth != 32)
+		return EGL_NO_IMAGE_KHR;
 	image = glamor_egl->egl_create_image_khr(glamor_egl->display,
 						 glamor_egl->context,
 						 EGL_DRM_BUFFER_MESA,
@@ -165,6 +167,7 @@ glamor_create_texture_from_image(struct glamor_egl_screen_private
 
 	(glamor_egl->egl_image_target_texture2d_oes) (GL_TEXTURE_2D,
 						      image);
+	glamor_egl->dispatch->glBindTexture(GL_TEXTURE_2D, 0);
 	return TRUE;
 }
 
@@ -193,8 +196,8 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
 	image = _glamor_egl_create_image(glamor_egl,
 					 scrn->virtualX,
 					 scrn->virtualY,
-					 stride,
-					 glamor_egl->front_buffer_handle);
+					 stride / 4,
+					 glamor_egl->front_buffer_handle, 32);
 	if (image == EGL_NO_IMAGE_KHR)
 		return FALSE;
 
@@ -208,8 +211,6 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
 /*
  * This function will be called from the dri buffer allocation.
  * It is somehow very familiar with the create textured screen.
- * XXX the egl image here is not stored at any data structure.
- * Does this cause a leak problem?
  */
 Bool
 glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
@@ -221,19 +222,20 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 	EGLImageKHR image;
 	GLuint texture;
 	int name;
+
 	if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "Couldn't flink pixmap handle\n");
 		return FALSE;
 	}
 
-
 	image = _glamor_egl_create_image(glamor_egl,
 					 pixmap->drawable.width,
-					 pixmap->drawable.height, stride,
-					 name);
+					 pixmap->drawable.height,
+					 ((stride * 8 + 7) / pixmap->drawable.bitsPerPixel),
+					 name,
+					 pixmap->drawable.depth);
 	if (image == EGL_NO_IMAGE_KHR) {
-		ErrorF("Failed to create khr image for bo handle %d.\n", handle);
 		return FALSE;
 	}
 
