@@ -104,3 +104,4 @@ glamor_get_spans(DrawablePtr drawable,
 		glamor_finish_access(drawable);
 	}
 }
+

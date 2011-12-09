@@ -240,9 +240,9 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 #endif
 
 
-void
-glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
-		 int w, int h, int left_pad, int image_format, char *bits)
+static Bool 
+_glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
+		 int w, int h, int left_pad, int image_format, char *bits, Bool fallback)
 {
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(drawable->pScreen);
@@ -263,10 +263,9 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	if (image_format == XYBitmap) {
 		assert(depth == 1);
 		goto fail;
-		return;
 	}
 
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+	if (!pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
 		glamor_fallback("has no fbo.\n");
 		goto fail;
 	}
@@ -309,12 +308,12 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 					pixmap->drawable.bitsPerPixel);
 	} else {
 		dispatch->glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-//      dispatch->glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
 
 	dispatch->glGenTextures(1, &tex);
 	dispatch->glActiveTexture(GL_TEXTURE0);
 	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
+
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
 		iformat = format;
 	} else {
@@ -328,10 +327,10 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 				  GL_NEAREST);
 	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
 				  GL_NEAREST);
+
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
 #endif
-
 	dispatch->glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
 	dispatch->glUniform1i(glamor_priv->
 			      finish_access_no_revert[no_alpha],
@@ -386,15 +385,17 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	dispatch->glUseProgram(0);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+
 	dispatch->glDeleteTextures(1, &tex);
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
 		dispatch->glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	glamor_set_alu(dispatch, GXcopy);
 	glamor_set_planemask(pixmap, ~0);
-	return;
+	return TRUE;
 
       fail:
 	glamor_set_planemask(pixmap, ~0);
+	if (!fallback) return FALSE;
 	glamor_fallback("to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RW)) {
@@ -402,4 +403,22 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 			   left_pad, image_format, bits);
 		glamor_finish_access(&pixmap->drawable);
 	}
+	return TRUE;
 }
+
+void
+glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
+		 int w, int h, int left_pad, int image_format, char *bits)
+{
+	_glamor_put_image(drawable, gc, depth, x, y, w, h, 
+			left_pad, image_format, bits, TRUE);
+}
+
+Bool
+glamor_put_image_nf(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
+		 int w, int h, int left_pad, int image_format, char *bits)
+{
+	return _glamor_put_image(drawable, gc, depth, x, y, w, h, 
+				left_pad, image_format, bits, FALSE);
+}
+

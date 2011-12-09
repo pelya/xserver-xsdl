@@ -90,3 +90,55 @@ extern _X_EXPORT Bool glamor_poly_fill_rect_nf(DrawablePtr drawable,
 					       int nrect, 
 					       xRectangle * prect);
 
+extern _X_EXPORT Bool glamor_put_image_nf(DrawablePtr drawable, 
+					  GCPtr gc, int depth, int x, int y,
+		 	 		  int w, int h, int left_pad, 
+					  int image_format, char *bits);
+
+extern _X_EXPORT Bool glamor_copy_n_to_n_nf(DrawablePtr src,
+					    DrawablePtr dst,
+					    GCPtr gc,
+					    BoxPtr box,
+					    int nbox,
+					    int dx,
+					    int dy,
+					    Bool reverse,
+					    Bool upsidedown, Pixel bitplane, 
+					    void *closure);
+
+extern _X_EXPORT Bool glamor_composite_nf(CARD8 op,
+					  PicturePtr source,
+					  PicturePtr mask,
+					  PicturePtr dest,
+					  INT16 x_source,
+					  INT16 y_source,
+					  INT16 x_mask,
+					  INT16 y_mask,
+					  INT16 x_dest, INT16 y_dest, 
+					  CARD16 width, CARD16 height);
+
+extern _X_EXPORT Bool glamor_trapezoids_nf(CARD8 op,
+					   PicturePtr src, PicturePtr dst,
+					   PictFormatPtr mask_format, 
+					   INT16 x_src, INT16 y_src,
+					   int ntrap, xTrapezoid * traps);
+
+extern _X_EXPORT Bool glamor_glyphs_nf(CARD8 op,
+				       PicturePtr src,
+				       PicturePtr dst,
+				       PictFormatPtr mask_format,
+				       INT16 x_src,
+				       INT16 y_src, int nlist, 
+				       GlyphListPtr list, GlyphPtr * glyphs);
+
+extern _X_EXPORT Bool glamor_triangles_nf(CARD8 op,
+					  PicturePtr pSrc,
+					  PicturePtr pDst,
+					  PictFormatPtr maskFormat,
+					  INT16 xSrc, INT16 ySrc, 
+					  int ntris, xTriangle * tris);
+
+
+extern _X_EXPORT void glamor_glyph_unrealize(ScreenPtr screen, GlyphPtr glyph);
+
+

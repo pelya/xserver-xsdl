@@ -302,6 +302,9 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 
 	GLuint tex;
 	int need_flip;
+
+	if (!pixmap_priv)
+		return;
 	need_flip = (flip && !glamor_priv->yInverted);
 
 	/* Try fast path firstly, upload the pixmap to the texture attached
@@ -368,7 +371,6 @@ glamor_pixmap_ensure_fb(PixmapPtr pixmap)
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
 	glamor_gl_dispatch *dispatch = &pixmap_priv->glamor_priv->dispatch;
-
 	if (pixmap_priv->fb == 0)
 		dispatch->glGenFramebuffers(1, &pixmap_priv->fb);
 	assert(pixmap_priv->tex != 0);
@@ -644,7 +646,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
 	screen = pixmap->drawable.pScreen;
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+	if (!pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return TRUE;
 	if (glamor_get_tex_format_type_from_pixmap(pixmap,
 						   &format,

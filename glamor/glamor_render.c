@@ -36,8 +36,6 @@
 #include "mipict.h"
 #include "fbpict.h"
 
-//#include "glu3/glu3.h"
-
 struct shader_key {
 	enum shader_source source;
 	enum shader_mask mask;
@@ -371,6 +369,7 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 			     PicturePtr picture,
 			     glamor_pixmap_private * pixmap_priv)
 {
+	unsigned int no_alpha, no_revert, format, type;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
@@ -497,6 +496,7 @@ glamor_composite_with_copy(CARD8 op,
 			   INT16 y_dest, CARD16 width, CARD16 height)
 {
 	RegionRec region;
+	int ret;
 
 	if (!source->pDrawable)
 		return FALSE;
@@ -511,21 +511,22 @@ glamor_composite_with_copy(CARD8 op,
 	y_dest += dest->pDrawable->y;
 	x_source += source->pDrawable->x;
 	y_source += source->pDrawable->y;
-
 	if (!miComputeCompositeRegion(&region,
 				      source, NULL, dest,
 				      x_source, y_source,
 				      0, 0, x_dest, y_dest, width, height))
 		return TRUE;
-
-	glamor_copy_n_to_n(source->pDrawable,
-			   dest->pDrawable, NULL,
-			   REGION_RECTS(&region),
-			   REGION_NUM_RECTS(&region),
-			   x_source - x_dest, y_source - y_dest,
-			   FALSE, FALSE, 0, NULL);
+	ret = TRUE;
+	ErrorF("width %d height %d \n", width, height);
+	if (!glamor_copy_n_to_n_nf(source->pDrawable,
+			dest->pDrawable, NULL,
+	                REGION_RECTS(&region),
+		        REGION_NUM_RECTS(&region),
+			x_source - x_dest, y_source - y_dest,
+			FALSE, FALSE, 0, NULL))
+		ret = FALSE;
 	REGION_UNINIT(dest->pDrawable->pScreen, &region);
-	return TRUE;
+	return ret;
 }
 
 static void
@@ -696,7 +697,6 @@ combine_pict_format(PictFormatShort * des, const PictFormatShort src,
 		return FALSE;
 	}
 
-
 	if (src_type == mask_type) {
 		*des = PICT_VISFORMAT(src_bpp, src_type, new_vis);
 		return TRUE;
@@ -753,10 +753,9 @@ glamor_composite_with_shader(CARD8 op,
 	PictFormatShort saved_source_format = 0;
 	float src_matrix[9], mask_matrix[9];
 	GLfloat source_solid_color[4], mask_solid_color[4];
-
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+	if (!dest_pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
 		glamor_fallback("dest has no fbo.\n");
 		goto fail;
 	}
@@ -997,8 +996,6 @@ glamor_composite_with_shader(CARD8 op,
 				   &dest_x_off, &dest_y_off);
 	pixmap_priv_get_scale(dest_pixmap_priv, &dst_xscale, &dst_yscale);
 
-
-
 	if (glamor_priv->has_source_coords) {
 		glamor_get_drawable_deltas(source->pDrawable,
 					   source_pixmap, &source_x_off,
@@ -1190,16 +1187,17 @@ glamor_convert_gradient_picture(ScreenPtr screen,
 	return dst;
 }
 
-void
-glamor_composite(CARD8 op,
-		 PicturePtr source,
-		 PicturePtr mask,
-		 PicturePtr dest,
-		 INT16 x_source,
-		 INT16 y_source,
-		 INT16 x_mask,
-		 INT16 y_mask,
-		 INT16 x_dest, INT16 y_dest, CARD16 width, CARD16 height)
+static Bool
+_glamor_composite(CARD8 op,
+		  PicturePtr source,
+		  PicturePtr mask,
+		  PicturePtr dest,
+		  INT16 x_source,
+		  INT16 y_source,
+		  INT16 x_mask,
+		  INT16 y_mask,
+		  INT16 x_dest, INT16 y_dest, 
+		  CARD16 width, CARD16 height, Bool fallback)
 {
 	ScreenPtr screen = dest->pDrawable->pScreen;
 	glamor_pixmap_private *dest_pixmap_priv;
@@ -1214,6 +1212,7 @@ glamor_composite(CARD8 op,
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	Bool ret = TRUE;
 
 	x_temp_src = x_source;
 	y_temp_src = y_source;
@@ -1222,7 +1221,7 @@ glamor_composite(CARD8 op,
 
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 	/* Currently. Always fallback to cpu if destination is in CPU memory. */
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+	if (!dest_pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
 		goto fail;
 	}
 
@@ -1231,13 +1230,14 @@ glamor_composite(CARD8 op,
 		    glamor_get_drawable_pixmap(source->pDrawable);
 		source_pixmap_priv =
 		    glamor_get_pixmap_private(source_pixmap);
+		if (!source_pixmap_priv) goto fail;
 	}
 
 	if (mask && mask->pDrawable) {
 		mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
 		mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
+		if (!mask_pixmap_priv) goto fail;
 	}
-
 	if ((!source->pDrawable
 	     && (source->pSourcePict->type != SourcePictTypeSolidFill))
 	    || (source->pDrawable
@@ -1311,7 +1311,6 @@ glamor_composite(CARD8 op,
 			goto fail;
 		}
 	}
-
 	if (!mask) {
 		if (glamor_composite_with_copy(op, temp_src, dest,
 					       x_temp_src, y_temp_src,
@@ -1319,7 +1318,6 @@ glamor_composite(CARD8 op,
 					       height))
 			goto done;
 	}
-
 	rect.x_src = x_temp_src;
 	rect.y_src = y_temp_src;
 	rect.x_mask = x_temp_mask;
@@ -1334,6 +1332,12 @@ glamor_composite(CARD8 op,
 
       fail:
 
+	dispatch->glUseProgram(0);
+	dispatch->glDisable(GL_BLEND);
+	if (!fallback) {
+		ret = FALSE;
+		goto done;
+	}
 	glamor_fallback
 	    ("from picts %p:%p %dx%d / %p:%p %d x %d (%c,%c)  to pict %p:%p %dx%d (%c)\n",
 	     source, source->pDrawable,
@@ -1349,8 +1353,6 @@ glamor_composite(CARD8 op,
 	     dest->pDrawable->width, dest->pDrawable->height,
 	     glamor_get_picture_location(dest));
 
-	dispatch->glUseProgram(0);
-	dispatch->glDisable(GL_BLEND);
 	if (glamor_prepare_access_picture(dest, GLAMOR_ACCESS_RW)) {
 		if (glamor_prepare_access_picture
 		    (source, GLAMOR_ACCESS_RO)) {
@@ -1375,7 +1377,44 @@ glamor_composite(CARD8 op,
 		FreePicture(temp_src, 0);
 	if (temp_mask != mask)
 		FreePicture(temp_mask, 0);
+	return ret;
 }
+
+void
+glamor_composite(CARD8 op,
+		 PicturePtr source,
+		 PicturePtr mask,
+		 PicturePtr dest,
+		 INT16 x_source,
+		 INT16 y_source,
+		 INT16 x_mask,
+		 INT16 y_mask,
+		 INT16 x_dest, INT16 y_dest, 
+		 CARD16 width, CARD16 height)
+{
+	_glamor_composite(op, source, mask, dest, x_source, y_source, 
+			  x_mask, y_mask, x_dest, y_dest, width, height,
+			  TRUE);
+}
+
+Bool
+glamor_composite_nf(CARD8 op,
+		    PicturePtr source,
+		    PicturePtr mask,
+		    PicturePtr dest,
+		    INT16 x_source,
+		    INT16 y_source,
+		    INT16 x_mask,
+		    INT16 y_mask,
+		    INT16 x_dest, INT16 y_dest, 
+		    CARD16 width, CARD16 height)
+{
+	return _glamor_composite(op, source, mask, dest, x_source, y_source, 
+				 x_mask, y_mask, x_dest, y_dest, width, height,
+				 FALSE);
+}
+
+
 
 
 /**
@@ -1418,11 +1457,11 @@ glamor_create_mask_picture(ScreenPtr screen,
  * glamor_trapezoids is a copy of miTrapezoids that does all the trapezoid
  * accumulation in system memory.
  */
-void
-glamor_trapezoids(CARD8 op,
+static Bool 
+_glamor_trapezoids(CARD8 op,
 		  PicturePtr src, PicturePtr dst,
 		  PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
-		  int ntrap, xTrapezoid * traps)
+		  int ntrap, xTrapezoid * traps, Bool fallback)
 {
 	ScreenPtr screen = dst->pDrawable->pScreen;
 	BoxRec bounds;
@@ -1446,13 +1485,13 @@ glamor_trapezoids(CARD8 op,
 		for (; ntrap; ntrap--, traps++)
 			glamor_trapezoids(op, src, dst, mask_format, x_src,
 					  y_src, 1, traps);
-		return;
+		return TRUE;
 	}
 
 	miTrapezoidBounds(ntrap, traps, &bounds);
 
 	if (bounds.y1 >= bounds.y2 || bounds.x1 >= bounds.x2)
-		return;
+		return TRUE;
 
 	x_dst = traps[0].left.p1.x >> 16;
 	y_dst = traps[0].left.p1.y >> 16;
@@ -1463,13 +1502,13 @@ glamor_trapezoids(CARD8 op,
 	picture = glamor_create_mask_picture(screen, dst, mask_format,
 					     width, height);
 	if (!picture)
-		return;
+		return TRUE;
 
 	image = pixman_image_create_bits(picture->format,
 					 width, height, NULL, stride);
 	if (!image) {
 		FreePicture(picture, 0);
-		return;
+		return TRUE;
 	}
 
 	for (; ntrap; ntrap--, traps++)
@@ -1497,7 +1536,30 @@ glamor_trapezoids(CARD8 op,
 	pixman_image_unref(image);
 
 	FreePicture(picture, 0);
+	return TRUE;
 }
+
+void
+glamor_trapezoids(CARD8 op,
+		  PicturePtr src, PicturePtr dst,
+		  PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
+		  int ntrap, xTrapezoid * traps)
+{
+	_glamor_trapezoids(op, src, dst, mask_format, x_src, 
+			   y_src, ntrap, traps, TRUE);
+}
+
+Bool
+glamor_trapezoids_nf(CARD8 op,
+		     PicturePtr src, PicturePtr dst,
+		     PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
+		     int ntrap, xTrapezoid * traps)
+{
+	return _glamor_trapezoids(op, src, dst, mask_format, x_src, 
+				  y_src, ntrap, traps, FALSE);
+}
+
+
 
 void
 glamor_composite_rects(CARD8 op,

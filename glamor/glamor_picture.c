@@ -60,10 +60,11 @@ glamor_create_picture(PicturePtr picture)
 	    glamor_get_screen_private(picture->pDrawable->pScreen);
 	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
-	assert(pixmap_priv);
-
-	pixmap_priv->is_picture = 1;
-	pixmap_priv->pict_format = picture->format;
+	
+	if (pixmap_priv) {
+		pixmap_priv->is_picture = 1;
+		pixmap_priv->pict_format = picture->format;
+	}
 	return glamor_priv->saved_create_picture(picture);
 }
 
@@ -81,10 +82,11 @@ glamor_destroy_picture(PicturePtr picture)
 	    glamor_get_screen_private(picture->pDrawable->pScreen);
 	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
-	assert(pixmap_priv);
 
-	pixmap_priv->is_picture = 0;
-	pixmap_priv->pict_format = 0;
+	if (pixmap_priv) {
+		pixmap_priv->is_picture = 0;
+		pixmap_priv->pict_format = 0;
+	}
 	glamor_priv->saved_destroy_picture(picture);
 }
 

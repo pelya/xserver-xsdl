@@ -239,57 +239,9 @@ glamor_glyph_cache_upload_glyph(ScreenPtr screen,
 	ValidateGC(&pCachePixmap->drawable, gc);
 
 	scratch = pGlyphPixmap;
-#if 0
-	/* Create a temporary bo to stream the updates to the cache */
-	if (pGlyphPixmap->drawable.depth != pCachePixmap->drawable.depth ||
-	    !uxa_pixmap_is_offscreen(scratch)) {
-		scratch = screen->CreatePixmap(screen,
-					       glyph->info.width,
-					       glyph->info.height,
-					       pCachePixmap->
-					       drawable.depth, 0);
-		if (scratch) {
-			if (pGlyphPixmap->drawable.depth !=
-			    pCachePixmap->drawable.depth) {
-				PicturePtr picture;
-				int error;
-
-				picture =
-				    CreatePicture(0,
-						  &scratch->drawable,
-						  PictureMatchFormat
-						  (screen,
-						   pCachePixmap->
-						   drawable.depth,
-						   cache->picture->format),
-						  0, NULL, serverClient,
-						  &error);
-				if (picture) {
-					ValidatePicture(picture);
-					uxa_composite(PictOpSrc,
-						      pGlyphPicture,
-						      NULL, picture,
-						      0, 0, 0, 0, 0,
-						      0,
-						      glyph->info.width,
-						      glyph->info.height);
-					FreePicture(picture, 0);
-				}
-			} else {
-				glamor_copy_area(&pGlyphPixmap->drawable,
-						 &scratch->drawable,
-						 gc, 0, 0,
-						 glyph->info.width,
-						 glyph->info.height, 0, 0);
-			}
-		} else {
-			scratch = pGlyphPixmap;
-		}
-	}
-#endif
-	glamor_copy_area(&scratch->drawable, &pCachePixmap->drawable, gc,
-			 0, 0, glyph->info.width, glyph->info.height, x,
-			 y);
+	(*gc->ops->CopyArea)(&scratch->drawable, &pCachePixmap->drawable, gc,
+			     0, 0, glyph->info.width, glyph->info.height, x,
+			     y);
 
 	if (scratch != pGlyphPixmap)
 		screen->DestroyPixmap(scratch);
@@ -657,6 +609,7 @@ glamor_glyphs_via_mask(CARD8 op,
 	BoxRec extents = { 0, 0, 0, 0 };
 	CARD32 component_alpha;
 	glamor_glyph_buffer_t buffer;
+	xRectangle fill_rect;
 
 	GCPtr gc;
 
@@ -690,7 +643,14 @@ glamor_glyphs_via_mask(CARD8 op,
 	}
 	gc = GetScratchGC(mask_pixmap->drawable.depth, screen);
 	ValidateGC(&mask_pixmap->drawable, gc);
-	glamor_fill(&mask_pixmap->drawable, gc, 0, 0, width, height, TRUE);
+	gc->fillStyle = FillSolid;
+	//glamor_fill(&mask_pixmap->drawable, gc, 0, 0, width, height, TRUE);
+	fill_rect.x = 0;
+	fill_rect.y = 0;
+	fill_rect.width = width;
+	fill_rect.height = height;
+	gc->ops->PolyFillRect(&mask_pixmap->drawable, gc, 1, &fill_rect);
+	
 	FreeScratchGC(gc);
 	x = -extents.x1;
 	y = -extents.y1;
@@ -810,13 +770,14 @@ glamor_glyphs_to_dst(CARD8 op,
 					x_src, y_src, x_dst, y_dst);
 }
 
-void
-glamor_glyphs(CARD8 op,
-	      PicturePtr src,
-	      PicturePtr dst,
-	      PictFormatPtr mask_format,
-	      INT16 x_src,
-	      INT16 y_src, int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+static Bool
+_glamor_glyphs(CARD8 op,
+	       PicturePtr src,
+	       PicturePtr dst,
+	       PictFormatPtr mask_format,
+	       INT16 x_src,
+	       INT16 y_src, int nlist, GlyphListPtr list, 
+	       GlyphPtr * glyphs, Bool fallback)
 {
 	/* If we don't have a mask format but all the glyphs have the same format
 	 * and don't intersect, use the glyph format as mask format for the full
@@ -848,4 +809,31 @@ glamor_glyphs(CARD8 op,
 	else
 		glamor_glyphs_to_dst(op, src, dst, x_src, y_src, nlist,
 				     list, glyphs);
+	return TRUE;
 }
+
+void
+glamor_glyphs(CARD8 op,
+	      PicturePtr src,
+	      PicturePtr dst,
+	      PictFormatPtr mask_format,
+	      INT16 x_src,
+	      INT16 y_src, int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+{
+	_glamor_glyphs(op, src, dst, mask_format, x_src, 
+		       y_src, nlist, list, glyphs, TRUE);
+}
+
+Bool
+glamor_glyphs_nf(CARD8 op,
+		 PicturePtr src,
+		 PicturePtr dst,
+		 PictFormatPtr mask_format,
+		 INT16 x_src,
+		 INT16 y_src, int nlist, 
+		 GlyphListPtr list, GlyphPtr * glyphs)
+{
+	return _glamor_glyphs(op, src, dst, mask_format, x_src, 
+			      y_src, nlist, list, glyphs, FALSE);
+}
+

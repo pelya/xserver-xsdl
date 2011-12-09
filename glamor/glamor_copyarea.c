@@ -286,16 +286,17 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	return FALSE;
 }
 
-void
-glamor_copy_n_to_n(DrawablePtr src,
-		   DrawablePtr dst,
-		   GCPtr gc,
-		   BoxPtr box,
-		   int nbox,
-		   int dx,
-		   int dy,
-		   Bool reverse,
-		   Bool upsidedown, Pixel bitplane, void *closure)
+static Bool 
+_glamor_copy_n_to_n(DrawablePtr src,
+		    DrawablePtr dst,
+		    GCPtr gc,
+		    BoxPtr box,
+		    int nbox,
+		    int dx,
+		    int dy,
+		    Bool reverse,
+		    Bool upsidedown, Pixel bitplane, 
+		    void *closure, Bool fallback)
 {
 	glamor_access_t dst_access;
 	PixmapPtr dst_pixmap, src_pixmap, temp_pixmap = NULL;
@@ -308,12 +309,16 @@ glamor_copy_n_to_n(DrawablePtr src,
 	int src_x_off, src_y_off, dst_x_off, dst_y_off;
 	int i;
 	int overlaped = 0;
+	Bool ret = TRUE;
 
 	dst_pixmap = glamor_get_drawable_pixmap(dst);
 	dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
 	src_pixmap = glamor_get_drawable_pixmap(src);
 	src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 	screen = dst_pixmap->drawable.pScreen;
+
+	if (!dst_pixmap_priv || !src_pixmap_priv)
+		goto fail;
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
 		glamor_fallback("dest pixmap %p has no fbo. \n",
@@ -338,14 +343,12 @@ glamor_copy_n_to_n(DrawablePtr src,
 		}
 	}
 	/* XXX need revisit to handle overlapped area copying. */
-
 #ifndef GLAMOR_GLES2
 	if ((overlaped
 	     || !src_pixmap_priv->gl_tex || !dst_pixmap_priv->gl_tex)
 	    && glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx,
 					   dy)) {
 		goto done;
-		return;
 	}
 #endif
 	glamor_calculate_boxes_bound(&bound, box, nbox);
@@ -394,6 +397,12 @@ glamor_copy_n_to_n(DrawablePtr src,
 
 
       fail:
+	
+	if (!fallback) {
+		ret = FALSE;
+		goto done;
+	} 
+
 	glamor_report_delayed_fallbacks(src->pScreen);
 	glamor_report_delayed_fallbacks(dst->pScreen);
 
@@ -424,6 +433,7 @@ glamor_copy_n_to_n(DrawablePtr src,
 	if (temp_src != src) {
 		(*screen->DestroyPixmap) (temp_pixmap);
 	}
+	return ret;
 }
 
 RegionPtr
@@ -438,3 +448,36 @@ glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
 
 	return region;
 }
+
+void
+glamor_copy_n_to_n(DrawablePtr src,
+		   DrawablePtr dst,
+		   GCPtr gc,
+		   BoxPtr box,
+		   int nbox,
+		   int dx,
+		   int dy,
+		   Bool reverse,
+		   Bool upsidedown, Pixel bitplane, 
+		   void *closure)
+{
+	_glamor_copy_n_to_n(src, dst, gc, box, nbox, dx, 
+			    dy, reverse, upsidedown, bitplane, closure, TRUE);
+}
+
+Bool
+glamor_copy_n_to_n_nf(DrawablePtr src,
+		   DrawablePtr dst,
+		   GCPtr gc,
+		   BoxPtr box,
+		   int nbox,
+		   int dx,
+		   int dy,
+		   Bool reverse,
+		   Bool upsidedown, Pixel bitplane, 
+		   void *closure)
+{
+	return _glamor_copy_n_to_n(src, dst, gc, box, nbox, dx, 
+				    dy, reverse, upsidedown, bitplane, closure, FALSE);
+}
+

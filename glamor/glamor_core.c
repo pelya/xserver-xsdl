@@ -264,7 +264,7 @@ glamor_finish_access(DrawablePtr drawable)
 	    glamor_get_screen_private(drawable->pScreen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+	if (!pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return;
 
 	if (pixmap_priv->access_mode != GLAMOR_ACCESS_RO) {
