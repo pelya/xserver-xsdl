@@ -367,7 +367,7 @@ extern int DeviceMotionNotify;
  * time a button is pressed, the filter is modified to also contain the
  * matching ButtonXMotion mask.
  */
-static Mask filters[MAXDEVICES][128];
+Mask event_filters[MAXDEVICES][128];
 
 static const Mask default_filter[128] =
 {
@@ -408,18 +408,6 @@ static const Mask default_filter[128] =
 	CantBeFiltered		       /* MappingNotify */
 };
 
-static inline Mask
-GetEventFilterMask(DeviceIntPtr dev, int evtype)
-{
-    return filters[dev ? dev->id : 0][evtype];
-}
-
-inline Mask
-GetXI2EventFilterMask(int evtype)
-{
-    return (1 << (evtype % 8));
-}
-
 /**
  * For the given event, return the matching event filter. This filter may then
  * be AND'ed with the selected event mask.
@@ -441,9 +429,9 @@ GetEventFilter(DeviceIntPtr dev, xEvent *event)
     int evtype = 0;
 
     if (event->u.u.type != GenericEvent)
-        return GetEventFilterMask(dev, event->u.u.type);
+        return event_get_filter_from_type(dev, event->u.u.type);
     else if ((evtype = xi2_get_type(event)))
-        return GetXI2EventFilterMask(evtype);
+        return event_get_filter_from_xi2type(evtype);
     ErrorF("[dix] Unknown event type %d. No filter\n", event->u.u.type);
     return 0;
 }
@@ -459,7 +447,7 @@ GetXI2MaskByte(XI2Mask *mask, DeviceIntPtr dev, int event_type)
      * for this mask anyway.
      */
     if (xi2mask_isset(mask, dev, event_type))
-        return GetXI2EventFilterMask(event_type);
+        return event_get_filter_from_xi2type(event_type);
     else
         return 0;
 }
@@ -679,7 +667,7 @@ SetMaskForEvent(int deviceid, Mask mask, int event)
 {
     if (deviceid < 0 || deviceid >= MAXDEVICES)
         FatalError("SetMaskForEvent: bogus device id");
-    filters[deviceid][event] = mask;
+    event_filters[deviceid][event] = mask;
 }
 
 void
@@ -2554,7 +2542,7 @@ EventIsDeliverable(DeviceIntPtr dev, int evtype, WindowPtr win)
 
     if ((type = GetXIType(evtype)) != 0)
     {
-        filter = GetEventFilterMask(dev, type);
+        filter = event_get_filter_from_type(dev, type);
 
         /* Check for XI mask */
         if (inputMasks &&
@@ -2570,7 +2558,7 @@ EventIsDeliverable(DeviceIntPtr dev, int evtype, WindowPtr win)
 
     if ((type = GetCoreType(evtype)) != 0)
     {
-        filter = GetEventFilterMask(dev, type);
+        filter = event_get_filter_from_type(dev, type);
 
         /* Check for core mask */
         if ((win->deliverableEvents & filter) &&
@@ -5350,7 +5338,7 @@ InitEvents(void)
     inputInfo.pointer = (DeviceIntPtr)NULL;
     for (i = 0; i < MAXDEVICES; i++)
     {
-        memcpy(&filters[i], default_filter, sizeof(default_filter));
+        memcpy(&event_filters[i], default_filter, sizeof(default_filter));
     }
 
     syncEvents.replayDev = (DeviceIntPtr)NULL;

@@ -695,6 +695,25 @@ void event_set_state(DeviceIntPtr mouse, DeviceIntPtr kbd, DeviceEvent *event)
     }
 }
 
+/**
+ * Return the event filter mask for the given device and the given core or
+ * XI1 protocol type.
+ */
+Mask
+event_get_filter_from_type(DeviceIntPtr dev, int evtype)
+{
+    return event_filters[dev ? dev->id : 0][evtype];
+}
+
+/**
+ * Return the event filter mask for the given device and the given core or
+ * XI2 protocol type.
+ */
+Mask
+event_get_filter_from_xi2type(int evtype)
+{
+    return (1 << (evtype % 8));
+}
 
 Bool
 point_on_screen(ScreenPtr pScreen, int x, int y)
