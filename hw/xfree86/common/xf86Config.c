@@ -2300,15 +2300,16 @@ checkInput(serverLayoutPtr layout, Bool implicit_layout) {
 ConfigStatus
 xf86HandleConfigFile(Bool autoconfig)
 {
-    char *filename, *dirname, *sysdirname;
-    const char *filesearch, *dirsearch;
-    MessageType filefrom = X_DEFAULT;
-    MessageType dirfrom = X_DEFAULT;
     char *scanptr;
     Bool singlecard = 0;
     Bool implicit_layout = FALSE;
 
     if (!autoconfig) {
+	char *filename, *dirname, *sysdirname;
+	const char *filesearch, *dirsearch;
+	MessageType filefrom = X_DEFAULT;
+	MessageType dirfrom = X_DEFAULT;
+
 	if (getuid() == 0) {
 	    filesearch = ROOT_CONFIGPATH;
 	    dirsearch = ROOT_CONFIGDIRPATH;
@@ -2350,11 +2351,11 @@ xf86HandleConfigFile(Bool autoconfig)
 			sysdirname);
 	if (!filename && !dirname && !sysdirname)
 	    return CONFIG_NOFILE;
-    }
 
-    free(filename);
-    free(dirname);
-    free(sysdirname);
+	free(filename);
+	free(dirname);
+	free(sysdirname);
+    }
 
     if ((xf86configptr = xf86readConfigFile ()) == NULL) {
 	xf86Msg(X_ERROR, "Problem parsing the config file\n");
