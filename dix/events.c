@@ -367,9 +367,9 @@ extern int DeviceMotionNotify;
  * time a button is pressed, the filter is modified to also contain the
  * matching ButtonXMotion mask.
  */
-Mask event_filters[MAXDEVICES][128];
+Mask event_filters[MAXDEVICES][MAXEVENTS];
 
-static const Mask default_filter[128] =
+static const Mask default_filter[MAXEVENTS] =
 {
 	NoSuchEvent,		       /* 0 */
 	NoSuchEvent,		       /* 1 */
@@ -673,7 +673,7 @@ SetMaskForEvent(int deviceid, Mask mask, int event)
 void
 SetCriticalEvent(int event)
 {
-    if (event >= 128)
+    if (event >= MAXEVENTS)
 	FatalError("SetCriticalEvent: bogus event number");
     criticalEvents[event >> 3] |= 1 << (event & 7);
 }

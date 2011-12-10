@@ -32,7 +32,7 @@
 #include "input.h"
 #include <X11/extensions/XI2proto.h>
 
-extern Mask filters[MAXDEVICES][128];
+extern Mask event_filters[MAXDEVICES][MAXEVENTS];
 
 struct _ValuatorMask {
     int8_t      last_bit; /* highest bit set in mask */
