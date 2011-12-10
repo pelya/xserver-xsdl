@@ -290,32 +290,24 @@ DoCreateContext(__GLXclientState * cl, GLXContextID gcId,
         return BadAlloc;
     }
 
-    /*
-     ** Initially, setup the part of the context that could be used by
-     ** a GL core that needs windowing information (e.g., Mesa).
+    /* Initialize the GLXcontext structure.
      */
     glxc->pGlxScreen = pGlxScreen;
     glxc->config = config;
-
-    /*
-     ** Register this context as a resource.
-     */
-    if (!AddResource(gcId, __glXContextRes, (pointer) glxc)) {
-        (*glxc->destroy) (glxc);
-        client->errorValue = gcId;
-        return BadAlloc;
-    }
-
-    /*
-     ** Finally, now that everything is working, setup the rest of the
-     ** context.
-     */
     glxc->id = gcId;
     glxc->share_id = shareList;
     glxc->idExists = GL_TRUE;
     glxc->isCurrent = GL_FALSE;
     glxc->isDirect = isDirect;
     glxc->renderMode = GL_RENDER;
+
+    /* Register this context as a resource.
+     */
+    if (!AddResource(gcId, __glXContextRes, (pointer)glxc)) {
+        (*glxc->destroy) (glxc);
+        client->errorValue = gcId;
+        return BadAlloc;
+    }
 
     __glXAddToContextList(glxc);
 
