@@ -33,12 +33,12 @@ glamor_prepare_access_picture(PicturePtr picture, glamor_access_t access)
 }
 
 void
-glamor_finish_access_picture(PicturePtr picture)
+glamor_finish_access_picture(PicturePtr picture, glamor_access_t access)
 {
 	if (!picture || !picture->pDrawable)
 		return;
 
-	glamor_finish_access(picture->pDrawable);
+	glamor_finish_access(picture->pDrawable, access);
 }
 
 /* 

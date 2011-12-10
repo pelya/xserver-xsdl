@@ -226,7 +226,6 @@ typedef union _glamor_pending_op {
  * @tex:     attached texture.
  * @fb:      attached fbo.
  * @pbo:     attached pbo.
- * @access_mode: access mode during the prepare/finish pair.
  * @pict_format: the corresponding picture's format.
  * #pending_op: currently only support pending filling.
  * @container: The corresponding pixmap's pointer.
@@ -240,7 +239,6 @@ typedef struct glamor_pixmap_private {
 	GLuint tex;
 	GLuint fb;
 	GLuint pbo;
-	glamor_access_t access_mode;
 	PictFormatShort pict_format;
 	glamor_pending_op pending_op;
 	PixmapPtr container;
@@ -316,7 +314,7 @@ void glamor_copy_window(WindowPtr win, DDXPointRec old_origin,
 
 /* glamor_core.c */
 Bool glamor_prepare_access(DrawablePtr drawable, glamor_access_t access);
-void glamor_finish_access(DrawablePtr drawable);
+void glamor_finish_access(DrawablePtr drawable, glamor_access_t access);
 Bool glamor_prepare_access_window(WindowPtr window);
 void glamor_finish_access_window(WindowPtr window);
 Bool glamor_prepare_access_gc(GCPtr gc);
@@ -524,7 +522,7 @@ int glamor_create_picture(PicturePtr picture);
 Bool
 glamor_prepare_access_picture(PicturePtr picture, glamor_access_t access);
 
-void glamor_finish_access_picture(PicturePtr picture);
+void glamor_finish_access_picture(PicturePtr picture, glamor_access_t access);
 
 void glamor_destroy_picture(PicturePtr picture);
 

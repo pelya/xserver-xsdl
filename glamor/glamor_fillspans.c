@@ -83,7 +83,7 @@ _glamor_fill_spans(DrawablePtr drawable,
 				    sorted);
 			glamor_finish_access_gc(gc);
 		}
-		glamor_finish_access(drawable);
+		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
 	return TRUE;
 }

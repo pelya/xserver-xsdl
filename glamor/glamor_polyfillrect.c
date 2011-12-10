@@ -102,7 +102,7 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 			fbPolyFillRect(drawable, gc, nrect, prect);
 			glamor_finish_access_gc(gc);
 		}
-		glamor_finish_access(drawable);
+		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
 	return TRUE;
 }

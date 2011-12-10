@@ -88,7 +88,7 @@ glamor_fill(DrawablePtr drawable,
 			fbFill(drawable, gc, x, y, width, height);
 			glamor_finish_access_gc(gc);
 		}
-		glamor_finish_access(drawable);
+		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
 	return TRUE;
 }

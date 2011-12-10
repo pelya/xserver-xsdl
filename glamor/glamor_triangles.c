@@ -50,9 +50,9 @@ _glamor_triangles(CARD8 op,
 				    ySrc, ntris, tris);
 		}
 		if (pSrc->pDrawable != NULL)
-			glamor_finish_access(pSrc->pDrawable);
+			glamor_finish_access(pSrc->pDrawable, GLAMOR_ACCESS_RO);
 
-		glamor_finish_access(pDst->pDrawable);
+		glamor_finish_access(pDst->pDrawable, GLAMOR_ACCESS_RW);
 	}
 	return TRUE;
 }

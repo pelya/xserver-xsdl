@@ -234,7 +234,7 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 		fbPutImage(drawable, gc, 1, x, y, w, h, left_pad, XYBitmap,
 			   bits);
-		glamor_finish_access(drawable);
+		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
 }
 #endif
@@ -401,7 +401,7 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	if (glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RW)) {
 		fbPutImage(&pixmap->drawable, gc, depth, x, y, w, h,
 			   left_pad, image_format, bits);
-		glamor_finish_access(&pixmap->drawable);
+		glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RW);
 	}
 	return TRUE;
 }

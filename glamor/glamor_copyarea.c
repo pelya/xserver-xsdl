@@ -422,9 +422,9 @@ _glamor_copy_n_to_n(DrawablePtr src,
 				   dx, dy, reverse, upsidedown, bitplane,
 				   closure);
 			if (dst != src)
-				glamor_finish_access(src);
+				glamor_finish_access(src, GLAMOR_ACCESS_RO);
 		}
-		glamor_finish_access(dst);
+		glamor_finish_access(dst, GLAMOR_ACCESS_RW);
 	}
 
       done:

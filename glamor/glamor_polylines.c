@@ -151,7 +151,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 				fbPolyLine(temp_dest, gc, mode, n, points);
 				glamor_finish_access_gc(gc);
 			}
-			glamor_finish_access(temp_dest);
+			glamor_finish_access(temp_dest, GLAMOR_ACCESS_RW);
 		}
 	} else {
 		/* fb calls mi functions in the lineWidth != 0 case. */

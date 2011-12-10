@@ -255,7 +255,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 }
 
 void
-glamor_finish_access(DrawablePtr drawable)
+glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 {
 	PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 	glamor_pixmap_private *pixmap_priv =
@@ -267,7 +267,7 @@ glamor_finish_access(DrawablePtr drawable)
 	if (!pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return;
 
-	if (pixmap_priv->access_mode != GLAMOR_ACCESS_RO) {
+	if (access_mode != GLAMOR_ACCESS_RO) {
 		glamor_restore_pixmap_to_texture(pixmap);
 	}
 
@@ -307,7 +307,8 @@ glamor_prepare_access_gc(GCPtr gc)
 					   GLAMOR_ACCESS_RO)) {
 			if (gc->stipple)
 				glamor_finish_access(&gc->
-						     stipple->drawable);
+						     stipple->drawable, 
+						     GLAMOR_ACCESS_RO);
 			return FALSE;
 		}
 	}
@@ -321,9 +322,9 @@ void
 glamor_finish_access_gc(GCPtr gc)
 {
 	if (gc->fillStyle == FillTiled)
-		glamor_finish_access(&gc->tile.pixmap->drawable);
+		glamor_finish_access(&gc->tile.pixmap->drawable, GLAMOR_ACCESS_RO);
 	if (gc->stipple)
-		glamor_finish_access(&gc->stipple->drawable);
+		glamor_finish_access(&gc->stipple->drawable, GLAMOR_ACCESS_RO);
 }
 
 Bool
@@ -406,7 +407,7 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
 					    (old_tile,
 					     drawable->bitsPerPixel);
 					glamor_finish_access
-					    (&old_tile->drawable);
+					    (&old_tile->drawable, GLAMOR_ACCESS_RO);
 				}
 			}
 			if (new_tile) {
@@ -432,7 +433,7 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
 				     GLAMOR_ACCESS_RW)) {
 					fbPadPixmap(gc->tile.pixmap);
 					glamor_finish_access
-					    (&gc->tile.pixmap->drawable);
+					    (&gc->tile.pixmap->drawable, GLAMOR_ACCESS_RW);
 				}
 			}
 		}
@@ -449,7 +450,7 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
 		if (glamor_prepare_access
 		    (&gc->stipple->drawable, GLAMOR_ACCESS_RW)) {
 			fbValidateGC(gc, changes, drawable);
-			glamor_finish_access(&gc->stipple->drawable);
+			glamor_finish_access(&gc->stipple->drawable, GLAMOR_ACCESS_RW);
 		}
 	} else {
 		fbValidateGC(gc, changes, drawable);
@@ -491,7 +492,7 @@ glamor_bitmap_to_region(PixmapPtr pixmap)
 	if (!glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RO))
 		return NULL;
 	ret = fbPixmapToRegion(pixmap);
-	glamor_finish_access(&pixmap->drawable);
+	glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RO);
 	return ret;
 }
 

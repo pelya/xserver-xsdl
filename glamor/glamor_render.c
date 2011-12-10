@@ -1366,11 +1366,11 @@ _glamor_composite(CARD8 op,
 					    x_mask, y_mask, x_dest,
 					    y_dest, width, height);
 				if (mask)
-					glamor_finish_access_picture(mask);
+					glamor_finish_access_picture(mask, GLAMOR_ACCESS_RO);
 			}
-			glamor_finish_access_picture(source);
+			glamor_finish_access_picture(source, GLAMOR_ACCESS_RO);
 		}
-		glamor_finish_access_picture(dest);
+		glamor_finish_access_picture(dest, GLAMOR_ACCESS_RW);
 	}
       done:
 	if (temp_src != source)
