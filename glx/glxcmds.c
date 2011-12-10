@@ -299,7 +299,14 @@ DoCreateContext(__GLXclientState * cl, GLXContextID gcId,
     glxc->idExists = GL_TRUE;
     glxc->isCurrent = GL_FALSE;
     glxc->isDirect = isDirect;
+    glxc->hasUnflushedCommands = GL_FALSE;
     glxc->renderMode = GL_RENDER;
+    glxc->feedbackBuf = NULL;
+    glxc->feedbackBufSize = 0;
+    glxc->selectBuf = NULL;
+    glxc->selectBufSize = 0;
+    glxc->drawPriv = NULL;
+    glxc->readPriv = NULL;
 
     /* Register this context as a resource.
      */
