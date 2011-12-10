@@ -157,11 +157,18 @@ DrawableGone(__GLXdrawable * glxPriv, XID xid)
     return True;
 }
 
-void
-__glXAddToContextList(__GLXcontext * cx)
+Bool
+__glXAddContext(__GLXcontext * cx)
 {
+    /* Register this context as a resource.
+     */
+    if (!AddResource(cx->id, __glXContextRes, (pointer)cx)) {
+	return False;
+    }
+
     cx->next = glxAllContexts;
     glxAllContexts = cx;
+    return True;
 }
 
 static void

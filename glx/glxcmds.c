@@ -308,15 +308,13 @@ DoCreateContext(__GLXclientState * cl, GLXContextID gcId,
     glxc->drawPriv = NULL;
     glxc->readPriv = NULL;
 
-    /* Register this context as a resource.
+    /* Add the new context to the various global tables of GLX contexts.
      */
-    if (!AddResource(gcId, __glXContextRes, (pointer)glxc)) {
+    if (!__glXAddContext(glxc)) {
         (*glxc->destroy) (glxc);
         client->errorValue = gcId;
         return BadAlloc;
     }
-
-    __glXAddToContextList(glxc);
 
     return Success;
 }
