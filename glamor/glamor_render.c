@@ -1161,7 +1161,7 @@ glamor_convert_gradient_picture(ScreenPtr screen,
 	else
 		format = source->format;
 
-	pixmap = screen->CreatePixmap(screen,
+	pixmap = glamor_create_pixmap(screen,
 				      width,
 				      height,
 				      PIXMAN_FORMAT_DEPTH(format),
@@ -1442,7 +1442,7 @@ glamor_create_mask_picture(ScreenPtr screen,
 			return 0;
 	}
 
-	pixmap = screen->CreatePixmap(screen, 0, 0,
+	pixmap = glamor_create_pixmap(screen, 0, 0,
 				      pict_format->depth,
 				      GLAMOR_CREATE_PIXMAP_CPU);
 	if (!pixmap)

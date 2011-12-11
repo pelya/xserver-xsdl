@@ -93,7 +93,7 @@ glamor_get_spans(DrawablePtr drawable,
 		    PixmapBytePad(widths[i], drawable->depth);
 	}
 	if (temp_pixmap)
-		pixmap->drawable.pScreen->DestroyPixmap(temp_pixmap);
+		glamor_destroy_pixmap(temp_pixmap);
 	return;
 
       fail:

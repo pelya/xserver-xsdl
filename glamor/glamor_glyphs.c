@@ -172,10 +172,10 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
 			goto bail;
 
 		/* Now allocate the pixmap and picture */
-		pixmap = pScreen->CreatePixmap(pScreen,
-					       CACHE_PICTURE_SIZE,
-					       CACHE_PICTURE_SIZE, depth,
-					       0);
+		pixmap = glamor_create_pixmap(pScreen,
+					      CACHE_PICTURE_SIZE,
+					      CACHE_PICTURE_SIZE, depth,
+					      0);
 		if (!pixmap)
 			goto bail;
 
@@ -184,7 +184,7 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
 					CPComponentAlpha, &component_alpha,
 					serverClient, &error);
 
-		pScreen->DestroyPixmap(pixmap);
+		glamor_destroy_pixmap(pixmap);
 		if (!picture)
 			goto bail;
 
@@ -244,7 +244,7 @@ glamor_glyph_cache_upload_glyph(ScreenPtr screen,
 			     y);
 
 	if (scratch != pGlyphPixmap)
-		screen->DestroyPixmap(scratch);
+		glamor_destroy_pixmap(scratch);
 
 	FreeScratchGC(gc);
 }
@@ -628,7 +628,7 @@ glamor_glyphs_via_mask(CARD8 op,
 			mask_format = a8Format;
 	}
 
-	mask_pixmap = screen->CreatePixmap(screen, width, height,
+	mask_pixmap = glamor_create_pixmap(screen, width, height,
 					   mask_format->depth,
 					   CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!mask_pixmap)
@@ -638,7 +638,7 @@ glamor_glyphs_via_mask(CARD8 op,
 			     mask_format, CPComponentAlpha,
 			     &component_alpha, serverClient, &error);
 	if (!mask) {
-		screen->DestroyPixmap(mask_pixmap);
+		glamor_destroy_pixmap(mask_pixmap);
 		return;
 	}
 	gc = GetScratchGC(mask_pixmap->drawable.depth, screen);
@@ -695,7 +695,7 @@ glamor_glyphs_via_mask(CARD8 op,
 			 x_src + x - x_dst,
 			 y_src + y - y_dst, 0, 0, x, y, width, height);
 	FreePicture(mask, 0);
-	screen->DestroyPixmap(mask_pixmap);
+	glamor_destroy_pixmap(mask_pixmap);
 }
 
 static void

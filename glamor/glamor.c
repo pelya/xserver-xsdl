@@ -114,14 +114,10 @@ glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h,
 	glamor_priv->screen_fbo = pixmap_priv->fb;
 }
 
-
-
 #define GLAMOR_PIXMAP_MEMORY 0
 #define GLAMOR_PIXMAP_TEXTURE 1
 
-
-
-static PixmapPtr
+PixmapPtr
 glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 		     unsigned int usage)
 {
@@ -163,8 +159,9 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	pixmap_priv->container = pixmap;
 	pixmap_priv->glamor_priv = glamor_priv;
 
-	if (w == 0 || h == 0 || type == GLAMOR_PIXMAP_MEMORY)
+	if (w == 0 || h == 0 || type == GLAMOR_PIXMAP_MEMORY) {
 		return pixmap;
+	}
 
 	switch (depth) {
 #if 0
@@ -218,7 +215,7 @@ glamor_destroy_textured_pixmap(PixmapPtr pixmap)
 	}
 }
 
-static Bool
+Bool
 glamor_destroy_pixmap(PixmapPtr pixmap)
 {
 	glamor_destroy_textured_pixmap(pixmap);

@@ -576,10 +576,10 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum * format,
 	}
 
 
-	temp_pixmap = (*screen->CreatePixmap) (screen,
-					       source->drawable.width,
-					       source->drawable.height,
-					       source->drawable.depth, 0);
+	temp_pixmap = glamor_create_pixmap (screen,
+					    source->drawable.width,
+					    source->drawable.height,
+					    source->drawable.depth, 0);
 
 	temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
 
@@ -658,7 +658,6 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 		return FALSE;
 	}
 
-	pixmap_priv->access_mode = access;
 	glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DOWNLOAD,
 			    "Downloading pixmap %p  %dx%d depth%d\n",
 			    pixmap,
@@ -789,9 +788,8 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
       done:
 	pixmap->devPrivate.ptr = data;
 
-	if (temp_pixmap) {
-		(*screen->DestroyPixmap) (temp_pixmap);
-	}
+	if (temp_pixmap)
+		glamor_destroy_pixmap(temp_pixmap);
 
 	return TRUE;
 }

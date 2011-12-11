@@ -231,6 +231,7 @@ typedef union _glamor_pending_op {
  * @container: The corresponding pixmap's pointer.
  **/
 
+
 typedef struct glamor_pixmap_private {
 	unsigned char gl_fbo:1;
 	unsigned char gl_tex:1;
@@ -298,6 +299,10 @@ PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
 Bool glamor_close_screen(int idx, ScreenPtr screen);
 
+PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
+			       unsigned int usage);
+
+Bool glamor_destroy_pixmap(PixmapPtr pixmap);
 
 /* glamor_copyarea.c */
 RegionPtr

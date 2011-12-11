@@ -360,13 +360,13 @@ _glamor_copy_n_to_n(DrawablePtr src,
 			      src_pixmap->drawable.width *
 			      src_pixmap->drawable.height))) {
 
-		temp_pixmap = (*screen->CreatePixmap) (screen,
-						       bound.x2 - bound.x1,
-						       bound.y2 - bound.y1,
-						       src_pixmap->
-						       drawable.depth,
-						       overlaped ? 0 :
-						       GLAMOR_CREATE_PIXMAP_CPU);
+		temp_pixmap = glamor_create_pixmap(screen,
+						   bound.x2 - bound.x1,
+						   bound.y2 - bound.y1,
+						   src_pixmap->
+						   drawable.depth,
+						   overlaped ? 0 :
+						   GLAMOR_CREATE_PIXMAP_CPU);
 		if (!temp_pixmap)
 			goto fail;
 		glamor_transform_boxes(box, nbox, -bound.x1, -bound.y1);
@@ -430,9 +430,8 @@ _glamor_copy_n_to_n(DrawablePtr src,
       done:
 	glamor_clear_delayed_fallbacks(src->pScreen);
 	glamor_clear_delayed_fallbacks(dst->pScreen);
-	if (temp_src != src) {
-		(*screen->DestroyPixmap) (temp_pixmap);
-	}
+	if (temp_src != src)
+		glamor_destroy_pixmap(temp_pixmap);
 	return ret;
 }
 

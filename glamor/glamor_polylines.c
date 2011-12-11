@@ -122,10 +122,10 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 			y_max = points[i].y;
 	}
 
-	temp_pixmap = drawable->pScreen->CreatePixmap(drawable->pScreen,
-						      x_max - x_min + 1,
-						      y_max - y_min + 1,
-						      drawable->depth, 0);
+	temp_pixmap = glamor_create_pixmap(drawable->pScreen,
+					   x_max - x_min + 1,
+					   y_max - y_min + 1,
+					   drawable->depth, 0);
 	if (temp_pixmap) {
 		temp_dest = &temp_pixmap->drawable;
 		temp_gc =
@@ -164,7 +164,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 					0, 0,
 					x_max - x_min + 1,
 					y_max - y_min + 1, x_min, y_min);
-		drawable->pScreen->DestroyPixmap(temp_pixmap);
+		glamor_destroy_pixmap(temp_pixmap);
 		for (i = 0; i < n; i++) {
 			points[i].x += x_min;
 			points[i].y += y_min;
