@@ -61,6 +61,25 @@ glamor_get_drawable_pixmap(DrawablePtr drawable)
 }
 
 _X_EXPORT void
+glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
+{
+	glamor_pixmap_private *pixmap_priv;
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(pixmap->drawable.pScreen);
+
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	if (pixmap_priv == NULL) {
+		pixmap_priv = calloc(sizeof(*pixmap_priv), 1);
+		dixSetPrivate(&pixmap->devPrivates,
+			      glamor_pixmap_private_key, pixmap_priv);
+		pixmap_priv->container = pixmap;
+		pixmap_priv->glamor_priv = glamor_priv;
+	}
+	pixmap_priv->type = type;
+}
+
+
+_X_EXPORT void
 glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
 {
 	ScreenPtr screen = pixmap->drawable.pScreen;
@@ -114,9 +133,6 @@ glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h,
 	glamor_priv->screen_fbo = pixmap_priv->fb;
 }
 
-#define GLAMOR_PIXMAP_MEMORY 0
-#define GLAMOR_PIXMAP_TEXTURE 1
-
 PixmapPtr
 glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 		     unsigned int usage)
@@ -124,7 +140,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	PixmapPtr pixmap;
 	GLenum format;
 	GLuint tex;
-	int type = GLAMOR_PIXMAP_TEXTURE;
+	glamor_pixmap_type_t type = GLAMOR_TEXTURE_ONLY;
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
@@ -137,7 +153,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	    || usage == GLAMOR_CREATE_PIXMAP_CPU) {
 		/* MESA can only support upto MAX_WIDTH*MAX_HEIGHT fbo.
 		   If we exceed such limitation, we have to use framebuffer. */
-		type = GLAMOR_PIXMAP_MEMORY;
+		type = GLAMOR_MEMORY;
 		pixmap = fbCreatePixmap(screen, w, h, depth, usage);
 		screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
 					   (((w *
@@ -159,9 +175,9 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	pixmap_priv->container = pixmap;
 	pixmap_priv->glamor_priv = glamor_priv;
 
-	if (w == 0 || h == 0 || type == GLAMOR_PIXMAP_MEMORY) {
+	pixmap_priv->type = type;
+	if (w == 0 || h == 0 || type == GLAMOR_MEMORY)
 		return pixmap;
-	}
 
 	switch (depth) {
 #if 0
@@ -188,6 +204,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 			       GL_UNSIGNED_BYTE, NULL);
 
 	glamor_set_pixmap_texture(pixmap, w, h, tex);
+
 	return pixmap;
 }
 

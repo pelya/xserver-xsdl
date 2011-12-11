@@ -50,6 +50,20 @@
 				 | GLAMOR_USE_SCREEN 			\
                                  | GLAMOR_USE_PICTURE_SCREEN)
 
+/*
+ * glamor_pixmap_type : glamor pixmap's type.
+ * @MEMORY: pixmap is in memory.
+ * @TEXTURE_DRM: pixmap is in a texture created from a DRM buffer.
+ * @DRM_ONLY: pixmap is in a external DRM buffer.
+ * @TEXTURE_ONLY: pixmap is in an internal texture.
+ */
+typedef enum  glamor_pixmap_type {
+	GLAMOR_MEMORY,
+	GLAMOR_TEXTURE_DRM,
+	GLAMOR_DRM_ONLY,
+	GLAMOR_TEXTURE_ONLY
+} glamor_pixmap_type_t;
+
 #define GLAMOR_EGL_EXTERNAL_BUFFER 3
 
 extern _X_EXPORT Bool glamor_init(ScreenPtr screen, unsigned int flags);
@@ -58,9 +72,11 @@ extern _X_EXPORT void glamor_set_screen_pixmap_texture(ScreenPtr screen,
 						       int w, int h,
 						       unsigned int tex);
 extern _X_EXPORT Bool glamor_glyphs_init(ScreenPtr pScreen);
-void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h,
-			       unsigned int tex);
 
+extern _X_EXPORT void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h,
+						unsigned int tex);
+
+extern _X_EXPORT void glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type);
 extern _X_EXPORT void glamor_destroy_textured_pixmap(PixmapPtr pixmap);
 extern _X_EXPORT void glamor_block_handler(ScreenPtr screen);
 

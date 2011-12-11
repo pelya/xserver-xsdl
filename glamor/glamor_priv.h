@@ -233,6 +233,7 @@ typedef union _glamor_pending_op {
 
 
 typedef struct glamor_pixmap_private {
+	glamor_pixmap_type_t type;
 	unsigned char gl_fbo:1;
 	unsigned char gl_tex:1;
 	unsigned char pbo_valid:1;

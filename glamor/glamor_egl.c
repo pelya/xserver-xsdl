@@ -30,7 +30,8 @@
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
-#include <xorg-server.h>
+#define GLAMOR_FOR_XORG
+#include "xorg-server.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -54,14 +55,12 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#define GLAMOR_FOR_XORG
-
-#include <glamor.h>
-#include "glamor_gl_dispatch.h"
-
 #define GLAMOR_VERSION_MAJOR 0
 #define GLAMOR_VERSION_MINOR 1
 #define GLAMOR_VERSION_PATCH 0
+
+#include "glamor.h"
+#include "glamor_gl_dispatch.h"
 
 static const char glamor_name[] = "glamor";
 
@@ -127,7 +126,7 @@ _glamor_egl_create_image(struct glamor_egl_screen_private *glamor_egl,
 	attribs[1] = width;
 	attribs[3] = height;
 	attribs[5] = stride;
-	if (depth != 32)
+	if (depth != 32 && depth != 24)
 		return EGL_NO_IMAGE_KHR;
 	image = glamor_egl->egl_create_image_khr(glamor_egl->display,
 						 glamor_egl->context,
@@ -226,6 +225,7 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 	if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "Couldn't flink pixmap handle\n");
+		glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
 		return FALSE;
 	}
 
@@ -236,12 +236,15 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 					 name,
 					 pixmap->drawable.depth);
 	if (image == EGL_NO_IMAGE_KHR) {
+		glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
 		return FALSE;
 	}
 
 	glamor_create_texture_from_image(glamor_egl, image, &texture);
 	glamor_set_pixmap_texture(pixmap, pixmap->drawable.width,
 				  pixmap->drawable.height, texture);
+
+	glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
 	dixSetPrivate(&pixmap->devPrivates, glamor_egl_pixmap_private_key,
 		      image);
 	return TRUE;
