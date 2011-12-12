@@ -549,7 +549,7 @@ glamor_picture_format_fixup(PicturePtr picture,
  * fallback the whole process to cpu. Most of the time,
  * this will increase performance obviously. */
 
-//#define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
+#define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 //#define GLAMOR_DELAYED_FILLING
 
 
