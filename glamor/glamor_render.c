@@ -517,7 +517,6 @@ glamor_composite_with_copy(CARD8 op,
 				      0, 0, x_dest, y_dest, width, height))
 		return TRUE;
 	ret = TRUE;
-	ErrorF("width %d height %d \n", width, height);
 	if (!glamor_copy_n_to_n_nf(source->pDrawable,
 			dest->pDrawable, NULL,
 	                REGION_RECTS(&region),
@@ -946,6 +945,7 @@ glamor_composite_with_shader(CARD8 op,
 		if (mask_status == GLAMOR_UPLOAD_PENDING) {
 			mask_status =
 			    glamor_upload_picture_to_texture(mask);
+
 			if (mask_status != GLAMOR_UPLOAD_DONE) {
 				glamor_fallback
 				    ("Failed to upload mask texture.\n");
@@ -1230,13 +1230,15 @@ _glamor_composite(CARD8 op,
 		    glamor_get_drawable_pixmap(source->pDrawable);
 		source_pixmap_priv =
 		    glamor_get_pixmap_private(source_pixmap);
-		if (!source_pixmap_priv) goto fail;
+		if (!source_pixmap_priv || source_pixmap_priv->type == GLAMOR_DRM_ONLY)
+			goto fail;
 	}
 
 	if (mask && mask->pDrawable) {
 		mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
 		mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
-		if (!mask_pixmap_priv) goto fail;
+		if (!mask_pixmap_priv || mask_pixmap_priv->type == GLAMOR_DRM_ONLY)
+			goto fail;
 	}
 	if ((!source->pDrawable
 	     && (source->pSourcePict->type != SourcePictTypeSolidFill))
