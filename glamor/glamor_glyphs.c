@@ -172,7 +172,7 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
 			goto bail;
 
 		/* Now allocate the pixmap and picture */
-		pixmap = glamor_create_pixmap(pScreen,
+		pixmap = pScreen->CreatePixmap(pScreen,
 					      CACHE_PICTURE_SIZE,
 					      CACHE_PICTURE_SIZE, depth,
 					      0);
@@ -628,7 +628,7 @@ glamor_glyphs_via_mask(CARD8 op,
 			mask_format = a8Format;
 	}
 
-	mask_pixmap = glamor_create_pixmap(screen, width, height,
+	mask_pixmap = screen->CreatePixmap(screen, width, height,
 					   mask_format->depth,
 					   CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!mask_pixmap)
