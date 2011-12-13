@@ -405,7 +405,7 @@ extern _X_EXPORT void InitAuthorization(char * /*filename*/);
 extern _X_EXPORT int AuthorizationFromID (
 	XID 		id,
 	unsigned short	*name_lenp,
-	char		**namep,
+	const char	**namep,
 	unsigned short	*data_lenp,
 	char		**datap);
 

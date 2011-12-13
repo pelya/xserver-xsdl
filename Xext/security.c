@@ -171,7 +171,8 @@ SecurityDeleteAuthorization(
 {
     SecurityAuthorizationPtr pAuth = (SecurityAuthorizationPtr)value;
     unsigned short name_len, data_len;
-    char *name, *data;
+    const char *name;
+    char *data;
     int status;
     int i;
     OtherClientsPtr pEventClient;
