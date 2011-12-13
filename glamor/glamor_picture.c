@@ -42,7 +42,7 @@ glamor_finish_access_picture(PicturePtr picture, glamor_access_t access)
 }
 
 /* 
- * We should already has drawable attached to it, if it has one.
+ * We should already have drawable attached to it, if it has one.
  * Then set the attached pixmap to is_picture format, and set
  * the pict format.
  * */
@@ -64,6 +64,10 @@ glamor_create_picture(PicturePtr picture)
 	if (pixmap_priv) {
 		pixmap_priv->is_picture = 1;
 		pixmap_priv->pict_format = picture->format;
+		/* XXX Some formats are compatible between glamor and ddx driver*/
+		if (pixmap_priv->type == GLAMOR_TEXTURE_DRM
+		    /*&& pixmap_priv->pict_format != PICT_b8g8r8a8*/)
+			glamor_set_pixmap_type(pixmap, GLAMOR_SEPARATE_TEXTURE);
 	}
 	return glamor_priv->saved_create_picture(picture);
 }

@@ -33,52 +33,37 @@
 #include "glamor_priv.h"
 
 static Bool
-_glamor_triangles(CARD8 op,
-		 PicturePtr pSrc,
-		 PicturePtr pDst,
-		 PictFormatPtr maskFormat,
-		 INT16 xSrc, INT16 ySrc, int ntris, xTriangle * tris, Bool fallback)
+_glamor_add_traps(PicturePtr pPicture,
+		  INT16 x_off, 
+		  INT16 y_off, int ntrap, xTrap * traps,
+		  Bool fallback)
 {
 	if (!fallback
-	    && glamor_ddx_fallback_check_pixmap(pDst->pDrawable)
-	    && (!pSrc->pDrawable
-		|| glamor_ddx_fallback_check_pixmap(pSrc->pDrawable)))
+	    && ( !pPicture->pDrawable 
+		 || glamor_ddx_fallback_check_pixmap(pPicture->pDrawable)))
 		return FALSE;
 
-	if (glamor_prepare_access_picture(pDst, GLAMOR_ACCESS_RW)) {
-		if (glamor_prepare_access_picture(pSrc,
-						  GLAMOR_ACCESS_RO)) {
-
-			fbTriangles(op, pSrc, pDst, maskFormat, xSrc,
-				    ySrc, ntris, tris);
-
-			glamor_finish_access_picture(pSrc, GLAMOR_ACCESS_RO);
-		}
-
-		glamor_finish_access_picture(pDst, GLAMOR_ACCESS_RW);
+	if (glamor_prepare_access_picture(pPicture, GLAMOR_ACCESS_RW)) {
+		fbAddTraps(pPicture, x_off, y_off, ntrap, traps);
+		glamor_finish_access_picture(pPicture, GLAMOR_ACCESS_RW);
 	}
+
 	return TRUE;
 }
 
 void
-glamor_triangles(CARD8 op,
-		 PicturePtr pSrc,
-		 PicturePtr pDst,
-		 PictFormatPtr maskFormat,
-		 INT16 xSrc, INT16 ySrc, int ntris, xTriangle * tris)
+glamor_add_traps(PicturePtr pPicture,
+		 INT16 x_off, 
+		 INT16 y_off, int ntrap, xTrap * traps)
 {
-	_glamor_triangles(op, pSrc, pDst, maskFormat, 
-			  xSrc, ySrc, ntris, tris, TRUE);
+	_glamor_add_traps(pPicture, x_off, y_off, ntrap, traps, TRUE);
 }
 
 Bool
-glamor_triangles_nf(CARD8 op,
-		    PicturePtr pSrc,
-		    PicturePtr pDst,
-		    PictFormatPtr maskFormat,
-		    INT16 xSrc, INT16 ySrc, int ntris, xTriangle * tris)
+glamor_add_traps_nf(PicturePtr pPicture,
+		    INT16 x_off, 
+		    INT16 y_off, int ntrap, xTrap * traps)
 {
-	return _glamor_triangles(op, pSrc, pDst, maskFormat, 
-				 xSrc, ySrc, ntris, tris, FALSE);
+	return _glamor_add_traps(pPicture, x_off, y_off, ntrap, traps, FALSE);
 }
 

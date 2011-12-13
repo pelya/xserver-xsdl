@@ -41,9 +41,30 @@
 
 #endif				/* GLAMOR_H */
 
+/* @GLAMOR_INVERTED_Y_AXIS:
+ * set 1 means the GL env's origin (0,0) is at top-left. 
+ * EGL/DRM platform is an example need to set this bit.
+ * glx platform's origin is at bottom-left thus need to
+ * clear this bit.*/
 
 #define GLAMOR_INVERTED_Y_AXIS  	1
+
+/* @GLAMOR_USE_SCREEN:
+ * If want to let glamor to do everything including the
+ * create/destroy pixmap and handle the gc ops. need to
+ * set this bit. Standalone glamor DDX driver need to set
+ * this bit.
+ * Otherwise, need to clear this bit, as the intel video 
+ * driver with glamor enabled.
+ * */
 #define GLAMOR_USE_SCREEN		2
+/* @GLAMOR_USE_PICTURE_SCREEN:
+ * If want to let glamor to do all the composition related
+ * things, need to set this bit. Just as standalone glamor
+ * DDX driver.
+ * Otherwise, need to clear this bit, as the intel video
+ * driver with glamor enabled.
+ */
 #define GLAMOR_USE_PICTURE_SCREEN 	4
 
 #define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS  		\
@@ -54,12 +75,16 @@
  * glamor_pixmap_type : glamor pixmap's type.
  * @MEMORY: pixmap is in memory.
  * @TEXTURE_DRM: pixmap is in a texture created from a DRM buffer.
+ * @SEPARATE_TEXTURE: The texture is created from a DRM buffer, but
+ * 		      the format is incompatible, so this type of pixmap
+ * 		      will never fallback to DDX layer.
  * @DRM_ONLY: pixmap is in a external DRM buffer.
  * @TEXTURE_ONLY: pixmap is in an internal texture.
  */
 typedef enum  glamor_pixmap_type {
 	GLAMOR_MEMORY,
 	GLAMOR_TEXTURE_DRM,
+	GLAMOR_SEPARATE_TEXTURE,
 	GLAMOR_DRM_ONLY,
 	GLAMOR_TEXTURE_ONLY
 } glamor_pixmap_type_t;
@@ -96,6 +121,11 @@ extern _X_EXPORT Bool glamor_egl_init_textured_pixmap(ScreenPtr screen);
 extern _X_EXPORT void glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap);
 #endif
 
+/* Glamor rendering/drawing functions with XXX_nf. 
+ * nf means no fallback within glamor internal if possible. If glamor
+ * fail to accelerate the operation, glamor will return a false, and the
+ * caller need to implement fallback method. Return a true means the
+ * rendering request get done successfully. */
 extern _X_EXPORT Bool glamor_fill_spans_nf(DrawablePtr drawable,
 					   GCPtr gc,
 					   int n, DDXPointPtr points, 
@@ -157,4 +187,22 @@ extern _X_EXPORT Bool glamor_triangles_nf(CARD8 op,
 
 extern _X_EXPORT void glamor_glyph_unrealize(ScreenPtr screen, GlyphPtr glyph);
 
+extern _X_EXPORT Bool glamor_set_spans_nf(DrawablePtr drawable, GCPtr gc, char *src,
+					  DDXPointPtr points, int *widths, int n, int sorted);
+
+extern _X_EXPORT Bool glamor_get_spans_nf(DrawablePtr drawable, int wmax,
+					  DDXPointPtr points, int *widths, int count, char *dst);
+
+extern _X_EXPORT Bool glamor_composite_rects_nf (CARD8         op,
+						 PicturePtr    pDst,
+						 xRenderColor  *color,
+						 int           nRect,
+						 xRectangle    *rects);
+
+extern _X_EXPORT Bool glamor_get_image_nf(DrawablePtr pDrawable, int x, int y, int w, int h,
+					  unsigned int format, unsigned long planeMask, char *d);
+
+extern _X_EXPORT Bool glamor_add_traps_nf(PicturePtr pPicture,
+					  INT16 x_off, 
+					  INT16 y_off, int ntrap, xTrap * traps);
 

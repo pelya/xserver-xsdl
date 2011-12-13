@@ -395,7 +395,11 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 
       fail:
 	glamor_set_planemask(pixmap, ~0);
-	if (!fallback) return FALSE;
+
+	if (!fallback
+	    && glamor_ddx_fallback_check_pixmap(&pixmap->drawable))
+		return FALSE;
+
 	glamor_fallback("to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RW)) {

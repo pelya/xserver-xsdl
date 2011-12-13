@@ -1155,7 +1155,6 @@ glamor_convert_gradient_picture(ScreenPtr screen,
 	PicturePtr dst;
 	int error;
 	PictFormatShort format;
-
 	if (!source->pDrawable)
 		format = PICT_a8r8g8b8;
 	else
@@ -1176,7 +1175,7 @@ glamor_convert_gradient_picture(ScreenPtr screen,
 					       PIXMAN_FORMAT_DEPTH(format),
 					       format),
 			    0, 0, serverClient, &error);
-	screen->DestroyPixmap(pixmap);
+	glamor_destroy_pixmap(pixmap);
 	if (!dst)
 		return NULL;
 
@@ -1226,18 +1225,24 @@ _glamor_composite(CARD8 op,
 	}
 
 	if (source->pDrawable) {
-		source_pixmap =
-		    glamor_get_drawable_pixmap(source->pDrawable);
-		source_pixmap_priv =
-		    glamor_get_pixmap_private(source_pixmap);
-		if (!source_pixmap_priv || source_pixmap_priv->type == GLAMOR_DRM_ONLY)
+		source_pixmap = glamor_get_drawable_pixmap(source->pDrawable);
+		source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
+		if (!source_pixmap_priv) {
+			glamor_set_pixmap_type(source_pixmap, GLAMOR_MEMORY);
+			source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
+		}
+		if (source_pixmap_priv->type == GLAMOR_DRM_ONLY)
 			goto fail;
 	}
 
 	if (mask && mask->pDrawable) {
 		mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
 		mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
-		if (!mask_pixmap_priv || mask_pixmap_priv->type == GLAMOR_DRM_ONLY)
+		if (!mask_pixmap_priv) {
+			glamor_set_pixmap_type(mask_pixmap, GLAMOR_MEMORY);
+			mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
+		}
+		if (mask_pixmap_priv->type == GLAMOR_DRM_ONLY)
 			goto fail;
 	}
 	if ((!source->pDrawable
@@ -1336,10 +1341,17 @@ _glamor_composite(CARD8 op,
 
 	dispatch->glUseProgram(0);
 	dispatch->glDisable(GL_BLEND);
-	if (!fallback) {
+	if (!fallback
+	    && glamor_ddx_fallback_check_pixmap(&dest_pixmap->drawable)
+	    && (!source_pixmap 
+		|| glamor_ddx_fallback_check_pixmap(&source_pixmap->drawable))
+	    && (!mask_pixmap
+		|| glamor_ddx_fallback_check_pixmap(&mask_pixmap->drawable))) {
 		ret = FALSE;
 		goto done;
 	}
+
+fallback:
 	glamor_fallback
 	    ("from picts %p:%p %dx%d / %p:%p %d x %d (%c,%c)  to pict %p:%p %dx%d (%c)\n",
 	     source, source->pDrawable,
@@ -1564,9 +1576,9 @@ glamor_trapezoids_nf(CARD8 op,
 
 
 void
-glamor_composite_rects(CARD8 op,
-		       PicturePtr src, PicturePtr mask, PicturePtr dst,
-		       int nrect, glamor_composite_rect_t * rects)
+glamor_composite_glyph_rects(CARD8 op,
+			     PicturePtr src, PicturePtr mask, PicturePtr dst,
+			     int nrect, glamor_composite_rect_t * rects)
 {
 	int n;
 	glamor_composite_rect_t *r;
@@ -1591,5 +1603,39 @@ glamor_composite_rects(CARD8 op,
 		r++;
 	}
 }
+
+static Bool
+_glamor_composite_rects (CARD8         op,
+			      PicturePtr    pDst,
+			      xRenderColor  *color,
+			      int           nRect,
+			      xRectangle    *rects,
+			      Bool	    fallback)
+{
+	miCompositeRects(op, pDst, color, nRect, rects);
+	return TRUE;
+}
+
+void
+glamor_composite_rects (CARD8         op,
+			PicturePtr    pDst,
+			xRenderColor  *color,
+			int           nRect,
+			xRectangle    *rects)
+{
+	_glamor_composite_rects(op, pDst, color, nRect, rects, TRUE);
+}
+
+Bool
+glamor_composite_rects_nf (CARD8         op,
+			   PicturePtr    pDst,
+			   xRenderColor  *color,
+			   int           nRect,
+			   xRectangle    *rects)
+{
+	return _glamor_composite_rects(op, pDst, color, nRect, rects, FALSE);
+}
+
+
 
 #endif				/* RENDER */

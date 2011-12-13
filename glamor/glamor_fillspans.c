@@ -74,7 +74,10 @@ _glamor_fill_spans(DrawablePtr drawable,
 	return TRUE;
 
       fail:
-	if (!fallback) return FALSE;
+	if (!fallback 
+	    && glamor_ddx_fallback_check_pixmap(drawable)
+	    && glamor_ddx_fallback_check_gc(gc))
+		return FALSE;
 	glamor_fallback("to %p (%c)\n", drawable,
 			glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {

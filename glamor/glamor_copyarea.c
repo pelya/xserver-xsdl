@@ -317,13 +317,15 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 	screen = dst_pixmap->drawable.pScreen;
 
-	if (!dst_pixmap_priv || !src_pixmap_priv)
-		goto fail;
-
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
+	if (!dst_pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
 		glamor_fallback("dest pixmap %p has no fbo. \n",
 				dst_pixmap);
 		goto fail;
+	}
+
+	if (!src_pixmap_priv) {
+		glamor_set_pixmap_type(src_pixmap, GLAMOR_MEMORY);
+		src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 	}
 
 	glamor_get_drawable_deltas(src, src_pixmap, &src_x_off,
@@ -398,7 +400,9 @@ _glamor_copy_n_to_n(DrawablePtr src,
 
       fail:
 	
-	if (!fallback) {
+	if (!fallback 
+	    && glamor_ddx_fallback_check_pixmap(src)
+	    && glamor_ddx_fallback_check_pixmap(dst)) {
 		ret = FALSE;
 		goto done;
 	} 

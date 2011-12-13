@@ -65,8 +65,7 @@
 static const char glamor_name[] = "glamor";
 
 static DevPrivateKeyRec glamor_egl_pixmap_private_key_index;
-DevPrivateKey glamor_egl_pixmap_private_key =
-    &glamor_egl_pixmap_private_key_index;
+DevPrivateKey glamor_egl_pixmap_private_key = &glamor_egl_pixmap_private_key_index;
 
 static void
 glamor_identify(int flags)
@@ -121,8 +120,6 @@ _glamor_egl_create_image(struct glamor_egl_screen_private *glamor_egl,
 		    EGL_DRM_BUFFER_USE_SCANOUT_MESA,
 		EGL_NONE
 	};
-
-
 	attribs[1] = width;
 	attribs[3] = height;
 	attribs[5] = stride;
@@ -221,14 +218,15 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 	EGLImageKHR image;
 	GLuint texture;
 	int name;
+	int ret;
+	glamor_pixmap_type_t type;
 
 	if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "Couldn't flink pixmap handle\n");
-		glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
-		return FALSE;
+		glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
+		exit(1);
 	}
-
 	image = _glamor_egl_create_image(glamor_egl,
 					 pixmap->drawable.width,
 					 pixmap->drawable.height,
@@ -236,18 +234,41 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 					 name,
 					 pixmap->drawable.depth);
 	if (image == EGL_NO_IMAGE_KHR) {
-		glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
-		return FALSE;
+		GLenum format;
+		/* we have to create separated texture here. The reason is, if
+ 		 * a DRM-buffer-only pixmap exist, and given a texture only
+ 		 * pixmap as a source, then we will don't know how to render it
+ 		 * within glamor, and we even can't find a good way to fallback
+ 		 * to DDX driver, as DDX driver don't understand a texture only
+ 		 * pixmap. */
+		type = GLAMOR_SEPARATE_TEXTURE;
+		if (pixmap->drawable.depth == 24) 
+			format = GL_RGB;
+		else
+			format = GL_RGBA;
+		glamor_egl->dispatch->glGenTextures(1, &texture);
+		glamor_egl->dispatch->glBindTexture(GL_TEXTURE_2D, texture);
+		glamor_egl->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+						      GL_NEAREST);
+		glamor_egl->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+						      GL_NEAREST);
+		glamor_egl->dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, pixmap->drawable.width, 
+						   pixmap->drawable.height, 0, format,
+						   GL_UNSIGNED_BYTE, NULL);
+		ret = FALSE;
+	} else {
+		type = GLAMOR_TEXTURE_DRM;
+		glamor_create_texture_from_image(glamor_egl, image, &texture);
+		ret = TRUE;
 	}
 
-	glamor_create_texture_from_image(glamor_egl, image, &texture);
+	glamor_set_pixmap_type(pixmap, type);
 	glamor_set_pixmap_texture(pixmap, pixmap->drawable.width,
 				  pixmap->drawable.height, texture);
-
-	glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
 	dixSetPrivate(&pixmap->devPrivates, glamor_egl_pixmap_private_key,
 		      image);
-	return TRUE;
+
+	return ret;
 }
 
 void
@@ -261,7 +282,7 @@ glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap)
 	if (pixmap->refcnt == 1) {
 		image = dixLookupPrivate(&pixmap->devPrivates,
 					 glamor_egl_pixmap_private_key);
-		if (image != EGL_NO_IMAGE_KHR)
+		if (image != EGL_NO_IMAGE_KHR && image != NULL)
 			eglDestroyImageKHR(glamor_egl->display, image);
 	}
 	glamor_destroy_textured_pixmap(pixmap);
@@ -357,10 +378,10 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 	xf86Msg(X_INFO, "%s: EGL version %s:\n", glamor_name, version);
 
 #define GLAMOR_CHECK_EGL_EXTENSION(EXT)  \
-        if (!glamor_egl_has_extension(glamor_egl, "EGL_" #EXT)) {  \
-               ErrorF("EGL_" #EXT "required.\n");  \
-               return FALSE;  \
-        }
+	if (!glamor_egl_has_extension(glamor_egl, "EGL_" #EXT)) {  \
+		ErrorF("EGL_" #EXT "required.\n");  \
+		return FALSE;  \
+	}
 
 	GLAMOR_CHECK_EGL_EXTENSION(MESA_drm_image);
 	GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_renderbuffer_image);

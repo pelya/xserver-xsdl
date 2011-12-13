@@ -32,53 +32,28 @@
 
 #include "glamor_priv.h"
 
+
 static Bool
-_glamor_triangles(CARD8 op,
-		 PicturePtr pSrc,
-		 PicturePtr pDst,
-		 PictFormatPtr maskFormat,
-		 INT16 xSrc, INT16 ySrc, int ntris, xTriangle * tris, Bool fallback)
+_glamor_get_image(DrawablePtr pDrawable, int x, int y, int w, int h,
+		  unsigned int format, unsigned long planeMask, char *d,
+		  Bool fallback)
 {
-	if (!fallback
-	    && glamor_ddx_fallback_check_pixmap(pDst->pDrawable)
-	    && (!pSrc->pDrawable
-		|| glamor_ddx_fallback_check_pixmap(pSrc->pDrawable)))
-		return FALSE;
-
-	if (glamor_prepare_access_picture(pDst, GLAMOR_ACCESS_RW)) {
-		if (glamor_prepare_access_picture(pSrc,
-						  GLAMOR_ACCESS_RO)) {
-
-			fbTriangles(op, pSrc, pDst, maskFormat, xSrc,
-				    ySrc, ntris, tris);
-
-			glamor_finish_access_picture(pSrc, GLAMOR_ACCESS_RO);
-		}
-
-		glamor_finish_access_picture(pDst, GLAMOR_ACCESS_RW);
-	}
+	miGetImage(pDrawable, x, y, w, h, format, planeMask, d);
 	return TRUE;
 }
 
 void
-glamor_triangles(CARD8 op,
-		 PicturePtr pSrc,
-		 PicturePtr pDst,
-		 PictFormatPtr maskFormat,
-		 INT16 xSrc, INT16 ySrc, int ntris, xTriangle * tris)
+glamor_get_image(DrawablePtr pDrawable, int x, int y, int w, int h,
+		 unsigned int format, unsigned long planeMask, char *d)
 {
-	_glamor_triangles(op, pSrc, pDst, maskFormat, 
-			  xSrc, ySrc, ntris, tris, TRUE);
+	_glamor_get_image(pDrawable, x, y, w, h, format, planeMask, d, TRUE);
+	return;
 }
 
 Bool
-glamor_triangles_nf(CARD8 op,
-		    PicturePtr pSrc,
-		    PicturePtr pDst,
-		    PictFormatPtr maskFormat,
-		    INT16 xSrc, INT16 ySrc, int ntris, xTriangle * tris)
+glamor_get_image_nf(DrawablePtr pDrawable, int x, int y, int w, int h,
+		    unsigned int format, unsigned long planeMask, char *d)
 {
-	return _glamor_triangles(op, pSrc, pDst, maskFormat, 
-				 xSrc, ySrc, ntris, tris, FALSE);
+	return _glamor_get_image(pDrawable, x, y, w, 
+				 h, format, planeMask, d, FALSE);
 }
-

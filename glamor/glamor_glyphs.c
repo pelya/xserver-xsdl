@@ -184,7 +184,7 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
 					CPComponentAlpha, &component_alpha,
 					serverClient, &error);
 
-		glamor_destroy_pixmap(pixmap);
+		pScreen->DestroyPixmap(pixmap);
 		if (!picture)
 			goto bail;
 
@@ -239,12 +239,57 @@ glamor_glyph_cache_upload_glyph(ScreenPtr screen,
 	ValidateGC(&pCachePixmap->drawable, gc);
 
 	scratch = pGlyphPixmap;
+	if (pGlyphPixmap->drawable.depth != pCachePixmap->drawable.depth) {
+		scratch = glamor_create_pixmap(screen,
+					       glyph->info.width,
+					       glyph->info.height,
+					       pCachePixmap->
+					       drawable.depth, 0);
+		if (scratch) {
+			if (pGlyphPixmap->drawable.depth !=
+			    pCachePixmap->drawable.depth) {
+				PicturePtr picture;
+				int error;
+
+				picture =
+				    CreatePicture(0,
+						  &scratch->drawable,
+						  PictureMatchFormat
+						  (screen,
+						   pCachePixmap->
+						   drawable.depth,
+						   cache->picture->format),
+						  0, NULL, serverClient,
+						  &error);
+				if (picture) {
+					ValidatePicture(picture);
+					glamor_composite(PictOpSrc,
+						      pGlyphPicture,
+						      NULL, picture,
+						      0, 0, 0, 0, 0,
+						      0,
+						      glyph->info.width,
+						      glyph->info.height);
+					FreePicture(picture, 0);
+				}
+			} else {
+				glamor_copy_area(&pGlyphPixmap->drawable,
+						 &scratch->drawable,
+						 gc, 0, 0,
+						 glyph->info.width,
+						 glyph->info.height, 0, 0);
+			}
+		} else {
+			scratch = pGlyphPixmap;
+		}
+	}
+
 	(*gc->ops->CopyArea)(&scratch->drawable, &pCachePixmap->drawable, gc,
 			     0, 0, glyph->info.width, glyph->info.height, x,
 			     y);
 
 	if (scratch != pGlyphPixmap)
-		glamor_destroy_pixmap(scratch);
+		screen->DestroyPixmap(scratch);
 
 	FreeScratchGC(gc);
 }
@@ -581,8 +626,8 @@ static void
 glamor_glyphs_flush_mask(PicturePtr mask, glamor_glyph_buffer_t * buffer)
 {
 #ifdef RENDER
-	glamor_composite_rects(PictOpAdd, buffer->source, NULL, mask,
-			       buffer->count, buffer->rects);
+	glamor_composite_glyph_rects(PictOpAdd, buffer->source, NULL, mask,
+				     buffer->count, buffer->rects);
 #endif
 	buffer->count = 0;
 	buffer->source = NULL;
@@ -638,7 +683,7 @@ glamor_glyphs_via_mask(CARD8 op,
 			     mask_format, CPComponentAlpha,
 			     &component_alpha, serverClient, &error);
 	if (!mask) {
-		glamor_destroy_pixmap(mask_pixmap);
+		screen->DestroyPixmap(mask_pixmap);
 		return;
 	}
 	gc = GetScratchGC(mask_pixmap->drawable.depth, screen);
@@ -695,7 +740,7 @@ glamor_glyphs_via_mask(CARD8 op,
 			 x_src + x - x_dst,
 			 y_src + y - y_dst, 0, 0, x, y, width, height);
 	FreePicture(mask, 0);
-	glamor_destroy_pixmap(mask_pixmap);
+	screen->DestroyPixmap(mask_pixmap);
 }
 
 static void
@@ -714,7 +759,7 @@ glamor_glyphs_flush_dst(CARD8 op,
 		rect->y_src = y_src + rect->y_dst - y_dst;
 	}
 
-	glamor_composite_rects(op, src, buffer->source, dst,
+	glamor_composite_glyph_rects(op, src, buffer->source, dst,
 			       buffer->count, &buffer->rects[0]);
 
 	buffer->count = 0;

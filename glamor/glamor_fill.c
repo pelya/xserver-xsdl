@@ -82,7 +82,12 @@ glamor_fill(DrawablePtr drawable,
 	return TRUE;
 
       fail:
-	if (!fallback) return FALSE;
+	if (!fallback) {
+		if (glamor_ddx_fallback_check_pixmap(&dst_pixmap->drawable)
+		   && glamor_ddx_fallback_check_gc(gc))
+		return FALSE;
+	}
+
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 		if (glamor_prepare_access_gc(gc)) {
 			fbFill(drawable, gc, x, y, width, height);

@@ -147,6 +147,7 @@ typedef struct glamor_screen_private {
 	CopyWindowProcPtr saved_copy_window;
 	BitmapToRegionProcPtr saved_bitmap_to_region;
 	TrianglesProcPtr saved_triangles;
+	AddTrapsProcPtr saved_addtraps;
 	CreatePictureProcPtr saved_create_picture;
 	DestroyPictureProcPtr saved_destroy_picture;
 	UnrealizeGlyphProcPtr saved_unrealize_glyph;
@@ -444,10 +445,16 @@ void glamor_trapezoids(CARD8 op,
 		       PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
 		       int ntrap, xTrapezoid * traps);
 void glamor_init_composite_shaders(ScreenPtr screen);
-void glamor_composite_rects(CARD8 op,
-			    PicturePtr src, PicturePtr mask,
-			    PicturePtr dst, int nrect,
-			    glamor_composite_rect_t * rects);
+void glamor_composite_glyph_rects(CARD8 op,
+				  PicturePtr src, PicturePtr mask,
+				  PicturePtr dst, int nrect,
+				  glamor_composite_rect_t * rects);
+void glamor_composite_rects (CARD8         op,
+			     PicturePtr    pDst,
+			     xRenderColor  *color,
+			     int           nRect,
+			     xRectangle    *rects);
+
 
 /* glamor_tile.c */
 Bool glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
@@ -536,9 +543,18 @@ enum glamor_pixmap_status
  glamor_upload_picture_to_texture(PicturePtr picture);
 
 void
-
 glamor_picture_format_fixup(PicturePtr picture,
 			    glamor_pixmap_private * pixmap_priv);
+
+void
+glamor_get_image(DrawablePtr pDrawable, int x, int y, int w, int h,
+		 unsigned int format, unsigned long planeMask, char *d);
+
+
+void
+glamor_add_traps(PicturePtr pPicture,
+		 INT16 x_off, 
+		 INT16 y_off, int ntrap, xTrap * traps);
 
 #include"glamor_utils.h"
 

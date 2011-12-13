@@ -34,11 +34,13 @@ libglamor_la_SOURCES = \
 	glamor_setspans.c \
 	glamor_render.c \
 	glamor_tile.c \
-        glamor_triangles.c\
-        glamor_pixmap.c\
-        glamor_picture.c\
+	glamor_triangles.c\
+	glamor_addtraps.c\
+	glamor_getimage.c\
+	glamor_pixmap.c\
+	glamor_picture.c\
 	glamor_window.c\
-        glamor_gl_dispatch.c\
+	glamor_gl_dispatch.c\
 	glamor.h
 
 sdk_HEADERS = glamor.h

@@ -374,7 +374,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 		screen->GetSpans = glamor_get_spans;
 
 		glamor_priv->saved_get_image = screen->GetImage;
-		screen->GetImage = miGetImage;
+		screen->GetImage = glamor_get_image;
 
 		glamor_priv->saved_change_window_attributes =
 		    screen->ChangeWindowAttributes;
@@ -401,6 +401,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
 		glamor_priv->saved_triangles = ps->Triangles;
 		ps->Triangles = glamor_triangles;
+
+		glamor_priv->saved_addtraps = ps->AddTraps;
+		ps->AddTraps = glamor_add_traps;
 
 		glamor_priv->saved_unrealize_glyph = ps->UnrealizeGlyph;
 		ps->UnrealizeGlyph = glamor_glyph_unrealize;

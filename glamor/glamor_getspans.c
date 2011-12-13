@@ -31,10 +31,11 @@
 
 #include "glamor_priv.h"
 
-void
-glamor_get_spans(DrawablePtr drawable,
-		 int wmax,
-		 DDXPointPtr points, int *widths, int count, char *dst)
+static Bool 
+_glamor_get_spans(DrawablePtr drawable,
+		  int wmax,
+		  DDXPointPtr points, int *widths, int count, char *dst,
+		  Bool fallback)
 {
 	PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 	GLenum format, type;
@@ -49,7 +50,7 @@ glamor_get_spans(DrawablePtr drawable,
 	uint8_t *readpixels_dst = (uint8_t *) dst;
 	int x_off, y_off;
 
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+	if (!pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
 		glamor_fallback("pixmap has no fbo.\n");
 		goto fail;
 	}
@@ -94,14 +95,39 @@ glamor_get_spans(DrawablePtr drawable,
 	}
 	if (temp_pixmap)
 		glamor_destroy_pixmap(temp_pixmap);
-	return;
+	return TRUE;
 
       fail:
+
+	if (!fallback
+	    && glamor_ddx_fallback_check_pixmap(drawable))
+		return FALSE; 
 	glamor_fallback("from %p (%c)\n", drawable,
 			glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RO)) {
 		fbGetSpans(drawable, wmax, points, widths, count, dst);
 		glamor_finish_access(drawable, GLAMOR_ACCESS_RO);
 	}
+	return TRUE;
 }
+
+void
+glamor_get_spans(DrawablePtr drawable,
+		 int wmax,
+		 DDXPointPtr points, int *widths, int count, char *dst)
+{
+	_glamor_get_spans(drawable, wmax, points, 
+			  widths, count, dst, TRUE);
+}
+
+Bool
+glamor_get_spans_nf(DrawablePtr drawable,
+		    int wmax,
+		    DDXPointPtr points, int *widths, int count, char *dst)
+{
+	return _glamor_get_spans(drawable, wmax, points, 
+				 widths, count, dst, FALSE);
+}
+
+
 

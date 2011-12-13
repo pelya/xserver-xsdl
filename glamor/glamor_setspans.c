@@ -31,9 +31,10 @@
 
 #include "glamor_priv.h"
 
-void
-glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
-		 DDXPointPtr points, int *widths, int n, int sorted)
+static Bool
+_glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
+		 DDXPointPtr points, int *widths, int n, int sorted,
+		 Bool fallback)
 {
 	PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
 	glamor_screen_private *glamor_priv =
@@ -94,13 +95,32 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	glamor_set_planemask(dest_pixmap, ~0);
 	glamor_set_alu(dispatch, GXcopy);
 	dispatch->glDisable(GL_SCISSOR_TEST);
-	return;
+	return TRUE;
       fail:
-
+	if (!fallback
+	    && glamor_ddx_fallback_check_pixmap(drawable))
+		return FALSE;
 	glamor_fallback("to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 		fbSetSpans(drawable, gc, src, points, widths, n, sorted);
 		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
+	return TRUE;
+}
+
+void
+glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
+		    DDXPointPtr points, int *widths, int n, int sorted)
+{
+	_glamor_set_spans(drawable, gc, src, points, 
+			     widths, n, sorted, TRUE);
+}
+
+Bool
+glamor_set_spans_nf(DrawablePtr drawable, GCPtr gc, char *src,
+		    DDXPointPtr points, int *widths, int n, int sorted)
+{
+	return _glamor_set_spans(drawable, gc, src, points, 
+				    widths, n, sorted, FALSE);
 }
