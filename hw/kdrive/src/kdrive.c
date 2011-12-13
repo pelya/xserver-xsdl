@@ -253,7 +253,7 @@ Bool	kdDumbDriver;
 Bool	kdSoftCursor;
 
 char *
-KdParseFindNext (char *cur, char *delim, char *save, char *last)
+KdParseFindNext (char *cur, const char *delim, char *save, char *last)
 {
     while (*cur && !strchr (delim, *cur))
     {

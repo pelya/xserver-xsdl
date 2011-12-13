@@ -424,7 +424,7 @@ KdKeyboardInfo *
 KdParseKeyboard (char *arg);
 
 char *
-KdParseFindNext (char *cur, char *delim, char *save, char *last);
+KdParseFindNext (char *cur, const char *delim, char *save, char *last);
 
 void
 KdParseRgba (char *rgba);
