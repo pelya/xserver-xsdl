@@ -97,7 +97,7 @@ static const Mask SecurityClientMask = DixGetAttrAccess;
  *	Writes the message to the log file if security logging is on.
  */
 
-static void
+static void _X_ATTRIBUTE_PRINTF(1,2)
 SecurityAudit(const char *format, ...)
 {
     va_list args;

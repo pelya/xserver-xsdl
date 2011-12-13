@@ -552,7 +552,7 @@ xf86DriverlistFromCompile(void)
  *      Print a READABLE ErrorMessage!!!  All information that is 
  *      available is printed.
  */
-static void
+static void _X_ATTRIBUTE_PRINTF(1,2)
 xf86ConfigError(const char *msg, ...)
 {
     va_list ap;
