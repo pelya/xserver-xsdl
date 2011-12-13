@@ -190,7 +190,7 @@ core_get_type(const xEvent *event)
 static inline int
 xi2_get_type(const xEvent *event)
 {
-    xGenericEvent* e = (xGenericEvent*)event;
+    const xGenericEvent* e = (const xGenericEvent*)event;
 
     return (e->type != GenericEvent || e->extension != IReqCode) ? 0 : e->evtype;
 }
