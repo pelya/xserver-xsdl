@@ -503,12 +503,6 @@ KdInitInput(void);
 void
 KdCloseInput(void);
 
-void
-KdAddPointerDriver(KdPointerDriver *);
-
-void
-KdAddKeyboardDriver(KdKeyboardDriver *);
-
 Bool
 KdRegisterFd (int fd, void (*read) (int fd, void *closure), void *closure);
 
