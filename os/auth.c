@@ -163,7 +163,7 @@ CheckAuthorization (
     unsigned int data_length,
     const char	*data,
     ClientPtr client,
-    char	**reason)	/* failure message.  NULL for default msg */
+    const char	**reason)	/* failure message.  NULL for default msg */
 {
     int	i;
     struct stat buf;
