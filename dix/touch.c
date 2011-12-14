@@ -910,3 +910,29 @@ TouchSetupListeners(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev)
             return;
     }
 }
+
+/**
+ * Remove the touch pointer grab from the device. Called from AllowSome()
+ */
+void
+TouchRemovePointerGrab(DeviceIntPtr dev)
+{
+    TouchPointInfoPtr ti;
+    GrabPtr grab;
+    DeviceEvent *ev;
+
+    if (!dev->touch)
+        return;
+
+    grab = dev->deviceGrab.grab;
+    if (!grab)
+        return;
+
+    ev = dev->deviceGrab.sync.event;
+    if (!IsTouchEvent((InternalEvent*)ev))
+        return;
+
+    ti = TouchFindByClientID(dev, ev->touchid);
+    if (!ti)
+        return;
+}

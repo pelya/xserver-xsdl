@@ -152,6 +152,7 @@ typedef const char *string;
 #include "eventstr.h"
 #include "enterleave.h"
 #include "eventconvert.h"
+#include "mi.h"
 
 /* Extension events type numbering starts at EXTENSION_EVENT_BASE.  */
 #define NoSuchEvent 0x80000000	/* so doesn't match NoEventMask */
@@ -1308,7 +1309,17 @@ ComputeFreezes(void)
                        event->root_x, event->root_y);
         if (!CheckDeviceGrabs(replayDev, event, syncEvents.replayWin))
         {
-            if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
+            if (IsTouchEvent((InternalEvent*)event))
+            {
+                InternalEvent *events = InitEventList(GetMaximumEventsNum());
+                int i, nev;
+                TouchPointInfoPtr ti = TouchFindByClientID(replayDev, event->touchid);
+                BUG_WARN(!ti);
+                nev = GetTouchOwnershipEvents(events, replayDev, ti, XIRejectTouch, ti->listeners[0].listener, 0);
+                for (i = 0; i < nev; i++)
+                    mieqProcessDeviceEvent(replayDev, events + i, NULL);
+                ProcessInputEvents();
+            } else if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
                 DeliverFocusedEvent(replayDev, (InternalEvent*)event, w);
             else
                 DeliverDeviceEvents(w, (InternalEvent*)event, NullGrab,
@@ -1512,6 +1523,8 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
     DeviceIntPtr dev;
     Bool wasImplicit = (mouse->deviceGrab.fromPassiveGrab &&
                         mouse->deviceGrab.implicitGrab);
+
+    TouchRemovePointerGrab(mouse);
 
     mouse->valuator->motionHintWindow = NullWindow;
     mouse->deviceGrab.grab = NullGrab;
@@ -3829,6 +3842,7 @@ CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
     DeviceIntPtr gdev;
     XkbSrvInfoPtr xkbi = NULL;
     enum MatchFlags match = 0;
+    int emulated_type = 0;
 
     gdev = grab->modifierDevice;
     if (grab->grabtype == CORE)
@@ -3850,13 +3864,26 @@ CheckPassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
     tempGrab->modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
 
     /* Check for XI2 and XI grabs first */
-    match = MatchForType(grab, tempGrab, XI2, GetXI2Type(event->any.type));
+    match = MatchForType(grab, tempGrab, XI2, event->any.type);
+
+    if (!match && IsTouchEvent(event) && (event->device_event.flags & TOUCH_POINTER_EMULATED))
+    {
+        emulated_type = TouchGetPointerEventType(event);
+        match = MatchForType(grab, tempGrab, XI2, emulated_type);
+    }
 
     if (!match)
-        match = MatchForType(grab, tempGrab, XI, GetXIType(event->any.type));
+        match = MatchForType(grab, tempGrab, XI, event->any.type);
+
+    if (!match && emulated_type)
+        match = MatchForType(grab, tempGrab, XI, emulated_type);
 
     if (!match && checkCore)
-        match = MatchForType(grab, tempGrab, CORE, GetCoreType(event->any.type));
+    {
+        match = MatchForType(grab, tempGrab, CORE, event->any.type);
+        if (!match && emulated_type)
+            match = MatchForType(grab, tempGrab, CORE, emulated_type);
+    }
 
     if (!match || (grab->confineTo &&
                    (!grab->confineTo->realized ||
@@ -3930,6 +3957,8 @@ CheckPassiveGrabsOnWindow(
             break;
         case ET_ButtonPress:
         case ET_ButtonRelease:
+        case ET_TouchBegin:
+        case ET_TouchEnd:
             tempGrab->detail.exact = event->device_event.detail.button;
             break;
         default:
