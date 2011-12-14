@@ -607,6 +607,10 @@ extern TouchPointInfoPtr TouchBeginTouch(DeviceIntPtr dev, int sourceid,
 extern TouchPointInfoPtr TouchFindByClientID(DeviceIntPtr dev,
                                              uint32_t client_id);
 extern void TouchEndTouch(DeviceIntPtr dev, TouchPointInfoPtr ti);
+extern Bool TouchEventHistoryAllocate(TouchPointInfoPtr ti);
+extern void TouchEventHistoryFree(TouchPointInfoPtr ti);
+extern void TouchEventHistoryPush(TouchPointInfoPtr ti, const DeviceEvent *ev);
+extern void TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID resource);
 
 /* misc event helpers */
 extern Mask GetEventMask(DeviceIntPtr dev, xEvent* ev, InputClientsPtr clients);

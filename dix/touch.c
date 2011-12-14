@@ -35,6 +35,9 @@
 #include "eventstr.h"
 #include "exevents.h"
 
+#define TOUCH_HISTORY_SIZE 100
+
+
 /* If a touch queue resize is needed, the device id's bit is set. */
 static unsigned char resize_waiting[(MAXDEVICES + 7)/8];
 
@@ -394,6 +397,112 @@ TouchEndTouch(DeviceIntPtr dev, TouchPointInfoPtr ti)
     ti->num_grabs = 0;
     ti->client_id = 0;
 
+    TouchEventHistoryFree(ti);
+
     valuator_mask_zero(ti->valuators);
 }
 
+/**
+ * Allocate the event history for this touch pointer. Calling this on a
+ * touchpoint that already has an event history does nothing but counts as
+ * as success.
+ *
+ * @return TRUE on success, FALSE on allocation errors
+ */
+Bool
+TouchEventHistoryAllocate(TouchPointInfoPtr ti)
+{
+    if (ti->history)
+        return TRUE;
+
+    ti->history = calloc(TOUCH_HISTORY_SIZE, sizeof(*ti->history));
+    ti->history_elements = 0;
+    if (ti->history)
+        ti->history_size = TOUCH_HISTORY_SIZE;
+    return ti->history != NULL;
+}
+
+void
+TouchEventHistoryFree(TouchPointInfoPtr ti)
+{
+    free(ti->history);
+    ti->history = NULL;
+    ti->history_size = 0;
+    ti->history_elements = 0;
+}
+
+/**
+ * Store the given event on the event history (if one exists)
+ * A touch event history consists of one TouchBegin and several TouchUpdate
+ * events (if applicable) but no TouchEnd event.
+ * If more than one TouchBegin is pushed onto the stack, the push is
+ * ignored, calling this function multiple times for the TouchBegin is
+ * valid.
+ */
+void
+TouchEventHistoryPush(TouchPointInfoPtr ti, const DeviceEvent *ev)
+{
+    if (!ti->history)
+        return;
+
+    switch(ev->type)
+    {
+        case ET_TouchBegin:
+            /* don't store the same touchbegin twice */
+            if (ti->history_elements > 0)
+                return;
+            break;
+        case ET_TouchUpdate:
+            break;
+        case ET_TouchEnd:
+            return; /* no TouchEnd events in the history */
+        default:
+            return;
+    }
+
+    /* We only store real events in the history */
+    if (ev->flags & (TOUCH_CLIENT_ID|TOUCH_REPLAYING))
+        return;
+
+    ti->history[ti->history_elements++] = *ev;
+    /* FIXME: proper overflow fixes */
+    if (ti->history_elements > ti->history_size - 1)
+    {
+        ti->history_elements = ti->history_size - 1;
+        DebugF("source device %d: history size %d overflowing for touch %u\n",
+                ti->sourceid, ti->history_size, ti->client_id);
+    }
+}
+
+void
+TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID resource)
+{
+    InternalEvent *tel = InitEventList(GetMaximumEventsNum());
+    ValuatorMask *mask = valuator_mask_new(0);
+    int i, nev;
+    int flags;
+
+    if (!ti->history)
+        return;
+
+    valuator_mask_set_double(mask, 0, ti->history[0].valuators.data[0]);
+    valuator_mask_set_double(mask, 1, ti->history[0].valuators.data[1]);
+
+    flags = TOUCH_CLIENT_ID|TOUCH_REPLAYING;
+    if (ti->emulate_pointer)
+        flags |= TOUCH_POINTER_EMULATED;
+    /* send fake begin event to next owner */
+    nev = GetTouchEvents(tel, dev, ti->client_id, XI_TouchBegin, flags, mask);
+    /* FIXME: deliver the event */
+
+    valuator_mask_free(&mask);
+    FreeEventList(tel, GetMaximumEventsNum());
+
+    /* First event was TouchBegin, already replayed that one */
+    for (i = 1; i < ti->history_elements; i++)
+    {
+        DeviceEvent *ev = &ti->history[i];
+        ev->flags |= TOUCH_REPLAYING;
+        /* FIXME: deliver the event */
+    }
+}
