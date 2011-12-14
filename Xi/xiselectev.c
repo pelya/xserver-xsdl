@@ -155,6 +155,49 @@ ProcXISelectEvents(ClientPtr client)
             }
         }
 
+        if (evmask->mask_len >= 1)
+        {
+            unsigned char *bits = (unsigned char*)&evmask[1];
+
+            /* All three touch events must be selected at once */
+            if ((BitIsOn(bits, XI_TouchBegin) ||
+                 BitIsOn(bits, XI_TouchUpdate) ||
+                 BitIsOn(bits, XI_TouchOwnership) ||
+                 BitIsOn(bits, XI_TouchEnd)) &&
+                (!BitIsOn(bits, XI_TouchBegin) ||
+                 !BitIsOn(bits, XI_TouchUpdate) ||
+                 !BitIsOn(bits, XI_TouchEnd)))
+            {
+                client->errorValue = XI_TouchBegin;
+                return BadValue;
+            }
+
+            /* Only one client per window may select for touch events on the
+             * same devices, including master devices.
+             * XXX: This breaks if a device goes from floating to attached. */
+            if (BitIsOn(bits, XI_TouchBegin))
+            {
+                OtherInputMasks *inputMasks = wOtherInputMasks(win);
+                InputClients *iclient = NULL;
+                if (inputMasks)
+                    iclient = inputMasks->inputClients;
+                for (; iclient; iclient = iclient->next)
+                {
+                    DeviceIntPtr dummy;
+
+                    if (CLIENT_ID(iclient->resource) == client->index)
+                        continue;
+
+                    dixLookupDevice(&dummy, evmask->deviceid, serverClient, DixReadAccess);
+                    if (!dummy)
+                        return BadImplementation; /* this shouldn't happen */
+
+                    if (xi2mask_isset(iclient->xi2mask, dummy, XI_TouchBegin))
+                        return BadAccess;
+                }
+            }
+        }
+
         if (XICheckInvalidMaskBits(client, (unsigned char*)&evmask[1],
                                    evmask->mask_len * 4) != Success)
             return BadValue;
