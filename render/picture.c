@@ -862,7 +862,11 @@ createSourcePicture(void)
 {
     PicturePtr pPicture;
 
-    pPicture = dixAllocateScreenObjectWithPrivates(NULL, PictureRec, PRIVATE_PICTURE);
+    pPicture = dixAllocateScreenObjectWithPrivates(NULL, PictureRec,
+                                                   PRIVATE_PICTURE);
+    if (!pPicture)
+	return 0;
+
     pPicture->pDrawable = 0;
     pPicture->pFormat = 0;
     pPicture->pNext = 0;
