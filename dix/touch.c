@@ -619,6 +619,16 @@ TouchGetPointerEventType(const InternalEvent *event)
 
 
 /**
+ * @returns TRUE if the specified grab or selection is the current owner of
+ * the touch sequence.
+ */
+Bool
+TouchResourceIsOwner(TouchPointInfoPtr ti, XID resource)
+{
+    return (ti->listeners[0].listener == resource);
+}
+
+/**
  * Add the resource to this touch's listeners.
  */
 void
