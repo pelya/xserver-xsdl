@@ -902,13 +902,12 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
     return DEFAULT;
 }
 
+
 /**
- * Main device event processing function.
- * Called from when processing the events from the event queue.
- *
+ * Process DeviceEvents and DeviceChangedEvents.
  */
-void
-ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
+static void
+ProcessDeviceEvent(InternalEvent *ev, DeviceIntPtr device)
 {
     GrabPtr grab;
     Bool deactivateDeviceGrab = FALSE;
@@ -918,18 +917,6 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     int corestate;
     DeviceIntPtr mouse = NULL, kbd = NULL;
     DeviceEvent *event = &ev->device_event;
-
-    verify_internal_event(ev);
-
-    if (ev->any.type == ET_RawKeyPress ||
-        ev->any.type == ET_RawKeyRelease ||
-        ev->any.type == ET_RawButtonPress ||
-        ev->any.type == ET_RawButtonRelease ||
-        ev->any.type == ET_RawMotion)
-    {
-        DeliverRawEvent(&ev->raw_event, device);
-        return;
-    }
 
     if (IsPointerDevice(device))
     {
@@ -1040,6 +1027,31 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     if (deactivateDeviceGrab == TRUE)
 	(*device->deviceGrab.DeactivateGrab) (device);
     event->detail.key = key;
+}
+
+/**
+ * Main device event processing function.
+ * Called from when processing the events from the event queue.
+ *
+ */
+void
+ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
+{
+    verify_internal_event(ev);
+
+    switch(ev->any.type)
+    {
+        case  ET_RawKeyPress:
+        case  ET_RawKeyRelease:
+        case  ET_RawButtonPress:
+        case  ET_RawButtonRelease:
+        case  ET_RawMotion:
+            DeliverRawEvent(&ev->raw_event, device);
+            break;
+        default:
+            ProcessDeviceEvent(ev, device);
+            break;
+    }
 }
 
 int
