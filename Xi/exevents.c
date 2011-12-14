@@ -849,6 +849,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
     KeyClassPtr k       = NULL;
     ButtonClassPtr b    = NULL;
     ValuatorClassPtr v  = NULL;
+    TouchClassPtr t     = NULL;
 
     /* This event is always the first we get, before the actual events with
      * the data. However, the way how the DDX is set up, "device" will
@@ -866,6 +867,9 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         case ET_KeyRelease:
         case ET_ProximityIn:
         case ET_ProximityOut:
+        case ET_TouchBegin:
+        case ET_TouchUpdate:
+        case ET_TouchEnd:
             break;
         default:
             /* other events don't update the device */
@@ -875,6 +879,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
     k = device->key;
     v = device->valuator;
     b = device->button;
+    t = device->touch;
 
     key = event->detail.key;
 
@@ -976,6 +981,34 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
 	device->proximity->in_proximity = TRUE;
     else if (event->type == ET_ProximityOut)
 	device->proximity->in_proximity = FALSE;
+    else if (event->type == ET_TouchBegin) {
+        BUG_WARN(!b || !v);
+        BUG_WARN(!t);
+
+        if (!b || !t || !b->map[key])
+            return DONT_PROCESS;
+
+        if (!(event->flags & TOUCH_POINTER_EMULATED) ||
+            (event->flags & TOUCH_REPLAYING))
+            return DONT_PROCESS;
+
+        IncreaseButtonCount(device, key, &t->buttonsDown, &t->motionMask, &t->state);
+        UpdateDeviceMotionMask(device, t->state, DeviceButtonMotionMask);
+    } else if (event->type == ET_TouchEnd) {
+        BUG_WARN(!b || !v);
+        BUG_WARN(!t);
+
+        if (!b || !t || t->buttonsDown <= 0 || !b->map[key])
+            return DONT_PROCESS;
+
+        if (!(event->flags & TOUCH_POINTER_EMULATED))
+            return DONT_PROCESS;
+        if (!(event->flags & TOUCH_END))
+            return DONT_PROCESS;
+
+        DecreaseButtonCount(device, key, &t->buttonsDown, &t->motionMask, &t->state);
+        UpdateDeviceMotionMask(device, t->state, DeviceButtonMotionMask);
+    }
 
     return DEFAULT;
 }
