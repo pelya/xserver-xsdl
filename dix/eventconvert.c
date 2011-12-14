@@ -158,6 +158,9 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         case ET_RawButtonPress:
         case ET_RawButtonRelease:
         case ET_RawMotion:
+        case ET_TouchBegin:
+        case ET_TouchUpdate:
+        case ET_TouchEnd:
             ret = BadMatch;
             break;
         default:
@@ -208,6 +211,9 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
         case ET_RawButtonPress:
         case ET_RawButtonRelease:
         case ET_RawMotion:
+        case ET_TouchBegin:
+        case ET_TouchUpdate:
+        case ET_TouchEnd:
             *count = 0;
             *xi = NULL;
             return BadMatch;
@@ -249,6 +255,9 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
         case ET_ButtonRelease:
         case ET_KeyPress:
         case ET_KeyRelease:
+        case ET_TouchBegin:
+        case ET_TouchUpdate:
+        case ET_TouchEnd:
             return eventToDeviceEvent(&ev->device_event, xi);
         case ET_ProximityIn:
         case ET_ProximityOut:
@@ -650,7 +659,11 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->evtype         = GetXI2Type(ev->type);
     xde->time           = ev->time;
     xde->length         = bytes_to_int32(len - sizeof(xEvent));
-    xde->detail         = ev->detail.button;
+    if (IsTouchEvent((InternalEvent*)ev))
+        xde->detail     = ev->touchid;
+    else
+        xde->detail     = ev->detail.button;
+
     xde->root           = ev->root;
     xde->buttons_len    = btlen;
     xde->valuators_len  = vallen;
@@ -659,7 +672,11 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->root_x         = FP1616(ev->root_x, ev->root_x_frac);
     xde->root_y         = FP1616(ev->root_y, ev->root_y_frac);
 
-    xde->flags          = ev->flags;
+    if (ev->type == ET_TouchUpdate)
+        xde->flags |= (ev->flags & TOUCH_PENDING_END) ? XITouchPendingEnd : 0;
+    else
+        xde->flags = ev->flags;
+
     if (ev->key_repeat)
         xde->flags      |= XIKeyRepeat;
 
@@ -812,6 +829,9 @@ GetXI2Type(enum EventType type)
         case ET_RawMotion:      xi2type = XI_RawMotion;        break;
         case ET_FocusIn:        xi2type = XI_FocusIn;          break;
         case ET_FocusOut:       xi2type = XI_FocusOut;         break;
+        case ET_TouchBegin:     xi2type = XI_TouchBegin;       break;
+        case ET_TouchEnd:       xi2type = XI_TouchEnd;         break;
+        case ET_TouchUpdate:    xi2type = XI_TouchUpdate;      break;
         default:
             break;
     }

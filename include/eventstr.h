@@ -50,6 +50,9 @@ enum EventType {
     ET_ButtonPress,
     ET_ButtonRelease,
     ET_Motion,
+    ET_TouchBegin,
+    ET_TouchUpdate,
+    ET_TouchEnd,
     ET_Enter,
     ET_Leave,
     ET_FocusIn,
@@ -84,9 +87,11 @@ struct _DeviceEvent
     int deviceid;         /**< Device to post this event for */
     int sourceid;         /**< The physical source device */
     union {
-        uint32_t button;  /**< Button number */
+        uint32_t button;  /**< Button number (also used in pointer emulating
+                               touch events) */
         uint32_t key;     /**< Key code */
     } detail;
+    uint32_t touchid;     /**< Touch ID (client_id) */
     int16_t root_x;       /**< Pos relative to root window in integral data */
     float root_x_frac;    /**< Pos relative to root window in frac part */
     int16_t root_y;       /**< Pos relative to root window in integral part */

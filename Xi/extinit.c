@@ -858,6 +858,9 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
         case XI_KeyRelease:
         case XI_ButtonPress:
         case XI_ButtonRelease:
+        case XI_TouchBegin:
+        case XI_TouchUpdate:
+        case XI_TouchEnd:
             SDeviceEvent((xXIDeviceEvent*)from, (xXIDeviceEvent*)to);
             break;
         case XI_RawMotion:

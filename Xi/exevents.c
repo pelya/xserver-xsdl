@@ -128,6 +128,21 @@ IsPointerEvent(InternalEvent* event)
     return FALSE;
 }
 
+Bool
+IsTouchEvent(InternalEvent* event)
+{
+    switch(event->any.type)
+    {
+        case ET_TouchBegin:
+        case ET_TouchUpdate:
+        case ET_TouchEnd:
+            return TRUE;
+        default:
+            break;
+    }
+    return FALSE;
+}
+
 /**
  * @return the device matching the deviceid of the device set in the event, or
  * NULL if the event is not an XInput event.

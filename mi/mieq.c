@@ -370,6 +370,9 @@ ChangeDeviceID(DeviceIntPtr dev, InternalEvent* event)
         case ET_ProximityOut:
         case ET_Hierarchy:
         case ET_DeviceChanged:
+        case ET_TouchBegin:
+        case ET_TouchUpdate:
+        case ET_TouchEnd:
             event->device_event.deviceid = dev->id;
             break;
 #if XFreeXDGA
