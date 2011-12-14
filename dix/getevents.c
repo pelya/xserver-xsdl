@@ -49,6 +49,7 @@
 #include "eventconvert.h"
 #include "inpututils.h"
 #include "mi.h"
+#include "windowstr.h"
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
@@ -153,6 +154,17 @@ key_autorepeats(DeviceIntPtr pDev, int key_code)
 {
     return !!(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3] &
               (1 << (key_code & 7)));
+}
+
+static void
+init_event(DeviceIntPtr dev, DeviceEvent* event, Time ms)
+{
+    memset(event, 0, sizeof(DeviceEvent));
+    event->header = ET_Internal;
+    event->length = sizeof(DeviceEvent);
+    event->time = ms;
+    event->deviceid = dev->id;
+    event->sourceid = dev->id;
 }
 
 static void
@@ -1709,9 +1721,143 @@ int
 GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
                uint16_t type, uint32_t flags, const ValuatorMask *mask_in)
 {
-    return 0;
-}
+    ScreenPtr scr = dev->spriteInfo->sprite->hotPhys.pScreen;
+    TouchClassPtr t = dev->touch;
+    ValuatorClassPtr v = dev->valuator;
+    DeviceEvent *event;
+    CARD32 ms = GetTimeInMillis();
+    ValuatorMask mask;
+    double screenx = 0.0, screeny = 0.0; /* desktop coordinate system */
+    double devx = 0.0, devy = 0.0; /* desktop-wide in device coords */
+    int i;
+    int num_events = 0;
+    RawDeviceEvent *raw;
+    DDXTouchPointInfoPtr ti;
+    int need_rawevent = TRUE;
+    Bool emulate_pointer = FALSE;
 
+    if (!dev->enabled || !t || !v)
+        return 0;
+
+    /* Find and/or create the DDX touch info */
+    ti = TouchFindByDDXID(dev, ddx_touchid, (type == XI_TouchBegin));
+    if (!ti)
+    {
+        ErrorF("[dix] %s: unable to %s touch point %x\n", dev->name,
+                type == XI_TouchBegin ? "begin" : "find", ddx_touchid);
+        return 0;
+    }
+
+    emulate_pointer =  ti->emulate_pointer;
+
+    if (!IsMaster(dev))
+        events = UpdateFromMaster(events, dev, DEVCHANGE_POINTER_EVENT, &num_events);
+
+    valuator_mask_copy(&mask, mask_in);
+
+    if (need_rawevent)
+    {
+        raw = &events->raw_event;
+        events++;
+        num_events++;
+        init_raw(dev, raw, ms, type, ti->client_id);
+        set_raw_valuators(raw, &mask, raw->valuators.data_raw);
+    }
+
+    event = &events->device_event;
+    num_events++;
+
+    init_event(dev, event, ms);
+
+    switch (type) {
+    case XI_TouchBegin:
+        event->type = ET_TouchBegin;
+        /* If we're starting a touch, we must have x & y co-ordinates. */
+        if (!mask_in ||
+            !valuator_mask_isset(mask_in, 0) ||
+            !valuator_mask_isset(mask_in, 1))
+        {
+            ErrorF("%s: Attempted to start touch without x/y (driver bug)\n",
+                   dev->name);
+            return 0;
+        }
+        break;
+    case XI_TouchUpdate:
+        event->type = ET_TouchUpdate;
+        if (!mask_in || valuator_mask_num_valuators(mask_in) <= 0)
+        {
+            ErrorF("%s: TouchUpdate with no valuators? Driver bug\n",
+                    dev->name);
+        }
+        break;
+    case XI_TouchEnd:
+        event->type = ET_TouchEnd;
+        /* We can end the DDX touch here, since we don't use the active
+         * field below */
+        TouchEndDDXTouch(dev, ti);
+        break;
+    default:
+        return 0;
+    }
+
+    if (!valuator_mask_isset(&mask, 0))
+        valuator_mask_set_double(&mask, 0, valuator_mask_get_double(ti->valuators, 0));
+    if (!valuator_mask_isset(&mask, 1))
+        valuator_mask_set_double(&mask, 1, valuator_mask_get_double(ti->valuators, 1));
+
+
+    /* Get our screen event co-ordinates (root_x/root_y/event_x/event_y):
+     * these come from the touchpoint in Absolute mode, or the sprite in
+     * Relative. */
+    if (t->mode == XIDirectTouch) {
+        transformAbsolute(dev, &mask);
+
+        for (i = 0; i < valuator_mask_size(&mask); i++) {
+            if (valuator_mask_isset(&mask, i))
+                valuator_mask_set_double(ti->valuators, i,
+                        valuator_mask_get_double(&mask, i));
+        }
+
+        clipAbsolute(dev, &mask);
+    }
+    else {
+        screenx = dev->spriteInfo->sprite->hotPhys.x;
+        screeny = dev->spriteInfo->sprite->hotPhys.y;
+    }
+    if (need_rawevent)
+        set_raw_valuators(raw, &mask, raw->valuators.data);
+
+    scr = scale_to_desktop(dev, &mask, &devx, &devy, &screenx, &screeny);
+    if (emulate_pointer)
+        scr = positionSprite(dev, Absolute, &mask,
+                             &devx, &devy, &screenx, &screeny);
+
+    /* see fill_pointer_events for coordinate systems */
+    updateHistory(dev, &mask, ms);
+    clipValuators(dev, &mask);
+    storeLastValuators(dev, &mask, 0, 1, devx, devy);
+
+    event->root = scr->root->drawable.id;
+
+    event_set_root_coordinates(event, screenx, screeny);
+    event->touchid = ti->client_id;
+    event->flags = flags;
+
+    if (emulate_pointer)
+    {
+        event->flags |= TOUCH_POINTER_EMULATED;
+        event->detail.button = 1;
+    }
+
+    set_valuators(dev, event, &mask);
+    for (i = 0; i < v->numAxes; i++)
+    {
+        if (valuator_mask_isset(&mask, i))
+            v->axisVal[i] = valuator_mask_get(&mask, i);
+    }
+
+    return num_events;
+}
 
 
 /**
