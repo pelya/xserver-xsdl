@@ -124,6 +124,9 @@ typedef struct _DeviceIntRec *DeviceIntPtr;
 typedef struct _ValuatorClassRec *ValuatorClassPtr;
 typedef struct _ClassesRec *ClassesPtr;
 typedef struct _SpriteRec *SpritePtr;
+typedef struct _TouchClassRec *TouchClassPtr;
+typedef struct _TouchPointInfo *TouchPointInfoPtr;
+typedef struct _DDXTouchPointInfo *DDXTouchPointInfoPtr;
 typedef union _GrabMask GrabMask;
 
 typedef struct _ValuatorMask ValuatorMask;
@@ -323,6 +326,12 @@ extern _X_EXPORT Bool InitPointerAccelerationScheme(
 
 extern _X_EXPORT Bool InitFocusClassDeviceStruct(
     DeviceIntPtr /*device*/);
+
+extern _X_EXPORT Bool InitTouchClassDeviceStruct(
+    DeviceIntPtr /*device*/,
+    unsigned int /*max_touches*/,
+    unsigned int /*mode*/,
+    unsigned int /*numAxes*/);
 
 typedef void (*BellProcPtr)(
     int /*percent*/,
@@ -562,6 +571,24 @@ extern DeviceIntPtr GetXTestDevice(DeviceIntPtr master);
 extern void SendDevicePresenceEvent(int deviceid, int type);
 extern _X_EXPORT InputAttributes *DuplicateInputAttributes(InputAttributes *attrs);
 extern _X_EXPORT void FreeInputAttributes(InputAttributes *attrs);
+
+enum TouchListenerState{
+    LISTENER_AWAITING_BEGIN = 0,   /**< Waiting for a TouchBegin event */
+    LISTENER_AWAITING_OWNER,       /**< Waiting for a TouchOwnership event */
+    LISTENER_IS_OWNER,             /**< Is the current owner */
+    LISTENER_HAS_END,              /**< Has already received the end event */
+};
+
+enum TouchListenerType {
+    LISTENER_GRAB,
+    LISTENER_POINTER_GRAB,
+    LISTENER_REGULAR,
+    LISTENER_POINTER_REGULAR,
+};
+
+extern void TouchInitDDXTouchPoint(DeviceIntPtr dev, DDXTouchPointInfoPtr ddxtouch);
+extern Bool TouchInitTouchPoint(TouchClassPtr touch, ValuatorClassPtr v, int index);
+extern void TouchFreeTouchPoint(DeviceIntPtr dev, int index);
 
 /* misc event helpers */
 extern Mask GetEventMask(DeviceIntPtr dev, xEvent* ev, InputClientsPtr clients);

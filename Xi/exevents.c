@@ -44,6 +44,32 @@ SOFTWARE.
 
 ********************************************************/
 
+/*
+ * Copyright © 2010 Collabora Ltd.
+ * Copyright © 2011 Red Hat, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ * Author: Daniel Stone <daniel@fooishbar.org>
+ */
+
 /********************************************************************
  *
  *  Routines to register and initialize extension input devices.
@@ -640,6 +666,41 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
         classes = to->unused_classes;
         classes->proximity = to->proximity;
         to->proximity      = NULL;
+    }
+
+    if (from->touch)
+    {
+        TouchPointInfoPtr tmp;
+        if (!to->touch)
+        {
+            classes = to->unused_classes;
+            to->touch = classes->touch;
+            if (!to->touch)
+            {
+                int i;
+                to->touch = calloc(1, sizeof(TouchClassRec));
+                if (!to->touch)
+                    FatalError("[Xi] no memory for class shift.\n");
+                to->touch->num_touches = from->touch->num_touches;
+                to->touch->touches = calloc(to->touch->num_touches,
+                                            sizeof(TouchPointInfoRec));
+                for (i = 0; i < to->touch->num_touches; i++)
+                    TouchInitTouchPoint(to->touch, to->valuator, i);
+                if (!to->touch)
+                    FatalError("[Xi] no memory for class shift.\n");
+            } else
+                classes->touch = NULL;
+        }
+        tmp = to->touch->touches;
+        memcpy(to->touch, from->touch, sizeof(TouchClassRec));
+        to->touch->touches = tmp;
+        to->touch->sourceid = from->id;
+    } else if (to->touch)
+    {
+        ClassesPtr classes;
+        classes = to->unused_classes;
+        classes->touch = to->touch;
+        to->touch      = NULL;
     }
 }
 
