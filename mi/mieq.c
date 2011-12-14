@@ -514,6 +514,12 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
             if (!handler)
                 mieqMoveToNewScreen(dev, screen, &event->device_event);
             break;
+        case ET_TouchBegin:
+        case ET_TouchUpdate:
+        case ET_TouchEnd:
+            if (!handler && (event->device_event.flags & TOUCH_POINTER_EMULATED))
+                mieqMoveToNewScreen(dev, screen, &event->device_event);
+            break;
         default:
             break;
     }
