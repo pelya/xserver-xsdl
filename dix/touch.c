@@ -593,3 +593,24 @@ TouchEnsureSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
 
     return TRUE;
 }
+
+/**
+ * Return the corresponding pointer emulation internal event type for the given
+ * touch event or 0 if no such event type exists.
+ */
+int
+TouchGetPointerEventType(const InternalEvent *event)
+{
+    int type = 0;
+
+    switch(event->any.type)
+    {
+        case ET_TouchBegin:  type = ET_ButtonPress;   break;
+        case ET_TouchUpdate: type = ET_Motion;        break;
+        case ET_TouchEnd:    type = ET_ButtonRelease; break;
+        default:
+            break;
+    }
+    return type;
+}
+

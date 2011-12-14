@@ -615,6 +615,7 @@ extern void TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID 
 extern Bool TouchEnsureSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
                               InternalEvent *ev);
 extern Bool TouchBuildDependentSpriteTrace(DeviceIntPtr dev, SpritePtr sprite);
+extern int TouchGetPointerEventType(const InternalEvent *ev);
 
 /* misc event helpers */
 extern Mask GetEventMask(DeviceIntPtr dev, xEvent* ev, InputClientsPtr clients);
