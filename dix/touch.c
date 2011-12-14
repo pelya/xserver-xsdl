@@ -34,6 +34,9 @@
 #include "eventstr.h"
 #include "exevents.h"
 
+/* If a touch queue resize is needed, the device id's bit is set. */
+static unsigned char resize_waiting[(MAXDEVICES + 7)/8];
+
 /**
  * Some documentation about touch points:
  * The driver submits touch events with it's own (unique) touch point ID.
@@ -52,6 +55,60 @@
  * being processed, it becomes a TouchPointInfo in dev->touch-touches which
  * contains amongst other things the sprite trace and delivery information.
  */
+
+/**
+ * Check which devices need a bigger touch event queue and grow their
+ * last.touches by half it's current size.
+ *
+ * @param client Always the serverClient
+ * @param closure Always NULL
+ *
+ * @return Always True. If we fail to grow we probably will topple over soon
+ * anyway and re-executing this won't help.
+ */
+static Bool
+TouchResizeQueue(ClientPtr client, pointer closure)
+{
+    int i;
+
+    OsBlockSignals();
+
+    /* first two ids are reserved */
+    for (i = 2; i < MAXDEVICES; i++)
+    {
+        DeviceIntPtr dev;
+        DDXTouchPointInfoPtr tmp;
+        size_t size;
+
+        if (!BitIsOn(resize_waiting, i))
+            continue;
+
+        ClearBit(resize_waiting, i);
+
+        /* device may have disappeared by now */
+        dixLookupDevice(&dev, i, serverClient, DixWriteAccess);
+        if (!dev)
+            continue;
+
+        /* Need to grow the queue means dropping events. Grow sufficiently so we
+         * don't need to do it often */
+        size = dev->last.num_touches + dev->last.num_touches/2 + 1;
+
+        tmp = realloc(dev->last.touches, size *  sizeof(*dev->last.touches));
+        if (tmp)
+        {
+            int i;
+            dev->last.touches = tmp;
+            for (i = dev->last.num_touches; i < size; i++)
+                TouchInitDDXTouchPoint(dev, &dev->last.touches[i]);
+            dev->last.num_touches = size;
+        }
+
+    }
+    OsReleaseSignals();
+
+    return TRUE;
+}
 
 /**
  * Given the DDX-facing ID (which is _not_ DeviceEvent::detail.touch), find the
@@ -133,7 +190,16 @@ TouchBeginDDXTouch(DeviceIntPtr dev, uint32_t ddx_id)
         return ti;
     }
 
-    /* If we get here, then we've run out of touches, drop the event */
+    /* If we get here, then we've run out of touches and we need to drop the
+     * event (we're inside the SIGIO handler here) schedule a WorkProc to
+     * grow the queue for us for next time. */
+    ErrorF("%s: not enough space for touch events (max %d touchpoints). "
+           "Dropping this event.\n", dev->name, dev->last.num_touches);
+    if (!BitIsOn(resize_waiting, dev->id)) {
+        SetBit(resize_waiting, dev->id);
+        QueueWorkProc(TouchResizeQueue, serverClient, NULL);
+    }
+
     return NULL;
 }
 

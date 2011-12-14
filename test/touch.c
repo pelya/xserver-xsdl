@@ -29,6 +29,56 @@
 #include "inputstr.h"
 #include "assert.h"
 
+static void touch_grow_queue(void)
+{
+    DeviceIntRec dev;
+    ValuatorClassRec val;
+    TouchClassRec touch;
+    size_t size, new_size;
+    int i;
+
+    memset(&dev, 0, sizeof(dev));
+    dev.id = 2;
+    dev.valuator = &val;
+    val.numAxes = 5;
+    dev.touch = &touch;
+    inputInfo.devices = &dev;
+
+    size = 5;
+
+    dev.last.num_touches = size;
+    dev.last.touches = calloc(dev.last.num_touches, sizeof(*dev.last.touches));
+    assert(dev.last.touches);
+    for (i = 0; i < size; i++) {
+        dev.last.touches[i].active = TRUE;
+        dev.last.touches[i].ddx_id = i;
+        dev.last.touches[i].client_id = i * 2;
+    }
+
+    /* no more space, should've scheduled a workproc */
+    assert(TouchBeginDDXTouch(&dev, 1234) == NULL);
+    ProcessWorkQueue();
+
+    new_size = size + size/2 + 1;
+    assert(dev.last.num_touches == new_size);
+
+    /* make sure we haven't touched those */
+    for (i = 0; i < size; i++) {
+        DDXTouchPointInfoPtr t = &dev.last.touches[i];
+        assert(t->active == TRUE);
+        assert(t->ddx_id == i);
+        assert(t->client_id == i * 2);
+    }
+
+    /* make sure those are zero-initialized */
+    for (i = size; i < new_size; i++) {
+        DDXTouchPointInfoPtr t = &dev.last.touches[i];
+        assert(t->active == FALSE);
+        assert(t->client_id == 0);
+        assert(t->ddx_id == 0);
+    }
+}
+
 static void touch_find_ddxid(void)
 {
     DeviceIntRec dev;
@@ -142,6 +192,7 @@ static void touch_begin_ddxtouch(void)
 
 int main(int argc, char** argv)
 {
+    touch_grow_queue();
     touch_find_ddxid();
     touch_begin_ddxtouch();
 
