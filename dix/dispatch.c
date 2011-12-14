@@ -425,9 +425,11 @@ Dispatch(void)
 			client->minorOp = ext->MinorOpcode(client);
 		}
 #ifdef XSERVER_DTRACE
-		XSERVER_REQUEST_START(LookupMajorName(client->majorOp), client->majorOp,
-			      ((xReq *)client->requestBuffer)->length,
-			      client->index, client->requestBuffer);
+		if (XSERVER_REQUEST_START_ENABLED())
+		    XSERVER_REQUEST_START(LookupMajorName(client->majorOp),
+					  client->majorOp,
+					  ((xReq *)client->requestBuffer)->length,
+					  client->index, client->requestBuffer);
 #endif
 		if (result > (maxBigRequestSize << 2))
 		    result = BadLength;
@@ -438,8 +440,10 @@ Dispatch(void)
 		    XaceHookAuditEnd(client, result);
 		}
 #ifdef XSERVER_DTRACE
-		XSERVER_REQUEST_DONE(LookupMajorName(client->majorOp), client->majorOp,
-			      client->sequence, client->index, result);
+		if (XSERVER_REQUEST_DONE_ENABLED())
+		    XSERVER_REQUEST_DONE(LookupMajorName(client->majorOp),
+					 client->majorOp, client->sequence,
+					 client->index, result);
 #endif
 
 		if (client->noClientException != Success)
