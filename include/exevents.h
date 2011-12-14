@@ -245,6 +245,10 @@ InputClientGone(
 	WindowPtr              /* pWin */,
 	XID                    /* id */);
 
+extern void
+WindowGone(
+	WindowPtr              /* win */);
+
 extern int
 SendEvent (
 	ClientPtr              /* client */,

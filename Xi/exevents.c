@@ -1866,6 +1866,36 @@ InputClientGone(WindowPtr pWin, XID id)
     FatalError("client not on device event list");
 }
 
+/**
+ * Search for window in each touch trace for each device. Remove the window
+ * and all its subwindows from the trace when found. The initial window
+ * order is preserved.
+ */
+void WindowGone(WindowPtr win)
+{
+    DeviceIntPtr dev;
+
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+        TouchClassPtr t = dev->touch;
+        int i;
+
+        if (!t)
+            continue;
+
+        for (i = 0; i < t->num_touches; i++) {
+            SpritePtr sprite = &t->touches[i].sprite;
+            int j;
+
+            for (j = 0; j < sprite->spriteTraceGood; j++) {
+                if (sprite->spriteTrace[j] == win) {
+                    sprite->spriteTraceGood = j;
+                    break;
+                }
+            }
+        }
+    }
+}
+
 int
 SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
 	  xEvent * ev, Mask mask, int count)
