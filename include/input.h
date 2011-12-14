@@ -587,6 +587,11 @@ enum TouchListenerType {
 };
 
 extern void TouchInitDDXTouchPoint(DeviceIntPtr dev, DDXTouchPointInfoPtr ddxtouch);
+extern DDXTouchPointInfoPtr TouchBeginDDXTouch(DeviceIntPtr dev, uint32_t ddx_id);
+extern void TouchEndDDXTouch(DeviceIntPtr dev, DDXTouchPointInfoPtr ti);
+extern DDXTouchPointInfoPtr TouchFindByDDXID(DeviceIntPtr dev,
+                                             uint32_t ddx_id,
+                                             Bool create);
 extern Bool TouchInitTouchPoint(TouchClassPtr touch, ValuatorClassPtr v, int index);
 extern void TouchFreeTouchPoint(DeviceIntPtr dev, int index);
 

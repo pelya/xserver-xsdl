@@ -31,6 +31,122 @@
 #include "inputstr.h"
 #include "scrnintstr.h"
 
+#include "eventstr.h"
+#include "exevents.h"
+
+/**
+ * Some documentation about touch points:
+ * The driver submits touch events with it's own (unique) touch point ID.
+ * The driver may re-use those IDs, the DDX doesn't care. It just passes on
+ * the data to the DIX. In the server, the driver's ID is referred to as the
+ * DDX id anyway.
+ *
+ * On a TouchBegin, we create a DDXTouchPointInfo that contains the DDX id
+ * and the client ID that this touchpoint will have. The client ID is the
+ * one visible on the protocol.
+ *
+ * TouchUpdate and TouchEnd will only be processed if there is an active
+ * touchpoint with the same DDX id.
+ *
+ * The DDXTouchPointInfo struct is stored dev->last.touches. When the event
+ * being processed, it becomes a TouchPointInfo in dev->touch-touches which
+ * contains amongst other things the sprite trace and delivery information.
+ */
+
+/**
+ * Given the DDX-facing ID (which is _not_ DeviceEvent::detail.touch), find the
+ * associated DDXTouchPointInfoRec.
+ *
+ * @param dev The device to create the touch point for
+ * @param ddx_id Touch id assigned by the driver/ddx
+ * @param create Create the touchpoint if it cannot be found
+ */
+DDXTouchPointInfoPtr
+TouchFindByDDXID(DeviceIntPtr dev, uint32_t ddx_id, Bool create)
+{
+    DDXTouchPointInfoPtr ti;
+    int i;
+
+    if (!dev->touch)
+        return NULL;
+
+    for (i = 0; i < dev->last.num_touches; i++)
+    {
+        ti = &dev->last.touches[i];
+        if (ti->active && ti->ddx_id == ddx_id)
+            return ti;
+    }
+
+    return create ? TouchBeginDDXTouch(dev, ddx_id) : NULL;
+}
+
+/**
+ * Given a unique DDX ID for a touchpoint, create a touchpoint record and
+ * return it.
+ *
+ * If no other touch points are active, mark new touchpoint for pointer
+ * emulation.
+ *
+ * Returns NULL on failure (i.e. if another touch with that ID is already active,
+ * allocation failure).
+ */
+DDXTouchPointInfoPtr
+TouchBeginDDXTouch(DeviceIntPtr dev, uint32_t ddx_id)
+{
+    static int next_client_id = 1;
+    int i;
+    TouchClassPtr t = dev->touch;
+    DDXTouchPointInfoPtr ti = NULL;
+    Bool emulate_pointer = (t->mode == XIDirectTouch);
+
+    if (!t)
+        return NULL;
+
+    /* Look for another active touchpoint with the same DDX ID. DDX
+     * touchpoints must be unique. */
+    if (TouchFindByDDXID(dev, ddx_id, FALSE))
+        return NULL;
+
+    for (i = 0; i < dev->last.num_touches; i++)
+    {
+        /* Only emulate pointer events on the first touch */
+        if (dev->last.touches[i].active)
+            emulate_pointer = FALSE;
+        else if (!ti) /* ti is now first non-active touch rec */
+            ti = &dev->last.touches[i];
+
+        if (!emulate_pointer && ti)
+            break;
+    }
+
+    if (ti)
+    {
+        int client_id;
+        ti->active = TRUE;
+        ti->ddx_id = ddx_id;
+        client_id = next_client_id;
+        next_client_id++;
+        if (next_client_id == 0)
+            next_client_id = 1;
+        ti->client_id = client_id;
+        ti->emulate_pointer = emulate_pointer;
+        return ti;
+    }
+
+    /* If we get here, then we've run out of touches, drop the event */
+    return NULL;
+}
+
+void
+TouchEndDDXTouch(DeviceIntPtr dev, DDXTouchPointInfoPtr ti)
+{
+    TouchClassPtr t = dev->touch;
+
+    if (!t)
+        return;
+
+    ti->active = FALSE;
+}
 
 void
 TouchInitDDXTouchPoint(DeviceIntPtr dev, DDXTouchPointInfoPtr ddxtouch)
