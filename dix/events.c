@@ -3643,11 +3643,15 @@ BorderSizeNotEmpty(DeviceIntPtr pDev, WindowPtr pWin)
  * @param device The device of the event to check.
  * @param grab The grab to check.
  * @param event The current device event.
+ * @param real_event The original event, in case of touch emulation. The
+ * real event is the one stored in the sync queue.
  *
  * @return Whether the grab has been activated.
  */
 Bool
-ActivatePassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event)
+ActivatePassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
+                    InternalEvent *real_event)
+
 {
     SpritePtr pSprite = device->spriteInfo->sprite;
     GrabInfoPtr grabinfo = &device->deviceGrab;
@@ -3719,7 +3723,7 @@ ActivatePassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event)
 
     if (grabinfo->sync.state == FROZEN_NO_EVENT)
         grabinfo->sync.state = FROZEN_WITH_EVENT;
-    *grabinfo->sync.event = event->device_event;
+    *grabinfo->sync.event = real_event->device_event;
 
     free(xE);
     return TRUE;
@@ -3943,7 +3947,7 @@ CheckPassiveGrabsOnWindow(
         if (!CheckPassiveGrab(device, grab, event, checkCore, tempGrab))
             continue;
 
-        if (activate && !ActivatePassiveGrab(device, grab, event))
+        if (activate && !ActivatePassiveGrab(device, grab, event, event))
             continue;
 
         break;
