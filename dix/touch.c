@@ -37,6 +37,7 @@
 #include "inpututils.h"
 #include "eventconvert.h"
 #include "windowstr.h"
+#include "mi.h"
 
 #define TOUCH_HISTORY_SIZE 100
 
@@ -935,4 +936,47 @@ TouchRemovePointerGrab(DeviceIntPtr dev)
     ti = TouchFindByClientID(dev, ev->touchid);
     if (!ti)
         return;
+}
+
+/* As touch grabs don't turn into active grabs with their own resources, we
+ * need to walk all the touches and remove this grab from any delivery
+ * lists. */
+void
+TouchListenerGone(XID resource)
+{
+    TouchPointInfoPtr ti;
+    DeviceIntPtr dev;
+    InternalEvent *events = InitEventList(GetMaximumEventsNum());
+    int i, j, k, nev;
+
+    if (!events)
+        FatalError("TouchListenerGone: couldn't allocate events\n");
+
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+    {
+        if (!dev->touch)
+            continue;
+
+        for (i = 0; i < dev->touch->num_touches; i++)
+        {
+            ti = &dev->touch->touches[i];
+            if (!ti->active)
+                continue;
+
+            for (j = 0; j < ti->num_listeners; j++)
+            {
+                if (ti->listeners[j].listener != resource)
+                    continue;
+
+                nev = GetTouchOwnershipEvents(events, dev, ti, XIRejectTouch,
+                                              resource, 0);
+                for (k = 0; k < nev; k++)
+                    mieqProcessDeviceEvent(dev, events + k, NULL);
+
+                break;
+            }
+        }
+    }
+
+    FreeEventList(events, GetMaximumEventsNum());
 }
