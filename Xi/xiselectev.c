@@ -145,7 +145,10 @@ ProcXISelectEvents(ClientPtr client)
                 BitIsOn(bits, XI_RawKeyRelease) ||
                 BitIsOn(bits, XI_RawButtonPress) ||
                 BitIsOn(bits, XI_RawButtonRelease) ||
-                BitIsOn(bits, XI_RawMotion))
+                BitIsOn(bits, XI_RawMotion) ||
+                BitIsOn(bits, XI_RawTouchBegin) ||
+                BitIsOn(bits, XI_RawTouchUpdate) ||
+                BitIsOn(bits, XI_RawTouchEnd))
             {
                 client->errorValue = XI_RawKeyPress;
                 return BadValue;

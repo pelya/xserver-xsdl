@@ -161,7 +161,16 @@ init_raw(DeviceIntPtr dev, RawDeviceEvent *event, Time ms, int type, int detail)
     memset(event, 0, sizeof(RawDeviceEvent));
     event->header = ET_Internal;
     event->length = sizeof(RawDeviceEvent);
-    event->type = ET_RawKeyPress - ET_KeyPress + type;
+    switch(type) {
+        case MotionNotify:      event->type = ET_RawMotion; break;
+        case ButtonPress:       event->type = ET_RawButtonPress; break;
+        case ButtonRelease:     event->type = ET_RawButtonRelease; break;
+        case KeyPress:          event->type = ET_RawKeyPress; break;
+        case KeyRelease:        event->type = ET_RawKeyRelease; break;
+        case XI_TouchBegin:     event->type = ET_RawTouchBegin; break;
+        case XI_TouchUpdate:    event->type = ET_RawTouchUpdate; break;
+        case XI_TouchEnd:       event->type = ET_RawTouchEnd; break;
+    }
     event->time = ms;
     event->deviceid = dev->id;
     event->sourceid = dev->id;

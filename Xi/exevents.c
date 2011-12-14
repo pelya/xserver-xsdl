@@ -1063,6 +1063,9 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
         case  ET_RawButtonPress:
         case  ET_RawButtonRelease:
         case  ET_RawMotion:
+        case  ET_RawTouchBegin:
+        case  ET_RawTouchUpdate:
+        case  ET_RawTouchEnd:
             DeliverRawEvent(&ev->raw_event, device);
             break;
         default:

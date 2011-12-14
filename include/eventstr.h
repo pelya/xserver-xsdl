@@ -67,6 +67,9 @@ enum EventType {
     ET_RawButtonPress,
     ET_RawButtonRelease,
     ET_RawMotion,
+    ET_RawTouchBegin,
+    ET_RawTouchUpdate,
+    ET_RawTouchEnd,
     ET_XQuartz,
     ET_Internal = 0xFF /* First byte */
 };

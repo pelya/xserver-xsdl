@@ -158,6 +158,9 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         case ET_RawButtonPress:
         case ET_RawButtonRelease:
         case ET_RawMotion:
+        case ET_RawTouchBegin:
+        case ET_RawTouchUpdate:
+        case ET_RawTouchEnd:
         case ET_TouchBegin:
         case ET_TouchUpdate:
         case ET_TouchEnd:
@@ -211,6 +214,9 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
         case ET_RawButtonPress:
         case ET_RawButtonRelease:
         case ET_RawMotion:
+        case ET_RawTouchBegin:
+        case ET_RawTouchUpdate:
+        case ET_RawTouchEnd:
         case ET_TouchBegin:
         case ET_TouchUpdate:
         case ET_TouchEnd:
@@ -270,6 +276,9 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
         case ET_RawButtonPress:
         case ET_RawButtonRelease:
         case ET_RawMotion:
+        case ET_RawTouchBegin:
+        case ET_RawTouchUpdate:
+        case ET_RawTouchEnd:
             return eventToRawEvent(&ev->raw_event, xi);
         default:
             break;
@@ -827,6 +836,9 @@ GetXI2Type(enum EventType type)
         case ET_RawButtonPress: xi2type = XI_RawButtonPress;   break;
         case ET_RawButtonRelease: xi2type = XI_RawButtonRelease; break;
         case ET_RawMotion:      xi2type = XI_RawMotion;        break;
+        case ET_RawTouchBegin:  xi2type = XI_RawTouchBegin;    break;
+        case ET_RawTouchUpdate: xi2type = XI_RawTouchUpdate;  break;
+        case ET_RawTouchEnd:    xi2type = XI_RawTouchEnd;      break;
         case ET_FocusIn:        xi2type = XI_FocusIn;          break;
         case ET_FocusOut:       xi2type = XI_FocusOut;         break;
         case ET_TouchBegin:     xi2type = XI_TouchBegin;       break;

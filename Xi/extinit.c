@@ -868,6 +868,9 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
         case XI_RawKeyRelease:
         case XI_RawButtonPress:
         case XI_RawButtonRelease:
+        case XI_RawTouchBegin:
+        case XI_RawTouchUpdate:
+        case XI_RawTouchEnd:
             SRawEvent((xXIRawEvent*)from, (xXIRawEvent*)to);
             break;
         default:
