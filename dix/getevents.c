@@ -156,6 +156,17 @@ key_autorepeats(DeviceIntPtr pDev, int key_code)
 }
 
 static void
+init_touch_ownership(DeviceIntPtr dev, TouchOwnershipEvent *event, Time ms)
+{
+    memset(event, 0, sizeof(TouchOwnershipEvent));
+    event->header = ET_Internal;
+    event->type = ET_TouchOwnership;
+    event->length = sizeof(TouchOwnershipEvent);
+    event->time = ms;
+    event->deviceid = dev->id;
+}
+
+static void
 init_raw(DeviceIntPtr dev, RawDeviceEvent *event, Time ms, int type, int detail)
 {
     memset(event, 0, sizeof(RawDeviceEvent));
@@ -1629,6 +1640,30 @@ GetProximityEvents(InternalEvent *events, DeviceIntPtr pDev, int type, const Val
     set_valuators(pDev, event, &mask);
 
     return num_events;
+}
+
+int
+GetTouchOwnershipEvents(InternalEvent *events, DeviceIntPtr pDev,
+                        TouchPointInfoPtr ti, uint8_t reason, XID resource,
+                        uint32_t flags)
+{
+    TouchClassPtr t = pDev->touch;
+    TouchOwnershipEvent *event;
+    CARD32 ms = GetTimeInMillis();
+
+    if (!pDev->enabled || !t || !ti)
+        return 0;
+
+    event = &events->touch_ownership_event;
+    init_touch_ownership(pDev, event, ms);
+
+    event->touchid = ti->client_id;
+    event->sourceid = ti->sourceid;
+    event->resource = resource;
+    event->flags = flags;
+    event->reason = reason;
+
+    return 1;
 }
 
 /**

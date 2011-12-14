@@ -503,6 +503,14 @@ void QueueTouchEvents(DeviceIntPtr device,
                       int flags,
                       const ValuatorMask *mask);
 
+extern int GetTouchOwnershipEvents(
+    InternalEvent *events,
+    DeviceIntPtr pDev,
+    TouchPointInfoPtr ti,
+    uint8_t mode,
+    XID resource,
+    uint32_t flags);
+
 extern _X_EXPORT int GetProximityEvents(
     InternalEvent *events,
     DeviceIntPtr pDev,
