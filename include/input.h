@@ -619,6 +619,8 @@ extern void TouchSetupListeners(DeviceIntPtr dev, TouchPointInfoPtr ti, Internal
 extern Bool TouchEnsureSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
                               InternalEvent *ev);
 extern Bool TouchBuildDependentSpriteTrace(DeviceIntPtr dev, SpritePtr sprite);
+extern int TouchConvertToPointerEvent(const InternalEvent *ev,
+                                      InternalEvent *motion, InternalEvent *button);
 extern int TouchGetPointerEventType(const InternalEvent *ev);
 
 /* misc event helpers */

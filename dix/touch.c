@@ -599,6 +599,68 @@ TouchEnsureSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
 }
 
 /**
+ * Copy the touch event into the pointer_event, switching the required
+ * fields to make it a correct pointer event.
+ *
+ * @param event The original touch event
+ * @param[in] motion_event The respective motion event
+ * @param[in] button_event The respective button event (if any)
+ *
+ * @returns The number of converted events.
+ * @retval 0 An error occured
+ * @retval 1 only the motion event is valid
+ * @retval 2 motion and button event are valid
+ */
+int
+TouchConvertToPointerEvent(const InternalEvent *event,
+                           InternalEvent *motion_event,
+                           InternalEvent *button_event)
+{
+    int ptrtype;
+    int nevents = 0;
+
+    BUG_WARN(!event);
+    BUG_WARN(!motion_event);
+
+    switch(event->any.type)
+    {
+        case ET_TouchUpdate:
+            nevents = 1;
+            break;
+        case ET_TouchBegin:
+            nevents = 2; /* motion + press */
+            ptrtype = ET_ButtonPress;
+            break;
+        case ET_TouchEnd:
+            nevents = 2; /* motion + release */
+            ptrtype = ET_ButtonRelease;
+            break;
+        default:
+            BUG_WARN_MSG(1,"Invalid event type %d\n", event->any.type);
+            return 0;
+    }
+
+    BUG_WARN_MSG(!(event->device_event.flags & TOUCH_POINTER_EMULATED),
+                 "Non-emulating touch event\n");
+
+    *motion_event = *event;
+    motion_event->any.type = ET_Motion;
+    motion_event->device_event.detail.button = 0;
+    motion_event->device_event.flags = XIPointerEmulated;
+
+    if (nevents > 1)
+    {
+        BUG_WARN(!button_event);
+        *button_event = *event;
+        button_event->any.type = ptrtype;
+        button_event->device_event.flags = XIPointerEmulated;
+        /* detail is already correct */
+    }
+
+    return nevents;
+}
+
+/**
  * Return the corresponding pointer emulation internal event type for the given
  * touch event or 0 if no such event type exists.
  */
