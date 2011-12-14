@@ -71,6 +71,15 @@ SOFTWARE.
 #define POINTER_NORAW		(1 << 5)	/* Don't generate RawEvents */
 #define POINTER_EMULATED	(1 << 6)	/* Event was emulated from another event */
 
+/* GetTouchEvent flags */
+#define TOUCH_ACCEPT            (1 << 0)
+#define TOUCH_REJECT            (1 << 1)
+#define TOUCH_PENDING_END       (1 << 2)
+#define TOUCH_CLIENT_ID         (1 << 3)        /* touch ID is the client-visible id */
+#define TOUCH_REPLAYING         (1 << 4)        /* event is being replayed */
+#define TOUCH_POINTER_EMULATED  (1 << 5)        /* touch event may be pointer emulated */
+#define TOUCH_END               (1 << 6)        /* really end this touch now */
+
 /*int constants for pointer acceleration schemes*/
 #define PtrAccelNoOp            0
 #define PtrAccelPredictable     1
