@@ -2253,12 +2253,14 @@ CheckGrabValues(ClientPtr client, GrabParameters* param)
     }
 
     if ((param->this_device_mode != GrabModeSync) &&
-	(param->this_device_mode != GrabModeAsync)) {
+	(param->this_device_mode != GrabModeAsync) &&
+        (param->this_device_mode != XIGrabModeTouch)) {
 	client->errorValue = param->this_device_mode;
 	return BadValue;
     }
     if ((param->other_devices_mode != GrabModeSync) &&
-	(param->other_devices_mode != GrabModeAsync)) {
+	(param->other_devices_mode != GrabModeAsync) &&
+        (param->other_devices_mode != XIGrabModeTouch)) {
 	client->errorValue = param->other_devices_mode;
 	return BadValue;
     }
@@ -2417,6 +2419,34 @@ GrabWindow(ClientPtr client, DeviceIntPtr dev, int type,
                       mask, param, (type == XIGrabtypeEnter) ? XI_Enter : XI_FocusIn,
                       0, NULL, cursor);
 
+    if (!grab)
+        return BadAlloc;
+
+    return AddPassiveGrabToList(client, grab);
+}
+
+/* Touch grab */
+int
+GrabTouch(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr mod_dev,
+          GrabParameters *param, GrabMask *mask)
+{
+    WindowPtr pWin;
+    GrabPtr grab;
+    int rc;
+
+    rc = CheckGrabValues(client, param);
+    if (rc != Success)
+        return rc;
+
+    rc = dixLookupWindow(&pWin, param->grabWindow, client, DixSetAttrAccess);
+    if (rc != Success)
+       return rc;
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixGrabAccess);
+    if (rc != Success)
+       return rc;
+
+    grab = CreateGrab(client->index, dev, mod_dev, pWin, XI2,
+                      mask, param, XI_TouchBegin, 0, NullWindow, NullCursor);
     if (!grab)
         return BadAlloc;
 
