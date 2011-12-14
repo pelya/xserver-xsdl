@@ -53,6 +53,7 @@ enum EventType {
     ET_TouchBegin,
     ET_TouchUpdate,
     ET_TouchEnd,
+    ET_TouchOwnership,
     ET_Enter,
     ET_Leave,
     ET_FocusIn,
@@ -123,6 +124,24 @@ struct _DeviceEvent
     uint32_t flags;   /**< Flags to be copied into the generated event */
 };
 
+/**
+ * Generated internally whenever a touch ownership chain changes - an owner
+ * has accepted or rejected a touch, or a grab/event selection in the delivery
+ * chain has been removed.
+ */
+struct _TouchOwnershipEvent
+{
+    unsigned char header; /**< Always ET_Internal */
+    enum EventType type;  /**< One of EventType */
+    int length;           /**< Length in bytes */
+    Time time;            /**< Time in ms */
+    int deviceid;         /**< Device to post this event for */
+    int sourceid;         /**< The physical source device */
+    uint32_t touchid;     /**< Touch ID (client_id) */
+    uint8_t reason;       /**< ::XIAcceptTouch, ::XIRejectTouch */
+    uint32_t resource;    /**< Provoking grab or event selection */
+    uint32_t flags;       /**< Flags to be copied into the generated event */
+};
 
 /* Flags used in DeviceChangedEvent to signal if the slave has changed */
 #define DEVCHANGE_SLAVE_SWITCH 0x2
@@ -238,6 +257,7 @@ union _InternalEvent {
         } any;
         DeviceEvent device_event;
         DeviceChangedEvent changed_event;
+        TouchOwnershipEvent touch_ownership_event;
 #if XFreeXDGA
         DGAEvent dga_event;
 #endif

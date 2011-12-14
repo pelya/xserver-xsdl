@@ -2476,6 +2476,13 @@ FixUpEventFromWindow(
 
         event->root = RootWindow(pSprite)->drawable.id;
         event->event = pWin->drawable.id;
+
+        if (evtype == XI_TouchOwnership)
+        {
+            event->child = child;
+            return;
+        }
+
         if (pSprite->hot.pScreen == pWin->drawable.pScreen)
         {
             event->event_x = event->root_x - FP1616(pWin->drawable.x, 0);

@@ -58,6 +58,7 @@ static int eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count);
 static int eventToDeviceChanged(DeviceChangedEvent *ev, xEvent **dcce);
 static int eventToDeviceEvent(DeviceEvent *ev, xEvent **xi);
 static int eventToRawEvent(RawDeviceEvent *ev, xEvent **xi);
+static int eventToTouchOwnershipEvent(TouchOwnershipEvent *ev, xEvent **xi);
 
 /* Do not use, read comments below */
 BOOL EventIsKeyRepeat(xEvent *event);
@@ -164,6 +165,7 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
         case ET_TouchBegin:
         case ET_TouchUpdate:
         case ET_TouchEnd:
+        case ET_TouchOwnership:
             ret = BadMatch;
             break;
         default:
@@ -220,6 +222,7 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
         case ET_TouchBegin:
         case ET_TouchUpdate:
         case ET_TouchEnd:
+        case ET_TouchOwnership:
             *count = 0;
             *xi = NULL;
             return BadMatch;
@@ -265,6 +268,8 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
         case ET_TouchUpdate:
         case ET_TouchEnd:
             return eventToDeviceEvent(&ev->device_event, xi);
+        case ET_TouchOwnership:
+            return eventToTouchOwnershipEvent(&ev->touch_ownership_event, xi);
         case ET_ProximityIn:
         case ET_ProximityOut:
             *xi = NULL;
@@ -722,6 +727,27 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
 }
 
 static int
+eventToTouchOwnershipEvent(TouchOwnershipEvent *ev, xEvent **xi)
+{
+    int len = sizeof(xXITouchOwnershipEvent);
+    xXITouchOwnershipEvent *xtoe;
+
+    *xi = calloc(1, len);
+    xtoe = (xXITouchOwnershipEvent*)*xi;
+    xtoe->type          = GenericEvent;
+    xtoe->extension     = IReqCode;
+    xtoe->length        = bytes_to_int32(len - sizeof(xEvent));
+    xtoe->evtype        = GetXI2Type(ev->type);
+    xtoe->deviceid      = ev->deviceid;
+    xtoe->time          = ev->time;
+    xtoe->sourceid      = ev->sourceid;
+    xtoe->touchid       = ev->touchid;
+    xtoe->flags         = 0; /* we don't have wire flags for ownership yet */
+
+    return Success;
+}
+
+static int
 eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
 {
     xXIRawEvent* raw;
@@ -844,6 +870,7 @@ GetXI2Type(enum EventType type)
         case ET_TouchBegin:     xi2type = XI_TouchBegin;       break;
         case ET_TouchEnd:       xi2type = XI_TouchEnd;         break;
         case ET_TouchUpdate:    xi2type = XI_TouchUpdate;      break;
+        case ET_TouchOwnership: xi2type = XI_TouchOwnership;   break;
         default:
             break;
     }

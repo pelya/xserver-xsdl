@@ -26,6 +26,7 @@
 #define EVENTS_H
 typedef struct _DeviceEvent DeviceEvent;
 typedef struct _DeviceChangedEvent DeviceChangedEvent;
+typedef struct _TouchOwnershipEvent TouchOwnershipEvent;
 #if XFreeXDGA
 typedef struct _DGAEvent DGAEvent;
 #endif
