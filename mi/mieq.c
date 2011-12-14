@@ -471,6 +471,19 @@ CopyGetMasterEvent(DeviceIntPtr sdev,
 }
 
 
+static void
+mieqMoveToNewScreen(DeviceIntPtr dev, ScreenPtr screen, DeviceEvent *event)
+{
+    if (dev && screen && screen != DequeueScreen(dev))
+    {
+        int x = 0, y = 0;
+        DequeueScreen(dev) = screen;
+        x = event->root_x;
+        y = event->root_y;
+        NewCurrentScreen (dev, DequeueScreen(dev), x, y);
+    }
+}
+
 /**
  * Post the given @event through the device hierarchy, as appropriate.
  * Use this function if an event must be posted for a given device during the
@@ -482,7 +495,6 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
                        ScreenPtr screen)
 {
     mieqHandler handler;
-    int x = 0, y = 0;
     DeviceIntPtr master;
     InternalEvent mevent; /* master event */
 
@@ -499,12 +511,8 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
         case ET_KeyRelease:
         case ET_ButtonPress:
         case ET_ButtonRelease:
-            if (dev && screen && screen != DequeueScreen(dev) && !handler) {
-                DequeueScreen(dev) = screen;
-                x = event->device_event.root_x;
-                y = event->device_event.root_y;
-                NewCurrentScreen (dev, DequeueScreen(dev), x, y);
-            }
+            if (!handler)
+                mieqMoveToNewScreen(dev, screen, &event->device_event);
             break;
         default:
             break;
