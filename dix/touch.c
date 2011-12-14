@@ -30,6 +30,7 @@
 
 #include "inputstr.h"
 #include "scrnintstr.h"
+#include "dixgrabs.h"
 
 #include "eventstr.h"
 #include "exevents.h"
@@ -262,6 +263,9 @@ TouchFreeTouchPoint(DeviceIntPtr device, int index)
         return;
     ti = &device->touch->touches[index];
 
+    if (ti->active)
+        TouchEndTouch(device, ti);
+
     valuator_mask_free(&ti->valuators);
     free(ti->sprite.spriteTrace);
     ti->sprite.spriteTrace = NULL;
@@ -273,4 +277,123 @@ TouchFreeTouchPoint(DeviceIntPtr device, int index)
     ti->history_elements = 0;
 }
 
+/**
+ * Given a client-facing ID (e.g. DeviceEvent::detail.touch), find the
+ * associated TouchPointInfoRec.
+ */
+TouchPointInfoPtr
+TouchFindByClientID(DeviceIntPtr dev, uint32_t client_id)
+{
+    TouchClassPtr t = dev->touch;
+    TouchPointInfoPtr ti;
+    int i;
+
+    if (!t)
+        return NULL;
+
+    for (i = 0; i < t->num_touches; i++)
+    {
+        ti = &t->touches[i];
+        if (ti->active && ti->client_id == client_id)
+            return ti;
+    }
+
+    return NULL;
+}
+
+
+/**
+ * Given a unique ID for a touchpoint, create a touchpoint record in the
+ * server.
+ *
+ * Returns NULL on failure (i.e. if another touch with that ID is already active,
+ * allocation failure).
+ */
+TouchPointInfoPtr
+TouchBeginTouch(DeviceIntPtr dev, int sourceid, uint32_t touchid,
+                Bool emulate_pointer)
+{
+    int i;
+    TouchClassPtr t = dev->touch;
+    TouchPointInfoPtr ti;
+    void *tmp;
+
+    if (!t)
+        return NULL;
+
+    /* Look for another active touchpoint with the same client ID.  It's
+     * technically legitimate for a touchpoint to still exist with the same
+     * ID but only once the 32 bits wrap over and you've used up 4 billion
+     * touch ids without lifting that one finger off once. In which case
+     * you deserve a medal or something, but not error handling code. */
+    if (TouchFindByClientID(dev, touchid))
+        return NULL;
+
+try_find_touch:
+    for (i = 0; i < t->num_touches; i++)
+    {
+        ti = &t->touches[i];
+        if (!ti->active) {
+            ti->active = TRUE;
+            ti->client_id = touchid;
+            ti->sourceid = sourceid;
+            ti->emulate_pointer = emulate_pointer;
+            return ti;
+        }
+    }
+
+    /* If we get here, then we've run out of touches: enlarge dev->touch and
+     * try again. */
+    tmp = realloc(t->touches, (t->num_touches + 1) * sizeof(*ti));
+    if (tmp)
+    {
+        t->touches = tmp;
+        t->num_touches++;
+        if (TouchInitTouchPoint(t, dev->valuator, t->num_touches - 1))
+            goto try_find_touch;
+    }
+
+    return NULL;
+}
+
+/**
+ * Releases a touchpoint for use: this must only be called after all events
+ * related to that touchpoint have been sent and finalised.  Called from
+ * ProcessTouchEvent and friends.  Not by you.
+ */
+void
+TouchEndTouch(DeviceIntPtr dev, TouchPointInfoPtr ti)
+{
+    if (ti->emulate_pointer)
+    {
+        GrabPtr grab;
+        DeviceEvent ev;
+        memset(&ev, 0, sizeof(ev));
+        ev.type = ET_TouchEnd;
+        ev.detail.button = 1;
+        ev.touchid = ti->client_id;
+        ev.flags = TOUCH_POINTER_EMULATED|TOUCH_END;
+        UpdateDeviceState(dev, &ev);
+
+        if ((grab = dev->deviceGrab.grab))
+        {
+            if (dev->deviceGrab.fromPassiveGrab &&
+                !dev->button->buttonsDown &&
+                !dev->touch->buttonsDown &&
+                GrabIsPointerGrab(grab))
+                (*dev->deviceGrab.DeactivateGrab)(dev);
+        }
+    }
+
+    ti->active = FALSE;
+    ti->pending_finish = FALSE;
+    ti->sprite.spriteTraceGood = 0;
+    free(ti->listeners);
+    ti->listeners = NULL;
+    ti->num_listeners = 0;
+    ti->num_grabs = 0;
+    ti->client_id = 0;
+
+    valuator_mask_zero(ti->valuators);
+}
 

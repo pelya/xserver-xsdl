@@ -594,6 +594,11 @@ extern DDXTouchPointInfoPtr TouchFindByDDXID(DeviceIntPtr dev,
                                              Bool create);
 extern Bool TouchInitTouchPoint(TouchClassPtr touch, ValuatorClassPtr v, int index);
 extern void TouchFreeTouchPoint(DeviceIntPtr dev, int index);
+extern TouchPointInfoPtr TouchBeginTouch(DeviceIntPtr dev, int sourceid,
+                                         uint32_t touchid, Bool emulate_pointer);
+extern TouchPointInfoPtr TouchFindByClientID(DeviceIntPtr dev,
+                                             uint32_t client_id);
+extern void TouchEndTouch(DeviceIntPtr dev, TouchPointInfoPtr ti);
 
 /* misc event helpers */
 extern Mask GetEventMask(DeviceIntPtr dev, xEvent* ev, InputClientsPtr clients);

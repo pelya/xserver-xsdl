@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include "inputstr.h"
 #include "assert.h"
+#include "scrnintstr.h"
 
 static void touch_grow_queue(void)
 {
@@ -190,11 +191,80 @@ static void touch_begin_ddxtouch(void)
     last_client_id = ti->client_id;
 }
 
+static void touch_begin_touch(void)
+{
+    DeviceIntRec dev;
+    TouchClassRec touch;
+    ValuatorClassRec val;
+    TouchPointInfoPtr ti;
+    int touchid = 12434;
+    int sourceid = 23;
+    SpriteInfoRec sprite;
+    ScreenRec screen;
+
+    screenInfo.screens[0] = &screen;
+
+    memset(&dev, 0, sizeof(dev));
+    dev.id = 2;
+
+    memset(&sprite, 0, sizeof(sprite));
+    dev.spriteInfo = &sprite;
+
+    memset(&touch, 0, sizeof(touch));
+    touch.num_touches = 0;
+
+    memset(&val, 0, sizeof(val));
+    dev.valuator = &val;
+    val.numAxes = 2;
+
+    ti = TouchBeginTouch(&dev, sourceid, touchid, TRUE);
+    assert(!ti);
+
+    dev.touch = &touch;
+    ti = TouchBeginTouch(&dev, sourceid, touchid, TRUE);
+    assert(ti);
+    assert(ti->client_id == touchid);
+    assert(ti->active);
+    assert(ti->sourceid == sourceid);
+    assert(ti->emulate_pointer);
+
+    assert(touch.num_touches == 1);
+}
+
+static void touch_init(void)
+{
+    DeviceIntRec dev;
+    Atom labels[2] = {0};
+    int rc;
+    SpriteInfoRec sprite;
+    ScreenRec screen;
+
+    screenInfo.screens[0] = &screen;
+
+    memset(&dev, 0, sizeof(dev));
+
+    memset(&sprite, 0, sizeof(sprite));
+    dev.spriteInfo = &sprite;
+
+    InitAtoms();
+    rc = InitTouchClassDeviceStruct(&dev, 1, XIDirectTouch, 2);
+    assert(rc == FALSE);
+
+    InitValuatorClassDeviceStruct(&dev, 2, labels, 10, Absolute);
+    rc = InitTouchClassDeviceStruct(&dev, 1, XIDirectTouch, 2);
+    assert(rc == TRUE);
+    assert(dev.touch);
+}
+
+
+
 int main(int argc, char** argv)
 {
     touch_grow_queue();
     touch_find_ddxid();
     touch_begin_ddxtouch();
+    touch_init();
+    touch_begin_touch();
 
     return 0;
 }
