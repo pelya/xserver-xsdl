@@ -506,3 +506,90 @@ TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID resource)
         /* FIXME: deliver the event */
     }
 }
+
+Bool
+TouchBuildDependentSpriteTrace(DeviceIntPtr dev, SpritePtr sprite)
+{
+    int i;
+    TouchClassPtr t = dev->touch;
+    WindowPtr *trace;
+    SpritePtr srcsprite;
+
+    /* All touches should have the same sprite trace, so find and reuse an
+     * existing touch's sprite if possible, else use the device's sprite. */
+    for (i = 0; i < t->num_touches; i++)
+        if (t->touches[i].sprite.spriteTraceGood > 0)
+            break;
+    if (i < t->num_touches)
+        srcsprite = &t->touches[i].sprite;
+    else if (dev->spriteInfo->sprite)
+        srcsprite = dev->spriteInfo->sprite;
+    else
+        return FALSE;
+
+    if (srcsprite->spriteTraceGood > sprite->spriteTraceSize)
+    {
+        trace = realloc(sprite->spriteTrace,
+                srcsprite->spriteTraceSize * sizeof(*trace));
+        if (!trace)
+        {
+            sprite->spriteTraceGood = 0;
+            return FALSE;
+        }
+        sprite->spriteTrace = trace;
+        sprite->spriteTraceSize = srcsprite->spriteTraceGood;
+    }
+    memcpy(sprite->spriteTrace, srcsprite->spriteTrace,
+            srcsprite->spriteTraceGood * sizeof(*trace));
+    sprite->spriteTraceGood = srcsprite->spriteTraceGood;
+
+    return TRUE;
+}
+
+/**
+ * Ensure a window trace is present in ti->sprite, constructing one for
+ * TouchBegin events.
+ */
+Bool
+TouchEnsureSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
+                  InternalEvent *ev)
+{
+    TouchClassPtr t = sourcedev->touch;
+    SpritePtr sprite = &ti->sprite;
+
+    /* We may not have a sprite if there are no applicable grabs or
+     * event selections, or if they've disappeared, or if all the grab
+     * owners have rejected the touch.  Don't bother delivering motion
+     * events if not, but TouchEnd events still need to be processed so
+     * we can call FinishTouchPoint and release it for later use. */
+    if (ev->any.type == ET_TouchEnd)
+        return TRUE;
+    else if (ev->any.type != ET_TouchBegin)
+        return (sprite->spriteTraceGood > 0);
+
+    if (t->mode == XIDirectTouch)
+    {
+        /* Focus immediately under the touchpoint in direct touch mode.
+         * XXX: Do we need to handle crossing screens here? */
+        sprite->spriteTrace[0] =
+            sourcedev->spriteInfo->sprite->hotPhys.pScreen->root;
+        XYToWindow(sprite, ev->device_event.root_x, ev->device_event.root_y);
+    }
+    else if (!TouchBuildDependentSpriteTrace(sourcedev, sprite))
+        return FALSE;
+
+    if (sprite->spriteTraceGood <= 0)
+        return FALSE;
+
+    /* Mark which grabs/event selections we're delivering to: max one grab per
+     * window plus the bottom-most event selection. */
+    ti->listeners = calloc(sprite->spriteTraceGood + 1, sizeof(*ti->listeners));
+    if (!ti->listeners)
+    {
+        sprite->spriteTraceGood = 0;
+        return FALSE;
+    }
+    ti->num_listeners = 0;
+
+    return TRUE;
+}
