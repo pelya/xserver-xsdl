@@ -34,6 +34,9 @@
 
 #include "eventstr.h"
 #include "exevents.h"
+#include "inpututils.h"
+#include "eventconvert.h"
+#include "windowstr.h"
 
 #define TOUCH_HISTORY_SIZE 100
 
@@ -614,3 +617,223 @@ TouchGetPointerEventType(const InternalEvent *event)
     return type;
 }
 
+
+/**
+ * Add the resource to this touch's listeners.
+ */
+void
+TouchAddListener(TouchPointInfoPtr ti, XID resource, enum InputLevel level,
+                 enum TouchListenerType type, enum TouchListenerState state)
+{
+    ti->listeners[ti->num_listeners].listener = resource;
+    ti->listeners[ti->num_listeners].level = level;
+    ti->listeners[ti->num_listeners].state = state;
+    ti->listeners[ti->num_listeners].type = type;
+    ti->num_listeners++;
+}
+
+/**
+ * Remove the resource from this touch's listeners.
+ *
+ * @return TRUE if the resource was removed, FALSE if the resource was not
+ * in the list
+ */
+Bool
+TouchRemoveListener(TouchPointInfoPtr ti, XID resource)
+{
+    int i;
+    for (i = 0; i < ti->num_listeners; i++)
+    {
+        if (ti->listeners[i].listener == resource)
+        {
+            int j;
+            for (j = i; j< ti->num_listeners - 1; j++)
+                ti->listeners[j] = ti->listeners[j + 1];
+            ti->num_listeners--;
+            ti->listeners[ti->num_listeners].listener = 0;
+            ti->listeners[ti->num_listeners].state = LISTENER_AWAITING_BEGIN;
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+static void
+TouchAddGrabListener(DeviceIntPtr dev, TouchPointInfoPtr ti,
+                     InternalEvent *ev, GrabPtr grab)
+{
+    enum TouchListenerType type = LISTENER_GRAB;
+
+    /* FIXME: owner_events */
+
+    if (grab->grabtype == XI2)
+    {
+        if (!xi2mask_isset(grab->xi2mask, dev, XI_TouchOwnership))
+            TouchEventHistoryAllocate(ti);
+        if (!xi2mask_isset(grab->xi2mask, dev, XI_TouchBegin))
+            type = LISTENER_POINTER_GRAB;
+    } else if (grab->grabtype == XI || grab->grabtype == CORE)
+    {
+        TouchEventHistoryAllocate(ti);
+        type = LISTENER_POINTER_GRAB;
+    }
+
+    TouchAddListener(ti, grab->resource, grab->grabtype,
+                     type, LISTENER_AWAITING_BEGIN);
+    ti->num_grabs++;
+}
+
+/**
+ * Add one listener if there is a grab on the given window.
+ */
+static void
+TouchAddPassiveGrabListener(DeviceIntPtr dev, TouchPointInfoPtr ti,
+                            WindowPtr win, InternalEvent *ev)
+{
+    GrabPtr grab;
+    Bool check_core = IsMaster(dev) && ti->emulate_pointer;
+
+    /* FIXME: make CheckPassiveGrabsOnWindow only trigger on TouchBegin */
+    grab = CheckPassiveGrabsOnWindow(win, dev, ev, check_core, FALSE);
+    if (!grab)
+        return;
+
+    TouchAddGrabListener(dev, ti, ev, grab);
+}
+
+static Bool
+TouchAddRegularListener(DeviceIntPtr dev, TouchPointInfoPtr ti,
+                        WindowPtr win, InternalEvent *ev)
+{
+    InputClients *iclients = NULL;
+    OtherInputMasks *inputMasks = NULL;
+    uint16_t evtype = 0; /* may be event type or emulated event type */
+    enum TouchListenerType type = LISTENER_REGULAR;
+    int mask;
+
+    evtype = GetXI2Type(ev->any.type);
+    mask = EventIsDeliverable(dev, ev->any.type, win);
+    if (!mask && !ti->emulate_pointer)
+        return FALSE;
+    else if (!mask)/* now try for pointer event */
+    {
+        mask = EventIsDeliverable(dev, TouchGetPointerEventType(ev), win);
+        if (mask)
+        {
+            evtype = GetXI2Type(TouchGetPointerEventType(ev));
+            type = LISTENER_POINTER_REGULAR;
+        }
+    }
+    if (!mask)
+        return FALSE;
+
+    inputMasks = wOtherInputMasks(win);
+
+    if (mask & EVENT_XI2_MASK)
+    {
+        nt_list_for_each_entry(iclients, inputMasks->inputClients, next)
+        {
+            if (!xi2mask_isset(iclients->xi2mask, dev, evtype))
+                continue;
+
+            if (!xi2mask_isset(iclients->xi2mask, dev, XI_TouchOwnership))
+                TouchEventHistoryAllocate(ti);
+
+            TouchAddListener(ti, iclients->resource, XI2,
+                             type, LISTENER_AWAITING_BEGIN);
+            return TRUE;
+        }
+    }
+
+    if (mask & EVENT_XI1_MASK)
+    {
+        int xitype = GetXIType(TouchGetPointerEventType(ev));
+        Mask xi_filter = event_get_filter_from_type(dev, xitype);
+        nt_list_for_each_entry(iclients, inputMasks->inputClients, next)
+        {
+            if (!(iclients->mask[dev->id] & xi_filter))
+                continue;
+
+            TouchEventHistoryAllocate(ti);
+            TouchAddListener(ti, iclients->resource, XI,
+                             LISTENER_POINTER_REGULAR, LISTENER_AWAITING_BEGIN);
+            return TRUE;
+        }
+    }
+
+    if (mask & EVENT_CORE_MASK)
+    {
+        int coretype = GetCoreType(TouchGetPointerEventType(ev));
+        Mask core_filter = event_get_filter_from_type(dev, coretype);
+
+        /* window owner */
+        if (IsMaster(dev) && (win->eventMask & core_filter))
+        {
+            TouchEventHistoryAllocate(ti);
+            TouchAddListener(ti, win->drawable.id, CORE,
+                             LISTENER_POINTER_REGULAR, LISTENER_AWAITING_BEGIN);
+            return TRUE;
+        }
+
+        /* all others */
+        nt_list_for_each_entry(iclients, (InputClients*)wOtherClients(win), next)
+        {
+            if (!(iclients->mask[XIAllDevices] & core_filter))
+                continue;
+
+            TouchEventHistoryAllocate(ti);
+            TouchAddListener(ti, iclients->resource, CORE,
+                             type, LISTENER_AWAITING_BEGIN);
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static void
+TouchAddActiveGrabListener(DeviceIntPtr dev, TouchPointInfoPtr ti,
+                           InternalEvent *ev, GrabPtr grab)
+{
+    if (!ti->emulate_pointer &&
+        (grab->grabtype == CORE || grab->grabtype == XI))
+        return;
+
+    if (!ti->emulate_pointer &&
+        grab->grabtype == XI2 &&
+        (grab->type != XI_TouchBegin && grab->type != XI_TouchEnd && grab->type != XI_TouchUpdate))
+        return;
+
+    TouchAddGrabListener(dev, ti, ev, grab);
+}
+
+void
+TouchSetupListeners(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev)
+{
+    int i;
+    SpritePtr sprite = &ti->sprite;
+    WindowPtr win;
+
+    if (dev->deviceGrab.grab)
+        TouchAddActiveGrabListener(dev, ti, ev, dev->deviceGrab.grab);
+
+    /* First, find all grabbing clients from the root window down
+     * to the deepest child window. */
+    for (i = 0; i < sprite->spriteTraceGood; i++)
+    {
+        win = sprite->spriteTrace[i];
+        TouchAddPassiveGrabListener(dev, ti, win, ev);
+    }
+
+    /* Find the first client with an applicable event selection,
+     * going from deepest child window back up to the root window. */
+    for (i = sprite->spriteTraceGood - 1; i >= 0; i--)
+    {
+        Bool delivered;
+
+        win = sprite->spriteTrace[i];
+        delivered = TouchAddRegularListener(dev, ti, win, ev);
+        if (delivered)
+            return;
+    }
+}
