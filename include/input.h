@@ -480,6 +480,20 @@ extern _X_EXPORT void QueueKeyboardEvents(
     int key_code,
     const ValuatorMask *mask);
 
+extern int GetTouchEvents(
+    InternalEvent *events,
+    DeviceIntPtr pDev,
+    uint32_t ddx_touchid,
+    uint16_t type,
+    uint32_t flags,
+    const ValuatorMask *mask);
+
+void QueueTouchEvents(DeviceIntPtr device,
+                      int type,
+                      uint32_t ddx_touchid,
+                      int flags,
+                      const ValuatorMask *mask);
+
 extern _X_EXPORT int GetProximityEvents(
     InternalEvent *events,
     DeviceIntPtr pDev,

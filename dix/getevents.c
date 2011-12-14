@@ -1632,6 +1632,54 @@ GetProximityEvents(InternalEvent *events, DeviceIntPtr pDev, int type, const Val
 }
 
 /**
+ * Generate internal events representing this touch event and enqueue them
+ * on the event queue.
+ *
+ * This function is not reentrant. Disable signals before calling.
+ *
+ * @param device The device to generate the event for
+ * @param type Event type, one of XI_TouchBegin, XI_TouchUpdate, XI_TouchEnd
+ * @param touchid Touch point ID
+ * @param flags Event modification flags
+ * @param mask Valuator mask for valuators present for this event.
+ */
+void
+QueueTouchEvents(DeviceIntPtr device, int type,
+                 uint32_t ddx_touchid, int flags, const ValuatorMask *mask)
+{
+    int nevents;
+
+    nevents = GetTouchEvents(InputEventList, device, ddx_touchid, type, flags, mask);
+    queueEventList(device, InputEventList, nevents);
+}
+
+/**
+ * Get events for a touch. Generates a TouchBegin event if end is not set and
+ * the touch id is not active. Generates a TouchUpdate event if end is not set
+ * and the touch id is active. Generates a TouchEnd event if end is set and the
+ * touch id is active.
+ *
+ * events is not NULL-terminated; the return value is the number of events.
+ * The DDX is responsible for allocating the event structure in the first
+ * place via GetMaximumEventsNum(), and for freeing it.
+ *
+ * @param[out] events The list of events generated
+ * @param dev The device to generate the events for
+ * @param ddx_touchid The touch ID as assigned by the DDX
+ * @param type XI_TouchBegin, XI_TouchUpdate or XI_TouchEnd
+ * @param flags Event flags
+ * @param mask_in Valuator information for this event
+ */
+int
+GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
+               uint16_t type, uint32_t flags, const ValuatorMask *mask_in)
+{
+    return 0;
+}
+
+
+
+/**
  * Synthesize a single motion event for the core pointer.
  *
  * Used in cursor functions, e.g. when cursor confinement changes, and we need
