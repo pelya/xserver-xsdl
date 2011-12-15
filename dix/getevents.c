@@ -786,36 +786,28 @@ scale_from_screen(DeviceIntPtr dev, ValuatorMask *mask)
 
 
 /**
- * If we have HW cursors, this actually moves the visible sprite. If not, we
- * just do all the screen crossing, etc.
+ * Scale from (absolute) device to screen coordinates here,
  *
- * We scale from device to screen coordinates here, call
- * miPointerSetPosition() and then scale back into device coordinates (if
- * needed). miPSP will change x/y if the screen was crossed.
- *
- * The coordinates provided are always absolute. The parameter mode
- * specifies whether it was relative or absolute movement that landed us at
- * those coordinates. see fill_pointer_events for information on coordinate
- * systems.
+ * The coordinates provided are always absolute. see fill_pointer_events for
+ * information on coordinate systems.
  *
  * @param dev The device to be moved.
- * @param mode Movement mode (Absolute or Relative)
- * @param[in,out] mask Mask of axis values for this event, returns the
- * per-screen device coordinates after confinement
+ * @param mask Mask of axis values for this event
  * @param[out] devx x desktop-wide coordinate in device coordinate system
  * @param[out] devy y desktop-wide coordinate in device coordinate system
  * @param[out] screenx x coordinate in desktop coordinate system
  * @param[out] screeny y coordinate in desktop coordinate system
  */
 static ScreenPtr
-positionSprite(DeviceIntPtr dev, int mode, ValuatorMask *mask,
-               double *devx, double *devy,
-               double *screenx, double *screeny)
+scale_to_desktop(DeviceIntPtr dev, ValuatorMask *mask,
+                 double *devx, double *devy,
+                 double *screenx, double *screeny)
 {
-    double x, y;
-    double tmpx, tmpy;
     ScreenPtr scr = miPointerGetScreen(dev);
+    double x, y;
 
+    BUG_WARN(!dev->valuator);
+    BUG_WARN(dev->valuator->numAxes < 2);
     if (!dev->valuator || dev->valuator->numAxes < 2)
         return scr;
 
@@ -834,10 +826,47 @@ positionSprite(DeviceIntPtr dev, int mode, ValuatorMask *mask,
     *screeny = rescaleValuatorAxis(y, dev->valuator->axes + 1, NULL,
                                    screenInfo.y, screenInfo.height);
 
-    tmpx = *screenx;
-    tmpy = *screeny;
     *devx = x;
     *devy = y;
+
+    return scr;
+}
+
+/**
+ * If we have HW cursors, this actually moves the visible sprite. If not, we
+ * just do all the screen crossing, etc.
+ *
+ * We use the screen coordinates here, call miPointerSetPosition() and then
+ * scale back into device coordinates (if needed). miPSP will change x/y if
+ * the screen was crossed.
+ *
+ * The coordinates provided are always absolute. The parameter mode
+ * specifies whether it was relative or absolute movement that landed us at
+ * those coordinates. see fill_pointer_events for information on coordinate
+ * systems.
+ *
+ * @param dev The device to be moved.
+ * @param mode Movement mode (Absolute or Relative)
+ * @param[out] mask Mask of axis values for this event, returns the
+ * per-screen device coordinates after confinement
+ * @param[in,out] devx x desktop-wide coordinate in device coordinate system
+ * @param[in,out] devy y desktop-wide coordinate in device coordinate system
+ * @param[in,out] screenx x coordinate in desktop coordinate system
+ * @param[in,out] screeny y coordinate in desktop coordinate system
+ */
+static ScreenPtr
+positionSprite(DeviceIntPtr dev, int mode, ValuatorMask *mask,
+               double *devx, double *devy,
+               double *screenx, double *screeny)
+{
+    ScreenPtr scr = miPointerGetScreen(dev);
+    double tmpx, tmpy;
+
+    if (!dev->valuator || dev->valuator->numAxes < 2)
+        return scr;
+
+    tmpx = *screenx;
+    tmpy = *screeny;
 
     /* miPointerSetPosition takes care of crossing screens for us, as well as
      * clipping to the current screen. Coordinates returned are in desktop
@@ -858,11 +887,13 @@ positionSprite(DeviceIntPtr dev, int mode, ValuatorMask *mask,
 
     /* Recalculate the per-screen device coordinates */
     if (valuator_mask_isset(mask, 0)) {
+        double x;
         x = rescaleValuatorAxis(*screenx - scr->x, NULL, dev->valuator->axes + 0,
                                 0, scr->width);
         valuator_mask_set_double(mask, 0, x);
     }
     if (valuator_mask_isset(mask, 1)) {
+        double y;
         y = rescaleValuatorAxis(*screeny - scr->y, NULL, dev->valuator->axes + 1,
                                 0, scr->height);
         valuator_mask_set_double(mask, 1, y);
@@ -1251,6 +1282,7 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
     if ((flags & POINTER_NORAW) == 0)
         set_raw_valuators(raw, &mask, raw->valuators.data);
 
+    scale_to_desktop(pDev, &mask, &devx, &devy, &screenx, &screeny);
     scr = positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative,
                          &mask, &devx, &devy, &screenx, &screeny);
 
