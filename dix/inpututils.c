@@ -674,7 +674,7 @@ void event_set_state(DeviceIntPtr mouse, DeviceIntPtr kbd, DeviceEvent *event)
 
     for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
         if (BitIsOn(mouse->button->down, i))
-            SetBit(event->buttons, i);
+            SetBit(event->buttons, mouse->button->map[i]);
 
     if (mouse && mouse->touch && mouse->touch->buttonsDown > 0)
         SetBit(event->buttons, mouse->button->map[1]);
