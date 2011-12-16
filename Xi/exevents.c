@@ -927,7 +927,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
 
     for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
         if (BitIsOn(mouse->button->down, i))
-            SetBit(event->buttons, i);
+            SetBit(event->buttons, mouse->button->map[i]);
 
     if (kbd && kbd->key)
     {
