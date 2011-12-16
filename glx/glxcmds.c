@@ -50,7 +50,7 @@
 #include "indirect_table.h"
 #include "indirect_util.h"
 
-static int
+_X_HIDDEN int
 validGlxScreen(ClientPtr client, int screen, __GLXscreen ** pGlxScreen,
                int *err)
 {
@@ -67,7 +67,7 @@ validGlxScreen(ClientPtr client, int screen, __GLXscreen ** pGlxScreen,
     return TRUE;
 }
 
-static int
+_X_HIDDEN int
 validGlxFBConfig(ClientPtr client, __GLXscreen * pGlxScreen, XID id,
                  __GLXconfig ** config, int *err)
 {
@@ -131,7 +131,7 @@ validGlxFBConfigForWindow(ClientPtr client, __GLXconfig * config,
     return TRUE;
 }
 
-static int
+_X_HIDDEN int
 validGlxContext(ClientPtr client, XID id, int access_mode,
                 __GLXcontext ** context, int *err)
 {
@@ -200,7 +200,7 @@ __glXdirectContextDestroy(__GLXcontext * context)
     free(context);
 }
 
-static __GLXcontext *
+_X_HIDDEN __GLXcontext *
 __glXdirectContextCreate(__GLXscreen * screen,
                          __GLXconfig * modes, __GLXcontext * shareContext)
 {
