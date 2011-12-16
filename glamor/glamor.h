@@ -90,12 +90,29 @@ typedef enum  glamor_pixmap_type {
 } glamor_pixmap_type_t;
 
 #define GLAMOR_EGL_EXTERNAL_BUFFER 3
-
+/* @glamor_init: Initialize glamor internal data structure.
+ *
+ * @screen: Current screen pointer.
+ * @flags:  Please refer the flags description above.
+ *
+ * This function initializes necessary internal data structure
+ * for glamor. And before calling into this function, the OpenGL
+ * environment should be ready. Should be called before any real 
+ * glamor rendering or texture allocation functions. 
+ */
 extern _X_EXPORT Bool glamor_init(ScreenPtr screen, unsigned int flags);
 extern _X_EXPORT void glamor_fini(ScreenPtr screen);
 extern _X_EXPORT void glamor_set_screen_pixmap_texture(ScreenPtr screen,
 						       int w, int h,
 						       unsigned int tex);
+/* @glamor_glyphs_init: Initialize glyphs internal data structures.
+ *
+ * @pScreen: Current screen pointer.
+ *
+ * This function must be called after the glamor_init and the texture
+ * can be allocated. An example is to call it when create the screen
+ * resources at DDX layer.
+ */
 extern _X_EXPORT Bool glamor_glyphs_init(ScreenPtr pScreen);
 
 extern _X_EXPORT void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h,
@@ -104,21 +121,65 @@ extern _X_EXPORT void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h,
 extern _X_EXPORT void glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type);
 extern _X_EXPORT void glamor_destroy_textured_pixmap(PixmapPtr pixmap);
 extern _X_EXPORT void glamor_block_handler(ScreenPtr screen);
+extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
+						unsigned int usage);
 
 #ifdef GLAMOR_FOR_XORG
+/* @glamor_egl_init: Initialize EGL environment.
+ *
+ * @scrn: Current screen info pointer.
+ * @fd:   Current drm fd.
+ *
+ * This function creates and intialize EGL contexts. 
+ * Should be called from DDX's preInit function.
+ * Return TRUE if success, otherwise return FALSE.
+ * */
 extern _X_EXPORT Bool glamor_egl_init(ScrnInfoPtr scrn, int fd);
+
+/* @glamor_egl_init_textured_pixmap: Initialization for textured pixmap allocation.
+ *
+ * @screen: Current screen pointer.
+ *
+ * This function must be called before any textured pixmap's creation including
+ * the screen pixmap. Could be called from DDX's screenInit function after the calling
+ * to glamor_init..
+ */
+extern _X_EXPORT Bool glamor_egl_init_textured_pixmap(ScreenPtr screen);
+
+/* @glamor_egl_create_textured_screen: Create textured screen pixmap.
+ *
+ * @screen: screen pointer to be processed.
+ * @handle: screen pixmap's BO handle.
+ * @stride: screen pixmap's stride in bytes.
+ *
+ * This function is similar with the create_textured_pixmap. As the
+ * screen pixmap is a special, we handle it separately in this function.
+ */
 extern _X_EXPORT Bool glamor_egl_create_textured_screen(ScreenPtr screen,
 							int handle,
 							int stride);
+
+/*
+ * @glamor_egl_create_textured_pixmap: Try to create a textured pixmap from
+ * 				       a BO handle.
+ * 
+ * @pixmap: The pixmap need to be processed.
+ * @handle: The BO's handle attached to this pixmap at DDX layer.
+ * @stride: Stride in bytes for this pixmap.
+ *
+ * This function try to create a texture from the handle and attach
+ * the texture to the pixmap , thus glamor can render to this pixmap
+ * as well. Return true if successful, otherwise return FALSE.
+ */
 extern _X_EXPORT Bool glamor_egl_create_textured_pixmap(PixmapPtr pixmap,
 							int handle,
 							int stride);
 
+extern _X_EXPORT void glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap);
+
 extern _X_EXPORT Bool glamor_egl_close_screen(ScreenPtr screen);
 extern _X_EXPORT void glamor_egl_free_screen(int scrnIndex, int flags);
 
-extern _X_EXPORT Bool glamor_egl_init_textured_pixmap(ScreenPtr screen);
-extern _X_EXPORT void glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap);
 #endif
 
 /* Glamor rendering/drawing functions with XXX_nf. 
