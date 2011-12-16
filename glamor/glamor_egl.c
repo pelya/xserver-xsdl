@@ -204,10 +204,6 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
 	return TRUE;
 }
 
-/*
- * This function will be called from the dri buffer allocation.
- * It is somehow very familiar with the create textured screen.
- */
 Bool
 glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 {
@@ -218,8 +214,6 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 	EGLImageKHR image;
 	GLuint texture;
 	int name;
-	int ret;
-	glamor_pixmap_type_t type;
 
 	if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
@@ -233,42 +227,17 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 					 ((stride * 8 + 7) / pixmap->drawable.bitsPerPixel),
 					 name,
 					 pixmap->drawable.depth);
-	if (image == EGL_NO_IMAGE_KHR) {
-		GLenum format;
-		/* we have to create separated texture here. The reason is, if
- 		 * a DRM-buffer-only pixmap exist, and given a texture only
- 		 * pixmap as a source, then we will don't know how to render it
- 		 * within glamor, and we even can't find a good way to fallback
- 		 * to DDX driver, as DDX driver don't understand a texture only
- 		 * pixmap. */
-		type = GLAMOR_SEPARATE_TEXTURE;
-		if (pixmap->drawable.depth == 24) 
-			format = GL_RGB;
-		else
-			format = GL_RGBA;
-		glamor_egl->dispatch->glGenTextures(1, &texture);
-		glamor_egl->dispatch->glBindTexture(GL_TEXTURE_2D, texture);
-		glamor_egl->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-						      GL_NEAREST);
-		glamor_egl->dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-						      GL_NEAREST);
-		glamor_egl->dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, pixmap->drawable.width, 
-						   pixmap->drawable.height, 0, format,
-						   GL_UNSIGNED_BYTE, NULL);
-		ret = FALSE;
-	} else {
-		type = GLAMOR_TEXTURE_DRM;
-		glamor_create_texture_from_image(glamor_egl, image, &texture);
-		ret = TRUE;
-	}
+	if (image == EGL_NO_IMAGE_KHR) 
+		return FALSE;
 
-	glamor_set_pixmap_type(pixmap, type);
+	glamor_create_texture_from_image(glamor_egl, image, &texture);
+	glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
 	glamor_set_pixmap_texture(pixmap, pixmap->drawable.width,
 				  pixmap->drawable.height, texture);
 	dixSetPrivate(&pixmap->devPrivates, glamor_egl_pixmap_private_key,
 		      image);
 
-	return ret;
+	return TRUE;
 }
 
 void
@@ -327,7 +296,6 @@ glamor_egl_has_extension(struct glamor_egl_screen_private *glamor_egl,
 	return FALSE;
 }
 
-
 Bool
 glamor_egl_init(ScrnInfoPtr scrn, int fd)
 {
@@ -347,20 +315,14 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 		    xf86AllocateScrnInfoPrivateIndex();
 
 	scrn->privates[xf86GlamorEGLPrivateIndex].ptr = glamor_egl;
-
 	glamor_egl->fd = fd;
-
-	glamor_egl->display = eglGetDRMDisplayMESA(glamor_egl->fd);
-
-	if (glamor_egl->display == EGL_NO_DISPLAY) {
-		glamor_egl->gbm = gbm_create_device(glamor_egl->fd);
-		if (glamor_egl->gbm == NULL) {
-			ErrorF("couldn't get display device\n");
-			return FALSE;
-		}
+	glamor_egl->gbm = gbm_create_device(glamor_egl->fd);
+	if (glamor_egl->gbm == NULL) {
+		ErrorF("couldn't get display device\n");
+		return FALSE;
 	}
-
 	glamor_egl->display = eglGetDisplay(glamor_egl->gbm);
+
 #ifndef GLAMOR_GLES2
 	eglBindAPI(EGL_OPENGL_API);
 #else
