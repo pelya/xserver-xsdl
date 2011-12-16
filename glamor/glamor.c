@@ -116,6 +116,7 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
 					      pixmap->drawable.
 					      bitsPerPixel + 7) / 8) +
 					    3) & ~3, NULL);
+	pixmap->devPrivate.ptr = NULL;
 }
 
 /* Set screen pixmap. If tex equal to 0, means it is called from ephyr. */
