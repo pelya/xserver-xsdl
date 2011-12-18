@@ -377,6 +377,7 @@ allocate_or_reuse_buffer(DrawablePtr pDraw, DRI2ScreenPtr ds,
     int old_buf = find_attachment(pPriv, attachment);
 
     if ((old_buf < 0)
+	|| attachment == DRI2BufferFrontLeft
 	|| !dimensions_match
 	|| (pPriv->buffers[old_buf]->format != format)) {
 	*buffer = (*ds->CreateBuffer)(pDraw, attachment, format);
