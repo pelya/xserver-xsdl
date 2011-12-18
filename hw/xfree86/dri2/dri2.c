@@ -587,7 +587,7 @@ DRI2InvalidateDrawable(DrawablePtr pDraw)
     pPriv->needInvalidate = FALSE;
 
     list_for_each_entry(ref, &pPriv->reference_list, link)
-	ref->invalidate(pDraw, ref->priv);
+	ref->invalidate(pDraw, ref->priv, ref->id);
 }
 
 /*
@@ -958,6 +958,7 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
 	 * windows using the same pixmap
 	 */
 	TraverseTree(pWin, DRI2InvalidateWalk, pPixmap);
+	DRI2InvalidateDrawable(&pPixmap->drawable);
     } else
 	DRI2InvalidateDrawable(pDraw);
 
