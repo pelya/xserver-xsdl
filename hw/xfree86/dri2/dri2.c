@@ -181,6 +181,7 @@ DRI2AllocateDrawable(DrawablePtr pDraw)
     pPriv->last_swap_ust = 0;
     list_init(&pPriv->reference_list);
     pPriv->serialNumber = DRI2DrawableSerial(pDraw);
+    pPriv->needInvalidate = FALSE;
 
     if (pDraw->type == DRAWABLE_WINDOW) {
 	pWin = (WindowPtr) pDraw;
