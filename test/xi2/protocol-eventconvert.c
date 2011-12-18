@@ -915,12 +915,106 @@ static void test_convert_XIDeviceChangedEvent(void)
     }
 }
 
+static void
+test_values_XITouchOwnershipEvent(TouchOwnershipEvent *in,
+                                  xXITouchOwnershipEvent *out,
+                                  BOOL swap)
+{
+    if (swap)
+    {
+        swaps(&out->sequenceNumber);
+        swapl(&out->length);
+        swaps(&out->evtype);
+        swaps(&out->deviceid);
+        swaps(&out->sourceid);
+        swapl(&out->time);
+        swapl(&out->touchid);
+        swapl(&out->root);
+        swapl(&out->event);
+        swapl(&out->child);
+        swapl(&out->time);
+    }
+
+    assert(out->type == GenericEvent);
+    assert(out->extension == 0); /* IReqCode defaults to 0 */
+    assert(out->evtype == GetXI2Type(in->type));
+    assert(out->time == in->time);
+    assert(out->deviceid == in->deviceid);
+    assert(out->sourceid == in->sourceid);
+    assert(out->touchid == in->touchid);
+    assert(out->flags == in->reason);
+}
+
+static void
+test_XITouchOwnershipEvent(TouchOwnershipEvent *in)
+{
+    xXITouchOwnershipEvent *out, *swapped;
+    int rc;
+
+    rc = EventToXI2((InternalEvent*)in, (xEvent**)&out);
+    assert(rc == Success);
+
+    test_values_XITouchOwnershipEvent(in, out, FALSE);
+
+    swapped = calloc(1, sizeof(xEvent) + out->length * 4);
+    XI2EventSwap((xGenericEvent*)out, (xGenericEvent*)swapped);
+    test_values_XITouchOwnershipEvent(in, swapped, TRUE);
+    free(out);
+    free(swapped);
+}
+
+static void
+test_convert_XITouchOwnershipEvent(void)
+{
+    TouchOwnershipEvent in;
+    long i;
+
+    memset(&in, 0, sizeof(in));
+    in.header           = ET_Internal;
+    in.type             = ET_TouchOwnership;
+    in.length           = sizeof(in);
+    in.time             = 0;
+    in.deviceid         = 1;
+    in.sourceid         = 2;
+    in.touchid          = 0;
+    in.reason           = 0;
+    in.resource         = 0;
+    in.flags            = 0;
+
+    test_XITouchOwnershipEvent(&in);
+
+    in.flags            = XIAcceptTouch;
+    test_XITouchOwnershipEvent(&in);
+
+    in.flags            = XIRejectTouch;
+    test_XITouchOwnershipEvent(&in);
+
+    for (i = 1; i <= 0xFFFF; i <<= 1)
+    {
+        in.deviceid = i;
+        test_XITouchOwnershipEvent(&in);
+    }
+
+    for (i = 1; i <= 0xFFFF; i <<= 1)
+    {
+        in.sourceid = i;
+        test_XITouchOwnershipEvent(&in);
+    }
+
+    for (i = 1; i <= 0xFFFFFFFF; i <<= 1)
+    {
+        in.touchid = i;
+        test_XITouchOwnershipEvent(&in);
+    }
+}
+
 int main(int argc, char** argv)
 {
     test_convert_XIRawEvent();
     test_convert_XIFocusEvent();
     test_convert_XIDeviceEvent();
     test_convert_XIDeviceChangedEvent();
+    test_convert_XITouchOwnershipEvent();
 
     return 0;
 }
