@@ -1116,13 +1116,14 @@ NoticeEventTime(InternalEvent *ev)
 void
 EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
 {
-    QdEventPtr	tail;
+    QdEventPtr	tail = NULL;
     QdEventPtr	qe;
     SpritePtr	pSprite = device->spriteInfo->sprite;
     int		eventlen;
     DeviceEvent *event = &ev->device_event;
 
-    tail = list_last_entry(&syncEvents.pending, QdEventRec, next);
+    if (!list_is_empty(&syncEvents.pending))
+        tail = list_last_entry(&syncEvents.pending, QdEventRec, next);
 
     NoticeTime((InternalEvent*)event);
 
