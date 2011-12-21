@@ -405,6 +405,12 @@ extern int DeliverOneGrabbedEvent(
     DeviceIntPtr /* dev */,
     enum InputLevel /* level */);
 
+extern void DeliverTouchEvents(
+    DeviceIntPtr /* dev */,
+    TouchPointInfoPtr /* ti */,
+    InternalEvent* /* ev */,
+    XID /* resource */);
+
 extern void InitializeSprite(
     DeviceIntPtr /* pDev */,
     WindowPtr    /* pWin */);

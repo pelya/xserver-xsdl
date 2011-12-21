@@ -496,7 +496,8 @@ TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID resource)
         flags |= TOUCH_POINTER_EMULATED;
     /* send fake begin event to next owner */
     nev = GetTouchEvents(tel, dev, ti->client_id, XI_TouchBegin, flags, mask);
-    /* FIXME: deliver the event */
+    for (i = 0; i < nev; i++)
+        DeliverTouchEvents(dev, ti, tel + i, resource);
 
     valuator_mask_free(&mask);
     FreeEventList(tel, GetMaximumEventsNum());
@@ -506,7 +507,7 @@ TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID resource)
     {
         DeviceEvent *ev = &ti->history[i];
         ev->flags |= TOUCH_REPLAYING;
-        /* FIXME: deliver the event */
+        DeliverTouchEvents(dev, ti, (InternalEvent*)ev, resource);
     }
 }
 
