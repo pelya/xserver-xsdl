@@ -1089,6 +1089,159 @@ DeliverOneTouchEvent(ClientPtr client, DeviceIntPtr dev, TouchPointInfoPtr ti,
 }
 
 /**
+ * If the current owner has rejected the event, deliver the
+ * TouchOwnership/TouchBegin to the next item in the sprite stack.
+ */
+static void
+TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
+                     TouchOwnershipEvent *ev)
+{
+    InternalEvent *tel = InitEventList(GetMaximumEventsNum());
+    ValuatorMask *mask = valuator_mask_new(2);
+    int i, nev;
+
+    /* Deliver the ownership */
+    if (ti->listeners[0].state == LISTENER_AWAITING_OWNER)
+        DeliverTouchEvents(dev, ti, (InternalEvent*)ev, ti->listeners[0].listener);
+    else if (ti->listeners[0].state == LISTENER_AWAITING_BEGIN)
+        TouchEventHistoryReplay(ti, dev, ti->listeners[0].listener);
+
+    /* If we've just removed the last grab and the touch has physically
+     * ended, send a TouchEnd event too and finalise the touch. */
+    if (ti->num_listeners == 1 && ti->num_grabs == 0 &&
+            ti->pending_finish)
+    {
+        int flags;
+        valuator_mask_set_double(mask, 0,
+                                 valuator_mask_get_double(ti->valuators, 0));
+        valuator_mask_set_double(mask, 1,
+                                 valuator_mask_get_double(ti->valuators, 1));
+
+        flags = TOUCH_CLIENT_ID;
+        if (ti->emulate_pointer)
+            flags |= TOUCH_POINTER_EMULATED;
+        nev = GetTouchEvents(tel, dev, ti->client_id, XI_TouchEnd, flags, mask);
+        for (i = 0; i < nev; i++)
+            DeliverTouchEvents(dev, ti, tel + i, 0);
+        TouchEndTouch(dev, ti);
+    }
+
+    valuator_mask_free(&mask);
+    FreeEventList(tel, GetMaximumEventsNum());
+}
+
+static void
+TouchEventRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
+                   TouchOwnershipEvent *ev)
+{
+    InternalEvent *tel = InitEventList(GetMaximumEventsNum());
+    ValuatorMask *mask = valuator_mask_new(2);
+    Bool was_owner = (ev->resource == ti->listeners[0].listener);
+    void *grab;
+    int nev, i;
+
+
+    /* Send a TouchEnd event to the resource being removed, but only if they
+     * haven't received one yet already */
+    if (ti->listeners[0].state != LISTENER_HAS_END)
+    {
+        int flags;
+        valuator_mask_set_double(mask, 0,
+                                 valuator_mask_get_double(ti->valuators, 0));
+        valuator_mask_set_double(mask, 1,
+                                 valuator_mask_get_double(ti->valuators, 1));
+
+        flags = TOUCH_CLIENT_ID|TOUCH_REJECT;
+        if (ti->emulate_pointer)
+            flags |= TOUCH_POINTER_EMULATED;
+        nev = GetTouchEvents(tel, sourcedev, ti->client_id, XI_TouchEnd, flags, mask);
+        for (i = 0; i < nev; i++)
+            DeliverTouchEvents(sourcedev, ti, tel + i, ev->resource);
+    }
+
+    /* If there are no other listeners left, then don't bother sending an
+     * ownership change event to no-one; if the touchpoint is pending
+     * finish, then we can just kill it now. */
+    if (ti->num_listeners == 1)
+    {
+        if (ti->pending_finish)
+            TouchEndTouch(sourcedev, ti);
+        goto out;
+    }
+
+    /* Remove the resource from the listener list, updating
+     * ti->num_listeners, as well as ti->num_grabs if it was a grab. */
+    if (TouchRemoveListener(ti, ev->resource))
+    {
+        if (dixLookupResourceByType(&grab, ev->resource, RT_PASSIVEGRAB,
+                                    serverClient, DixGetAttrAccess) == Success)
+            ti->num_grabs--;
+    }
+
+    /* If the current owner was removed, deliver the TouchOwnership or TouchBegin
+       event to the new owner. */
+    if (was_owner)
+        TouchPuntToNextOwner(sourcedev, ti, ev);
+
+out:
+    FreeEventList(tel, GetMaximumEventsNum());
+    valuator_mask_free(&mask);
+}
+
+/**
+ * Processes a TouchOwnership event, indicating a grab has accepted the touch
+ * it currently owns, or a grab or selection has been removed.  Will generate
+ * and send TouchEnd events to all clients removed from the delivery list, as
+ * well as possibly sending the new TouchOwnership event.  May end the
+ * touchpoint if it is pending finish.
+ */
+static void
+ProcessTouchOwnershipEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
+                           TouchOwnershipEvent *ev)
+{
+
+    if (ev->reason == XIRejectTouch)
+        TouchEventRejected(dev, ti, ev);
+    else if (ev->reason == XIAcceptTouch) {
+        int flags;
+        int nev, i;
+        ValuatorMask *mask;
+
+        InternalEvent *tel = InitEventList(GetMaximumEventsNum());
+
+        mask = valuator_mask_new(dev->valuator->numAxes);
+        valuator_mask_set_double(mask, 0,
+                                 valuator_mask_get_double(ti->valuators, 0));
+        valuator_mask_set_double(mask, 1,
+                                 valuator_mask_get_double(ti->valuators, 1));
+
+        /* FIXME: what about early acceptance? a client may accept before it
+         * owns the touch. */
+
+        /* The touch owner has accepted the touch.  Send TouchEnd events to
+         * everyone else, and truncate the list of listeners. */
+        flags = TOUCH_ACCEPT|TOUCH_CLIENT_ID;
+        if (ti->emulate_pointer)
+            flags |= TOUCH_POINTER_EMULATED;
+        nev = GetTouchEvents(tel, dev, ti->client_id, XI_TouchEnd,
+                             flags, mask);
+        for (i = 0; i < nev; i++)
+            DeliverTouchEvents(dev, ti, tel + i, 0);
+
+        FreeEventList(tel, GetMaximumEventsNum());
+        valuator_mask_free(&mask);
+
+        while (ti->num_listeners > 1)
+            TouchRemoveListener(ti, ti->listeners[1].listener);
+        /* Owner accepted after receiving end */
+        if (ti->listeners[0].state == LISTENER_HAS_END)
+            TouchEndTouch(dev, ti);
+    } else { /* this is the very first ownership event for a grab */
+        DeliverTouchEvents(dev, ti, (InternalEvent*)ev, ev->resource);
+    }
+}
+
+/**
  * Copy the event's valuator information into the touchpoint, we may need
  * this for emulated TouchEnd events.
  */
@@ -1406,7 +1559,7 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
     /* TouchOwnership events are handled separately from the rest, as they
      * have more complex semantics. */
     if (ev->any.type == ET_TouchOwnership)
-        /* FIXME: process me! */;
+        ProcessTouchOwnershipEvent(dev, ti, &ev->touch_ownership_event);
     else
     {
         TouchCopyValuatorData(&ev->device_event, ti);
