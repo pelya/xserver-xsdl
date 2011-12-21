@@ -1738,6 +1738,7 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     } touchpoint;
     int need_rawevent = TRUE;
     Bool emulate_pointer = FALSE;
+    int client_id = 0;
 
     if (!dev->enabled || !t || !v)
         return 0;
@@ -1761,6 +1762,7 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
         }
 
         need_rawevent = FALSE;
+        client_id = touchpoint.dix_ti->client_id;
     } else /* a DDX-submitted touch */
     {
         touchpoint.ti = TouchFindByDDXID(dev, ddx_touchid, (type == XI_TouchBegin));
@@ -1770,6 +1772,7 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
                     type == XI_TouchBegin ? "begin" : "find", ddx_touchid);
             return 0;
         }
+        client_id = touchpoint.ti->client_id;
     }
 
     if (!(flags & TOUCH_CLIENT_ID))
@@ -1787,7 +1790,7 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
         raw = &events->raw_event;
         events++;
         num_events++;
-        init_raw(dev, raw, ms, type, touchpoint.ti->client_id);
+        init_raw(dev, raw, ms, type, client_id);
         set_raw_valuators(raw, &mask, raw->valuators.data_raw);
     }
 
@@ -1877,7 +1880,7 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     event->root = scr->root->drawable.id;
 
     event_set_root_coordinates(event, screenx, screeny);
-    event->touchid = touchpoint.ti->client_id;
+    event->touchid = client_id;
     event->flags = flags;
 
     if (emulate_pointer)

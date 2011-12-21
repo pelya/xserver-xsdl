@@ -301,7 +301,6 @@ typedef struct _ValuatorClassRec {
 } ValuatorClassRec;
 
 typedef struct _TouchPointInfo {
-    /* client_id must be first element, see GetTouchEvents */
     uint32_t    client_id;          /* touch ID as seen in client events */
     int         sourceid;           /* Source device's ID for this touchpoint */
     Bool        active;             /* whether or not the touch is active */
@@ -328,7 +327,6 @@ typedef struct _TouchPointInfo {
 typedef struct _TouchListener TouchListener;
 
 typedef struct _DDXTouchPointInfo {
-    /* client_id must be first element, see GetTouchEvents */
     uint32_t    client_id;          /* touch ID as seen in client events */
     Bool        active;             /* whether or not the touch is active */
     uint32_t    ddx_id;             /* touch ID given by the DDX */
