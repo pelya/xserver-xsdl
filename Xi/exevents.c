@@ -1385,8 +1385,8 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent 
     if (grab)
     {
         /* this side-steps the usual activation mechansims, but... */
-        if (ev->any.type == ET_TouchBegin)
-            ActivatePassiveGrab(dev, grab, ptrev, ev); /* also delivers the event */
+        if (ev->any.type == ET_TouchBegin && !dev->deviceGrab.grab)
+                ActivatePassiveGrab(dev, grab, ptrev, ev); /* also delivers the event */
         else {
             int deliveries = 0;
             /* 'grab' is the passive grab, but if the grab isn't active,
