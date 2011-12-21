@@ -4192,8 +4192,8 @@ DeliverOneGrabbedEvent(InternalEvent *event, DeviceIntPtr dev, enum InputLevel l
             if (rc == Success)
             {
                 int evtype = xi2_get_type(xE);
-                mask = xi2mask_isset(grab->xi2mask, dev, evtype);
-                filter = 1;
+                mask = GetXI2MaskByte(grab->xi2mask, dev, evtype);
+                filter = GetEventFilter(dev, xE);
             }
             break;
         case XI:
