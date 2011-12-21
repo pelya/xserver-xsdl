@@ -125,10 +125,8 @@ extern _X_EXPORT const DisplayModeRec xf86DefaultModes[];
 extern _X_EXPORT const int xf86NumDefaultModes;
 
 /* xf86Configure.c */
-extern _X_EXPORT void DoConfigure(void);
-
-/* xf86ShowOpts.c */
-extern _X_EXPORT void DoShowOptions(void);
+extern _X_EXPORT void DoConfigure(void) _X_NORETURN;
+extern _X_EXPORT void DoShowOptions(void) _X_NORETURN;
 
 /* xf86Events.c */
 
@@ -147,6 +145,7 @@ extern _X_EXPORT Bool xf86LoadModules(char **list, pointer *optlist);
 extern _X_EXPORT int xf86SetVerbosity(int verb);
 extern _X_EXPORT int xf86SetLogVerbosity(int verb);
 extern _X_EXPORT Bool xf86CallDriverProbe( struct _DriverRec * drv, Bool detect_only );
+extern _X_EXPORT Bool xf86PrivsElevated(void);
 
 #endif /* _NO_XF86_PROTOTYPES */
 

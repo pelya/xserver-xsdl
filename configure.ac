@@ -26,8 +26,8 @@ dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.60)
-AC_INIT([xorg-server], 1.11.99.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
-RELEASE_DATE="2011-11-20"
+AC_INIT([xorg-server], 1.11.99.2, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+RELEASE_DATE="2011-12-17"
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
 AM_MAINTAINER_MODE
@@ -212,7 +212,7 @@ AC_CHECK_FUNC([dlopen], [],
 AC_SUBST(DLOPEN_LIBS)
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS([backtrace ffs \
+AC_CHECK_FUNCS([backtrace ffs geteuid getuid issetugid getresuid \
 	getdtablesize getifaddrs getpeereid getpeerucred getzoneid \
 	mmap shmctl64 strncasecmp vasprintf vsnprintf walkcontext])
 AC_REPLACE_FUNCS([strcasecmp strcasestr strlcat strlcpy strndup])
@@ -2020,12 +2020,10 @@ if test "$KDRIVE" = yes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS $LIBGL libdrm"
     fi
 
-    PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [xephyr="yes"], [xephyr="no"])
     if test "x$XEPHYR" = xauto; then
-        XEPHYR=$xephyr
-    fi
-    if test "x$XEPHYR" = xyes && test "x$xephyr" = xno; then	
-        AC_MSG_ERROR([Xephyr dependencies missing])
+        PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [XEPHYR="yes"], [XEPHYR="no"])
+    elif test "x$XEPHYR" = xyes ; then
+        PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS)
     fi
 
     # Xephyr needs nanosleep() which is in librt on Solaris

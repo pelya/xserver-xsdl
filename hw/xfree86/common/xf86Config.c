@@ -72,8 +72,8 @@
  * These paths define the way the config file search is done.  The escape
  * sequences are documented in parser/scan.c.
  */
-#ifndef ROOT_CONFIGPATH
-#define ROOT_CONFIGPATH	"%A," "%R," \
+#ifndef ALL_CONFIGPATH
+#define ALL_CONFIGPATH	"%A," "%R," \
 			"/etc/X11/%R," "%P/etc/X11/%R," \
 			"%E," "%F," \
 			"/etc/X11/%F," "%P/etc/X11/%F," \
@@ -83,8 +83,8 @@
 			"%P/lib/X11/%X.%H," \
 			"%P/lib/X11/%X"
 #endif
-#ifndef USER_CONFIGPATH
-#define USER_CONFIGPATH	"/etc/X11/%S," "%P/etc/X11/%S," \
+#ifndef RESTRICTED_CONFIGPATH
+#define RESTRICTED_CONFIGPATH	"/etc/X11/%S," "%P/etc/X11/%S," \
 			"/etc/X11/%G," "%P/etc/X11/%G," \
 			"/etc/X11/%X," "/etc/%X," \
 			"%P/etc/X11/%X.%H," \
@@ -92,14 +92,14 @@
 			"%P/lib/X11/%X.%H," \
 			"%P/lib/X11/%X"
 #endif
-#ifndef ROOT_CONFIGDIRPATH
-#define ROOT_CONFIGDIRPATH	"%A," "%R," \
+#ifndef ALL_CONFIGDIRPATH
+#define ALL_CONFIGDIRPATH	"%A," "%R," \
 				"/etc/X11/%R," "%C/X11/%R," \
 				"/etc/X11/%X," "%C/X11/%X"
 #endif
-#ifndef USER_CONFIGDIRPATH
-#define USER_CONFIGDIRPATH	"/etc/X11/%R," "%C/X11/%R," \
-				"/etc/X11/%X," "%C/X11/%X"
+#ifndef RESTRICTED_CONFIGDIRPATH
+#define RESTRICTED_CONFIGDIRPATH	"/etc/X11/%R," "%C/X11/%R," \
+					"/etc/X11/%X," "%C/X11/%X"
 #endif
 #ifndef SYS_CONFIGDIRPATH
 #define SYS_CONFIGDIRPATH	"/usr/share/X11/%X," "%D/X11/%X"
@@ -552,7 +552,7 @@ xf86DriverlistFromCompile(void)
  *      Print a READABLE ErrorMessage!!!  All information that is 
  *      available is printed.
  */
-static void
+static void _X_ATTRIBUTE_PRINTF(1,2)
 xf86ConfigError(const char *msg, ...)
 {
     va_list ap;
@@ -2300,21 +2300,22 @@ checkInput(serverLayoutPtr layout, Bool implicit_layout) {
 ConfigStatus
 xf86HandleConfigFile(Bool autoconfig)
 {
-    char *filename, *dirname, *sysdirname;
-    const char *filesearch, *dirsearch;
-    MessageType filefrom = X_DEFAULT;
-    MessageType dirfrom = X_DEFAULT;
     char *scanptr;
     Bool singlecard = 0;
     Bool implicit_layout = FALSE;
 
     if (!autoconfig) {
-	if (getuid() == 0) {
-	    filesearch = ROOT_CONFIGPATH;
-	    dirsearch = ROOT_CONFIGDIRPATH;
+	char *filename, *dirname, *sysdirname;
+	const char *filesearch, *dirsearch;
+	MessageType filefrom = X_DEFAULT;
+	MessageType dirfrom = X_DEFAULT;
+
+	if (!xf86PrivsElevated()) {
+	    filesearch = ALL_CONFIGPATH;
+	    dirsearch = ALL_CONFIGDIRPATH;
 	} else {
-	    filesearch = USER_CONFIGPATH;
-	    dirsearch = USER_CONFIGDIRPATH;
+	    filesearch = RESTRICTED_CONFIGPATH;
+	    dirsearch = RESTRICTED_CONFIGDIRPATH;
 	}
 
 	if (xf86ConfigFile)
@@ -2350,11 +2351,11 @@ xf86HandleConfigFile(Bool autoconfig)
 			sysdirname);
 	if (!filename && !dirname && !sysdirname)
 	    return CONFIG_NOFILE;
-    }
 
-    free(filename);
-    free(dirname);
-    free(sysdirname);
+	free(filename);
+	free(dirname);
+	free(sysdirname);
+    }
 
     if ((xf86configptr = xf86readConfigFile ()) == NULL) {
 	xf86Msg(X_ERROR, "Problem parsing the config file\n");
