@@ -1001,10 +1001,12 @@ test_convert_XITouchOwnershipEvent(void)
         test_XITouchOwnershipEvent(&in);
     }
 
-    for (i = 1; i <= 0xFFFFFFFF; i <<= 1)
+    for (i = 1; ; i <<= 1)
     {
         in.touchid = i;
         test_XITouchOwnershipEvent(&in);
+	if (i == (1 << 31))
+	    break;
     }
 }
 
