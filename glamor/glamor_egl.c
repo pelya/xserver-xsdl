@@ -87,8 +87,6 @@ struct glamor_egl_screen_private {
 	int cpp;
 	struct gbm_device *gbm;
 
-	PFNEGLCREATEDRMIMAGEMESA egl_create_drm_image_mesa;
-	PFNEGLEXPORTDRMIMAGEMESA egl_export_drm_image_mesa;
 	PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
 	PFNGLEGLIMAGETARGETTEXTURE2DOESPROC egl_image_target_texture2d_oes;
 	struct glamor_gl_dispatch *dispatch;
@@ -353,8 +351,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 	GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_opengl);
 #endif
 
-	glamor_egl->egl_export_drm_image_mesa = (PFNEGLEXPORTDRMIMAGEMESA)
-	    eglGetProcAddress("eglExportDRMImageMESA");
 	glamor_egl->egl_create_image_khr = (PFNEGLCREATEIMAGEKHRPROC)
 	    eglGetProcAddress("eglCreateImageKHR");
 
@@ -363,7 +359,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 	    eglGetProcAddress("glEGLImageTargetTexture2DOES");
 
 	if (!glamor_egl->egl_create_image_khr
-	    || !glamor_egl->egl_export_drm_image_mesa
 	    || !glamor_egl->egl_image_target_texture2d_oes) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 			   "eglGetProcAddress() failed\n");
