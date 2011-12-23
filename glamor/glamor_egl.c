@@ -249,8 +249,13 @@ glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap)
 	if (pixmap->refcnt == 1) {
 		image = dixLookupPrivate(&pixmap->devPrivates,
 					 glamor_egl_pixmap_private_key);
-		if (image != EGL_NO_IMAGE_KHR && image != NULL)
+		if (image != EGL_NO_IMAGE_KHR && image != NULL) {
+			/* Before destroy an image which was attached to 
+ 			 * a texture. we must call glFlush to make sure the 
+ 			 * operation on that texture has been done.*/
+			glamor_block_handler(pixmap->drawable.pScreen);
 			eglDestroyImageKHR(glamor_egl->display, image);
+		}
 	}
 	glamor_destroy_textured_pixmap(pixmap);
 }
