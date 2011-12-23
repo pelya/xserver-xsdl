@@ -156,17 +156,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 		   If we exceed such limitation, we have to use framebuffer. */
 		type = GLAMOR_MEMORY;
 		pixmap = fbCreatePixmap(screen, w, h, depth, usage);
-		screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
-					   (((w *
-					      pixmap->
-					      drawable.bitsPerPixel +
-					      7) / 8) + 3) & ~3, NULL);
-#if 0
-		if (usage != GLAMOR_CREATE_PIXMAP_CPU)
-			glamor_fallback("choose cpu memory for pixmap %p ,"
-					" %d x %d depth %d\n", pixmap, w,
-					h, depth);
-#endif
 	} else
 		pixmap = fbCreatePixmap(screen, 0, 0, depth, usage);
 
