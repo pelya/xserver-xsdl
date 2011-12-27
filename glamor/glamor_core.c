@@ -366,7 +366,7 @@ GCOps glamor_gc_ops = {
  * uxa_validate_gc() sets the ops to glamor's implementations, which may be
  * accelerated or may sync the card and fall back to fb.
  */
-static void
+void
 glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
 {
 	/* fbValidateGC will do direct access to pixmaps if the tiling has changed.
