@@ -16,9 +16,7 @@ glamor_upload_picture_to_texture(PicturePtr picture)
 	glamor_pixmap_private *pixmap_priv;
 	assert(picture->pDrawable);
 	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
-	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-	assert(GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) == 1);
 	return glamor_upload_pixmap_to_texture(pixmap);
 }
 
@@ -65,8 +63,7 @@ glamor_create_picture(PicturePtr picture)
 		pixmap_priv->is_picture = 1;
 		pixmap_priv->pict_format = picture->format;
 		/* XXX Some formats are compatible between glamor and ddx driver*/
-		if (pixmap_priv->type == GLAMOR_TEXTURE_DRM
-		    /*&& pixmap_priv->pict_format != PICT_b8g8r8a8*/)
+		if (pixmap_priv->type == GLAMOR_TEXTURE_DRM)
 			glamor_set_pixmap_type(pixmap, GLAMOR_SEPARATE_TEXTURE);
 	}
 	return glamor_priv->saved_create_picture(picture);
