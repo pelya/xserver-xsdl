@@ -270,3 +270,30 @@ extern _X_EXPORT Bool glamor_add_traps_nf(PicturePtr pPicture,
 					  INT16 x_off, 
 					  INT16 y_off, int ntrap, xTrap * traps);
 
+extern _X_EXPORT Bool glamor_copy_plane_nf(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
+					   int srcx, int srcy, int w, int h, int dstx, int dsty,
+					   unsigned long bitPlane, RegionPtr *pRegion);
+
+extern _X_EXPORT Bool glamor_image_glyph_blt_nf(DrawablePtr pDrawable, GCPtr pGC,
+						int x, int y, unsigned int nglyph,
+						CharInfoPtr * ppci, pointer pglyphBase);
+
+extern _X_EXPORT Bool glamor_poly_glyph_blt_nf(DrawablePtr pDrawable, GCPtr pGC,
+					       int x, int y, unsigned int nglyph,
+					       CharInfoPtr * ppci, pointer pglyphBase);
+
+extern _X_EXPORT Bool glamor_push_pixels_nf(GCPtr pGC, PixmapPtr pBitmap,
+					    DrawablePtr pDrawable, int w, int h, int x, int y);
+
+extern _X_EXPORT Bool glamor_poly_point_nf(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+					   DDXPointPtr ppt);
+
+extern _X_EXPORT Bool glamor_poly_segment_nf(DrawablePtr pDrawable, GCPtr pGC, int nseg,
+					     xSegment *pSeg);
+
+extern _X_EXPORT Bool glamor_poly_line_nf(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+					  DDXPointPtr ppt);
+
+extern _X_EXPORT Bool glamor_poly_lines_nf(DrawablePtr drawable, GCPtr gc, int mode, int n,
+					   DDXPointPtr points);
+

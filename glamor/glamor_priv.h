@@ -550,11 +550,41 @@ void
 glamor_get_image(DrawablePtr pDrawable, int x, int y, int w, int h,
 		 unsigned int format, unsigned long planeMask, char *d);
 
-
 void
 glamor_add_traps(PicturePtr pPicture,
 		 INT16 x_off, 
 		 INT16 y_off, int ntrap, xTrap * traps);
+
+RegionPtr
+glamor_copy_plane(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
+		  int srcx, int srcy, int w, int h, int dstx, int dsty,
+		  unsigned long bitPlane);
+
+void
+glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
+                    int x, int y, unsigned int nglyph,
+                    CharInfoPtr * ppci, pointer pglyphBase);
+
+void
+glamor_poly_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
+                    int x, int y, unsigned int nglyph,
+                    CharInfoPtr * ppci, pointer pglyphBase);
+
+void
+glamor_push_pixels(GCPtr pGC, PixmapPtr pBitmap,
+		   DrawablePtr pDrawable, int w, int h, int x, int y);
+
+void
+glamor_poly_point(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+		  DDXPointPtr ppt);
+
+void
+glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
+		    xSegment *pSeg);
+
+void
+glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
+		 DDXPointPtr ppt);
 
 #include"glamor_utils.h"
 

@@ -344,10 +344,10 @@ GCOps glamor_gc_ops = {
 	.SetSpans = glamor_set_spans,
 	.PutImage = glamor_put_image,
 	.CopyArea = glamor_copy_area,
-	.CopyPlane = miCopyPlane,
-	.PolyPoint = miPolyPoint,
+	.CopyPlane = glamor_copy_plane,
+	.PolyPoint = glamor_poly_point,
 	.Polylines = glamor_poly_lines,
-	.PolySegment = miPolySegment,
+	.PolySegment = glamor_poly_segment,
 	.PolyRectangle = miPolyRectangle,
 	.PolyArc = miPolyArc,
 	.FillPolygon = miFillPolygon,
@@ -357,9 +357,9 @@ GCOps glamor_gc_ops = {
 	.PolyText16 = miPolyText16,
 	.ImageText8 = miImageText8,
 	.ImageText16 = miImageText16,
-	.ImageGlyphBlt = miImageGlyphBlt,
-	.PolyGlyphBlt = miPolyGlyphBlt,
-	.PushPixels = miPushPixels,
+	.ImageGlyphBlt = glamor_image_glyph_blt, //miImageGlyphBlt,
+	.PolyGlyphBlt = glamor_poly_glyph_blt, //miPolyGlyphBlt,
+	.PushPixels = glamor_push_pixels, //miPushPixels,
 };
 
 /**

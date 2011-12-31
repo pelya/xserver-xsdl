@@ -37,6 +37,9 @@ libglamor_la_SOURCES = \
 	glamor_triangles.c\
 	glamor_addtraps.c\
 	glamor_getimage.c\
+	glamor_copyplane.c\
+	glamor_glyphblt.c\
+	glamor_polyops.c\
 	glamor_pixmap.c\
 	glamor_picture.c\
 	glamor_window.c\

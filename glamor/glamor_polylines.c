@@ -42,26 +42,19 @@
  * horizontal or vertical lines (rectangles), and uses existing rectangle fill
  * acceleration if so.
  */
-void
-glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
-		  DDXPointPtr points)
+static Bool
+_glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
+		   DDXPointPtr points, Bool fallback)
 {
 	xRectangle *rects;
 	int x1, x2, y1, y2;
 	int i;
-	int x_min = MAXSHORT;
-	int x_max = MINSHORT;
-	int y_min = MAXSHORT;
-	int y_max = MINSHORT;
-	DrawablePtr temp_dest;
-	PixmapPtr temp_pixmap;
-	GCPtr temp_gc = NULL;
 	/* Don't try to do wide lines or non-solid fill style. */
 	if (gc->lineWidth != 0) {
 		/* This ends up in miSetSpans, which is accelerated as well as we
 		 * can hope X wide lines will be.
 		 */
-		goto fail;
+		goto wide_line;
 	}
 	if (gc->lineStyle != LineSolid || gc->fillStyle != FillSolid) {
 		glamor_fallback
@@ -107,69 +100,40 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 	}
 	gc->ops->PolyFillRect(drawable, gc, n - 1, rects);
 	free(rects);
-	return;
+	return TRUE;
 
       fail:
-	for (i = 0; i < n; i++) {
-		if (x_min > points[i].x)
-			x_min = points[i].x;
-		if (x_max < points[i].x)
-			x_max = points[i].x;
-
-		if (y_min > points[i].y)
-			y_min = points[i].y;
-		if (y_max < points[i].y)
-			y_max = points[i].y;
-	}
-
-	temp_pixmap = glamor_create_pixmap(drawable->pScreen,
-					   x_max - x_min + 1,
-					   y_max - y_min + 1,
-					   drawable->depth, 0);
-	if (temp_pixmap) {
-		temp_dest = &temp_pixmap->drawable;
-		temp_gc =
-		    GetScratchGC(temp_dest->depth, temp_dest->pScreen);
-		ValidateGC(temp_dest, temp_gc);
-		for (i = 0; i < n; i++) {
-			points[i].x -= x_min;
-			points[i].y -= y_min;
-		}
-		(void) glamor_copy_area(drawable,
-					temp_dest,
-					temp_gc,
-					x_min, y_min,
-					x_max - x_min + 1,
-					y_max - y_min + 1, 0, 0);
-
-	} else
-		temp_dest = drawable;
+	if (!fallback
+	    && glamor_ddx_fallback_check_pixmap(drawable)
+	    && glamor_ddx_fallback_check_gc(gc))
+		return FALSE;
 
 	if (gc->lineWidth == 0) {
-		if (glamor_prepare_access(temp_dest, GLAMOR_ACCESS_RW)) {
+		if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 			if (glamor_prepare_access_gc(gc)) {
-				fbPolyLine(temp_dest, gc, mode, n, points);
+				fbPolyLine(drawable, gc, mode, n, points);
 				glamor_finish_access_gc(gc);
 			}
-			glamor_finish_access(temp_dest, GLAMOR_ACCESS_RW);
+			glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 		}
 	} else {
+wide_line:
 		/* fb calls mi functions in the lineWidth != 0 case. */
 		fbPolyLine(drawable, gc, mode, n, points);
 	}
-	if (temp_dest != drawable) {
-		(void) glamor_copy_area(temp_dest,
-					drawable,
-					temp_gc,
-					0, 0,
-					x_max - x_min + 1,
-					y_max - y_min + 1, x_min, y_min);
-		glamor_destroy_pixmap(temp_pixmap);
-		for (i = 0; i < n; i++) {
-			points[i].x += x_min;
-			points[i].y += y_min;
-		}
+	return TRUE;
+}
 
-		FreeScratchGC(temp_gc);
-	}
+void
+glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
+		  DDXPointPtr points)
+{
+	_glamor_poly_lines(drawable, gc, mode, n, points, TRUE);
+}
+
+Bool
+glamor_poly_lines_nf(DrawablePtr drawable, GCPtr gc, int mode, int n,
+		     DDXPointPtr points)
+{
+	return _glamor_poly_lines(drawable, gc, mode, n, points, FALSE);
 }
