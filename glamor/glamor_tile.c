@@ -117,7 +117,6 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	if (((tile_x != 0) && (tile_x + width > tile->drawable.width))
 	    || ((tile_y != 0)
 		&& (tile_y + height > tile->drawable.height))) {
-		ErrorF("tile_x = %d tile_y = %d \n", tile_x, tile_y);
 		goto fail;
 	}
 	if (glamor_priv->tile_prog == 0) {
