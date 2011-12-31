@@ -403,7 +403,7 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	glamor_fallback("to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RW)) {
-		fbPutImage(&pixmap->drawable, gc, depth, x, y, w, h,
+		fbPutImage(drawable, gc, depth, x, y, w, h,
 			   left_pad, image_format, bits);
 		glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RW);
 	}
