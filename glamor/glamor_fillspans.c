@@ -55,19 +55,19 @@ _glamor_fill_spans(DrawablePtr drawable,
 		nbox = REGION_NUM_RECTS(pClip);
 		pbox = REGION_RECTS(pClip);
 		while (nbox--) {
-			if (pbox->y1 > y || pbox->y2 <= y)
-				continue;
+			int real_x1 = x1, real_x2 = x2;
 
-			if (x1 < pbox->x1)
-				x1 = pbox->x1;
+			if (real_x1 < pbox->x1)
+				real_x1 = pbox->x1;
 
-			if (x2 > pbox->x2)
-				x2 = pbox->x2;
+			if (real_x2 > pbox->x2)
+				real_x2 = pbox->x2;
 
-			if (x2 <= x1)
-				continue;
-			if (!glamor_fill(drawable, gc, x1, y, x2 - x1, 1, fallback))
-				goto fail;
+			if (real_x2 > real_x1 && pbox->y1 <= y && pbox->y2 > y) {
+				if (!glamor_fill(drawable, gc, real_x1, y, 
+						 real_x2 - real_x1, 1, fallback))
+					goto fail;
+			}
 			pbox++;
 		}
 	}
