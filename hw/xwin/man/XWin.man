@@ -211,7 +211,7 @@ is disabled by default.
 .TP 8
 .B \-[no]wgl
 Enable [disable] the GLX extension to use the native Windows WGL interface
-for hardware accelerated OpenGL (AIGLX). (Experimental)
+for hardware accelerated OpenGL (AIGLX). The default is enabled.
 .TP 8
 .B \-[no]winkill
 Enable or disable the \fIAlt-F4\fP key combination as a signal to exit the

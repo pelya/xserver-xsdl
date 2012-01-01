@@ -840,7 +840,7 @@ winUseMsg(void)
 
 #ifdef XWIN_GLX_WINDOWS
     ErrorF("-[no]wgl\n"
-           "\tEnable the GLX extension to use the native Windows WGL interface for accelerated OpenGL\n");
+           "\tEnable the GLX extension to use the native Windows WGL interface for hardware-accelerated OpenGL\n");
 #endif
 
     ErrorF("-[no]winkill\n" "\tAlt+F4 exits the X Server.\n");
