@@ -999,6 +999,13 @@ if test "x$RES" = xyes && test "x$CLIENTIDS" = xyes; then
 else
 	CLIENTIDS=no
 fi
+if test "x$CLIENTIDS" = xyes; then
+	case $host_os in
+	openbsd*)
+		SYS_LIBS="$SYS_LIBS -lkvm"
+	;;
+	esac
+fi
 AC_MSG_RESULT([$CLIENTIDS])
 AM_CONDITIONAL(CLIENTIDS, [test "x$CLIENTIDS" = xyes])
 
