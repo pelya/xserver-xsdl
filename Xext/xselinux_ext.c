@@ -528,12 +528,6 @@ ProcSELinuxDispatch(ClientPtr client)
 static int
 SProcSELinuxQueryVersion(ClientPtr client)
 {
-    REQUEST(SELinuxQueryVersionReq);
-    int n;
-
-    REQUEST_SIZE_MATCH(SELinuxQueryVersionReq);
-    swaps(&stuff->client_major, n);
-    swaps(&stuff->client_minor, n);
     return ProcSELinuxQueryVersion(client);
 }
 
