@@ -698,7 +698,7 @@ AM_CONDITIONAL(INSTALL_LIBXF86CONFIG, [test "x$INSTALL_LIBXF86CONFIG" = xyes])
 dnl DDX Detection... Yes, it's ugly to have it here... but we need to
 dnl handle this early on so that we don't require unsupported extensions
 case $host_os in
-	cygwin*)
+	cygwin* | mingw*)
 		CONFIG_DBUS_API=no
 		CONFIG_HAL=no
 		CONFIG_UDEV=no
@@ -1547,6 +1547,7 @@ if test "x$XORG" = xauto; then
 	XORG="yes"
 	case $host_os in
 		cygwin*) XORG="no" ;;
+		mingw*)  XORG="no" ;;
 		darwin*) XORG="no" ;;
 	esac
 fi
@@ -1948,6 +1949,7 @@ if test "x$DMX" = xauto; then
 	DMX="$have_dmx"
 	case $host_os in
 		cygwin*) DMX="no" ;;
+		mingw*)  DMX="no" ;;
 		darwin*) DMX="no" ;;
 	esac
 fi
