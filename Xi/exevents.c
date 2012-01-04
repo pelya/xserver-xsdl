@@ -1803,8 +1803,10 @@ DeliverTouchEndEvent(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev,
                 rc = DeliverOneTouchEvent(client, dev, ti, grab, win, ev);
             listener->state = LISTENER_HAS_END;
         }
-        if (ti->num_listeners > 1 &&
-           (ev->device_event.flags & (TOUCH_ACCEPT|TOUCH_REJECT)) == 0)
+        if ((ti->num_listeners > 1 ||
+             (listener->type == LISTENER_GRAB &&
+              xi2mask_isset(xi2mask, dev, XI_TouchOwnership))) &&
+            (ev->device_event.flags & (TOUCH_ACCEPT|TOUCH_REJECT)) == 0)
         {
             ev->any.type = ET_TouchUpdate;
             ev->device_event.flags |= TOUCH_PENDING_END;
