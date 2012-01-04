@@ -176,7 +176,7 @@ glamor_transform_boxes(BoxPtr boxes, int nbox, int dx, int dy)
 
 
 #define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv->is_picture == 1)
-#define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv->gl_fbo == 1)
+#define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv && pixmap_priv->gl_fbo == 1)
 
 #define GLAMOR_PIXMAP_PRIV_NEED_VALIDATE(pixmap_priv)  \
 	(GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv) \
