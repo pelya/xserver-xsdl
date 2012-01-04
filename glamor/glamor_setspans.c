@@ -37,6 +37,7 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		 Bool fallback)
 {
 	PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
+	glamor_pixmap_private *dest_pixmap_priv;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(drawable->pScreen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
@@ -46,6 +47,12 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	RegionPtr clip = fbGetCompositeClip(gc);
 	BoxRec *pbox;
 	int x_off, y_off;
+
+	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+		glamor_fallback("pixmap has no fbo.\n");
+		goto fail;
+	}
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
 		glamor_fallback("ES2 fallback.\n");
@@ -61,9 +68,7 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	}
 
 
-	if (glamor_set_destination_pixmap(dest_pixmap))
-		goto fail;
-
+	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
 	glamor_validate_pixmap(dest_pixmap);
 	if (!glamor_set_planemask(dest_pixmap, gc->planemask))
 		goto fail;
