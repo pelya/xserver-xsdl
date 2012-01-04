@@ -754,7 +754,7 @@ glamor_composite_with_shader(CARD8 op,
 	GLfloat source_solid_color[4], mask_solid_color[4];
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 
-	if (!dest_pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
 		glamor_fallback("dest has no fbo.\n");
 		goto fail;
 	}
@@ -1220,7 +1220,7 @@ _glamor_composite(CARD8 op,
 
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 	/* Currently. Always fallback to cpu if destination is in CPU memory. */
-	if (!dest_pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
 		goto fail;
 	}
 

@@ -265,7 +265,7 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		goto fail;
 	}
 
-	if (!pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
 		glamor_fallback("has no fbo.\n");
 		goto fail;
 	}

@@ -646,7 +646,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
 	screen = pixmap->drawable.pScreen;
-	if (!pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return TRUE;
 	if (glamor_get_tex_format_type_from_pixmap(pixmap,
 						   &format,

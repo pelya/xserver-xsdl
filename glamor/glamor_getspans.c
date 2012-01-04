@@ -50,7 +50,7 @@ _glamor_get_spans(DrawablePtr drawable,
 	uint8_t *readpixels_dst = (uint8_t *) dst;
 	int x_off, y_off;
 
-	if (!pixmap_priv || !GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
 		glamor_fallback("pixmap has no fbo.\n");
 		goto fail;
 	}
