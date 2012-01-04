@@ -807,7 +807,7 @@ winUseMsg(void)
     ErrorF("-resize=none|scrollbars|randr"
            "\tIn windowed mode, [don't] allow resizing of the window. 'scrollbars'\n"
            "\tmode gives the window scrollbars as needed, 'randr' mode uses the RANR\n"
-           "\textension to resize the X screen.\n");
+           "\textension to resize the X screen.  'randr' is the default.\n");
 
     ErrorF("-rootless\n" "\tRun the server in rootless mode.\n");
 

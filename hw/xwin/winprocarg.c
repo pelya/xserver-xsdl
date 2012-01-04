@@ -142,7 +142,7 @@ winInitializeScreenDefaults(void)
 #endif
     defaultScreenInfo.fMultipleMonitors = FALSE;
     defaultScreenInfo.fLessPointer = FALSE;
-    defaultScreenInfo.iResizeMode = notAllowed;
+    defaultScreenInfo.iResizeMode = resizeWithRandr;
     defaultScreenInfo.fNoTrayIcon = FALSE;
     defaultScreenInfo.iE3BTimeout = WIN_E3B_DEFAULT;
     defaultScreenInfo.fUseWinKillKey = WIN_DEFAULT_WIN_KILL;
