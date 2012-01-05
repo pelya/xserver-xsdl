@@ -1292,7 +1292,7 @@ DeviceFocusEvents(DeviceIntPtr dev,
                         NotifyPointer);
             DeviceFocusEvent(dev, XI_FocusOut, mode, NotifyNonlinear, from);
             /* next call catches the root too, if the screen changed */
-            DeviceFocusOutEvents(dev, from->parent, NullWindow, mode,
+            DeviceFocusOutEvents(dev, from, NullWindow, mode,
                     NotifyNonlinearVirtual);
         }
         /* Notify all the roots */
@@ -1321,7 +1321,7 @@ DeviceFocusEvents(DeviceIntPtr dev,
             if (IsParent(to, from))
             {
                 DeviceFocusEvent(dev, XI_FocusOut, mode, NotifyAncestor, from);
-                DeviceFocusOutEvents(dev, from->parent, to, mode,
+                DeviceFocusOutEvents(dev, from, to, mode,
                         NotifyVirtual);
                 DeviceFocusEvent(dev, XI_FocusIn, mode, NotifyInferior, to);
                 if ((IsParent(to, sprite->win)) &&
@@ -1353,7 +1353,7 @@ DeviceFocusEvents(DeviceIntPtr dev,
                                 NotifyPointer);
                     DeviceFocusEvent(dev, XI_FocusOut, mode, NotifyNonlinear, from);
                     if (from->parent != NullWindow)
-                        DeviceFocusOutEvents(dev, from->parent, common, mode,
+                        DeviceFocusOutEvents(dev, from, common, mode,
                                 NotifyNonlinearVirtual);
                     if (to->parent != NullWindow)
                         DeviceFocusInEvents(dev, common, to, mode, NotifyNonlinearVirtual);
