@@ -224,7 +224,15 @@ dixLookupWindow(WindowPtr *pWin, XID id, ClientPtr client, Mask access)
 {
     int rc;
     rc = dixLookupDrawable((DrawablePtr*)pWin, id, client, M_WINDOW, access);
-    return (rc == BadDrawable) ? BadWindow : rc;
+    /* dixLookupDrawable returns BadMatch iff id is a valid Drawable
+       but is not a Window. Users of dixLookupWindow expect a BadWindow
+       error in this case; they don't care that it's a valid non-Window XID */
+    if (rc == BadMatch)
+	rc = BadWindow;
+    /* Similarly, users of dixLookupWindow don't want BadDrawable. */
+    if (rc == BadDrawable)
+	rc = BadWindow;
+    return rc;
 }
 
 int
