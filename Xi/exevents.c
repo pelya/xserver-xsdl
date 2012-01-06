@@ -1159,13 +1159,11 @@ TouchEventRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
             DeliverTouchEvents(sourcedev, ti, tel + i, ev->resource);
     }
 
-    /* If there are no other listeners left, then don't bother sending an
-     * ownership change event to no-one; if the touchpoint is pending
+    /* If there are no other listeners left, and the touchpoint is pending
      * finish, then we can just kill it now. */
-    if (ti->num_listeners == 1)
+    if (ti->num_listeners == 1 && ti->pending_finish)
     {
-        if (ti->pending_finish)
-            TouchEndTouch(sourcedev, ti);
+        TouchEndTouch(sourcedev, ti);
         goto out;
     }
 
@@ -1178,9 +1176,9 @@ TouchEventRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
             ti->num_grabs--;
     }
 
-    /* If the current owner was removed, deliver the TouchOwnership or TouchBegin
-       event to the new owner. */
-    if (was_owner)
+    /* If the current owner was removed and there are further listeners, deliver
+     * the TouchOwnership or TouchBegin event to the new owner. */
+    if (ti->num_listeners > 0 && was_owner)
         TouchPuntToNextOwner(sourcedev, ti, ev);
 
 out:
