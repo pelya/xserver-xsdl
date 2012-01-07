@@ -1023,98 +1023,57 @@ glamor_composite_with_shader(CARD8 op,
 		CARD16 width;
 		CARD16 height;
 
-		x_dest = rects->x_dst;
-		y_dest = rects->y_dst;
-		x_source = rects->x_src;
-		y_source = rects->y_src;
-		x_mask = rects->x_mask;
-		y_mask = rects->y_mask;
+		x_dest = rects->x_dst + dest_x_off;
+		y_dest = rects->y_dst + dest_y_off;
+		x_source = rects->x_src + source_x_off;;
+		y_source = rects->y_src + source_y_off;
+		x_mask = rects->x_mask + mask_x_off;
+		y_mask = rects->y_mask + mask_y_off;
 		width = rects->width;
 		height = rects->height;
 
-		x_dest += dest->pDrawable->x;
-		y_dest += dest->pDrawable->y;
-		if (source->pDrawable) {
-			x_source += source->pDrawable->x;
-			y_source += source->pDrawable->y;
+		glamor_set_normalize_vcoords(dst_xscale,
+					     dst_yscale,
+					     x_dest, y_dest,
+					     x_dest + width, y_dest + height,
+					     glamor_priv->yInverted,
+					     vertices);
+
+		if (key.source != SHADER_SOURCE_SOLID) {
+			if (source->transform)
+				glamor_set_transformed_normalize_tcoords(src_matrix, src_xscale,
+									 src_yscale, x_source, y_source,
+									 x_source + width, y_source + height,
+									 glamor_priv->yInverted,
+									 source_texcoords);
+			else
+				glamor_set_normalize_tcoords(src_xscale, src_yscale,
+							     x_source, y_source,
+							     x_source + width, y_source + height,
+							     glamor_priv->yInverted,
+							     source_texcoords);
 		}
-		if (mask && mask->pDrawable) {
-			x_mask += mask->pDrawable->x;
-			y_mask += mask->pDrawable->y;
+
+		if (key.mask != SHADER_MASK_NONE
+		    && key.mask != SHADER_MASK_SOLID) {
+			if (mask->transform)
+				glamor_set_transformed_normalize_tcoords(mask_matrix,
+									 mask_xscale,
+									 mask_yscale, x_mask, y_mask,
+									 x_mask + width, y_mask + height,
+									 glamor_priv->yInverted,
+									 mask_texcoords);
+			else
+				glamor_set_normalize_tcoords(mask_xscale,
+							     mask_yscale, x_mask, y_mask,
+							     x_mask + width, y_mask + height,
+							     glamor_priv->yInverted,
+							     mask_texcoords);
 		}
-
-		if (!miComputeCompositeRegion(&region,
-					      source, mask, dest,
-					      x_source, y_source,
-					      x_mask, y_mask,
-					      x_dest, y_dest, width,
-					      height))
-			continue;
-
-		x_source += source_x_off;
-		y_source += source_y_off;
-		x_mask += mask_x_off;
-		y_mask += mask_y_off;
-
-		box = REGION_RECTS(&region);
-		for (i = 0; i < REGION_NUM_RECTS(&region); i++) {
-			int vx1 = box[i].x1 + dest_x_off;
-			int vx2 = box[i].x2 + dest_x_off;
-			int vy1 = box[i].y1 + dest_y_off;
-			int vy2 = box[i].y2 + dest_y_off;
-			glamor_set_normalize_vcoords(dst_xscale,
-						     dst_yscale, vx1,
-						     vy1, vx2, vy2,
-						     glamor_priv->yInverted,
-						     vertices);
-
-			if (key.source != SHADER_SOURCE_SOLID) {
-				int tx1 = box[i].x1 + x_source - x_dest;
-				int ty1 = box[i].y1 + y_source - y_dest;
-				int tx2 = box[i].x2 + x_source - x_dest;
-				int ty2 = box[i].y2 + y_source - y_dest;
-				if (source->transform)
-					glamor_set_transformed_normalize_tcoords
-					    (src_matrix, src_xscale,
-					     src_yscale, tx1, ty1,
-					     tx2, ty2,
-					     glamor_priv->yInverted,
-					     source_texcoords);
-				else
-					glamor_set_normalize_tcoords
-					    (src_xscale, src_yscale,
-					     tx1, ty1, tx2, ty2,
-					     glamor_priv->yInverted,
-					     source_texcoords);
-			}
-
-			if (key.mask != SHADER_MASK_NONE
-			    && key.mask != SHADER_MASK_SOLID) {
-				float tx1 = box[i].x1 + x_mask - x_dest;
-				float ty1 = box[i].y1 + y_mask - y_dest;
-				float tx2 = box[i].x2 + x_mask - x_dest;
-				float ty2 = box[i].y2 + y_mask - y_dest;
-				if (mask->transform)
-					glamor_set_transformed_normalize_tcoords
-					    (mask_matrix,
-					     mask_xscale,
-					     mask_yscale, tx1, ty1,
-					     tx2, ty2,
-					     glamor_priv->yInverted,
-					     mask_texcoords);
-				else
-					glamor_set_normalize_tcoords
-					    (mask_xscale,
-					     mask_yscale, tx1, ty1,
-					     tx2, ty2,
-					     glamor_priv->yInverted,
-					     mask_texcoords);
-			}
-			glamor_emit_composite_rect(screen,
-						   source_texcoords,
-						   mask_texcoords,
-						   vertices);
-		}
+		glamor_emit_composite_rect(screen,
+					   source_texcoords,
+					   mask_texcoords,
+					   vertices);
 		rects++;
 	}
 	glamor_flush_composite_rects(screen);
@@ -1123,7 +1082,6 @@ glamor_composite_with_shader(CARD8 op,
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_MASK);
-	REGION_UNINIT(dst->pDrawable->pScreen, &region);
 	dispatch->glDisable(GL_BLEND);
 #ifndef GLAMOR_GLES2
 	dispatch->glActiveTexture(GL_TEXTURE0);
@@ -1207,11 +1165,16 @@ _glamor_composite(CARD8 op,
 	PixmapPtr source_pixmap = NULL, mask_pixmap = NULL;
 	PicturePtr temp_src = source, temp_mask = mask;
 	int x_temp_src, y_temp_src, x_temp_mask, y_temp_mask;
-	glamor_composite_rect_t rect;
+	glamor_composite_rect_t rect[10];
+	glamor_composite_rect_t *prect = rect;
+	int prect_size = ARRAY_SIZE(rect);
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 	Bool ret = TRUE;
+	RegionRec region;
+	BoxPtr box;
+	int nbox, i, ok;
 
 	x_temp_src = x_source;
 	y_temp_src = y_source;
@@ -1325,16 +1288,59 @@ _glamor_composite(CARD8 op,
 					       height))
 			goto done;
 	}
-	rect.x_src = x_temp_src;
-	rect.y_src = y_temp_src;
-	rect.x_mask = x_temp_mask;
-	rect.y_mask = y_temp_mask;
-	rect.x_dst = x_dest;
-	rect.y_dst = y_dest;
-	rect.width = width;
-	rect.height = height;
-	if (glamor_composite_with_shader
-	    (op, temp_src, temp_mask, dest, 1, &rect))
+	x_dest += dest->pDrawable->x;
+	y_dest += dest->pDrawable->y;
+	if (temp_src->pDrawable) {
+		x_temp_src += temp_src->pDrawable->x;
+		y_temp_src += temp_src->pDrawable->y;
+	}
+	if (temp_mask && temp_mask->pDrawable) {
+		x_temp_mask += temp_mask->pDrawable->x;
+		y_temp_mask += temp_mask->pDrawable->y;
+	}
+	if (!miComputeCompositeRegion(&region,
+				      temp_src, temp_mask, dest,
+				      x_temp_src, y_temp_src,
+				      x_temp_mask, y_temp_mask,
+				      x_dest, y_dest, width,
+				      height))
+		goto done;
+
+	box = REGION_RECTS(&region);
+	nbox = REGION_NUM_RECTS(&region);
+
+	if (nbox > ARRAY_SIZE(rect)) {
+		prect = calloc(nbox, sizeof(*prect));
+		if (prect)
+			prect_size = nbox;
+		else {
+			prect = rect;
+			prect_size = ARRAY_SIZE(rect);
+		}
+	}
+	while(nbox) {
+		int box_cnt;
+		box_cnt = nbox > prect_size ? prect_size : nbox;
+		for (i = 0; i < box_cnt; i++) {
+			prect[i].x_src = box[i].x1 + x_temp_src - x_dest;
+			prect[i].y_src = box[i].y1 + y_temp_src - y_dest;
+			prect[i].x_mask = box[i].x1 + x_temp_mask - x_dest;
+			prect[i].y_mask = box[i].y1 + y_temp_mask - y_dest;
+			prect[i].x_dst = box[i].x1;
+			prect[i].y_dst = box[i].y1;
+			prect[i].width = box[i].x2 - box[i].x1;
+			prect[i].height = box[i].y2 - box[i].y1;
+		}
+		ok = glamor_composite_with_shader(op, temp_src, temp_mask,
+						  dest, box_cnt, prect);
+		if (!ok)
+			break;
+		nbox -= box_cnt;
+		box += box_cnt;
+	}
+
+	REGION_UNINIT(dest->pDrawable->pScreen, &region);
+	if (ok)
 		goto done;
 
       fail:
@@ -1391,6 +1397,8 @@ fallback:
 		FreePicture(temp_src, 0);
 	if (temp_mask != mask)
 		FreePicture(temp_mask, 0);
+	if (prect != rect)
+		free(prect);
 	return ret;
 }
 
