@@ -16,6 +16,7 @@ glamor_gl_dispatch_init_impl(struct glamor_gl_dispatch *dispatch,
 	INIT_FUNC(dispatch, glViewport, get_proc_address);
 	INIT_FUNC(dispatch, glRasterPos2i, get_proc_address);
 	INIT_FUNC(dispatch, glDrawArrays, get_proc_address);
+	INIT_FUNC(dispatch, glDrawElements, get_proc_address);
 	INIT_FUNC(dispatch, glReadPixels, get_proc_address);
 	INIT_FUNC(dispatch, glDrawPixels, get_proc_address);
 	INIT_FUNC(dispatch, glPixelStorei, get_proc_address);
@@ -37,6 +38,7 @@ glamor_gl_dispatch_init_impl(struct glamor_gl_dispatch *dispatch,
 	INIT_FUNC(dispatch, glGenBuffers, get_proc_address);
 	INIT_FUNC(dispatch, glBufferData, get_proc_address);
 	INIT_FUNC(dispatch, glMapBuffer, get_proc_address);
+	INIT_FUNC(dispatch, glMapBufferRange, get_proc_address);
 	INIT_FUNC(dispatch, glUnmapBuffer, get_proc_address);
 	INIT_FUNC(dispatch, glBindBuffer, get_proc_address);
 	INIT_FUNC(dispatch, glDeleteBuffers, get_proc_address);

@@ -288,7 +288,7 @@ glamor_lookup_composite_shader(ScreenPtr screen, struct
 	return shader;
 }
 
-#define GLAMOR_COMPOSITE_VBO_SIZE 8192
+#define GLAMOR_COMPOSITE_VBO_VERT_CNT 1024
 
 static void
 glamor_reset_composite_vbo(ScreenPtr screen)
@@ -296,8 +296,23 @@ glamor_reset_composite_vbo(ScreenPtr screen)
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
 	glamor_priv->vbo_offset = 0;
-	glamor_priv->vbo_size = GLAMOR_COMPOSITE_VBO_SIZE;
+	glamor_priv->vbo_size = GLAMOR_COMPOSITE_VBO_VERT_CNT * sizeof(float) * 2;
 	glamor_priv->render_nr_verts = 0;
+}
+
+static void
+glamor_init_eb(unsigned short *eb, int vert_cnt)
+{
+	int i, j;
+	for(i = 0, j = 0; j < vert_cnt; i += 6, j += 4)
+	{
+		eb[i] = j;
+		eb[i + 1] = j + 1;
+		eb[i + 2] = j + 2;
+		eb[i + 3] = j;
+		eb[i + 4] = j + 2;
+		eb[i + 5] = j + 3;
+	}
 }
 
 
@@ -306,8 +321,19 @@ glamor_init_composite_shaders(ScreenPtr screen)
 {
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
-	glamor_priv->vb = malloc(GLAMOR_COMPOSITE_VBO_SIZE);
-	assert(glamor_priv->vb != NULL);
+	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	unsigned short *eb;
+
+	dispatch->glGenBuffers(1, &glamor_priv->vbo);
+	dispatch->glGenBuffers(1, &glamor_priv->ebo);
+	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
+	dispatch->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			       GLAMOR_COMPOSITE_VBO_VERT_CNT * sizeof(short) * 2,
+			       NULL, GL_DYNAMIC_DRAW);
+	eb = dispatch->glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	glamor_init_eb(eb, GLAMOR_COMPOSITE_VBO_VERT_CNT);
+	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	dispatch->glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 	glamor_reset_composite_vbo(screen);
 }
 
@@ -542,6 +568,12 @@ glamor_setup_composite_vbo(ScreenPtr screen)
 		glamor_priv->vb_stride += 2 * sizeof(float);
 
 	dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
+	dispatch->glBufferData(GL_ARRAY_BUFFER,
+			       GLAMOR_COMPOSITE_VBO_VERT_CNT * sizeof(float) * 2,
+			       NULL, GL_DYNAMIC_DRAW);
+
+	glamor_priv->vb = dispatch->glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
 
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
 					GL_FALSE, glamor_priv->vb_stride,
@@ -609,11 +641,9 @@ glamor_flush_composite_rects(ScreenPtr screen)
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 	if (!glamor_priv->render_nr_verts)
 		return;
-	dispatch->glBufferData(GL_ARRAY_BUFFER, glamor_priv->vbo_offset,
-			       glamor_priv->vb, GL_STREAM_DRAW);
-
-	dispatch->glDrawArrays(GL_TRIANGLES, 0,
-			       glamor_priv->render_nr_verts);
+	dispatch->glUnmapBuffer(GL_ARRAY_BUFFER);
+	dispatch->glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
+				 GL_UNSIGNED_SHORT, NULL);
 	glamor_reset_composite_vbo(screen);
 }
 
@@ -627,15 +657,12 @@ glamor_emit_composite_rect(ScreenPtr screen,
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
-	if (glamor_priv->vbo_offset + 6 * glamor_priv->vb_stride >
+	if (glamor_priv->vbo_offset + 4 * glamor_priv->vb_stride >
 	    glamor_priv->vbo_size) {
 		glamor_flush_composite_rects(screen);
 	}
 
 	if (glamor_priv->vbo_offset == 0) {
-		if (glamor_priv->vbo == 0)
-			dispatch->glGenBuffers(1, &glamor_priv->vbo);
-
 		glamor_setup_composite_vbo(screen);
 	}
 
@@ -643,10 +670,6 @@ glamor_emit_composite_rect(ScreenPtr screen,
 				   dst_coords, 0);
 	glamor_emit_composite_vert(screen, src_coords, mask_coords,
 				   dst_coords, 1);
-	glamor_emit_composite_vert(screen, src_coords, mask_coords,
-				   dst_coords, 2);
-	glamor_emit_composite_vert(screen, src_coords, mask_coords,
-				   dst_coords, 0);
 	glamor_emit_composite_vert(screen, src_coords, mask_coords,
 				   dst_coords, 2);
 	glamor_emit_composite_vert(screen, src_coords, mask_coords,
@@ -969,7 +992,6 @@ glamor_composite_with_shader(CARD8 op,
 
 	dispatch->glUseProgram(shader->prog);
 
-
 	if (key.source == SHADER_SOURCE_SOLID) {
 		glamor_set_composite_solid(dispatch, source_solid_color,
 					   shader->source_uniform_location);
@@ -1079,6 +1101,7 @@ glamor_composite_with_shader(CARD8 op,
 	glamor_flush_composite_rects(screen);
 
 	dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
+	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_MASK);

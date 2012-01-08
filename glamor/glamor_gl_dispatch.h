@@ -10,6 +10,9 @@ typedef struct glamor_gl_dispatch {
 	/* Vertex Array */
 	void (*glDrawArrays) (GLenum mode, GLint first, GLsizei count);
 
+	/* Elements Array*/
+	void (*glDrawElements) (GLenum mode, GLsizei count, GLenum type, const GLvoid * indices);
+
 	/* Raster functions */
 	void (*glReadPixels) (GLint x, GLint y,
 			      GLsizei width, GLsizei height,
@@ -55,7 +58,8 @@ typedef struct glamor_gl_dispatch {
 	void (*glBufferData) (GLenum target, GLsizeiptr size,
 			      const GLvoid * data, GLenum usage);
 	GLvoid *(*glMapBuffer) (GLenum target, GLenum access);
-	 GLboolean(*glUnmapBuffer) (GLenum target);
+	GLvoid *(*glMapBufferRange) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+	GLboolean(*glUnmapBuffer) (GLenum target);
 	void (*glBindBuffer) (GLenum target, GLuint buffer);
 	void (*glDeleteBuffers) (GLsizei n, const GLuint * buffers);
 

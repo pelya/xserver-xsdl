@@ -158,7 +158,7 @@ typedef struct glamor_screen_private {
 
 	int yInverted;
 	int screen_fbo;
-	GLuint vbo;
+	GLuint vbo, ebo;
 	int vbo_offset;
 	int vbo_size;
 	char *vb;
