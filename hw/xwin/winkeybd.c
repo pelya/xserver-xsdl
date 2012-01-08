@@ -262,6 +262,28 @@ winRestoreModeKeyStates(void)
         XkbStateFieldFromRec(&inputInfo.keyboard->key->xkbInfo->state);
     winDebug("winRestoreModeKeyStates: state %d\n", internalKeyStates);
 
+    /* Check if modifier keys are pressed, and if so, fake a press */
+    {
+        BOOL ctrl = (GetAsyncKeyState(VK_CONTROL) < 0);
+        BOOL shift = (GetAsyncKeyState(VK_SHIFT) < 0);
+        BOOL alt = (GetAsyncKeyState(VK_LMENU) < 0);
+        BOOL altgr = (GetAsyncKeyState(VK_RMENU) < 0);
+
+        if (ctrl && altgr)
+            ctrl = FALSE;
+
+        if (LOGICAL_XOR(internalKeyStates & ControlMask, ctrl))
+            winSendKeyEvent(KEY_LCtrl, ctrl);
+
+        if (LOGICAL_XOR(internalKeyStates & ShiftMask, shift))
+            winSendKeyEvent(KEY_ShiftL, shift);
+
+        if (LOGICAL_XOR(internalKeyStates & Mod1Mask, alt))
+            winSendKeyEvent(KEY_Alt, alt);
+
+        if (LOGICAL_XOR(internalKeyStates & Mod5Mask, altgr))
+            winSendKeyEvent(KEY_AltLang, altgr);
+    }
 
     /*
        Check if latching modifier key states have changed, and if so,
