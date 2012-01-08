@@ -243,6 +243,10 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
 
 	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+				  GL_NEAREST);
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
 		dispatch->glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
@@ -584,6 +588,13 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum * format,
 	temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
 
 	dispatch->glBindTexture(GL_TEXTURE_2D, temp_pixmap_priv->tex);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_MIN_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_MAG_FILTER,
+				  GL_NEAREST);
+
 	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, *format,
 			       source->drawable.width,
 			       source->drawable.height, 0, *format, *type,
@@ -601,6 +612,12 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum * format,
 
 	dispatch->glActiveTexture(GL_TEXTURE0);
 	dispatch->glBindTexture(GL_TEXTURE_2D, source_priv->tex);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_MIN_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_MAG_FILTER,
+				  GL_NEAREST);
 
 	glamor_set_destination_pixmap_priv_nc(temp_pixmap_priv);
 

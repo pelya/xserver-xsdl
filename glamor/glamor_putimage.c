@@ -313,6 +313,10 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	dispatch->glGenTextures(1, &tex);
 	dispatch->glActiveTexture(GL_TEXTURE0);
 	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+				  GL_NEAREST);
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
 		iformat = format;
@@ -323,10 +327,6 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, iformat,
 			       w, h, 0, format, type, bits);
 
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-				  GL_NEAREST);
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-				  GL_NEAREST);
 
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
