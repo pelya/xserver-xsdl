@@ -169,20 +169,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	if (w == 0 || h == 0 || type == GLAMOR_MEMORY)
 		return pixmap;
 
-	switch (depth) {
-#if 0
-	case 8:
-		format = GL_ALPHA;
-		break;
-#endif
-	case 24:
-		format = GL_RGB;
-		break;
-	default:
-		format = GL_RGBA;
-		break;
-	}
-
+	gl_iformat_for_depth(depth, &format);
 	/* Create the texture used to store the pixmap's data. */
 	dispatch->glGenTextures(1, &tex);
 	dispatch->glBindTexture(GL_TEXTURE_2D, tex);

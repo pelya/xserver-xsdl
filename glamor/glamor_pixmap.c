@@ -221,23 +221,10 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	void *texels;
 	GLenum iformat;
 
-	switch (pixmap->drawable.depth) {
-#if 0
-	case 8:
-		iformat = GL_ALPHA;
-		break;
-#endif
-	case 24:
-		iformat = GL_RGB;
-		break;
-	default:
-		iformat = GL_RGBA;
-		break;
-	}
-
-	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
+	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2)
 		iformat = format;
-	}
+	else
+		gl_iformat_for_depth(pixmap->drawable.depth, &iformat);
 
 	stride = pixmap->devKind;
 	row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;

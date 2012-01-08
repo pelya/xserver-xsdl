@@ -224,6 +224,26 @@ format_for_depth(int depth)
 	}
 }
 
+static inline void
+gl_iformat_for_depth(int depth, GLenum * format)
+{
+	switch (depth) {
+#if 0
+	case 8:
+		*format = GL_ALPHA;
+		break;
+#endif
+	case 24:
+		*format = GL_RGB;
+		break;
+	default:
+		*format = GL_RGBA;
+		break;
+       }
+}
+
+
+
 static inline CARD32
 format_for_pixmap(PixmapPtr pixmap)
 {
