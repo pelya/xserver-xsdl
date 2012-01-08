@@ -13,7 +13,6 @@ enum glamor_pixmap_status
 glamor_upload_picture_to_texture(PicturePtr picture)
 {
 	PixmapPtr pixmap;
-	glamor_pixmap_private *pixmap_priv;
 	assert(picture->pDrawable);
 	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
 
