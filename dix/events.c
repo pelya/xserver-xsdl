@@ -1356,7 +1356,7 @@ ScreenRestructured (ScreenPtr pScreen)
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (!DevHasCursor(pDev))
+        if (!IsFloating(pDev) && !DevHasCursor(pDev))
             continue;
 
         /* GrabDevice doesn't have a confineTo field, so we don't need to
