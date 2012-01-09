@@ -24,6 +24,10 @@
  * XFree86 Project.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <xorg-server.h>
 
 #include "xf86Module.h"
@@ -34,7 +38,7 @@ static XF86ModuleVersionInfo VersRec = {
 	MODINFOSTRING1,
 	MODINFOSTRING2,
 	XORG_VERSION_CURRENT,
-	1, 0, 0,
+	PACKAGE_VERSION_MAJOR, PACKAGE_VERSION_MINOR, PACKAGE_VERSION_PATCHLEVEL,
 	ABI_CLASS_ANSIC,	/* Only need the ansic layer */
 	ABI_ANSIC_VERSION,
 	MOD_CLASS_NONE,
