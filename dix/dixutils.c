@@ -202,12 +202,11 @@ dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
     int rc;
 
     *pDraw = NULL;
-    client->errorValue = id;
-
-    if (id == INVALID)
-	return BadDrawable;
 
     rc = dixLookupResourceByClass((pointer *)&pTmp, id, RC_DRAWABLE, client, access);
+
+    if (rc != Success)
+	client->errorValue = id;
 
     if (rc == BadValue)
 	return BadDrawable;
