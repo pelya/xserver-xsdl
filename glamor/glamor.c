@@ -86,6 +86,7 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
+	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	if (pixmap_priv == NULL) {
@@ -95,6 +96,12 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
 		pixmap_priv->container = pixmap;
 		pixmap_priv->glamor_priv = glamor_priv;
 	}
+
+	if (pixmap_priv->fb)
+		dispatch->glDeleteFramebuffers(1, &pixmap_priv->fb);
+
+	if (pixmap_priv->tex)
+		dispatch->glDeleteTextures(1, &pixmap_priv->tex);
 
 	pixmap_priv->tex = tex;
 
