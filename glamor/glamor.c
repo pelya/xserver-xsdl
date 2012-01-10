@@ -224,6 +224,7 @@ glamor_block_handler(ScreenPtr screen)
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
 	dispatch->glFlush();
+	dispatch->glFinish();
 }
 
 static void

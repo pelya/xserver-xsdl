@@ -27,6 +27,7 @@ glamor_gl_dispatch_init_impl(struct glamor_gl_dispatch *dispatch,
 	INIT_FUNC(dispatch, glBindTexture, get_proc_address);
 	INIT_FUNC(dispatch, glTexSubImage2D, get_proc_address);
 	INIT_FUNC(dispatch, glFlush, get_proc_address);
+	INIT_FUNC(dispatch, glFinish, get_proc_address);
 	INIT_FUNC(dispatch, glGetIntegerv, get_proc_address);
 	INIT_FUNC(dispatch, glGetString, get_proc_address);
 	INIT_FUNC(dispatch, glScissor, get_proc_address);

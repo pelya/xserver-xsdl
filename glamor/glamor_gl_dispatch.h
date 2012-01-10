@@ -41,6 +41,7 @@ typedef struct glamor_gl_dispatch {
 				 const GLvoid * pixels);
 	/* MISC */
 	void (*glFlush) (void);
+	void (*glFinish) (void);
 	void (*glGetIntegerv) (GLenum pname, GLint * params);
 	const GLubyte *(*glGetString) (GLenum name);
 	void (*glScissor) (GLint x, GLint y, GLsizei width,
