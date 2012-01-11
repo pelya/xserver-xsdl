@@ -3723,7 +3723,8 @@ ActivatePassiveGrab(DeviceIntPtr device, GrabPtr grab, InternalEvent *event,
         }
     }
 
-    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
+    (*grabinfo->ActivateGrab)(device, grab,
+                              ClientTimeToServerTime(event->any.time), TRUE);
 
     if (xE)
     {
