@@ -120,8 +120,8 @@ typedef struct _connectionInput {
 
 typedef struct _connectionOutput {
     struct _connectionOutput *next;
-    unsigned char *buf;
     int size;
+    unsigned char *buf;
     int count;
 } ConnectionOutput, *ConnectionOutputPtr;
 
