@@ -162,6 +162,7 @@ typedef struct _osComm {
     XID	auth_id;		/* authorization id */
     CARD32 conn_time;		/* timestamp if not established, else 0  */
     struct _XtransConnInfo *trans_conn; /* transport connection object */
+    Bool local_client;
 } OsCommRec, *OsCommPtr;
 
 extern int FlushClient(

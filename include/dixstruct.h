@@ -91,7 +91,6 @@ typedef struct _Client {
     pointer     requestBuffer;
     pointer     osPrivate;	/* for OS layer, including scheduler */
     char        swapped;
-    char        local;
     char        big_requests;
     char        closeDownMode;
     char        clientGone;
