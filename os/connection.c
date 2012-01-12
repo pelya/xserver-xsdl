@@ -882,7 +882,7 @@ ErrorConnMax(XtransConnInfo trans_conn)
     xConnSetupPrefix csp;
     char pad[3];
     struct iovec iov[3];
-    char order = 0;
+    char byteOrder = 0;
     int whichbyte = 1;
     struct timeval waittime;
     fd_set mask;
@@ -895,16 +895,16 @@ ErrorConnMax(XtransConnInfo trans_conn)
     FD_SET(fd, &mask);
     (void)Select(fd + 1, &mask, NULL, NULL, &waittime);
     /* try to read the byte-order of the connection */
-    (void)_XSERVTransRead(trans_conn, &order, 1);
-    if (order == 'l' || order == 'B' || order == 'r' || order == 'R')
+    (void)_XSERVTransRead(trans_conn, &byteOrder, 1);
+    if ((byteOrder == 'l') || (byteOrder == 'B'))
     {
 	csp.success = xFalse;
 	csp.lengthReason = sizeof(NOROOM) - 1;
 	csp.length = (sizeof(NOROOM) + 2) >> 2;
 	csp.majorVersion = X_PROTOCOL;
 	csp.minorVersion = X_PROTOCOL_REVISION;
-	if (((*(char *) &whichbyte) && (order == 'B' || order == 'R')) ||
-	    (!(*(char *) &whichbyte) && (order == 'l' || order == 'r')))
+	if (((*(char *) &whichbyte) && (byteOrder == 'B')) ||
+	    (!(*(char *) &whichbyte) && (byteOrder == 'l')))
 	{
 	    swaps(&csp.majorVersion);
 	    swaps(&csp.minorVersion);
