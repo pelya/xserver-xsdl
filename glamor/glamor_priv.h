@@ -124,7 +124,6 @@ enum glamor_gl_flavor {
 
 #define GLAMOR_CREATE_PIXMAP_CPU  0x100
 
-#define GLAMOR_NUM_GLYPH_CACHES 4
 #define GLAMOR_NUM_GLYPH_CACHE_FORMATS 2
 
 typedef struct {
@@ -137,45 +136,56 @@ typedef struct {
 
 #include "glamor_gl_dispatch.h"
 
-typedef struct glamor_screen_private {
-	CloseScreenProcPtr saved_close_screen;
-	CreateGCProcPtr saved_create_gc;
-	CreatePixmapProcPtr saved_create_pixmap;
-	DestroyPixmapProcPtr saved_destroy_pixmap;
-	GetSpansProcPtr saved_get_spans;
-	GetImageProcPtr saved_get_image;
-	CompositeProcPtr saved_composite;
-	TrapezoidsProcPtr saved_trapezoids;
-	GlyphsProcPtr saved_glyphs;
-	ChangeWindowAttributesProcPtr saved_change_window_attributes;
-	CopyWindowProcPtr saved_copy_window;
-	BitmapToRegionProcPtr saved_bitmap_to_region;
-	TrianglesProcPtr saved_triangles;
-	AddTrapsProcPtr saved_addtraps;
-	CreatePictureProcPtr saved_create_picture;
-	DestroyPictureProcPtr saved_destroy_picture;
-	UnrealizeGlyphProcPtr saved_unrealize_glyph;
+struct glamor_saved_procs { 
+	CloseScreenProcPtr close_screen;
+	CreateGCProcPtr create_gc;
+	CreatePixmapProcPtr create_pixmap;
+	DestroyPixmapProcPtr destroy_pixmap;
+	GetSpansProcPtr get_spans;
+	GetImageProcPtr get_image;
+	CompositeProcPtr composite;
+	TrapezoidsProcPtr trapezoids;
+	GlyphsProcPtr glyphs;
+	ChangeWindowAttributesProcPtr change_window_attributes;
+	CopyWindowProcPtr copy_window;
+	BitmapToRegionProcPtr bitmap_to_region;
+	TrianglesProcPtr triangles;
+	AddTrapsProcPtr addtraps;
+	CreatePictureProcPtr create_picture;
+	DestroyPictureProcPtr destroy_picture;
+	UnrealizeGlyphProcPtr unrealize_glyph;
+};
 
+typedef struct glamor_screen_private {
+	struct glamor_gl_dispatch dispatch;
 	int yInverted;
-	int screen_fbo;
-	GLuint vbo, ebo;
-	int vbo_offset;
-	int vbo_size;
-	char *vb;
-	int vb_stride;
 	enum glamor_gl_flavor gl_flavor;
 	int has_pack_invert;
 	int has_fbo_blit;
 	int max_fbo_size;
 
-	/* glamor_finishaccess */
-	GLint finish_access_prog[2];
-	GLint finish_access_no_revert[2];
-	GLint finish_access_swap_rb[2];
-
 	/* glamor_solid */
 	GLint solid_prog;
 	GLint solid_color_uniform_location;
+
+	/* vertext/elment_index buffer object for render */
+	GLuint vbo, ebo;
+	int vbo_offset;
+	int vbo_size;
+	char *vb;
+	int vb_stride;
+	Bool has_source_coords, has_mask_coords;
+	int render_nr_verts;
+	glamor_composite_shader composite_shader[SHADER_SOURCE_COUNT]
+						[SHADER_MASK_COUNT]
+						[SHADER_IN_COUNT];
+	glamor_glyph_cache_t glyphCaches[GLAMOR_NUM_GLYPH_CACHE_FORMATS];
+	Bool glyph_cache_initialized;
+
+	/* shaders to restore a texture to another texture.*/
+	GLint finish_access_prog[2];
+	GLint finish_access_no_revert[2];
+	GLint finish_access_swap_rb[2];
 
 	/* glamor_tile */
 	GLint tile_prog;
@@ -185,19 +195,11 @@ typedef struct glamor_screen_private {
 	GLint put_image_xybitmap_fg_uniform_location;
 	GLint put_image_xybitmap_bg_uniform_location;
 
-	/* glamor_composite */
-	glamor_composite_shader composite_shader[SHADER_SOURCE_COUNT]
-	    [SHADER_MASK_COUNT][SHADER_IN_COUNT];
-	Bool has_source_coords, has_mask_coords;
-	int render_nr_verts;
-	glamor_pixmap_validate_function_t *pixmap_validate_funcs;
-	glamor_glyph_cache_t glyph_caches[GLAMOR_NUM_GLYPH_CACHES];
+	int screen_fbo;
+	struct glamor_saved_procs saved_procs;
 	char delayed_fallback_string[GLAMOR_DELAYED_STRING_MAX + 1];
 	int delayed_fallback_pending;
-
-	glamor_glyph_cache_t glyphCaches[GLAMOR_NUM_GLYPH_CACHE_FORMATS];
-	Bool glyph_cache_initialized;
-	struct glamor_gl_dispatch dispatch;
+	glamor_pixmap_validate_function_t *pixmap_validate_funcs;
 } glamor_screen_private;
 
 typedef enum glamor_access {
@@ -235,7 +237,6 @@ typedef union _glamor_pending_op {
  * #pending_op: currently only support pending filling.
  * @container: The corresponding pixmap's pointer.
  **/
-
 
 typedef struct glamor_pixmap_private {
 	glamor_pixmap_type_t type;

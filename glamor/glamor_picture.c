@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 
+#include "mipict.h"
 #include "glamor_priv.h"
 
 /* Upload picture to texture.  We may need to flip the y axis or
@@ -73,7 +74,7 @@ glamor_create_picture(PicturePtr picture)
 		if (pixmap_priv->type == GLAMOR_TEXTURE_DRM)
 			glamor_set_pixmap_type(pixmap, GLAMOR_SEPARATE_TEXTURE);
 	}
-	return glamor_priv->saved_create_picture(picture);
+	return miCreatePicture(picture);
 }
 
 void
@@ -95,7 +96,7 @@ glamor_destroy_picture(PicturePtr picture)
 		pixmap_priv->is_picture = 0;
 		pixmap_priv->pict_format = 0;
 	}
-	glamor_priv->saved_destroy_picture(picture);
+	miDestroyPicture(picture);
 }
 
 void

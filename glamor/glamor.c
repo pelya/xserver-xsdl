@@ -343,60 +343,60 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 			goto fail;
 		}
 
-		glamor_priv->saved_close_screen = screen->CloseScreen;
+		glamor_priv->saved_procs.close_screen = screen->CloseScreen;
 		screen->CloseScreen = glamor_close_screen;
 
-		glamor_priv->saved_create_gc = screen->CreateGC;
+		glamor_priv->saved_procs.create_gc = screen->CreateGC;
 		screen->CreateGC = glamor_create_gc;
 
-		glamor_priv->saved_create_pixmap = screen->CreatePixmap;
+		glamor_priv->saved_procs.create_pixmap = screen->CreatePixmap;
 		screen->CreatePixmap = glamor_create_pixmap;
 
-		glamor_priv->saved_destroy_pixmap = screen->DestroyPixmap;
+		glamor_priv->saved_procs.destroy_pixmap = screen->DestroyPixmap;
 		screen->DestroyPixmap = glamor_destroy_pixmap;
 
-		glamor_priv->saved_get_spans = screen->GetSpans;
+		glamor_priv->saved_procs.get_spans = screen->GetSpans;
 		screen->GetSpans = glamor_get_spans;
 
-		glamor_priv->saved_get_image = screen->GetImage;
+		glamor_priv->saved_procs.get_image = screen->GetImage;
 		screen->GetImage = glamor_get_image;
 
-		glamor_priv->saved_change_window_attributes =
+		glamor_priv->saved_procs.change_window_attributes =
 		    screen->ChangeWindowAttributes;
 		screen->ChangeWindowAttributes =
 		    glamor_change_window_attributes;
 
-		glamor_priv->saved_copy_window = screen->CopyWindow;
+		glamor_priv->saved_procs.copy_window = screen->CopyWindow;
 		screen->CopyWindow = glamor_copy_window;
 
-		glamor_priv->saved_bitmap_to_region =
+		glamor_priv->saved_procs.bitmap_to_region =
 		    screen->BitmapToRegion;
 		screen->BitmapToRegion = glamor_bitmap_to_region;
 	}
 #ifdef RENDER
 	if (flags & GLAMOR_USE_PICTURE_SCREEN) {
-		glamor_priv->saved_composite = ps->Composite;
+		glamor_priv->saved_procs.composite = ps->Composite;
 		ps->Composite = glamor_composite;
 
-		glamor_priv->saved_trapezoids = ps->Trapezoids;
+		glamor_priv->saved_procs.trapezoids = ps->Trapezoids;
 		ps->Trapezoids = glamor_trapezoids;
 
-		glamor_priv->saved_glyphs = ps->Glyphs;
+		glamor_priv->saved_procs.glyphs = ps->Glyphs;
 		ps->Glyphs = glamor_glyphs;
 
-		glamor_priv->saved_triangles = ps->Triangles;
+		glamor_priv->saved_procs.triangles = ps->Triangles;
 		ps->Triangles = glamor_triangles;
 
-		glamor_priv->saved_addtraps = ps->AddTraps;
+		glamor_priv->saved_procs.addtraps = ps->AddTraps;
 		ps->AddTraps = glamor_add_traps;
 
-		glamor_priv->saved_unrealize_glyph = ps->UnrealizeGlyph;
+		glamor_priv->saved_procs.unrealize_glyph = ps->UnrealizeGlyph;
 		ps->UnrealizeGlyph = glamor_glyph_unrealize;
 	}
-	glamor_priv->saved_create_picture = ps->CreatePicture;
+	glamor_priv->saved_procs.create_picture = ps->CreatePicture;
 	ps->CreatePicture = glamor_create_picture;
 
-	glamor_priv->saved_destroy_picture = ps->DestroyPicture;
+	glamor_priv->saved_procs.destroy_picture = ps->DestroyPicture;
 	ps->DestroyPicture = glamor_destroy_picture;
 	glamor_init_composite_shaders(screen);
 #endif
@@ -430,22 +430,22 @@ glamor_close_screen(int idx, ScreenPtr screen)
 	PictureScreenPtr ps = GetPictureScreenIfSet(screen);
 #endif
 	glamor_glyphs_fini(screen);
-	screen->CloseScreen = glamor_priv->saved_close_screen;
-	screen->CreateGC = glamor_priv->saved_create_gc;
-	screen->CreatePixmap = glamor_priv->saved_create_pixmap;
-	screen->DestroyPixmap = glamor_priv->saved_destroy_pixmap;
-	screen->GetSpans = glamor_priv->saved_get_spans;
+	screen->CloseScreen = glamor_priv->saved_procs.close_screen;
+	screen->CreateGC = glamor_priv->saved_procs.create_gc;
+	screen->CreatePixmap = glamor_priv->saved_procs.create_pixmap;
+	screen->DestroyPixmap = glamor_priv->saved_procs.destroy_pixmap;
+	screen->GetSpans = glamor_priv->saved_procs.get_spans;
 	screen->ChangeWindowAttributes =
-	    glamor_priv->saved_change_window_attributes;
-	screen->CopyWindow = glamor_priv->saved_copy_window;
-	screen->BitmapToRegion = glamor_priv->saved_bitmap_to_region;
+	    glamor_priv->saved_procs.change_window_attributes;
+	screen->CopyWindow = glamor_priv->saved_procs.copy_window;
+	screen->BitmapToRegion = glamor_priv->saved_procs.bitmap_to_region;
 #ifdef RENDER
 	if (ps) {
-		ps->Composite = glamor_priv->saved_composite;
-		ps->Trapezoids = glamor_priv->saved_trapezoids;
-		ps->Glyphs = glamor_priv->saved_glyphs;
-		ps->Triangles = glamor_priv->saved_triangles;
-		ps->CreatePicture = glamor_priv->saved_create_picture;
+		ps->Composite = glamor_priv->saved_procs.composite;
+		ps->Trapezoids = glamor_priv->saved_procs.trapezoids;
+		ps->Glyphs = glamor_priv->saved_procs.glyphs;
+		ps->Triangles = glamor_priv->saved_procs.triangles;
+		ps->CreatePicture = glamor_priv->saved_procs.create_picture;
 	}
 #endif
 	if (glamor_priv->vb)
