@@ -232,17 +232,15 @@ gl_iformat_for_depth(int depth, GLenum * format)
 	case 8:
 		*format = GL_ALPHA;
 		break;
-#endif
 	case 24:
 		*format = GL_RGB;
 		break;
+#endif
 	default:
 		*format = GL_RGBA;
 		break;
        }
 }
-
-
 
 static inline CARD32
 format_for_pixmap(PixmapPtr pixmap)
@@ -559,6 +557,21 @@ glamor_get_rgba_from_pixel(CARD32 pixel,
 		*alpha = 1;
 
 	return TRUE;
+}
+
+inline static Bool glamor_pict_format_is_compatible(PictFormatShort pict_format, int depth)
+{
+	GLenum iformat;
+
+	gl_iformat_for_depth(depth, &iformat);
+	switch (iformat) {
+		case GL_RGBA:
+			return (pict_format == PICT_a8r8g8b8 || pict_format == PICT_x8r8g8b8);
+		case GL_ALPHA:
+			return (pict_format == PICT_a8);
+		default:
+			return FALSE;
+	}
 }
 
 /* return TRUE if we can access this pixmap at DDX driver. */

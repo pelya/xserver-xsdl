@@ -65,15 +65,21 @@ glamor_create_picture(PicturePtr picture)
  	 * the uploading, we need to know the picture format. */
 		glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
 		pixmap_priv = glamor_get_pixmap_private(pixmap);
+	} else {
+		if (GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
+			/* If the picture format is not compatible with glamor fbo format,
+			 * we have to mark this pixmap as a separated texture, and don't
+			 * fallback to DDX layer. */
+			if (pixmap_priv->type == GLAMOR_TEXTURE_DRM
+			    && !glamor_pict_format_is_compatible(picture->format,
+								 pixmap->drawable.depth))
+				glamor_set_pixmap_type(pixmap, GLAMOR_SEPARATE_TEXTURE);
+		}
 	}
-	
-	if (pixmap_priv) {
-		pixmap_priv->is_picture = 1;
-		pixmap_priv->pict_format = picture->format;
-		/* XXX Some formats are compatible between glamor and ddx driver*/
-		if (pixmap_priv->type == GLAMOR_TEXTURE_DRM)
-			glamor_set_pixmap_type(pixmap, GLAMOR_SEPARATE_TEXTURE);
-	}
+
+	pixmap_priv->is_picture = 1;
+	pixmap_priv->pict_format = picture->format;
+
 	return miCreatePicture(picture);
 }
 
