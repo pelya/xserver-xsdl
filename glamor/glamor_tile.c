@@ -156,7 +156,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 
 		dispatch->glActiveTexture(GL_TEXTURE0);
 		dispatch->glBindTexture(GL_TEXTURE_2D,
-					src_pixmap_priv->tex);
+					src_pixmap_priv->fbo->tex);
 		dispatch->glTexParameteri(GL_TEXTURE_2D,
 					  GL_TEXTURE_MIN_FILTER,
 					  GL_NEAREST);

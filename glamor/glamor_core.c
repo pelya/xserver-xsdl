@@ -49,7 +49,7 @@ glamor_get_drawable_location(const DrawablePtr drawable)
 	    glamor_get_screen_private(drawable->pScreen);
 	if (pixmap_priv == NULL || pixmap_priv->gl_fbo == 0)
 		return 'm';
-	if (pixmap_priv->fb == glamor_priv->screen_fbo)
+	if (pixmap_priv->fbo->fb == glamor_priv->screen_fbo)
 		return 's';
 	else
 		return 'f';
@@ -271,13 +271,13 @@ glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 		glamor_restore_pixmap_to_texture(pixmap);
 	}
 
-	if (pixmap_priv->pbo != 0 && pixmap_priv->pbo_valid) {
+	if (pixmap_priv->fbo->pbo != 0 && pixmap_priv->fbo->pbo_valid) {
 		assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
 		dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-		pixmap_priv->pbo_valid = FALSE;
-		dispatch->glDeleteBuffers(1, &pixmap_priv->pbo);
-		pixmap_priv->pbo = 0;
+		pixmap_priv->fbo->pbo_valid = FALSE;
+		dispatch->glDeleteBuffers(1, &pixmap_priv->fbo->pbo);
+		pixmap_priv->fbo->pbo = 0;
 	} else {
 		free(pixmap->devPrivate.ptr);
 	}

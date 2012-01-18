@@ -388,7 +388,7 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 	dispatch->glActiveTexture(GL_TEXTURE0 + unit);
-	dispatch->glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
+	dispatch->glBindTexture(GL_TEXTURE_2D, pixmap_priv->fbo->tex);
 	switch (picture->repeatType) {
 	case RepeatNone:
 #ifndef GLAMOR_GLES2
@@ -923,18 +923,16 @@ glamor_composite_with_shader(CARD8 op,
 
 			mask_status = GLAMOR_NONE;
 		}
-		source_status = glamor_upload_picture_to_texture(source);
 
+		source_status = glamor_upload_picture_to_texture(source);
 		if (source_status != GLAMOR_UPLOAD_DONE) {
 			glamor_fallback
 			    ("Failed to upload source texture.\n");
 			goto fail;
 		}
 	} else {
-
 		if (source_status == GLAMOR_UPLOAD_PENDING) {
-			source_status =
-			    glamor_upload_picture_to_texture(source);
+			source_status = glamor_upload_picture_to_texture(source);
 			if (source_status != GLAMOR_UPLOAD_DONE) {
 				glamor_fallback
 				    ("Failed to upload source texture.\n");
@@ -943,9 +941,7 @@ glamor_composite_with_shader(CARD8 op,
 		}
 
 		if (mask_status == GLAMOR_UPLOAD_PENDING) {
-			mask_status =
-			    glamor_upload_picture_to_texture(mask);
-
+			mask_status = glamor_upload_picture_to_texture(mask);
 			if (mask_status != GLAMOR_UPLOAD_DONE) {
 				glamor_fallback
 				    ("Failed to upload mask texture.\n");
@@ -1208,22 +1204,14 @@ _glamor_composite(CARD8 op,
 	if (source->pDrawable) {
 		source_pixmap = glamor_get_drawable_pixmap(source->pDrawable);
 		source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
-		if (!source_pixmap_priv) {
-			glamor_set_pixmap_type(source_pixmap, GLAMOR_MEMORY);
-			source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
-		}
-		if (source_pixmap_priv->type == GLAMOR_DRM_ONLY)
+		if (source_pixmap_priv && source_pixmap_priv->type == GLAMOR_DRM_ONLY)
 			goto fail;
 	}
 
 	if (mask && mask->pDrawable) {
 		mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
 		mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
-		if (!mask_pixmap_priv) {
-			glamor_set_pixmap_type(mask_pixmap, GLAMOR_MEMORY);
-			mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
-		}
-		if (mask_pixmap_priv->type == GLAMOR_DRM_ONLY)
+		if (mask_pixmap_priv && mask_pixmap_priv->type == GLAMOR_DRM_ONLY)
 			goto fail;
 	}
 	if ((!source->pDrawable

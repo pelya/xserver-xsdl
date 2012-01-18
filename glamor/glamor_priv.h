@@ -59,6 +59,8 @@
 
 #include "glamor_debug.h"
 
+#include <list.h>
+
 typedef struct glamor_composite_shader {
 	GLuint prog;
 	GLint dest_to_dest_uniform_location;
@@ -123,6 +125,7 @@ enum glamor_gl_flavor {
 };
 
 #define GLAMOR_CREATE_PIXMAP_CPU  0x100
+#define GLAMOR_CREATE_PIXMAP_FIXUP 0x101
 
 #define GLAMOR_NUM_GLYPH_CACHE_FORMATS 2
 
@@ -155,6 +158,10 @@ struct glamor_saved_procs {
 	DestroyPictureProcPtr destroy_picture;
 	UnrealizeGlyphProcPtr unrealize_glyph;
 };
+
+#define CACHE_FORMAT_COUNT 2
+#define CACHE_BUCKET_WCOUNT 16
+#define CACHE_BUCKET_HCOUNT 16
 
 typedef struct glamor_screen_private {
 	struct glamor_gl_dispatch dispatch;
@@ -238,15 +245,25 @@ typedef union _glamor_pending_op {
  * @container: The corresponding pixmap's pointer.
  **/
 
-typedef struct glamor_pixmap_private {
-	glamor_pixmap_type_t type;
-	unsigned char gl_fbo:1;
-	unsigned char gl_tex:1;
-	unsigned char pbo_valid:1;
-	unsigned char is_picture:1;
+typedef struct glamor_pixmap_fbo {
+	unsigned char pbo_valid;
 	GLuint tex;
 	GLuint fb;
 	GLuint pbo;
+	int width;
+	int height;
+	GLenum format;
+	GLenum type;
+	glamor_screen_private *glamor_priv;
+} glamor_pixmap_fbo;
+
+
+typedef struct glamor_pixmap_private {
+	unsigned char gl_fbo:1;
+	unsigned char is_picture:1;
+	unsigned char gl_tex:1;
+	glamor_pixmap_type_t type;
+	glamor_pixmap_fbo *fbo;
 	PictFormatShort pict_format;
 	glamor_pending_op pending_op;
 	PixmapPtr container;
@@ -310,6 +327,23 @@ PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 			       unsigned int usage);
 
 Bool glamor_destroy_pixmap(PixmapPtr pixmap);
+
+glamor_pixmap_fbo* glamor_pixmap_detach_fbo(glamor_pixmap_private *pixmap_priv);
+void glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo);
+glamor_pixmap_fbo * glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
+					       int w, int h, int depth, GLint tex, int flag);
+glamor_pixmap_fbo * glamor_create_fbo(glamor_screen_private *glamor_priv,
+				      int w, int h, int depth, int flag);
+void glamor_destroy_fbo(glamor_pixmap_fbo *fbo);
+
+Bool glamor_pixmap_fbo_fixup(ScreenPtr screen, PixmapPtr pixmap);
+
+Bool glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv);
+
+#define GLAMOR_CACHE_GET_DEFAULT    0
+#define GLAMOR_CACHE_GET_EAXCT_SIZE 1
+#define GLAMOR_CACHE_GET_UPLOAD	    2
+
 
 /* glamor_copyarea.c */
 RegionPtr
@@ -503,14 +537,14 @@ Bool glamor_download_pixmap_to_cpu(PixmapPtr pixmap,
  **/
 void glamor_restore_pixmap_to_texture(PixmapPtr pixmap);
 /**
- * Ensure to have a fbo attached to the pixmap. 
- * If the pixmap already has one fbo then do nothing.
- * Otherwise, it will generate a new fbo, and bind
- * the pixmap's texture to the fbo. 
- * The pixmap must has a valid texture before call this
+ * Ensure to have a fbo has a valid/complete glfbo.
+ * If the fbo already has a valid glfbo then do nothing.
+ * Otherwise, it will generate a new glfbo, and bind
+ * the fbo's texture to the glfbo.
+ * The fbo must has a valid texture before call this
  * API, othersie, it will trigger a assert.
  */
-void glamor_pixmap_ensure_fb(PixmapPtr pixmap);
+void glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo);
 
 /**
  * Upload a pixmap to gl texture. Used by dynamic pixmap

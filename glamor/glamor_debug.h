@@ -79,5 +79,8 @@ AbortServer(void)
 		     _glamor_priv_->delayed_fallback_string);		\
       _glamor_priv_->delayed_fallback_pending = 0;  } } while(0)
 
+#define DEBUGF(str, ...)
+//#define DEBUGF(str, ...) ErrorF(str, ##__VA_ARGS__)
+
 
 #endif

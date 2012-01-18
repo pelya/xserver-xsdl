@@ -79,7 +79,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 	glamor_validate_pixmap(dst_pixmap);
 
 	dispatch->glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT,
-				    src_pixmap_priv->fb);
+				    src_pixmap_priv->fbo->fb);
 	glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off,
 				   &dst_y_off);
 	glamor_get_drawable_deltas(src, src_pixmap, &src_x_off,
@@ -167,7 +167,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 		goto fail;
 	}
 
-	if (!src_pixmap_priv->gl_fbo) {
+	if (!src_pixmap_priv || !src_pixmap_priv->gl_fbo) {
 #ifndef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 		glamor_delayed_fallback(dst->pScreen, "src has no fbo.\n");
 		goto fail;
@@ -175,6 +175,8 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 		src_status = glamor_upload_pixmap_to_texture(src_pixmap);
 		if (src_status != GLAMOR_UPLOAD_DONE)
 			goto fail;
+
+		src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 #endif
 	} else
 		flush_needed = 1;
@@ -199,8 +201,6 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off,
 				   &dst_y_off);
 
-
-
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
 					GL_FALSE, 2 * sizeof(float),
 					vertices);
@@ -216,7 +216,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
 		dispatch->glActiveTexture(GL_TEXTURE0);
 		dispatch->glBindTexture(GL_TEXTURE_2D,
-					src_pixmap_priv->tex);
+					src_pixmap_priv->fbo->tex);
 #ifndef GLAMOR_GLES2
 		dispatch->glEnable(GL_TEXTURE_2D);
 #endif
@@ -333,7 +333,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off,
 				   &dst_y_off);
 
-	if (src_pixmap_priv->fb == dst_pixmap_priv->fb) {
+	if (src_pixmap_priv->fbo && src_pixmap_priv->fbo->fb == dst_pixmap_priv->fbo->fb) {
 		int x_shift = abs(src_x_off - dx - dst_x_off);
 		int y_shift = abs(src_y_off - dy - dst_y_off);
 		for (i = 0; i < nbox; i++) {

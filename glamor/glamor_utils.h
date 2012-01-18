@@ -13,11 +13,10 @@
 #define t_from_x_coord_y_inverted(_yscale_, _y_) ((_y_) * (_yscale_))
 
 #define pixmap_priv_get_scale(_pixmap_priv_, _pxscale_, _pyscale_)	\
-  do {									\
-    *(_pxscale_) = 1.0 / (_pixmap_priv_)->container->drawable.width;	\
-    *(_pyscale_) = 1.0 / (_pixmap_priv_)->container->drawable.height;	\
+   do {									\
+    *(_pxscale_) = 1.0 / (_pixmap_priv_)->fbo->width;			\
+    *(_pyscale_) = 1.0 / (_pixmap_priv_)->fbo->height;			\
   } while(0)
-
 
 #define xFixedToFloat(_val_) ((float)xFixedToInt(_val_)			\
 			      + ((float)xFixedFrac(_val_) / 65536.0))

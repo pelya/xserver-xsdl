@@ -85,52 +85,41 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, unsigned int tex)
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv;
 	glamor_gl_dispatch *dispatch;
+	glamor_pixmap_fbo *fbo;
 
 	glamor_priv = glamor_get_screen_private(screen);
 	dispatch  = &glamor_priv->dispatch;
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-	if (pixmap_priv == NULL) {
-		pixmap_priv = calloc(sizeof(*pixmap_priv), 1);
-		dixSetPrivate(&pixmap->devPrivates,
-			      glamor_pixmap_private_key, pixmap_priv);
-		pixmap_priv->container = pixmap;
-		pixmap_priv->glamor_priv = glamor_priv;
+	if (pixmap_priv->fbo) {
+		fbo = glamor_pixmap_detach_fbo(pixmap_priv);
+		glamor_destroy_fbo(fbo);
 	}
 
-	if (pixmap_priv->fb)
-		dispatch->glDeleteFramebuffers(1, &pixmap_priv->fb);
+	fbo = glamor_create_fbo_from_tex(glamor_priv, pixmap->drawable.width,
+					 pixmap->drawable.height,
+					 pixmap->drawable.depth, tex, 0);
 
-	if (pixmap_priv->tex)
-		dispatch->glDeleteTextures(1, &pixmap_priv->tex);
-
-	pixmap_priv->tex = tex;
-
-	/* Create a framebuffer object wrapping the texture so that we can render
-	 * to it.
-	 */
-	pixmap_priv->gl_fbo = 1;
-	if (tex != 0) {
-		glamor_pixmap_ensure_fb(pixmap);
-		pixmap_priv->gl_tex = 1;
-	} else {
-		pixmap_priv->fb = 0;
-		pixmap_priv->gl_tex = 0;
+	if (fbo == NULL) {
+		ErrorF("XXX fail to create fbo.\n");
+		return;
 	}
 
-	pixmap->devPrivate.ptr = NULL;
+	glamor_pixmap_attach_fbo(pixmap, fbo);
 }
 
 void
 glamor_set_screen_pixmap(PixmapPtr screen_pixmap)
 {
-	ScreenPtr screen = screen_pixmap->drawable.pScreen;
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv;
 
-	glamor_priv = glamor_get_screen_private(screen);
+	glamor_priv = glamor_get_screen_private(screen_pixmap->drawable.pScreen);
 	pixmap_priv = glamor_get_pixmap_private(screen_pixmap);
-	glamor_priv->screen_fbo = pixmap_priv->fb;
+	glamor_priv->screen_fbo = pixmap_priv->fbo->fb;
+
+	pixmap_priv->fbo->width = screen_pixmap->drawable.width;
+	pixmap_priv->fbo->height = screen_pixmap->drawable.height;
 }
 
 PixmapPtr
@@ -138,13 +127,15 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 		     unsigned int usage)
 {
 	PixmapPtr pixmap;
-	GLenum format;
-	GLuint tex;
 	glamor_pixmap_type_t type = GLAMOR_TEXTURE_ONLY;
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_pixmap_fbo *fbo;
+	int pitch;
+	int flag;
+
 	if (w > 32767 || h > 32767)
 		return NullPixmap;
 
@@ -153,62 +144,53 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	    || usage == GLAMOR_CREATE_PIXMAP_CPU) {
 		/* MESA can only support upto MAX_WIDTH*MAX_HEIGHT fbo.
 		   If we exceed such limitation, we have to use framebuffer. */
-		type = GLAMOR_MEMORY;
-		pixmap = fbCreatePixmap(screen, w, h, depth, usage);
+		return fbCreatePixmap(screen, w, h, depth, usage);
 	} else
 		pixmap = fbCreatePixmap(screen, 0, 0, depth, usage);
 
 	pixmap_priv = calloc(1, sizeof(*pixmap_priv));
-	dixSetPrivate(&pixmap->devPrivates, glamor_pixmap_private_key,
+
+	if (!pixmap_priv)
+		return fbCreatePixmap(screen, w, h, depth, usage);
+
+	dixSetPrivate(&pixmap->devPrivates,
+		      glamor_pixmap_private_key,
 		      pixmap_priv);
+
 	pixmap_priv->container = pixmap;
 	pixmap_priv->glamor_priv = glamor_priv;
-
 	pixmap_priv->type = type;
-	if (w == 0 || h == 0 || type == GLAMOR_MEMORY)
+
+	if (w == 0 || h == 0)
 		return pixmap;
 
-	gl_iformat_for_depth(depth, &format);
-	/* Create the texture used to store the pixmap's data. */
-	dispatch->glGenTextures(1, &tex);
-	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-				  GL_NEAREST);
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-				  GL_NEAREST);
-	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format,
-			       GL_UNSIGNED_BYTE, NULL);
+	fbo = glamor_create_fbo(glamor_priv, w, h, depth, 0);
 
-	glamor_set_pixmap_texture(pixmap, tex);
+	if (fbo == NULL) {
+		fbDestroyPixmap(pixmap);
+		free(pixmap_priv);
+		return fbCreatePixmap(screen, w, h, depth, usage);
+	}
 
-	screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
-				   (((w *
-				      pixmap->drawable.
-				      bitsPerPixel + 7) / 8) +
-				    3) & ~3, NULL);
+	glamor_pixmap_attach_fbo(pixmap, fbo);
 
+	pitch = (((w * pixmap->drawable.bitsPerPixel + 7) / 8) + 3) & ~3;
+	screen->ModifyPixmapHeader(pixmap, w, h, 0, 0, pitch, NULL);
 	return pixmap;
 }
 
 void
 glamor_destroy_textured_pixmap(PixmapPtr pixmap)
 {
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(pixmap->drawable.pScreen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 	if (pixmap->refcnt == 1) {
-		glamor_pixmap_private *pixmap_priv =
-		    glamor_get_pixmap_private(pixmap);
+		glamor_pixmap_private *pixmap_priv;
+
+		pixmap_priv = glamor_get_pixmap_private(pixmap);
 		if (pixmap_priv != NULL) {
-			if (pixmap_priv->fb)
-				dispatch->glDeleteFramebuffers(1,
-							       &pixmap_priv->fb);
-			if (pixmap_priv->tex)
-				dispatch->glDeleteTextures(1,
-							   &pixmap_priv->tex);
-			if (pixmap_priv->pbo)
-				dispatch->glDeleteBuffers(1,
-							  &pixmap_priv->pbo);
+			glamor_pixmap_fbo *fbo;
+			fbo = glamor_pixmap_detach_fbo(pixmap_priv);
+			if (fbo)
+				glamor_destroy_fbo(fbo);
 			free(pixmap_priv);
 		}
 	}
@@ -238,6 +220,7 @@ _glamor_block_handler(void *data, OSTimePtr timeout,
 {
 	glamor_gl_dispatch *dispatch = data;
 	dispatch->glFlush();
+	dispatch->glFinish();
 }
 
 static void
