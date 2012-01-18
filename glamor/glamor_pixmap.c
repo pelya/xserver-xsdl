@@ -298,6 +298,13 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 		return;
 	need_flip = (flip && !glamor_priv->yInverted);
 
+	glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DYNAMIC_UPLOAD,
+			    "Uploading pixmap %p  %dx%d depth%d.\n",
+			    pixmap,
+			    pixmap->drawable.width,
+			    pixmap->drawable.height,
+			    pixmap->drawable.depth);
+
 	/* Try fast path firstly, upload the pixmap to the texture attached
 	 * to the fbo directly. */
 	if (no_alpha == 0 && no_revert == 1 && !need_flip) {
@@ -476,12 +483,6 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 	}
 	if (glamor_pixmap_upload_prepare(pixmap, no_alpha, no_revert))
 		return GLAMOR_UPLOAD_FAILED;
-	glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DYNAMIC_UPLOAD,
-			    "Uploading pixmap %p  %dx%d depth%d.\n",
-			    pixmap,
-			    pixmap->drawable.width,
-			    pixmap->drawable.height,
-			    pixmap->drawable.depth);
 	_glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha,
 					 no_revert, 1);
 	return GLAMOR_UPLOAD_DONE;
