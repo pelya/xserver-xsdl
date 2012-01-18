@@ -59,10 +59,6 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#define GLAMOR_VERSION_MAJOR 0
-#define GLAMOR_VERSION_MINOR 1
-#define GLAMOR_VERSION_PATCH 0
-
 #include "glamor.h"
 #include "glamor_gl_dispatch.h"
 
@@ -169,40 +165,22 @@ glamor_create_texture_from_image(struct glamor_egl_screen_private
 	return TRUE;
 }
 
-
 Bool
 glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
 {
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
-	struct glamor_egl_screen_private *glamor_egl =
-	    glamor_egl_get_screen_private(scrn);
-	EGLImageKHR image;
-	GLuint texture;
+	struct glamor_egl_screen_private *glamor_egl;
+	PixmapPtr	screen_pixmap;
 
-	if (!glamor_get_flink_name
-	    (glamor_egl->fd, handle, &glamor_egl->front_buffer_handle)) {
-		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-			   "Couldn't flink front buffer handle\n");
+	glamor_egl = glamor_egl_get_screen_private(scrn);
+	screen_pixmap = screen->GetScreenPixmap(screen);
+
+	if (!glamor_egl_create_textured_pixmap(screen_pixmap, handle, stride)) {
+		xf86DrvMsg(scrn->scrnIndex, X_ERROR, "Failed to create textured screen.");
 		return FALSE;
 	}
 
-	if (glamor_egl->root) {
-		eglDestroyImageKHR(glamor_egl->display, glamor_egl->root);
-		glamor_egl->root = EGL_NO_IMAGE_KHR;
-	}
-
-	image = _glamor_egl_create_image(glamor_egl,
-					 scrn->virtualX,
-					 scrn->virtualY,
-					 stride / 4,
-					 glamor_egl->front_buffer_handle, 32);
-	if (image == EGL_NO_IMAGE_KHR)
-		return FALSE;
-
-	glamor_create_texture_from_image(glamor_egl, image, &texture);
-	glamor_set_screen_pixmap_texture(screen, scrn->virtualX,
-					 scrn->virtualY, texture);
-	glamor_egl->root = image;
+	glamor_set_screen_pixmap(screen_pixmap);
 	return TRUE;
 }
 
@@ -211,11 +189,12 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 {
 	ScreenPtr screen = pixmap->drawable.pScreen;
 	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
-	struct glamor_egl_screen_private *glamor_egl =
-	    glamor_egl_get_screen_private(scrn);
+	struct glamor_egl_screen_private *glamor_egl;
 	EGLImageKHR image;
 	GLuint texture;
 	int name;
+
+	glamor_egl = glamor_egl_get_screen_private(scrn);
 
 	if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
 		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
@@ -234,8 +213,7 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 
 	glamor_create_texture_from_image(glamor_egl, image, &texture);
 	glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
-	glamor_set_pixmap_texture(pixmap, pixmap->drawable.width,
-				  pixmap->drawable.height, texture);
+	glamor_set_pixmap_texture(pixmap, texture);
 	dixSetPrivate(&pixmap->devPrivates, glamor_egl_pixmap_private_key,
 		      image);
 

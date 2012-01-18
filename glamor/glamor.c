@@ -78,17 +78,18 @@ glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
 	pixmap_priv->type = type;
 }
 
-
 _X_EXPORT void
-glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
+glamor_set_pixmap_texture(PixmapPtr pixmap, unsigned int tex)
 {
 	ScreenPtr screen = pixmap->drawable.pScreen;
 	glamor_pixmap_private *pixmap_priv;
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
 
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch  = &glamor_priv->dispatch;
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
+
 	if (pixmap_priv == NULL) {
 		pixmap_priv = calloc(sizeof(*pixmap_priv), 1);
 		dixSetPrivate(&pixmap->devPrivates,
@@ -117,27 +118,18 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h, unsigned int tex)
 		pixmap_priv->gl_tex = 0;
 	}
 
-	if (pixmap->devKind == 0)
-		screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
-					   (((w *
-					      pixmap->drawable.
-					      bitsPerPixel + 7) / 8) +
-					    3) & ~3, NULL);
 	pixmap->devPrivate.ptr = NULL;
 }
 
-/* Set screen pixmap. If tex equal to 0, means it is called from ephyr. */
 void
-glamor_set_screen_pixmap_texture(ScreenPtr screen, int w, int h,
-				 unsigned int tex)
+glamor_set_screen_pixmap(PixmapPtr screen_pixmap)
 {
-	PixmapPtr pixmap = screen->GetScreenPixmap(screen);
+	ScreenPtr screen = screen_pixmap->drawable.pScreen;
 	glamor_pixmap_private *pixmap_priv;
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
+	glamor_screen_private *glamor_priv;
 
-	glamor_set_pixmap_texture(pixmap, w, h, tex);
-	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	glamor_priv = glamor_get_screen_private(screen);
+	pixmap_priv = glamor_get_pixmap_private(screen_pixmap);
 	glamor_priv->screen_fbo = pixmap_priv->fb;
 }
 
@@ -187,7 +179,13 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format,
 			       GL_UNSIGNED_BYTE, NULL);
 
-	glamor_set_pixmap_texture(pixmap, w, h, tex);
+	glamor_set_pixmap_texture(pixmap, tex);
+
+	screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
+				   (((w *
+				      pixmap->drawable.
+				      bitsPerPixel + 7) / 8) +
+				    3) & ~3, NULL);
 
 	return pixmap;
 }

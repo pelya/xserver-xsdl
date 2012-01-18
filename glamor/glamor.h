@@ -102,9 +102,12 @@ typedef enum  glamor_pixmap_type {
  */
 extern _X_EXPORT Bool glamor_init(ScreenPtr screen, unsigned int flags);
 extern _X_EXPORT void glamor_fini(ScreenPtr screen);
-extern _X_EXPORT void glamor_set_screen_pixmap_texture(ScreenPtr screen,
-						       int w, int h,
-						       unsigned int tex);
+
+/* Let glamor to know the screen's fbo. The low level
+ * driver should already assign a tex
+ * to this pixmap through the set_pixmap_texture. */
+extern _X_EXPORT void glamor_set_screen_pixmap(PixmapPtr screen_pixmap);
+
 /* @glamor_glyphs_init: Initialize glyphs internal data structures.
  *
  * @pScreen: Current screen pointer.
@@ -115,7 +118,7 @@ extern _X_EXPORT void glamor_set_screen_pixmap_texture(ScreenPtr screen,
  */
 extern _X_EXPORT Bool glamor_glyphs_init(ScreenPtr pScreen);
 
-extern _X_EXPORT void glamor_set_pixmap_texture(PixmapPtr pixmap, int w, int h,
+extern _X_EXPORT void glamor_set_pixmap_texture(PixmapPtr pixmap,
 						unsigned int tex);
 
 extern _X_EXPORT void glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type);
