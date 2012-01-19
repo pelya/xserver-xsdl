@@ -1836,7 +1836,7 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     default:
         return 0;
     }
-    if (!(flags & TOUCH_CLIENT_ID))
+    if (t->mode == XIDirectTouch && !(flags & TOUCH_CLIENT_ID))
     {
         if (!valuator_mask_isset(&mask, 0))
             valuator_mask_set_double(&mask, 0, valuator_mask_get_double(touchpoint.ti->valuators, 0));
