@@ -309,11 +309,12 @@ glamor_init_eb(unsigned short *eb, int vert_cnt)
 void
 glamor_init_composite_shaders(ScreenPtr screen)
 {
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
 	unsigned short *eb;
 
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch = &glamor_priv->dispatch;
 	dispatch->glGenBuffers(1, &glamor_priv->vbo);
 	dispatch->glGenBuffers(1, &glamor_priv->ebo);
 	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
@@ -325,6 +326,34 @@ glamor_init_composite_shaders(ScreenPtr screen)
 	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	dispatch->glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 }
+
+
+
+void
+glamor_fini_composite_shaders(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
+	glamor_composite_shader *shader;
+	int i,j,k;
+
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch = &glamor_priv->dispatch;
+	dispatch->glDeleteBuffers(1, &glamor_priv->vbo);
+	dispatch->glDeleteBuffers(1, &glamor_priv->ebo);
+
+
+	for(i = 0; i < SHADER_SOURCE_COUNT; i++)
+		for(j = 0; j < SHADER_MASK_COUNT; j++)
+			for(k = 0; k < SHADER_IN_COUNT; k++)
+			{
+				shader = &glamor_priv->composite_shader[i][j][k];
+				if (shader->prog)
+					dispatch->glDeleteProgram(shader->prog);
+			}
+
+}
+
 
 static Bool
 glamor_set_composite_op(ScreenPtr screen,

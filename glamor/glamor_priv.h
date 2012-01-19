@@ -159,17 +159,23 @@ struct glamor_saved_procs {
 	UnrealizeGlyphProcPtr unrealize_glyph;
 };
 
-#define CACHE_FORMAT_COUNT 2
-#define CACHE_BUCKET_WCOUNT 16
-#define CACHE_BUCKET_HCOUNT 16
+#define CACHE_FORMAT_COUNT 1
+#define CACHE_BUCKET_WCOUNT 4
+#define CACHE_BUCKET_HCOUNT 4
+
+#define GLAMOR_TICK_AFTER(t0, t1) 	\
+	(((int)(t1) - (int)(t0)) < 0)
 
 typedef struct glamor_screen_private {
 	struct glamor_gl_dispatch dispatch;
 	int yInverted;
+	unsigned int tick;
 	enum glamor_gl_flavor gl_flavor;
 	int has_pack_invert;
 	int has_fbo_blit;
 	int max_fbo_size;
+
+	struct list fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
 
 	/* glamor_solid */
 	GLint solid_prog;
@@ -207,6 +213,7 @@ typedef struct glamor_screen_private {
 	char delayed_fallback_string[GLAMOR_DELAYED_STRING_MAX + 1];
 	int delayed_fallback_pending;
 	glamor_pixmap_validate_function_t *pixmap_validate_funcs;
+	int flags;
 } glamor_screen_private;
 
 typedef enum glamor_access {
@@ -246,6 +253,8 @@ typedef union _glamor_pending_op {
  **/
 
 typedef struct glamor_pixmap_fbo {
+	struct list list;
+	unsigned int expire;
 	unsigned char pbo_valid;
 	GLuint tex;
 	GLuint fb;
@@ -321,8 +330,6 @@ extern int glamor_debug_level;
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
-Bool glamor_close_screen(int idx, ScreenPtr screen);
-
 PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 			       unsigned int usage);
 
@@ -336,14 +343,14 @@ glamor_pixmap_fbo * glamor_create_fbo(glamor_screen_private *glamor_priv,
 				      int w, int h, int depth, int flag);
 void glamor_destroy_fbo(glamor_pixmap_fbo *fbo);
 
+void glamor_init_pixmap_fbo(ScreenPtr screen);
+void glamor_fini_pixmap_fbo(ScreenPtr screen);
 Bool glamor_pixmap_fbo_fixup(ScreenPtr screen, PixmapPtr pixmap);
+void glamor_fbo_expire(glamor_screen_private *glamor_priv);
+void glamor_init_pixmap_fbo(ScreenPtr screen);
+void glamor_fini_pixmap_fbo(ScreenPtr screen);
 
 Bool glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv);
-
-#define GLAMOR_CACHE_GET_DEFAULT    0
-#define GLAMOR_CACHE_GET_EAXCT_SIZE 1
-#define GLAMOR_CACHE_GET_UPLOAD	    2
-
 
 /* glamor_copyarea.c */
 RegionPtr
@@ -366,6 +373,7 @@ void glamor_finish_access_window(WindowPtr window);
 Bool glamor_prepare_access_gc(GCPtr gc);
 void glamor_finish_access_gc(GCPtr gc);
 void glamor_init_finish_access_shaders(ScreenPtr screen);
+void glamor_fini_finish_access_shaders(ScreenPtr screen);
 const Bool glamor_get_drawable_location(const DrawablePtr drawable);
 void glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
 				int *x, int *y);
@@ -427,6 +435,7 @@ void glamor_fill_spans(DrawablePtr drawable,
 		       int n, DDXPointPtr points, int *widths, int sorted);
 
 void glamor_init_solid_shader(ScreenPtr screen);
+void glamor_fini_solid_shader(ScreenPtr screen);
 
 /* glamor_getspans.c */
 void
@@ -468,6 +477,7 @@ void
 glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		 int w, int h, int leftPad, int format, char *bits);
 void glamor_init_putimage_shaders(ScreenPtr screen);
+void glamor_fini_putimage_shaders(ScreenPtr screen);
 
 /* glamor_render.c */
 void glamor_composite(CARD8 op,
@@ -484,6 +494,7 @@ void glamor_trapezoids(CARD8 op,
 		       PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
 		       int ntrap, xTrapezoid * traps);
 void glamor_init_composite_shaders(ScreenPtr screen);
+void glamor_fini_composite_shaders(ScreenPtr screen);
 void glamor_composite_glyph_rects(CARD8 op,
 				  PicturePtr src, PicturePtr mask,
 				  PicturePtr dst, int nrect,
@@ -501,6 +512,7 @@ Bool glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 		 unsigned char alu, unsigned long planemask,
 		 int tile_x, int tile_y);
 void glamor_init_tile_shader(ScreenPtr screen);
+void glamor_fini_tile_shader(ScreenPtr screen);
 
 /* glamor_triangles.c */
 void
@@ -514,6 +526,7 @@ glamor_triangles(CARD8 op,
 /* glamor_pixmap.c */
 
 void glamor_pixmap_init(ScreenPtr screen);
+void glamor_pixmap_fini(ScreenPtr screen);
 /** 
  * Download a pixmap's texture to cpu memory. If success,
  * One copy of current pixmap's texture will be put into

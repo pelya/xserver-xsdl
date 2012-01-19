@@ -101,9 +101,8 @@ glamor_fill(DrawablePtr drawable,
 void
 glamor_init_solid_shader(ScreenPtr screen)
 {
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
 	const char *solid_vs =
 	    "attribute vec4 v_position;"
 	    "void main()\n" "{\n" "       gl_Position = v_position;\n"
@@ -113,12 +112,12 @@ glamor_init_solid_shader(ScreenPtr screen)
 	    "void main()\n" "{\n" "	gl_FragColor = color;\n" "}\n";
 	GLint fs_prog, vs_prog;
 
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch =  &glamor_priv->dispatch;
 	glamor_priv->solid_prog = dispatch->glCreateProgram();
-	vs_prog =
-	    glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, solid_vs);
-	fs_prog =
-	    glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
-				     solid_fs);
+	vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, solid_vs);
+	fs_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
+					   solid_fs);
 	dispatch->glAttachShader(glamor_priv->solid_prog, vs_prog);
 	dispatch->glAttachShader(glamor_priv->solid_prog, fs_prog);
 
@@ -129,6 +128,17 @@ glamor_init_solid_shader(ScreenPtr screen)
 	glamor_priv->solid_color_uniform_location =
 	    dispatch->glGetUniformLocation(glamor_priv->solid_prog,
 					   "color");
+}
+
+void
+glamor_fini_solid_shader(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
+
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch =  &glamor_priv->dispatch;
+	dispatch->glDeleteProgram(glamor_priv->solid_prog);
 }
 
 Bool

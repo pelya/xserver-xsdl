@@ -39,9 +39,8 @@
 void
 glamor_init_tile_shader(ScreenPtr screen)
 {
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
 	const char *tile_vs =
 	    "attribute vec4 v_position;\n"
 	    "attribute vec4 v_texcoord0;\n"
@@ -60,12 +59,12 @@ glamor_init_tile_shader(ScreenPtr screen)
 	GLint fs_prog, vs_prog;
 	GLint sampler_uniform_location;
 
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch =  &glamor_priv->dispatch;
 	glamor_priv->tile_prog = dispatch->glCreateProgram();
-	vs_prog =
-	    glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, tile_vs);
-	fs_prog =
-	    glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
-				     tile_fs);
+	vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, tile_vs);
+	fs_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
+					   tile_fs);
 	dispatch->glAttachShader(glamor_priv->tile_prog, vs_prog);
 	dispatch->glAttachShader(glamor_priv->tile_prog, fs_prog);
 
@@ -82,6 +81,17 @@ glamor_init_tile_shader(ScreenPtr screen)
 	dispatch->glUseProgram(glamor_priv->tile_prog);
 	dispatch->glUniform1i(sampler_uniform_location, 0);
 	dispatch->glUseProgram(0);
+}
+
+void
+glamor_fini_tile_shader(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
+
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch =  &glamor_priv->dispatch;
+	dispatch->glDeleteProgram(glamor_priv->tile_prog);
 }
 
 Bool

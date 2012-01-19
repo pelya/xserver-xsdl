@@ -42,7 +42,7 @@
 #endif				/* GLAMOR_H */
 
 /* @GLAMOR_INVERTED_Y_AXIS:
- * set 1 means the GL env's origin (0,0) is at top-left. 
+ * set 1 means the GL env's origin (0,0) is at top-left.
  * EGL/DRM platform is an example need to set this bit.
  * glx platform's origin is at bottom-left thus need to
  * clear this bit.*/
@@ -54,7 +54,7 @@
  * create/destroy pixmap and handle the gc ops. need to
  * set this bit. Standalone glamor DDX driver need to set
  * this bit.
- * Otherwise, need to clear this bit, as the intel video 
+ * Otherwise, need to clear this bit, as the intel video
  * driver with glamor enabled.
  * */
 #define GLAMOR_USE_SCREEN		2
@@ -97,11 +97,23 @@ typedef enum  glamor_pixmap_type {
  *
  * This function initializes necessary internal data structure
  * for glamor. And before calling into this function, the OpenGL
- * environment should be ready. Should be called before any real 
- * glamor rendering or texture allocation functions. 
+ * environment should be ready. Should be called before any real
+ * glamor rendering or texture allocation functions.
  */
 extern _X_EXPORT Bool glamor_init(ScreenPtr screen, unsigned int flags);
 extern _X_EXPORT void glamor_fini(ScreenPtr screen);
+
+/* This function is used to free the glamor private screen's
+ * resources. If the DDX driver is not set GLAMOR_USE_SCREEN,
+ * then, DDX need to call this function at proper stage, if
+ * it is the xorg DDX driver,then it should be called at free
+ * screen stage not the close screen stage. The reason is after
+ * call to this function, the xorg DDX may need to destroy the
+ * screen pixmap which must be a glamor pixmap and requires
+ * the internal data structure still exist at that time.
+ * Otherwise, the glamor internal structure will not be freed.*/
+extern _X_EXPORT Bool glamor_close_screen(int idx, ScreenPtr screen);
+
 
 /* Let glamor to know the screen's fbo. The low level
  * driver should already assign a tex
@@ -133,7 +145,7 @@ extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, 
  * @scrn: Current screen info pointer.
  * @fd:   Current drm fd.
  *
- * This function creates and intialize EGL contexts. 
+ * This function creates and intialize EGL contexts.
  * Should be called from DDX's preInit function.
  * Return TRUE if success, otherwise return FALSE.
  * */
@@ -165,7 +177,7 @@ extern _X_EXPORT Bool glamor_egl_create_textured_screen(ScreenPtr screen,
 /*
  * @glamor_egl_create_textured_pixmap: Try to create a textured pixmap from
  * 				       a BO handle.
- * 
+ *
  * @pixmap: The pixmap need to be processed.
  * @handle: The BO's handle attached to this pixmap at DDX layer.
  * @stride: Stride in bytes for this pixmap.
@@ -188,24 +200,24 @@ extern _X_EXPORT void glamor_egl_free_screen(int scrnIndex, int flags);
 extern _X_EXPORT int glamor_create_gc(GCPtr gc);
 
 extern _X_EXPORT void glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable);
-/* Glamor rendering/drawing functions with XXX_nf. 
+/* Glamor rendering/drawing functions with XXX_nf.
  * nf means no fallback within glamor internal if possible. If glamor
  * fail to accelerate the operation, glamor will return a false, and the
  * caller need to implement fallback method. Return a true means the
  * rendering request get done successfully. */
 extern _X_EXPORT Bool glamor_fill_spans_nf(DrawablePtr drawable,
 					   GCPtr gc,
-					   int n, DDXPointPtr points, 
+					   int n, DDXPointPtr points,
 					   int *widths, int sorted);
 
 extern _X_EXPORT Bool glamor_poly_fill_rect_nf(DrawablePtr drawable,
-					       GCPtr gc, 
-					       int nrect, 
+					       GCPtr gc,
+					       int nrect,
 					       xRectangle * prect);
 
-extern _X_EXPORT Bool glamor_put_image_nf(DrawablePtr drawable, 
+extern _X_EXPORT Bool glamor_put_image_nf(DrawablePtr drawable,
 					  GCPtr gc, int depth, int x, int y,
-		 	 		  int w, int h, int left_pad, 
+					  int w, int h, int left_pad,
 					  int image_format, char *bits);
 
 extern _X_EXPORT Bool glamor_copy_n_to_n_nf(DrawablePtr src,
@@ -216,7 +228,7 @@ extern _X_EXPORT Bool glamor_copy_n_to_n_nf(DrawablePtr src,
 					    int dx,
 					    int dy,
 					    Bool reverse,
-					    Bool upsidedown, Pixel bitplane, 
+					    Bool upsidedown, Pixel bitplane,
 					    void *closure);
 
 extern _X_EXPORT Bool glamor_composite_nf(CARD8 op,
@@ -227,12 +239,12 @@ extern _X_EXPORT Bool glamor_composite_nf(CARD8 op,
 					  INT16 y_source,
 					  INT16 x_mask,
 					  INT16 y_mask,
-					  INT16 x_dest, INT16 y_dest, 
+					  INT16 x_dest, INT16 y_dest,
 					  CARD16 width, CARD16 height);
 
 extern _X_EXPORT Bool glamor_trapezoids_nf(CARD8 op,
 					   PicturePtr src, PicturePtr dst,
-					   PictFormatPtr mask_format, 
+					   PictFormatPtr mask_format,
 					   INT16 x_src, INT16 y_src,
 					   int ntrap, xTrapezoid * traps);
 
@@ -241,14 +253,14 @@ extern _X_EXPORT Bool glamor_glyphs_nf(CARD8 op,
 				       PicturePtr dst,
 				       PictFormatPtr mask_format,
 				       INT16 x_src,
-				       INT16 y_src, int nlist, 
+				       INT16 y_src, int nlist,
 				       GlyphListPtr list, GlyphPtr * glyphs);
 
 extern _X_EXPORT Bool glamor_triangles_nf(CARD8 op,
 					  PicturePtr pSrc,
 					  PicturePtr pDst,
 					  PictFormatPtr maskFormat,
-					  INT16 xSrc, INT16 ySrc, 
+					  INT16 xSrc, INT16 ySrc,
 					  int ntris, xTriangle * tris);
 
 
@@ -270,7 +282,7 @@ extern _X_EXPORT Bool glamor_get_image_nf(DrawablePtr pDrawable, int x, int y, i
 					  unsigned int format, unsigned long planeMask, char *d);
 
 extern _X_EXPORT Bool glamor_add_traps_nf(PicturePtr pPicture,
-					  INT16 x_off, 
+					  INT16 x_off,
 					  INT16 y_off, int ntrap, xTrap * traps);
 
 extern _X_EXPORT Bool glamor_copy_plane_nf(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,

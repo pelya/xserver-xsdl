@@ -77,7 +77,6 @@ glamor_identify(int flags)
 struct glamor_egl_screen_private {
 	EGLDisplay display;
 	EGLContext context;
-	EGLImageKHR root;
 	EGLint major, minor;
 
 	CreateScreenResourcesProcPtr CreateScreenResources;
@@ -250,10 +249,6 @@ glamor_egl_close_screen(ScreenPtr screen)
 	    glamor_egl_get_screen_private(scrn);
 	glamor_fini(screen);
 
-	eglDestroyImageKHR(glamor_egl->display, glamor_egl->root);
-
-	glamor_egl->root = EGL_NO_IMAGE_KHR;
-
 	return TRUE;
 }
 
@@ -402,6 +397,8 @@ glamor_egl_free_screen(int scrnIndex, int flags)
 		}
 		free(glamor_egl);
 	}
+
+	glamor_close_screen(scrn->scrnIndex, scrn->pScreen);
 }
 
 Bool

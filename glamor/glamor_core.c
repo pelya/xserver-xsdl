@@ -114,9 +114,8 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 void
 glamor_init_finish_access_shaders(ScreenPtr screen)
 {
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
 	const char *vs_source =
 	    "attribute vec4 v_position;\n"
 	    "attribute vec4 v_texcoord0;\n"
@@ -174,25 +173,23 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 	GLint fs_prog, vs_prog, avs_prog, set_alpha_prog;
 	GLint sampler_uniform_location;
 
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch =  &glamor_priv->dispatch;
 	glamor_priv->finish_access_prog[0] = dispatch->glCreateProgram();
 	glamor_priv->finish_access_prog[1] = dispatch->glCreateProgram();
 
-	vs_prog =
-	    glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER,
+	vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER,
 				     vs_source);
-	fs_prog =
-	    glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
+	fs_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
 				     fs_source);
 	dispatch->glAttachShader(glamor_priv->finish_access_prog[0],
 				 vs_prog);
 	dispatch->glAttachShader(glamor_priv->finish_access_prog[0],
 				 fs_prog);
 
-	avs_prog =
-	    glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER,
+	avs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER,
 				     vs_source);
-	set_alpha_prog =
-	    glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
+	set_alpha_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
 				     set_alpha_source);
 	dispatch->glAttachShader(glamor_priv->finish_access_prog[1],
 				 avs_prog);
@@ -253,6 +250,20 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 	dispatch->glUseProgram(0);
 
 }
+
+void
+glamor_fini_finish_access_shaders(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
+
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch =  &glamor_priv->dispatch;
+	dispatch->glDeleteProgram(glamor_priv->finish_access_prog[0]);
+	dispatch->glDeleteProgram(glamor_priv->finish_access_prog[1]);
+}
+
+
 
 void
 glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)

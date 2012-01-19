@@ -6,6 +6,132 @@
 
 #include "glamor_priv.h"
 
+#define GLAMOR_CACHE_EXPIRE_MAX 1000
+
+#define GLAMOR_CACHE_DEFAULT    0
+#define GLAMOR_CACHE_EXACT_SIZE 1
+
+/* Loop from the tail to the head. */
+#define list_for_each_entry_reverse(pos, head, member)                  \
+    for (pos = __container_of((head)->prev, pos, member);               \
+         &pos->member != (head);                                        \
+         pos = __container_of(pos->member.prev, pos, member))
+
+
+#define list_for_each_entry_safe_reverse(pos, tmp, head, member)        \
+    for (pos = __container_of((head)->prev, pos, member),               \
+         tmp = __container_of(pos->member.prev, pos, member);           \
+         &pos->member != (head);                                        \
+         pos = tmp, tmp = __container_of(pos->member.prev, tmp, member))
+
+#ifdef __i386__
+static inline unsigned long __fls(unsigned long x)
+{
+        asm("bsr %1,%0"
+            : "=r" (x)
+            : "rm" (x));
+        return x;
+}
+#else
+static inline unsigned long __fls(unsigned long x)
+{
+   int n;
+
+   if (x == 0) return(0);
+   n = 0;
+   if (x <= 0x0000FFFF) {n = n +16; x = x <<16;}
+   if (x <= 0x00FFFFFF) {n = n + 8; x = x << 8;}
+   if (x <= 0x0FFFFFFF) {n = n + 4; x = x << 4;}
+   if (x <= 0x3FFFFFFF) {n = n + 2; x = x << 2;}
+   if (x <= 0x7FFFFFFF) {n = n + 1;}
+   return 31 - n;
+}
+#endif
+
+inline static int cache_wbucket(int size)
+{
+	int order = __fls(size / 256);
+	if (order >= CACHE_BUCKET_WCOUNT)
+		order = CACHE_BUCKET_WCOUNT - 1;
+	return order;
+}
+
+inline static int cache_hbucket(int size)
+{
+	int order = __fls(size / 256);
+	if (order >= CACHE_BUCKET_HCOUNT)
+		order = CACHE_BUCKET_HCOUNT - 1;
+	return order;
+}
+
+inline static int cache_format(GLenum format)
+{
+	switch (format) {
+#if 0
+	case GL_ALPHA:
+		return 1;
+#endif
+	case GL_RGBA:
+	default:
+		return 0;
+	}
+}
+
+glamor_pixmap_fbo *
+glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
+			    int w, int h, GLenum format, int flag)
+{
+	struct list *cache;
+	glamor_pixmap_fbo *fbo_entry;
+	int size;
+
+	cache = &glamor_priv->fbo_cache[cache_format(format)]
+				       [cache_wbucket(w)]
+				       [cache_hbucket(h)];
+	if (flag != GLAMOR_CACHE_EXACT_SIZE) {
+		list_for_each_entry(fbo_entry, cache, list) {
+			if (fbo_entry->width == w && fbo_entry->height == h) {
+
+				DEBUGF("Request w %d h %d \n", w, h);
+				DEBUGF("got cache entry %p w %d h %d fbo %d tex %d\n",
+					fbo_entry, fbo_entry->width, fbo_entry->height,
+					fbo_entry->fb, fbo_entry->tex);
+				list_del(&fbo_entry->list);
+				return fbo_entry;
+			}
+		}
+	}
+	else {
+		list_for_each_entry(fbo_entry, cache, list) {
+			if (fbo_entry->width == w && fbo_entry->height == h) {
+
+				DEBUGF("Request w %d h %d \n", w, h);
+				DEBUGF("got cache entry %p w %d h %d fbo %d tex %d\n",
+					fbo_entry, fbo_entry->width, fbo_entry->height,
+					fbo_entry->fb, fbo_entry->tex);
+				list_del(&fbo_entry->list);
+				return fbo_entry;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+void
+glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
+{
+	struct list *cache;
+
+	cache = &fbo->glamor_priv->fbo_cache[cache_format(fbo->format)]
+					    [cache_wbucket(fbo->width)]
+					    [cache_hbucket(fbo->height)];
+	DEBUGF("Put cache entry %p to cache %p w %d h %d format %x fbo %d tex %d \n", fbo, cache,
+		fbo->width, fbo->height, fbo->format, fbo->fb, fbo->tex);
+	list_add(&fbo->list, cache);
+	fbo->expire = fbo->glamor_priv->tick + GLAMOR_CACHE_EXPIRE_MAX;
+}
+
 glamor_pixmap_fbo *
 glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
 		  int w, int h, int depth, GLint tex, int flag)
@@ -18,6 +144,7 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
 	if (fbo == NULL)
 		return NULL;
 
+	list_init(&fbo->list);
 	gl_iformat_for_depth(depth, &format);
 
 	fbo->tex = tex;
@@ -31,13 +158,11 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
 	return fbo;
 }
 
-/* Make sure already detached from any pixmap. */
-void
-glamor_destroy_fbo(glamor_pixmap_fbo *fbo)
+static void
+glamor_purge_fbo(glamor_pixmap_fbo *fbo)
 {
 	glamor_gl_dispatch *dispatch = &fbo->glamor_priv->dispatch;
-
-	DEBUGF("Destroy fbo %p tex %d fb %d \n", fbo, fbo->tex, fbo->fb);
+	DEBUGF("Purge fbo %p tex %d fb %d \n", fbo, fbo->tex, fbo->fb);
 	if (fbo->fb)
 		dispatch->glDeleteFramebuffers(1, &fbo->fb);
 	if (fbo->tex)
@@ -48,6 +173,79 @@ glamor_destroy_fbo(glamor_pixmap_fbo *fbo)
 	free(fbo);
 }
 
+void
+glamor_fbo_expire(glamor_screen_private *glamor_priv)
+{
+	struct list *cache;
+	glamor_pixmap_fbo *fbo_entry, *tmp;
+	int i,j,k;
+	int empty_cache = TRUE;
+
+	for(i = 0; i < CACHE_FORMAT_COUNT; i++)
+		for(j = 0; j < CACHE_BUCKET_WCOUNT; j++)
+			for(k = 0; k < CACHE_BUCKET_HCOUNT; k++) {
+				cache = &glamor_priv->fbo_cache[i][j][k];
+				list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
+					if (GLAMOR_TICK_AFTER(fbo_entry->expire, glamor_priv->tick)) {
+						empty_cache = FALSE;
+						break;
+					}
+					list_del(&fbo_entry->list);
+					DEBUGF("cache %p fbo %p expired %d current %d \n", cache, fbo_entry,
+						fbo_entry->expire, glamor_priv->tick);
+					glamor_purge_fbo(fbo_entry);
+				}
+			}
+
+}
+
+void
+glamor_init_pixmap_fbo(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv;
+	int i,j,k;
+
+	glamor_priv = glamor_get_screen_private(screen);
+	for(i = 0; i < CACHE_FORMAT_COUNT; i++)
+		for(j = 0; j < CACHE_BUCKET_WCOUNT; j++)
+			for(k = 0; k < CACHE_BUCKET_HCOUNT; k++)
+			{
+				list_init(&glamor_priv->fbo_cache[i][j][k]);
+			}
+}
+
+void
+glamor_fini_pixmap_fbo(ScreenPtr screen)
+{
+	struct list *cache;
+	glamor_screen_private *glamor_priv;
+	glamor_pixmap_fbo *fbo_entry, *tmp;
+	int i,j,k;
+
+	glamor_priv = glamor_get_screen_private(screen);
+	for(i = 0; i < CACHE_FORMAT_COUNT; i++)
+		for(j = 0; j < CACHE_BUCKET_WCOUNT; j++)
+			for(k = 0; k < CACHE_BUCKET_HCOUNT; k++)
+			{
+				cache = &glamor_priv->fbo_cache[i][j][k];
+				list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
+					list_del(&fbo_entry->list);
+					glamor_purge_fbo(fbo_entry);
+				}
+
+			}
+}
+
+void
+glamor_destroy_fbo(glamor_pixmap_fbo *fbo)
+{
+	glamor_gl_dispatch *dispatch = &fbo->glamor_priv->dispatch;
+
+	list_del(&fbo->list);
+	glamor_pixmap_fbo_cache_put(fbo);
+
+}
+
 glamor_pixmap_fbo *
 glamor_create_fbo(glamor_screen_private *glamor_priv,
 		  int w, int h, int depth, int flag)
@@ -56,8 +254,19 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 	glamor_pixmap_fbo *fbo;
 	GLenum format;
 	GLint tex;
+	int cache_flag;
+
+	if (flag == GLAMOR_CREATE_PIXMAP_FIXUP)
+		cache_flag = GLAMOR_CACHE_EXACT_SIZE;
+	else
+		cache_flag = 0;
 
 	gl_iformat_for_depth(depth, &format);
+	fbo = glamor_pixmap_fbo_cache_get(glamor_priv, w, h,
+					  format, GLAMOR_CACHE_EXACT_SIZE);
+	if (fbo)
+		return fbo;
+
 	dispatch = &glamor_priv->dispatch;
 	dispatch->glGenTextures(1, &tex);
 	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
@@ -69,8 +278,8 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 			       GL_UNSIGNED_BYTE, NULL);
 
 	fbo = glamor_create_fbo_from_tex(glamor_priv, w, h, depth, tex, flag);
-	DEBUGF("Creat fbo %p tex %d width %d height %d \n", fbo, tex, w, h);
 
+	DEBUGF("Creat new fbo %p tex %d width %d height %d \n", fbo, tex, w, h);
 	return fbo;
 }
 

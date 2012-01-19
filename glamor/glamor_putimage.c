@@ -239,6 +239,11 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 }
 #endif
 
+void
+glamor_fini_putimage_shaders(ScreenPtr screen)
+{
+}
+
 
 static Bool 
 _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,

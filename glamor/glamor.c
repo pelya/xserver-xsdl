@@ -210,8 +210,10 @@ glamor_block_handler(ScreenPtr screen)
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
+	glamor_priv->tick++;
 	dispatch->glFlush();
 	dispatch->glFinish();
+	glamor_fbo_expire(glamor_priv);
 }
 
 static void
@@ -381,6 +383,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	ps->DestroyPicture = glamor_destroy_picture;
 	glamor_init_composite_shaders(screen);
 #endif
+	glamor_init_pixmap_fbo(screen);
 	glamor_init_solid_shader(screen);
 	glamor_init_tile_shader(screen);
 	glamor_init_putimage_shaders(screen);
@@ -392,6 +395,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 #else
 	glamor_priv->gl_flavor = GLAMOR_GL_DESKTOP;
 #endif
+	glamor_priv->flags = flags;
 
 	return TRUE;
 
@@ -402,26 +406,54 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	return FALSE;
 }
 
+static void
+glamor_release_screen_priv(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv;
+
+	glamor_priv = glamor_get_screen_private(screen);
+#ifdef RENDER
+	glamor_fini_composite_shaders(screen);
+#endif
+	glamor_fini_pixmap_fbo(screen);
+	glamor_fini_solid_shader(screen);
+	glamor_fini_tile_shader(screen);
+	glamor_fini_putimage_shaders(screen);
+	glamor_fini_finish_access_shaders(screen);
+	glamor_pixmap_fini(screen);
+	free(glamor_priv);
+
+	dixSetPrivate(&screen->devPrivates, glamor_screen_private_key,
+		      NULL);
+}
+
 Bool
 glamor_close_screen(int idx, ScreenPtr screen)
 {
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
+	glamor_screen_private *glamor_priv;
+	int flags;
+
+	glamor_priv = glamor_get_screen_private(screen);
+	flags = glamor_priv->flags;
 #ifdef RENDER
 	PictureScreenPtr ps = GetPictureScreenIfSet(screen);
 #endif
 	glamor_glyphs_fini(screen);
-	screen->CloseScreen = glamor_priv->saved_procs.close_screen;
-	screen->CreateGC = glamor_priv->saved_procs.create_gc;
-	screen->CreatePixmap = glamor_priv->saved_procs.create_pixmap;
-	screen->DestroyPixmap = glamor_priv->saved_procs.destroy_pixmap;
-	screen->GetSpans = glamor_priv->saved_procs.get_spans;
-	screen->ChangeWindowAttributes =
-	    glamor_priv->saved_procs.change_window_attributes;
-	screen->CopyWindow = glamor_priv->saved_procs.copy_window;
-	screen->BitmapToRegion = glamor_priv->saved_procs.bitmap_to_region;
+	if (flags & GLAMOR_USE_SCREEN) {
+
+		screen->CloseScreen = glamor_priv->saved_procs.close_screen;
+		screen->CreateGC = glamor_priv->saved_procs.create_gc;
+		screen->CreatePixmap = glamor_priv->saved_procs.create_pixmap;
+		screen->DestroyPixmap = glamor_priv->saved_procs.destroy_pixmap;
+		screen->GetSpans = glamor_priv->saved_procs.get_spans;
+		screen->ChangeWindowAttributes =
+		    glamor_priv->saved_procs.change_window_attributes;
+		screen->CopyWindow = glamor_priv->saved_procs.copy_window;
+		screen->BitmapToRegion = glamor_priv->saved_procs.bitmap_to_region;
+	}
 #ifdef RENDER
-	if (ps) {
+	if (ps && (flags & GLAMOR_USE_PICTURE_SCREEN)) {
+
 		ps->Composite = glamor_priv->saved_procs.composite;
 		ps->Trapezoids = glamor_priv->saved_procs.trapezoids;
 		ps->Glyphs = glamor_priv->saved_procs.glyphs;
@@ -429,12 +461,14 @@ glamor_close_screen(int idx, ScreenPtr screen)
 		ps->CreatePicture = glamor_priv->saved_procs.create_picture;
 	}
 #endif
-	if (glamor_priv->vb)
-		free(glamor_priv->vb);
-	free(glamor_priv);
-	return screen->CloseScreen(idx, screen);
+	glamor_release_screen_priv(screen);
 
+	if (flags & GLAMOR_USE_SCREEN)
+		return screen->CloseScreen(idx, screen);
+	else
+		return TRUE;
 }
+
 
 void
 glamor_fini(ScreenPtr screen)

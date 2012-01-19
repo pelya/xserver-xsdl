@@ -63,9 +63,15 @@ glamor_pixmap_validate_function_t pixmap_validate_funcs[] = {
 void
 glamor_pixmap_init(ScreenPtr screen)
 {
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
+	glamor_screen_private *glamor_priv;
+
+	glamor_priv = glamor_get_screen_private(screen);
 	glamor_priv->pixmap_validate_funcs = pixmap_validate_funcs;
+}
+
+void
+glamor_pixmap_fini(ScreenPtr screen)
+{
 }
 
 void
