@@ -1878,9 +1878,13 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
                              &devx, &devy, &screenx, &screeny);
 
     /* see fill_pointer_events for coordinate systems */
-    updateHistory(dev, &mask, ms);
+    if (emulate_pointer)
+        updateHistory(dev, &mask, ms);
+
     clipValuators(dev, &mask);
-    storeLastValuators(dev, &mask, 0, 1, devx, devy);
+
+    if (emulate_pointer)
+        storeLastValuators(dev, &mask, 0, 1, devx, devy);
 
     event->root = scr->root->drawable.id;
 
