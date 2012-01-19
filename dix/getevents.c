@@ -1867,7 +1867,12 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     if (need_rawevent)
         set_raw_valuators(raw, &mask, raw->valuators.data);
 
-    scr = scale_to_desktop(dev, &mask, &devx, &devy, &screenx, &screeny);
+    /* Indirect device touch coordinates are not used for cursor positioning.
+     * They are merely informational, and are provided in device coordinates.
+     * The device sprite is used for positioning instead, and it is already
+     * scaled. */
+    if (t->mode == XIDirectTouch)
+        scr = scale_to_desktop(dev, &mask, &devx, &devy, &screenx, &screeny);
     if (emulate_pointer)
         scr = positionSprite(dev, Absolute, &mask,
                              &devx, &devy, &screenx, &screeny);
