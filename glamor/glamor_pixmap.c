@@ -216,7 +216,7 @@ glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 int in_restore = 0;
 static void
 __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
-				  GLenum type, GLuint tex)
+				  GLenum type, GLuint tex, int sub)
 {
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
@@ -255,12 +255,19 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	} else
 		texels = pixmap->devPrivate.ptr;
 
-	dispatch->glTexImage2D(GL_TEXTURE_2D,
-			       0,
-			       iformat,
-			       pixmap->drawable.width,
-			       pixmap->drawable.height, 0, format, type,
-			       texels);
+	if (sub)
+		dispatch->glTexSubImage2D(GL_TEXTURE_2D,
+				       0,0,0,
+				       pixmap->drawable.width,
+				       pixmap->drawable.height, format, type,
+				       texels);
+	else
+		dispatch->glTexImage2D(GL_TEXTURE_2D,
+				       0,
+				       iformat,
+				       pixmap->drawable.width,
+				       pixmap->drawable.height, 0, format, type,
+				       texels);
 }
 
 
@@ -280,11 +287,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
-	static float vertices[8] = { -1, -1,
-		1, -1,
-		1, 1,
-		-1, 1
-	};
+	static float vertices[8];
 	static float texcoords[8] = { 0, 1,
 		1, 1,
 		1, 0,
@@ -296,7 +299,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 		0, 1
 	};
 	float *ptexcoords;
-
+	float dst_xscale, dst_yscale;
 	GLuint tex;
 	int need_flip;
 
@@ -315,15 +318,22 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	 * to the fbo directly. */
 	if (no_alpha == 0 && no_revert == 1 && !need_flip) {
 		__glamor_upload_pixmap_to_texture(pixmap, format, type,
-						  pixmap_priv->fbo->tex);
+						  pixmap_priv->fbo->tex, 1);
 		return;
 	}
-
 
 	if (need_flip)
 		ptexcoords = texcoords;
 	else
 		ptexcoords = texcoords_inv;
+
+	pixmap_priv_get_scale(pixmap_priv, &dst_xscale, &dst_yscale);
+	glamor_set_normalize_vcoords(dst_xscale,
+				     dst_yscale,
+				     0, 0,
+				     pixmap->drawable.width, pixmap->drawable.height,
+				     glamor_priv->yInverted,
+				     vertices);
 
 	/* Slow path, we need to flip y or wire alpha to 1. */
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
@@ -338,7 +348,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 	dispatch->glGenTextures(1, &tex);
 
-	__glamor_upload_pixmap_to_texture(pixmap, format, type, tex);
+	__glamor_upload_pixmap_to_texture(pixmap, format, type, tex, 0);
 	dispatch->glActiveTexture(GL_TEXTURE0);
 	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
 
@@ -790,4 +800,67 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 		glamor_destroy_pixmap(temp_pixmap);
 
 	return TRUE;
+}
+
+/* fixup a fbo to the exact size as the pixmap. */
+Bool
+glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_pixmap_fbo *old_fbo;
+	glamor_pixmap_fbo *new_fbo = NULL;
+	PixmapPtr scratch = NULL;
+	glamor_pixmap_private *scratch_priv;
+	DrawablePtr drawable;
+	GCPtr gc = NULL;
+	int ret = FALSE;
+
+	drawable = &pixmap_priv->container->drawable;
+
+	if (pixmap_priv->container->drawable.width == pixmap_priv->fbo->width
+	    && pixmap_priv->container->drawable.height == pixmap_priv->fbo->height)
+		return	TRUE;
+
+	old_fbo = pixmap_priv->fbo;
+	glamor_priv = pixmap_priv->glamor_priv;
+
+	if (!old_fbo)
+		return FALSE;
+
+	gc = GetScratchGC(drawable->depth, screen);
+	if (!gc)
+		goto fail;
+
+	scratch = glamor_create_pixmap(screen, drawable->width, drawable->height,
+				       drawable->depth,
+				       GLAMOR_CREATE_PIXMAP_FIXUP);
+
+	scratch_priv = glamor_get_pixmap_private(scratch);
+
+	if (!scratch_priv || !scratch_priv->fbo)
+		goto fail;
+
+	ValidateGC(&scratch->drawable, gc);
+	glamor_copy_area(drawable,
+			 &scratch->drawable,
+			 gc, 0, 0,
+			 drawable->width, drawable->height,
+			 0, 0);
+	old_fbo = glamor_pixmap_detach_fbo(pixmap_priv);
+	new_fbo = glamor_pixmap_detach_fbo(scratch_priv);
+	glamor_pixmap_attach_fbo(pixmap_priv->container, new_fbo);
+	glamor_pixmap_attach_fbo(scratch, old_fbo);
+
+	DEBUGF("old %dx%d type %d\n",
+		drawable->width, drawable->height, pixmap_priv->type);
+	DEBUGF("copy tex %d  %dx%d to tex %d %dx%d \n",
+		old_fbo->tex, old_fbo->width, old_fbo->height, new_fbo->tex, new_fbo->width, new_fbo->height);
+	ret = TRUE;
+fail:
+	if (gc)
+		FreeScratchGC(gc);
+	if (scratch)
+		glamor_destroy_pixmap(scratch);
+
+	return ret;
 }

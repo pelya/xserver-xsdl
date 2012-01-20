@@ -342,7 +342,6 @@ glamor_fini_composite_shaders(ScreenPtr screen)
 	dispatch->glDeleteBuffers(1, &glamor_priv->vbo);
 	dispatch->glDeleteBuffers(1, &glamor_priv->ebo);
 
-
 	for(i = 0; i < SHADER_SOURCE_COUNT; i++)
 		for(j = 0; j < SHADER_MASK_COUNT; j++)
 			for(k = 0; k < SHADER_IN_COUNT; k++)
@@ -406,6 +405,33 @@ glamor_set_composite_op(ScreenPtr screen,
 		dispatch->glBlendFunc(source_blend, dest_blend);
 	}
 	return TRUE;
+}
+
+static void
+glamor_composite_texture_fixup(ScreenPtr screen,
+			       PicturePtr picture,
+			       glamor_pixmap_private * pixmap_priv)
+{
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(screen);
+	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	Bool has_repeat;
+	int width, height;
+
+	if (picture->repeatType == RepeatNone)
+		has_repeat = FALSE;
+	else
+		has_repeat = TRUE;
+
+	if (has_repeat
+	    && ( (pixmap_priv->container->drawable.width != pixmap_priv->fbo->width)
+		 || (pixmap_priv->container->drawable.height != pixmap_priv->fbo->height))) {
+	/* Currently, we can't support repeat on partial texture, now redirect it
+	 * to an exact size fbo. */
+		DEBUGF("prepare to fixup texture \n");
+		if (!glamor_fixup_pixmap_priv(screen, pixmap_priv))
+			ErrorF("Failed to fixup a unmatch size of repeat picture. \n");
+	}
 }
 
 static void
@@ -979,6 +1005,12 @@ glamor_composite_with_shader(CARD8 op,
 		}
 	}
 #endif
+
+	if (key.source != SHADER_SOURCE_SOLID)
+		glamor_composite_texture_fixup(screen, source, source_pixmap_priv);
+	if (key.mask != SHADER_MASK_NONE && key.mask != SHADER_MASK_SOLID)
+		glamor_composite_texture_fixup(screen, mask, mask_pixmap_priv);
+
 	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
 	glamor_validate_pixmap(dest_pixmap);
 	if (!glamor_set_composite_op(screen, op, dest, mask)) {

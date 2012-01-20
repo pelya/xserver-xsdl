@@ -127,8 +127,10 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	if (((tile_x != 0) && (tile_x + width > tile->drawable.width))
 	    || ((tile_y != 0)
 		&& (tile_y + height > tile->drawable.height))) {
+		/* XXX We can recreate a new pixmap here to avoid partial tiling. */
 		goto fail;
 	}
+
 	if (glamor_priv->tile_prog == 0) {
 		glamor_fallback("Tiling unsupported\n");
 		goto fail;
@@ -148,6 +150,15 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 		glamor_fallback("unsupported planemask %lx\n", planemask);
 		goto fail;
 	}
+
+	if (src_pixmap_priv->fbo->width != tile->drawable.width
+	    || src_pixmap_priv->fbo->height != tile->drawable.height) {
+		if (!glamor_fixup_pixmap_priv(screen, src_pixmap_priv)) {
+			glamor_fallback("Failed to create a fixup pixmap for partial tiling. \n");
+			goto fail;
+		}
+	}
+
 	if (alu != GXcopy) {
 		glamor_set_destination_pixmap_priv_nc(src_pixmap_priv);
 		glamor_validate_pixmap(tile);

@@ -90,7 +90,7 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 				       [cache_hbucket(h)];
 	if (flag != GLAMOR_CACHE_EXACT_SIZE) {
 		list_for_each_entry(fbo_entry, cache, list) {
-			if (fbo_entry->width == w && fbo_entry->height == h) {
+			if (fbo_entry->width >= w && fbo_entry->height >= h) {
 
 				DEBUGF("Request w %d h %d \n", w, h);
 				DEBUGF("got cache entry %p w %d h %d fbo %d tex %d\n",
@@ -263,7 +263,7 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 
 	gl_iformat_for_depth(depth, &format);
 	fbo = glamor_pixmap_fbo_cache_get(glamor_priv, w, h,
-					  format, GLAMOR_CACHE_EXACT_SIZE);
+					  format, cache_flag);
 	if (fbo)
 		return fbo;
 

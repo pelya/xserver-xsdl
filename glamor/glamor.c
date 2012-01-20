@@ -164,7 +164,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	if (w == 0 || h == 0)
 		return pixmap;
 
-	fbo = glamor_create_fbo(glamor_priv, w, h, depth, 0);
+	fbo = glamor_create_fbo(glamor_priv, w, h, depth, usage);
 
 	if (fbo == NULL) {
 		fbDestroyPixmap(pixmap);

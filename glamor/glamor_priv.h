@@ -594,6 +594,10 @@ void glamor_destroy_picture(PicturePtr picture);
 enum glamor_pixmap_status
  glamor_upload_picture_to_texture(PicturePtr picture);
 
+/* fixup a fbo to the exact size as the pixmap. */
+Bool
+glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv);
+
 void
 glamor_picture_format_fixup(PicturePtr picture,
 			    glamor_pixmap_private * pixmap_priv);
