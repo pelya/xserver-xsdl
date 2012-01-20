@@ -10,6 +10,7 @@
 
 #define GLAMOR_CACHE_DEFAULT    0
 #define GLAMOR_CACHE_EXACT_SIZE 1
+#define GLAMOR_CACHE_TEXTURE	2
 
 /* Loop from the tail to the head. */
 #define list_for_each_entry_reverse(pos, head, member)                  \
@@ -63,7 +64,6 @@ inline static int cache_hbucket(int size)
 		order = CACHE_BUCKET_HCOUNT - 1;
 	return order;
 }
-
 inline static int cache_format(GLenum format)
 {
 	switch (format) {
@@ -85,10 +85,15 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 	glamor_pixmap_fbo *fbo_entry;
 	int size;
 
-	cache = &glamor_priv->fbo_cache[cache_format(format)]
-				       [cache_wbucket(w)]
-				       [cache_hbucket(h)];
-	if (flag != GLAMOR_CACHE_EXACT_SIZE) {
+	if (!(flag & GLAMOR_CACHE_TEXTURE))
+		cache = &glamor_priv->fbo_cache[cache_format(format)]
+					       [cache_wbucket(w)]
+					       [cache_hbucket(h)];
+	else
+		cache = &glamor_priv->tex_cache[cache_format(format)]
+					       [cache_wbucket(w)]
+					       [cache_hbucket(h)];
+	if (!(flag & GLAMOR_CACHE_EXACT_SIZE)) {
 		list_for_each_entry(fbo_entry, cache, list) {
 			if (fbo_entry->width >= w && fbo_entry->height >= h) {
 
@@ -118,14 +123,39 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 	return NULL;
 }
 
+static void
+glamor_purge_fbo(glamor_pixmap_fbo *fbo)
+{
+	glamor_gl_dispatch *dispatch = &fbo->glamor_priv->dispatch;
+	if (fbo->fb)
+		dispatch->glDeleteFramebuffers(1, &fbo->fb);
+	if (fbo->tex)
+		dispatch->glDeleteTextures(1, &fbo->tex);
+	if (fbo->pbo)
+		dispatch->glDeleteBuffers(1, &fbo->pbo);
+
+	free(fbo);
+}
+
+
 void
 glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 {
 	struct list *cache;
 
-	cache = &fbo->glamor_priv->fbo_cache[cache_format(fbo->format)]
-					    [cache_wbucket(fbo->width)]
-					    [cache_hbucket(fbo->height)];
+	if (fbo->fb == 0) {
+		glamor_purge_fbo(fbo);
+		return;
+	}
+
+	if (fbo->fb)
+		cache = &fbo->glamor_priv->fbo_cache[cache_format(fbo->format)]
+						    [cache_wbucket(fbo->width)]
+						    [cache_hbucket(fbo->height)];
+	else
+		cache = &fbo->glamor_priv->tex_cache[cache_format(fbo->format)]
+						    [cache_wbucket(fbo->width)]
+						    [cache_hbucket(fbo->height)];
 	DEBUGF("Put cache entry %p to cache %p w %d h %d format %x fbo %d tex %d \n", fbo, cache,
 		fbo->width, fbo->height, fbo->format, fbo->fb, fbo->tex);
 	list_add(&fbo->list, cache);
@@ -153,25 +183,12 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
 	fbo->format = format;
 	fbo->glamor_priv = glamor_priv;
 
-	glamor_pixmap_ensure_fb(fbo);
+	if (flag != GLAMOR_CREATE_FBO_NO_FBO)
+		glamor_pixmap_ensure_fb(fbo);
 
 	return fbo;
 }
 
-static void
-glamor_purge_fbo(glamor_pixmap_fbo *fbo)
-{
-	glamor_gl_dispatch *dispatch = &fbo->glamor_priv->dispatch;
-	DEBUGF("Purge fbo %p tex %d fb %d \n", fbo, fbo->tex, fbo->fb);
-	if (fbo->fb)
-		dispatch->glDeleteFramebuffers(1, &fbo->fb);
-	if (fbo->tex)
-		dispatch->glDeleteTextures(1, &fbo->tex);
-	if (fbo->pbo)
-		dispatch->glDeleteBuffers(1, &fbo->pbo);
-
-	free(fbo);
-}
 
 void
 glamor_fbo_expire(glamor_screen_private *glamor_priv)
@@ -195,6 +212,19 @@ glamor_fbo_expire(glamor_screen_private *glamor_priv)
 						fbo_entry->expire, glamor_priv->tick);
 					glamor_purge_fbo(fbo_entry);
 				}
+#if 0
+				cache = &glamor_priv->tex_cache[i][j][k];
+				list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
+					if (GLAMOR_TICK_AFTER(fbo_entry->expire, glamor_priv->tick)) {
+						empty_cache = FALSE;
+						break;
+					}
+					list_del(&fbo_entry->list);
+					DEBUGF("cache %p fbo %p expired %d current %d \n", cache, fbo_entry,
+						fbo_entry->expire, glamor_priv->tick);
+					glamor_purge_fbo(fbo_entry);
+				}
+#endif
 			}
 
 }
@@ -211,6 +241,7 @@ glamor_init_pixmap_fbo(ScreenPtr screen)
 			for(k = 0; k < CACHE_BUCKET_HCOUNT; k++)
 			{
 				list_init(&glamor_priv->fbo_cache[i][j][k]);
+				list_init(&glamor_priv->tex_cache[i][j][k]);
 			}
 }
 
@@ -232,7 +263,13 @@ glamor_fini_pixmap_fbo(ScreenPtr screen)
 					list_del(&fbo_entry->list);
 					glamor_purge_fbo(fbo_entry);
 				}
-
+#if 0
+				cache = &glamor_priv->tex_cache[i][j][k];
+				list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
+					list_del(&fbo_entry->list);
+					glamor_purge_fbo(fbo_entry);
+				}
+#endif
 			}
 }
 
@@ -247,6 +284,54 @@ glamor_destroy_fbo(glamor_pixmap_fbo *fbo)
 }
 
 glamor_pixmap_fbo *
+glamor_create_tex_obj(glamor_screen_private *glamor_priv,
+		      int w, int h, GLenum format, int flag)
+{
+	glamor_gl_dispatch *dispatch;
+	glamor_pixmap_fbo *fbo;
+	int cache_flag = GLAMOR_CACHE_TEXTURE;
+	GLuint tex;
+
+	if (flag == GLAMOR_CREATE_TEXTURE_EXACT_SIZE)
+		cache_flag |= GLAMOR_CACHE_EXACT_SIZE;
+
+	fbo = glamor_pixmap_fbo_cache_get(glamor_priv, w, h,
+					  format, cache_flag);
+	if (fbo)
+		return fbo;
+	fbo = calloc(1, sizeof(*fbo));
+	if (fbo == NULL)
+		return NULL;
+
+	list_init(&fbo->list);
+
+	dispatch = &glamor_priv->dispatch;
+	dispatch->glGenTextures(1, &tex);
+	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format,
+			       GL_UNSIGNED_BYTE, NULL);
+	fbo->tex = tex;
+	fbo->width = w;
+	fbo->height = h;
+	fbo->format = format;
+	fbo->glamor_priv = glamor_priv;
+
+	return fbo;
+}
+
+void
+glamor_destroy_tex_obj(glamor_pixmap_fbo * tex_obj)
+{
+	assert(tex_obj->fb == 0);
+	list_del(&tex_obj->list);
+	glamor_pixmap_fbo_cache_put(tex_obj);
+}
+
+glamor_pixmap_fbo *
 glamor_create_fbo(glamor_screen_private *glamor_priv,
 		  int w, int h, int depth, int flag)
 {
@@ -255,6 +340,9 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 	GLenum format;
 	GLint tex;
 	int cache_flag;
+
+	if (flag == GLAMOR_CREATE_FBO_NO_FBO)
+		goto new_fbo;
 
 	if (flag == GLAMOR_CREATE_PIXMAP_FIXUP)
 		cache_flag = GLAMOR_CACHE_EXACT_SIZE;
@@ -266,7 +354,7 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 					  format, cache_flag);
 	if (fbo)
 		return fbo;
-
+new_fbo:
 	dispatch = &glamor_priv->dispatch;
 	dispatch->glGenTextures(1, &tex);
 	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
@@ -279,7 +367,6 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 
 	fbo = glamor_create_fbo_from_tex(glamor_priv, w, h, depth, tex, flag);
 
-	DEBUGF("Creat new fbo %p tex %d width %d height %d \n", fbo, tex, w, h);
 	return fbo;
 }
 

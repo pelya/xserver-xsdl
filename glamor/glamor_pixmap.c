@@ -436,7 +436,7 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 static int
 glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha, int no_revert)
 {
-	int need_fbo;
+	int flag = 0;
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv;
 	GLenum format;
@@ -455,13 +455,16 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha, int no_revert)
 		return -1;
 	}
 
+	if (!(no_alpha || !no_revert || !glamor_priv->yInverted))
+		flag = GLAMOR_CREATE_FBO_NO_FBO;
+
 	if (GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return 0;
 
 	fbo = glamor_create_fbo(glamor_priv, pixmap->drawable.width,
 				pixmap->drawable.height,
 				pixmap->drawable.depth,
-				0);
+				flag);
 	if (fbo == NULL)
 		return -1;
 

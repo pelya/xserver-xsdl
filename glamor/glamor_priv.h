@@ -127,6 +127,10 @@ enum glamor_gl_flavor {
 #define GLAMOR_CREATE_PIXMAP_CPU  0x100
 #define GLAMOR_CREATE_PIXMAP_FIXUP 0x101
 
+#define GLAMOR_CREATE_FBO_NO_FBO   0x103
+
+#define GLAMOR_CREATE_TEXTURE_EXACT_SIZE 0x104
+
 #define GLAMOR_NUM_GLYPH_CACHE_FORMATS 2
 
 typedef struct {
@@ -176,6 +180,7 @@ typedef struct glamor_screen_private {
 	int max_fbo_size;
 
 	struct list fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
+	struct list tex_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
 
 	/* glamor_solid */
 	GLint solid_prog;
@@ -251,7 +256,6 @@ typedef union _glamor_pending_op {
  * #pending_op: currently only support pending filling.
  * @container: The corresponding pixmap's pointer.
  **/
-
 typedef struct glamor_pixmap_fbo {
 	struct list list;
 	unsigned int expire;
