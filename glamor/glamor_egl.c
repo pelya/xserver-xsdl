@@ -46,7 +46,9 @@
 #define EGL_EGLEXT_PROTOTYPES
 #define EGL_DISPLAY_NO_X_MESA
 
+#ifdef GLAMOR_HAS_GBM
 #include <gbm.h>
+#endif
 
 #if GLAMOR_GLES2
 #include <GLES2/gl2.h>
@@ -84,7 +86,9 @@ struct glamor_egl_screen_private {
 	int fd;
 	int front_buffer_handle;
 	int cpp;
+#ifdef GLAMOR_HAS_GBM
 	struct gbm_device *gbm;
+#endif
 
 	PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
 	PFNEGLDESTROYIMAGEKHRPROC egl_destroy_image_khr;
@@ -297,12 +301,16 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 
 	scrn->privates[xf86GlamorEGLPrivateIndex].ptr = glamor_egl;
 	glamor_egl->fd = fd;
+#ifdef GLAMOR_HAS_GBM
 	glamor_egl->gbm = gbm_create_device(glamor_egl->fd);
 	if (glamor_egl->gbm == NULL) {
 		ErrorF("couldn't get display device\n");
 		return FALSE;
 	}
 	glamor_egl->display = eglGetDisplay(glamor_egl->gbm);
+#else
+	glamor_egl->display = eglGetDisplay((EGLNativeDisplayType)fd);
+#endif
 
 #ifndef GLAMOR_GLES2
 	eglBindAPI(EGL_OPENGL_API);
