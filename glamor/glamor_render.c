@@ -305,29 +305,64 @@ glamor_init_eb(unsigned short *eb, int vert_cnt)
 	}
 }
 
-
 void
 glamor_init_composite_shaders(ScreenPtr screen)
 {
 	glamor_screen_private *glamor_priv;
 	glamor_gl_dispatch *dispatch;
 	unsigned short *eb;
+	float *vb;
+	int eb_size;
+	int vb_size;
 
 	glamor_priv = glamor_get_screen_private(screen);
 	dispatch = &glamor_priv->dispatch;
 	dispatch->glGenBuffers(1, &glamor_priv->vbo);
 	dispatch->glGenBuffers(1, &glamor_priv->ebo);
 	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
-	dispatch->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			       GLAMOR_COMPOSITE_VBO_VERT_CNT * sizeof(short) * 2,
-			       NULL, GL_DYNAMIC_DRAW);
-	eb = dispatch->glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+	eb_size = GLAMOR_COMPOSITE_VBO_VERT_CNT * sizeof(short) * 2;
+
+	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+		dispatch->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+				       eb_size,
+				       NULL, GL_DYNAMIC_DRAW);
+		eb = dispatch->glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+	}
+	else {
+		vb = malloc(GLAMOR_COMPOSITE_VBO_VERT_CNT * sizeof(float) * 2);
+		if (vb == NULL) {
+			ErrorF("Failed to allocate vb memory.\n");
+			exit(1);
+		}
+		eb = malloc(eb_size);
+	}
+
+	if (eb == NULL) {
+		ErrorF("fatal error, fail to get eb.\n");
+		exit(1);
+	}
 	glamor_init_eb(eb, GLAMOR_COMPOSITE_VBO_VERT_CNT);
-	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	dispatch->glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+		dispatch->glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+		dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	} else {
+		dispatch->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+				       eb_size,
+				       eb, GL_DYNAMIC_DRAW);
+		dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
+		dispatch->glBufferData(GL_ARRAY_BUFFER,
+				       GLAMOR_COMPOSITE_VBO_VERT_CNT * sizeof(float) * 2,
+				       NULL, GL_DYNAMIC_DRAW);
+		dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		free(eb);
+		glamor_priv->vb = (char*)vb;
+	}
 }
-
-
 
 void
 glamor_fini_composite_shaders(ScreenPtr screen)
@@ -350,7 +385,9 @@ glamor_fini_composite_shaders(ScreenPtr screen)
 				if (shader->prog)
 					dispatch->glDeleteProgram(shader->prog);
 			}
-
+	if (glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP
+	    && glamor_priv->vb)
+		free(glamor_priv->vb);
 }
 
 
@@ -616,11 +653,12 @@ glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
 		glamor_priv->vb_stride += 2 * sizeof(float);
 
 	dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
-	dispatch->glBufferData(GL_ARRAY_BUFFER,
-			       n_verts * sizeof(float) * 2,
-			       NULL, GL_DYNAMIC_DRAW);
-
-	glamor_priv->vb = dispatch->glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+		dispatch->glBufferData(GL_ARRAY_BUFFER,
+				       n_verts * sizeof(float) * 2,
+				       NULL, GL_DYNAMIC_DRAW);
+		glamor_priv->vb = dispatch->glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	}
 	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
 
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
@@ -689,7 +727,16 @@ glamor_flush_composite_rects(ScreenPtr screen)
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 	if (!glamor_priv->render_nr_verts)
 		return;
-	dispatch->glUnmapBuffer(GL_ARRAY_BUFFER);
+	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
+		dispatch->glUnmapBuffer(GL_ARRAY_BUFFER);
+	else {
+
+		dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
+		dispatch->glBufferData(GL_ARRAY_BUFFER,
+				       glamor_priv->vbo_offset,
+				       glamor_priv->vb, GL_DYNAMIC_DRAW);
+	}
+
 	dispatch->glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
 				 GL_UNSIGNED_SHORT, NULL);
 }
@@ -1013,6 +1060,7 @@ glamor_composite_with_shader(CARD8 op,
 
 	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
 	glamor_validate_pixmap(dest_pixmap);
+
 	if (!glamor_set_composite_op(screen, op, dest, mask)) {
 		goto fail;
 	}
