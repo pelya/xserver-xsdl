@@ -1072,7 +1072,7 @@ glamor_composite_with_shader(CARD8 op,
 	}
 
 	nrect_max = (vert_stride * nrect) > GLAMOR_COMPOSITE_VBO_VERT_CNT ?
-			 (GLAMOR_COMPOSITE_VBO_VERT_CNT / 6) : nrect;
+			 (GLAMOR_COMPOSITE_VBO_VERT_CNT / vert_stride) : nrect;
 
 	while(nrect) {
 		int mrect, rect_processed;
