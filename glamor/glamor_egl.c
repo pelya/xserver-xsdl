@@ -87,6 +87,7 @@ struct glamor_egl_screen_private {
 	struct gbm_device *gbm;
 
 	PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
+	PFNEGLDESTROYIMAGEKHRPROC egl_destroy_image_khr;
 	PFNGLEGLIMAGETARGETTEXTURE2DOESPROC egl_image_target_texture2d_oes;
 	struct glamor_gl_dispatch *dispatch;
 };
@@ -235,7 +236,7 @@ glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap)
  			 * a texture. we must call glFlush to make sure the 
  			 * operation on that texture has been done.*/
 			glamor_block_handler(pixmap->drawable.pScreen);
-			eglDestroyImageKHR(glamor_egl->display, image);
+			glamor_egl->egl_destroy_image_khr(glamor_egl->display, image);
 		}
 	}
 	glamor_destroy_textured_pixmap(pixmap);
@@ -335,6 +336,9 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 
 	glamor_egl->egl_create_image_khr = (PFNEGLCREATEIMAGEKHRPROC)
 	    eglGetProcAddress("eglCreateImageKHR");
+
+	glamor_egl->egl_destroy_image_khr = (PFNEGLDESTROYIMAGEKHRPROC)
+	    eglGetProcAddress("eglDestroyImageKHR");
 
 	glamor_egl->egl_image_target_texture2d_oes =
 	    (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)
