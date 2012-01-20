@@ -318,6 +318,12 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
 	glamor_set_debug_level(&glamor_debug_level);
 
+#ifdef GLAMOR_GLES2
+	glamor_priv->gl_flavor = GLAMOR_GL_ES2;
+#else
+	glamor_priv->gl_flavor = GLAMOR_GL_DESKTOP;
+#endif
+
 	if (flags & GLAMOR_USE_SCREEN) {
 		if (!RegisterBlockAndWakeupHandlers(_glamor_block_handler,
 						    _glamor_wakeup_handler,
@@ -390,11 +396,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	glamor_init_finish_access_shaders(screen);
 	glamor_pixmap_init(screen);
 
-#ifdef GLAMOR_GLES2
-	glamor_priv->gl_flavor = GLAMOR_GL_ES2;
-#else
-	glamor_priv->gl_flavor = GLAMOR_GL_DESKTOP;
-#endif
 	glamor_priv->flags = flags;
 
 	return TRUE;
