@@ -681,15 +681,11 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	glamor_validate_pixmap(pixmap);
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-	    &&
-	    ((format != GL_RGBA && format != GL_RGB && format != GL_ALPHA)
-	     || no_revert != 1)) {
-
+	    && (glamor_tex_format_is_readable(format) || !no_revert)) {
 		temp_pixmap =
 		    glamor_es2_pixmap_read_prepare(pixmap, &format,
 						   &type, no_alpha,
 						   no_revert);
-
 	}
 	switch (access) {
 	case GLAMOR_ACCESS_RO:

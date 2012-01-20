@@ -603,4 +603,10 @@ inline static Bool glamor_ddx_fallback_check_gc(GCPtr gc)
 	return (!pixmap || glamor_ddx_fallback_check_pixmap(&pixmap->drawable));
 }
 
+inline static Bool glamor_tex_format_is_readable(GLenum format)
+{
+	return ((format == GL_RGBA || format == GL_RGB || format == GL_ALPHA));
+
+}
+
 #endif

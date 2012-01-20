@@ -78,7 +78,8 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 	glamor_validate_pixmap(pixmap);
 
-	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
+	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
+	    && (glamor_tex_format_is_readable(format) || !no_revert)) {
 		/* XXX prepare whole pixmap is not efficient. */
 		temp_pixmap =
 		    glamor_es2_pixmap_read_prepare(pixmap, &tex_format,
