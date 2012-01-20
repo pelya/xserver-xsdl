@@ -89,6 +89,7 @@ struct glamor_egl_screen_private {
 #ifdef GLAMOR_HAS_GBM
 	struct gbm_device *gbm;
 #endif
+	int has_gem;
 
 	PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
 	PFNEGLDESTROYIMAGEKHRPROC egl_destroy_image_khr;
@@ -189,6 +190,19 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
 }
 
 Bool
+glamor_egl_check_has_gem(int fd)
+{
+	struct drm_gem_flink flink;
+	flink.handle = 0;
+	int err;
+
+	ioctl(fd, DRM_IOCTL_GEM_FLINK, &flink);
+	if (errno == ENOENT || err == EINVAL)
+		return TRUE;
+	return FALSE;
+}
+
+Bool
 glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 {
 	ScreenPtr screen = pixmap->drawable.pScreen;
@@ -200,12 +214,16 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 
 	glamor_egl = glamor_egl_get_screen_private(scrn);
 
-	if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
-		xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-			   "Couldn't flink pixmap handle\n");
-		glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
-		exit(1);
-	}
+	if (glamor_egl->has_gem) {
+		if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
+			xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+				   "Couldn't flink pixmap handle\n");
+			glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
+			exit(1);
+		}
+	} else
+		name = handle;
+
 	image = _glamor_egl_create_image(glamor_egl,
 					 pixmap->drawable.width,
 					 pixmap->drawable.height,
@@ -311,6 +329,8 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 #else
 	glamor_egl->display = eglGetDisplay((EGLNativeDisplayType)fd);
 #endif
+
+	glamor_egl->has_gem = glamor_egl_check_has_gem(fd);
 
 #ifndef GLAMOR_GLES2
 	eglBindAPI(EGL_OPENGL_API);
