@@ -436,7 +436,7 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 static int
 glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha, int no_revert)
 {
-	int flag = 0;
+	int flag;
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv;
 	GLenum format;
@@ -445,28 +445,29 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, int no_alpha, int no_revert)
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 
-	if (!glamor_check_fbo_size
-	    (glamor_priv, pixmap->drawable.width, pixmap->drawable.height)
-	    || !glamor_check_fbo_depth(pixmap->drawable.depth)) {
-		glamor_fallback
-		    ("upload failed reason: bad size or depth %d x %d @depth %d \n",
-		     pixmap->drawable.width, pixmap->drawable.height,
-		     pixmap->drawable.depth);
-		return -1;
-	}
+	if (!(no_alpha || !no_revert || !glamor_priv->yInverted)) {
 
-	if (!(no_alpha || !no_revert || !glamor_priv->yInverted))
+		if (pixmap_priv && pixmap_priv->fbo)
+			return 0;
 		flag = GLAMOR_CREATE_FBO_NO_FBO;
+	} else {
 
-	if (GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
-		return 0;
+		if (GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+			return 0;
+		flag = 0;
+	}
 
 	fbo = glamor_create_fbo(glamor_priv, pixmap->drawable.width,
 				pixmap->drawable.height,
 				pixmap->drawable.depth,
 				flag);
-	if (fbo == NULL)
+	if (fbo == NULL) {
+		glamor_fallback
+		    ("upload failed, depth %d x %d @depth %d \n",
+		     pixmap->drawable.width, pixmap->drawable.height,
+		     pixmap->drawable.depth);
 		return -1;
+	}
 
 	glamor_pixmap_attach_fbo(pixmap, fbo);
 

@@ -139,19 +139,17 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	if (w > 32767 || h > 32767)
 		return NullPixmap;
 
-	if (!glamor_check_fbo_size(glamor_priv, w, h)
-	    || !glamor_check_fbo_depth(depth)
-	    || usage == GLAMOR_CREATE_PIXMAP_CPU) {
-		/* MESA can only support upto MAX_WIDTH*MAX_HEIGHT fbo.
-		   If we exceed such limitation, we have to use framebuffer. */
+	if (usage == GLAMOR_CREATE_PIXMAP_CPU || (w == 0 && h == 0))
 		return fbCreatePixmap(screen, w, h, depth, usage);
-	} else
+	else
 		pixmap = fbCreatePixmap(screen, 0, 0, depth, usage);
 
 	pixmap_priv = calloc(1, sizeof(*pixmap_priv));
 
-	if (!pixmap_priv)
+	if (!pixmap_priv) {
+		fbDestroyPixmap(pixmap);
 		return fbCreatePixmap(screen, w, h, depth, usage);
+	}
 
 	dixSetPrivate(&pixmap->devPrivates,
 		      glamor_pixmap_private_key,
@@ -160,9 +158,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	pixmap_priv->container = pixmap;
 	pixmap_priv->glamor_priv = glamor_priv;
 	pixmap_priv->type = type;
-
-	if (w == 0 || h == 0)
-		return pixmap;
 
 	fbo = glamor_create_fbo(glamor_priv, w, h, depth, usage);
 
