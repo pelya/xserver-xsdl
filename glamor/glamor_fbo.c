@@ -6,7 +6,7 @@
 
 #include "glamor_priv.h"
 
-#define GLAMOR_CACHE_EXPIRE_MAX 1000
+#define GLAMOR_CACHE_EXPIRE_MAX 100
 
 #define GLAMOR_CACHE_DEFAULT    0
 #define GLAMOR_CACHE_EXACT_SIZE 1
@@ -51,7 +51,7 @@ static inline unsigned long __fls(unsigned long x)
 
 inline static int cache_wbucket(int size)
 {
-	int order = __fls(size / 256);
+	int order = __fls(size / 32);
 	if (order >= CACHE_BUCKET_WCOUNT)
 		order = CACHE_BUCKET_WCOUNT - 1;
 	return order;
@@ -59,7 +59,7 @@ inline static int cache_wbucket(int size)
 
 inline static int cache_hbucket(int size)
 {
-	int order = __fls(size / 256);
+	int order = __fls(size / 32);
 	if (order >= CACHE_BUCKET_HCOUNT)
 		order = CACHE_BUCKET_HCOUNT - 1;
 	return order;
