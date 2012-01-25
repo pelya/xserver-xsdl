@@ -327,12 +327,12 @@ HandleCustomWM_COMMAND(unsigned long hwndIn, int command)
                 case CMD_EXEC:
                     if (fork() == 0) {
                         struct rlimit rl;
-                        unsigned long i;
+                        int fd;
 
                         /* Close any open descriptors except for STD* */
                         getrlimit(RLIMIT_NOFILE, &rl);
-                        for (i = STDERR_FILENO + 1; i < rl.rlim_cur; i++)
-                            close(i);
+                        for (fd = STDERR_FILENO + 1; fd < rl.rlim_cur; fd++)
+                            close(fd);
 
                         /* Disassociate any TTYs */
                         setsid();
