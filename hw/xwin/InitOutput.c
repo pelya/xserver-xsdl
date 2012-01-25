@@ -299,11 +299,11 @@ winCheckMount(void)
     }
 
     while ((ent = getmntent(mnt)) != NULL) {
-        BOOL system = (winCheckMntOpt(ent, "user") != NULL);
+        BOOL sys = (winCheckMntOpt(ent, "user") != NULL);
         BOOL root = (strcmp(ent->mnt_dir, "/") == 0);
         BOOL tmp = (strcmp(ent->mnt_dir, "/tmp") == 0);
 
-        if (system) {
+        if (sys) {
             if (root)
                 curlevel = sys_root;
             else if (tmp)
