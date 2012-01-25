@@ -1209,7 +1209,7 @@ winLogCommandLine (int argc, char *argv[])
 
 
 /*
- * winLogVersionInfo - Log Cygwin/X version information
+ * winLogVersionInfo - Log version information
  */
 
 void
