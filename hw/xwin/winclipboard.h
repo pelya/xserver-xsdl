@@ -79,7 +79,6 @@
  */
 
 extern char *display;
-extern void ErrorF(const char * /*f */ , ...);
 extern void winDebug(const char *format, ...);
 extern void winErrorFVerb(int verb, const char *format, ...);
 
