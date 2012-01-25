@@ -897,7 +897,7 @@ ddxUseMsg(void)
  */
 
 void
-InitOutput(ScreenInfo * screenInfo, int argc, char *argv[])
+InitOutput(ScreenInfo * pScreenInfo, int argc, char *argv[])
 {
     int i;
 
@@ -940,15 +940,15 @@ InitOutput(ScreenInfo * screenInfo, int argc, char *argv[])
     LoadPreferences();
 
     /* Setup global screen info parameters */
-    screenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
-    screenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
-    screenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
-    screenInfo->bitmapBitOrder = BITMAP_BIT_ORDER;
-    screenInfo->numPixmapFormats = NUMFORMATS;
+    pScreenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
+    pScreenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
+    pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
+    pScreenInfo->bitmapBitOrder = BITMAP_BIT_ORDER;
+    pScreenInfo->numPixmapFormats = NUMFORMATS;
 
     /* Describe how we want common pixmap formats padded */
     for (i = 0; i < NUMFORMATS; i++) {
-        screenInfo->formats[i] = g_PixmapFormats[i];
+        pScreenInfo->formats[i] = g_PixmapFormats[i];
     }
 
     /* Load pointers to DirectDraw functions */
