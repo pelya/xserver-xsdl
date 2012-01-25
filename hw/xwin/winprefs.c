@@ -57,9 +57,6 @@ extern int parse_file(FILE * fp);
 /* Currently in use command ID, incremented each new menu item created */
 static int g_cmdid = STARTMENUID;
 
-/* Defined in DIX */
-extern char *display;
-
 /* Local function to handle comma-ified icon names */
 static HICON LoadImageComma(char *fname, int sx, int sy, int flags);
 
