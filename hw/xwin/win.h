@@ -1052,18 +1052,6 @@ void
 winPolyLineNativeGDI(DrawablePtr pDrawable,
                      GCPtr pGC, int mode, int npt, DDXPointPtr ppt);
 #endif
-
-#ifdef XWIN_NATIVEGDI
-/*
- * winpushpxl.c
- */
-
-void
-
-winPushPixels(GCPtr pGC, PixmapPtr pBitMap, DrawablePtr pDrawable,
-              int dx, int dy, int xOrg, int yOrg);
-#endif
-
 /*
  * winscrinit.c
  */
