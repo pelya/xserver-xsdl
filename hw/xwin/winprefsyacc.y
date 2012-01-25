@@ -37,6 +37,7 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#define _STDLIB_H 1 /* bison checks this to know if stdlib has been included */
 #include <string.h>
 #include "winprefs.h"
 
@@ -80,7 +81,6 @@ static void CloseSysMenu(void);
 
 static int yyerror (char *s);
 
-extern void ErrorF (const char* /*f*/, ...);
 extern char *yytext;
 extern int yylex(void);
 
