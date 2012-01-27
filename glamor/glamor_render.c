@@ -622,19 +622,21 @@ glamor_composite_with_copy(CARD8 op,
 				      x_source, y_source,
 				      0, 0, x_dest, y_dest, width, height))
 		return TRUE;
-	/* Fallback if we sample outside the source so that we swizzle the
-	 * clear color appropriately. If the source has an alpha channel,
-	 * we could rely on CLAMP_TO_BORDER working as required...
-	 */
-	if (region.extents.x1 + x_source - x_dest < 0)
-		goto cleanup_region;
-	if (region.extents.x2 + x_source - x_dest > source->pDrawable->width)
-		goto cleanup_region;
 
-	if (region.extents.y1 + y_source - y_dest < 0)
-		goto cleanup_region;
-	if (region.extents.y2 + y_source - y_dest > source->pDrawable->height)
-		goto cleanup_region;
+	if (PICT_FORMAT_A(source->format) == 0) {
+		/* Fallback if we sample outside the source so that we
+		 * swizzle the correct clear color for out-of-bounds texels.
+		 */
+		if (region.extents.x1 + x_source - x_dest < 0)
+			goto cleanup_region;
+		if (region.extents.x2 + x_source - x_dest > source->pDrawable->width)
+			goto cleanup_region;
+
+		if (region.extents.y1 + y_source - y_dest < 0)
+			goto cleanup_region;
+		if (region.extents.y2 + y_source - y_dest > source->pDrawable->height)
+			goto cleanup_region;
+	}
 
 	ret = glamor_copy_n_to_n_nf(source->pDrawable,
 				    dest->pDrawable, NULL,

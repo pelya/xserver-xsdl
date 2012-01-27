@@ -226,6 +226,12 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 		dispatch->glTexParameteri(GL_TEXTURE_2D,
 					  GL_TEXTURE_MAG_FILTER,
 					  GL_NEAREST);
+		dispatch->glTexParameteri(GL_TEXTURE_2D,
+					  GL_TEXTURE_WRAP_S,
+					  GL_CLAMP_TO_BORDER);
+		dispatch->glTexParameteri(GL_TEXTURE_2D,
+					  GL_TEXTURE_WRAP_T,
+					  GL_CLAMP_TO_BORDER);
 
 		dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2,
 						GL_FLOAT, GL_FALSE,
