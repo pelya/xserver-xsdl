@@ -41,6 +41,7 @@
 #include <X11/extensions/XI2proto.h>
 
 #include "exglobals.h" /* BadDevice */
+#include "exevents.h"
 #include "xiallowev.h"
 
 int
@@ -51,8 +52,12 @@ SProcXIAllowEvents(ClientPtr client)
     swaps(&stuff->length);
     swaps(&stuff->deviceid);
     swapl(&stuff->time);
-    /* FIXME swap touchid */
-    /* FIXME swap window */
+    if (stuff->length > 3)
+    {
+        xXI2_2AllowEventsReq *req_xi22 = (xXI2_2AllowEventsReq*)stuff;
+        swapl(&req_xi22->touchid);
+        swapl(&req_xi22->grab_window);
+    }
 
     return ProcXIAllowEvents(client);
 }
@@ -63,9 +68,21 @@ ProcXIAllowEvents(ClientPtr client)
     TimeStamp time;
     DeviceIntPtr dev;
     int ret = Success;
+    XIClientPtr xi_client;
+    Bool have_xi22 = FALSE;
+    REQUEST(xXI2_2AllowEventsReq);
 
-    REQUEST(xXIAllowEventsReq);
-    /* FIXME: check request length, 12 for XI 2.0+, 20 for XI 2.2+ */
+    xi_client = dixLookupPrivate(&client->devPrivates, XIClientPrivateKey);
+
+    if (version_compare(xi_client->major_version,
+                        xi_client->minor_version, 2, 2) >= 0)
+    {
+        REQUEST_AT_LEAST_SIZE(xXI2_2AllowEventsReq);
+        have_xi22 = TRUE;
+    } else
+    {
+        REQUEST_SIZE_MATCH(xXIAllowEventsReq);
+    }
 
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
     if (ret != Success)
@@ -97,8 +114,20 @@ ProcXIAllowEvents(ClientPtr client)
 	break;
     case XIRejectTouch:
     case XIAcceptTouch:
-        ret = TouchAcceptReject(client, dev, stuff->mode, stuff->touchid,
-                                stuff->grab_window, &client->errorValue);
+        {
+            int rc;
+            WindowPtr win;
+
+            if (!have_xi22)
+                return BadValue;
+
+            rc = dixLookupWindow(&win, stuff->grab_window, client, DixReadAccess);
+            if (rc != Success)
+                return rc;
+
+            ret = TouchAcceptReject(client, dev, stuff->mode, stuff->touchid,
+                                    stuff->grab_window, &client->errorValue);
+        }
         break;
     default:
 	client->errorValue = stuff->mode;
