@@ -602,7 +602,7 @@ glamor_composite_with_copy(CARD8 op,
 			   INT16 y_dest, CARD16 width, CARD16 height)
 {
 	RegionRec region;
-	int ret;
+	int ret = FALSE;
 
 	if (!source->pDrawable)
 		return FALSE;
@@ -622,14 +622,27 @@ glamor_composite_with_copy(CARD8 op,
 				      x_source, y_source,
 				      0, 0, x_dest, y_dest, width, height))
 		return TRUE;
-	ret = TRUE;
-	if (!glamor_copy_n_to_n_nf(source->pDrawable,
-			dest->pDrawable, NULL,
-	                REGION_RECTS(&region),
-		        REGION_NUM_RECTS(&region),
-			x_source - x_dest, y_source - y_dest,
-			FALSE, FALSE, 0, NULL))
-		ret = FALSE;
+	/* Fallback if we sample outside the source so that we swizzle the
+	 * clear color appropriately. If the source has an alpha channel,
+	 * we could rely on CLAMP_TO_BORDER working as required...
+	 */
+	if (region.extents.x1 + x_source - x_dest < 0)
+		goto cleanup_region;
+	if (region.extents.x2 + x_source - x_dest > source->pDrawable->width)
+		goto cleanup_region;
+
+	if (region.extents.y1 + y_source - y_dest < 0)
+		goto cleanup_region;
+	if (region.extents.y2 + y_source - y_dest > source->pDrawable->height)
+		goto cleanup_region;
+
+	ret = glamor_copy_n_to_n_nf(source->pDrawable,
+				    dest->pDrawable, NULL,
+				    REGION_RECTS(&region),
+				    REGION_NUM_RECTS(&region),
+				    x_source - x_dest, y_source - y_dest,
+				    FALSE, FALSE, 0, NULL);
+cleanup_region:
 	REGION_UNINIT(dest->pDrawable->pScreen, &region);
 	return ret;
 }
