@@ -67,7 +67,7 @@ _glamor_get_spans(DrawablePtr drawable,
 	glamor_validate_pixmap(pixmap);
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-	    && (glamor_tex_format_is_readable(format) || !no_revert)) {
+	    && (!glamor_tex_format_is_readable(format) || !no_revert)) {
 
 		/* XXX prepare whole pixmap is not efficient. */
 		temp_pixmap =
