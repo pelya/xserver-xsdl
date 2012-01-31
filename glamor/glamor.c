@@ -318,6 +318,13 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 #else
 	glamor_priv->gl_flavor = GLAMOR_GL_DESKTOP;
 #endif
+	/* If we are using egl screen, call egl screen init to
+	 * register correct close screen function. */
+	if (flags & GLAMOR_USE_EGL_SCREEN)
+		glamor_egl_screen_init(screen);
+
+	glamor_priv->saved_procs.close_screen = screen->CloseScreen;
+	screen->CloseScreen = glamor_close_screen;
 
 	if (flags & GLAMOR_USE_SCREEN) {
 		if (!RegisterBlockAndWakeupHandlers(_glamor_block_handler,
@@ -326,9 +333,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 						    &glamor_priv->dispatch)) {
 			goto fail;
 		}
-
-		glamor_priv->saved_procs.close_screen = screen->CloseScreen;
-		screen->CloseScreen = glamor_close_screen;
 
 		glamor_priv->saved_procs.create_gc = screen->CreateGC;
 		screen->CreateGC = glamor_create_gc;
@@ -427,6 +431,9 @@ Bool
 glamor_close_screen(int idx, ScreenPtr screen)
 {
 	glamor_screen_private *glamor_priv;
+	PixmapPtr screen_pixmap;
+	glamor_pixmap_private *screen_pixmap_priv;
+	glamor_pixmap_fbo *fbo;
 	int flags;
 
 	glamor_priv = glamor_get_screen_private(screen);
@@ -435,9 +442,9 @@ glamor_close_screen(int idx, ScreenPtr screen)
 	PictureScreenPtr ps = GetPictureScreenIfSet(screen);
 #endif
 	glamor_glyphs_fini(screen);
+	screen->CloseScreen = glamor_priv->saved_procs.close_screen;
 	if (flags & GLAMOR_USE_SCREEN) {
 
-		screen->CloseScreen = glamor_priv->saved_procs.close_screen;
 		screen->CreateGC = glamor_priv->saved_procs.create_gc;
 		screen->CreatePixmap = glamor_priv->saved_procs.create_pixmap;
 		screen->DestroyPixmap = glamor_priv->saved_procs.destroy_pixmap;
@@ -457,12 +464,13 @@ glamor_close_screen(int idx, ScreenPtr screen)
 		ps->CreatePicture = glamor_priv->saved_procs.create_picture;
 	}
 #endif
+	screen_pixmap = screen->GetScreenPixmap(screen);
+	screen_pixmap_priv = glamor_get_pixmap_private(screen_pixmap);
+	fbo = glamor_pixmap_detach_fbo(screen_pixmap_priv);
+	glamor_purge_fbo(fbo);
 	glamor_release_screen_priv(screen);
 
-	if (flags & GLAMOR_USE_SCREEN)
-		return screen->CloseScreen(idx, screen);
-	else
-		return TRUE;
+	return screen->CloseScreen(idx, screen);
 }
 
 

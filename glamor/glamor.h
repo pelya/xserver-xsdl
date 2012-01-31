@@ -41,36 +41,6 @@
 
 #endif				/* GLAMOR_H */
 
-/* @GLAMOR_INVERTED_Y_AXIS:
- * set 1 means the GL env's origin (0,0) is at top-left.
- * EGL/DRM platform is an example need to set this bit.
- * glx platform's origin is at bottom-left thus need to
- * clear this bit.*/
-
-#define GLAMOR_INVERTED_Y_AXIS  	1
-
-/* @GLAMOR_USE_SCREEN:
- * If want to let glamor to do everything including the
- * create/destroy pixmap and handle the gc ops. need to
- * set this bit. Standalone glamor DDX driver need to set
- * this bit.
- * Otherwise, need to clear this bit, as the intel video
- * driver with glamor enabled.
- * */
-#define GLAMOR_USE_SCREEN		2
-/* @GLAMOR_USE_PICTURE_SCREEN:
- * If want to let glamor to do all the composition related
- * things, need to set this bit. Just as standalone glamor
- * DDX driver.
- * Otherwise, need to clear this bit, as the intel video
- * driver with glamor enabled.
- */
-#define GLAMOR_USE_PICTURE_SCREEN 	4
-
-#define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS  		\
-				 | GLAMOR_USE_SCREEN 			\
-                                 | GLAMOR_USE_PICTURE_SCREEN)
-
 /*
  * glamor_pixmap_type : glamor pixmap's type.
  * @MEMORY: pixmap is in memory.
@@ -90,15 +60,49 @@ typedef enum  glamor_pixmap_type {
 } glamor_pixmap_type_t;
 
 #define GLAMOR_EGL_EXTERNAL_BUFFER 3
+#define GLAMOR_INVERTED_Y_AXIS  	1
+#define GLAMOR_USE_SCREEN		(1 << 1)
+#define GLAMOR_USE_PICTURE_SCREEN 	(1 << 2)
+#define GLAMOR_USE_EGL_SCREEN		(1 << 3)
+#define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS  		\
+				 | GLAMOR_USE_SCREEN 			\
+                                 | GLAMOR_USE_PICTURE_SCREEN		\
+				 | GLAMOR_USE_EGL_SCREEN)
+
 /* @glamor_init: Initialize glamor internal data structure.
  *
  * @screen: Current screen pointer.
  * @flags:  Please refer the flags description above.
  *
+ * 	@GLAMOR_INVERTED_Y_AXIS:
+ * 	set 1 means the GL env's origin (0,0) is at top-left.
+ * 	EGL/DRM platform is an example need to set this bit.
+ * 	glx platform's origin is at bottom-left thus need to
+ * 	clear this bit.
+ *
+ * 	@GLAMOR_USE_SCREEN:
+ *	If running in an pre-existing X environment, and the
+ * 	gl context is GLX, then you should set this bit and
+ * 	let the glamor to handle all the screen related
+ * 	functions such as GC ops and CreatePixmap/DestroyPixmap.
+ *
+ * 	@GLAMOR_USE_PICTURE_SCREEN:
+ * 	If don't use any other underlying DDX driver to handle
+ * 	the picture related rendering functions, please set this
+ * 	bit on. Otherwise, clear this bit. And then it is the DDX
+ * 	driver's responsibility to determine how/when to jump to
+ * 	glamor's picture compositing path.
+ *
+ * 	@GLAMOR_USE_EGL_SCREEN:
+ * 	If you are using EGL layer, then please set this bit
+ * 	on, otherwise, clear it.
+ *
  * This function initializes necessary internal data structure
  * for glamor. And before calling into this function, the OpenGL
  * environment should be ready. Should be called before any real
- * glamor rendering or texture allocation functions.
+ * glamor rendering or texture allocation functions. And should
+ * be called after the DDX's screen initialization or at the last
+ * step of the DDX's screen initialization.
  */
 extern _X_EXPORT Bool glamor_init(ScreenPtr screen, unsigned int flags);
 extern _X_EXPORT void glamor_fini(ScreenPtr screen);
@@ -139,6 +143,8 @@ extern _X_EXPORT void glamor_block_handler(ScreenPtr screen);
 extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 						unsigned int usage);
 
+extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen);
+
 #ifdef GLAMOR_FOR_XORG
 /* @glamor_egl_init: Initialize EGL environment.
  *
@@ -173,7 +179,6 @@ extern _X_EXPORT Bool glamor_egl_init_textured_pixmap(ScreenPtr screen);
 extern _X_EXPORT Bool glamor_egl_create_textured_screen(ScreenPtr screen,
 							int handle,
 							int stride);
-
 /*
  * @glamor_egl_create_textured_pixmap: Try to create a textured pixmap from
  * 				       a BO handle.
@@ -191,10 +196,6 @@ extern _X_EXPORT Bool glamor_egl_create_textured_pixmap(PixmapPtr pixmap,
 							int stride);
 
 extern _X_EXPORT void glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap);
-
-extern _X_EXPORT Bool glamor_egl_close_screen(ScreenPtr screen);
-extern _X_EXPORT void glamor_egl_free_screen(int scrnIndex, int flags);
-
 #endif
 
 extern _X_EXPORT int glamor_create_gc(GCPtr gc);

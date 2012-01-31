@@ -84,7 +84,7 @@ struct glamor_egl_screen_private {
 	CreateScreenResourcesProcPtr CreateScreenResources;
 	CloseScreenProcPtr CloseScreen;
 	int fd;
-	int front_buffer_handle;
+	EGLImageKHR front_image;
 	int cpp;
 #ifdef GLAMOR_HAS_GBM
 	struct gbm_device *gbm;
@@ -95,6 +95,8 @@ struct glamor_egl_screen_private {
 	PFNEGLDESTROYIMAGEKHRPROC egl_destroy_image_khr;
 	PFNGLEGLIMAGETARGETTEXTURE2DOESPROC egl_image_target_texture2d_oes;
 	struct glamor_gl_dispatch *dispatch;
+	CloseScreenProcPtr saved_close_screen;
+	xf86FreeScreenProc *saved_free_screen;
 };
 
 int xf86GlamorEGLPrivateIndex = -1;
@@ -185,6 +187,8 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
 		return FALSE;
 	}
 
+	glamor_egl->front_image = dixLookupPrivate(&screen_pixmap->devPrivates,
+						    glamor_egl_pixmap_private_key);
 	glamor_set_screen_pixmap(screen_pixmap);
 	return TRUE;
 }
@@ -242,37 +246,51 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 	return TRUE;
 }
 
+static void
+_glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
+{
+	ScrnInfoPtr scrn = xf86Screens[pixmap->drawable.pScreen->myNum];
+	EGLImageKHR image;
+	struct glamor_egl_screen_private *glamor_egl =
+	    glamor_egl_get_screen_private(scrn);
+
+	image = dixLookupPrivate(&pixmap->devPrivates,
+				 glamor_egl_pixmap_private_key);
+	if (image != EGL_NO_IMAGE_KHR && image != NULL) {
+		/* Before destroy an image which was attached to
+		 * a texture. we must call glFlush to make sure the
+		 * operation on that texture has been done.*/
+		glamor_block_handler(pixmap->drawable.pScreen);
+		glamor_egl->egl_destroy_image_khr(glamor_egl->display, image);
+		dixSetPrivate(&pixmap->devPrivates, glamor_egl_pixmap_private_key, NULL);
+	}
+}
+
 void
 glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap)
 {
-	EGLImageKHR image;
-	ScrnInfoPtr scrn = xf86Screens[pixmap->drawable.pScreen->myNum];
-	struct glamor_egl_screen_private *glamor_egl =
-	    glamor_egl_get_screen_private(scrn);
-
-	if (pixmap->refcnt == 1) {
-		image = dixLookupPrivate(&pixmap->devPrivates,
-					 glamor_egl_pixmap_private_key);
-		if (image != EGL_NO_IMAGE_KHR && image != NULL) {
-			/* Before destroy an image which was attached to 
- 			 * a texture. we must call glFlush to make sure the 
- 			 * operation on that texture has been done.*/
-			glamor_block_handler(pixmap->drawable.pScreen);
-			glamor_egl->egl_destroy_image_khr(glamor_egl->display, image);
-		}
-	}
+	if (pixmap->refcnt == 1)
+		_glamor_egl_destroy_pixmap_image(pixmap);
 	glamor_destroy_textured_pixmap(pixmap);
 }
 
-Bool
-glamor_egl_close_screen(ScreenPtr screen)
+static Bool
+glamor_egl_close_screen(int idx, ScreenPtr screen)
 {
-	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
-	struct glamor_egl_screen_private *glamor_egl =
-	    glamor_egl_get_screen_private(scrn);
-	glamor_fini(screen);
+	ScrnInfoPtr scrn;
+	struct glamor_egl_screen_private *glamor_egl;
+	PixmapPtr screen_pixmap;
 
-	return TRUE;
+	scrn = xf86Screens[screen->myNum];
+	glamor_egl = glamor_egl_get_screen_private(scrn);
+	screen_pixmap = screen->GetScreenPixmap(screen);
+	glamor_egl->egl_destroy_image_khr(glamor_egl->display, glamor_egl->front_image);
+	dixSetPrivate(&screen_pixmap->devPrivates, glamor_egl_pixmap_private_key, NULL);
+	glamor_egl->front_image = NULL;
+
+	screen->CloseScreen = glamor_egl->saved_close_screen;
+
+	return screen->CloseScreen(idx, screen);
 }
 
 static Bool
@@ -297,6 +315,40 @@ glamor_egl_has_extension(struct glamor_egl_screen_private *glamor_egl,
 		pext += ext_len;
 	}
 	return FALSE;
+}
+
+void
+glamor_egl_screen_init(ScreenPtr screen)
+{
+	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	struct glamor_egl_screen_private *glamor_egl =
+	    glamor_egl_get_screen_private(scrn);
+
+	glamor_egl->saved_close_screen = screen->CloseScreen;
+	screen->CloseScreen = glamor_egl_close_screen;
+}
+
+static void
+glamor_egl_free_screen(int scrnIndex, int flags)
+{
+	ScrnInfoPtr scrn = xf86Screens[scrnIndex];
+	struct glamor_egl_screen_private *glamor_egl;
+
+	ErrorF("free egl screen resources\n");
+	glamor_egl = glamor_egl_get_screen_private(scrn);
+	if (glamor_egl != NULL) {
+
+		eglMakeCurrent(glamor_egl->display,
+			       EGL_NO_SURFACE, EGL_NO_SURFACE,
+			       EGL_NO_CONTEXT);
+#ifdef GLAMOR_HAS_GBM
+		if (glamor_egl->gbm)
+			gbm_device_destroy(glamor_egl->gbm);
+#endif
+		scrn->FreeScreen = glamor_egl->saved_free_screen;
+		free(glamor_egl);
+		scrn->FreeScreen(scrnIndex, flags);
+	}
 }
 
 Bool
@@ -396,6 +448,8 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 		return FALSE;
 	}
 
+	glamor_egl->saved_free_screen = scrn->FreeScreen;
+	scrn->FreeScreen = glamor_egl_free_screen;
 	return TRUE;
 }
 
@@ -410,27 +464,6 @@ glamor_egl_init_textured_pixmap(ScreenPtr screen)
 		return FALSE;
 	}
 	return TRUE;
-}
-
-void
-glamor_egl_free_screen(int scrnIndex, int flags)
-{
-	ScrnInfoPtr scrn = xf86Screens[scrnIndex];
-	struct glamor_egl_screen_private *glamor_egl =
-	    glamor_egl_get_screen_private(scrn);
-
-	if (glamor_egl != NULL) {
-		if (!(flags & GLAMOR_EGL_EXTERNAL_BUFFER)) {
-			eglMakeCurrent(glamor_egl->display,
-				       EGL_NO_SURFACE, EGL_NO_SURFACE,
-				       EGL_NO_CONTEXT);
-
-			eglTerminate(glamor_egl->display);
-		}
-		free(glamor_egl);
-	}
-
-	glamor_close_screen(scrn->scrnIndex, scrn->pScreen);
 }
 
 Bool

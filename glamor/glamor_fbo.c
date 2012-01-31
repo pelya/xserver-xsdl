@@ -123,7 +123,7 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 	return NULL;
 }
 
-static void
+void
 glamor_purge_fbo(glamor_pixmap_fbo *fbo)
 {
 	glamor_gl_dispatch *dispatch = &fbo->glamor_priv->dispatch;

@@ -346,6 +346,7 @@ glamor_pixmap_fbo * glamor_create_fbo_from_tex(glamor_screen_private *glamor_pri
 glamor_pixmap_fbo * glamor_create_fbo(glamor_screen_private *glamor_priv,
 				      int w, int h, int depth, int flag);
 void glamor_destroy_fbo(glamor_pixmap_fbo *fbo);
+void glamor_purge_fbo(glamor_pixmap_fbo *fbo);
 
 void glamor_init_pixmap_fbo(ScreenPtr screen);
 void glamor_fini_pixmap_fbo(ScreenPtr screen);
