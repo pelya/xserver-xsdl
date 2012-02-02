@@ -310,12 +310,32 @@ glamor_get_screen_private(ScreenPtr screen)
 			     glamor_screen_private_key);
 }
 
+static inline void
+glamor_set_screen_private(ScreenPtr screen, glamor_screen_private *priv)
+{
+	dixSetPrivate(&screen->devPrivates,
+		      glamor_screen_private_key,
+		      priv);
+}
+
+
+
 static inline glamor_pixmap_private *
 glamor_get_pixmap_private(PixmapPtr pixmap)
 {
 	return dixLookupPrivate(&pixmap->devPrivates,
 				glamor_pixmap_private_key);
 }
+
+static inline void
+glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
+{
+	dixSetPrivate(&pixmap->devPrivates,
+		      glamor_pixmap_private_key,
+		      priv);
+}
+
+
 
 
 /**

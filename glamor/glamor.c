@@ -70,8 +70,7 @@ glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	if (pixmap_priv == NULL) {
 		pixmap_priv = calloc(sizeof(*pixmap_priv), 1);
-		dixSetPrivate(&pixmap->devPrivates,
-			      glamor_pixmap_private_key, pixmap_priv);
+		glamor_set_pixmap_private(pixmap, pixmap_priv);
 		pixmap_priv->container = pixmap;
 		pixmap_priv->glamor_priv = glamor_priv;
 	}
@@ -151,9 +150,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 		return fbCreatePixmap(screen, w, h, depth, usage);
 	}
 
-	dixSetPrivate(&pixmap->devPrivates,
-		      glamor_pixmap_private_key,
-		      pixmap_priv);
+	glamor_set_pixmap_private(pixmap, pixmap_priv);
 
 	pixmap_priv->container = pixmap;
 	pixmap_priv->glamor_priv = glamor_priv;
@@ -269,8 +266,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 		goto fail;
 	}
 
-	dixSetPrivate(&screen->devPrivates, glamor_screen_private_key,
-		      glamor_priv);
+	glamor_set_screen_private(screen, glamor_priv);
 
 	if (!dixRegisterPrivateKey
 	    (glamor_pixmap_private_key, PRIVATE_PIXMAP, 0)) {
@@ -401,8 +397,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
       fail:
 	free(glamor_priv);
-	dixSetPrivate(&screen->devPrivates, glamor_screen_private_key,
-		      NULL);
+	glamor_set_screen_private(screen, NULL);
 	return FALSE;
 }
 
@@ -423,8 +418,7 @@ glamor_release_screen_priv(ScreenPtr screen)
 	glamor_pixmap_fini(screen);
 	free(glamor_priv);
 
-	dixSetPrivate(&screen->devPrivates, glamor_screen_private_key,
-		      NULL);
+	glamor_set_screen_private(screen, NULL);
 }
 
 Bool
