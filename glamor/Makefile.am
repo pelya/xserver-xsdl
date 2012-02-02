@@ -50,13 +50,12 @@ libglamor_la_SOURCES = \
 sdk_HEADERS = glamor.h
 
 if EGL
-LIBGLAMOR_EGL = libglamor_egl.la
-module_LTLIBRARIES = $(LIBGLAMOR_EGL) 
-libglamor_egl_la_DEPENDENCIES = libglamor.la
-libglamor_egl_la_LDFLAGS = -avoid-version -module $(EGL_LIBS) -lglamor
-#libglamor_egl_la_LIBADD = $(top_builddir)/src/libglamor.la
-libglamor_egl_la_SOURCES = glamor_eglmodule.c $(top_srcdir)/src/glamor_egl.c
-libglamor_egl_la_CFLAGS = $(AM_CFLAGS) -I$(top_srcdir)/src $(LIBDRM_CFLAGS) $(EGL_CFLAGS)
+LIBGLAMOREGL = libglamoregl.la
+module_LTLIBRARIES = $(LIBGLAMOREGL)
+libglamoregl_la_DEPENDENCIES = libglamor.la
+libglamoregl_la_LDFLAGS = -avoid-version -module $(EGL_LIBS) -lglamor
+libglamoregl_la_SOURCES = glamor_eglmodule.c $(top_srcdir)/src/glamor_egl.c
+libglamoregl_la_CFLAGS = $(AM_CFLAGS) -I$(top_srcdir)/src $(LIBDRM_CFLAGS) $(EGL_CFLAGS)
 endif
 
 

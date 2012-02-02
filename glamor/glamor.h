@@ -146,6 +146,9 @@ extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, 
 extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen);
 
 #ifdef GLAMOR_FOR_XORG
+
+#define GLAMOR_EGL_MODULE_NAME  "glamoregl"
+
 /* @glamor_egl_init: Initialize EGL environment.
  *
  * @scrn: Current screen info pointer.

@@ -29,11 +29,12 @@
 #endif
 
 #include <xorg-server.h>
-
+#define GLAMOR_FOR_XORG
+#include "glamor.h"
 #include "xf86Module.h"
 
 static XF86ModuleVersionInfo VersRec = {
-	"glamor_egl",
+	GLAMOR_EGL_MODULE_NAME,
 	MODULEVENDORSTRING,
 	MODINFOSTRING1,
 	MODINFOSTRING2,
@@ -45,4 +46,4 @@ static XF86ModuleVersionInfo VersRec = {
 	{0, 0, 0, 0}		/* signature, to be patched into the file by a tool */
 };
 
-_X_EXPORT XF86ModuleData glamor_eglModuleData = { &VersRec, NULL, NULL };
+_X_EXPORT XF86ModuleData glamoreglModuleData = { &VersRec, NULL, NULL };
