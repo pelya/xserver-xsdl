@@ -243,19 +243,23 @@ typedef union _glamor_pending_op {
 	glamor_pending_fill fill;
 } glamor_pending_op;
 
-/*
- * glamor_pixmap_private - glamor pixmap's private structure.
- * @gl_fbo:  The pixmap is attached to a fbo originally.
- * @gl_tex:  The pixmap is in a gl texture originally.
+#define GLAMOR_FBO_NORMAL     1
+#define GLAMOR_FBO_DOWNLOADED 2
+/* glamor_pixmap_fbo:
+ * @list:    to be used to link to the cache pool list.
+ * @expire:  when push to cache pool list, set a expire count.
+ * 	     will be freed when glamor_priv->tick is equal or
+ * 	     larger than this expire count in block handler.
  * @pbo_valid: The pbo has a valid copy of the pixmap's data.
- * @is_picture: The drawable is attached to a picture.
  * @tex:     attached texture.
  * @fb:      attached fbo.
  * @pbo:     attached pbo.
- * @pict_format: the corresponding picture's format.
- * #pending_op: currently only support pending filling.
- * @container: The corresponding pixmap's pointer.
- **/
+ * @width:   width of this fbo.
+ * @height:  height of this fbo.
+ * @format:  internal format of this fbo's texture.
+ * @type:    internal type of this fbo's texture.
+ * @glamor_priv: point to glamor private data.
+ */
 typedef struct glamor_pixmap_fbo {
 	struct list list;
 	unsigned int expire;
@@ -270,9 +274,22 @@ typedef struct glamor_pixmap_fbo {
 	glamor_screen_private *glamor_priv;
 } glamor_pixmap_fbo;
 
-
+/*
+ * glamor_pixmap_private - glamor pixmap's private structure.
+ * @gl_fbo:
+ * 	0 		  	- The pixmap doesn't has a fbo attached to it.
+ * 	GLAMOR_FBO_NORMAL 	- The pixmap has a fbo and can be accessed normally.
+ * 	GLAMOR_FBO_DOWNLOADED 	- The pixmap has a fbo and already downloaded to
+ * 				  CPU, so it can only be treated as a in-memory pixmap
+ * 				  if this bit is set.
+ * @gl_tex:  The pixmap is in a gl texture originally.
+ * @is_picture: The drawable is attached to a picture.
+ * @pict_format: the corresponding picture's format.
+ * #pending_op: currently only support pending filling.
+ * @container: The corresponding pixmap's pointer.
+ **/
 typedef struct glamor_pixmap_private {
-	unsigned char gl_fbo:1;
+	unsigned char gl_fbo:2;
 	unsigned char is_picture:1;
 	unsigned char gl_tex:1;
 	glamor_pixmap_type_t type;

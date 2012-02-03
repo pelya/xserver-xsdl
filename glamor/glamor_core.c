@@ -263,8 +263,6 @@ glamor_fini_finish_access_shaders(ScreenPtr screen)
 	dispatch->glDeleteProgram(glamor_priv->finish_access_prog[1]);
 }
 
-
-
 void
 glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 {
@@ -275,7 +273,7 @@ glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 	    glamor_get_screen_private(drawable->pScreen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO_DOWNLOADED(pixmap_priv))
 		return;
 
 	if (access_mode != GLAMOR_ACCESS_RO) {
@@ -292,6 +290,9 @@ glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 	} else {
 		free(pixmap->devPrivate.ptr);
 	}
+
+	if (pixmap_priv->gl_fbo == GLAMOR_FBO_DOWNLOADED)
+		pixmap_priv->gl_fbo = GLAMOR_FBO_NORMAL;
 
 	pixmap->devPrivate.ptr = NULL;
 }

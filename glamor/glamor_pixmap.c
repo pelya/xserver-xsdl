@@ -641,7 +641,6 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum * format,
  * If successfully download a fbo to cpu then return TRUE.
  * Otherwise return FALSE.
  **/
-
 Bool
 glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 {
@@ -794,6 +793,8 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 
 	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, 0);
       done:
+
+	pixmap_priv->gl_fbo = GLAMOR_FBO_DOWNLOADED;
 	pixmap->devPrivate.ptr = data;
 
 	if (temp_pixmap)
