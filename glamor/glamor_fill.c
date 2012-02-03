@@ -31,7 +31,6 @@
  *
  * GC fill implementation, based loosely on fb_fill.c
  */
-
 Bool
 glamor_fill(DrawablePtr drawable,
 	    GCPtr gc, int x, int y, int width, int height, Bool fallback)
@@ -74,8 +73,8 @@ glamor_fill(DrawablePtr drawable,
 				 height,
 				 gc->alu,
 				 gc->planemask,
-				 drawable->x + x + off_x - gc->patOrg.x,
-				 drawable->y + y + off_y - gc->patOrg.y))
+				 x - drawable->x - gc->patOrg.x,
+				 y - drawable->y - gc->patOrg.y))
 			goto fail;
 		break;
 	}

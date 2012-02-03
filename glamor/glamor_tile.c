@@ -124,13 +124,6 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	if (src_pixmap_priv == NULL || dst_pixmap_priv == NULL)
 		goto fail;
 
-	if (((tile_x != 0) && (tile_x + width > tile->drawable.width))
-	    || ((tile_y != 0)
-		&& (tile_y + height > tile->drawable.height))) {
-		/* XXX We can recreate a new pixmap here to avoid partial tiling. */
-		goto fail;
-	}
-
 	if (glamor_priv->tile_prog == 0) {
 		glamor_fallback("Tiling unsupported\n");
 		goto fail;
