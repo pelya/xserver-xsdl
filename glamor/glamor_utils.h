@@ -610,4 +610,57 @@ inline static Bool glamor_tex_format_is_readable(GLenum format)
 
 }
 
+static inline void _glamor_dump_pixmap_byte(PixmapPtr pixmap, int x, int y, int w, int h)
+{
+	int i,j;
+	unsigned char * p = pixmap->devPrivate.ptr;
+	int stride = pixmap->devKind;
+
+	p = p + y * stride + x;
+	ErrorF("devKind %d, x %d y %d w %d h %d width %d height %d\n", stride, x, y, w, h, pixmap->drawable.width, pixmap->drawable.height);
+
+	for (i = 0; i < h; i++)
+	{
+		ErrorF("line %3d: ", i);
+		for(j = 0; j < w; j++)
+			ErrorF("%2x ", p[j]);
+		p += stride;
+		ErrorF("\n");
+	}
+}
+
+static inline void _glamor_dump_pixmap_word(PixmapPtr pixmap, int x, int y, int w, int h)
+{
+	int i,j;
+	unsigned int * p = pixmap->devPrivate.ptr;
+	int stride = pixmap->devKind / 4;
+
+	p = p + y * stride + x;
+
+	for (i = 0; i < h; i++)
+	{
+		ErrorF("line %3d: ", i);
+		for(j = 0; j < w; j++)
+			ErrorF("%2x ", p[j]);
+		p += stride;
+		ErrorF("\n");
+	}
+}
+
+static inline void glamor_dump_pixmap(PixmapPtr pixmap, int x, int y, int w, int h)
+{
+	glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RO);
+	switch (pixmap->drawable.depth) {
+	case 8:
+		_glamor_dump_pixmap_byte(pixmap, x, y, w, h);
+		break;
+	case 24:
+	case 32:
+		_glamor_dump_pixmap_word(pixmap, x, y, w, h);
+		break;
+	default:
+		assert(0);
+	}
+	glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RO);
+}
 #endif
