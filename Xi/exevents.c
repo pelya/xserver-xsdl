@@ -1089,6 +1089,39 @@ DeliverOneTouchEvent(ClientPtr client, DeviceIntPtr dev, TouchPointInfoPtr ti,
 }
 
 /**
+ * Generate and deliver a TouchEnd event.
+ *
+ * @param dev The device to deliver the event for.
+ * @param ti The touch point record to deliver the event for.
+ * @param flags Internal event flags. The called does not need to provide
+ *        TOUCH_CLIENT_ID and TOUCH_POINTER_EMULATED, this function will ensure
+ *        they are set appropriately.
+ * @param resource The client resource to deliver to, or 0 for all clients.
+ */
+static void
+EmitTouchEnd(DeviceIntPtr dev, TouchPointInfoPtr ti, int flags, XID resource)
+{
+    InternalEvent *tel = InitEventList(GetMaximumEventsNum());
+    ValuatorMask *mask = valuator_mask_new(2);
+    int i, nev;
+
+    valuator_mask_set_double(mask, 0,
+                             valuator_mask_get_double(ti->valuators, 0));
+    valuator_mask_set_double(mask, 1,
+                             valuator_mask_get_double(ti->valuators, 1));
+
+    flags |= TOUCH_CLIENT_ID;
+    if (ti->emulate_pointer)
+        flags |= TOUCH_POINTER_EMULATED;
+    nev = GetTouchEvents(tel, dev, ti->client_id, XI_TouchEnd, flags, mask);
+    for (i = 0; i < nev; i++)
+        DeliverTouchEvents(dev, ti, tel + i, resource);
+
+    valuator_mask_free(&mask);
+    FreeEventList(tel, GetMaximumEventsNum());
+}
+
+/**
  * If the current owner has rejected the event, deliver the
  * TouchOwnership/TouchBegin to the next item in the sprite stack.
  */
@@ -1096,10 +1129,6 @@ static void
 TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
                      TouchOwnershipEvent *ev)
 {
-    InternalEvent *tel = InitEventList(GetMaximumEventsNum());
-    ValuatorMask *mask = valuator_mask_new(2);
-    int i, nev;
-
     /* Deliver the ownership */
     if (ti->listeners[0].state == LISTENER_AWAITING_OWNER)
         DeliverTouchEvents(dev, ti, (InternalEvent*)ev, ti->listeners[0].listener);
@@ -1111,60 +1140,30 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
     if (ti->num_listeners == 1 && ti->num_grabs == 0 &&
             ti->pending_finish)
     {
-        int flags;
-        valuator_mask_set_double(mask, 0,
-                                 valuator_mask_get_double(ti->valuators, 0));
-        valuator_mask_set_double(mask, 1,
-                                 valuator_mask_get_double(ti->valuators, 1));
-
-        flags = TOUCH_CLIENT_ID;
-        if (ti->emulate_pointer)
-            flags |= TOUCH_POINTER_EMULATED;
-        nev = GetTouchEvents(tel, dev, ti->client_id, XI_TouchEnd, flags, mask);
-        for (i = 0; i < nev; i++)
-            DeliverTouchEvents(dev, ti, tel + i, 0);
+        EmitTouchEnd(dev, ti, 0, 0);
         TouchEndTouch(dev, ti);
     }
-
-    valuator_mask_free(&mask);
-    FreeEventList(tel, GetMaximumEventsNum());
 }
 
 static void
 TouchEventRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
                    TouchOwnershipEvent *ev)
 {
-    InternalEvent *tel = InitEventList(GetMaximumEventsNum());
-    ValuatorMask *mask = valuator_mask_new(2);
     Bool was_owner = (ev->resource == ti->listeners[0].listener);
     void *grab;
-    int nev, i;
 
 
     /* Send a TouchEnd event to the resource being removed, but only if they
      * haven't received one yet already */
     if (ti->listeners[0].state != LISTENER_HAS_END)
-    {
-        int flags;
-        valuator_mask_set_double(mask, 0,
-                                 valuator_mask_get_double(ti->valuators, 0));
-        valuator_mask_set_double(mask, 1,
-                                 valuator_mask_get_double(ti->valuators, 1));
-
-        flags = TOUCH_CLIENT_ID|TOUCH_REJECT;
-        if (ti->emulate_pointer)
-            flags |= TOUCH_POINTER_EMULATED;
-        nev = GetTouchEvents(tel, sourcedev, ti->client_id, XI_TouchEnd, flags, mask);
-        for (i = 0; i < nev; i++)
-            DeliverTouchEvents(sourcedev, ti, tel + i, ev->resource);
-    }
+        EmitTouchEnd(sourcedev, ti, TOUCH_REJECT, ev->resource);
 
     /* If there are no other listeners left, and the touchpoint is pending
      * finish, then we can just kill it now. */
     if (ti->num_listeners == 1 && ti->pending_finish)
     {
         TouchEndTouch(sourcedev, ti);
-        goto out;
+        return;
     }
 
     /* Remove the resource from the listener list, updating
@@ -1180,10 +1179,6 @@ TouchEventRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
      * the TouchOwnership or TouchBegin event to the new owner. */
     if (ti->num_listeners > 0 && was_owner)
         TouchPuntToNextOwner(sourcedev, ti, ev);
-
-out:
-    FreeEventList(tel, GetMaximumEventsNum());
-    valuator_mask_free(&mask);
 }
 
 /**
@@ -1201,33 +1196,9 @@ ProcessTouchOwnershipEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
     if (ev->reason == XIRejectTouch)
         TouchEventRejected(dev, ti, ev);
     else if (ev->reason == XIAcceptTouch) {
-        int flags;
-        int nev, i;
-        ValuatorMask *mask;
-
-        InternalEvent *tel = InitEventList(GetMaximumEventsNum());
-
-        mask = valuator_mask_new(dev->valuator->numAxes);
-        valuator_mask_set_double(mask, 0,
-                                 valuator_mask_get_double(ti->valuators, 0));
-        valuator_mask_set_double(mask, 1,
-                                 valuator_mask_get_double(ti->valuators, 1));
-
-        /* FIXME: what about early acceptance? a client may accept before it
-         * owns the touch. */
-
         /* The touch owner has accepted the touch.  Send TouchEnd events to
          * everyone else, and truncate the list of listeners. */
-        flags = TOUCH_ACCEPT|TOUCH_CLIENT_ID;
-        if (ti->emulate_pointer)
-            flags |= TOUCH_POINTER_EMULATED;
-        nev = GetTouchEvents(tel, dev, ti->client_id, XI_TouchEnd,
-                             flags, mask);
-        for (i = 0; i < nev; i++)
-            DeliverTouchEvents(dev, ti, tel + i, 0);
-
-        FreeEventList(tel, GetMaximumEventsNum());
-        valuator_mask_free(&mask);
+        EmitTouchEnd(dev, ti, TOUCH_ACCEPT, 0);
 
         while (ti->num_listeners > 1)
             TouchRemoveListener(ti, ti->listeners[1].listener);
