@@ -4266,7 +4266,6 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     if (grab->ownerEvents)
     {
 	WindowPtr focus;
-	WindowPtr win;
 
         /* Hack: Some pointer device have a focus class. So we need to check
          * for the type of event, to see if we really want to deliver it to
@@ -4283,16 +4282,15 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 	else
 	    focus = PointerRootWin;
 	if (focus == PointerRootWin)
-	{
-	    win = pSprite->win;
-	    focus = NullWindow;
-	} else if (focus && (focus == pSprite->win ||
-		    IsParent(focus, pSprite->win)))
-	    win = pSprite->win;
+	    deliveries = DeliverDeviceEvents(pSprite->win, event, grab,
+                                             NullWindow, thisDev);
+	else if (focus && (focus == pSprite->win ||
+                    IsParent(focus, pSprite->win)))
+	    deliveries = DeliverDeviceEvents(pSprite->win, event, grab, focus,
+					     thisDev);
 	else if (focus)
-	    win = focus;
-
-	deliveries = DeliverDeviceEvents(win, event, grab, focus, thisDev);
+	    deliveries = DeliverDeviceEvents(focus, event, grab, focus,
+					     thisDev);
     }
     if (!deliveries)
     {
