@@ -1145,18 +1145,34 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
     }
 }
 
-static void
-TouchEventRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
-                   TouchOwnershipEvent *ev)
+/**
+ * Process a touch rejection.
+ *
+ * @param sourcedev The source device of the touch sequence.
+ * @param ti The touchpoint info record.
+ * @param resource The resource of the client rejecting the touch.
+ * @param ev TouchOwnership event to send. Set to NULL if no event should be
+ *        sent.
+ */
+void
+TouchRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti, XID resource,
+              TouchOwnershipEvent *ev)
 {
-    Bool was_owner = (ev->resource == ti->listeners[0].listener);
+    Bool was_owner = (resource == ti->listeners[0].listener);
     void *grab;
-
+    int i;
 
     /* Send a TouchEnd event to the resource being removed, but only if they
      * haven't received one yet already */
-    if (ti->listeners[0].state != LISTENER_HAS_END)
-        EmitTouchEnd(sourcedev, ti, TOUCH_REJECT, ev->resource);
+    for (i = 0; i < ti->num_listeners; i++)
+    {
+        if (ti->listeners[i].listener == resource)
+        {
+            if (ti->listeners[i].state != LISTENER_HAS_END)
+                EmitTouchEnd(sourcedev, ti, TOUCH_REJECT, resource);
+            break;
+        }
+    }
 
     /* If there are no other listeners left, and the touchpoint is pending
      * finish, then we can just kill it now. */
@@ -1168,16 +1184,16 @@ TouchEventRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
 
     /* Remove the resource from the listener list, updating
      * ti->num_listeners, as well as ti->num_grabs if it was a grab. */
-    if (TouchRemoveListener(ti, ev->resource))
+    if (TouchRemoveListener(ti, resource))
     {
-        if (dixLookupResourceByType(&grab, ev->resource, RT_PASSIVEGRAB,
+        if (dixLookupResourceByType(&grab, resource, RT_PASSIVEGRAB,
                                     serverClient, DixGetAttrAccess) == Success)
             ti->num_grabs--;
     }
 
     /* If the current owner was removed and there are further listeners, deliver
      * the TouchOwnership or TouchBegin event to the new owner. */
-    if (ti->num_listeners > 0 && was_owner)
+    if (ev && ti->num_listeners > 0 && was_owner)
         TouchPuntToNextOwner(sourcedev, ti, ev);
 }
 
@@ -1194,7 +1210,7 @@ ProcessTouchOwnershipEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
 {
 
     if (ev->reason == XIRejectTouch)
-        TouchEventRejected(dev, ti, ev);
+        TouchRejected(dev, ti, ev->resource, ev);
     else if (ev->reason == XIAcceptTouch) {
         /* The touch owner has accepted the touch.  Send TouchEnd events to
          * everyone else, and truncate the list of listeners. */
