@@ -583,6 +583,8 @@ extern _X_EXPORT void FreeInputAttributes(InputAttributes *attrs);
 enum TouchListenerState{
     LISTENER_AWAITING_BEGIN = 0,   /**< Waiting for a TouchBegin event */
     LISTENER_AWAITING_OWNER,       /**< Waiting for a TouchOwnership event */
+    LISTENER_EARLY_ACCEPT,         /**< Waiting for ownership, has already
+                                        accepted */
     LISTENER_IS_OWNER,             /**< Is the current owner */
     LISTENER_HAS_END,              /**< Has already received the end event */
 };

@@ -1088,6 +1088,27 @@ DeliverOneTouchEvent(ClientPtr client, DeviceIntPtr dev, TouchPointInfoPtr ti,
     return TRUE;
 }
 
+static void
+ActivateEarlyAccept(DeviceIntPtr dev, TouchPointInfoPtr ti)
+{
+    int rc;
+    ClientPtr client;
+    XID error;
+
+    rc = dixLookupClient(&client, ti->listeners[0].listener, serverClient,
+                         DixSendAccess);
+    if (rc != Success)
+    {
+        ErrorF("[Xi] Failed to lookup early accepting client.\n");
+        return;
+    }
+
+    if (TouchAcceptReject(client, dev, XIAcceptTouch, ti->client_id,
+                          ti->listeners[0].window->drawable.id, &error) !=
+        Success)
+        ErrorF("[Xi] Failed to accept touch grab after early acceptance.\n");
+}
+
 /**
  * Generate and deliver a TouchEnd event.
  *
@@ -1130,7 +1151,8 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
                      TouchOwnershipEvent *ev)
 {
     /* Deliver the ownership */
-    if (ti->listeners[0].state == LISTENER_AWAITING_OWNER)
+    if (ti->listeners[0].state == LISTENER_AWAITING_OWNER ||
+        ti->listeners[0].state == LISTENER_EARLY_ACCEPT)
         DeliverTouchEvents(dev, ti, (InternalEvent*)ev, ti->listeners[0].listener);
     else if (ti->listeners[0].state == LISTENER_AWAITING_BEGIN)
         TouchEventHistoryReplay(ti, dev, ti->listeners[0].listener);
@@ -1143,6 +1165,9 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
         EmitTouchEnd(dev, ti, 0, 0);
         TouchEndTouch(dev, ti);
     }
+
+    if (ti->listeners[0].state == LISTENER_EARLY_ACCEPT)
+        ActivateEarlyAccept(dev, ti);
 }
 
 /**

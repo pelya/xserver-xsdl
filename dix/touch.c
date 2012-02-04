@@ -1022,12 +1022,11 @@ TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
     if (i > 0)
     {
         if (mode == XIRejectTouch)
-        {
             TouchRejected(dev, ti, ti->listeners[i].listener, NULL);
-            return Success;
-        }
-        /* FIXME: Implement early accept */
-        return BadAccess;
+        else
+            ti->listeners[i].state = LISTENER_EARLY_ACCEPT;
+
+        return Success;
     }
 
     nev = GetTouchOwnershipEvents(events, dev, ti, mode,
