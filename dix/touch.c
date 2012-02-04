@@ -34,6 +34,7 @@
 
 #include "eventstr.h"
 #include "exevents.h"
+#include "exglobals.h"
 #include "inpututils.h"
 #include "eventconvert.h"
 #include "windowstr.h"
@@ -983,4 +984,48 @@ TouchListenerGone(XID resource)
     }
 
     FreeEventList(events, GetMaximumEventsNum());
+}
+
+int
+TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
+                  uint32_t touchid, XID *error)
+{
+    TouchPointInfoPtr ti;
+    int nev, i;
+    InternalEvent *events = InitEventList(GetMaximumEventsNum());
+
+    if (!events)
+        return BadAlloc;
+
+    if (!dev->touch)
+    {
+        *error = dev->id;
+        return BadDevice;
+    }
+
+    /* FIXME window is unhandled */
+
+    ti = TouchFindByClientID(dev, touchid);
+    if (!ti)
+    {
+        *error = touchid;
+        return BadValue;
+    }
+
+    /* FIXME: Allow for early accept */
+    if (ti->num_listeners == 0 ||
+        CLIENT_ID(ti->listeners[0].listener) != client->index)
+        return BadAccess;
+
+    nev = GetTouchOwnershipEvents(events, dev, ti, mode,
+                                  ti->listeners[0].listener, 0);
+    if (nev == 0)
+        return BadAlloc;
+    for (i = 0; i < nev; i++)
+        mieqProcessDeviceEvent(dev, events + i, NULL);
+
+    ProcessInputEvents();
+
+    FreeEventList(events, GetMaximumEventsNum());
+    return Success;
 }

@@ -625,6 +625,8 @@ extern int TouchConvertToPointerEvent(const InternalEvent *ev,
 extern int TouchGetPointerEventType(const InternalEvent *ev);
 extern void TouchRemovePointerGrab(DeviceIntPtr dev);
 extern void TouchListenerGone(XID resource);
+extern int TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
+                             uint32_t touchid, XID *error);
 
 /* misc event helpers */
 extern Mask GetEventMask(DeviceIntPtr dev, xEvent* ev, InputClientsPtr clients);
