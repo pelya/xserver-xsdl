@@ -613,7 +613,8 @@ extern void TouchEventHistoryPush(TouchPointInfoPtr ti, const DeviceEvent *ev);
 extern void TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID resource);
 extern Bool TouchResourceIsOwner(TouchPointInfoPtr ti, XID resource);
 extern void TouchAddListener(TouchPointInfoPtr ti, XID resource, enum InputLevel level,
-                                     enum TouchListenerType type, enum TouchListenerState state);
+                             enum TouchListenerType type, enum TouchListenerState state,
+                             WindowPtr window);
 extern Bool TouchRemoveListener(TouchPointInfoPtr ti, XID resource);
 extern void TouchSetupListeners(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev);
 extern Bool TouchEnsureSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
