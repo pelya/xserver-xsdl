@@ -988,7 +988,7 @@ TouchListenerGone(XID resource)
 
 int
 TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
-                  uint32_t touchid, XID *error)
+                  uint32_t touchid, Window grab_window, XID *error)
 {
     TouchPointInfoPtr ti;
     int nev, i;
@@ -1003,8 +1003,6 @@ TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
         return BadDevice;
     }
 
-    /* FIXME window is unhandled */
-
     ti = TouchFindByClientID(dev, touchid);
     if (!ti)
     {
@@ -1012,9 +1010,17 @@ TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
         return BadValue;
     }
 
-    /* FIXME: Allow for early accept */
-    if (ti->num_listeners == 0 ||
-        CLIENT_ID(ti->listeners[0].listener) != client->index)
+    for (i = 0; i < ti->num_listeners; i++)
+    {
+        if (CLIENT_ID(ti->listeners[i].listener) == client->index &&
+            ti->listeners[i].window->drawable.id == grab_window)
+            break;
+    }
+    if (i == ti->num_listeners)
+        return BadAccess;
+
+    /* FIXME: Implement early accept/reject */
+    if (i > 0)
         return BadAccess;
 
     nev = GetTouchOwnershipEvents(events, dev, ti, mode,

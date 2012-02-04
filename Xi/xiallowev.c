@@ -98,7 +98,7 @@ ProcXIAllowEvents(ClientPtr client)
     case XIRejectTouch:
     case XIAcceptTouch:
         ret = TouchAcceptReject(client, dev, stuff->mode, stuff->touchid,
-                                &client->errorValue);
+                                stuff->grab_window, &client->errorValue);
         break;
     default:
 	client->errorValue = stuff->mode;
