@@ -1019,9 +1019,16 @@ TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
     if (i == ti->num_listeners)
         return BadAccess;
 
-    /* FIXME: Implement early accept/reject */
     if (i > 0)
+    {
+        if (mode == XIRejectTouch)
+        {
+            TouchRejected(dev, ti, ti->listeners[i].listener, NULL);
+            return Success;
+        }
+        /* FIXME: Implement early accept */
         return BadAccess;
+    }
 
     nev = GetTouchOwnershipEvents(events, dev, ti, mode,
                                   ti->listeners[0].listener, 0);
