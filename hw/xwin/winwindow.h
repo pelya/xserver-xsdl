@@ -157,5 +157,8 @@ void
 void
  winSetAppUserModelID(HWND hWnd, const char *AppID);
 
+void
+ winShowWindowOnTaskbar(HWND hWnd, BOOL show);
+
 #endif                          /* XWIN_MULTIWINDOW */
 #endif
