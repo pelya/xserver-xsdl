@@ -813,6 +813,26 @@ winMultiWindowWMProc(void *pArg)
             UpdateIcon(pWMInfo, pNode->msg.iWindow);
             break;
 
+        case WM_WM_HINTS_EVENT:
+            {
+            HWND zstyle = HWND_NOTOPMOST;
+            UINT flags;
+
+            pNode->msg.hwndWindow = getHwnd(pWMInfo, pNode->msg.iWindow);
+
+            /* Determine the Window style, which determines borders and clipping region... */
+            winApplyHints(pWMInfo->pDisplay, pNode->msg.iWindow,
+                          pNode->msg.hwndWindow, &zstyle);
+            winUpdateWindowPosition(pNode->msg.hwndWindow, &zstyle);
+
+            /* Apply the updated window style, without changing it's show or activation state */
+            flags = SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE;
+            if (zstyle == HWND_NOTOPMOST)
+                flags |= SWP_NOZORDER | SWP_NOOWNERZORDER;
+            SetWindowPos(pNode->msg.hwndWindow, NULL, 0, 0, 0, 0, flags);
+            }
+            break;
+
         case WM_WM_CHANGE_STATE:
             /* Minimize the window in Windows */
             winMinimizeWindow(pNode->msg.iWindow);
@@ -862,6 +882,7 @@ winMultiWindowXMsgProc(void *pArg)
     Atom atmWmHints;
     Atom atmWmChange;
     Atom atmNetWmIcon;
+    Atom atmWindowState, atmMotifWmHints, atmWindowType, atmNormalHints;
     int iReturn;
     XIconSize *xis;
 
@@ -988,6 +1009,10 @@ winMultiWindowXMsgProc(void *pArg)
     atmWmHints = XInternAtom(pProcArg->pDisplay, "WM_HINTS", False);
     atmWmChange = XInternAtom(pProcArg->pDisplay, "WM_CHANGE_STATE", False);
     atmNetWmIcon = XInternAtom(pProcArg->pDisplay, "_NET_WM_ICON", False);
+    atmWindowState = XInternAtom(pProcArg->pDisplay, "_NET_WM_STATE", False);
+    atmMotifWmHints = XInternAtom(pProcArg->pDisplay, "_MOTIF_WM_HINTS", False);
+    atmWindowType = XInternAtom(pProcArg->pDisplay, "_NET_WM_WINDOW_TYPE", False);
+    atmNormalHints = XInternAtom(pProcArg->pDisplay, "WM_NORMAL_HINTS", False);
 
     /*
        iiimxcf had a bug until 2009-04-27, assuming that the
@@ -1125,14 +1150,34 @@ winMultiWindowXMsgProc(void *pArg)
                 /* Other fields ignored */
                 winSendMessageToWM(pProcArg->pWMInfo, &msg);
             }
-            else if ((event.xproperty.atom == atmWmHints) ||
-                     (event.xproperty.atom == atmNetWmIcon)) {
-                memset(&msg, 0, sizeof(msg));
-                msg.msg = WM_WM_ICON_EVENT;
-                msg.iWindow = event.xproperty.window;
+            else {
+                /*
+                   Several properties are considered for WM hints, check if this property change affects any of them...
+                   (this list needs to be kept in sync with winApplyHints())
+                 */
+                if ((event.xproperty.atom == atmWmHints) ||
+                    (event.xproperty.atom == atmWindowState) ||
+                    (event.xproperty.atom == atmMotifWmHints) ||
+                    (event.xproperty.atom == atmWindowType) ||
+                    (event.xproperty.atom == atmNormalHints)) {
+                    memset(&msg, 0, sizeof(msg));
+                    msg.msg = WM_WM_HINTS_EVENT;
+                    msg.iWindow = event.xproperty.window;
 
-                /* Other fields ignored */
-                winSendMessageToWM(pProcArg->pWMInfo, &msg);
+                    /* Other fields ignored */
+                    winSendMessageToWM(pProcArg->pWMInfo, &msg);
+                }
+
+                /* Not an else as WM_HINTS affects both style and icon */
+                if ((event.xproperty.atom == atmWmHints) ||
+                    (event.xproperty.atom == atmNetWmIcon)) {
+                    memset(&msg, 0, sizeof(msg));
+                    msg.msg = WM_WM_ICON_EVENT;
+                    msg.iWindow = event.xproperty.window;
+
+                    /* Other fields ignored */
+                    winSendMessageToWM(pProcArg->pWMInfo, &msg);
+                }
             }
         }
         else if (event.type == ClientMessage
