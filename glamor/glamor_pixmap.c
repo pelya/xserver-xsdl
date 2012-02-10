@@ -268,6 +268,9 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 				       pixmap->drawable.width,
 				       pixmap->drawable.height, 0, format, type,
 				       texels);
+
+	if (pixmap_priv->fbo->pbo && pixmap_priv->fbo->pbo_valid)
+		dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
 
