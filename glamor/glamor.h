@@ -28,18 +28,16 @@
 #ifndef GLAMOR_H
 #define GLAMOR_H
 
-#include "scrnintstr.h"
+#include <scrnintstr.h>
 #ifdef GLAMOR_FOR_XORG
-#include "xf86str.h"
+#include <xf86str.h>
 #endif
-#include "pixmapstr.h"
-#include "windowstr.h"
-#include "gcstruct.h"
-#include "picturestr.h"
-#include "fb.h"
-#include "fbpict.h"
-
-#endif				/* GLAMOR_H */
+#include <pixmapstr.h>
+#include <windowstr.h>
+#include <gcstruct.h>
+#include <picturestr.h>
+#include <fb.h>
+#include <fbpict.h>
 
 /*
  * glamor_pixmap_type : glamor pixmap's type.
@@ -145,9 +143,8 @@ extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, 
 
 extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen);
 
-extern _X_EXPORT void * glamor_egl_make_current(ScreenPtr screen);
-
-extern _X_EXPORT void glamor_egl_restore_context(ScreenPtr screen, void *context);
+extern _X_EXPORT void glamor_egl_make_current(ScreenPtr screen);
+extern _X_EXPORT void glamor_egl_restore_context(ScreenPtr screen);
 
 #ifdef GLAMOR_FOR_XORG
 
@@ -320,3 +317,4 @@ extern _X_EXPORT Bool glamor_poly_line_nf(DrawablePtr pDrawable, GCPtr pGC, int 
 extern _X_EXPORT Bool glamor_poly_lines_nf(DrawablePtr drawable, GCPtr gc, int mode, int n,
 					   DDXPointPtr points);
 
+#endif /* GLAMOR_H */

@@ -26,10 +26,6 @@
  *
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "glamor_priv.h"
 
 /** @file glamor_fillspans.c
@@ -48,10 +44,8 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 	RegionPtr pClip = fbGetCompositeClip(gc);
 	Bool ret = FALSE;
 	glamor_screen_private *glamor_priv;
-	GLAMOR_DEFINE_CONTEXT;
 
 	glamor_priv = glamor_get_screen_private(drawable->pScreen);
-	GLAMOR_SET_CONTEXT(glamor_priv);
 
 	if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) {
 		goto fail;
@@ -119,7 +113,6 @@ fail:
 	ret = TRUE;
 
 done:
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return ret;
 }
 

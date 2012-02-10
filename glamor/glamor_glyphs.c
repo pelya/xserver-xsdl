@@ -40,15 +40,11 @@
  * Based on code by: Keith Packard
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include <stdlib.h>
 
 #include "glamor_priv.h"
 
-#include "mipict.h"
+#include <mipict.h>
 
 #if DEBUG_GLYPH_CACHE
 #define DBG_GLYPH_CACHE(a) ErrorF a
@@ -163,7 +159,7 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
 		glamor_glyph_cache_t *cache = &glamor->glyphCaches[i];
 		PixmapPtr pixmap;
 		PicturePtr picture;
-		CARD32 component_alpha;
+		XID component_alpha;
 		int depth = PIXMAN_FORMAT_DEPTH(formats[i]);
 		int error;
 		PictFormatPtr pPictFormat =
@@ -652,7 +648,7 @@ glamor_glyphs_via_mask(CARD8 op,
 	GlyphPtr glyph;
 	int error;
 	BoxRec extents = { 0, 0, 0, 0 };
-	CARD32 component_alpha;
+	XID component_alpha;
 	glamor_glyph_buffer_t buffer;
 	xRectangle fill_rect;
 

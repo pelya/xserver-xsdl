@@ -21,10 +21,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "glamor_priv.h"
 
 /** @file glamor_copyarea.c
@@ -43,7 +39,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 	glamor_pixmap_private *src_pixmap_priv;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 	int dst_x_off, dst_y_off, src_x_off, src_y_off, i;
 
 	if (!glamor_priv->has_fbo_blit) {
@@ -78,6 +74,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 	}
 	glamor_validate_pixmap(dst_pixmap);
 
+	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT,
 				    src_pixmap_priv->fbo->fb);
 	glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off,
@@ -136,6 +133,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 						    GL_NEAREST);
 		}
 	}
+	glamor_put_dispatch(glamor_priv);
 	return TRUE;
 }
 #endif
@@ -147,7 +145,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 {
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(dst->pScreen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 	PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
 	PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
 	int i;
@@ -158,23 +156,24 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	enum glamor_pixmap_status src_status = GLAMOR_NONE;
 	GLfloat dst_xscale, dst_yscale, src_xscale, src_yscale;
 	int flush_needed = 0;
+	int alu = GXcopy;
 
 	src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 	dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
 		glamor_delayed_fallback(dst->pScreen, "dst has no fbo.\n");
-		goto fail;
+		return FALSE;
 	}
 
 	if (!src_pixmap_priv || !src_pixmap_priv->gl_fbo) {
 #ifndef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 		glamor_delayed_fallback(dst->pScreen, "src has no fbo.\n");
-		goto fail;
+		return FALSE;
 #else
 		src_status = glamor_upload_pixmap_to_texture(src_pixmap);
 		if (src_status != GLAMOR_UPLOAD_DONE)
-			goto fail;
+			return FALSE;
 
 		src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 #endif
@@ -182,18 +181,10 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 		flush_needed = 1;
 
 	if (gc) {
-		glamor_set_alu(dispatch, gc->alu);
 		if (!glamor_set_planemask(dst_pixmap, gc->planemask))
-			goto fail;
-		if (gc->alu != GXcopy) {
-			glamor_set_destination_pixmap_priv_nc
-			    (src_pixmap_priv);
-			glamor_validate_pixmap(src_pixmap);
-		}
+			return FALSE;
+		alu = gc->alu;
 	}
-
-	glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
-	glamor_validate_pixmap(dst_pixmap);
 
 	pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
 	pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
@@ -201,6 +192,15 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off,
 				   &dst_y_off);
 
+	dispatch = glamor_get_dispatch(glamor_priv);
+
+	glamor_set_alu(dispatch, alu);
+	if (alu != GXcopy) {
+		glamor_set_destination_pixmap_priv_nc (src_pixmap_priv);
+		glamor_validate_pixmap(src_pixmap);
+	}
+	glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
+	glamor_validate_pixmap(dst_pixmap);
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
 					GL_FALSE, 2 * sizeof(float),
 					vertices);
@@ -284,12 +284,8 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	/* The source texture is bound to a fbo, we have to flush it here. */
 	if (flush_needed)
 		dispatch->glFlush();
+	glamor_put_dispatch(glamor_priv);
 	return TRUE;
-
-      fail:
-	glamor_set_alu(dispatch, GXcopy);
-	glamor_set_planemask(dst_pixmap, ~0);
-	return FALSE;
 }
 
 static Bool 
@@ -317,7 +313,6 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	int i;
 	int overlaped = 0;
 	Bool ret = FALSE;
-	GLAMOR_DEFINE_CONTEXT;
 
 	dst_pixmap = glamor_get_drawable_pixmap(dst);
 	dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
@@ -326,7 +321,6 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	screen = dst_pixmap->drawable.pScreen;
 
 	glamor_priv = glamor_get_screen_private(dst->pScreen);
-	GLAMOR_SET_CONTEXT(glamor_priv);
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
 		glamor_fallback("dest pixmap %p has no fbo. \n",
@@ -448,7 +442,6 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	glamor_clear_delayed_fallbacks(dst->pScreen);
 	if (temp_src != src)
 		glamor_destroy_pixmap(temp_pixmap);
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return ret;
 }
 

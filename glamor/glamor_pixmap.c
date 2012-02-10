@@ -1,7 +1,3 @@
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include <stdlib.h>
 
 #include "glamor_priv.h"
@@ -31,7 +27,7 @@ static void
 _glamor_pixmap_validate_filling(glamor_screen_private * glamor_priv,
 				glamor_pixmap_private * pixmap_priv)
 {
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch = glamor_get_dispatch(glamor_priv);
 	GLfloat vertices[8];
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
 					GL_FALSE, 2 * sizeof(float),
@@ -52,6 +48,7 @@ _glamor_pixmap_validate_filling(glamor_screen_private * glamor_priv,
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glUseProgram(0);
 	pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
+	glamor_put_dispatch(glamor_priv);
 }
 
 
@@ -94,7 +91,7 @@ glamor_validate_pixmap(PixmapPtr pixmap)
 void
 glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private * pixmap_priv)
 {
-	glamor_gl_dispatch *dispatch = &pixmap_priv->glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch = glamor_get_dispatch(pixmap_priv->glamor_priv);
 	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, pixmap_priv->fbo->fb);
 #ifndef GLAMOR_GLES2
 	dispatch->glMatrixMode(GL_PROJECTION);
@@ -106,6 +103,7 @@ glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private * pixmap_priv)
 			     pixmap_priv->fbo->width,
 			     pixmap_priv->fbo->height);
 
+	glamor_put_dispatch(pixmap_priv->glamor_priv);
 }
 
 int
@@ -222,7 +220,7 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	    glamor_get_pixmap_private(pixmap);
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 	unsigned int stride, row_length;
 	void *texels;
 	GLenum iformat;
@@ -235,6 +233,7 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	stride = pixmap->devKind;
 	row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
 
+	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
 	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 				  GL_NEAREST);
@@ -271,6 +270,7 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 
 	if (pixmap_priv->fbo->pbo && pixmap_priv->fbo->pbo_valid)
 		dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	glamor_put_dispatch(glamor_priv);
 }
 
 
@@ -289,7 +289,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	    glamor_get_pixmap_private(pixmap);
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 	static float vertices[8];
 	static float texcoords[8] = { 0, 1,
 		1, 1,
@@ -339,6 +339,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 				     vertices);
 
 	/* Slow path, we need to flip y or wire alpha to 1. */
+	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
 					GL_FALSE, 2 * sizeof(float),
 					vertices);
@@ -379,13 +380,17 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 	dispatch->glDeleteTextures(1, &tex);
 	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glamor_put_dispatch(glamor_priv);
 }
 
 void
 glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 {
+	glamor_gl_dispatch *dispatch;
 	int status;
-	glamor_gl_dispatch *dispatch = &fbo->glamor_priv->dispatch;
+
+	dispatch = glamor_get_dispatch(fbo->glamor_priv);
 
 	if (fbo->fb == 0)
 		dispatch->glGenFramebuffers(1, &fbo->fb);
@@ -422,11 +427,10 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 			break;
 		}
 
-		LogMessageVerb(X_INFO, 0,
-			       "destination is framebuffer incomplete: %s [%#x]\n",
-			       str, status);
-		assert(0);
+		FatalError("destination is framebuffer incomplete: %s [%#x]\n",
+			   str, status);
 	}
+	glamor_put_dispatch(fbo->glamor_priv);
 }
 
 /*  
@@ -571,7 +575,6 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum * format,
 
 	glamor_priv = glamor_get_screen_private(screen);
 	source_priv = glamor_get_pixmap_private(source);
-	dispatch = &glamor_priv->dispatch;
 	if (*format == GL_BGRA) {
 		*format = GL_RGBA;
 		swap_rb = 1;
@@ -585,6 +588,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum * format,
 
 	temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
 
+	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glBindTexture(GL_TEXTURE_2D, temp_pixmap_priv->fbo->tex);
 	dispatch->glTexParameteri(GL_TEXTURE_2D,
 				  GL_TEXTURE_MIN_FILTER,
@@ -631,6 +635,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum * format,
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 	dispatch->glUseProgram(0);
+	glamor_put_dispatch(glamor_priv);
 	return temp_pixmap;
 }
 
@@ -657,7 +662,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	ScreenPtr screen;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 
 	screen = pixmap->drawable.pScreen;
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
@@ -715,6 +720,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	}
 	row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
 
+	dispatch = glamor_get_dispatch(glamor_priv);
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
 		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
@@ -795,6 +801,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	}
 
 	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glamor_put_dispatch(glamor_priv);
       done:
 
 	pixmap_priv->gl_fbo = GLAMOR_FBO_DOWNLOADED;

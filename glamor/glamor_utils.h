@@ -664,31 +664,44 @@ static inline void glamor_dump_pixmap(PixmapPtr pixmap, int x, int y, int w, int
 	glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RO);
 }
 
-static inline void *glamor_make_current(ScreenPtr screen)
+static inline void glamor_make_current(ScreenPtr screen)
 {
-	return glamor_egl_make_current(screen);
+	glamor_egl_make_current(screen);
 }
 
-static inline void glamor_restore_current(ScreenPtr screen, void *previous_context)
+static inline void glamor_restore_current(ScreenPtr screen)
 {
-	glamor_egl_restore_context(screen, previous_context);
+	glamor_egl_restore_context(screen);
 }
 
 #ifdef GLX_USE_SHARED_DISPATCH
-#define GLAMOR_DEFINE_CONTEXT		void *_previous_context_ = NULL
-#define GLAMOR_SET_CONTEXT(glamor_priv)			\
-	if (glamor_priv->flags & GLAMOR_USE_EGL_SCREEN) \
-		_previous_context_ = glamor_make_current(glamor_priv->screen)
+static inline glamor_gl_dispatch *
+glamor_get_dispatch(glamor_screen_private *glamor_priv)
+{
+	if (glamor_priv->flags & GLAMOR_USE_EGL_SCREEN)
+		glamor_make_current(glamor_priv->screen);
 
-#define GLAMOR_RESTORE_CONTEXT(glamor_priv)			\
-	if ((glamor_priv->flags & GLAMOR_USE_EGL_SCREEN)	\
-	     && _previous_context_ != NULL) 			\
-		glamor_restore_current(glamor_priv->screen, _previous_context_)
+	return &glamor_priv->_dispatch;
+}
+
+static inline void
+glamor_put_dispatch(glamor_screen_private *glamor_priv)
+{
+	if (glamor_priv->flags & GLAMOR_USE_EGL_SCREEN)
+		glamor_restore_current(glamor_priv->screen);
+}
 #else
+#warning "Indirect GLX may be broken, need to implement context switch."
+static inline glamor_gl_dispatch *
+glamor_get_dispatch(glamor_screen_private *glamor_priv)
+{
+	return &glamor_priv->_dispatch;
+}
 
-#define GLAMOR_DEFINE_CONTEXT
-#define GLAMOR_SET_CONTEXT(glamor_priv)
-#define GLAMOR_RESTORE_CONTEXT(glamor_priv)
+static inline void
+glamor_put_dispatch(glamor_screen_private *glamor_priv)
+{
+}
 
 #endif
 

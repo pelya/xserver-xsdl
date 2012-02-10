@@ -21,10 +21,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "glamor_priv.h"
 
 /** @file glamor_fillspans.c
@@ -112,7 +108,7 @@ glamor_init_solid_shader(ScreenPtr screen)
 	GLint fs_prog, vs_prog;
 
 	glamor_priv = glamor_get_screen_private(screen);
-	dispatch =  &glamor_priv->dispatch;
+	dispatch =  glamor_get_dispatch(glamor_priv);
 	glamor_priv->solid_prog = dispatch->glCreateProgram();
 	vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, solid_vs);
 	fs_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
@@ -127,6 +123,7 @@ glamor_init_solid_shader(ScreenPtr screen)
 	glamor_priv->solid_color_uniform_location =
 	    dispatch->glGetUniformLocation(glamor_priv->solid_prog,
 					   "color");
+	glamor_put_dispatch(glamor_priv);
 }
 
 void
@@ -136,8 +133,9 @@ glamor_fini_solid_shader(ScreenPtr screen)
 	glamor_gl_dispatch *dispatch;
 
 	glamor_priv = glamor_get_screen_private(screen);
-	dispatch =  &glamor_priv->dispatch;
+	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glDeleteProgram(glamor_priv->solid_prog);
+	glamor_put_dispatch(glamor_priv);
 }
 
 Bool
@@ -150,7 +148,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	    glamor_get_screen_private(screen);
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 	int x1 = x;
 	int x2 = x + width;
 	int y1 = y;
@@ -158,15 +156,16 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	GLfloat color[4];
 	float vertices[8];
 	GLfloat xscale, yscale;
+
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
 		glamor_fallback("dest %p has no fbo.\n", pixmap);
-		goto fail;
+		return FALSE;
 	}
-	glamor_set_alu(dispatch, alu);
+
 	if (!glamor_set_planemask(pixmap, planemask)) {
 		glamor_fallback
 		    ("Failedto set planemask  in glamor_solid.\n");
-		goto fail;
+		return FALSE;
 	}
 
 	glamor_get_rgba_from_pixel(fg_pixel,
@@ -189,6 +188,8 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 	glamor_validate_pixmap(pixmap);
 
+	dispatch = glamor_get_dispatch(glamor_priv);
+	glamor_set_alu(dispatch, alu);
 	dispatch->glUseProgram(glamor_priv->solid_prog);
 
 	dispatch->glUniform4fv(glamor_priv->solid_color_uniform_location,
@@ -205,9 +206,6 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glUseProgram(0);
+	glamor_put_dispatch(glamor_priv);
 	return TRUE;
-      fail:
-	glamor_set_alu(dispatch, GXcopy);
-	glamor_set_planemask(pixmap, ~0);
-	return FALSE;
 }

@@ -26,10 +26,6 @@
  *
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "glamor_priv.h"
 
 
@@ -46,13 +42,11 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	int no_alpha, no_revert;
 	PixmapPtr temp_pixmap = NULL;
 	glamor_gl_dispatch * dispatch;
-	GLAMOR_DEFINE_CONTEXT;
 	Bool ret = FALSE;
 
 	goto fall_back;
 
 	glamor_priv = glamor_get_screen_private(drawable->pScreen);
-	GLAMOR_SET_CONTEXT(glamor_priv);
 
 	if (format != ZPixmap)
 		goto fall_back;
@@ -65,7 +59,6 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	}
 	glamor_priv = glamor_get_screen_private(drawable->pScreen);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
-	dispatch = &glamor_priv->dispatch;
 
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
@@ -97,6 +90,8 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 
 	int row_length = PixmapBytePad(w, drawable->depth);
 	row_length = (row_length * 8) / drawable->bitsPerPixel;
+
+	dispatch = glamor_get_dispatch(glamor_priv);
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
 		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
@@ -117,14 +112,13 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 				       h,
 				       tex_format,
 				       tex_type, d);
+	glamor_put_dispatch(glamor_priv);
 	if (temp_pixmap)
 		glamor_destroy_pixmap(temp_pixmap);
 
 	ret = TRUE;
 
 fall_back:
-
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	if (ret == FALSE)
 		miGetImage(drawable, x, y, w, h, format, planeMask, d);
 	return TRUE;

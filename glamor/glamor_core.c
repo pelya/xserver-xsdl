@@ -31,10 +31,6 @@
  * This file covers core X rendering in glamor.
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include <stdlib.h>
 
 #include "glamor_priv.h"
@@ -174,7 +170,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 	GLint sampler_uniform_location;
 
 	glamor_priv = glamor_get_screen_private(screen);
-	dispatch =  &glamor_priv->dispatch;
+	dispatch =  glamor_get_dispatch(glamor_priv);
 	glamor_priv->finish_access_prog[0] = dispatch->glCreateProgram();
 	glamor_priv->finish_access_prog[1] = dispatch->glCreateProgram();
 
@@ -248,7 +244,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 	dispatch->glUniform1i(sampler_uniform_location, 0);
 	dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[1], 0);
 	dispatch->glUseProgram(0);
-
+	glamor_put_dispatch(glamor_priv);
 }
 
 void
@@ -258,9 +254,10 @@ glamor_fini_finish_access_shaders(ScreenPtr screen)
 	glamor_gl_dispatch *dispatch;
 
 	glamor_priv = glamor_get_screen_private(screen);
-	dispatch =  &glamor_priv->dispatch;
+	dispatch =  glamor_get_dispatch(glamor_priv);
 	dispatch->glDeleteProgram(glamor_priv->finish_access_prog[0]);
 	dispatch->glDeleteProgram(glamor_priv->finish_access_prog[1]);
+	glamor_put_dispatch(glamor_priv);
 }
 
 void
@@ -271,7 +268,6 @@ glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 	    glamor_get_pixmap_private(pixmap);
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(drawable->pScreen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO_DOWNLOADED(pixmap_priv))
 		return;
@@ -281,11 +277,17 @@ glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 	}
 
 	if (pixmap_priv->fbo->pbo != 0 && pixmap_priv->fbo->pbo_valid) {
+		glamor_gl_dispatch *dispatch;
+
 		assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
+
+		dispatch = glamor_get_dispatch(glamor_priv);
 		dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-		pixmap_priv->fbo->pbo_valid = FALSE;
 		dispatch->glDeleteBuffers(1, &pixmap_priv->fbo->pbo);
+		glamor_put_dispatch(glamor_priv);
+
+		pixmap_priv->fbo->pbo_valid = FALSE;
 		pixmap_priv->fbo->pbo = 0;
 	} else {
 		free(pixmap->devPrivate.ptr);

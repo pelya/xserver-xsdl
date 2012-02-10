@@ -25,10 +25,6 @@
  *
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "glamor_priv.h"
 
 static Bool 
@@ -44,15 +40,13 @@ _glamor_get_spans(DrawablePtr drawable,
 	    glamor_get_screen_private(drawable->pScreen);
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 	PixmapPtr temp_pixmap = NULL;
 	int i;
 	uint8_t *readpixels_dst = (uint8_t *) dst;
 	int x_off, y_off;
-	GLAMOR_DEFINE_CONTEXT;
 	Bool ret = FALSE;
 
-	GLAMOR_SET_CONTEXT(glamor_priv);
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
 		glamor_fallback("pixmap has no fbo.\n");
 		goto fail;
@@ -82,6 +76,7 @@ _glamor_get_spans(DrawablePtr drawable,
 	}
 
 	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
+	dispatch = glamor_get_dispatch(glamor_priv);
 	for (i = 0; i < count; i++) {
 		if (glamor_priv->yInverted) {
 			dispatch->glReadPixels(points[i].x + x_off,
@@ -98,6 +93,7 @@ _glamor_get_spans(DrawablePtr drawable,
 		readpixels_dst +=
 		    PixmapBytePad(widths[i], drawable->depth);
 	}
+	glamor_put_dispatch(glamor_priv);
 	if (temp_pixmap)
 		glamor_destroy_pixmap(temp_pixmap);
 
@@ -116,7 +112,6 @@ fail:
 		glamor_finish_access(drawable, GLAMOR_ACCESS_RO);
 	}
 done:
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return ret;
 }
 

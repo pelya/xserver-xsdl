@@ -196,24 +196,25 @@ glamor_block_handler(ScreenPtr screen)
 {
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
-	GLAMOR_DEFINE_CONTEXT;
+	glamor_gl_dispatch *dispatch;
 
-	GLAMOR_SET_CONTEXT(glamor_priv);
+	dispatch = glamor_get_dispatch(glamor_priv);
 	glamor_priv->tick++;
 	dispatch->glFlush();
 	dispatch->glFinish();
 	glamor_fbo_expire(glamor_priv);
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
+	glamor_put_dispatch(glamor_priv);
 }
 
 static void
 _glamor_block_handler(void *data, OSTimePtr timeout,
 		      void *last_select_mask)
 {
-	glamor_gl_dispatch *dispatch = data;
+	glamor_screen_private *glamor_priv = data;
+	glamor_gl_dispatch *dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glFlush();
 	dispatch->glFinish();
+	glamor_put_dispatch(glamor_priv);
 }
 
 static void
@@ -289,8 +290,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	}
 #endif
 
-	glamor_gl_dispatch_init(screen, &glamor_priv->dispatch,
-				gl_version);
+	glamor_gl_dispatch_init(screen, &glamor_priv->_dispatch, gl_version);
 
 #ifdef GLAMOR_GLES2
 	if (!glamor_gl_has_extension("GL_EXT_texture_format_BGRA8888")) {
@@ -303,8 +303,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	    glamor_gl_has_extension("GL_MESA_pack_invert");
 	glamor_priv->has_fbo_blit =
 	    glamor_gl_has_extension("GL_EXT_framebuffer_blit");
-	glamor_priv->dispatch.glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE,
-					    &glamor_priv->max_fbo_size);
+	glamor_priv->_dispatch.glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE,
+					     &glamor_priv->max_fbo_size);
 
 	glamor_set_debug_level(&glamor_debug_level);
 
@@ -324,8 +324,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	if (flags & GLAMOR_USE_SCREEN) {
 		if (!RegisterBlockAndWakeupHandlers(_glamor_block_handler,
 						    _glamor_wakeup_handler,
-						    (void *)
-						    &glamor_priv->dispatch)) {
+						    glamor_priv)) {
 			goto fail;
 		}
 

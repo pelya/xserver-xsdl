@@ -26,10 +26,6 @@
  *
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "glamor_priv.h"
 
 static Bool
@@ -37,7 +33,6 @@ _glamor_copy_plane(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		   int srcx, int srcy, int w, int h, int dstx, int dsty,
 		   unsigned long bitPlane, RegionPtr *pRegion, Bool fallback)
 {
-	GLAMOR_DEFINE_CONTEXT;
 	glamor_screen_private *glamor_priv;
 
 	if (!fallback 
@@ -47,14 +42,12 @@ _glamor_copy_plane(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		goto fail;
 
 	glamor_priv = glamor_get_screen_private(pDst->pScreen);
-	GLAMOR_SET_CONTEXT(glamor_priv);
 	glamor_prepare_access(pDst, GLAMOR_ACCESS_RW);
 	glamor_prepare_access(pSrc, GLAMOR_ACCESS_RO);
 	*pRegion = fbCopyPlane(pSrc, pDst, pGC, srcx, srcy, w, h,
 			  dstx, dsty, bitPlane);
 	glamor_finish_access(pSrc, GLAMOR_ACCESS_RO);
 	glamor_finish_access(pDst, GLAMOR_ACCESS_RW);
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return TRUE;
 
  fail:

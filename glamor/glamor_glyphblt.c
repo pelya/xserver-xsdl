@@ -26,10 +26,6 @@
  *
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "glamor_priv.h"
 
 static Bool
@@ -37,7 +33,6 @@ _glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                     int x, int y, unsigned int nglyph,
                     CharInfoPtr * ppci, pointer pglyphBase, Bool fallback)
 {
-	GLAMOR_DEFINE_CONTEXT;
 	glamor_screen_private *glamor_priv;
 
 	if (!fallback 
@@ -46,13 +41,11 @@ _glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
 		goto fail;
 
 	glamor_priv = glamor_get_screen_private(pDrawable->pScreen);
-	GLAMOR_SET_CONTEXT(glamor_priv);
 	glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
 	glamor_prepare_access_gc(pGC);
 	fbImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 	glamor_finish_access_gc(pGC);
 	glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return TRUE;
  fail:
 	return FALSE;
@@ -79,25 +72,20 @@ _glamor_poly_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                     int x, int y, unsigned int nglyph,
                     CharInfoPtr * ppci, pointer pglyphBase, Bool fallback)
 {
-	GLAMOR_DEFINE_CONTEXT;
 	glamor_screen_private *glamor_priv;
 
 	if (!fallback 
 	    && glamor_ddx_fallback_check_pixmap(pDrawable)
 	    && glamor_ddx_fallback_check_gc(pGC))
-		goto fail;
+		return FALSE;
 
 	glamor_priv = glamor_get_screen_private(pDrawable->pScreen);
-	GLAMOR_SET_CONTEXT(glamor_priv);
 	glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
 	glamor_prepare_access_gc(pGC);
 	fbPolyGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 	glamor_finish_access_gc(pGC);
 	glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return TRUE;
- fail:
-	return FALSE;
 }
 
 void
@@ -120,17 +108,12 @@ static Bool
 _glamor_push_pixels(GCPtr pGC, PixmapPtr pBitmap,
 		    DrawablePtr pDrawable, int w, int h, int x, int y, Bool fallback)
 {
-	GLAMOR_DEFINE_CONTEXT;
-	glamor_screen_private *glamor_priv;
-
 	if (!fallback 
 	    && glamor_ddx_fallback_check_pixmap(pDrawable)
 	    && glamor_ddx_fallback_check_pixmap(&pBitmap->drawable)
 	    && glamor_ddx_fallback_check_gc(pGC))
-		goto fail;
+		return FALSE;
 
-	glamor_priv = glamor_get_screen_private(pDrawable->pScreen);
-	GLAMOR_SET_CONTEXT(glamor_priv);
 	glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
 	glamor_prepare_access(&pBitmap->drawable, GLAMOR_ACCESS_RO);
 	glamor_prepare_access_gc(pGC);
@@ -138,10 +121,7 @@ _glamor_push_pixels(GCPtr pGC, PixmapPtr pBitmap,
 	glamor_finish_access_gc(pGC);
 	glamor_finish_access(&pBitmap->drawable, GLAMOR_ACCESS_RO);
 	glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return TRUE;
- fail:
-	return FALSE;
 }
 
 void

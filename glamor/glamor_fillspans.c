@@ -20,10 +20,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 /** @file glamor_fillspans.c
  *
  * FillSpans implementation, taken from fb_fillsp.c
@@ -41,11 +37,9 @@ _glamor_fill_spans(DrawablePtr drawable,
 	int x1, x2, y;
 	RegionPtr pClip = fbGetCompositeClip(gc);
 	glamor_screen_private *glamor_priv;
-	GLAMOR_DEFINE_CONTEXT;
 	Bool ret = FALSE;
 
 	glamor_priv = glamor_get_screen_private(drawable->pScreen);
-	GLAMOR_SET_CONTEXT(glamor_priv);
 
 	if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
 		goto fail;
@@ -99,7 +93,6 @@ fail:
 	ret = TRUE;
 
 done:
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return ret;
 }
 

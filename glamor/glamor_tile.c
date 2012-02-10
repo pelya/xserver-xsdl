@@ -25,10 +25,6 @@
  *
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "glamor_priv.h"
 
 /** @file glamor_tile.c
@@ -60,7 +56,7 @@ glamor_init_tile_shader(ScreenPtr screen)
 	GLint sampler_uniform_location;
 
 	glamor_priv = glamor_get_screen_private(screen);
-	dispatch =  &glamor_priv->dispatch;
+	dispatch = glamor_get_dispatch(glamor_priv);
 	glamor_priv->tile_prog = dispatch->glCreateProgram();
 	vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, tile_vs);
 	fs_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
@@ -81,6 +77,7 @@ glamor_init_tile_shader(ScreenPtr screen)
 	dispatch->glUseProgram(glamor_priv->tile_prog);
 	dispatch->glUniform1i(sampler_uniform_location, 0);
 	dispatch->glUseProgram(0);
+	glamor_put_dispatch(glamor_priv);
 }
 
 void
@@ -90,8 +87,9 @@ glamor_fini_tile_shader(ScreenPtr screen)
 	glamor_gl_dispatch *dispatch;
 
 	glamor_priv = glamor_get_screen_private(screen);
-	dispatch =  &glamor_priv->dispatch;
+	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glDeleteProgram(glamor_priv->tile_prog);
+	glamor_put_dispatch(glamor_priv);
 }
 
 Bool
@@ -103,7 +101,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	ScreenPtr screen = pixmap->drawable.pScreen;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 	int x1 = x;
 	int x2 = x + width;
 	int y1 = y;
@@ -161,6 +159,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	glamor_validate_pixmap(pixmap);
 	pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
 
+	dispatch = glamor_get_dispatch(glamor_priv);
 	glamor_set_alu(dispatch, alu);
 
 	if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
@@ -219,6 +218,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	dispatch->glUseProgram(0);
 	glamor_set_alu(dispatch, GXcopy);
 	glamor_set_planemask(pixmap, ~0);
+	glamor_put_dispatch(glamor_priv);
 	return TRUE;
 
       fail:

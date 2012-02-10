@@ -28,10 +28,10 @@
 #include "config.h"
 #endif
 
-#include <xorg-server.h>
 #define GLAMOR_FOR_XORG
 #include "glamor.h"
-#include "xf86Module.h"
+#include <xf86Module.h>
+#include <xorg-server.h>
 
 static XF86ModuleVersionInfo VersRec = {
 	GLAMOR_EGL_MODULE_NAME,

@@ -25,10 +25,6 @@
  *
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include "glamor_priv.h"
 
 static Bool
@@ -40,17 +36,15 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	glamor_pixmap_private *dest_pixmap_priv;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(drawable->pScreen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 	GLenum format, type;
 	int no_alpha, no_revert, i;
 	uint8_t *drawpixels_src = (uint8_t *) src;
 	RegionPtr clip = fbGetCompositeClip(gc);
 	BoxRec *pbox;
 	int x_off, y_off;
-	GLAMOR_DEFINE_CONTEXT;
 	Bool ret = FALSE;
 
-	GLAMOR_SET_CONTEXT(glamor_priv);
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
 		glamor_fallback("pixmap has no fbo.\n");
@@ -70,17 +64,15 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		goto fail;
 	}
 
-
 	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
 	glamor_validate_pixmap(dest_pixmap);
-	if (!glamor_set_planemask(dest_pixmap, gc->planemask))
-		goto fail;
-	glamor_set_alu(dispatch, gc->alu);
 	if (!glamor_set_planemask(dest_pixmap, gc->planemask))
 		goto fail;
 
 	glamor_get_drawable_deltas(drawable, dest_pixmap, &x_off, &y_off);
 
+	dispatch = glamor_get_dispatch(glamor_priv);
+	glamor_set_alu(dispatch, gc->alu);
 	for (i = 0; i < n; i++) {
 
 		n = REGION_NUM_RECTS(clip);
@@ -103,6 +95,7 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	glamor_set_planemask(dest_pixmap, ~0);
 	glamor_set_alu(dispatch, GXcopy);
 	dispatch->glDisable(GL_SCISSOR_TEST);
+	glamor_put_dispatch(glamor_priv);
 	ret = TRUE;
 	goto done;
 
@@ -120,7 +113,6 @@ fail:
 	ret = TRUE;
 
 done:
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return ret;
 }
 

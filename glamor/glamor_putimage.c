@@ -251,7 +251,7 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 {
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(drawable->pScreen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	glamor_gl_dispatch *dispatch;
 	PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
@@ -265,10 +265,8 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	GLfloat xscale, yscale, txscale, tyscale;
 	GLuint tex;
 	int no_alpha, no_revert;
-	GLAMOR_DEFINE_CONTEXT;
 	Bool ret = FALSE;
 
-	GLAMOR_SET_CONTEXT(glamor_priv);
 	if (image_format == XYBitmap) {
 		assert(depth == 1);
 		goto fail;
@@ -287,7 +285,6 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	if (!glamor_set_planemask(pixmap, gc->planemask)) {
 		goto fail;
 	}
-	glamor_set_alu(dispatch, gc->alu);
 
 	if (glamor_get_tex_format_type_from_pixmap(pixmap,
 						   &format,
@@ -298,6 +295,8 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	}
 
 	/* XXX consider to reuse a function to do the following work. */
+	dispatch = glamor_get_dispatch(glamor_priv);
+	glamor_set_alu(dispatch, gc->alu);
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 	glamor_validate_pixmap(pixmap);
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
@@ -400,6 +399,7 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		dispatch->glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	glamor_set_alu(dispatch, GXcopy);
 	glamor_set_planemask(pixmap, ~0);
+	glamor_put_dispatch(glamor_priv);
 
 	ret = TRUE;
 	goto done;
@@ -421,7 +421,6 @@ fail:
 	ret = TRUE;
 
 done:
-	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return ret;
 }
 

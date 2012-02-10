@@ -31,10 +31,6 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#include <xorg-config.h>
-#endif
 #include <xorg-server.h>
 
 #include "glamor.h"
@@ -171,7 +167,7 @@ struct glamor_saved_procs {
 	(((int)(t1) - (int)(t0)) < 0)
 
 typedef struct glamor_screen_private {
-	struct glamor_gl_dispatch dispatch;
+	struct glamor_gl_dispatch _dispatch;
 	int yInverted;
 	unsigned int tick;
 	enum glamor_gl_flavor gl_flavor;
