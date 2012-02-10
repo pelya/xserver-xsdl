@@ -49,8 +49,13 @@ glamor_init_tile_shader(ScreenPtr screen)
 	    GLAMOR_DEFAULT_PRECISION
 	    "varying vec2 tile_texture;\n"
 	    "uniform sampler2D sampler;\n"
+	    "uniform vec2	wh;"
 	    "void main()\n"
-	    "{\n" "	gl_FragColor = texture2D(sampler, tile_texture);\n"
+	    "{\n"
+	    "   vec2 rel_tex;"
+	    "   rel_tex = tile_texture * wh; \n"
+	    "   rel_tex = floor(rel_tex) + (fract(rel_tex) / wh); \n"
+	    "	gl_FragColor = texture2D(sampler, rel_tex);\n"
 	    "}\n";
 	GLint fs_prog, vs_prog;
 	GLint sampler_uniform_location;
@@ -76,6 +81,10 @@ glamor_init_tile_shader(ScreenPtr screen)
 					   "sampler");
 	dispatch->glUseProgram(glamor_priv->tile_prog);
 	dispatch->glUniform1i(sampler_uniform_location, 0);
+
+	glamor_priv->tile_wh =
+	    dispatch->glGetUniformLocation(glamor_priv->tile_prog,
+					   "wh");
 	dispatch->glUseProgram(0);
 	glamor_put_dispatch(glamor_priv);
 }
@@ -115,6 +124,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	GLfloat dst_xscale, dst_yscale, src_xscale, src_yscale;
 	glamor_pixmap_private *src_pixmap_priv;
 	glamor_pixmap_private *dst_pixmap_priv;
+	float wh[2];
 
 	src_pixmap_priv = glamor_get_pixmap_private(tile);
 	dst_pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -142,14 +152,6 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 		goto fail;
 	}
 
-	if (src_pixmap_priv->fbo->width != tile->drawable.width
-	    || src_pixmap_priv->fbo->height != tile->drawable.height) {
-		if (!glamor_fixup_pixmap_priv(screen, src_pixmap_priv)) {
-			glamor_fallback("Failed to create a fixup pixmap for partial tiling. \n");
-			goto fail;
-		}
-	}
-
 	if (alu != GXcopy) {
 		glamor_set_destination_pixmap_priv_nc(src_pixmap_priv);
 		glamor_validate_pixmap(tile);
@@ -167,6 +169,10 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 				      &src_yscale);
 		dispatch->glUseProgram(glamor_priv->tile_prog);
 
+		wh[0] = (float)src_pixmap_priv->fbo->width / tile->drawable.width;
+		wh[1] = (float)src_pixmap_priv->fbo->height / tile->drawable.height;
+
+		dispatch->glUniform2fv(glamor_priv->tile_wh, 1, wh);
 		dispatch->glActiveTexture(GL_TEXTURE0);
 		dispatch->glBindTexture(GL_TEXTURE_2D,
 					src_pixmap_priv->fbo->tex);

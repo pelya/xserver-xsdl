@@ -64,6 +64,8 @@ typedef struct glamor_composite_shader {
 	GLint dest_to_mask_uniform_location;
 	GLint source_uniform_location;
 	GLint mask_uniform_location;
+	GLint source_wh;
+	GLint mask_wh;
 } glamor_composite_shader;
 
 typedef struct {
@@ -203,6 +205,7 @@ typedef struct glamor_screen_private {
 
 	/* glamor_tile */
 	GLint tile_prog;
+	GLint tile_wh;
 
 	/* glamor_putimage */
 	GLint put_image_xybitmap_prog;

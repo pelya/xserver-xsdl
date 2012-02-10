@@ -70,6 +70,15 @@ static GLuint
 glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 			   struct shader_key *key)
 {
+	const char *relocate_texture =
+	    GLAMOR_DEFAULT_PRECISION
+	    "vec2 rel_tex_coord(vec2 texture, vec2 wh) \n"
+	    "{\n"
+	    "   vec2 rel_tex; \n"
+	    "   rel_tex = texture * wh; \n"
+	    "   rel_tex = floor(rel_tex) + (fract(rel_tex) / wh); \n"
+            "   return rel_tex; \n"
+	    "}\n";
 	const char *source_solid_fetch =
 	    GLAMOR_DEFAULT_PRECISION
 	    "uniform vec4 source;\n"
@@ -78,26 +87,35 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 	    GLAMOR_DEFAULT_PRECISION
 	    "varying vec2 source_texture;\n"
 	    "uniform sampler2D source_sampler;\n"
+	    "uniform vec2 source_wh;"
 	    "vec4 get_source()\n"
-	    "{\n" "	return texture2D(source_sampler, source_texture);\n"
+	    "{\n" "	return texture2D(source_sampler, rel_tex_coord(source_texture, source_wh));\n"
 	    "}\n";
 	const char *source_pixmap_fetch =
 	    GLAMOR_DEFAULT_PRECISION "varying vec2 source_texture;\n"
-	    "uniform sampler2D source_sampler;\n" "vec4 get_source()\n"
+	    "uniform sampler2D source_sampler;\n"
+	    "uniform vec2 source_wh;"
+	    "vec4 get_source()\n"
 	    "{\n"
-	    "       return vec4(texture2D(source_sampler, source_texture).rgb, 1);\n"
+	    "       return vec4(texture2D(source_sampler, rel_tex_coord(source_texture, source_wh)).rgb, 1);\n"
 	    "}\n";
 	const char *mask_solid_fetch =
 	    GLAMOR_DEFAULT_PRECISION "uniform vec4 mask;\n"
 	    "vec4 get_mask()\n" "{\n" "	return mask;\n" "}\n";
 	const char *mask_alpha_pixmap_fetch =
 	    GLAMOR_DEFAULT_PRECISION "varying vec2 mask_texture;\n"
-	    "uniform sampler2D mask_sampler;\n" "vec4 get_mask()\n" "{\n"
-	    "	return texture2D(mask_sampler, mask_texture);\n" "}\n";
+	    "uniform sampler2D mask_sampler;\n"
+	    "uniform vec2 mask_wh;"
+	    "vec4 get_mask()\n"
+	    "{\n"
+	    "	return texture2D(mask_sampler, rel_tex_coord(mask_texture, mask_wh));\n" "}\n";
 	const char *mask_pixmap_fetch =
 	    GLAMOR_DEFAULT_PRECISION "varying vec2 mask_texture;\n"
-	    "uniform sampler2D mask_sampler;\n" "vec4 get_mask()\n" "{\n"
-	    "       return vec4(texture2D(mask_sampler, mask_texture).rgb, 1);\n"
+	    "uniform sampler2D mask_sampler;\n"
+	    "uniform vec2 mask_wh;"
+	    "vec4 get_mask()\n"
+	    "{\n"
+	    "       return vec4(texture2D(mask_sampler, rel_tex_coord(mask_texture, mask_wh)).rgb, 1);\n"
 	    "}\n";
 	const char *in_source_only =
 	    GLAMOR_DEFAULT_PRECISION "void main()\n" "{\n"
@@ -164,7 +182,7 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 		FatalError("Bad composite IN type");
 	}
 
-	XNFasprintf(&source, "%s%s%s", source_fetch, mask_fetch, in);
+	XNFasprintf(&source, "%s%s%s%s", relocate_texture, source_fetch, mask_fetch, in);
 
 
 	prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
@@ -255,6 +273,7 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
 		source_sampler_uniform_location =
 		    dispatch->glGetUniformLocation(prog, "source_sampler");
 		dispatch->glUniform1i(source_sampler_uniform_location, 0);
+		shader->source_wh = dispatch->glGetUniformLocation(prog, "source_wh");
 	}
 
 	if (key->mask != SHADER_MASK_NONE) {
@@ -267,6 +286,7 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
 							   "mask_sampler");
 			dispatch->glUniform1i
 			    (mask_sampler_uniform_location, 1);
+			shader->mask_wh = dispatch->glGetUniformLocation(prog, "mask_wh");
 		}
 	}
 
@@ -450,35 +470,10 @@ glamor_set_composite_op(ScreenPtr screen,
 }
 
 static void
-glamor_composite_texture_fixup(ScreenPtr screen,
-			       PicturePtr picture,
-			       glamor_pixmap_private * pixmap_priv)
-{
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
-	Bool has_repeat;
-	int width, height;
-
-	if (picture->repeatType == RepeatNone)
-		has_repeat = FALSE;
-	else
-		has_repeat = TRUE;
-
-	if (has_repeat
-	    && ( (pixmap_priv->container->drawable.width != pixmap_priv->fbo->width)
-		 || (pixmap_priv->container->drawable.height != pixmap_priv->fbo->height))) {
-	/* Currently, we can't support repeat on partial texture, now redirect it
-	 * to an exact size fbo. */
-		DEBUGF("prepare to fixup texture \n");
-		if (!glamor_fixup_pixmap_priv(screen, pixmap_priv))
-			ErrorF("Failed to fixup a unmatch size of repeat picture. \n");
-	}
-}
-
-static void
 glamor_set_composite_texture(ScreenPtr screen, int unit,
 			     PicturePtr picture,
-			     glamor_pixmap_private * pixmap_priv)
+			     glamor_pixmap_private * pixmap_priv,
+			     GLuint wh_location)
 {
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
@@ -487,6 +482,8 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glActiveTexture(GL_TEXTURE0 + unit);
 	dispatch->glBindTexture(GL_TEXTURE_2D, pixmap_priv->fbo->tex);
+	float wh[2];
+
 	switch (picture->repeatType) {
 	case RepeatNone:
 #ifndef GLAMOR_GLES2
@@ -539,6 +536,9 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
 #endif
+	wh[0] = (float)pixmap_priv->fbo->width / pixmap_priv->container->drawable.width;
+	wh[1] = (float)pixmap_priv->fbo->height / pixmap_priv->container->drawable.height;
+	dispatch->glUniform2fv(wh_location, 1, wh);
 	glamor_put_dispatch(glamor_priv);
 }
 
@@ -1081,12 +1081,6 @@ glamor_composite_with_shader(CARD8 op,
 		}
 	}
 #endif
-
-	if (key.source != SHADER_SOURCE_SOLID)
-		glamor_composite_texture_fixup(screen, source, source_pixmap_priv);
-	if (key.mask != SHADER_MASK_NONE && key.mask != SHADER_MASK_SOLID)
-		glamor_composite_texture_fixup(screen, mask, mask_pixmap_priv);
-
 	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
 	glamor_validate_pixmap(dest_pixmap);
 
@@ -1109,7 +1103,7 @@ glamor_composite_with_shader(CARD8 op,
 					   shader->source_uniform_location);
 	} else {
 		glamor_set_composite_texture(screen, 0, source,
-					     source_pixmap_priv);
+					     source_pixmap_priv, shader->source_wh);
 	}
 	if (key.mask != SHADER_MASK_NONE) {
 		if (key.mask == SHADER_MASK_SOLID) {
@@ -1118,7 +1112,7 @@ glamor_composite_with_shader(CARD8 op,
 						   shader->mask_uniform_location);
 		} else {
 			glamor_set_composite_texture(screen, 1, mask,
-						     mask_pixmap_priv);
+						     mask_pixmap_priv, shader->mask_wh);
 		}
 	}
 

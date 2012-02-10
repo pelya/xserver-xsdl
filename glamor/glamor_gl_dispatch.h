@@ -94,6 +94,10 @@ typedef struct glamor_gl_dispatch {
 	void (*glUniform1i) (GLint location, GLint v0);
 	void (*glUniform4f) (GLint location, GLfloat v0, GLfloat v1,
 			     GLfloat v2, GLfloat v3);
+	void (*glUniform1fv) (GLint location, GLsizei count,
+			      const GLfloat * value);
+	void (*glUniform2fv) (GLint location, GLsizei count,
+			      const GLfloat * value);
 	void (*glUniform4fv) (GLint location, GLsizei count,
 			      const GLfloat * value);
 	 GLuint(*glCreateProgram) (void);

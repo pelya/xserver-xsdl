@@ -66,6 +66,8 @@ glamor_gl_dispatch_init_impl(struct glamor_gl_dispatch *dispatch,
 	INIT_FUNC(dispatch, glUseProgram, get_proc_address);
 	INIT_FUNC(dispatch, glUniform1i, get_proc_address);
 	INIT_FUNC(dispatch, glUniform4f, get_proc_address);
+	INIT_FUNC(dispatch, glUniform1fv, get_proc_address);
+	INIT_FUNC(dispatch, glUniform2fv, get_proc_address);
 	INIT_FUNC(dispatch, glUniform4fv, get_proc_address);
 	INIT_FUNC(dispatch, glCreateProgram, get_proc_address);
 	INIT_FUNC(dispatch, glDeleteProgram, get_proc_address);
