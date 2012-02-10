@@ -4,8 +4,8 @@
 
 #include <stdlib.h>
 
-#include "mipict.h"
 #include "glamor_priv.h"
+#include "mipict.h"
 
 /* Upload picture to texture.  We may need to flip the y axis or
  * wire alpha to 1. So we may conditional create fbo for the picture.
