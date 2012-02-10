@@ -145,6 +145,10 @@ extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, 
 
 extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen);
 
+extern _X_EXPORT void * glamor_egl_make_current(ScreenPtr screen);
+
+extern _X_EXPORT void glamor_egl_restore_context(ScreenPtr screen, void *context);
+
 #ifdef GLAMOR_FOR_XORG
 
 #define GLAMOR_EGL_MODULE_NAME  "glamoregl"

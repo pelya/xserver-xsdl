@@ -63,6 +63,9 @@
 
 #include "glamor.h"
 #include "glamor_gl_dispatch.h"
+#ifdef GLX_USE_SHARED_DISPATCH
+#include "glapi.h"
+#endif
 
 static const char glamor_name[] = "glamor";
 
@@ -90,6 +93,7 @@ struct glamor_egl_screen_private {
 	struct gbm_device *gbm;
 #endif
 	int has_gem;
+	void *gl_context;
 
 	PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
 	PFNEGLDESTROYIMAGEKHRPROC egl_destroy_image_khr;
@@ -101,13 +105,46 @@ struct glamor_egl_screen_private {
 
 int xf86GlamorEGLPrivateIndex = -1;
 
-static struct glamor_egl_screen_private
-*
+static struct glamor_egl_screen_private *
 glamor_egl_get_screen_private(ScrnInfoPtr scrn)
 {
 	return (struct glamor_egl_screen_private *)
 	    scrn->privates[xf86GlamorEGLPrivateIndex].ptr;
 }
+#ifdef GLX_USE_SHARED_DISPATCH
+_X_EXPORT void *
+glamor_egl_make_current(ScreenPtr screen)
+{
+	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	struct glamor_egl_screen_private *glamor_egl =
+	    glamor_egl_get_screen_private(scrn);
+	GET_CURRENT_CONTEXT(current);
+
+	if (glamor_egl->gl_context != current) {
+		eglMakeCurrent(glamor_egl->display, EGL_NO_SURFACE,
+			       EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		if (!eglMakeCurrent(glamor_egl->display,
+				    EGL_NO_SURFACE, EGL_NO_SURFACE,
+				    glamor_egl->context)) {
+			xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+				   "Failed to make EGL context current\n");
+			return NULL;
+		}
+		return current;
+	}
+	return NULL;
+}
+
+_X_EXPORT void
+glamor_egl_restore_context(ScreenPtr screen, void *context)
+{
+	if (context)
+		SET_CURRENT_CONTEXT(context);
+}
+#else
+#define glamor_egl_make_current(x)  NULL
+#define glamor_egl_restore_context(s, c)
+#endif
 
 static EGLImageKHR
 _glamor_egl_create_image(struct glamor_egl_screen_private *glamor_egl,
@@ -215,9 +252,12 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 	EGLImageKHR image;
 	GLuint texture;
 	int name;
+	void *prev_context;
+	Bool ret = FALSE;
 
 	glamor_egl = glamor_egl_get_screen_private(scrn);
 
+	prev_context = glamor_egl_make_current(screen);
 	if (glamor_egl->has_gem) {
 		if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
 			xf86DrvMsg(scrn->scrnIndex, X_ERROR,
@@ -234,16 +274,20 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 					 ((stride * 8 + 7) / pixmap->drawable.bitsPerPixel),
 					 name,
 					 pixmap->drawable.depth);
-	if (image == EGL_NO_IMAGE_KHR) 
-		return FALSE;
+	if (image == EGL_NO_IMAGE_KHR)
+		goto done;
 
 	glamor_create_texture_from_image(glamor_egl, image, &texture);
 	glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
 	glamor_set_pixmap_texture(pixmap, texture);
 	dixSetPrivate(&pixmap->devPrivates, glamor_egl_pixmap_private_key,
 		      image);
+	ret = TRUE;
 
-	return TRUE;
+done:
+	if (prev_context)
+		glamor_egl_restore_context(screen, prev_context);
+	return ret;
 }
 
 static void
@@ -447,7 +491,10 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 			   "Failed to make EGL context current\n");
 		return FALSE;
 	}
-
+#ifdef GLX_USE_SHARED_DISPATCH
+	GET_CURRENT_CONTEXT(current);
+	glamor_egl->gl_context = current;
+#endif
 	glamor_egl->saved_free_screen = scrn->FreeScreen;
 	scrn->FreeScreen = glamor_egl_free_screen;
 	return TRUE;

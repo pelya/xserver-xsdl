@@ -49,7 +49,10 @@ _glamor_get_spans(DrawablePtr drawable,
 	int i;
 	uint8_t *readpixels_dst = (uint8_t *) dst;
 	int x_off, y_off;
+	GLAMOR_DEFINE_CONTEXT;
+	Bool ret = FALSE;
 
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
 		glamor_fallback("pixmap has no fbo.\n");
 		goto fail;
@@ -97,20 +100,24 @@ _glamor_get_spans(DrawablePtr drawable,
 	}
 	if (temp_pixmap)
 		glamor_destroy_pixmap(temp_pixmap);
-	return TRUE;
 
-      fail:
+	ret = TRUE;
+	goto done;
+fail:
 
 	if (!fallback
 	    && glamor_ddx_fallback_check_pixmap(drawable))
-		return FALSE; 
+		goto done;
+
 	glamor_fallback("from %p (%c)\n", drawable,
 			glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RO)) {
 		fbGetSpans(drawable, wmax, points, widths, count, dst);
 		glamor_finish_access(drawable, GLAMOR_ACCESS_RO);
 	}
-	return TRUE;
+done:
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
+	return ret;
 }
 
 void

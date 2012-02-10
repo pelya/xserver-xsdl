@@ -230,7 +230,7 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 	glamor_set_planemask(pixmap, ~0);
 	glamor_fallback(": to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
-      fail:
+fail:
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 		fbPutImage(drawable, gc, 1, x, y, w, h, left_pad, XYBitmap,
 			   bits);
@@ -265,6 +265,10 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	GLfloat xscale, yscale, txscale, tyscale;
 	GLuint tex;
 	int no_alpha, no_revert;
+	GLAMOR_DEFINE_CONTEXT;
+	Bool ret = FALSE;
+
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	if (image_format == XYBitmap) {
 		assert(depth == 1);
 		goto fail;
@@ -396,14 +400,16 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		dispatch->glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	glamor_set_alu(dispatch, GXcopy);
 	glamor_set_planemask(pixmap, ~0);
-	return TRUE;
 
-      fail:
+	ret = TRUE;
+	goto done;
+
+fail:
 	glamor_set_planemask(pixmap, ~0);
 
 	if (!fallback
 	    && glamor_ddx_fallback_check_pixmap(&pixmap->drawable))
-		return FALSE;
+		goto done;
 
 	glamor_fallback("to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
@@ -412,7 +418,11 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 			   left_pad, image_format, bits);
 		glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RW);
 	}
-	return TRUE;
+	ret = TRUE;
+
+done:
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
+	return ret;
 }
 
 void

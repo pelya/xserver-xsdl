@@ -83,11 +83,9 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, unsigned int tex)
 	ScreenPtr screen = pixmap->drawable.pScreen;
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv;
-	glamor_gl_dispatch *dispatch;
 	glamor_pixmap_fbo *fbo;
 
 	glamor_priv = glamor_get_screen_private(screen);
-	dispatch  = &glamor_priv->dispatch;
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
 	if (pixmap_priv->fbo) {
@@ -130,7 +128,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 	glamor_pixmap_fbo *fbo;
 	int pitch;
 	int flag;
@@ -149,7 +146,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 		fbDestroyPixmap(pixmap);
 		return fbCreatePixmap(screen, w, h, depth, usage);
 	}
-
 	glamor_set_pixmap_private(pixmap, pixmap_priv);
 
 	pixmap_priv->container = pixmap;
@@ -201,11 +197,14 @@ glamor_block_handler(ScreenPtr screen)
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
+	GLAMOR_DEFINE_CONTEXT;
 
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	glamor_priv->tick++;
 	dispatch->glFlush();
 	dispatch->glFinish();
 	glamor_fbo_expire(glamor_priv);
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 }
 
 static void
@@ -392,6 +391,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	glamor_pixmap_init(screen);
 
 	glamor_priv->flags = flags;
+	glamor_priv->screen = screen;
 
 	return TRUE;
 

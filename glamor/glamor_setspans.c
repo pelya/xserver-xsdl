@@ -47,7 +47,10 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	RegionPtr clip = fbGetCompositeClip(gc);
 	BoxRec *pbox;
 	int x_off, y_off;
+	GLAMOR_DEFINE_CONTEXT;
+	Bool ret = FALSE;
 
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
 		glamor_fallback("pixmap has no fbo.\n");
@@ -100,18 +103,25 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	glamor_set_planemask(dest_pixmap, ~0);
 	glamor_set_alu(dispatch, GXcopy);
 	dispatch->glDisable(GL_SCISSOR_TEST);
-	return TRUE;
-      fail:
+	ret = TRUE;
+	goto done;
+
+fail:
 	if (!fallback
 	    && glamor_ddx_fallback_check_pixmap(drawable))
-		return FALSE;
+		goto done;
+
 	glamor_fallback("to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 		fbSetSpans(drawable, gc, src, points, widths, n, sorted);
 		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
-	return TRUE;
+	ret = TRUE;
+
+done:
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
+	return ret;
 }
 
 void

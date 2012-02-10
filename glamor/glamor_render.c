@@ -870,7 +870,10 @@ glamor_composite_with_shader(CARD8 op,
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 	int vert_stride = 4;
 	int nrect_max;
+	GLAMOR_DEFINE_CONTEXT;
+	Bool ret = FALSE;
 
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
 		glamor_fallback("dest has no fbo.\n");
 		goto fail;
@@ -1230,15 +1233,20 @@ glamor_composite_with_shader(CARD8 op,
 	dispatch->glUseProgram(0);
 	if (saved_source_format)
 		source->format = saved_source_format;
-	return TRUE;
 
-      fail:
+	ret = TRUE;
+	goto done;
+
+fail:
 	if (saved_source_format)
 		source->format = saved_source_format;
 
 	dispatch->glDisable(GL_BLEND);
 	dispatch->glUseProgram(0);
-	return FALSE;
+
+done:
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
+	return ret;
 }
 
 static PicturePtr
@@ -1308,11 +1316,11 @@ _glamor_composite(CARD8 op,
 	int prect_size = ARRAY_SIZE(rect);
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
-	glamor_gl_dispatch *dispatch = &glamor_priv->dispatch;
 	Bool ret = TRUE;
 	RegionRec region;
 	BoxPtr box;
 	int nbox, i, ok;
+	GLAMOR_DEFINE_CONTEXT;
 
 	x_temp_src = x_source;
 	y_temp_src = y_source;
@@ -1320,6 +1328,7 @@ _glamor_composite(CARD8 op,
 	y_temp_mask = y_mask;
 
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	/* Currently. Always fallback to cpu if destination is in CPU memory. */
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
 		goto fail;
@@ -1473,10 +1482,8 @@ _glamor_composite(CARD8 op,
 	if (ok)
 		goto done;
 
-      fail:
+fail:
 
-	dispatch->glUseProgram(0);
-	dispatch->glDisable(GL_BLEND);
 	if (!fallback
 	    && glamor_ddx_fallback_check_pixmap(&dest_pixmap->drawable)
 	    && (!source_pixmap 
@@ -1528,6 +1535,7 @@ _glamor_composite(CARD8 op,
 		FreePicture(temp_mask, 0);
 	if (prect != rect)
 		free(prect);
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return ret;
 }
 

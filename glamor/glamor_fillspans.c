@@ -40,6 +40,12 @@ _glamor_fill_spans(DrawablePtr drawable,
 	BoxPtr pbox;
 	int x1, x2, y;
 	RegionPtr pClip = fbGetCompositeClip(gc);
+	glamor_screen_private *glamor_priv;
+	GLAMOR_DEFINE_CONTEXT;
+	Bool ret = FALSE;
+
+	glamor_priv = glamor_get_screen_private(drawable->pScreen);
+	GLAMOR_SET_CONTEXT(glamor_priv);
 
 	if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
 		goto fail;
@@ -71,13 +77,15 @@ _glamor_fill_spans(DrawablePtr drawable,
 			pbox++;
 		}
 	}
-	return TRUE;
+	ret = TRUE;
+	goto done;
 
-      fail:
+fail:
 	if (!fallback 
 	    && glamor_ddx_fallback_check_pixmap(drawable)
-	    && glamor_ddx_fallback_check_gc(gc))
-		return FALSE;
+	    && glamor_ddx_fallback_check_gc(gc)) {
+		goto done;
+	}
 	glamor_fallback("to %p (%c)\n", drawable,
 			glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
@@ -88,7 +96,11 @@ _glamor_fill_spans(DrawablePtr drawable,
 		}
 		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
-	return TRUE;
+	ret = TRUE;
+
+done:
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
+	return ret;
 }
 
 

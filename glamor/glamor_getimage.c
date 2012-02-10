@@ -46,8 +46,14 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	int no_alpha, no_revert;
 	PixmapPtr temp_pixmap = NULL;
 	glamor_gl_dispatch * dispatch;
+	GLAMOR_DEFINE_CONTEXT;
+	Bool ret = FALSE;
 
 	goto fall_back;
+
+	glamor_priv = glamor_get_screen_private(drawable->pScreen);
+	GLAMOR_SET_CONTEXT(glamor_priv);
+
 	if (format != ZPixmap)
 		goto fall_back;
 
@@ -113,10 +119,14 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 				       tex_type, d);
 	if (temp_pixmap)
 		glamor_destroy_pixmap(temp_pixmap);
-	return TRUE;
+
+	ret = TRUE;
 
 fall_back:
-	miGetImage(drawable, x, y, w, h, format, planeMask, d);
+
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
+	if (ret == FALSE)
+		miGetImage(drawable, x, y, w, h, format, planeMask, d);
 	return TRUE;
 }
 

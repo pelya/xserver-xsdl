@@ -45,8 +45,14 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 	int xorg, yorg;
 	int n;
 	register BoxPtr pbox;
-
 	RegionPtr pClip = fbGetCompositeClip(gc);
+	Bool ret = FALSE;
+	glamor_screen_private *glamor_priv;
+	GLAMOR_DEFINE_CONTEXT;
+
+	glamor_priv = glamor_get_screen_private(drawable->pScreen);
+	GLAMOR_SET_CONTEXT(glamor_priv);
+
 	if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) {
 		goto fail;
 	}
@@ -91,14 +97,15 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 				goto fail;
 		}
 	}
-	return TRUE;
+	ret = TRUE;
+	goto done;
 
-      fail:
+fail:
 
 	if (!fallback
 	    && glamor_ddx_fallback_check_pixmap(drawable)
 	    && glamor_ddx_fallback_check_gc(gc))
-		return FALSE;
+		goto done;
 
 	glamor_fallback(" to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
@@ -109,7 +116,11 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 		}
 		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
-	return TRUE;
+	ret = TRUE;
+
+done:
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
+	return ret;
 }
 
 

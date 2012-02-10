@@ -219,6 +219,7 @@ typedef struct glamor_screen_private {
 	int delayed_fallback_pending;
 	glamor_pixmap_validate_function_t *pixmap_validate_funcs;
 	int flags;
+	ScreenPtr screen;
 } glamor_screen_private;
 
 typedef enum glamor_access {

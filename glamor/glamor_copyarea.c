@@ -308,6 +308,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	PixmapPtr dst_pixmap, src_pixmap, temp_pixmap = NULL;
 	DrawablePtr temp_src = src;
 	glamor_pixmap_private *dst_pixmap_priv, *src_pixmap_priv;
+	glamor_screen_private *glamor_priv;
 	BoxRec bound;
 	ScreenPtr screen;
 	int temp_dx = dx;
@@ -315,13 +316,17 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	int src_x_off, src_y_off, dst_x_off, dst_y_off;
 	int i;
 	int overlaped = 0;
-	Bool ret = TRUE;
+	Bool ret = FALSE;
+	GLAMOR_DEFINE_CONTEXT;
 
 	dst_pixmap = glamor_get_drawable_pixmap(dst);
 	dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
 	src_pixmap = glamor_get_drawable_pixmap(src);
 	src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 	screen = dst_pixmap->drawable.pScreen;
+
+	glamor_priv = glamor_get_screen_private(dst->pScreen);
+	GLAMOR_SET_CONTEXT(glamor_priv);
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
 		glamor_fallback("dest pixmap %p has no fbo. \n",
@@ -356,6 +361,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	     || !src_pixmap_priv->gl_tex || !dst_pixmap_priv->gl_tex)
 	    && glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx,
 					   dy)) {
+		ret = TRUE;
 		goto done;
 	}
 #endif
@@ -400,6 +406,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 
 	if (glamor_copy_n_to_n_textured
 	    (temp_src, dst, gc, box, nbox, temp_dx, temp_dy)) {
+		ret = TRUE;
 		goto done;
 	}
 
@@ -408,10 +415,8 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	
 	if (!fallback 
 	    && glamor_ddx_fallback_check_pixmap(src)
-	    && glamor_ddx_fallback_check_pixmap(dst)) {
-		ret = FALSE;
+	    && glamor_ddx_fallback_check_pixmap(dst))
 		goto done;
-	} 
 
 	glamor_report_delayed_fallbacks(src->pScreen);
 	glamor_report_delayed_fallbacks(dst->pScreen);
@@ -436,12 +441,14 @@ _glamor_copy_n_to_n(DrawablePtr src,
 		}
 		glamor_finish_access(dst, GLAMOR_ACCESS_RW);
 	}
+	ret = TRUE;
 
       done:
 	glamor_clear_delayed_fallbacks(src->pScreen);
 	glamor_clear_delayed_fallbacks(dst->pScreen);
 	if (temp_src != src)
 		glamor_destroy_pixmap(temp_pixmap);
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return ret;
 }
 

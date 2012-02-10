@@ -663,4 +663,33 @@ static inline void glamor_dump_pixmap(PixmapPtr pixmap, int x, int y, int w, int
 	}
 	glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RO);
 }
+
+static inline void *glamor_make_current(ScreenPtr screen)
+{
+	return glamor_egl_make_current(screen);
+}
+
+static inline void glamor_restore_current(ScreenPtr screen, void *previous_context)
+{
+	glamor_egl_restore_context(screen, previous_context);
+}
+
+#ifdef GLX_USE_SHARED_DISPATCH
+#define GLAMOR_DEFINE_CONTEXT		void *_previous_context_ = NULL
+#define GLAMOR_SET_CONTEXT(glamor_priv)			\
+	if (glamor_priv->flags & GLAMOR_USE_EGL_SCREEN) \
+		_previous_context_ = glamor_make_current(glamor_priv->screen)
+
+#define GLAMOR_RESTORE_CONTEXT(glamor_priv)			\
+	if ((glamor_priv->flags & GLAMOR_USE_EGL_SCREEN)	\
+	     && _previous_context_ != NULL) 			\
+		glamor_restore_current(glamor_priv->screen, _previous_context_)
+#else
+
+#define GLAMOR_DEFINE_CONTEXT
+#define GLAMOR_SET_CONTEXT(glamor_priv)
+#define GLAMOR_RESTORE_CONTEXT(glamor_priv)
+
+#endif
+
 #endif

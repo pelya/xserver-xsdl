@@ -49,6 +49,9 @@ _glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 	xRectangle *rects;
 	int x1, x2, y1, y2;
 	int i;
+	glamor_screen_private *glamor_priv;
+	GLAMOR_DEFINE_CONTEXT;
+
 	/* Don't try to do wide lines or non-solid fill style. */
 	if (gc->lineWidth != 0) {
 		/* This ends up in miSetSpans, which is accelerated as well as we
@@ -108,6 +111,8 @@ _glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 	    && glamor_ddx_fallback_check_gc(gc))
 		return FALSE;
 
+	glamor_priv = glamor_get_screen_private(drawable->pScreen);
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	if (gc->lineWidth == 0) {
 		if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 			if (glamor_prepare_access_gc(gc)) {
@@ -121,6 +126,7 @@ wide_line:
 		/* fb calls mi functions in the lineWidth != 0 case. */
 		fbPolyLine(drawable, gc, mode, n, points);
 	}
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return TRUE;
 }
 

@@ -36,15 +36,22 @@ static Bool
 _glamor_poly_point(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 		   DDXPointPtr ppt, Bool fallback)
 {
+	GLAMOR_DEFINE_CONTEXT;
+	glamor_screen_private *glamor_priv;
+
 	if (!fallback 
 	    && glamor_ddx_fallback_check_gc(pGC)
 	    && glamor_ddx_fallback_check_pixmap(pDrawable))
 		goto fail;
+
+	glamor_priv = glamor_get_screen_private(pDrawable->pScreen);
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	glamor_prepare_access_gc(pGC);
 	glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
 	fbPolyPoint(pDrawable, pGC, mode, npt, ppt);
 	glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
 	glamor_finish_access_gc(pGC);
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return TRUE;
 
 fail:
@@ -69,10 +76,16 @@ static Bool
 _glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
 		     xSegment *pSeg, Bool fallback)
 {
+	GLAMOR_DEFINE_CONTEXT;
+	glamor_screen_private *glamor_priv;
+
 	if (!fallback 
 	    && glamor_ddx_fallback_check_gc(pGC)
 	    && glamor_ddx_fallback_check_pixmap(pDrawable))
 		goto fail;
+
+	glamor_priv = glamor_get_screen_private(pDrawable->pScreen);
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	/* For lineWidth is not zero, fb calls to mi functions. */
 	if (pGC->lineWidth == 0) {
 		glamor_prepare_access_gc(pGC);
@@ -83,6 +96,7 @@ _glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
 	} else
 	fbPolySegment(pDrawable, pGC, nseg, pSeg);
 
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return TRUE;
 
 fail:
@@ -107,11 +121,17 @@ static Bool
 _glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 		  DDXPointPtr ppt, Bool fallback)
 {
+	GLAMOR_DEFINE_CONTEXT;
+	glamor_screen_private *glamor_priv;
+
 	if (!fallback 
 	    && glamor_ddx_fallback_check_gc(pGC)
 	    && glamor_ddx_fallback_check_pixmap(pDrawable))
 		goto fail;
 	/* For lineWidth is not zero, fb calls to mi functions. */
+
+	glamor_priv = glamor_get_screen_private(pDrawable->pScreen);
+	GLAMOR_SET_CONTEXT(glamor_priv);
 	if (pGC->lineWidth == 0) {
 		glamor_prepare_access_gc(pGC);
 		glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
@@ -121,6 +141,7 @@ _glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 	} else
 	fbPolyLine(pDrawable, pGC, mode, npt, ppt);
 
+	GLAMOR_RESTORE_CONTEXT(glamor_priv);
 	return TRUE;
 
 fail:
