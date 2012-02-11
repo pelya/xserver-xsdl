@@ -2215,7 +2215,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
 
     for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
         if (BitIsOn(mouse->button->down, i))
-            SetBit(&xi2event[1], i);
+            SetBit(&xi2event[1], mouse->button->map[i]);
 
     if (dev->key)
     {
