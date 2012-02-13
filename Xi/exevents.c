@@ -1164,6 +1164,7 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
     {
         EmitTouchEnd(dev, ti, 0, 0);
         TouchEndTouch(dev, ti);
+        return;
     }
 
     if (ti->listeners[0].state == LISTENER_EARLY_ACCEPT)
