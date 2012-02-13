@@ -116,7 +116,14 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
  */
 
 int
-
 winClipboardFlushXEvents(HWND hwnd,
                          int iWindow, Display * pDisplay, Bool fUnicodeSupport);
+
+
+Atom
+winClipboardGetLastOwnedSelectionAtom(void);
+
+void
+winClipboardInitMonitoredSelections(void);
+
 #endif

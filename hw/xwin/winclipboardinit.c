@@ -35,25 +35,16 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "dixstruct.h"
+#include "os.h"
 #include "winclipboard.h"
 
 #define WIN_CLIPBOARD_RETRIES			40
 #define WIN_CLIPBOARD_DELAY			1
 
 /*
- * Local typedefs
- */
-
-typedef int (*winDispatchProcPtr) (ClientPtr);
-
-int winProcSetSelectionOwner(ClientPtr /* client */ );
-
-/*
  * References to external symbols
  */
 
-extern winDispatchProcPtr winProcSetSelectionOwnerOrig;
 extern Bool g_fClipboard;
 extern HWND g_hwndClipboard;
 extern Bool g_fClipboardStarted;
@@ -107,12 +98,6 @@ Bool
 winInitClipboard(void)
 {
     winDebug("winInitClipboard ()\n");
-
-    /* Wrap some internal server functions */
-    if (ProcVector[X_SetSelectionOwner] != winProcSetSelectionOwner) {
-        winProcSetSelectionOwnerOrig = ProcVector[X_SetSelectionOwner];
-        ProcVector[X_SetSelectionOwner] = winProcSetSelectionOwner;
-    }
 
     /* Spawn a thread for the Clipboard module */
     if (pthread_create(&g_ptClipboardProc, NULL, winClipboardThreadProc, NULL)) {

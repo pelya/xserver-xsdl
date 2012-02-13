@@ -86,7 +86,6 @@ pthread_mutex_t g_pmTerminating = PTHREAD_MUTEX_INITIALIZER;
  * Wrapped DIX functions
  */
 winDispatchProcPtr winProcEstablishConnectionOrig = NULL;
-winDispatchProcPtr winProcSetSelectionOwnerOrig = NULL;
 
 /*
  * Clipboard variables
@@ -98,7 +97,6 @@ Bool g_fClipboardStarted = FALSE;
 HWND g_hwndClipboard = NULL;
 void *g_pClipboardDisplay = NULL;
 Window g_iClipboardWindow = None;
-Atom g_atomLastOwnedSelection = None;
 #endif
 
 /*
@@ -113,7 +111,6 @@ winInitializeGlobals(void)
 #ifdef XWIN_CLIPBOARD
     g_iClipboardWindow = None;
     g_pClipboardDisplay = NULL;
-    g_atomLastOwnedSelection = None;
     g_hwndClipboard = NULL;
 #endif
 }

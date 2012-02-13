@@ -2143,7 +2143,7 @@ if test "x$XWIN" = xyes; then
 	AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
 	AC_CHECK_TOOL(WINDRES, windres)
 
-	PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau])
+	PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfixes])
 
 	if test "x$WINDOWSWM" = xauto; then
 		PKG_CHECK_EXISTS($WINDOWSWMPROTO, [WINDOWSWM=yes], [WINDOWSWM=no])
