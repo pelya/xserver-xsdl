@@ -671,7 +671,7 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
 
     if (from->touch)
     {
-        TouchPointInfoPtr tmp;
+        TouchClassPtr t, f;
         if (!to->touch)
         {
             classes = to->unused_classes;
@@ -692,10 +692,18 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
             } else
                 classes->touch = NULL;
         }
-        tmp = to->touch->touches;
-        memcpy(to->touch, from->touch, sizeof(TouchClassRec));
-        to->touch->touches = tmp;
-        to->touch->sourceid = from->id;
+
+
+        t = to->touch;
+        f = from->touch;
+        t->sourceid = f->sourceid;
+        t->max_touches = f->max_touches;
+        t->mode = f->mode;
+        t->buttonsDown = f->buttonsDown;
+        t->state = f->state;
+        t->motionMask = f->motionMask;
+        /* to->touches and to->num_touches are separate on the master,
+         * don't copy */
     } else if (to->touch)
     {
         ClassesPtr classes;
