@@ -704,13 +704,10 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
         t->motionMask = f->motionMask;
         /* to->touches and to->num_touches are separate on the master,
          * don't copy */
-    } else if (to->touch)
-    {
-        ClassesPtr classes;
-        classes = to->unused_classes;
-        classes->touch = to->touch;
-        to->touch      = NULL;
     }
+    /* Don't remove touch class if from->touch is non-existent. The to device
+     * may have an active touch grab, so we need to keep the touch class record
+     * around. */
 }
 
 /**
