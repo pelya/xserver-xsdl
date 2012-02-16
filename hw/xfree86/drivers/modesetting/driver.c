@@ -59,6 +59,10 @@
 
 #include "driver.h"
 
+#ifndef DRM_CAP_DUMB_PREFER_SHADOW
+#define DRM_CAP_DUMB_PREFER_SHADOW 4
+#endif
+
 static void AdjustFrame(int scrnIndex, int x, int y, int flags);
 static Bool CloseScreen(int scrnIndex, ScreenPtr pScreen);
 static Bool EnterVT(int scrnIndex, int flags);
@@ -380,6 +384,9 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     EntityInfoPtr pEnt;
     EntPtr msEnt = NULL;
     char *BusID, *devicename;
+    Bool prefer_shadow = TRUE;
+    uint64_t value = 0;
+    int ret;
 
     if (pScrn->numEntities != 1)
 	return FALSE;
@@ -480,7 +487,12 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 	ms->drmmode.sw_cursor = TRUE;
     }
 
-    ms->shadow_enable = xf86ReturnOptValBool(ms->Options, OPTION_SHADOW_FB, TRUE);
+    ret = drmGetCap(ms->fd, DRM_CAP_DUMB_PREFER_SHADOW, &value);
+    if (!ret) {
+	prefer_shadow = !!value;
+    }
+
+    ms->shadow_enable = xf86ReturnOptValBool(ms->Options, OPTION_SHADOW_FB, prefer_shadow);
 
     ms->drmmode.fd = ms->fd;
     if (drmmode_pre_init(pScrn, &ms->drmmode, pScrn->bitsPerPixel / 8) == FALSE) {
