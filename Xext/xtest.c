@@ -118,6 +118,10 @@ ProcXTestCompareCursor(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
         return rc;
+
+    if (!ptr)
+        return BadAccess;
+
     if (stuff->cursor == None)
         pCursor = NullCursor;
     else if (stuff->cursor == XTestCurrentCursor)
@@ -307,8 +311,14 @@ ProcXTestFakeInput(ClientPtr client)
             return BadValue;
         }
 
+        /* Technically the protocol doesn't allow for BadAccess here but
+         * this can only happen when all MDs are disabled.  */
+        if (!dev)
+            return BadAccess;
+
         dev = GetXTestDevice(dev);
     }
+
 
     /* If the event has a time set, wait for it to pass */
     if (ev->u.keyButtonPointer.time) {
