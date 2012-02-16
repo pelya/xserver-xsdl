@@ -471,9 +471,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     if (ms->fd < 0)
 	return FALSE;
 
-
-
-
     if (!xf86SetWeight(pScrn, defaultWeight, defaultWeight))
 	return FALSE;
     if (!xf86SetDefaultVisual(pScrn, -1))
