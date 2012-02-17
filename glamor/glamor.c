@@ -106,7 +106,7 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, unsigned int tex)
 }
 
 void
-glamor_set_screen_pixmap(PixmapPtr screen_pixmap)
+glamor_set_screen_pixmap(PixmapPtr screen_pixmap, PixmapPtr *back_pixmap)
 {
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv;
@@ -117,6 +117,8 @@ glamor_set_screen_pixmap(PixmapPtr screen_pixmap)
 
 	pixmap_priv->fbo->width = screen_pixmap->drawable.width;
 	pixmap_priv->fbo->height = screen_pixmap->drawable.height;
+
+	glamor_priv->back_pixmap = back_pixmap;
 }
 
 PixmapPtr
@@ -420,6 +422,29 @@ glamor_release_screen_priv(ScreenPtr screen)
 	glamor_set_screen_private(screen, NULL);
 }
 
+_X_EXPORT void
+glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
+{
+	glamor_pixmap_private *old_priv;
+	glamor_pixmap_fbo *fbo;
+
+	old_priv = dixGetPrivate(&pixmap->devPrivates, glamor_pixmap_private_key);
+
+	if (priv) {
+		assert(old_priv == NULL);
+	} else {
+		if (old_priv == NULL)
+			return;
+		fbo = glamor_pixmap_detach_fbo(old_priv);
+		glamor_purge_fbo(fbo);
+		free(old_priv);
+	}
+
+	dixSetPrivate(&pixmap->devPrivates,
+		      glamor_pixmap_private_key,
+		      priv);
+}
+
 Bool
 glamor_close_screen(int idx, ScreenPtr screen)
 {
@@ -458,9 +483,10 @@ glamor_close_screen(int idx, ScreenPtr screen)
 	}
 #endif
 	screen_pixmap = screen->GetScreenPixmap(screen);
-	screen_pixmap_priv = glamor_get_pixmap_private(screen_pixmap);
-	fbo = glamor_pixmap_detach_fbo(screen_pixmap_priv);
-	glamor_purge_fbo(fbo);
+	glamor_set_pixmap_private(screen_pixmap, NULL);
+	if (glamor_priv->back_pixmap && *glamor_priv->back_pixmap)
+		glamor_set_pixmap_private(*glamor_priv->back_pixmap, NULL);
+
 	glamor_release_screen_priv(screen);
 
 	return screen->CloseScreen(idx, screen);

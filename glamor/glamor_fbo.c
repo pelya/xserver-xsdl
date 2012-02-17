@@ -427,3 +427,22 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
 		break;
 	}
 }
+/*
+ * XXX how to handle those pending OPs.
+ * By default, pending OP is disabled. Maybe we will give up the pending
+ * OP latter.
+ *
+ * */
+
+_X_EXPORT void
+glamor_pixmap_exchange_fbos(PixmapPtr front, PixmapPtr back)
+{
+	glamor_pixmap_private *front_priv, *back_priv;
+	glamor_pixmap_fbo *temp_fbo;
+
+	front_priv = glamor_get_pixmap_private(front);
+	back_priv = glamor_get_pixmap_private(back);
+	temp_fbo = front_priv->fbo;
+	front_priv->fbo = back_priv->fbo;
+	back_priv->fbo = temp_fbo;
+}

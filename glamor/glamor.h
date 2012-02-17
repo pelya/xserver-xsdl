@@ -120,7 +120,7 @@ extern _X_EXPORT Bool glamor_close_screen(int idx, ScreenPtr screen);
 /* Let glamor to know the screen's fbo. The low level
  * driver should already assign a tex
  * to this pixmap through the set_pixmap_texture. */
-extern _X_EXPORT void glamor_set_screen_pixmap(PixmapPtr screen_pixmap);
+extern _X_EXPORT void glamor_set_screen_pixmap(PixmapPtr screen_pixmap, PixmapPtr *back_pixmap);
 
 /* @glamor_glyphs_init: Initialize glyphs internal data structures.
  *
@@ -145,6 +145,16 @@ extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen);
 
 extern _X_EXPORT void glamor_egl_make_current(ScreenPtr screen);
 extern _X_EXPORT void glamor_egl_restore_context(ScreenPtr screen);
+
+/* @glamor_egl_exchange_buffers: Exchange the underlying buffers(KHR image,fbo).
+ *
+ * @front: front pixmap.
+ * @back: back pixmap.
+ *
+ * Used by the DRI2 page flip. This function will exchange the KHR images and
+ * fbos of the two pixmaps.
+ * */
+extern _X_EXPORT void glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back);
 
 #ifdef GLAMOR_FOR_XORG
 
@@ -183,6 +193,18 @@ extern _X_EXPORT Bool glamor_egl_init_textured_pixmap(ScreenPtr screen);
 extern _X_EXPORT Bool glamor_egl_create_textured_screen(ScreenPtr screen,
 							int handle,
 							int stride);
+
+/* @glamor_egl_create_textured_screen_ext:
+ *
+ * extent one parameter to track the pointer of the DDX layer's back pixmap.
+ * We need this pointer during the closing screen stage. As before back to
+ * the DDX's close screen, we have to free all the glamor related resources.
+ */
+extern _X_EXPORT Bool glamor_egl_create_textured_screen_ext(ScreenPtr screen,
+							    int handle,
+							    int stride,
+							    PixmapPtr *back_pixmap);
+
 /*
  * @glamor_egl_create_textured_pixmap: Try to create a textured pixmap from
  * 				       a BO handle.

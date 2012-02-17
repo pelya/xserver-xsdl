@@ -212,6 +212,7 @@ typedef struct glamor_screen_private {
 	GLint put_image_xybitmap_fg_uniform_location;
 	GLint put_image_xybitmap_bg_uniform_location;
 
+	PixmapPtr *back_pixmap;
 	int screen_fbo;
 	struct glamor_saved_procs saved_procs;
 	char delayed_fallback_string[GLAMOR_DELAYED_STRING_MAX + 1];
@@ -344,16 +345,7 @@ glamor_get_pixmap_private(PixmapPtr pixmap)
 				glamor_pixmap_private_key);
 }
 
-static inline void
-glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
-{
-	dixSetPrivate(&pixmap->devPrivates,
-		      glamor_pixmap_private_key,
-		      priv);
-}
-
-
-
+void glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv);
 
 /**
  * Returns TRUE if the given planemask covers all the significant bits in the
