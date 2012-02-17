@@ -634,7 +634,7 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
  * OsVendorFatalError
  */
 void
-OsVendorFatalError(void)
+OsVendorFatalError(const char *f, va_list args)
 {
     ErrorF("   OsVendorFatalError\n");
 }
