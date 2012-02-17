@@ -108,6 +108,9 @@ X11ApplicationCanEnterRandR(void);
 void
 X11ApplicationMain(int argc, char **argv, char **envp);
 
+void
+X11ApplicationFatalError(const char *f, va_list args) __printflike(1, 0);
+
 #define PREFS_APPSMENU              "apps_menu"
 #define PREFS_FAKEBUTTONS           "enable_fake_buttons"
 #define PREFS_KEYEQUIVS             "enable_key_equivalents"
