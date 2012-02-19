@@ -24,7 +24,7 @@
 # _ladir passes a dummy rpath to libtool so the thing will actually link
 # TODO: -nostdlib/-Bstatic/-lgcc platform magic, not installing the .a, etc.
 
-AM_CFLAGS = @XORG_CFLAGS@ @DRM_CFLAGS@ @UDEV_CFLAGS@
+AM_CFLAGS = $(XORG_CFLAGS) $(DRM_CFLAGS) $(UDEV_CFLAGS) $(CWARNFLAGS)
 
 modesetting_drv_la_LTLIBRARIES = modesetting_drv.la
 modesetting_drv_la_LDFLAGS = -module -avoid-version
