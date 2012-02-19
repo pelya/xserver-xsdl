@@ -17,7 +17,6 @@
 #  ADAM JACKSON BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-SUBDIRS = 
 
 # this is obnoxious:
 # -module lets us name the module exactly how we want
@@ -37,5 +36,3 @@ modesetting_drv_la_SOURCES = \
 	 driver.h \
 	 drmmode_display.c \
 	 drmmode_display.h
-
-EXTRA_DIST =
