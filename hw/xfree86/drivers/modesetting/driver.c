@@ -333,7 +333,7 @@ static void dispatch_dirty(ScreenPtr pScreen)
 	/* TODO query connector property to see if this is needed */
 	ret = drmModeDirtyFB(ms->fd, ms->drmmode.fb_id, clip, num_cliprects);
 	if (ret) {
-	    if (ret == -EINVAL) {
+	    if (ret == -EINVAL || ret == -ENOSYS) {
 		ms->dirty_enabled = FALSE;
 		DamageUnregister(&pScreen->GetScreenPixmap(pScreen)->drawable, ms->damage);
 		DamageDestroy(ms->damage);
