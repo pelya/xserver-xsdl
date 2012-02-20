@@ -75,8 +75,7 @@ typedef struct _modesettingRec
 
     DamagePtr damage;
     Bool dirty_enabled;
-    Bool shadow_enable;
-    void *shadow_fb;
+
 } modesettingRec, *modesettingPtr;
 
 #define modesettingPTR(p) ((modesettingPtr)((p)->driverPrivate))

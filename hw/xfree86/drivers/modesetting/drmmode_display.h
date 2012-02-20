@@ -54,6 +54,10 @@ typedef struct {
     drmEventContext event_context;
     struct dumb_bo *front_bo;
     Bool sw_cursor;
+
+    Bool shadow_enable;
+    void *shadow_fb;
+
 } drmmode_rec, *drmmode_ptr;
 
 typedef struct {

@@ -492,9 +492,9 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 	prefer_shadow = !!value;
     }
 
-    ms->shadow_enable = xf86ReturnOptValBool(ms->Options, OPTION_SHADOW_FB, prefer_shadow);
+    ms->drmmode.shadow_enable = xf86ReturnOptValBool(ms->Options, OPTION_SHADOW_FB, prefer_shadow);
 
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "ShadowFB: preferred %s, enabled %s\n", prefer_shadow ? "YES" : "NO", ms->shadow_enable ? "YES" : "NO");
+    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "ShadowFB: preferred %s, enabled %s\n", prefer_shadow ? "YES" : "NO", ms->drmmode.shadow_enable ? "YES" : "NO");
     ms->drmmode.fd = ms->fd;
     if (drmmode_pre_init(pScrn, &ms->drmmode, pScrn->bitsPerPixel / 8) == FALSE) {
 	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "KMS setup failed\n");
@@ -527,7 +527,7 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 	return FALSE;
     }
 
-    if (ms->shadow_enable) {
+    if (ms->drmmode.shadow_enable) {
 	if (!xf86LoadSubModule(pScrn, "shadow")) {
 	    return FALSE;
 	}
@@ -577,13 +577,13 @@ CreateScreenResources(ScreenPtr pScreen)
 
     rootPixmap = pScreen->GetScreenPixmap(pScreen);
 
-    if (ms->shadow_enable)
-	pixels = ms->shadow_fb;
+    if (ms->drmmode.shadow_enable)
+	pixels = ms->drmmode.shadow_fb;
     
     if (!pScreen->ModifyPixmapHeader(rootPixmap, -1, -1, -1, -1, -1, pixels))
 	FatalError("Couldn't adjust screen pixmap\n");
 
-    if (ms->shadow_enable) {
+    if (ms->drmmode.shadow_enable) {
 	if (!shadowAdd(pScreen, rootPixmap, shadowUpdatePackedWeak(),
 		       msShadowWindow, 0, 0))
 	    return FALSE;
@@ -634,11 +634,11 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     if (!drmmode_create_initial_bos(pScrn, &ms->drmmode))
 	return FALSE;
 
-    if (ms->shadow_enable) {
-	ms->shadow_fb = calloc(1, pScrn->displayWidth * pScrn->virtualY *
+    if (ms->drmmode.shadow_enable) {
+	ms->drmmode.shadow_fb = calloc(1, pScrn->displayWidth * pScrn->virtualY *
 			       ((pScrn->bitsPerPixel + 7) >> 3));
-	if (!ms->shadow_fb)
-	    ms->shadow_enable = FALSE;
+	if (!ms->drmmode.shadow_fb)
+	    ms->drmmode.shadow_enable = FALSE;
     }	
     
     miClearVisualTypes();
@@ -677,7 +677,7 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 
     fbPictureInit(pScreen, NULL, 0);
 
-    if (ms->shadow_enable && !msShadowInit(pScreen)) {
+    if (ms->drmmode.shadow_enable && !msShadowInit(pScreen)) {
 	xf86DrvMsg(scrnIndex, X_ERROR,
 		   "shadow fb init failed\n");
 	return FALSE;
@@ -791,10 +791,10 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
 	ms->damage = NULL;
     }
 
-    if (ms->shadow_enable) {
+    if (ms->drmmode.shadow_enable) {
 	shadowRemove(pScreen, pScreen->GetScreenPixmap(pScreen));
-	free(ms->shadow_fb);
-	ms->shadow_fb = NULL;
+	free(ms->drmmode.shadow_fb);
+	ms->drmmode.shadow_fb = NULL;
     }
     drmmode_uevent_fini(pScrn, &ms->drmmode);
 
