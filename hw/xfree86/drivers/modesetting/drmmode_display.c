@@ -946,7 +946,7 @@ drmmode_xf86crtc_resize (ScrnInfoPtr scrn, int width, int height)
 	ScreenPtr   screen = screenInfo.screens[scrn->scrnIndex];
 	uint32_t    old_fb_id;
 	int	    i, pitch, old_width, old_height, old_pitch;
-	int cpp = (scrn->bitsPerPixel + 1) / 8;
+	int cpp = (scrn->bitsPerPixel + 7) / 8;
 	PixmapPtr ppix = screen->GetScreenPixmap(screen);
 	void *new_pixels;
 
@@ -1287,16 +1287,17 @@ Bool drmmode_create_initial_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 	xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
 	int width;
 	int height;
-	int bpp;
+	int bpp = pScrn->bitsPerPixel;
 	int i;
+	int cpp = (bpp + 7) / 8;
 
 	width = pScrn->virtualX;
 	height = pScrn->virtualY;
-	bpp = pScrn->bitsPerPixel;
+
 	drmmode->front_bo = dumb_bo_create(drmmode->fd, width, height, bpp);
 	if (!drmmode->front_bo)
 		return FALSE;
-
+	pScrn->displayWidth = drmmode->front_bo->pitch / cpp;
 
 	width = height = 64;
 	bpp = 32;
