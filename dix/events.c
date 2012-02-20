@@ -341,7 +341,7 @@ IsMaster(DeviceIntPtr dev)
 Bool
 IsFloating(DeviceIntPtr dev)
 {
-    return GetMaster(dev, MASTER_KEYBOARD) == NULL;
+    return !IsMaster(dev) && GetMaster(dev, MASTER_KEYBOARD) == NULL;
 }
 
 /**
