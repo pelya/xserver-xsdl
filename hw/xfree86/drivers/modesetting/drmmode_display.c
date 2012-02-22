@@ -466,12 +466,6 @@ static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
     .destroy = NULL, /* XXX */
 };
 
-int drmmode_get_crtc_id(xf86CrtcPtr crtc)
-{
-	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
-	return drmmode_crtc->hw_id;
-}
-
 static void
 drmmode_crtc_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num)
 {
@@ -877,7 +871,7 @@ out_free_encoders:
 	
 }
 
-uint32_t find_clones(ScrnInfoPtr scrn, xf86OutputPtr output)
+static uint32_t find_clones(ScrnInfoPtr scrn, xf86OutputPtr output)
 {
 	drmmode_output_private_ptr drmmode_output = output->driver_private, clone_drmout;
 	int i;
@@ -1072,15 +1066,6 @@ Bool drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp)
 	xf86InitialConfiguration(pScrn, TRUE);
 
 	return TRUE;
-}
-
-void drmmode_set_cursor(ScrnInfoPtr scrn, drmmode_ptr drmmode, int id, struct dumb_bo *bo)
-{
-	xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
-	xf86CrtcPtr crtc = xf86_config->crtc[id];
-	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
-
-	drmmode_crtc->cursor_bo = bo;
 }
 
 void drmmode_adjust_frame(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int x, int y, int flags)
