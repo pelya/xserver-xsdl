@@ -799,7 +799,7 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
 {
     DeviceEvent ev;
     int x, y;
-    XkbStateRec old;
+    XkbStateRec old, old_prev;
     unsigned mods, mask;
     xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(xkbi->device);
     ProcessInputProc backupproc;
@@ -807,6 +807,7 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
     /* never actually used uninitialised, but gcc isn't smart enough
      * to work that out. */
     memset(&old, 0, sizeof(old));
+    memset(&old_prev, 0, sizeof(old_prev));
     memset(&ev, 0, sizeof(ev));
 
     if ((filter->keycode != 0) && (filter->keycode != keycode))
@@ -818,6 +819,11 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
     ev.time = GetTimeInMillis();
     ev.root_x = x;
     ev.root_y = y;
+    /* redirect actions do not work across devices, therefore the following is
+     * correct: */
+    ev.deviceid = xkbi->device->id;
+    /* filter->priv must be set up by the caller for the initial press. */
+    ev.sourceid = filter->priv;
 
     if (filter->keycode == 0) { /* initial press */
         if ((pAction->redirect.new_key < xkbi->desc->min_key_code) ||
@@ -827,7 +833,6 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
         filter->keycode = keycode;
         filter->active = 1;
         filter->filterOthers = 0;
-        filter->priv = 0;
         filter->filter = _XkbFilterRedirectKey;
         filter->upAction = *pAction;
 
@@ -845,6 +850,7 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
 
         if (mask || mods) {
             old = xkbi->state;
+            old_prev = xkbi->prev_state;
             xkbi->state.base_mods &= ~mask;
             xkbi->state.base_mods |= (mods & mask);
             xkbi->state.latched_mods &= ~mask;
@@ -852,6 +858,7 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
             xkbi->state.locked_mods &= ~mask;
             xkbi->state.locked_mods |= (mods & mask);
             XkbComputeDerivedState(xkbi);
+            xkbi->prev_state = xkbi->state;
         }
 
         UNWRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr, backupproc);
@@ -860,8 +867,10 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
         COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr, backupproc,
                                      xkbUnwrapProc);
 
-        if (mask || mods)
+        if (mask || mods) {
             xkbi->state = old;
+            xkbi->prev_state = old_prev;
+        }
     }
     else if (filter->keycode == keycode) {
 
@@ -879,6 +888,7 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
 
         if (mask || mods) {
             old = xkbi->state;
+            old_prev = xkbi->prev_state;
             xkbi->state.base_mods &= ~mask;
             xkbi->state.base_mods |= (mods & mask);
             xkbi->state.latched_mods &= ~mask;
@@ -886,6 +896,7 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
             xkbi->state.locked_mods &= ~mask;
             xkbi->state.locked_mods |= (mods & mask);
             XkbComputeDerivedState(xkbi);
+            xkbi->prev_state = xkbi->state;
         }
 
         UNWRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr, backupproc);
@@ -894,8 +905,10 @@ _XkbFilterRedirectKey(XkbSrvInfoPtr xkbi,
         COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr, backupproc,
                                      xkbUnwrapProc);
 
-        if (mask || mods)
+        if (mask || mods) {
             xkbi->state = old;
+            xkbi->prev_state = old_prev;
+        }
 
         filter->keycode = 0;
         filter->active = 0;
@@ -1165,6 +1178,11 @@ XkbHandleActions(DeviceIntPtr dev, DeviceIntPtr kbd, DeviceEvent *event)
                 break;
             case XkbSA_RedirectKey:
                 filter = _XkbNextFreeFilter(xkbi);
+                /* redirect actions must create a new DeviceEvent.  The
+                 * source device id for this event cannot be obtained from
+                 * xkbi, so we pass it here explicitly. The field deviceid
+                 * equals to xkbi->device->id. */
+                filter->priv = event->sourceid;
                 sendEvent = _XkbFilterRedirectKey(xkbi, filter, key, &act);
                 break;
             case XkbSA_DeviceBtn:
