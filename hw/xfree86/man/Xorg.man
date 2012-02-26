@@ -111,7 +111,7 @@ script.
 .B __xservername__
 supports several mechanisms for supplying/obtaining configuration and
 run-time parameters: command line options, environment variables, the
-__xconfigfile__(__filemansuffix__) configuration files, auto-detection, and
+xorg.conf(__filemansuffix__) configuration files, auto-detection, and
 fallback defaults.  When the same information is supplied in more than
 one way, the highest precedence mechanism is used.  The list of mechanisms
 is ordered from highest precedence to lowest.  Note that not all parameters
@@ -119,7 +119,7 @@ can be supplied via all methods.  The available command line options
 and environment variables (and some defaults) are described here and in
 the Xserver(__appmansuffix__) manual page.  Most configuration file
 parameters, with their defaults, are described in the
-__xconfigfile__(__filemansuffix__) manual page.  Driver and module specific
+xorg.conf(__filemansuffix__) manual page.  Driver and module specific
 configuration parameters are described in the relevant driver or module
 manual page.
 .PP
@@ -142,14 +142,14 @@ as Linux, BSD, OpenSolaris, SVR3, and SVR4.
 Allow the server to start up even if the mouse device can't be opened
 or initialised.  This is equivalent to the
 .B AllowMouseOpenFail
-__xconfigfile__(__filemansuffix__) file option.
+xorg.conf(__filemansuffix__) file option.
 .TP 8
 .B \-allowNonLocalXvidtune
 Make the VidMode extension available to remote clients.  This allows
 the xvidtune client to connect from another host.  This is equivalent
 to the
 .B AllowNonLocalXvidtune
-__xconfigfile__(__filemansuffix__) file option.  By default non-local
+xorg.conf(__filemansuffix__) file option.  By default non-local
 connections are not allowed.
 .TP 8
 .BI \-bgamma " value"
@@ -189,7 +189,7 @@ config directory search path for all other users.
 When this option is specified, the
 .B __xservername__
 server loads all video driver modules, probes for available hardware,
-and writes out an initial __xconfigfile__(__filemansuffix__) file based on
+and writes out an initial xorg.conf(__filemansuffix__) file based on
 what was detected.  This option currently has some problems on some
 platforms, but in most cases it is a good way to bootstrap the
 configuration process.  This option is only available when the server
@@ -209,7 +209,7 @@ Disable the parts of the VidMode extension (used by the xvidtune
 client) that can be used to change the video modes.  This is equivalent
 to the
 .B DisableVidModeExtension
-__xconfigfile__(__filemansuffix__) file option.
+xorg.conf(__filemansuffix__) file option.
 .TP 8
 .B \-fbbpp \fIn\fP
 Sets the number of framebuffer bits per pixel.  You should only set this
@@ -276,7 +276,7 @@ This option is only useful when debugging the server.  Not all platforms
 support (or can use) this option.
 .TP 8
 .BI \-keyboard " keyboard-name"
-Use the __xconfigfile__(__filemansuffix__) file
+Use the xorg.conf(__filemansuffix__) file
 .B InputDevice
 section called
 .I keyboard-name
@@ -288,7 +288,7 @@ section and this option, the first relevant
 section is used for the core keyboard.
 .TP 8
 .BI \-layout " layout-name"
-Use the __xconfigfile__(__filemansuffix__) file
+Use the xorg.conf(__filemansuffix__) file
 .B Layout
 section called
 .IR layout-name .
@@ -345,16 +345,16 @@ reason to use this option.  Some client applications don't like this
 pixmap format, even though it is a perfectly legal format.  This is
 equivalent to the
 .B Pixmap
-__xconfigfile__(__filemansuffix__) file option.
+xorg.conf(__filemansuffix__) file option.
 .TP 8
 .B \-pixmap32
 Set the internal pixmap format for depth 24 pixmaps to 32 bits per pixel.
 This is usually the default.  This is equivalent to the
 .B Pixmap
-__xconfigfile__(__filemansuffix__) file option.
+xorg.conf(__filemansuffix__) file option.
 .TP 8
 .BI \-pointer " pointer-name"
-Use the __xconfigfile__(__filemansuffix__) file
+Use the xorg.conf(__filemansuffix__) file
 .B InputDevice
 section called
 .I pointer-name
@@ -384,7 +384,7 @@ options.
 Share virtual terminals with another X server, if supported by the OS.
 .TP 8
 .BI \-screen " screen-name"
-Use the __xconfigfile__(__filemansuffix__) file
+Use the xorg.conf(__filemansuffix__) file
 .B Screen
 section called
 .IR screen-name .
@@ -448,7 +448,7 @@ keymap.
 Immediately kills the server -- no questions asked. It can be disabled by
 setting the
 .B DontZap
-__xconfigfile__(__filemansuffix__) file option to a TRUE value.
+xorg.conf(__filemansuffix__) file option to a TRUE value.
 .PP
 .RS 8
 It should be noted that zapping is triggered by the
@@ -462,43 +462,43 @@ but can be enabled with the XKB option
 Change video mode to next one specified in the configuration file.
 This can be disabled with the
 .B DontZoom
-__xconfigfile__(__filemansuffix__) file option.
+xorg.conf(__filemansuffix__) file option.
 .TP 8
 .B Ctrl+Alt+Keypad-Minus
 Change video mode to previous one specified in the configuration file.
 This can be disabled with the
 .B DontZoom
-__xconfigfile__(__filemansuffix__) file option.
+xorg.conf(__filemansuffix__) file option.
 .TP 8
 .B Ctrl+Alt+F1...F12
 For systems with virtual terminal support, these keystroke
 combinations are used to switch to virtual terminals 1 through 12,
 respectively.  This can be disabled with the
 .B DontVTSwitch
-__xconfigfile__(__filemansuffix__) file option.
+xorg.conf(__filemansuffix__) file option.
 .SH CONFIGURATION
 .B __xservername__
 typically uses a configuration file called
-.B __xconfigfile__
+.B xorg.conf
 and configuration files with the suffix
 .I .conf
 in a directory called
 .B __xconfigdir__
 for its initial setup.
-Refer to the __xconfigfile__(__filemansuffix__) manual page for information
+Refer to the xorg.conf(__filemansuffix__) manual page for information
 about the format of this file.
 .PP
 .B __xservername__
 has a mechanism for automatically generating a built-in configuration
 at run-time when no
-.B __xconfigfile__
+.B xorg.conf
 file or
 .B __xconfigdir__
 files are present.  The current version of this automatic configuration
 mechanism works in two ways.
 .PP
 The first is via enhancements that have made many components of the
-.B __xconfigfile__
+.B xorg.conf
 file optional.  This means that information that can be probed or
 reasonably deduced doesn't need to be specified explicitly, greatly
 reducing the amount of built-in configuration information that needs to
@@ -517,22 +517,22 @@ supported by __xservername__.  Enhancements are planned for future releases.
 The
 .B __xservername__
 server config files can be found in a range of locations.  These are
-documented fully in the __xconfigfile__(__filemansuffix__) manual page.  The
+documented fully in the xorg.conf(__filemansuffix__) manual page.  The
 most commonly used locations are shown here.
 .TP 30
-.B /etc/X11/__xconfigfile__
+.B /etc/X11/xorg.conf
 Server configuration file.
 .TP 30
-.B /etc/X11/__xconfigfile__-4
+.B /etc/X11/xorg.conf-4
 Server configuration file.
 .TP 30
-.B /etc/__xconfigfile__
+.B /etc/xorg.conf
 Server configuration file.
 .TP 30
-.B __projectroot__/etc/__xconfigfile__
+.B __projectroot__/etc/xorg.conf
 Server configuration file.
 .TP 30
-.B __projectroot__/lib/X11/__xconfigfile__
+.B __projectroot__/lib/X11/xorg.conf
 Server configuration file.
 .TP 30
 .B /etc/X11/__xconfigdir__
@@ -580,7 +580,7 @@ Initial access control list for display
 .IR n .
 .SH "SEE ALSO"
 X(__miscmansuffix__), Xserver(__appmansuffix__), xdm(__appmansuffix__), xinit(__appmansuffix__),
-__xconfigfile__(__filemansuffix__), xvidtune(__appmansuffix__),
+xorg.conf(__filemansuffix__), xvidtune(__appmansuffix__),
 xkeyboard-config (__miscmansuffix__),
 apm(__drivermansuffix__),
 ati(__drivermansuffix__),

@@ -1,14 +1,14 @@
 .\" shorthand for double quote that works everywhere.
 .ds q \N'34'
-.TH __xconfigfile__ __filemansuffix__ __vendorversion__
+.TH xorg.conf __filemansuffix__ __vendorversion__
 .SH NAME
-__xconfigfile__, __xconfigdir__ \- configuration files for
+xorg.conf, __xconfigdir__ \- configuration files for
 __xservername__ X server
 .SH INTRODUCTION
 .B __xservername__
 supports several mechanisms for supplying/obtaining configuration and
 run-time parameters: command line options, environment variables, the
-__xconfigfile__ and __xconfigdir__ configuration files, auto-detection,
+xorg.conf and __xconfigdir__ configuration files, auto-detection,
 and fallback defaults. When the same information is supplied in more
 than one way, the highest precedence mechanism is used. The list of
 mechanisms is ordered from highest precedence to lowest. Note that not
@@ -22,14 +22,14 @@ or module manual page.
 .SH DESCRIPTION
 .B __xservername__
 uses a configuration file called
-.I __xconfigfile__
+.I xorg.conf
 and files ending in the suffix
 .I .conf
 from the directory
 .I __xconfigdir__
 for its initial setup.
 The
-.I __xconfigfile__
+.I xorg.conf
 configuration file is searched for in the following places when the
 server is started as a normal user:
 .PP
@@ -39,12 +39,12 @@ server is started as a normal user:
 .IR __projectroot__/etc/X11/ <cmdline>
 .IB /etc/X11/ $XORGCONFIG
 .IB __projectroot__/etc/X11/ $XORGCONFIG
-.I /etc/X11/__xconfigfile__
-.I /etc/__xconfigfile__
-.IR __projectroot__/etc/X11/__xconfigfile__. <hostname>
-.I __projectroot__/etc/X11/__xconfigfile__
-.IR __projectroot__/lib/X11/__xconfigfile__. <hostname>
-.I __projectroot__/lib/X11/__xconfigfile__
+.I /etc/X11/xorg.conf
+.I /etc/xorg.conf
+.IR __projectroot__/etc/X11/xorg.conf. <hostname>
+.I __projectroot__/etc/X11/xorg.conf
+.IR __projectroot__/lib/X11/xorg.conf. <hostname>
+.I __projectroot__/lib/X11/xorg.conf
 .fi
 .RE
 .PP
@@ -71,12 +71,12 @@ search locations are as follows:
 .B $XORGCONFIG
 .IB /etc/X11/ $XORGCONFIG
 .IB __projectroot__/etc/X11/ $XORGCONFIG
-.I /etc/X11/__xconfigfile__
-.I /etc/__xconfigfile__
-.IR __projectroot__/etc/X11/__xconfigfile__. <hostname>
-.I __projectroot__/etc/X11/__xconfigfile__
-.IR __projectroot__/lib/X11/__xconfigfile__. <hostname>
-.I __projectroot__/lib/X11/__xconfigfile__
+.I /etc/X11/xorg.conf
+.I /etc/xorg.conf
+.IR __projectroot__/etc/X11/xorg.conf. <hostname>
+.I __projectroot__/etc/X11/xorg.conf
+.IR __projectroot__/lib/X11/xorg.conf. <hostname>
+.I __projectroot__/lib/X11/xorg.conf
 .fi
 .RE
 .PP
@@ -145,7 +145,7 @@ These files are found in the following directories:
 .RE
 .PP
 The
-.I __xconfigfile__
+.I xorg.conf
 and
 .I __xconfigdir__
 files are composed of a number of sections which may be present in any order,
