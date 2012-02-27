@@ -345,13 +345,15 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
         pDev->last.valuators[0] = rescaleValuatorAxis(pDev->last.valuators[0],
                                                       NULL,
                                                       pDev->valuator->axes + 0,
-                                                      0, scr->width);
+                                                      screenInfo.x,
+                                                      screenInfo.width);
     }
     if (pDev->valuator->numAxes > 1) {
         pDev->last.valuators[1] = rescaleValuatorAxis(pDev->last.valuators[1],
                                                       NULL,
                                                       pDev->valuator->axes + 1,
-                                                      0, scr->height);
+                                                      screenInfo.y,
+                                                      screenInfo.height);
     }
 
     /* calculate the other axis as well based on info from the old
