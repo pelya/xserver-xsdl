@@ -1052,6 +1052,7 @@ CloseDownDevices(void)
     inputInfo.pointer = NULL;
 
     XkbDeleteRulesDflts();
+    XkbDeleteRulesUsed();
 
     OsReleaseSignals();
 }

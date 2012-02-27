@@ -251,6 +251,21 @@ XkbSetRulesDflts(XkbRMLVOSet * rmlvo)
 }
 
 void
+XkbDeleteRulesUsed(void)
+{
+    free(XkbRulesUsed);
+    XkbRulesUsed = NULL;
+    free(XkbModelUsed);
+    XkbModelUsed = NULL;
+    free(XkbLayoutUsed);
+    XkbLayoutUsed = NULL;
+    free(XkbVariantUsed);
+    XkbVariantUsed = NULL;
+    free(XkbOptionsUsed);
+    XkbOptionsUsed = NULL;
+}
+
+void
 XkbDeleteRulesDflts(void)
 {
     free(XkbRulesDflt);
