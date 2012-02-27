@@ -366,6 +366,8 @@ main(int argc, char *argv[], char *envp[])
 
         FreeAuditTimer();
 
+        DeleteCallbackManager();
+
         if (dispatchException & DE_TERMINATE) {
             CloseWellKnownConnections();
         }
