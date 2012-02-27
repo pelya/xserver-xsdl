@@ -358,6 +358,8 @@ main(int argc, char *argv[], char *envp[])
         dixFreePrivates(serverClient->devPrivates, PRIVATE_CLIENT);
         serverClient->devPrivates = NULL;
 
+	dixFreeRegistry();
+
         FreeFonts();
 
         FreeAllAtoms();
