@@ -198,9 +198,11 @@ set_valuators(DeviceIntPtr dev, DeviceEvent* event, ValuatorMask *mask)
 {
     int i;
 
+    if (!dev->valuator)
+        return;
     /* Set the data to the previous value for unset absolute axes. The values
      * may be used when sent as part of an XI 1.x valuator event. */
-    for (i = 0; i < valuator_mask_size(mask); i++)
+    for (i = 0; (i < valuator_mask_size(mask)) && (i < dev->valuator->numAxes); i++)
     {
         if (valuator_mask_isset(mask, i))
         {
@@ -640,7 +642,7 @@ clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
 {
     AxisInfoPtr axis;
 
-    if (axisNum >= pDev->valuator->numAxes)
+    if (!pDev->valuator || axisNum >= pDev->valuator->numAxes)
         return;
 
     axis = pDev->valuator->axes + axisNum;
@@ -1185,7 +1187,8 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
 
     if (flags & POINTER_ABSOLUTE)
     {
-        if (flags & POINTER_SCREEN) /* valuators are in screen coords */
+        if ((flags & POINTER_SCREEN) && /* valuators are in screen coords */
+             pDev->valuator && (pDev->valuator->numAxes >= 2))
         {
             int scaled;
 
