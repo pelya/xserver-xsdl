@@ -174,7 +174,7 @@ Identify(int flags)
 		      Chipsets);
 }
 
-static Bool probe_hw(char *dev)
+static int open_hw(char *dev)
 {
     int fd;
     if (dev)
@@ -186,13 +186,20 @@ static Bool probe_hw(char *dev)
 	    fd = open(dev,O_RDWR, 0);
 	}
     }
-    if (fd == -1) {
+    if (fd == -1)
 	xf86DrvMsg(-1, X_ERROR,"open %s: %s\n", dev, strerror(errno));
-	return FALSE;
-    }
-    close(fd);
-    return TRUE;
 
+    return fd;
+}
+
+static Bool probe_hw(char *dev)
+{
+    int fd = open_hw(dev);
+    if (fd != -1) {
+        close(fd);
+	return TRUE;
+    }
+    return FALSE;
 }
 
 static const OptionInfoRec *
