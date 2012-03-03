@@ -216,15 +216,19 @@ winScreenInit(ScreenPtr pScreen, int argc, char **argv)
     else
         winErrorFVerb(2, "winScreenInit - Using software cursor\n");
 
-    /*
-       Note the screen origin in a normalized coordinate space where (0,0) is at the top left
-       of the native virtual desktop area
-     */
-    pScreen->x = pScreenInfo->dwInitialX - GetSystemMetrics(SM_XVIRTUALSCREEN);
-    pScreen->y = pScreenInfo->dwInitialY - GetSystemMetrics(SM_YVIRTUALSCREEN);
+    if (!noPanoramiXExtension) {
+        /*
+           Note the screen origin in a normalized coordinate space where (0,0) is at the top left
+           of the native virtual desktop area
+         */
+        pScreen->x =
+            pScreenInfo->dwInitialX - GetSystemMetrics(SM_XVIRTUALSCREEN);
+        pScreen->y =
+            pScreenInfo->dwInitialY - GetSystemMetrics(SM_YVIRTUALSCREEN);
 
-    ErrorF("Screen %d added at virtual desktop coordinate (%d,%d).\n",
-           pScreen->myNum, pScreen->x, pScreen->y);
+        ErrorF("Screen %d added at virtual desktop coordinate (%d,%d).\n",
+               pScreen->myNum, pScreen->x, pScreen->y);
+    }
 
 #if CYGDEBUG || YES
     winDebug("winScreenInit - returning\n");
