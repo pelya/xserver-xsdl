@@ -274,7 +274,7 @@ Probe(DriverPtr drv, int flags)
 					  NULL, NULL, NULL, NULL);
 	    }
 
-	    if (scrn)
+	    if (scrn) {
 		foundScreen = TRUE;
 		scrn->driverVersion = 1;
 		scrn->driverName = "modesetting";
@@ -291,6 +291,7 @@ Probe(DriverPtr drv, int flags)
 
 		xf86DrvMsg(scrn->scrnIndex, X_INFO,
 			   "using %s\n", dev ? dev : "default device");
+	    }
 	}
     }
 
