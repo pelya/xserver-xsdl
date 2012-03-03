@@ -273,32 +273,30 @@ Probe(DriverPtr drv, int flags)
     for (i = 0; i < numDevSections; i++) {
 
 	dev = xf86FindOptionValue(devSections[i]->options,"kmsdev");
-	if (devSections[i]->busID) {
-	    if (probe_hw(dev)) {
-		int entity;
-		entity = xf86ClaimFbSlot(drv, 0, devSections[i], TRUE);
-		scrn = xf86ConfigFbEntity(scrn, 0, entity,
-					  NULL, NULL, NULL, NULL);
-	    }
+	if (probe_hw(dev)) {
+	    int entity;
+	    entity = xf86ClaimFbSlot(drv, 0, devSections[i], TRUE);
+	    scrn = xf86ConfigFbEntity(scrn, 0, entity,
+				  NULL, NULL, NULL, NULL);
+	}
 
-	    if (scrn) {
-		foundScreen = TRUE;
-		scrn->driverVersion = 1;
-		scrn->driverName = "modesetting";
-		scrn->name = "modesetting";
-		scrn->Probe = Probe;
-		scrn->PreInit = PreInit;
-		scrn->ScreenInit = ScreenInit;
-		scrn->SwitchMode = SwitchMode;
-		scrn->AdjustFrame = AdjustFrame;
-		scrn->EnterVT = EnterVT;
-		scrn->LeaveVT = LeaveVT;
-		scrn->FreeScreen = FreeScreen;
-		scrn->ValidMode = ValidMode;
+	if (scrn) {
+	    foundScreen = TRUE;
+	    scrn->driverVersion = 1;
+	    scrn->driverName = "modesetting";
+	    scrn->name = "modesetting";
+	    scrn->Probe = Probe;
+	    scrn->PreInit = PreInit;
+	    scrn->ScreenInit = ScreenInit;
+	    scrn->SwitchMode = SwitchMode;
+	    scrn->AdjustFrame = AdjustFrame;
+	    scrn->EnterVT = EnterVT;
+	    scrn->LeaveVT = LeaveVT;
+	    scrn->FreeScreen = FreeScreen;
+	    scrn->ValidMode = ValidMode;
 
-		xf86DrvMsg(scrn->scrnIndex, X_INFO,
+	    xf86DrvMsg(scrn->scrnIndex, X_INFO,
 			   "using %s\n", dev ? dev : "default device");
-	    }
 	}
     }
 
