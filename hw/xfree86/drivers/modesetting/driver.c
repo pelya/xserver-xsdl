@@ -415,9 +415,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
     pScrn->displayWidth = 640;	       /* default it */
 
-    if (ms->pEnt->location.type != BUS_PCI)
-	return FALSE;
-
     /* Allocate an entity private if necessary */
     if (xf86IsEntityShared(pScrn->entityList[0])) {
 	msEnt = xf86GetEntityPrivate(pScrn->entityList[0],
