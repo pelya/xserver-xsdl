@@ -418,8 +418,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     if (ms->pEnt->location.type != BUS_PCI)
 	return FALSE;
 
-    ms->PciInfo = xf86GetPciInfoForEntity(ms->pEnt->index);
-
     /* Allocate an entity private if necessary */
     if (xf86IsEntityShared(pScrn->entityList[0])) {
 	msEnt = xf86GetEntityPrivate(pScrn->entityList[0],
@@ -465,8 +463,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     memcpy(ms->Options, Options, sizeof(Options));
     xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, ms->Options);
 
-    devicename = xf86GetOptValString(ms->Options, OPTION_DEVICE_PATH);
-    if (!devicename) {
+    ms->PciInfo = xf86GetPciInfoForEntity(ms->pEnt->index);
+    if (ms->PciInfo) {
        BusID = malloc(64);
        sprintf(BusID, "PCI:%d:%d:%d",
 #if XSERVER_LIBPCIACCESS
@@ -481,7 +479,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
        ms->fd = drmOpen(NULL, BusID);
     } else {
-       ms->fd = open(devicename, O_RDWR, 0);
+       devicename = xf86GetOptValString(ms->Options, OPTION_DEVICE_PATH);
+       ms->fd = open_hw(devicename);
     }
     if (ms->fd < 0)
 	return FALSE;
