@@ -9,13 +9,13 @@
 #define GLAMOR_CACHE_TEXTURE	2
 
 /* Loop from the tail to the head. */
-#define list_for_each_entry_reverse(pos, head, member)                  \
+#define xorg_list_for_each_entry_reverse(pos, head, member)             \
     for (pos = __container_of((head)->prev, pos, member);               \
          &pos->member != (head);                                        \
          pos = __container_of(pos->member.prev, pos, member))
 
 
-#define list_for_each_entry_safe_reverse(pos, tmp, head, member)        \
+#define xorg_list_for_each_entry_safe_reverse(pos, tmp, head, member)   \
     for (pos = __container_of((head)->prev, pos, member),               \
          tmp = __container_of(pos->member.prev, pos, member);           \
          &pos->member != (head);                                        \
@@ -77,7 +77,7 @@ glamor_pixmap_fbo *
 glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 			    int w, int h, GLenum format, int flag)
 {
-	struct list *cache;
+	struct xorg_list *cache;
 	glamor_pixmap_fbo *fbo_entry;
 	int size;
 
@@ -90,27 +90,27 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 					       [cache_wbucket(w)]
 					       [cache_hbucket(h)];
 	if (!(flag & GLAMOR_CACHE_EXACT_SIZE)) {
-		list_for_each_entry(fbo_entry, cache, list) {
+		xorg_list_for_each_entry(fbo_entry, cache, list) {
 			if (fbo_entry->width >= w && fbo_entry->height >= h) {
 
 				DEBUGF("Request w %d h %d \n", w, h);
 				DEBUGF("got cache entry %p w %d h %d fbo %d tex %d\n",
 					fbo_entry, fbo_entry->width, fbo_entry->height,
 					fbo_entry->fb, fbo_entry->tex);
-				list_del(&fbo_entry->list);
+				xorg_list_del(&fbo_entry->list);
 				return fbo_entry;
 			}
 		}
 	}
 	else {
-		list_for_each_entry(fbo_entry, cache, list) {
+		xorg_list_for_each_entry(fbo_entry, cache, list) {
 			if (fbo_entry->width == w && fbo_entry->height == h) {
 
 				DEBUGF("Request w %d h %d \n", w, h);
 				DEBUGF("got cache entry %p w %d h %d fbo %d tex %d\n",
 					fbo_entry, fbo_entry->width, fbo_entry->height,
 					fbo_entry->fb, fbo_entry->tex);
-				list_del(&fbo_entry->list);
+				xorg_list_del(&fbo_entry->list);
 				return fbo_entry;
 			}
 		}
@@ -138,7 +138,7 @@ glamor_purge_fbo(glamor_pixmap_fbo *fbo)
 void
 glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 {
-	struct list *cache;
+	struct xorg_list *cache;
 
 	if (fbo->fb == 0) {
 		glamor_purge_fbo(fbo);
@@ -155,7 +155,7 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 						    [cache_hbucket(fbo->height)];
 	DEBUGF("Put cache entry %p to cache %p w %d h %d format %x fbo %d tex %d \n", fbo, cache,
 		fbo->width, fbo->height, fbo->format, fbo->fb, fbo->tex);
-	list_add(&fbo->list, cache);
+	xorg_list_add(&fbo->list, cache);
 	fbo->expire = fbo->glamor_priv->tick + GLAMOR_CACHE_EXPIRE_MAX;
 }
 
@@ -170,7 +170,7 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
 	if (fbo == NULL)
 		return NULL;
 
-	list_init(&fbo->list);
+	xorg_list_init(&fbo->list);
 	gl_iformat_for_depth(depth, &format);
 
 	fbo->tex = tex;
@@ -189,7 +189,7 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
 void
 glamor_fbo_expire(glamor_screen_private *glamor_priv)
 {
-	struct list *cache;
+	struct xorg_list *cache;
 	glamor_pixmap_fbo *fbo_entry, *tmp;
 	int i,j,k;
 	int empty_cache = TRUE;
@@ -198,24 +198,24 @@ glamor_fbo_expire(glamor_screen_private *glamor_priv)
 		for(j = 0; j < CACHE_BUCKET_WCOUNT; j++)
 			for(k = 0; k < CACHE_BUCKET_HCOUNT; k++) {
 				cache = &glamor_priv->fbo_cache[i][j][k];
-				list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
+				xorg_list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
 					if (GLAMOR_TICK_AFTER(fbo_entry->expire, glamor_priv->tick)) {
 						empty_cache = FALSE;
 						break;
 					}
-					list_del(&fbo_entry->list);
+					xorg_list_del(&fbo_entry->list);
 					DEBUGF("cache %p fbo %p expired %d current %d \n", cache, fbo_entry,
 						fbo_entry->expire, glamor_priv->tick);
 					glamor_purge_fbo(fbo_entry);
 				}
 #if 0
 				cache = &glamor_priv->tex_cache[i][j][k];
-				list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
+				xorg_list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
 					if (GLAMOR_TICK_AFTER(fbo_entry->expire, glamor_priv->tick)) {
 						empty_cache = FALSE;
 						break;
 					}
-					list_del(&fbo_entry->list);
+					xorg_list_del(&fbo_entry->list);
 					DEBUGF("cache %p fbo %p expired %d current %d \n", cache, fbo_entry,
 						fbo_entry->expire, glamor_priv->tick);
 					glamor_purge_fbo(fbo_entry);
@@ -236,15 +236,15 @@ glamor_init_pixmap_fbo(ScreenPtr screen)
 		for(j = 0; j < CACHE_BUCKET_WCOUNT; j++)
 			for(k = 0; k < CACHE_BUCKET_HCOUNT; k++)
 			{
-				list_init(&glamor_priv->fbo_cache[i][j][k]);
-				list_init(&glamor_priv->tex_cache[i][j][k]);
+				xorg_list_init(&glamor_priv->fbo_cache[i][j][k]);
+				xorg_list_init(&glamor_priv->tex_cache[i][j][k]);
 			}
 }
 
 void
 glamor_fini_pixmap_fbo(ScreenPtr screen)
 {
-	struct list *cache;
+	struct xorg_list *cache;
 	glamor_screen_private *glamor_priv;
 	glamor_pixmap_fbo *fbo_entry, *tmp;
 	int i,j,k;
@@ -255,14 +255,14 @@ glamor_fini_pixmap_fbo(ScreenPtr screen)
 			for(k = 0; k < CACHE_BUCKET_HCOUNT; k++)
 			{
 				cache = &glamor_priv->fbo_cache[i][j][k];
-				list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
-					list_del(&fbo_entry->list);
+				xorg_list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
+					xorg_list_del(&fbo_entry->list);
 					glamor_purge_fbo(fbo_entry);
 				}
 #if 0
 				cache = &glamor_priv->tex_cache[i][j][k];
-				list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
-					list_del(&fbo_entry->list);
+				xorg_list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
+					xorg_list_del(&fbo_entry->list);
 					glamor_purge_fbo(fbo_entry);
 				}
 #endif
@@ -272,7 +272,7 @@ glamor_fini_pixmap_fbo(ScreenPtr screen)
 void
 glamor_destroy_fbo(glamor_pixmap_fbo *fbo)
 {
-	list_del(&fbo->list);
+	xorg_list_del(&fbo->list);
 	glamor_pixmap_fbo_cache_put(fbo);
 
 }
@@ -297,7 +297,7 @@ glamor_create_tex_obj(glamor_screen_private *glamor_priv,
 	if (fbo == NULL)
 		return NULL;
 
-	list_init(&fbo->list);
+	xorg_list_init(&fbo->list);
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glGenTextures(1, &tex);
@@ -323,7 +323,7 @@ void
 glamor_destroy_tex_obj(glamor_pixmap_fbo * tex_obj)
 {
 	assert(tex_obj->fb == 0);
-	list_del(&tex_obj->list);
+	xorg_list_del(&tex_obj->list);
 	glamor_pixmap_fbo_cache_put(tex_obj);
 }
 

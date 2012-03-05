@@ -56,6 +56,20 @@
 #include "glamor_debug.h"
 
 #include <list.h>
+/* The list.h rename all the function to add xorg_ prefix.
+   We add hack here to avoid the compile error when using
+   old version xserver header file.
+   These will be removed in future. */
+#ifndef xorg_list_entry
+#define xorg_list list
+#define xorg_list_for_each_entry list_for_each_entry
+#define xorg_list_for_each_entry_safe list_for_each_entry_safe
+#define xorg_list_del list_del
+#define xorg_list_add list_add
+#define xorg_list_append list_append
+#define xorg_list_init list_init
+#endif
+
 
 typedef struct glamor_composite_shader {
 	GLuint prog;
@@ -177,8 +191,8 @@ typedef struct glamor_screen_private {
 	int has_fbo_blit;
 	int max_fbo_size;
 
-	struct list fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
-	struct list tex_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
+	struct xorg_list fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
+	struct xorg_list tex_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
 
 	/* glamor_solid */
 	GLint solid_prog;
@@ -262,7 +276,7 @@ typedef union _glamor_pending_op {
  * @glamor_priv: point to glamor private data.
  */
 typedef struct glamor_pixmap_fbo {
-	struct list list;
+	struct xorg_list list;
 	unsigned int expire;
 	unsigned char pbo_valid;
 	GLuint tex;
