@@ -238,9 +238,6 @@ xf86OpenConsole(void)
             cfsetispeed(&nTty, 9600);
             cfsetospeed(&nTty, 9600);
             tcsetattr(xf86Info.consoleFd, TCSANOW, &nTty);
-
-            /* we really should have a InitOSInputDevices() function instead
-             * of Init?$#*&Device(). So I just place it here */
         }
     }
     else {                      /* serverGeneration != 1 */
