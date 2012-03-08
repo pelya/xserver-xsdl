@@ -510,7 +510,8 @@ TouchBuildDependentSpriteTrace(DeviceIntPtr dev, SpritePtr sprite)
     /* All touches should have the same sprite trace, so find and reuse an
      * existing touch's sprite if possible, else use the device's sprite. */
     for (i = 0; i < t->num_touches; i++)
-        if (t->touches[i].sprite.spriteTraceGood > 0)
+        if (!t->touches[i].pending_finish &&
+            t->touches[i].sprite.spriteTraceGood > 0)
             break;
     if (i < t->num_touches)
         srcsprite = &t->touches[i].sprite;
