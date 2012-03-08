@@ -523,7 +523,8 @@ enum TouchListenerState {
     LISTENER_AWAITING_OWNER,       /**< Waiting for a TouchOwnership event */
     LISTENER_EARLY_ACCEPT,         /**< Waiting for ownership, has already
                                         accepted */
-    LISTENER_IS_OWNER,             /**< Is the current owner */
+    LISTENER_IS_OWNER,             /**< Is the current owner, hasn't accepted */
+    LISTENER_HAS_ACCEPTED,         /**< Is the current owner, has accepted */
     LISTENER_HAS_END,              /**< Has already received the end event */
 };
 

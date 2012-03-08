@@ -1210,6 +1210,8 @@ ProcessTouchOwnershipEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
         /* Owner accepted after receiving end */
         if (ti->listeners[0].state == LISTENER_HAS_END)
             TouchEndTouch(dev, ti);
+        else
+            ti->listeners[0].state = LISTENER_HAS_ACCEPTED;
     }
     else {                      /* this is the very first ownership event for a grab */
         DeliverTouchEvents(dev, ti, (InternalEvent *) ev, ev->resource);
@@ -1730,7 +1732,11 @@ DeliverTouchBeginEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
     else {
         if (has_ownershipmask)
             TouchSendOwnershipEvent(dev, ti, 0, listener->listener);
-        state = LISTENER_IS_OWNER;
+
+        if (!has_ownershipmask || listener->type == LISTENER_REGULAR)
+            state = LISTENER_HAS_ACCEPTED;
+        else
+            state = LISTENER_IS_OWNER;
     }
     listener->state = state;
 
@@ -1759,20 +1765,22 @@ DeliverTouchEndEvent(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev,
         listener->state = LISTENER_HAS_END;
     }
     else if (TouchResourceIsOwner(ti, listener->listener)) {
+        Bool normal_end = !(ev->device_event.flags & TOUCH_ACCEPT);
+
         /* FIXME: what about early acceptance */
-        if (!(ev->device_event.flags & TOUCH_ACCEPT)) {
-            if (listener->state != LISTENER_HAS_END)
-                rc = DeliverOneTouchEvent(client, dev, ti, grab, win, ev);
-            listener->state = LISTENER_HAS_END;
-        }
+        if (normal_end && listener->state != LISTENER_HAS_END)
+            rc = DeliverOneTouchEvent(client, dev, ti, grab, win, ev);
+
         if ((ti->num_listeners > 1 ||
-             (listener->type == LISTENER_GRAB &&
-              xi2mask_isset(xi2mask, dev, XI_TouchOwnership))) &&
+             listener->state != LISTENER_HAS_ACCEPTED) &&
             (ev->device_event.flags & (TOUCH_ACCEPT | TOUCH_REJECT)) == 0) {
             ev->any.type = ET_TouchUpdate;
             ev->device_event.flags |= TOUCH_PENDING_END;
             ti->pending_finish = TRUE;
         }
+
+        if (normal_end)
+            listener->state = LISTENER_HAS_END;
     }
 
  out:
