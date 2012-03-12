@@ -2603,7 +2603,7 @@ IdleTimeQueryValue(pointer pCounter, CARD64 * pValue_return)
 }
 
 static void
-IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
+IdleTimeBlockHandler(pointer pCounter, struct timeval **wt, pointer LastSelectMask)
 {
     SyncCounter *counter = IdleTimeCounter;
     XSyncValue *less = pIdleTimeValueLess,
@@ -2678,7 +2678,7 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
 }
 
 static void
-IdleTimeWakeupHandler(pointer env, int rc, pointer LastSelectMask)
+IdleTimeWakeupHandler(pointer pCounter, int rc, pointer LastSelectMask)
 {
     SyncCounter *counter = IdleTimeCounter;
     XSyncValue idle;
@@ -2706,11 +2706,11 @@ IdleTimeBracketValues(pointer pCounter, CARD64 * pbracket_less,
 
     if (registered && !pbracket_less && !pbracket_greater) {
         RemoveBlockAndWakeupHandlers(IdleTimeBlockHandler,
-                                     IdleTimeWakeupHandler, NULL);
+                                     IdleTimeWakeupHandler, pCounter);
     }
     else if (!registered && (pbracket_less || pbracket_greater)) {
         RegisterBlockAndWakeupHandlers(IdleTimeBlockHandler,
-                                       IdleTimeWakeupHandler, NULL);
+                                       IdleTimeWakeupHandler, pCounter);
     }
 
     pIdleTimeValueGreater = pbracket_greater;
