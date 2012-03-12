@@ -69,6 +69,7 @@ PERFORMANCE OF THIS SOFTWARE.
 #include "syncsrv.h"
 #include "syncsdk.h"
 #include "protocol-versions.h"
+#include "inputstr.h"
 
 #include <stdio.h>
 #if !defined(WIN32)
@@ -2594,13 +2595,23 @@ SyncInitServerTime(void)
 typedef struct {
     XSyncValue *value_less;
     XSyncValue *value_greater;
+    int deviceid;
 } IdleCounterPriv;
 
 static void
 IdleTimeQueryValue(pointer pCounter, CARD64 * pValue_return)
 {
-    CARD32 idle = GetTimeInMillis() - lastDeviceEventTime[XIAllDevices].milliseconds;
+    int deviceid;
+    CARD32 idle;
 
+    if (pCounter) {
+        SyncCounter *counter = pCounter;
+        IdleCounterPriv *priv = SysCounterGetPrivate(counter);
+        deviceid = priv->deviceid;
+    }
+    else
+        deviceid = XIAllDevices;
+    idle = GetTimeInMillis() - lastDeviceEventTime[deviceid].milliseconds;
     XSyncIntsToValue(pValue_return, idle, 0);
 }
 
@@ -2692,7 +2703,7 @@ IdleTimeWakeupHandler(pointer pCounter, int rc, pointer LastSelectMask)
     if (!less && !greater)
         return;
 
-    IdleTimeQueryValue(NULL, &idle);
+    IdleTimeQueryValue(pCounter, &idle);
 
     if ((greater && XSyncValueGreaterOrEqual(idle, *greater)) ||
         (less && XSyncValueLessOrEqual(idle, *less))) {
@@ -2723,8 +2734,8 @@ IdleTimeBracketValues(pointer pCounter, CARD64 * pbracket_less,
     priv->value_less = pbracket_less;
 }
 
-static void
-SyncInitIdleTime(void)
+static SyncCounter*
+init_system_idle_counter(const char *name, int deviceid)
 {
     CARD64 resolution;
     XSyncValue idle;
@@ -2734,12 +2745,39 @@ SyncInitIdleTime(void)
     IdleTimeQueryValue(NULL, &idle);
     XSyncIntToValue(&resolution, 4);
 
-    idle_time_counter = SyncCreateSystemCounter("IDLETIME", idle, resolution,
+    idle_time_counter = SyncCreateSystemCounter(name, idle, resolution,
                                                 XSyncCounterUnrestricted,
                                                 IdleTimeQueryValue,
                                                 IdleTimeBracketValues);
 
+    priv->deviceid = deviceid;
     priv->value_less = priv->value_greater = NULL;
 
     idle_time_counter->pSysCounterInfo->private = priv;
+
+    return idle_time_counter;
+}
+
+static void
+SyncInitIdleTime(void)
+{
+    init_system_idle_counter("IDLETIME", XIAllDevices);
+}
+
+SyncCounter*
+SyncInitDeviceIdleTime(DeviceIntPtr dev)
+{
+    char timer_name[64];
+    sprintf(timer_name, "DEVICEIDLETIME %d", dev->id);
+
+    return init_system_idle_counter(timer_name, dev->id);
+}
+
+void SyncRemoveDeviceIdleTime(SyncCounter *counter)
+{
+    /* FreeAllResources() frees all system counters before the devices are
+       shut down, check if there are any left before freeing the device's
+       counter */
+    if (!xorg_list_is_empty(&SysCounterList))
+        xorg_list_del(&counter->pSysCounterInfo->entry);
 }
