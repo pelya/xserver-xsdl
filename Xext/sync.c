@@ -921,7 +921,7 @@ static int FreeCounter(void *, XID);
  * ***** System Counter utilities
  */
 
-pointer
+SyncCounter*
 SyncCreateSystemCounter(const char *name,
                         CARD64 initial,
                         CARD64 resolution,

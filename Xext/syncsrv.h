@@ -116,12 +116,12 @@ typedef union {
     SyncAwait await;
 } SyncAwaitUnion;
 
-extern pointer SyncCreateSystemCounter(const char *name,
-                                       CARD64 initial_value,
-                                       CARD64 resolution,
-                                       SyncCounterType counterType,
-                                       SyncSystemCounterQueryValue QueryValue,
-                                       SyncSystemCounterBracketValues BracketValues
+extern SyncCounter* SyncCreateSystemCounter(const char *name,
+                                            CARD64 initial_value,
+                                            CARD64 resolution,
+                                            SyncCounterType counterType,
+                                            SyncSystemCounterQueryValue QueryValue,
+                                            SyncSystemCounterBracketValues BracketValues
     );
 
 extern void SyncChangeCounter(SyncCounter *pCounter,
