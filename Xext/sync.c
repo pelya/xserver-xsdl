@@ -2590,9 +2590,10 @@ SyncInitServerTime(void)
  * IDLETIME implementation
  */
 
-static SyncCounter *IdleTimeCounter;
-static XSyncValue *pIdleTimeValueLess;
-static XSyncValue *pIdleTimeValueGreater;
+typedef struct {
+    XSyncValue *value_less;
+    XSyncValue *value_greater;
+} IdleCounterPriv;
 
 static void
 IdleTimeQueryValue(pointer pCounter, CARD64 * pValue_return)
@@ -2605,9 +2606,10 @@ IdleTimeQueryValue(pointer pCounter, CARD64 * pValue_return)
 static void
 IdleTimeBlockHandler(pointer pCounter, struct timeval **wt, pointer LastSelectMask)
 {
-    SyncCounter *counter = IdleTimeCounter;
-    XSyncValue *less = pIdleTimeValueLess,
-               *greater = pIdleTimeValueGreater;
+    SyncCounter *counter = pCounter;
+    IdleCounterPriv *priv = SysCounterGetPrivate(counter);
+    XSyncValue *less = priv->value_less,
+               *greater = priv->value_greater;
     XSyncValue idle, old_idle;
     SyncTriggerList *list = counter->sync.pTriglist;
     SyncTrigger *trig;
@@ -2680,10 +2682,11 @@ IdleTimeBlockHandler(pointer pCounter, struct timeval **wt, pointer LastSelectMa
 static void
 IdleTimeWakeupHandler(pointer pCounter, int rc, pointer LastSelectMask)
 {
-    SyncCounter *counter = IdleTimeCounter;
+    SyncCounter *counter = pCounter;
+    IdleCounterPriv *priv = SysCounterGetPrivate(counter);
+    XSyncValue *less = priv->value_less,
+               *greater = priv->value_greater;
     XSyncValue idle;
-    XSyncValue *less = pIdleTimeValueLess,
-               *greater = pIdleTimeValueGreater;
 
     if (!less && !greater)
         return;
@@ -2700,8 +2703,10 @@ static void
 IdleTimeBracketValues(pointer pCounter, CARD64 * pbracket_less,
                       CARD64 * pbracket_greater)
 {
-    XSyncValue *less = pIdleTimeValueLess,
-               *greater = pIdleTimeValueGreater;
+    SyncCounter *counter = pCounter;
+    IdleCounterPriv *priv = SysCounterGetPrivate(counter);
+    XSyncValue *less = priv->value_less,
+               *greater = priv->value_greater;
     Bool registered = (less || greater);
 
     if (registered && !pbracket_less && !pbracket_greater) {
@@ -2713,8 +2718,8 @@ IdleTimeBracketValues(pointer pCounter, CARD64 * pbracket_less,
                                        IdleTimeWakeupHandler, pCounter);
     }
 
-    pIdleTimeValueGreater = pbracket_greater;
-    pIdleTimeValueLess = pbracket_less;
+    priv->value_greater = pbracket_greater;
+    priv->value_less = pbracket_less;
 }
 
 static void
@@ -2722,14 +2727,18 @@ SyncInitIdleTime(void)
 {
     CARD64 resolution;
     XSyncValue idle;
+    IdleCounterPriv *priv = malloc(sizeof(IdleCounterPriv));
+    SyncCounter *idle_time_counter;
 
     IdleTimeQueryValue(NULL, &idle);
     XSyncIntToValue(&resolution, 4);
 
-    IdleTimeCounter = SyncCreateSystemCounter("IDLETIME", idle, resolution,
-                                              XSyncCounterUnrestricted,
-                                              IdleTimeQueryValue,
-                                              IdleTimeBracketValues);
+    idle_time_counter = SyncCreateSystemCounter("IDLETIME", idle, resolution,
+                                                XSyncCounterUnrestricted,
+                                                IdleTimeQueryValue,
+                                                IdleTimeBracketValues);
 
-    pIdleTimeValueLess = pIdleTimeValueGreater = NULL;
+    priv->value_less = priv->value_greater = NULL;
+
+    idle_time_counter->pSysCounterInfo->private = priv;
 }
