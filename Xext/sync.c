@@ -2595,16 +2595,17 @@ IdleTimeQueryValue(pointer pCounter, CARD64 * pValue_return)
 static void
 IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
 {
+    SyncCounter *counter = IdleTimeCounter;
     XSyncValue idle, old_idle;
-    SyncTriggerList *list = IdleTimeCounter->sync.pTriglist;
+    SyncTriggerList *list = counter->sync.pTriglist;
     SyncTrigger *trig;
 
     if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
         return;
 
-    old_idle = IdleTimeCounter->value;
+    old_idle = counter->value;
     IdleTimeQueryValue(NULL, &idle);
-    IdleTimeCounter->value = idle;      /* push, so CheckTrigger works */
+    counter->value = idle;      /* push, so CheckTrigger works */
 
     if (pIdleTimeValueLess && XSyncValueLessOrEqual(idle, *pIdleTimeValueLess)) {
         /*
@@ -2615,7 +2616,7 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
          * immediately so we can reschedule.
          */
 
-        for (list = IdleTimeCounter->sync.pTriglist; list; list = list->next) {
+        for (list = counter->sync.pTriglist; list; list = list->next) {
             trig = list->pTrigger;
             if (trig->CheckTrigger(trig, old_idle)) {
                 AdjustWaitForDelay(wt, 0);
@@ -2648,7 +2649,7 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
             timeout = min(timeout, XSyncValueLow32(value));
         }
         else {
-            for (list = IdleTimeCounter->sync.pTriglist; list;
+            for (list = counter->sync.pTriglist; list;
                  list = list->next) {
                 trig = list->pTrigger;
                 if (trig->CheckTrigger(trig, old_idle)) {
@@ -2661,12 +2662,13 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
         AdjustWaitForDelay(wt, timeout);
     }
 
-    IdleTimeCounter->value = old_idle;  /* pop */
+    counter->value = old_idle;  /* pop */
 }
 
 static void
 IdleTimeWakeupHandler(pointer env, int rc, pointer LastSelectMask)
 {
+    SyncCounter *counter = IdleTimeCounter;
     XSyncValue idle;
 
     if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
@@ -2678,7 +2680,7 @@ IdleTimeWakeupHandler(pointer env, int rc, pointer LastSelectMask)
          XSyncValueGreaterOrEqual(idle, *pIdleTimeValueGreater)) ||
         (pIdleTimeValueLess &&
          XSyncValueLessOrEqual(idle, *pIdleTimeValueLess))) {
-        SyncChangeCounter(IdleTimeCounter, idle);
+        SyncChangeCounter(counter, idle);
     }
 }
 
