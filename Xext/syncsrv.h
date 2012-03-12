@@ -83,6 +83,7 @@ typedef struct _SysCounterInfo {
     SyncCounterType counterType;        /* how can this counter change */
     SyncSystemCounterQueryValue QueryValue;
     SyncSystemCounterBracketValues BracketValues;
+    void *private;
     struct xorg_list entry;
 } SysCounterInfo;
 

@@ -113,6 +113,14 @@ static void SyncInitServerTime(void);
 
 static void SyncInitIdleTime(void);
 
+static inline void*
+SysCounterGetPrivate(SyncCounter *counter)
+{
+    BUG_WARN(!IsSystemCounter(counter));
+
+    return counter->pSysCounterInfo ? counter->pSysCounterInfo->private : NULL;
+}
+
 static Bool
 SyncCheckWarnIsCounter(const SyncObject * pSync, const char *warning)
 {
@@ -958,6 +966,7 @@ SyncCreateSystemCounter(const char *name,
         psci->counterType = counterType;
         psci->QueryValue = QueryValue;
         psci->BracketValues = BracketValues;
+        psci->private = NULL;
         XSyncMaxValue(&psci->bracket_greater);
         XSyncMinValue(&psci->bracket_less);
         xorg_list_add(&psci->entry, &SysCounterList);
@@ -1106,6 +1115,7 @@ FreeCounter(void *env, XID id)
     }
     if (IsSystemCounter(pCounter)) {
         xorg_list_del(&pCounter->pSysCounterInfo->entry);
+        free(pCounter->pSysCounterInfo->private);
         free(pCounter->pSysCounterInfo);
     }
     free(pCounter);
