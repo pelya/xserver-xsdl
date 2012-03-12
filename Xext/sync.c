@@ -926,11 +926,8 @@ SyncCreateSystemCounter(const char *name,
                         CARD64 initial,
                         CARD64 resolution,
                         SyncCounterType counterType,
-                        void (*QueryValue) (pointer /* pCounter */ ,
-                                            CARD64 * /* pValue_return */ ),
-                        void (*BracketValues) (pointer /* pCounter */ ,
-                                               CARD64 * /* pbracket_less */ ,
-                                               CARD64 * /* pbracket_greater */ )
+                        SyncSystemCounterQueryValue QueryValue,
+                        SyncSystemCounterBracketValues BracketValues
     )
 {
     SyncCounter *pCounter;

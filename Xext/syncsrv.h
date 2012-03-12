@@ -65,19 +65,22 @@ typedef enum {
     XSyncCounterUnrestricted
 } SyncCounterType;
 
+typedef void (*SyncSystemCounterQueryValue)(pointer counter,
+                                            CARD64 *value_return
+    );
+typedef void (*SyncSystemCounterBracketValues)(pointer counter,
+                                               CARD64 *pbracket_less,
+                                               CARD64 *pbracket_greater
+    );
+
 typedef struct _SysCounterInfo {
     const char *name;
     CARD64 resolution;
     CARD64 bracket_greater;
     CARD64 bracket_less;
     SyncCounterType counterType;        /* how can this counter change */
-    void (*QueryValue) (pointer /*pCounter */ ,
-                        CARD64 *        /*freshvalue */
-        );
-    void (*BracketValues) (pointer /*pCounter */ ,
-                           CARD64 * /*lessthan */ ,
-                           CARD64 *     /*greaterthan */
-        );
+    SyncSystemCounterQueryValue QueryValue;
+    SyncSystemCounterBracketValues BracketValues;
 } SysCounterInfo;
 
 typedef struct _SyncAlarmClientList {
@@ -118,21 +121,8 @@ extern pointer SyncCreateSystemCounter(const char * /* name */ ,
                                        CARD64 /* resolution */ ,
                                        SyncCounterType
                                        /* change characterization */ ,
-                                       void (* /*QueryValue */ )(
-                                                                    pointer
-                                                                    /* pCounter */
-                                                                    ,
-                                                                    CARD64 * /* pValue_return */ ),     /* XXX prototype */
-                                       void (* /*BracketValues */ )(
-                                                                       pointer
-                                                                       /* pCounter */
-                                                                       ,
-                                                                       CARD64 *
-                                                                       /* pbracket_less */
-                                                                       ,
-                                                                       CARD64 *
-                                                                       /* pbracket_greater */
-                                                                       )
+                                       SyncSystemCounterQueryValue QueryValue,
+                                       SyncSystemCounterBracketValues BracketValues
     );
 
 extern void SyncChangeCounter(SyncCounter * /* pCounter */ ,
