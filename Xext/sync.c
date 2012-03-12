@@ -2596,18 +2596,20 @@ static void
 IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
 {
     SyncCounter *counter = IdleTimeCounter;
+    XSyncValue *less = pIdleTimeValueLess,
+               *greater = pIdleTimeValueGreater;
     XSyncValue idle, old_idle;
     SyncTriggerList *list = counter->sync.pTriglist;
     SyncTrigger *trig;
 
-    if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
+    if (!less && !greater)
         return;
 
     old_idle = counter->value;
     IdleTimeQueryValue(NULL, &idle);
     counter->value = idle;      /* push, so CheckTrigger works */
 
-    if (pIdleTimeValueLess && XSyncValueLessOrEqual(idle, *pIdleTimeValueLess)) {
+    if (less && XSyncValueLessOrEqual(idle, *less)) {
         /*
          * We've been idle for less than the threshold value, and someone
          * wants to know about that, but now we need to know whether they
@@ -2629,10 +2631,10 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
          * idle time greater than this.  Schedule a wakeup for the next
          * millisecond so we won't miss a transition.
          */
-        if (XSyncValueEqual(idle, *pIdleTimeValueLess))
+        if (XSyncValueEqual(idle, *less))
             AdjustWaitForDelay(wt, 1);
     }
-    else if (pIdleTimeValueGreater) {
+    else if (greater) {
         /*
          * There's a threshold in the positive direction.  If we've been
          * idle less than it, schedule a wakeup for sometime in the future.
@@ -2641,11 +2643,11 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
          */
         unsigned long timeout = -1;
 
-        if (XSyncValueLessThan(idle, *pIdleTimeValueGreater)) {
+        if (XSyncValueLessThan(idle, *greater)) {
             XSyncValue value;
             Bool overflow;
 
-            XSyncValueSubtract(&value, *pIdleTimeValueGreater, idle, &overflow);
+            XSyncValueSubtract(&value, *greater, idle, &overflow);
             timeout = min(timeout, XSyncValueLow32(value));
         }
         else {
@@ -2670,16 +2672,16 @@ IdleTimeWakeupHandler(pointer env, int rc, pointer LastSelectMask)
 {
     SyncCounter *counter = IdleTimeCounter;
     XSyncValue idle;
+    XSyncValue *less = pIdleTimeValueLess,
+               *greater = pIdleTimeValueGreater;
 
-    if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
+    if (!less && !greater)
         return;
 
     IdleTimeQueryValue(NULL, &idle);
 
-    if ((pIdleTimeValueGreater &&
-         XSyncValueGreaterOrEqual(idle, *pIdleTimeValueGreater)) ||
-        (pIdleTimeValueLess &&
-         XSyncValueLessOrEqual(idle, *pIdleTimeValueLess))) {
+    if ((greater && XSyncValueGreaterOrEqual(idle, *greater)) ||
+        (less && XSyncValueLessOrEqual(idle, *less))) {
         SyncChangeCounter(counter, idle);
     }
 }
@@ -2688,7 +2690,9 @@ static void
 IdleTimeBracketValues(pointer pCounter, CARD64 * pbracket_less,
                       CARD64 * pbracket_greater)
 {
-    Bool registered = (pIdleTimeValueLess || pIdleTimeValueGreater);
+    XSyncValue *less = pIdleTimeValueLess,
+               *greater = pIdleTimeValueGreater;
+    Bool registered = (less || greater);
 
     if (registered && !pbracket_less && !pbracket_greater) {
         RemoveBlockAndWakeupHandlers(IdleTimeBlockHandler,
