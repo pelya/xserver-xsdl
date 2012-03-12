@@ -2599,7 +2599,7 @@ typedef struct {
 static void
 IdleTimeQueryValue(pointer pCounter, CARD64 * pValue_return)
 {
-    CARD32 idle = GetTimeInMillis() - lastDeviceEventTime.milliseconds;
+    CARD32 idle = GetTimeInMillis() - lastDeviceEventTime[XIAllDevices].milliseconds;
 
     XSyncIntsToValue(pValue_return, idle, 0);
 }

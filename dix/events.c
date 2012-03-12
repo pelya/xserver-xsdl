@@ -1055,19 +1055,20 @@ MonthChangedOrBadTime(InternalEvent *ev)
 }
 
 static void
-NoticeTime(InternalEvent *ev)
+NoticeTime(InternalEvent *ev, DeviceIntPtr dev)
 {
     if (ev->any.time < currentTime.milliseconds)
         MonthChangedOrBadTime(ev);
     currentTime.milliseconds = ev->any.time;
-    lastDeviceEventTime = currentTime;
+    lastDeviceEventTime[XIAllDevices] = currentTime;
+    lastDeviceEventTime[dev->id] = currentTime;
 }
 
 void
-NoticeEventTime(InternalEvent *ev)
+NoticeEventTime(InternalEvent *ev, DeviceIntPtr dev)
 {
     if (!syncEvents.playingEvents)
-        NoticeTime(ev);
+        NoticeTime(ev, dev);
 }
 
 /**************************************************************************
@@ -1091,7 +1092,7 @@ EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
     if (!xorg_list_is_empty(&syncEvents.pending))
         tail = xorg_list_last_entry(&syncEvents.pending, QdEventRec, next);
 
-    NoticeTime((InternalEvent *) event);
+    NoticeTime((InternalEvent *)event, device);
 
     /* Fix for key repeating bug. */
     if (device->key != NULL && device->key->xkbInfo != NULL &&
@@ -5163,6 +5164,7 @@ InitEvents(void)
 
     for (i = 0; i < MAXDEVICES; i++) {
         memcpy(&event_filters[i], default_filter, sizeof(default_filter));
+        lastDeviceEventTime[i] = currentTime;
     }
 
     syncEvents.replayDev = (DeviceIntPtr) NULL;
@@ -5176,7 +5178,6 @@ InitEvents(void)
     syncEvents.time.milliseconds = 0;   /* hardly matters */
     currentTime.months = 0;
     currentTime.milliseconds = GetTimeInMillis();
-    lastDeviceEventTime = currentTime;
     for (i = 0; i < DNPMCOUNT; i++) {
         DontPropagateMasks[i] = 0;
         DontPropagateRefCnts[i] = 0;

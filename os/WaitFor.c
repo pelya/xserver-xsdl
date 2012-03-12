@@ -547,7 +547,7 @@ NextDPMSTimeout(INT32 timeout)
 static CARD32
 ScreenSaverTimeoutExpire(OsTimerPtr timer, CARD32 now, pointer arg)
 {
-    INT32 timeout = now - lastDeviceEventTime.milliseconds;
+    INT32 timeout = now - lastDeviceEventTime[XIAllDevices].milliseconds;
     CARD32 nextTimeout = 0;
 
 #ifdef DPMSExtension
