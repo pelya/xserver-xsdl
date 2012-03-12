@@ -141,7 +141,5 @@ extern void SyncChangeCounter(SyncCounter * /* pCounter */ ,
 
 extern void SyncDestroySystemCounter(pointer pCounter);
 
-extern void InitServertime(void);
-
 extern void SyncExtensionInit(void);
 #endif                          /* _SYNCSRV_H_ */
