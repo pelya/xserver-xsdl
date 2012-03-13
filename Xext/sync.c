@@ -961,7 +961,7 @@ SyncCreateSystemCounter(const char *name,
         }
         pCounter->pSysCounterInfo = psci;
         psci->pCounter = pCounter;
-        psci->name = name;
+        psci->name = strdup(name);
         psci->resolution = resolution;
         psci->counterType = counterType;
         psci->QueryValue = QueryValue;
@@ -1115,6 +1115,7 @@ FreeCounter(void *env, XID id)
     }
     if (IsSystemCounter(pCounter)) {
         xorg_list_del(&pCounter->pSysCounterInfo->entry);
+        free(pCounter->pSysCounterInfo->name);
         free(pCounter->pSysCounterInfo->private);
         free(pCounter->pSysCounterInfo);
     }

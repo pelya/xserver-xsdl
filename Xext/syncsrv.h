@@ -76,7 +76,7 @@ typedef void (*SyncSystemCounterBracketValues)(pointer counter,
 
 typedef struct _SysCounterInfo {
     SyncCounter *pCounter;
-    const char *name;
+    char *name;
     CARD64 resolution;
     CARD64 bracket_greater;
     CARD64 bracket_less;
