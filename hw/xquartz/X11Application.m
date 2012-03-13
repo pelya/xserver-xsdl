@@ -69,6 +69,7 @@ static dispatch_queue_t eventTranslationQueue;
 #endif
 
 extern Bool noTestExtensions;
+extern Bool noRenderExtension;
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
 static TISInputSourceRef last_key_layout;
@@ -888,6 +889,9 @@ darwinDesiredDepth];
 
 noTestExtensions = ![self prefs_get_boolean: @PREFS_TEST_EXTENSIONS default:
 FALSE];
+
+noRenderExtension = ![self prefs_get_boolean: @PREFS_RENDER_EXTENSION default:
+TRUE];
 
 XQuartzScrollInDeviceDirection =[self prefs_get_boolean: @PREFS_SCROLL_IN_DEV_DIRECTION default:
 XQuartzScrollInDeviceDirection];

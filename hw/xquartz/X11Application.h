@@ -126,6 +126,7 @@ X11ApplicationMain(int argc, char **argv, char **envp);
 #define PREFS_APPKIT_MODIFIERS      "appkit_modifiers"
 #define PREFS_WINDOW_ITEM_MODIFIERS "window_item_modifiers"
 #define PREFS_ROOTLESS              "rootless"
+#define PREFS_RENDER_EXTENSION      "enable_render_extension"
 #define PREFS_TEST_EXTENSIONS       "enable_test_extensions"
 #define PREFS_XP_OPTIONS            "xp_options"
 #define PREFS_LOGIN_SHELL           "login_shell"
