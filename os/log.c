@@ -164,6 +164,9 @@ asm(".desc ___crashreporter_info__, 0x10");
 #ifndef X_NOT_IMPLEMENTED_STRING
 #define X_NOT_IMPLEMENTED_STRING	"(NI)"
 #endif
+#ifndef X_DEBUG_STRING
+#define X_DEBUG_STRING			"(DB)"
+#endif
 #ifndef X_NONE_STRING
 #define X_NONE_STRING                   ""
 #endif
@@ -362,6 +365,8 @@ LogMessageTypeVerbString(MessageType type, int verb)
         return X_UNKNOWN_STRING;
     case X_NONE:
         return X_NONE_STRING;
+    case X_DEBUG:
+        return X_DEBUG_STRING;
     default:
         return X_UNKNOWN_STRING;
     }

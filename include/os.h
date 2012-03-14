@@ -578,6 +578,7 @@ typedef enum {
     X_INFO,                     /* Informational message */
     X_NONE,                     /* No prefix */
     X_NOT_IMPLEMENTED,          /* Not implemented */
+    X_DEBUG,                    /* Debug message */
     X_UNKNOWN = -1              /* unknown -- this must always be last */
 } MessageType;
 
