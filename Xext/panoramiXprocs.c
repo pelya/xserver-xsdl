@@ -1928,23 +1928,21 @@ PanoramiXGetImage(ClientPtr client)
     isRoot = IS_ROOT_DRAWABLE(draw);
 
     if (isRoot) {
-        if (                    /* check for being onscreen */
-               x < 0 || x + w > PanoramiXPixWidth ||
-               y < 0 || y + h > PanoramiXPixHeight)
+        /* check for being onscreen */
+        if (x < 0 || x + w > PanoramiXPixWidth ||
+            y < 0 || y + h > PanoramiXPixHeight)
             return BadMatch;
     }
     else {
-        if (                    /* check for being onscreen */
-               screenInfo.screens[0]->x + pDraw->x + x < 0 ||
-               screenInfo.screens[0]->x + pDraw->x + x + w > PanoramiXPixWidth
-               || screenInfo.screens[0]->y + pDraw->y + y < 0 ||
-               screenInfo.screens[0]->y + pDraw->y + y + h > PanoramiXPixHeight
-               ||
-               /* check for being inside of border */
-               x < -wBorderWidth((WindowPtr) pDraw) ||
-               x + w > wBorderWidth((WindowPtr) pDraw) + (int) pDraw->width ||
-               y < -wBorderWidth((WindowPtr) pDraw) ||
-               y + h > wBorderWidth((WindowPtr) pDraw) + (int) pDraw->height)
+        /* check for being onscreen and inside of border */
+        if (screenInfo.screens[0]->x + pDraw->x + x < 0 ||
+            screenInfo.screens[0]->x + pDraw->x + x + w > PanoramiXPixWidth ||
+            screenInfo.screens[0]->y + pDraw->y + y < 0 ||
+            screenInfo.screens[0]->y + pDraw->y + y + h > PanoramiXPixHeight ||
+            x < -wBorderWidth((WindowPtr) pDraw) ||
+            x + w > wBorderWidth((WindowPtr) pDraw) + (int) pDraw->width ||
+            y < -wBorderWidth((WindowPtr) pDraw) ||
+            y + h > wBorderWidth((WindowPtr) pDraw) + (int) pDraw->height)
             return BadMatch;
     }
 
