@@ -87,8 +87,7 @@ static RESTYPE RTAwait;
 static RESTYPE RTAlarm;
 static RESTYPE RTAlarmClient;
 static RESTYPE RTFence;
-static int SyncNumSystemCounters = 0;
-static SyncCounter **SysCounterList = NULL;
+static struct xorg_list SysCounterList;
 static int SyncNumInvalidCounterWarnings = 0;
 
 #define MAX_INVALID_COUNTER_WARNINGS	   5
@@ -932,12 +931,6 @@ SyncCreateSystemCounter(const char *name,
 {
     SyncCounter *pCounter;
 
-    SysCounterList = realloc(SysCounterList,
-                             (SyncNumSystemCounters +
-                              1) * sizeof(SyncCounter *));
-    if (!SysCounterList)
-        return NULL;
-
     /* this function may be called before SYNC has been initialized, so we
      * have to make sure RTCounter is created.
      */
@@ -959,6 +952,7 @@ SyncCreateSystemCounter(const char *name,
             return pCounter;
         }
         pCounter->pSysCounterInfo = psci;
+        psci->pCounter = pCounter;
         psci->name = name;
         psci->resolution = resolution;
         psci->counterType = counterType;
@@ -966,7 +960,7 @@ SyncCreateSystemCounter(const char *name,
         psci->BracketValues = BracketValues;
         XSyncMaxValue(&psci->bracket_greater);
         XSyncMinValue(&psci->bracket_less);
-        SysCounterList[SyncNumSystemCounters++] = pCounter;
+        xorg_list_add(&psci->entry, &SysCounterList);
     }
     return pCounter;
 }
@@ -1111,26 +1105,8 @@ FreeCounter(void *env, XID id)
         free(ptl);              /* destroy the trigger list as we go */
     }
     if (IsSystemCounter(pCounter)) {
-        int i, found = 0;
-
+        xorg_list_del(&pCounter->pSysCounterInfo->entry);
         free(pCounter->pSysCounterInfo);
-
-        /* find the counter in the list of system counters and remove it */
-
-        if (SysCounterList) {
-            for (i = 0; i < SyncNumSystemCounters; i++) {
-                if (SysCounterList[i] == pCounter) {
-                    found = i;
-                    break;
-                }
-            }
-            if (found < (SyncNumSystemCounters - 1)) {
-                for (i = found; i < SyncNumSystemCounters - 1; i++) {
-                    SysCounterList[i] = SysCounterList[i + 1];
-                }
-            }
-        }
-        SyncNumSystemCounters--;
     }
     free(pCounter);
     return Success;
@@ -1221,20 +1197,20 @@ static int
 ProcSyncListSystemCounters(ClientPtr client)
 {
     xSyncListSystemCountersReply rep;
-    int i, len;
+    SysCounterInfo *psci;
+    int len = 0;
     xSyncSystemCounter *list = NULL, *walklist = NULL;
 
     REQUEST_SIZE_MATCH(xSyncListSystemCountersReq);
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.nCounters = SyncNumSystemCounters;
+    rep.nCounters = 0;
 
-    for (i = len = 0; i < SyncNumSystemCounters; i++) {
-        const char *name = SysCounterList[i]->pSysCounterInfo->name;
-
+    xorg_list_for_each_entry(psci, &SysCounterList, entry) {
         /* pad to 4 byte boundary */
-        len += pad_to_int32(sz_xSyncSystemCounter + strlen(name));
+        len += pad_to_int32(sz_xSyncSystemCounter + strlen(psci->name));
+        ++rep.nCounters;
     }
 
     if (len) {
@@ -1251,12 +1227,11 @@ ProcSyncListSystemCounters(ClientPtr client)
         swapl(&rep.nCounters);
     }
 
-    for (i = 0; i < SyncNumSystemCounters; i++) {
+    xorg_list_for_each_entry(psci, &SysCounterList, entry) {
         int namelen;
         char *pname_in_reply;
-        SysCounterInfo *psci = SysCounterList[i]->pSysCounterInfo;
 
-        walklist->counter = SysCounterList[i]->sync.id;
+        walklist->counter = psci->pCounter->sync.id;
         walklist->resolution_hi = XSyncValueHigh32(psci->resolution);
         walklist->resolution_lo = XSyncValueLow32(psci->resolution);
         namelen = strlen(psci->name);
@@ -2441,8 +2416,6 @@ SAlarmNotifyEvent(xSyncAlarmNotifyEvent * from, xSyncAlarmNotifyEvent * to)
 static void
 SyncResetProc(ExtensionEntry * extEntry)
 {
-    free(SysCounterList);
-    SysCounterList = NULL;
     RTCounter = 0;
 }
 
@@ -2454,6 +2427,8 @@ SyncExtensionInit(void)
 {
     ExtensionEntry *extEntry;
     int s;
+
+    xorg_list_init(&SysCounterList);
 
     for (s = 0; s < screenInfo.numScreens; s++)
         miSyncSetup(screenInfo.screens[s]);
