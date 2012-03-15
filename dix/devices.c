@@ -1718,7 +1718,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
     keysyms.minKeyCode = stuff->firstKeyCode;
     keysyms.maxKeyCode = stuff->firstKeyCode + stuff->keyCodes - 1;
     keysyms.mapWidth = stuff->keySymsPerKeyCode;
-    keysyms.map = (KeySym *) & stuff[1];
+    keysyms.map = (KeySym *) &stuff[1];
 
     rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
     if (rc != Success)
@@ -1763,7 +1763,7 @@ ProcSetPointerMapping(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
     rep.success = MappingSuccess;
-    map = (BYTE *) & stuff[1];
+    map = (BYTE *) &stuff[1];
 
     /* So we're bounded here by the number of core buttons.  This check
      * probably wants disabling through XFixes. */

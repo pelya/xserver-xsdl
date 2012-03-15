@@ -63,7 +63,7 @@ SProcXIPassiveGrabDevice(ClientPtr client)
     swaps(&stuff->mask_len);
     swaps(&stuff->num_modifiers);
 
-    mods = (xXIModifierInfo *) & stuff[1];
+    mods = (xXIModifierInfo *) &stuff[1];
 
     for (i = 0; i < stuff->num_modifiers; i++, mods++) {
         swapl(&mods->base_mods);
@@ -177,7 +177,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     if (ret != Success)
         goto out;
 
-    modifiers = (uint32_t *) & stuff[1] + stuff->mask_len;
+    modifiers = (uint32_t *) &stuff[1] + stuff->mask_len;
     modifiers_failed =
         calloc(stuff->num_modifiers, sizeof(xXIGrabModifierInfo));
     if (!modifiers_failed) {
@@ -257,7 +257,7 @@ SProcXIPassiveUngrabDevice(ClientPtr client)
     swapl(&stuff->detail);
     swaps(&stuff->num_modifiers);
 
-    modifiers = (uint32_t *) & stuff[1];
+    modifiers = (uint32_t *) &stuff[1];
 
     for (i = 0; i < stuff->num_modifiers; i++, modifiers++)
         swapl(modifiers);
@@ -334,7 +334,7 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
     tempGrab->detail.exact = stuff->detail;
     tempGrab->detail.pMask = NULL;
 
-    modifiers = (uint32_t *) & stuff[1];
+    modifiers = (uint32_t *) &stuff[1];
 
     for (i = 0; i < stuff->num_modifiers; i++, modifiers++) {
         tempGrab->modifiersDetail.exact = *modifiers;

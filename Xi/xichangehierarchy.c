@@ -417,7 +417,7 @@ ProcXIChangeHierarchy(ClientPtr client)
     if (!stuff->num_changes)
         return rc;
 
-    any = (xXIAnyHierarchyChangeInfo *) & stuff[1];
+    any = (xXIAnyHierarchyChangeInfo *) &stuff[1];
     while (stuff->num_changes--) {
         SWAPIF(swaps(&any->type));
         SWAPIF(swaps(&any->length));

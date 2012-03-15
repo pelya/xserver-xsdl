@@ -3230,7 +3230,7 @@ ProcXkbSetIndicatorMap(ClientPtr client)
         return BadLength;
     }
 
-    from = (xkbIndicatorMapWireDesc *) & stuff[1];
+    from = (xkbIndicatorMapWireDesc *) &stuff[1];
     for (i = 0, bit = 1; i < XkbNumIndicators; i++, bit <<= 1) {
         if (stuff->which & bit) {
             if (client->swapped) {
@@ -3243,7 +3243,7 @@ ProcXkbSetIndicatorMap(ClientPtr client)
         }
     }
 
-    from = (xkbIndicatorMapWireDesc *) & stuff[1];
+    from = (xkbIndicatorMapWireDesc *) &stuff[1];
     rc = _XkbSetIndicatorMap(client, dev, stuff->which, from);
     if (rc != Success)
         return rc;

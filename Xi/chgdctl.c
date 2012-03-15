@@ -80,7 +80,7 @@ SProcXChangeDeviceControl(ClientPtr client)
     swaps(&stuff->length);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceControlReq);
     swaps(&stuff->control);
-    ctl = (xDeviceCtl *) & stuff[1];
+    ctl = (xDeviceCtl *) &stuff[1];
     swaps(&ctl->control);
     swaps(&ctl->length);
     switch (stuff->control) {
@@ -130,7 +130,7 @@ ProcXChangeDeviceControl(ClientPtr client)
 
     switch (stuff->control) {
     case DEVICE_RESOLUTION:
-        r = (xDeviceResolutionCtl *) & stuff[1];
+        r = (xDeviceResolutionCtl *) &stuff[1];
         if ((len < bytes_to_int32(sizeof(xDeviceResolutionCtl))) ||
             (len !=
              bytes_to_int32(sizeof(xDeviceResolutionCtl)) + r->num_valuators)) {
@@ -183,7 +183,7 @@ ProcXChangeDeviceControl(ClientPtr client)
         ret = BadMatch;
         break;
     case DEVICE_ENABLE:
-        e = (xDeviceEnableCtl *) & stuff[1];
+        e = (xDeviceEnableCtl *) &stuff[1];
 
         status = ChangeDeviceControl(client, dev, (xDeviceCtl *) e);
 

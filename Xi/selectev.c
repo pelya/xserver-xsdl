@@ -158,11 +158,11 @@ ProcXSelectExtensionEvent(ClientPtr client)
     if (ret != Success)
         return ret;
 
-    if (HandleDevicePresenceMask(client, pWin, (XEventClass *) & stuff[1],
+    if (HandleDevicePresenceMask(client, pWin, (XEventClass *) &stuff[1],
                                  &stuff->count) != Success)
         return BadAlloc;
 
-    if ((ret = CreateMaskFromList(client, (XEventClass *) & stuff[1],
+    if ((ret = CreateMaskFromList(client, (XEventClass *) &stuff[1],
                                   stuff->count, tmp, NULL,
                                   X_SelectExtensionEvent)) != Success)
         return ret;

@@ -757,7 +757,7 @@ ProcRenderTrapezoids(ClientPtr client)
     if (ntraps)
         CompositeTrapezoids(stuff->op, pSrc, pDst, pFormat,
                             stuff->xSrc, stuff->ySrc,
-                            ntraps, (xTrapezoid *) & stuff[1]);
+                            ntraps, (xTrapezoid *) &stuff[1]);
     return Success;
 }
 
@@ -796,7 +796,7 @@ ProcRenderTriangles(ClientPtr client)
     if (ntris)
         CompositeTriangles(stuff->op, pSrc, pDst, pFormat,
                            stuff->xSrc, stuff->ySrc,
-                           ntris, (xTriangle *) & stuff[1]);
+                           ntris, (xTriangle *) &stuff[1]);
     return Success;
 }
 
@@ -835,7 +835,7 @@ ProcRenderTriStrip(ClientPtr client)
     if (npoints >= 3)
         CompositeTriStrip(stuff->op, pSrc, pDst, pFormat,
                           stuff->xSrc, stuff->ySrc,
-                          npoints, (xPointFixed *) & stuff[1]);
+                          npoints, (xPointFixed *) &stuff[1]);
     return Success;
 }
 
@@ -874,7 +874,7 @@ ProcRenderTriFan(ClientPtr client)
     if (npoints >= 3)
         CompositeTriFan(stuff->op, pSrc, pDst, pFormat,
                         stuff->xSrc, stuff->ySrc,
-                        npoints, (xPointFixed *) & stuff[1]);
+                        npoints, (xPointFixed *) &stuff[1]);
     return Success;
 }
 
@@ -1652,7 +1652,7 @@ ProcRenderSetPictureTransform(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xRenderSetPictureTransformReq);
     VERIFY_PICTURE(pPicture, stuff->picture, client, DixSetAttrAccess);
-    return SetPictureTransform(pPicture, (PictTransform *) & stuff->transform);
+    return SetPictureTransform(pPicture, (PictTransform *) &stuff->transform);
 }
 
 static int
@@ -1836,7 +1836,7 @@ ProcRenderAddTraps(ClientPtr client)
     ntraps /= sizeof(xTrap);
     if (ntraps)
         AddTraps(pPicture,
-                 stuff->xOff, stuff->yOff, ntraps, (xTrap *) & stuff[1]);
+                 stuff->xOff, stuff->yOff, ntraps, (xTrap *) &stuff[1]);
     return Success;
 }
 

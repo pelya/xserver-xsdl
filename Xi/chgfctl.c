@@ -449,22 +449,22 @@ ProcXChangeFeedbackControl(ClientPtr client)
             return BadLength;
 
         for (k = dev->kbdfeed; k; k = k->next)
-            if (k->ctrl.id == ((xKbdFeedbackCtl *) & stuff[1])->id)
+            if (k->ctrl.id == ((xKbdFeedbackCtl *) &stuff[1])->id)
                 return ChangeKbdFeedback(client, dev, stuff->mask, k,
-                                         (xKbdFeedbackCtl *) & stuff[1]);
+                                         (xKbdFeedbackCtl *) &stuff[1]);
         break;
     case PtrFeedbackClass:
         if (len != bytes_to_int32(sizeof(xPtrFeedbackCtl)))
             return BadLength;
 
         for (p = dev->ptrfeed; p; p = p->next)
-            if (p->ctrl.id == ((xPtrFeedbackCtl *) & stuff[1])->id)
+            if (p->ctrl.id == ((xPtrFeedbackCtl *) &stuff[1])->id)
                 return ChangePtrFeedback(client, dev, stuff->mask, p,
-                                         (xPtrFeedbackCtl *) & stuff[1]);
+                                         (xPtrFeedbackCtl *) &stuff[1]);
         break;
     case StringFeedbackClass:
     {
-        xStringFeedbackCtl *f = ((xStringFeedbackCtl *) & stuff[1]);
+        xStringFeedbackCtl *f = ((xStringFeedbackCtl *) &stuff[1]);
 
         if (client->swapped) {
             swaps(&f->num_keysyms);
@@ -474,9 +474,9 @@ ProcXChangeFeedbackControl(ClientPtr client)
             return BadLength;
 
         for (s = dev->stringfeed; s; s = s->next)
-            if (s->ctrl.id == ((xStringFeedbackCtl *) & stuff[1])->id)
+            if (s->ctrl.id == ((xStringFeedbackCtl *) &stuff[1])->id)
                 return ChangeStringFeedback(client, dev, stuff->mask, s,
-                                            (xStringFeedbackCtl *) & stuff[1]);
+                                            (xStringFeedbackCtl *) &stuff[1]);
         break;
     }
     case IntegerFeedbackClass:
@@ -484,7 +484,7 @@ ProcXChangeFeedbackControl(ClientPtr client)
             return BadLength;
 
         for (i = dev->intfeed; i; i = i->next)
-            if (i->ctrl.id == ((xIntegerFeedbackCtl *) & stuff[1])->id)
+            if (i->ctrl.id == ((xIntegerFeedbackCtl *) &stuff[1])->id)
                 return ChangeIntegerFeedback(client, dev, stuff->mask, i,
                                              (xIntegerFeedbackCtl *) &
                                              stuff[1]);
@@ -494,18 +494,18 @@ ProcXChangeFeedbackControl(ClientPtr client)
             return BadLength;
 
         for (l = dev->leds; l; l = l->next)
-            if (l->ctrl.id == ((xLedFeedbackCtl *) & stuff[1])->id)
+            if (l->ctrl.id == ((xLedFeedbackCtl *) &stuff[1])->id)
                 return ChangeLedFeedback(client, dev, stuff->mask, l,
-                                         (xLedFeedbackCtl *) & stuff[1]);
+                                         (xLedFeedbackCtl *) &stuff[1]);
         break;
     case BellFeedbackClass:
         if (len != bytes_to_int32(sizeof(xBellFeedbackCtl)))
             return BadLength;
 
         for (b = dev->bell; b; b = b->next)
-            if (b->ctrl.id == ((xBellFeedbackCtl *) & stuff[1])->id)
+            if (b->ctrl.id == ((xBellFeedbackCtl *) &stuff[1])->id)
                 return ChangeBellFeedback(client, dev, stuff->mask, b,
-                                          (xBellFeedbackCtl *) & stuff[1]);
+                                          (xBellFeedbackCtl *) &stuff[1]);
         break;
     default:
         break;

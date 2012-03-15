@@ -1349,7 +1349,7 @@ PanoramiXPolyPoint(ClientPtr client)
                 int y_off = screenInfo.screens[j]->y;
 
                 if (x_off || y_off) {
-                    xPoint *pnts = (xPoint *) & stuff[1];
+                    xPoint *pnts = (xPoint *) &stuff[1];
                     int i =
                         (stuff->coordMode == CoordModePrevious) ? 1 : npoint;
 
@@ -1414,7 +1414,7 @@ PanoramiXPolyLine(ClientPtr client)
                 int y_off = screenInfo.screens[j]->y;
 
                 if (x_off || y_off) {
-                    xPoint *pnts = (xPoint *) & stuff[1];
+                    xPoint *pnts = (xPoint *) &stuff[1];
                     int i =
                         (stuff->coordMode == CoordModePrevious) ? 1 : npoint;
 
@@ -1483,7 +1483,7 @@ PanoramiXPolySegment(ClientPtr client)
                 int y_off = screenInfo.screens[j]->y;
 
                 if (x_off || y_off) {
-                    xSegment *segs = (xSegment *) & stuff[1];
+                    xSegment *segs = (xSegment *) &stuff[1];
 
                     for (i = nsegs; i--; segs++) {
                         segs->x1 -= x_off;
@@ -1618,7 +1618,7 @@ PanoramiXPolyArc(ClientPtr client)
                 int y_off = screenInfo.screens[j]->y;
 
                 if (x_off || y_off) {
-                    xArc *arcs = (xArc *) & stuff[1];
+                    xArc *arcs = (xArc *) &stuff[1];
 
                     for (i = narcs; i--; arcs++) {
                         arcs->x -= x_off;
@@ -1681,7 +1681,7 @@ PanoramiXFillPoly(ClientPtr client)
                 int y_off = screenInfo.screens[j]->y;
 
                 if (x_off || y_off) {
-                    DDXPointPtr pnts = (DDXPointPtr) & stuff[1];
+                    DDXPointPtr pnts = (DDXPointPtr) &stuff[1];
                     int i = (stuff->coordMode == CoordModePrevious) ? 1 : count;
 
                     while (i--) {
@@ -1816,7 +1816,7 @@ PanoramiXPolyFillArc(ClientPtr client)
                 int y_off = screenInfo.screens[j]->y;
 
                 if (x_off || y_off) {
-                    xArc *arcs = (xArc *) & stuff[1];
+                    xArc *arcs = (xArc *) &stuff[1];
 
                     for (i = narcs; i--; arcs++) {
                         arcs->x -= x_off;

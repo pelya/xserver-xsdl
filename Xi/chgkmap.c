@@ -110,7 +110,7 @@ ProcXChangeDeviceKeyMapping(ClientPtr client)
 
     ret = ChangeKeyMapping(client, dev, len, DeviceMappingNotify,
                            stuff->firstKeyCode, stuff->keyCodes,
-                           stuff->keySymsPerKeyCode, (KeySym *) & stuff[1]);
+                           stuff->keySymsPerKeyCode, (KeySym *) &stuff[1]);
 
     return ret;
 }

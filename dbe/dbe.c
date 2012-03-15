@@ -467,7 +467,7 @@ ProcDbeSwapBuffers(ClientPtr client)
         return BadAlloc;
 
     /* Get to the swap info appended to the end of the request. */
-    dbeSwapInfo = (xDbeSwapInfo *) & stuff[1];
+    dbeSwapInfo = (xDbeSwapInfo *) &stuff[1];
 
     /* Allocate array to record swap information. */
     swapInfo = (DbeSwapInfoPtr) malloc(nStuff * sizeof(DbeSwapInfoRec));

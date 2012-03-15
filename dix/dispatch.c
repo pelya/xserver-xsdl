@@ -1696,7 +1696,7 @@ ProcPolyPoint(ClientPtr client)
     npoint = bytes_to_int32((client->req_len << 2) - sizeof(xPolyPointReq));
     if (npoint)
         (*pGC->ops->PolyPoint) (pDraw, pGC, stuff->coordMode, npoint,
-                                (xPoint *) & stuff[1]);
+                                (xPoint *) &stuff[1]);
     return Success;
 }
 
@@ -1719,7 +1719,7 @@ ProcPolyLine(ClientPtr client)
     npoint = bytes_to_int32((client->req_len << 2) - sizeof(xPolyLineReq));
     if (npoint > 1)
         (*pGC->ops->Polylines) (pDraw, pGC, stuff->coordMode, npoint,
-                                (DDXPointPtr) & stuff[1]);
+                                (DDXPointPtr) &stuff[1]);
     return Success;
 }
 
@@ -1739,7 +1739,7 @@ ProcPolySegment(ClientPtr client)
         return BadLength;
     nsegs >>= 3;
     if (nsegs)
-        (*pGC->ops->PolySegment) (pDraw, pGC, nsegs, (xSegment *) & stuff[1]);
+        (*pGC->ops->PolySegment) (pDraw, pGC, nsegs, (xSegment *) &stuff[1]);
     return Success;
 }
 
@@ -1780,7 +1780,7 @@ ProcPolyArc(ClientPtr client)
         return BadLength;
     narcs /= sizeof(xArc);
     if (narcs)
-        (*pGC->ops->PolyArc) (pDraw, pGC, narcs, (xArc *) & stuff[1]);
+        (*pGC->ops->PolyArc) (pDraw, pGC, narcs, (xArc *) &stuff[1]);
     return Success;
 }
 
@@ -1810,7 +1810,7 @@ ProcFillPoly(ClientPtr client)
     if (things)
         (*pGC->ops->FillPolygon) (pDraw, pGC, stuff->shape,
                                   stuff->coordMode, things,
-                                  (DDXPointPtr) & stuff[1]);
+                                  (DDXPointPtr) &stuff[1]);
     return Success;
 }
 
@@ -1852,7 +1852,7 @@ ProcPolyFillArc(ClientPtr client)
         return BadLength;
     narcs /= sizeof(xArc);
     if (narcs)
-        (*pGC->ops->PolyFillArc) (pDraw, pGC, narcs, (xArc *) & stuff[1]);
+        (*pGC->ops->PolyFillArc) (pDraw, pGC, narcs, (xArc *) &stuff[1]);
     return Success;
 }
 
@@ -2680,7 +2680,7 @@ ProcFreeColors(ClientPtr client)
             return BadAccess;
         count = bytes_to_int32((client->req_len << 2) - sizeof(xFreeColorsReq));
         return FreeColors(pcmp, client->index, count,
-                          (Pixel *) & stuff[1], (Pixel) stuff->planeMask);
+                          (Pixel *) &stuff[1], (Pixel) stuff->planeMask);
     }
     else {
         client->errorValue = stuff->cmap;
@@ -2706,7 +2706,7 @@ ProcStoreColors(ClientPtr client)
         if (count % sizeof(xColorItem))
             return BadLength;
         count /= sizeof(xColorItem);
-        return StoreColors(pcmp, count, (xColorItem *) & stuff[1], client);
+        return StoreColors(pcmp, count, (xColorItem *) &stuff[1], client);
     }
     else {
         client->errorValue = stuff->cmap;
@@ -2764,7 +2764,7 @@ ProcQueryColors(ClientPtr client)
         if (!prgbs && count)
             return BadAlloc;
         if ((rc =
-             QueryColors(pcmp, count, (Pixel *) & stuff[1], prgbs, client))) {
+             QueryColors(pcmp, count, (Pixel *) &stuff[1], prgbs, client))) {
             free(prgbs);
             return rc;
         }

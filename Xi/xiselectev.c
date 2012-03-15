@@ -71,7 +71,7 @@ SProcXISelectEvents(ClientPtr client)
     swapl(&stuff->win);
     swaps(&stuff->num_masks);
 
-    evmask = (xXIEventMask *) & stuff[1];
+    evmask = (xXIEventMask *) &stuff[1];
     for (i = 0; i < stuff->num_masks; i++) {
         swaps(&evmask->deviceid);
         swaps(&evmask->mask_len);
@@ -106,7 +106,7 @@ ProcXISelectEvents(ClientPtr client)
     len = sz_xXISelectEventsReq;
 
     /* check request validity */
-    evmask = (xXIEventMask *) & stuff[1];
+    evmask = (xXIEventMask *) &stuff[1];
     num_masks = stuff->num_masks;
     while (num_masks--) {
         len += sizeof(xXIEventMask) + evmask->mask_len * 4;
@@ -205,7 +205,7 @@ ProcXISelectEvents(ClientPtr client)
         return BadLength;
 
     /* Set masks on window */
-    evmask = (xXIEventMask *) & stuff[1];
+    evmask = (xXIEventMask *) &stuff[1];
     num_masks = stuff->num_masks;
     while (num_masks--) {
         if (evmask->deviceid == XIAllDevices ||

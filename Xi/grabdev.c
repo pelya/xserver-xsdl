@@ -122,7 +122,7 @@ ProcXGrabDevice(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    if ((rc = CreateMaskFromList(client, (XEventClass *) & stuff[1],
+    if ((rc = CreateMaskFromList(client, (XEventClass *) &stuff[1],
                                  stuff->event_count, tmp, dev,
                                  X_GrabDevice)) != Success)
         return rc;

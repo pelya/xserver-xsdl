@@ -807,7 +807,7 @@ SProcStoreColors(ClientPtr client)
     swaps(&stuff->length);
     REQUEST_AT_LEAST_SIZE(xStoreColorsReq);
     swapl(&stuff->cmap);
-    pItem = (xColorItem *) & stuff[1];
+    pItem = (xColorItem *) &stuff[1];
     for (count = LengthRestB(stuff) / sizeof(xColorItem); --count >= 0;)
         SwapColorItem(pItem++);
     return ((*ProcVector[X_StoreColors]) (client));

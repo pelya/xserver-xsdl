@@ -1557,7 +1557,7 @@ ProcSyncAwait(ClientPtr client)
 
     /* don't need to do any more memory allocation for this request! */
 
-    pProtocolWaitConds = (xSyncWaitCondition *) & stuff[1];
+    pProtocolWaitConds = (xSyncWaitCondition *) &stuff[1];
 
     pAwait = &(pAwaitUnion + 1)->await; /* skip over header */
     for (i = 0; i < items; i++, pProtocolWaitConds++, pAwait++) {
