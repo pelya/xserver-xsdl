@@ -8,6 +8,8 @@
 #define GLAMOR_CACHE_EXACT_SIZE 1
 #define GLAMOR_CACHE_TEXTURE	2
 
+//#define NO_FBO_CACHE 1
+
 /* Loop from the tail to the head. */
 #define xorg_list_for_each_entry_reverse(pos, head, member)             \
     for (pos = __container_of((head)->prev, pos, member);               \
@@ -80,7 +82,9 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 	struct xorg_list *cache;
 	glamor_pixmap_fbo *fbo_entry;
 	int size;
-
+#ifdef NO_FBO_CACHE
+	return NULL;
+#else
 	if (!(flag & GLAMOR_CACHE_TEXTURE))
 		cache = &glamor_priv->fbo_cache[cache_format(format)]
 					       [cache_wbucket(w)]
@@ -117,6 +121,7 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 	}
 
 	return NULL;
+#endif
 }
 
 void
@@ -135,11 +140,14 @@ glamor_purge_fbo(glamor_pixmap_fbo *fbo)
 }
 
 
-void
+static void
 glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 {
 	struct xorg_list *cache;
-
+#ifdef NO_FBO_CACHE
+	glamor_purge_fbo(fbo);
+	return;
+#else
 	if (fbo->fb == 0) {
 		glamor_purge_fbo(fbo);
 		return;
@@ -157,6 +165,7 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 		fbo->width, fbo->height, fbo->format, fbo->fb, fbo->tex);
 	xorg_list_add(&fbo->list, cache);
 	fbo->expire = fbo->glamor_priv->tick + GLAMOR_CACHE_EXPIRE_MAX;
+#endif
 }
 
 glamor_pixmap_fbo *
