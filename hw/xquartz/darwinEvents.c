@@ -430,10 +430,12 @@ DarwinPokeEQ(void)
  *       display.
  */
 static void
-DarwinPrepareValuators(DeviceIntPtr pDev, int *valuators, ScreenPtr screen,
-                       float pointer_x, float pointer_y,
-                       float pressure, float tilt_x, float tilt_y)
+DarwinPrepareValuators(DeviceIntPtr pDev, ValuatorMask *pmask, ScreenPtr screen,
+                       double pointer_x, double pointer_y,
+                       double pressure, double tilt_x, double tilt_y)
 {
+    valuator_mask_zero(pmask);
+
     /* Fix offset between darwin and X screens */
     pointer_x -= darwinMainScreenX + screen->x;
     pointer_y -= darwinMainScreenY + screen->y;
@@ -445,26 +447,19 @@ DarwinPrepareValuators(DeviceIntPtr pDev, int *valuators, ScreenPtr screen,
         pointer_y = 0.0;
 
     if (pDev == darwinPointer) {
-        valuators[0] = pointer_x;
-        valuators[1] = pointer_y;
-        valuators[2] = 0;
-        valuators[3] = 0;
-        valuators[4] = 0;
+        valuator_mask_set_double(pmask, 0, pointer_x);
+        valuator_mask_set_double(pmask, 1, pointer_y);
+    } else {
+        valuator_mask_set_double(pmask, 0, XQUARTZ_VALUATOR_LIMIT * (pointer_x / (double)screenInfo.screens[0]->width));
+        valuator_mask_set_double(pmask, 1, XQUARTZ_VALUATOR_LIMIT * (pointer_y / (double)screenInfo.screens[0]->height));
+        valuator_mask_set_double(pmask, 2, XQUARTZ_VALUATOR_LIMIT * pressure);
+        valuator_mask_set_double(pmask, 3, XQUARTZ_VALUATOR_LIMIT * tilt_x);
+        valuator_mask_set_double(pmask, 4, XQUARTZ_VALUATOR_LIMIT * tilt_y);
     }
-    else {
-        /* Setup our array of values */
-        valuators[0] =
-            XQUARTZ_VALUATOR_LIMIT * (pointer_x /
-                                      (float) screenInfo.screens[0]->width);
-        valuators[1] =
-            XQUARTZ_VALUATOR_LIMIT * (pointer_y /
-                                      (float) screenInfo.screens[0]->height);
-        valuators[2] = XQUARTZ_VALUATOR_LIMIT * pressure;
-        valuators[3] = XQUARTZ_VALUATOR_LIMIT * tilt_x;
-        valuators[4] = XQUARTZ_VALUATOR_LIMIT * tilt_y;
-    }
-    //DEBUG_LOG("Pointer (%f, %f), Valuators: {%d,%d,%d,%d,%d}\n", pointer_x, pointer_y,
-    //          valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
+    //DEBUG_LOG("Pointer (%lf, %lf), Valuators: {%lf,%lf,%lf,%lf,%lf}\n", pointer_x, pointer_y,
+    //          valuator_mask_get_double(pmask, 0), valuator_mask_get_double(pmask, 1),
+    //          valuator_mask_get_double(pmask, 2), valuator_mask_get_double(pmask, 3),
+    //          valuator_mask_get_double(pmask, 4));
 }
 
 void
@@ -497,12 +492,12 @@ DarwinInputReleaseButtonsAndKeys(DeviceIntPtr pDev)
 
 void
 DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
-                        float pointer_x, float pointer_y, float pressure,
-                        float tilt_x, float tilt_y)
+                        double pointer_x, double pointer_y, double pressure,
+                        double tilt_x, double tilt_y)
 {
     static int darwinFakeMouseButtonDown = 0;
     ScreenPtr screen;
-    int valuators[5];
+    ValuatorMask valuators;
 
     //DEBUG_LOG("x=%f, y=%f, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
 
@@ -559,14 +554,10 @@ DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
         darwinFakeMouseButtonDown = 0;
     }
 
-    DarwinPrepareValuators(pDev, valuators, screen, pointer_x, pointer_y,
+    DarwinPrepareValuators(pDev, &valuators, screen, pointer_x, pointer_y,
                            pressure, tilt_x, tilt_y);
     darwinEvents_lock(); {
-        ValuatorMask mask;
-
-        valuator_mask_set_range(&mask, 0, (pDev == darwinPointer) ? 2 : 5,
-                                valuators);
-        QueuePointerEvents(pDev, ev_type, ev_button, POINTER_ABSOLUTE, &mask);
+        QueuePointerEvents(pDev, ev_type, ev_button, POINTER_ABSOLUTE, &valuators);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }
@@ -590,12 +581,12 @@ DarwinSendKeyboardEvents(int ev_type, int keycode)
 }
 
 void
-DarwinSendProximityEvents(DeviceIntPtr pDev, int ev_type, float pointer_x,
-                          float pointer_y, float pressure, float tilt_x,
-                          float tilt_y)
+DarwinSendProximityEvents(DeviceIntPtr pDev, int ev_type, double pointer_x,
+                          double pointer_y, double pressure, double tilt_x,
+                          double tilt_y)
 {
     ScreenPtr screen;
-    int valuators[5];
+    ValuatorMask valuators;
 
     DEBUG_LOG("DarwinSendProximityEvents: %d l:%f,%f p:%f t:%f,%f\n", ev_type,
               pointer_x, pointer_y, pressure, tilt_x, tilt_y);
@@ -613,54 +604,50 @@ DarwinSendProximityEvents(DeviceIntPtr pDev, int ev_type, float pointer_x,
         return;
     }
 
-    DarwinPrepareValuators(pDev, valuators, screen, pointer_x, pointer_y,
+    DarwinPrepareValuators(pDev, &valuators, screen, pointer_x, pointer_y,
                            pressure, tilt_x, tilt_y);
     darwinEvents_lock(); {
-        ValuatorMask mask;
-
-        valuator_mask_set_range(&mask, 0, 5, valuators);
-        QueueProximityEvents(pDev, ev_type, &mask);
+        QueueProximityEvents(pDev, ev_type, &valuators);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }
 
 /* Send the appropriate number of button clicks to emulate scroll wheel */
 void
-DarwinSendScrollEvents(float count_x, float count_y,
-                       float pointer_x, float pointer_y,
-                       float pressure, float tilt_x, float tilt_y)
+DarwinSendScrollEvents(double scroll_x, double scroll_y, double pointer_x,
+                       double pointer_y, double pressure, double tilt_x,
+                       double tilt_y)
 {
     int sign_x, sign_y;
-
     if (!darwinEvents) {
-        DEBUG_LOG
-            ("DarwinSendScrollEvents called before darwinEvents was initialized\n");
+        DEBUG_LOG("DarwinSendScrollEvents called before darwinEvents was initialized\n");
         return;
     }
 
-    sign_x = count_x > 0.0f ? SCROLLWHEELLEFTFAKE : SCROLLWHEELRIGHTFAKE;
-    sign_y = count_y > 0.0f ? SCROLLWHEELUPFAKE : SCROLLWHEELDOWNFAKE;
-    count_x = fabs(count_x);
-    count_y = fabs(count_y);
+    sign_x = scroll_x > 0.0f ? SCROLLWHEELLEFTFAKE : SCROLLWHEELRIGHTFAKE;
+    sign_y = scroll_y > 0.0f ? SCROLLWHEELUPFAKE : SCROLLWHEELDOWNFAKE;
+    scroll_x = fabs(scroll_x);
+    scroll_y = fabs(scroll_y);
 
-    while ((count_x > 0.0f) || (count_y > 0.0f)) {
-        if (count_x > 0.0f) {
+    while ((scroll_x > 0.0f) || (scroll_y > 0.0f)) {
+        if (scroll_x > 0.0f) {
             DarwinSendPointerEvents(darwinPointer, ButtonPress, sign_x,
-                                    pointer_x, pointer_y, pressure, tilt_x,
-                                    tilt_y);
+                                    pointer_x, pointer_y, pressure,
+                                    tilt_x, tilt_y);
             DarwinSendPointerEvents(darwinPointer, ButtonRelease, sign_x,
-                                    pointer_x, pointer_y, pressure, tilt_x,
-                                    tilt_y);
-            count_x = count_x - 1.0f;
+                                    pointer_x, pointer_y, pressure,
+                                    tilt_x, tilt_y);
+            scroll_x = scroll_x - 1.0f;
         }
-        if (count_y > 0.0f) {
-            DarwinSendPointerEvents(darwinPointer, ButtonPress, sign_y,
-                                    pointer_x, pointer_y, pressure, tilt_x,
-                                    tilt_y);
+
+        if (scroll_y > 0.0f) {
+            DarwinSendPointerEvents(darwinPointer, ButtonPress, sign_y, 
+                                    pointer_x, pointer_y, pressure,
+                                    tilt_x, tilt_y);
             DarwinSendPointerEvents(darwinPointer, ButtonRelease, sign_y,
-                                    pointer_x, pointer_y, pressure, tilt_x,
-                                    tilt_y);
-            count_y = count_y - 1.0f;
+                                    pointer_x, pointer_y, pressure,
+                                    tilt_x, tilt_y);
+            scroll_y = scroll_y - 1.0f;
         }
     }
 }
