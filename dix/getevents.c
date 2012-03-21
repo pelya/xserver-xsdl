@@ -1314,18 +1314,19 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
 
         transformAbsolute(pDev, &mask);
         clipAbsolute(pDev, &mask);
+        if ((flags & POINTER_NORAW) == 0)
+            set_raw_valuators(raw, &mask, raw->valuators.data);
     }
     else {
         if (flags & POINTER_ACCELERATE)
             accelPointer(pDev, &mask, ms);
+        if ((flags & POINTER_NORAW) == 0)
+            set_raw_valuators(raw, &mask, raw->valuators.data);
+
         moveRelative(pDev, &mask);
     }
 
     /* valuators are in device coordinate system in absolute coordinates */
-
-    if ((flags & POINTER_NORAW) == 0)
-        set_raw_valuators(raw, &mask, raw->valuators.data);
-
     scale_to_desktop(pDev, &mask, &devx, &devy, &screenx, &screeny);
     scr = positionSprite(pDev, (flags & POINTER_ABSOLUTE) ? Absolute : Relative,
                          &mask, &devx, &devy, &screenx, &screeny);
