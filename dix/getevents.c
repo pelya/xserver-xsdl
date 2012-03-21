@@ -328,7 +328,6 @@ rescaleValuatorAxis(double coord, AxisInfoPtr from, AxisInfoPtr to,
 static void
 updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 {
-    ScreenPtr scr = miPointerGetScreen(pDev);
     int i;
     DeviceIntPtr lastSlave;
 
