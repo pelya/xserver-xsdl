@@ -33,4 +33,4 @@
 extern long keysym2ucs(int keysym);
 extern int ucs2keysym(long ucs);
 
-#endif /* KEYSYM2UCS_H */
+#endif                          /* KEYSYM2UCS_H */

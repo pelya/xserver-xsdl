@@ -28,4 +28,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Bool DRIWrapInit(ScreenPtr pScreen);
 
-#endif /*DRIWRAP_H*/
+#endif                          /*DRIWRAP_H */

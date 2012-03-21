@@ -21,7 +21,7 @@
 #include <Carbon/Carbon.h>
 #include <IOKit/hidsystem/event_status_driver.h>
 #include <IOKit/hidsystem/ev_keymap.h>
-#include <architecture/byte_order.h>  // For the NXSwap*
+#include <architecture/byte_order.h>    // For the NXSwap*
 
 #undef Cursor
 #undef WindowPtr
@@ -29,4 +29,4 @@
 #undef BOOL
 #undef EventType
 
-#endif  /* _XQ_SANITIZED_CARBON_H_ */
+#endif                          /* _XQ_SANITIZED_CARBON_H_ */

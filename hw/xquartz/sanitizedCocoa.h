@@ -26,7 +26,7 @@
 #undef EventType
 
 #ifndef __has_feature
-#define __has_feature(x) 0 // Compatibility with non-clang compilers.
+#define __has_feature(x) 0      // Compatibility with non-clang compilers.
 #endif
 
 #ifndef NS_RETURNS_RETAINED
@@ -61,4 +61,4 @@
 #endif
 #endif
 
-#endif  /* _XQ_SANITIZED_COCOA_H_ */
+#endif                          /* _XQ_SANITIZED_COCOA_H_ */

@@ -27,7 +27,7 @@
 #ifndef QUARTZ_KEYBOARD_H
 #define QUARTZ_KEYBOARD_H 1
 
-#define XK_TECHNICAL		// needed to get XK_Escape
+#define XK_TECHNICAL            // needed to get XK_Escape
 #define XK_PUBLISHING
 #include "X11/keysym.h"
 #include "inputstr.h"
@@ -35,8 +35,8 @@
 // Each key can generate 4 glyphs. They are, in order:
 // unshifted, shifted, modeswitch unshifted, modeswitch shifted
 #define GLYPHS_PER_KEY  4
-#define NUM_KEYCODES    248	// NX_NUMKEYCODES might be better
-#define MIN_KEYCODE     XkbMinLegalKeyCode     // unfortunately, this isn't 0...
+#define NUM_KEYCODES    248     // NX_NUMKEYCODES might be better
+#define MIN_KEYCODE     XkbMinLegalKeyCode      // unfortunately, this isn't 0...
 #define MAX_KEYCODE     NUM_KEYCODES + MIN_KEYCODE - 1
 
 /* These functions need to be implemented by Xquartz, XDarwin, etc. */
@@ -53,4 +53,4 @@ int DarwinModifierStringToNXMask(const char *string, int separatelr);
 /* Provided for darwin.c */
 void DarwinKeyboardInit(DeviceIntPtr pDev);
 
-#endif /* QUARTZ_KEYBOARD_H */
+#endif                          /* QUARTZ_KEYBOARD_H */

@@ -37,7 +37,7 @@ typedef struct {
     size_t width, height;
     int refresh;
     RRScreenSizePtr pSize;
-    void *ref; /* CGDisplayModeRef or CFDictionaryRef */
+    void *ref;                  /* CGDisplayModeRef or CFDictionaryRef */
 } QuartzModeInfo, *QuartzModeInfoPtr;
 
 // Quartz specific per screen storage structure
@@ -55,10 +55,10 @@ typedef struct {
     ((QuartzScreenPtr)dixLookupPrivate(&pScreen->devPrivates, quartzScreenKey))
 
 void QuartzCopyDisplayIDs(ScreenPtr pScreen,
-                          int displayCount, CGDirectDisplayID *displayIDs);
+                          int displayCount, CGDirectDisplayID * displayIDs);
 
-Bool QuartzRandRUpdateFakeModes (BOOL force_update);
-Bool QuartzRandRInit (ScreenPtr pScreen);
+Bool QuartzRandRUpdateFakeModes(BOOL force_update);
+Bool QuartzRandRInit(ScreenPtr pScreen);
 
 /* These two functions provide functionality expected by the legacy
  * mode switching.  They are equivalent to a client requesting one
@@ -66,15 +66,14 @@ Bool QuartzRandRInit (ScreenPtr pScreen);
  * QuartzRandRSetFakeFullscreen takes an argument which is used to determine
  * the visibility of the windows after the change.
  */
-void QuartzRandRSetFakeRootless (void);
-void QuartzRandRSetFakeFullscreen (BOOL state);
-
+void QuartzRandRSetFakeRootless(void);
+void QuartzRandRSetFakeFullscreen(BOOL state);
 
 /* Toggle fullscreen mode.  If "fake" fullscreen is the current mode,
  * this will just show/hide the X11 windows.  If we are in a RandR fullscreen
  * mode, this will toggles us to the default fake mode and hide windows if
  * it is fullscreen
  */
-void QuartzRandRToggleFullscreen (void);
+void QuartzRandRToggleFullscreen(void);
 
 #endif

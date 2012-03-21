@@ -31,20 +31,20 @@
 #include "scrnintstr.h"
 
 typedef struct {
-    void                *framebuffer;
-    int                 x;
-    int                 y;
-    int                 width;
-    int                 height;
-    int                 pitch;
-    int                 depth;
-    int                 visuals;
-    int                 bitsPerRGB;
-    int                 bitsPerPixel;
-    int                 preferredCVC;
-    Pixel               redMask;
-    Pixel               greenMask;
-    Pixel               blueMask;
+    void *framebuffer;
+    int x;
+    int y;
+    int width;
+    int height;
+    int pitch;
+    int depth;
+    int visuals;
+    int bitsPerRGB;
+    int bitsPerPixel;
+    int preferredCVC;
+    Pixel redMask;
+    Pixel greenMask;
+    Pixel blueMask;
 } DarwinFramebufferRec, *DarwinFramebufferPtr;
 
 #define MASK_LH(l,h) (((1 << (1 + (h) - (l))) - 1) << (l))
@@ -53,4 +53,4 @@ typedef struct {
 #define RM_ARGB(a,r,g,b) MASK_LH((b) + (g), (b) + (g) + (r) - 1)
 #define AM_ARGB(a,r,g,b) MASK_LH((b) + (g) + (r), (b) + (g) + (r) + (a) - 1)
 
-#endif  /* _DARWIN_FB_H */
+#endif                          /* _DARWIN_FB_H */

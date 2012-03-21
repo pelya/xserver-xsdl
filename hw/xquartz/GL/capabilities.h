@@ -55,7 +55,7 @@ struct glCapabilitiesConfig {
     struct glCapabilitiesConfig *next;
 };
 
-struct glCapabilities  {
+struct glCapabilities {
     struct glCapabilitiesConfig *configurations;
     int total_configurations;
 };

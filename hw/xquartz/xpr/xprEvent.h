@@ -29,6 +29,6 @@
 #ifndef __XPR_EVENT_H__
 #define __XPR_EVENT_H__
 
-Bool QuartzModeEventHandler(int screenNum, XQuartzEvent *e, DeviceIntPtr dev);
+Bool QuartzModeEventHandler(int screenNum, XQuartzEvent * e, DeviceIntPtr dev);
 
 #endif
