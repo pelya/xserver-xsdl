@@ -1275,6 +1275,378 @@ done:
 	return ret;
 }
 
+static GLint
+_glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int use_array)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
+
+	GLint gradient_prog = 0;
+	char *gradient_fs = NULL;
+	GLint fs_prog, vs_prog;
+
+	const char *gradient_vs =
+	    GLAMOR_DEFAULT_PRECISION
+	    "attribute vec4 v_position;\n"
+	    "attribute vec4 v_texcoord;\n"
+	    "varying vec2 source_texture;\n"
+	    "\n"
+	    "void main()\n"
+	    "{\n"
+	    "    gl_Position = v_position;\n"
+	    "    source_texture = v_texcoord.xy;\n"
+	    "}\n";
+
+	/*
+	 *                                      |
+	 *                                      |\
+	 *                                      | \
+	 *                                      |  \
+	 *                                      |   \
+	 *                                      |\   \
+	 *                                      | \   \
+	 *     cos_val =                        |\ p1d \   /
+	 *      sqrt(1/(slope*slope+1.0))  ------>\ \   \ /
+	 *                                      |  \ \   \
+	 *                                      |   \ \ / \
+	 *                                      |    \ *Pt1\
+	 *         *p1                          |     \     \     *P
+	 *          \                           |    / \     \   /
+	 *           \                          |   /   \     \ /
+	 *            \                         |       pd     \
+	 *             \                        |         \   / \
+	 *            p2*                       |          \ /   \       /
+	 *        slope = (p2.y - p1.y) /       |           /     p2d   /
+	 *                    (p2.x - p1.x)     |          /       \   /
+	 *                                      |         /         \ /
+	 *                                      |        /           /
+	 *                                      |       /           /
+	 *                                      |      /           *Pt2
+	 *                                      |                 /
+	 *                                      |                /
+	 *                                      |               /
+	 *                                      |              /
+	 *                                      |             /
+	 *                               -------+---------------------------------
+	 *                                     O|
+	 *                                      |
+	 *                                      |
+	 *
+	 *	step 1: compute the distance of p, pt1 and pt2 in the slope direction.
+	 *		Caculate the distance on Y axis first and multiply cos_val to
+	 *		get the value on slope direction(pd, p1d and p2d represent the
+	 *		distance of p, pt1, and pt2 respectively).
+	 *
+	 *	step 2: caculate the percentage of (pd - p1d)/(p2d - p1d).
+	 *		If (pd - p1d) > (p2d - p1d) or < 0, then sub or add (p2d - p1d)
+	 *		to make it in the range of [0, (p2d - p1d)].
+	 *
+	 *	step 3: compare the percentage to every stop and find the stpos just
+	 *		before and after it. Use the interpolation fomula to compute RGBA.
+	 */
+
+	const char *gradient_fs_template =
+	    GLAMOR_DEFAULT_PRECISION
+	    "uniform mat3 transform_mat;\n"
+	    "uniform int repeat_type;\n"
+	    "uniform int hor_ver;\n"
+	    "uniform int n_stop;\n"
+	    "uniform float stops[%d];\n"
+	    "uniform vec4 stop_colors[%d];\n"
+	    "uniform vec4 pt1;\n"
+	    "uniform vec4 pt2;\n"
+	    "uniform float pt_slope;\n"
+	    "uniform float cos_val;\n"
+	    "uniform float p1_distance;\n"
+	    "uniform float pt_distance;\n"
+	    "varying vec2 source_texture;\n"
+	    "\n"
+	    "vec4 get_color()\n"
+	    "{\n"
+	    "    vec3 tmp = vec3(source_texture.x, source_texture.y, 1.0);\n"
+	    "    float len_percentage;\n"
+	    "    float distance;\n"
+	    "    float _p1_distance;\n"
+	    "    float _pt_distance;\n"
+	    "    float y_dist;\n"
+	    "    float new_alpha; \n"
+	    "    int i = n_stop - 1;\n"
+	    "    int revserse = 0;\n"
+	    "    vec4 gradient_color;\n"
+	    "    float percentage; \n"
+	    "    vec3 source_texture_trans = transform_mat * tmp;\n"
+	    "    \n"
+	    "    if(hor_ver == 0) { \n" //Normal case.
+	    "        y_dist = source_texture_trans.y - source_texture_trans.x*pt_slope;\n"
+	    "        distance = y_dist * cos_val;\n"
+	    "        _p1_distance = p1_distance * source_texture_trans.z;\n"
+	    "        _pt_distance = pt_distance * source_texture_trans.z;\n"
+	    "        \n"
+	    "    } else if (hor_ver == 1) {\n"//horizontal case.
+	    "        distance = source_texture_trans.x;\n"
+	    "        _p1_distance = p1_distance * source_texture_trans.z;\n"
+	    "        _pt_distance = pt_distance * source_texture_trans.z;\n"
+	    "    } else if (hor_ver == 2) {\n"//vertical case.
+	    "        distance = source_texture_trans.y;\n"
+	    "        _p1_distance = p1_distance * source_texture_trans.z;\n"
+	    "        _pt_distance = pt_distance * source_texture_trans.z;\n"
+	    "    } \n"
+	    "    \n"
+	    "    distance = distance - _p1_distance; \n"
+	    "    \n"
+	    "    if(repeat_type == %d){\n" // repeat normal
+	    "        while(distance > _pt_distance) \n"
+	    "            distance = distance - (_pt_distance); \n"
+	    "        while(distance < 0.0) \n"
+	    "            distance = distance + (_pt_distance); \n"
+	    "    }\n"
+	    "    \n"
+	    "    if(repeat_type == %d) {\n" // repeat reflect
+	    "        while(distance > _pt_distance) {\n"
+	    "            distance = distance - (_pt_distance); \n"
+	    "            if(revserse == 0)\n"
+	    "                revserse = 1;\n"
+	    "            else\n"
+	    "                revserse = 0;\n"
+	    "        }\n"
+	    "        while(distance < 0.0) {\n"
+	    "            distance = distance + (_pt_distance); \n"
+	    "            if(revserse == 0)\n"
+	    "                revserse = 1;\n"
+	    "            else\n"
+	    "	             revserse = 0;\n"
+	    "        }\n"
+	    "        if(revserse == 1) {\n"
+	    "            distance = (_pt_distance) - distance; \n"
+	    "        }\n"
+	    "    }\n"
+	    "    \n"
+	    "    len_percentage = distance/(_pt_distance);\n"
+	    "    for(i = 0; i < n_stop - 1; i++) {\n"
+	    "        if(len_percentage < stops[i])\n"
+	    "            break; \n"
+	    "    }\n"
+	    "    \n"
+	    "    percentage = (len_percentage - stops[i-1])/(stops[i] - stops[i-1]);\n"
+	    "    if(stops[i] - stops[i-1] > 2.0)\n"
+	    "        percentage = 0.0;\n" //For comply with pixman, walker->stepper overflow.
+	    "    new_alpha = percentage * stop_colors[i].a + \n"
+	    "                       (1.0-percentage) * stop_colors[i-1].a; \n"
+	    "    gradient_color = vec4((percentage * stop_colors[i].rgb \n"
+	    "                          + (1.0-percentage) * stop_colors[i-1].rgb)*new_alpha, \n"
+	    "                          new_alpha);\n"
+	    "    \n"
+	    "    return gradient_color;\n"
+	    "}\n"
+	    "\n"
+	    "void main()\n"
+	    "{\n"
+	    "    gl_FragColor = get_color();\n"
+	    "}\n";
+
+	/* Because the array access for shader is very slow, the performance is very low
+	   if use array. So use global uniform to replace for it if the number of n_stops is small.*/
+	const char *gradient_fs_no_array_template =
+	    GLAMOR_DEFAULT_PRECISION
+	    "uniform mat3 transform_mat;\n"
+	    "uniform int repeat_type;\n"
+	    "uniform int hor_ver;\n"
+	    "uniform int n_stop;\n"
+	    "uniform float stop0;\n"
+	    "uniform float stop1;\n"
+	    "uniform float stop2;\n"
+	    "uniform float stop3;\n"
+	    "uniform float stop4;\n"
+	    "uniform float stop5;\n"
+	    "uniform float stop6;\n"
+	    "uniform float stop7;\n"
+	    "uniform vec4 stop_color0;\n"
+	    "uniform vec4 stop_color1;\n"
+	    "uniform vec4 stop_color2;\n"
+	    "uniform vec4 stop_color3;\n"
+	    "uniform vec4 stop_color4;\n"
+	    "uniform vec4 stop_color5;\n"
+	    "uniform vec4 stop_color6;\n"
+	    "uniform vec4 stop_color7;\n"
+	    "uniform vec4 pt1;\n"
+	    "uniform vec4 pt2;\n"
+	    "uniform float pt_slope;\n"
+	    "uniform float cos_val;\n"
+	    "uniform float p1_distance;\n"
+	    "uniform float pt_distance;\n"
+	    "varying vec2 source_texture;\n"
+	    "\n"
+	    "vec4 get_color()\n"
+	    "{\n"
+	    "    vec3 tmp = vec3(source_texture.x, source_texture.y, 1.0);\n"
+	    "    float len_percentage;\n"
+	    "    float distance;\n"
+	    "    float _p1_distance;\n"
+	    "    float _pt_distance;\n"
+	    "    float y_dist;\n"
+	    "    float stop_after;\n"
+	    "    float stop_before;\n"
+	    "    vec4 stop_color_before;\n"
+	    "    vec4 stop_color_after;\n"
+	    "    float new_alpha; \n"
+	    "    int revserse = 0;\n"
+	    "    vec4 gradient_color;\n"
+	    "    float percentage; \n"
+	    "    vec3 source_texture_trans = transform_mat * tmp;\n"
+	    "    \n"
+	    "    if(hor_ver == 0) { \n" //Normal case.
+	    "        y_dist = source_texture_trans.y - source_texture_trans.x*pt_slope;\n"
+	    "        distance = y_dist * cos_val;\n"
+	    "        _p1_distance = p1_distance * source_texture_trans.z;\n"
+	    "        _pt_distance = pt_distance * source_texture_trans.z;\n"
+	    "        \n"
+	    "    } else if (hor_ver == 1) {\n"//horizontal case.
+	    "        distance = source_texture_trans.x;\n"
+	    "        _p1_distance = p1_distance * source_texture_trans.z;\n"
+	    "        _pt_distance = pt_distance * source_texture_trans.z;\n"
+	    "    } else if (hor_ver == 2) {\n"//vertical case.
+	    "        distance = source_texture_trans.y;\n"
+	    "        _p1_distance = p1_distance * source_texture_trans.z;\n"
+	    "        _pt_distance = pt_distance * source_texture_trans.z;\n"
+	    "    } \n"
+	    "    \n"
+	    "    distance = distance - _p1_distance; \n"
+	    "    \n"
+	    "    if(repeat_type == %d){\n" // repeat normal
+	    "        while(distance > _pt_distance) \n"
+	    "            distance = distance - (_pt_distance); \n"
+	    "        while(distance < 0.0) \n"
+	    "            distance = distance + (_pt_distance); \n"
+	    "    }\n"
+	    "    \n"
+	    "    if(repeat_type == %d) {\n" // repeat reflect
+	    "        while(distance > _pt_distance) {\n"
+	    "            distance = distance - (_pt_distance); \n"
+	    "            if(revserse == 0)\n"
+	    "                revserse = 1;\n"
+	    "            else\n"
+	    "                revserse = 0;\n"
+	    "        }\n"
+	    "        while(distance < 0.0) {\n"
+	    "            distance = distance + (_pt_distance); \n"
+	    "            if(revserse == 0)\n"
+	    "                revserse = 1;\n"
+	    "            else\n"
+	    "	             revserse = 0;\n"
+	    "        }\n"
+	    "        if(revserse == 1) {\n"
+	    "            distance = (_pt_distance) - distance; \n"
+	    "        }\n"
+	    "    }\n"
+	    "    \n"
+	    "    len_percentage = distance/(_pt_distance);\n"
+	    "    if((len_percentage < stop0) && (n_stop >= 1)) {\n"
+	    "        stop_color_before = stop_color0;\n"
+	    "        stop_color_after = stop_color0;\n"
+	    "        stop_after = stop0;\n"
+	    "        stop_before = stop0;\n"
+	    "        percentage = 0.0;\n"
+	    "    } else if((len_percentage < stop1) && (n_stop >= 2)) {\n"
+	    "        stop_color_before = stop_color0;\n"
+	    "        stop_color_after = stop_color1;\n"
+	    "        stop_after = stop1;\n"
+	    "        stop_before = stop0;\n"
+	    "        percentage = (len_percentage - stop0)/(stop1 - stop0);\n"
+	    "    } else if((len_percentage < stop2) && (n_stop >= 3)) {\n"
+	    "        stop_color_before = stop_color1;\n"
+	    "        stop_color_after = stop_color2;\n"
+	    "        stop_after = stop2;\n"
+	    "        stop_before = stop1;\n"
+	    "        percentage = (len_percentage - stop1)/(stop2 - stop1);\n"
+	    "    } else if((len_percentage < stop3) && (n_stop >= 4)){\n"
+	    "        stop_color_before = stop_color2;\n"
+	    "        stop_color_after = stop_color3;\n"
+	    "        stop_after = stop3;\n"
+	    "        stop_before = stop2;\n"
+	    "        percentage = (len_percentage - stop2)/(stop3 - stop2);\n"
+	    "    } else if((len_percentage < stop4) && (n_stop >= 5)){\n"
+	    "        stop_color_before = stop_color3;\n"
+	    "        stop_color_after = stop_color4;\n"
+	    "        stop_after = stop4;\n"
+	    "        stop_before = stop3;\n"
+	    "        percentage = (len_percentage - stop3)/(stop4 - stop3);\n"
+	    "    } else if((len_percentage < stop5) && (n_stop >= 6)){\n"
+	    "        stop_color_before = stop_color4;\n"
+	    "        stop_color_after = stop_color5;\n"
+	    "        stop_after = stop5;\n"
+	    "        stop_before = stop4;\n"
+	    "        percentage = (len_percentage - stop4)/(stop5 - stop4);\n"
+	    "    } else if((len_percentage < stop6) && (n_stop >= 7)){\n"
+	    "        stop_color_before = stop_color5;\n"
+	    "        stop_color_after = stop_color6;\n"
+	    "        stop_after = stop6;\n"
+	    "        stop_before = stop5;\n"
+	    "        percentage = (len_percentage - stop5)/(stop6 - stop5);\n"
+	    "    } else if((len_percentage < stop7) && (n_stop >= 8)){\n"
+	    "        stop_color_before = stop_color6;\n"
+	    "        stop_color_after = stop_color7;\n"
+	    "        stop_after = stop7;\n"
+	    "        stop_before = stop6;\n"
+	    "        percentage = (len_percentage - stop6)/(stop7 - stop6);\n"
+	    "    } else {\n"
+	    "        stop_color_before = stop_color7;\n"
+	    "        stop_color_after = stop_color7;\n"
+	    "        stop_after = stop7;\n"
+	    "        stop_before = stop7;\n"
+	    "        percentage = 0.0;\n"
+	    "    }\n"
+	    "    if(stop_after - stop_before > 2.0)\n"
+	    "        percentage = 0.0;\n"//For comply with pixman, walker->stepper overflow.
+	    "    new_alpha = percentage * stop_color_after.a + \n"
+	    "                       (1.0-percentage) * stop_color_before.a; \n"
+	    "    gradient_color = vec4((percentage * stop_color_after.rgb \n"
+	    "                          + (1.0-percentage) * stop_color_before.rgb)*new_alpha, \n"
+	    "                          new_alpha);\n"
+	    "    \n"
+	    "    return gradient_color;\n"
+	    "}\n"
+	    "\n"
+	    "void main()\n"
+	    "{\n"
+	    "    gl_FragColor = get_color();\n"
+	    "}\n";
+
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch = glamor_get_dispatch(glamor_priv);
+
+	gradient_prog = dispatch->glCreateProgram();
+
+	vs_prog = glamor_compile_glsl_prog(dispatch,
+	          GL_VERTEX_SHADER, gradient_vs);
+
+	if (use_array) {
+		XNFasprintf(&gradient_fs,
+		            gradient_fs_template, stops_count, stops_count,
+		            PIXMAN_REPEAT_NORMAL, PIXMAN_REPEAT_REFLECT);
+	} else {
+		XNFasprintf(&gradient_fs,
+		            gradient_fs_no_array_template,
+		            PIXMAN_REPEAT_NORMAL, PIXMAN_REPEAT_REFLECT);
+	}
+	fs_prog = glamor_compile_glsl_prog(dispatch,
+	          GL_FRAGMENT_SHADER, gradient_fs);
+	free(gradient_fs);
+
+	dispatch->glAttachShader(gradient_prog, vs_prog);
+	dispatch->glAttachShader(gradient_prog, fs_prog);
+
+	dispatch->glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS, "v_position");
+	dispatch->glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE, "v_texcoord");
+
+	glamor_link_glsl_prog(dispatch, gradient_prog);
+
+	dispatch->glUseProgram(0);
+
+	glamor_put_dispatch(glamor_priv);
+	return gradient_prog;
+}
+
+#define LINEAR_DEFAULT_STOPS 6 + 2
 
 void
 glamor_init_gradient_shader(ScreenPtr screen)
@@ -1283,6 +1655,9 @@ glamor_init_gradient_shader(ScreenPtr screen)
 
 	glamor_priv = glamor_get_screen_private(screen);
 
+	glamor_priv->gradient_prog[GRADIENT_SHADER_LINEAR] =
+	    _glamor_create_linear_gradient_program(screen,
+	            LINEAR_DEFAULT_STOPS, 0);
 }
 
 void
@@ -1294,23 +1669,606 @@ glamor_fini_gradient_shader(ScreenPtr screen)
 	glamor_priv = glamor_get_screen_private(screen);
 	dispatch = glamor_get_dispatch(glamor_priv);
 
+	dispatch->glDeleteProgram(
+	    glamor_priv->gradient_prog[GRADIENT_SHADER_LINEAR]);
+
 	glamor_put_dispatch(glamor_priv);
 }
 
+static void
+_glamor_gradient_convert_trans_matrix(PictTransform *from, float to[3][3],
+				      int width, int height)
+{
+	/*
+	 * Because in the shader program, we normalize all the pixel cood to [0, 1],
+	 * so with the transform matrix, the correct logic should be:
+	 * v_s = A*T*v
+	 * v_s: point vector in shader after normalized.
+	 * A: The transition matrix from   width X height --> 1.0 X 1.0
+	 * T: The transform matrix.
+	 * v: point vector in width X height space.
+	 *
+	 * result is OK if we use this fomula. But for every point in width X height space,
+	 * we can just use their normalized point vector in shader, namely we can just
+	 * use the result of A*v in shader. So we have no chance to insert T in A*v.
+	 * We can just convert v_s = A*T*v to v_s = A*T*inv(A)*A*v, where inv(A) is the
+	 * inverse matrix of A. Now, v_s = (A*T*inv(A)) * (A*v)
+	 * So, to get the correct v_s, we need to cacula1 the matrix: (A*T*inv(A)), and
+	 * we name this matrix T_s.
+	 *
+	 * Firstly, because A is for the scale convertion, we find
+	 *      --         --
+	 *      |1/w  0   0 |
+	 * A =  | 0  1/h  0 |
+	 *      | 0   0  1.0|
+	 *      --         --
+	 * so T_s = A*T*inv(a) and result
+	 *
+	 *       --                      --
+	 *       | t11      h*t12/w  t13/w|
+	 * T_s = | w*t21/h  t22      t23/h|
+	 *       | w*t31    h*t32    t33  |
+	 *       --                      --
+	 */
+
+	to[0][0] = (float)pixman_fixed_to_double(from->matrix[0][0]);
+	to[0][1] = (float)pixman_fixed_to_double(from->matrix[0][1])
+	                                         * ((float)height) / ((float)width);
+	to[0][2] = (float)pixman_fixed_to_double(from->matrix[0][2])
+	                                         / ((float)width);
+
+	to[1][0] = (float)pixman_fixed_to_double(from->matrix[1][0])
+	                                         * ((float)width) / ((float)height);
+	to[1][1] = (float)pixman_fixed_to_double(from->matrix[1][1]);
+	to[1][2] = (float)pixman_fixed_to_double(from->matrix[1][2])
+	                                         / ((float)height);
+
+	to[2][0] = (float)pixman_fixed_to_double(from->matrix[2][0])
+	                                         * ((float)width);
+	to[2][1] = (float)pixman_fixed_to_double(from->matrix[2][1])
+	                                         * ((float)height);
+	to[2][2] = (float)pixman_fixed_to_double(from->matrix[2][2]);
+
+	DEBUGF("the transform matrix is:\n%f\t%f\t%f\n%f\t%f\t%f\n%f\t%f\t%f\n",
+	       to[0][0], to[0][1], to[0][2],
+	       to[1][0], to[1][1], to[1][2],
+	       to[2][0], to[2][1], to[2][2]);
+}
+
+static int
+_glamor_gradient_set_pixmap_destination(ScreenPtr screen,
+                                        glamor_screen_private *glamor_priv,
+                                        PicturePtr dst_picure,
+                                        GLfloat *xscale, GLfloat *yscale,
+                                        int x_source, int y_source,
+                                        float vertices[8],
+                                        float tex_vertices[8],
+					int tex_normalize)
+{
+	glamor_pixmap_private *pixmap_priv;
+	PixmapPtr pixmap = NULL;
+
+	pixmap = glamor_get_drawable_pixmap(dst_picure->pDrawable);
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) { /* should always have here. */
+		return 0;
+	}
+
+	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+
+	pixmap_priv_get_scale(pixmap_priv, xscale, yscale);
+
+	glamor_priv->has_source_coords = 1;
+	glamor_priv->has_mask_coords = 0;
+	glamor_setup_composite_vbo(screen, 4*2);
+
+	DEBUGF("xscale = %f, yscale = %f,"
+	       " x_source = %d, y_source = %d, width = %d, height = %d\n",
+	       *xscale, *yscale, x_source, y_source,
+	       pixmap_priv->fbo->width, pixmap_priv->fbo->height);
+
+	glamor_set_normalize_vcoords(*xscale, *yscale,
+	                             0, 0,
+	                             (INT16)(pixmap_priv->fbo->width),
+	                             (INT16)(pixmap_priv->fbo->height),
+	                             glamor_priv->yInverted, vertices);
+
+	if (tex_normalize) {
+		glamor_set_normalize_tcoords(*xscale, *yscale,
+		                             0, 0,
+		                             (INT16)(pixmap_priv->fbo->width),
+		                             (INT16)(pixmap_priv->fbo->height),
+		                             glamor_priv->yInverted, tex_vertices);
+	} else {
+		glamor_set_tcoords(0, 0,
+		                   (INT16)(pixmap_priv->fbo->width),
+		                   (INT16)(pixmap_priv->fbo->height),
+		                   glamor_priv->yInverted, tex_vertices);
+	}
+
+	DEBUGF("vertices --> leftup : %f X %f, rightup: %f X %f,"
+	       "rightbottom: %f X %f, leftbottom : %f X %f\n",
+	       vertices[0], vertices[1], vertices[2], vertices[3],
+	       vertices[4], vertices[5], vertices[6], vertices[7]);
+	DEBUGF("tex_vertices --> leftup : %f X %f, rightup: %f X %f,"
+	       "rightbottom: %f X %f, leftbottom : %f X %f\n",
+	       tex_vertices[0], tex_vertices[1], tex_vertices[2], tex_vertices[3],
+	       tex_vertices[4], tex_vertices[5], tex_vertices[6], tex_vertices[7]);
+
+	return 1;
+}
+
+static int
+_glamor_gradient_set_stops(PicturePtr src_picture, PictGradient * pgradient,
+                           GLfloat *stop_colors, GLfloat *n_stops)
+{
+	int i;
+	int count;
+
+	for (i = 1; i < pgradient->nstops + 1; i++) {
+		stop_colors[i*4] = pixman_fixed_to_double(
+		                       pgradient->stops[i-1].color.red);
+		stop_colors[i*4+1] = pixman_fixed_to_double(
+		                       pgradient->stops[i-1].color.green);
+		stop_colors[i*4+2] = pixman_fixed_to_double(
+		                       pgradient->stops[i-1].color.blue);
+		stop_colors[i*4+3] = pixman_fixed_to_double(
+		                       pgradient->stops[i-1].color.alpha);
+
+		n_stops[i] = (GLfloat)pixman_fixed_to_double(
+		                       pgradient->stops[i-1].x);
+	}
+
+	count = pgradient->nstops + 2;
+
+	switch (src_picture->repeatType) {
+#define REPEAT_FILL_STOPS(m, n) \
+			stop_colors[(m)*4 + 0] = stop_colors[(n)*4 + 0]; \
+			stop_colors[(m)*4 + 1] = stop_colors[(n)*4 + 1]; \
+			stop_colors[(m)*4 + 2] = stop_colors[(n)*4 + 2]; \
+			stop_colors[(m)*4 + 3] = stop_colors[(n)*4 + 3];
+
+		default:
+		case PIXMAN_REPEAT_NONE:
+			stop_colors[0] = 0.0;	   //R
+			stop_colors[1] = 0.0;	   //G
+			stop_colors[2] = 0.0;	   //B
+			stop_colors[3] = 0.0;	   //Alpha
+			n_stops[0] = -(float)INT_MAX;  //should be small enough.
+
+			stop_colors[0 + (count-1)*4] = 0.0;	 //R
+			stop_colors[1 + (count-1)*4] = 0.0;	 //G
+			stop_colors[2 + (count-1)*4] = 0.0;	 //B
+			stop_colors[3 + (count-1)*4] = 0.0;	 //Alpha
+			n_stops[count-1] = (float)INT_MAX;  //should be large enough.
+			break;
+		case PIXMAN_REPEAT_NORMAL:
+			REPEAT_FILL_STOPS(0, count - 2);
+			n_stops[0] = n_stops[count-2] - 1.0;
+
+			REPEAT_FILL_STOPS(count - 1, 1);
+			n_stops[count-1] = n_stops[1] + 1.0;
+			break;
+		case PIXMAN_REPEAT_REFLECT:
+			REPEAT_FILL_STOPS(0, 1);
+			n_stops[0] = -n_stops[1];
+
+			REPEAT_FILL_STOPS(count - 1, count - 2);
+			n_stops[count-1] = 1.0 + 1.0 - n_stops[count-2];
+			break;
+		case PIXMAN_REPEAT_PAD:
+			REPEAT_FILL_STOPS(0, 1);
+			n_stops[0] = -(float)INT_MAX;
+
+			REPEAT_FILL_STOPS(count - 1, count - 2);
+			n_stops[count-1] = (float)INT_MAX;
+			break;
+#undef REPEAT_FILL_STOPS
+	}
+
+	for (i = 0; i < count; i++) {
+		DEBUGF("n_stops[%d] = %f, color = r:%f g:%f b:%f a:%f\n",
+		       i, n_stops[i],
+		       stop_colors[i*4], stop_colors[i*4+1],
+		       stop_colors[i*4+2], stop_colors[i*4+3]);
+	}
+
+	return count;
+}
+
+static PicturePtr
+_glamor_generate_linear_gradient_picture(ScreenPtr screen,
+                                         PicturePtr src_picture,
+                                         int x_source, int y_source,
+                                         int width, int height,
+                                         PictFormatShort format)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
+	PicturePtr dst_picture = NULL;
+	PixmapPtr pixmap = NULL;
+	GLint gradient_prog = 0;
+	int error;
+	float pt_distance;
+	float p1_distance;
+	GLfloat cos_val;
+	float tex_vertices[8];
+	int stops_count;
+	GLfloat *stop_colors = NULL;
+	GLfloat *n_stops = NULL;
+	int i = 0;
+	int count = 0;
+	float slope;
+	GLfloat xscale, yscale;
+	GLfloat pt1[4], pt2[4];
+	float vertices[8];
+	float transform_mat[3][3];
+	static const float identity_mat[3][3] = {{1.0, 0.0, 0.0},
+		                                 {0.0, 1.0, 0.0},
+		                                 {0.0, 0.0, 1.0}};
+	GLfloat stop_colors_st[LINEAR_DEFAULT_STOPS*4];
+	GLfloat n_stops_st[LINEAR_DEFAULT_STOPS];
+
+	GLint transform_mat_uniform_location;
+	GLint pt1_uniform_location;
+	GLint pt2_uniform_location;
+	GLint n_stop_uniform_location;
+	GLint stops_uniform_location;
+	GLint stop0_uniform_location;
+	GLint stop1_uniform_location;
+	GLint stop2_uniform_location;
+	GLint stop3_uniform_location;
+	GLint stop4_uniform_location;
+	GLint stop5_uniform_location;
+	GLint stop6_uniform_location;
+	GLint stop7_uniform_location;
+	GLint stop_colors_uniform_location;
+	GLint stop_color0_uniform_location;
+	GLint stop_color1_uniform_location;
+	GLint stop_color2_uniform_location;
+	GLint stop_color3_uniform_location;
+	GLint stop_color4_uniform_location;
+	GLint stop_color5_uniform_location;
+	GLint stop_color6_uniform_location;
+	GLint stop_color7_uniform_location;
+	GLint pt_slope_uniform_location;
+	GLint repeat_type_uniform_location;
+	GLint hor_ver_uniform_location;
+	GLint cos_val_uniform_location;
+	GLint p1_distance_uniform_location;
+	GLint pt_distance_uniform_location;
+
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch = glamor_get_dispatch(glamor_priv);
+
+	/* Create a pixmap with VBO. */
+	pixmap = glamor_create_pixmap(screen,
+	                              width, height,
+	                              PIXMAN_FORMAT_DEPTH(format),
+	                              GLAMOR_CREATE_PIXMAP_FIXUP);
+
+	if (!pixmap)
+		goto GRADIENT_FAIL;
+
+	dst_picture = CreatePicture(0, &pixmap->drawable,
+	                            PictureMatchFormat(screen,
+	                                    PIXMAN_FORMAT_DEPTH(format), format),
+	                            0, 0, serverClient, &error);
+
+	/* Release the reference, picture will hold the last one. */
+	glamor_destroy_pixmap(pixmap);
+
+	if (!dst_picture)
+		goto GRADIENT_FAIL;
+
+	ValidatePicture(dst_picture);
+
+	stops_count = src_picture->pSourcePict->linear.nstops + 2 > LINEAR_DEFAULT_STOPS ?
+	              src_picture->pSourcePict->linear.nstops + 2 : LINEAR_DEFAULT_STOPS;
+
+	/* Because the max value of nstops is unkown, so create a program
+	   when nstops > default.*/
+	if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_DEFAULT_STOPS) {
+		gradient_prog = glamor_priv->gradient_prog[GRADIENT_SHADER_LINEAR];
+	} else {
+		gradient_prog = _glamor_create_linear_gradient_program(screen,
+		                        src_picture->pSourcePict->linear.nstops + 2, 1);
+	}
+
+	/* Bind all the uniform vars .*/
+	pt1_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "pt1");
+	pt2_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "pt2");
+	n_stop_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "n_stop");
+	pt_slope_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "pt_slope");
+	repeat_type_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "repeat_type");
+	hor_ver_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "hor_ver");
+	transform_mat_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "transform_mat");
+	cos_val_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "cos_val");
+	p1_distance_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "p1_distance");
+	pt_distance_uniform_location =
+	    dispatch->glGetUniformLocation(gradient_prog, "pt_distance");
+
+	if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_DEFAULT_STOPS) {
+		stop0_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop0");
+		stop1_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop1");
+		stop2_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop2");
+		stop3_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop3");
+		stop4_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop4");
+		stop5_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop5");
+		stop6_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop6");
+		stop7_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop7");
+
+		stop_color0_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop_color0");
+		stop_color1_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop_color1");
+		stop_color2_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop_color2");
+		stop_color3_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop_color3");
+		stop_color4_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop_color4");
+		stop_color5_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop_color5");
+		stop_color6_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop_color6");
+		stop_color7_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop_color7");
+	} else {
+		stops_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stops");
+		stop_colors_uniform_location =
+		    dispatch->glGetUniformLocation(gradient_prog, "stop_colors");
+	}
+
+	dispatch->glUseProgram(gradient_prog);
+
+	dispatch->glUniform1i(repeat_type_uniform_location, src_picture->repeatType);
+
+	if (src_picture->transform) {
+		_glamor_gradient_convert_trans_matrix(src_picture->transform,
+		                                      transform_mat,
+		                                      width, height);
+		dispatch->glUniformMatrix3fv(transform_mat_uniform_location,
+		                             1, 1, &transform_mat[0][0]);
+	} else {
+		dispatch->glUniformMatrix3fv(transform_mat_uniform_location,
+		                             1, 1, &identity_mat[0][0]);
+	}
+
+	if (!_glamor_gradient_set_pixmap_destination(screen, glamor_priv, dst_picture,
+	                                             &xscale, &yscale, x_source, y_source,
+	                                             vertices, tex_vertices, 1))
+		goto GRADIENT_FAIL;
+
+	/* Normalize the PTs. */
+	glamor_set_normalize_pt(xscale, yscale,
+	                        pixman_fixed_to_int(src_picture->pSourcePict->linear.p1.x),
+	                        x_source,
+	                        pixman_fixed_to_int(src_picture->pSourcePict->linear.p1.y),
+	                        y_source,
+	                        glamor_priv->yInverted,
+	                        pt1);
+	dispatch->glUniform4fv(pt1_uniform_location, 1, pt1);
+	DEBUGF("pt1:(%f %f)\n", pt1[0], pt1[1]);
+
+	glamor_set_normalize_pt(xscale, yscale,
+	                        pixman_fixed_to_int(src_picture->pSourcePict->linear.p2.x),
+	                        x_source,
+	                        pixman_fixed_to_int(src_picture->pSourcePict->linear.p2.y),
+	                        y_source,
+	                        glamor_priv->yInverted,
+	                        pt2);
+	dispatch->glUniform4fv(pt2_uniform_location, 1, pt2);
+	DEBUGF("pt2:(%f %f)\n", pt2[0], pt2[1]);
+
+	/* Set all the stops and colors to shader. */
+	if (stops_count > LINEAR_DEFAULT_STOPS) {
+		stop_colors = malloc(4 * stops_count * sizeof(float));
+		if (stop_colors == NULL) {
+			ErrorF("Failed to allocate stop_colors memory.\n");
+			goto GRADIENT_FAIL;
+		}
+
+		n_stops = malloc(stops_count * sizeof(float));
+		if (n_stops == NULL) {
+			ErrorF("Failed to allocate n_stops memory.\n");
+			goto GRADIENT_FAIL;
+		}
+	} else {
+		stop_colors = stop_colors_st;
+		n_stops = n_stops_st;
+	}
+
+	count = _glamor_gradient_set_stops(src_picture, &src_picture->pSourcePict->gradient,
+	                                   stop_colors, n_stops);
+
+	if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_DEFAULT_STOPS) {
+		int j = 0;
+		dispatch->glUniform4f(stop_color0_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
+		                      stop_colors[4*j+2], stop_colors[4*j+3]);
+		j++;
+		dispatch->glUniform4f(stop_color1_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
+		                      stop_colors[4*j+2], stop_colors[4*j+3]);
+		j++;
+		dispatch->glUniform4f(stop_color2_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
+		                      stop_colors[4*j+2], stop_colors[4*j+3]);
+		j++;
+		dispatch->glUniform4f(stop_color3_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
+		                      stop_colors[4*j+2], stop_colors[4*j+3]);
+		j++;
+		dispatch->glUniform4f(stop_color4_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
+		                      stop_colors[4*j+2], stop_colors[4*j+3]);
+		j++;
+		dispatch->glUniform4f(stop_color5_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
+		                      stop_colors[4*j+2], stop_colors[4*j+3]);
+		j++;
+		dispatch->glUniform4f(stop_color6_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
+		                      stop_colors[4*j+2], stop_colors[4*j+3]);
+		j++;
+		dispatch->glUniform4f(stop_color7_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
+		                      stop_colors[4*j+2], stop_colors[4*j+3]);
+
+		j = 0;
+		dispatch->glUniform1f(stop0_uniform_location, n_stops[j++]);
+		dispatch->glUniform1f(stop1_uniform_location, n_stops[j++]);
+		dispatch->glUniform1f(stop2_uniform_location, n_stops[j++]);
+		dispatch->glUniform1f(stop3_uniform_location, n_stops[j++]);
+		dispatch->glUniform1f(stop4_uniform_location, n_stops[j++]);
+		dispatch->glUniform1f(stop5_uniform_location, n_stops[j++]);
+		dispatch->glUniform1f(stop6_uniform_location, n_stops[j++]);
+		dispatch->glUniform1f(stop7_uniform_location, n_stops[j++]);
+
+		dispatch->glUniform1i(n_stop_uniform_location, count);
+	} else {
+		dispatch->glUniform4fv(stop_colors_uniform_location, count, stop_colors);
+		dispatch->glUniform1fv(stops_uniform_location, count, n_stops);
+		dispatch->glUniform1i(n_stop_uniform_location, count);
+	}
+
+	if ((pt2[1] - pt1[1]) / yscale < 1.0) { // The horizontal case.
+		dispatch->glUniform1i(hor_ver_uniform_location, 1);
+		DEBUGF("p1.x: %f, p2.x: %f, enter the horizontal case\n", pt1[1], pt2[1]);
+
+		p1_distance = pt1[0];
+		pt_distance = (pt2[0] - p1_distance);
+		dispatch->glUniform1f(p1_distance_uniform_location, p1_distance);
+		dispatch->glUniform1f(pt_distance_uniform_location, pt_distance);
+	} else if ((pt2[0] - pt1[0]) / xscale < 1.0) { //The vertical case.
+		dispatch->glUniform1i(hor_ver_uniform_location, 2);
+		DEBUGF("p1.y: %f, p2.y: %f, enter the vertical case\n", pt1[0], pt2[0]);
+
+		p1_distance = pt1[1];
+		pt_distance = (pt2[1] - p1_distance);
+		dispatch->glUniform1f(p1_distance_uniform_location, p1_distance);
+		dispatch->glUniform1f(pt_distance_uniform_location, pt_distance);
+	} else {
+		/* The slope need to compute here. In shader, the viewport set will change
+		   the orginal slope and the slope which is vertical to it will not be correct.*/
+		slope = - (float)(src_picture->pSourcePict->linear.p2.x - src_picture->pSourcePict->linear.p1.x) /
+		        (float)(src_picture->pSourcePict->linear.p2.y - src_picture->pSourcePict->linear.p1.y);
+		slope = slope * yscale / xscale;
+		dispatch->glUniform1f(pt_slope_uniform_location, slope);
+		dispatch->glUniform1i(hor_ver_uniform_location, 0);
+
+		cos_val = sqrt(1.0 / (slope * slope + 1.0));
+		dispatch->glUniform1f(cos_val_uniform_location, cos_val);
+
+		p1_distance = (pt1[1] - pt1[0] * slope) * cos_val;
+		pt_distance = (pt2[1] - pt2[0] * slope) * cos_val - p1_distance;
+		dispatch->glUniform1f(p1_distance_uniform_location, p1_distance);
+		dispatch->glUniform1f(pt_distance_uniform_location, pt_distance);
+	}
+
+	/* set the transform matrix. */	/* Now rendering. */
+	glamor_emit_composite_rect(screen, tex_vertices, NULL, vertices);
+
+	if (glamor_priv->render_nr_verts) {
+		if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
+			dispatch->glUnmapBuffer(GL_ARRAY_BUFFER);
+		else {
+
+			dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
+			dispatch->glBufferData(GL_ARRAY_BUFFER,
+			                       glamor_priv->vbo_offset,
+			                       glamor_priv->vb, GL_DYNAMIC_DRAW);
+		}
+
+		dispatch->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
+	}
+
+	/* Do the clear logic.*/
+	if (stops_count > LINEAR_DEFAULT_STOPS) {
+		free(n_stops);
+		free(stop_colors);
+	}
+
+	dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
+	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+	dispatch->glUseProgram(0);
+
+	if (src_picture->pSourcePict->linear.nstops + 2 > LINEAR_DEFAULT_STOPS)
+		dispatch->glDeleteProgram(gradient_prog);
+
+	glamor_put_dispatch(glamor_priv);
+	return dst_picture;
+
+GRADIENT_FAIL:
+	if (dst_picture) {
+		FreePicture(dst_picture, 0);
+	}
+
+	if (stops_count > LINEAR_DEFAULT_STOPS) {
+		if (n_stops)
+			free(n_stops);
+		if (stop_colors)
+			free(stop_colors);
+	}
+
+	dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
+	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+	dispatch->glUseProgram(0);
+	if (src_picture->pSourcePict->linear.nstops + 2 > LINEAR_DEFAULT_STOPS)
+		dispatch->glDeleteProgram(gradient_prog);
+	glamor_put_dispatch(glamor_priv);
+	return NULL;
+}
+#undef LINEAR_DEFAULT_STOPS
+
 static PicturePtr
 glamor_convert_gradient_picture(ScreenPtr screen,
-				PicturePtr source,
-				int x_source,
-				int y_source, int width, int height)
+                                PicturePtr source,
+                                int x_source,
+                                int y_source, int width, int height)
 {
 	PixmapPtr pixmap;
-	PicturePtr dst;
+	PicturePtr dst = NULL;
 	int error;
 	PictFormatShort format;
 	if (!source->pDrawable)
 		format = PICT_a8r8g8b8;
 	else
 		format = source->format;
+
+	if (!source->pDrawable) {
+		if (source->pSourcePict->type == SourcePictTypeLinear) {
+			dst = _glamor_generate_linear_gradient_picture(screen,
+				source, x_source, y_source, width, height, format);
+		}
+
+		if (dst) {
+#if 0			/* Debug to compare it to pixman, Enable it if needed. */
+			glamor_compare_pictures(screen, source,
+					dst, x_source, y_source, width, height,
+					0, 3);
+#endif
+			return dst;
+		}
+	}
 
 	pixmap = glamor_create_pixmap(screen,
 				      width,
@@ -1322,11 +2280,11 @@ glamor_convert_gradient_picture(ScreenPtr screen,
 		return NULL;
 
 	dst = CreatePicture(0,
-			    &pixmap->drawable,
-			    PictureMatchFormat(screen,
-					       PIXMAN_FORMAT_DEPTH(format),
-					       format),
-			    0, 0, serverClient, &error);
+	                    &pixmap->drawable,
+	                    PictureMatchFormat(screen,
+	                                       PIXMAN_FORMAT_DEPTH(format),
+	                                       format),
+	                    0, 0, serverClient, &error);
 	glamor_destroy_pixmap(pixmap);
 	if (!dst)
 		return NULL;
@@ -1334,7 +2292,7 @@ glamor_convert_gradient_picture(ScreenPtr screen,
 	ValidatePicture(dst);
 
 	fbComposite(PictOpSrc, source, NULL, dst, x_source, y_source,
-		    0, 0, 0, 0, width, height);
+	            0, 0, 0, 0, width, height);
 	return dst;
 }
 
