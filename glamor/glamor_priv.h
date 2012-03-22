@@ -123,6 +123,13 @@ enum shader_in {
 	SHADER_IN_COUNT,
 };
 
+enum gradient_shader_type {
+	GRADIENT_SHADER_LINEAR,
+	GRADIENT_SHADER_RADIAL,
+	GRADIENT_SHADER_CONICAL,
+	GRADIENT_SHADER_COUNT,
+};
+
 struct glamor_screen_private;
 struct glamor_pixmap_private;
 typedef void (*glamor_pixmap_validate_function_t) (struct
@@ -220,6 +227,9 @@ typedef struct glamor_screen_private {
 	/* glamor_tile */
 	GLint tile_prog;
 	GLint tile_wh;
+
+	/* glamor gradient */
+	GLint gradient_prog[GRADIENT_SHADER_COUNT];
 
 	/* glamor_putimage */
 	GLint put_image_xybitmap_prog;
@@ -561,6 +571,9 @@ Bool glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 		 int tile_x, int tile_y);
 void glamor_init_tile_shader(ScreenPtr screen);
 void glamor_fini_tile_shader(ScreenPtr screen);
+
+void glamor_init_gradient_shader(ScreenPtr screen);
+void glamor_fini_gradient_shader(ScreenPtr screen);
 
 /* glamor_triangles.c */
 void

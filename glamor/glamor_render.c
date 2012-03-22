@@ -1275,6 +1275,28 @@ done:
 	return ret;
 }
 
+
+void
+glamor_init_gradient_shader(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv;
+
+	glamor_priv = glamor_get_screen_private(screen);
+
+}
+
+void
+glamor_fini_gradient_shader(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_gl_dispatch *dispatch;
+
+	glamor_priv = glamor_get_screen_private(screen);
+	dispatch = glamor_get_dispatch(glamor_priv);
+
+	glamor_put_dispatch(glamor_priv);
+}
+
 static PicturePtr
 glamor_convert_gradient_picture(ScreenPtr screen,
 				PicturePtr source,

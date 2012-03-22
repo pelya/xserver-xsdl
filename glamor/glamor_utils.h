@@ -99,6 +99,24 @@
     (vertices)[7] = (vertices)[5];					\
   } while(0)
 
+#define glamor_set_tcoords(x1, y1, x2, y2, yInverted, vertices)	    \
+    do {                                                            \
+      (vertices)[0] = (x1);                                         \
+      (vertices)[2] = (x2);                                         \
+      (vertices)[4] = (vertices)[2];                                \
+      (vertices)[6] = (vertices)[0];                                \
+      if (yInverted) {                                              \
+          (vertices)[1] = (y1);                                     \
+          (vertices)[5] = (y2);                                     \
+      }                                                             \
+      else {                                                        \
+          (vertices)[1] = (y2);                                     \
+          (vertices)[5] = (y1);                                     \
+      }                                                             \
+      (vertices)[3] = (vertices)[1];                \
+      (vertices)[7] = (vertices)[5];                \
+    } while(0)
+
 
 #define glamor_set_normalize_vcoords(xscale, yscale, x1, y1, x2, y2,	\
                                      yInverted, vertices)		\
@@ -119,6 +137,17 @@
     (vertices)[7] = (vertices)[5];					\
   } while(0)
 
+#define glamor_set_normalize_pt(xscale, yscale, x, x_start, y, y_start,     \
+                                yInverted, pt)                              \
+    do {                                                                    \
+        (pt)[0] = t_from_x_coord_x(xscale, x - x_start);                    \
+        if (yInverted) {                                                    \
+            (pt)[1] = t_from_x_coord_y_inverted(yscale, y - y_start);       \
+        } else {                                                            \
+            (pt)[1] = t_from_x_coord_y(yscale, y - y_start);                \
+        }                                                                   \
+        (pt)[2] = (pt)[3] = 0.0;                                            \
+    } while(0)
 
 inline static void
 glamor_calculate_boxes_bound(BoxPtr bound, BoxPtr boxes, int nbox)
