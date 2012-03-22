@@ -340,7 +340,8 @@ KdEnableInput(void)
 
     /* reset screen saver */
     ev.any.time = GetTimeInMillis();
-    NoticeEventTime(&ev);
+    NoticeEventTime(&ev, pi->dixdev);
+    NoticeEventTime(&ev, ki->dixdev);
 
     KdUnblockSigio();
 }

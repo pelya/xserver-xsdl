@@ -313,7 +313,8 @@ extern _X_EXPORT WindowPtr
 GetSpriteWindow(DeviceIntPtr pDev);
 
 extern _X_EXPORT void
-NoticeEventTime(InternalEvent *ev);
+NoticeEventTime(InternalEvent *ev,
+                DeviceIntPtr dev);
 
 extern void
 EnqueueEvent(InternalEvent * /* ev */ ,

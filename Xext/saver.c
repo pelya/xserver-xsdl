@@ -46,6 +46,7 @@ in this Software without prior written authorization from the X Consortium.
 #include "cursorstr.h"
 #include "colormapst.h"
 #include "xace.h"
+#include "inputstr.h"
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -388,8 +389,10 @@ ScreenSaverFreeSuspend(pointer value, XID id)
         if (screenIsSaved != SCREEN_SAVER_ON)
 #endif
         {
+            DeviceIntPtr dev;
             UpdateCurrentTimeIf();
-            lastDeviceEventTime = currentTime;
+            nt_list_for_each_entry(dev, inputInfo.devices, next)
+                lastDeviceEventTime[dev->id] = currentTime;
             SetScreenSaverTimer();
         }
     }
@@ -672,7 +675,7 @@ ProcScreenSaverQueryInfo(ClientPtr client)
     pPriv = GetScreenPrivate(pDraw->pScreen);
 
     UpdateCurrentTime();
-    lastInput = GetTimeInMillis() - lastDeviceEventTime.milliseconds;
+    lastInput = GetTimeInMillis() - lastDeviceEventTime[XIAllDevices].milliseconds;
 
     rep.type = X_Reply;
     rep.length = 0;

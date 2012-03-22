@@ -591,6 +591,8 @@ typedef struct _DeviceIntRec {
 
     /* XTest related master device id */
     int xtest_master_id;
+
+    struct _SyncCounter *idle_counter;
 } DeviceIntRec;
 
 typedef struct {

@@ -84,6 +84,7 @@ SOFTWARE.
 #include "enterleave.h"         /* for EnterWindow() */
 #include "xserver-properties.h"
 #include "xichangehierarchy.h"  /* For XISendDeviceHierarchyEvent */
+#include "syncsrv.h"
 
 /** @file
  * This file handles input device-related stuff.
@@ -406,8 +407,12 @@ EnableDevice(DeviceIntPtr dev, BOOL sendevent)
 
     RecalculateMasterButtons(dev);
 
+    /* initialise an idle timer for this device*/
+    dev->idle_counter = SyncInitDeviceIdleTime(dev);
+
     return TRUE;
 }
+
 
 /**
  * Switch a device off through the driver and push it onto the off_devices
@@ -431,6 +436,9 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
          *prev && (*prev != dev); prev = &(*prev)->next);
     if (*prev != dev)
         return FALSE;
+
+    SyncRemoveDeviceIdleTime(dev->idle_counter);
+    dev->idle_counter = NULL;
 
     /* float attached devices */
     if (IsMaster(dev)) {

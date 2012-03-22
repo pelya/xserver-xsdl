@@ -69,6 +69,7 @@ PERFORMANCE OF THIS SOFTWARE.
 #include "syncsrv.h"
 #include "syncsdk.h"
 #include "protocol-versions.h"
+#include "inputstr.h"
 
 #include <stdio.h>
 #if !defined(WIN32)
@@ -87,8 +88,7 @@ static RESTYPE RTAwait;
 static RESTYPE RTAlarm;
 static RESTYPE RTAlarmClient;
 static RESTYPE RTFence;
-static int SyncNumSystemCounters = 0;
-static SyncCounter **SysCounterList = NULL;
+static struct xorg_list SysCounterList;
 static int SyncNumInvalidCounterWarnings = 0;
 
 #define MAX_INVALID_COUNTER_WARNINGS	   5
@@ -113,6 +113,14 @@ static void SyncComputeBracketValues(SyncCounter *);
 static void SyncInitServerTime(void);
 
 static void SyncInitIdleTime(void);
+
+static inline void*
+SysCounterGetPrivate(SyncCounter *counter)
+{
+    BUG_WARN(!IsSystemCounter(counter));
+
+    return counter->pSysCounterInfo ? counter->pSysCounterInfo->private : NULL;
+}
 
 static Bool
 SyncCheckWarnIsCounter(const SyncObject * pSync, const char *warning)
@@ -932,12 +940,6 @@ SyncCreateSystemCounter(const char *name,
 {
     SyncCounter *pCounter;
 
-    SysCounterList = realloc(SysCounterList,
-                             (SyncNumSystemCounters +
-                              1) * sizeof(SyncCounter *));
-    if (!SysCounterList)
-        return NULL;
-
     /* this function may be called before SYNC has been initialized, so we
      * have to make sure RTCounter is created.
      */
@@ -959,14 +961,16 @@ SyncCreateSystemCounter(const char *name,
             return pCounter;
         }
         pCounter->pSysCounterInfo = psci;
-        psci->name = name;
+        psci->pCounter = pCounter;
+        psci->name = strdup(name);
         psci->resolution = resolution;
         psci->counterType = counterType;
         psci->QueryValue = QueryValue;
         psci->BracketValues = BracketValues;
+        psci->private = NULL;
         XSyncMaxValue(&psci->bracket_greater);
         XSyncMinValue(&psci->bracket_less);
-        SysCounterList[SyncNumSystemCounters++] = pCounter;
+        xorg_list_add(&psci->entry, &SysCounterList);
     }
     return pCounter;
 }
@@ -1111,26 +1115,10 @@ FreeCounter(void *env, XID id)
         free(ptl);              /* destroy the trigger list as we go */
     }
     if (IsSystemCounter(pCounter)) {
-        int i, found = 0;
-
+        xorg_list_del(&pCounter->pSysCounterInfo->entry);
+        free(pCounter->pSysCounterInfo->name);
+        free(pCounter->pSysCounterInfo->private);
         free(pCounter->pSysCounterInfo);
-
-        /* find the counter in the list of system counters and remove it */
-
-        if (SysCounterList) {
-            for (i = 0; i < SyncNumSystemCounters; i++) {
-                if (SysCounterList[i] == pCounter) {
-                    found = i;
-                    break;
-                }
-            }
-            if (found < (SyncNumSystemCounters - 1)) {
-                for (i = found; i < SyncNumSystemCounters - 1; i++) {
-                    SysCounterList[i] = SysCounterList[i + 1];
-                }
-            }
-        }
-        SyncNumSystemCounters--;
     }
     free(pCounter);
     return Success;
@@ -1221,20 +1209,20 @@ static int
 ProcSyncListSystemCounters(ClientPtr client)
 {
     xSyncListSystemCountersReply rep;
-    int i, len;
+    SysCounterInfo *psci;
+    int len = 0;
     xSyncSystemCounter *list = NULL, *walklist = NULL;
 
     REQUEST_SIZE_MATCH(xSyncListSystemCountersReq);
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.nCounters = SyncNumSystemCounters;
+    rep.nCounters = 0;
 
-    for (i = len = 0; i < SyncNumSystemCounters; i++) {
-        const char *name = SysCounterList[i]->pSysCounterInfo->name;
-
+    xorg_list_for_each_entry(psci, &SysCounterList, entry) {
         /* pad to 4 byte boundary */
-        len += pad_to_int32(sz_xSyncSystemCounter + strlen(name));
+        len += pad_to_int32(sz_xSyncSystemCounter + strlen(psci->name));
+        ++rep.nCounters;
     }
 
     if (len) {
@@ -1251,12 +1239,11 @@ ProcSyncListSystemCounters(ClientPtr client)
         swapl(&rep.nCounters);
     }
 
-    for (i = 0; i < SyncNumSystemCounters; i++) {
+    xorg_list_for_each_entry(psci, &SysCounterList, entry) {
         int namelen;
         char *pname_in_reply;
-        SysCounterInfo *psci = SysCounterList[i]->pSysCounterInfo;
 
-        walklist->counter = SysCounterList[i]->sync.id;
+        walklist->counter = psci->pCounter->sync.id;
         walklist->resolution_hi = XSyncValueHigh32(psci->resolution);
         walklist->resolution_lo = XSyncValueLow32(psci->resolution);
         namelen = strlen(psci->name);
@@ -2441,8 +2428,6 @@ SAlarmNotifyEvent(xSyncAlarmNotifyEvent * from, xSyncAlarmNotifyEvent * to)
 static void
 SyncResetProc(ExtensionEntry * extEntry)
 {
-    free(SysCounterList);
-    SysCounterList = NULL;
     RTCounter = 0;
 }
 
@@ -2454,6 +2439,8 @@ SyncExtensionInit(void)
 {
     ExtensionEntry *extEntry;
     int s;
+
+    xorg_list_init(&SysCounterList);
 
     for (s = 0; s < screenInfo.numScreens; s++)
         miSyncSetup(screenInfo.screens[s]);
@@ -2605,33 +2592,48 @@ SyncInitServerTime(void)
  * IDLETIME implementation
  */
 
-static SyncCounter *IdleTimeCounter;
-static XSyncValue *pIdleTimeValueLess;
-static XSyncValue *pIdleTimeValueGreater;
+typedef struct {
+    XSyncValue *value_less;
+    XSyncValue *value_greater;
+    int deviceid;
+} IdleCounterPriv;
 
 static void
 IdleTimeQueryValue(pointer pCounter, CARD64 * pValue_return)
 {
-    CARD32 idle = GetTimeInMillis() - lastDeviceEventTime.milliseconds;
+    int deviceid;
+    CARD32 idle;
 
+    if (pCounter) {
+        SyncCounter *counter = pCounter;
+        IdleCounterPriv *priv = SysCounterGetPrivate(counter);
+        deviceid = priv->deviceid;
+    }
+    else
+        deviceid = XIAllDevices;
+    idle = GetTimeInMillis() - lastDeviceEventTime[deviceid].milliseconds;
     XSyncIntsToValue(pValue_return, idle, 0);
 }
 
 static void
-IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
+IdleTimeBlockHandler(pointer pCounter, struct timeval **wt, pointer LastSelectMask)
 {
+    SyncCounter *counter = pCounter;
+    IdleCounterPriv *priv = SysCounterGetPrivate(counter);
+    XSyncValue *less = priv->value_less,
+               *greater = priv->value_greater;
     XSyncValue idle, old_idle;
-    SyncTriggerList *list = IdleTimeCounter->sync.pTriglist;
+    SyncTriggerList *list = counter->sync.pTriglist;
     SyncTrigger *trig;
 
-    if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
+    if (!less && !greater)
         return;
 
-    old_idle = IdleTimeCounter->value;
+    old_idle = counter->value;
     IdleTimeQueryValue(NULL, &idle);
-    IdleTimeCounter->value = idle;      /* push, so CheckTrigger works */
+    counter->value = idle;      /* push, so CheckTrigger works */
 
-    if (pIdleTimeValueLess && XSyncValueLessOrEqual(idle, *pIdleTimeValueLess)) {
+    if (less && XSyncValueLessOrEqual(idle, *less)) {
         /*
          * We've been idle for less than the threshold value, and someone
          * wants to know about that, but now we need to know whether they
@@ -2640,7 +2642,7 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
          * immediately so we can reschedule.
          */
 
-        for (list = IdleTimeCounter->sync.pTriglist; list; list = list->next) {
+        for (list = counter->sync.pTriglist; list; list = list->next) {
             trig = list->pTrigger;
             if (trig->CheckTrigger(trig, old_idle)) {
                 AdjustWaitForDelay(wt, 0);
@@ -2653,10 +2655,10 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
          * idle time greater than this.  Schedule a wakeup for the next
          * millisecond so we won't miss a transition.
          */
-        if (XSyncValueEqual(idle, *pIdleTimeValueLess))
+        if (XSyncValueEqual(idle, *less))
             AdjustWaitForDelay(wt, 1);
     }
-    else if (pIdleTimeValueGreater) {
+    else if (greater) {
         /*
          * There's a threshold in the positive direction.  If we've been
          * idle less than it, schedule a wakeup for sometime in the future.
@@ -2665,15 +2667,15 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
          */
         unsigned long timeout = -1;
 
-        if (XSyncValueLessThan(idle, *pIdleTimeValueGreater)) {
+        if (XSyncValueLessThan(idle, *greater)) {
             XSyncValue value;
             Bool overflow;
 
-            XSyncValueSubtract(&value, *pIdleTimeValueGreater, idle, &overflow);
+            XSyncValueSubtract(&value, *greater, idle, &overflow);
             timeout = min(timeout, XSyncValueLow32(value));
         }
         else {
-            for (list = IdleTimeCounter->sync.pTriglist; list;
+            for (list = counter->sync.pTriglist; list;
                  list = list->next) {
                 trig = list->pTrigger;
                 if (trig->CheckTrigger(trig, old_idle)) {
@@ -2686,24 +2688,26 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
         AdjustWaitForDelay(wt, timeout);
     }
 
-    IdleTimeCounter->value = old_idle;  /* pop */
+    counter->value = old_idle;  /* pop */
 }
 
 static void
-IdleTimeWakeupHandler(pointer env, int rc, pointer LastSelectMask)
+IdleTimeWakeupHandler(pointer pCounter, int rc, pointer LastSelectMask)
 {
+    SyncCounter *counter = pCounter;
+    IdleCounterPriv *priv = SysCounterGetPrivate(counter);
+    XSyncValue *less = priv->value_less,
+               *greater = priv->value_greater;
     XSyncValue idle;
 
-    if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
+    if (!less && !greater)
         return;
 
-    IdleTimeQueryValue(NULL, &idle);
+    IdleTimeQueryValue(pCounter, &idle);
 
-    if ((pIdleTimeValueGreater &&
-         XSyncValueGreaterOrEqual(idle, *pIdleTimeValueGreater)) ||
-        (pIdleTimeValueLess &&
-         XSyncValueLessOrEqual(idle, *pIdleTimeValueLess))) {
-        SyncChangeCounter(IdleTimeCounter, idle);
+    if ((greater && XSyncValueGreaterOrEqual(idle, *greater)) ||
+        (less && XSyncValueLessOrEqual(idle, *less))) {
+        SyncChangeCounter(counter, idle);
     }
 }
 
@@ -2711,34 +2715,69 @@ static void
 IdleTimeBracketValues(pointer pCounter, CARD64 * pbracket_less,
                       CARD64 * pbracket_greater)
 {
-    Bool registered = (pIdleTimeValueLess || pIdleTimeValueGreater);
+    SyncCounter *counter = pCounter;
+    IdleCounterPriv *priv = SysCounterGetPrivate(counter);
+    XSyncValue *less = priv->value_less,
+               *greater = priv->value_greater;
+    Bool registered = (less || greater);
 
     if (registered && !pbracket_less && !pbracket_greater) {
         RemoveBlockAndWakeupHandlers(IdleTimeBlockHandler,
-                                     IdleTimeWakeupHandler, NULL);
+                                     IdleTimeWakeupHandler, pCounter);
     }
     else if (!registered && (pbracket_less || pbracket_greater)) {
         RegisterBlockAndWakeupHandlers(IdleTimeBlockHandler,
-                                       IdleTimeWakeupHandler, NULL);
+                                       IdleTimeWakeupHandler, pCounter);
     }
 
-    pIdleTimeValueGreater = pbracket_greater;
-    pIdleTimeValueLess = pbracket_less;
+    priv->value_greater = pbracket_greater;
+    priv->value_less = pbracket_less;
+}
+
+static SyncCounter*
+init_system_idle_counter(const char *name, int deviceid)
+{
+    CARD64 resolution;
+    XSyncValue idle;
+    IdleCounterPriv *priv = malloc(sizeof(IdleCounterPriv));
+    SyncCounter *idle_time_counter;
+
+    IdleTimeQueryValue(NULL, &idle);
+    XSyncIntToValue(&resolution, 4);
+
+    idle_time_counter = SyncCreateSystemCounter(name, idle, resolution,
+                                                XSyncCounterUnrestricted,
+                                                IdleTimeQueryValue,
+                                                IdleTimeBracketValues);
+
+    priv->deviceid = deviceid;
+    priv->value_less = priv->value_greater = NULL;
+
+    idle_time_counter->pSysCounterInfo->private = priv;
+
+    return idle_time_counter;
 }
 
 static void
 SyncInitIdleTime(void)
 {
-    CARD64 resolution;
-    XSyncValue idle;
+    init_system_idle_counter("IDLETIME", XIAllDevices);
+}
 
-    IdleTimeQueryValue(NULL, &idle);
-    XSyncIntToValue(&resolution, 4);
+SyncCounter*
+SyncInitDeviceIdleTime(DeviceIntPtr dev)
+{
+    char timer_name[64];
+    sprintf(timer_name, "DEVICEIDLETIME %d", dev->id);
 
-    IdleTimeCounter = SyncCreateSystemCounter("IDLETIME", idle, resolution,
-                                              XSyncCounterUnrestricted,
-                                              IdleTimeQueryValue,
-                                              IdleTimeBracketValues);
+    return init_system_idle_counter(timer_name, dev->id);
+}
 
-    pIdleTimeValueLess = pIdleTimeValueGreater = NULL;
+void SyncRemoveDeviceIdleTime(SyncCounter *counter)
+{
+    /* FreeAllResources() frees all system counters before the devices are
+       shut down, check if there are any left before freeing the device's
+       counter */
+    if (!xorg_list_is_empty(&SysCounterList))
+        xorg_list_del(&counter->pSysCounterInfo->entry);
 }

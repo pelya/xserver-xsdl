@@ -51,6 +51,7 @@ PERFORMANCE OF THIS SOFTWARE.
 #ifndef _SYNCSRV_H_
 #define _SYNCSRV_H_
 
+#include "list.h"
 #include "misync.h"
 #include "misyncstr.h"
 
@@ -74,13 +75,16 @@ typedef void (*SyncSystemCounterBracketValues)(pointer counter,
     );
 
 typedef struct _SysCounterInfo {
-    const char *name;
+    SyncCounter *pCounter;
+    char *name;
     CARD64 resolution;
     CARD64 bracket_greater;
     CARD64 bracket_less;
     SyncCounterType counterType;        /* how can this counter change */
     SyncSystemCounterQueryValue QueryValue;
     SyncSystemCounterBracketValues BracketValues;
+    void *private;
+    struct xorg_list entry;
 } SysCounterInfo;
 
 typedef struct _SyncAlarmClientList {
@@ -131,4 +135,7 @@ extern void SyncChangeCounter(SyncCounter *pCounter,
 extern void SyncDestroySystemCounter(pointer pCounter);
 
 extern void SyncExtensionInit(void);
+
+extern SyncCounter *SyncInitDeviceIdleTime(DeviceIntPtr dev);
+extern void SyncRemoveDeviceIdleTime(SyncCounter *counter);
 #endif                          /* _SYNCSRV_H_ */
