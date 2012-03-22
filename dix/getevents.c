@@ -68,6 +68,12 @@
 #include "extnsionst.h"
 #include "listdev.h"            /* for sizing up DeviceClassesChangedEvent */
 
+#if XSERVER_DTRACE
+#include <sys/types.h>
+typedef const char *string;
+#include <Xserver-dtrace.h>
+#endif
+
 /* Number of motion history events to store. */
 #define MOTION_HISTORY_SIZE 256
 
@@ -1026,6 +1032,15 @@ GetKeyboardEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
     RawDeviceEvent *raw;
     ValuatorMask mask;
 
+#if XSERVER_DTRACE
+    if (XSERVER_INPUT_EVENT_ENABLED()) {
+        XSERVER_INPUT_EVENT(pDev->id, type, key_code, 0,
+                            mask_in ? mask_in->last_bit + 1 : 0,
+                            mask_in ? mask_in->mask : NULL,
+                            mask_in ? mask_in->valuators : NULL);
+    }
+#endif
+
     /* refuse events from disabled devices */
     if (!pDev->enabled)
         return 0;
@@ -1503,6 +1518,15 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
     int i;
     int realtype = type;
 
+#if XSERVER_DTRACE
+    if (XSERVER_INPUT_EVENT_ENABLED()) {
+        XSERVER_INPUT_EVENT(pDev->id, type, buttons, flags,
+                            mask_in ? mask_in->last_bit + 1 : 0,
+                            mask_in ? mask_in->mask : NULL,
+                            mask_in ? mask_in->valuators : NULL);
+    }
+#endif
+
     /* refuse events from disabled devices */
     if (!pDev->enabled)
         return 0;
@@ -1628,6 +1652,15 @@ GetProximityEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
     DeviceEvent *event;
     ValuatorMask mask;
 
+#if XSERVER_DTRACE
+    if (XSERVER_INPUT_EVENT_ENABLED()) {
+        XSERVER_INPUT_EVENT(pDev->id, type, 0, 0,
+                            mask_in ? mask_in->last_bit + 1 : 0,
+                            mask_in ? mask_in->mask : NULL,
+                            mask_in ? mask_in->valuators : NULL);
+    }
+#endif
+
     /* refuse events from disabled devices */
     if (!pDev->enabled)
         return 0;
@@ -1751,6 +1784,15 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     int need_rawevent = TRUE;
     Bool emulate_pointer = FALSE;
     int client_id = 0;
+
+#if XSERVER_DTRACE
+    if (XSERVER_INPUT_EVENT_ENABLED()) {
+        XSERVER_INPUT_EVENT(dev->id, type, ddx_touchid, flags,
+                            mask_in ? mask_in->last_bit + 1 : 0,
+                            mask_in ? mask_in->mask : NULL,
+                            mask_in ? mask_in->valuators : NULL);
+    }
+#endif
 
     if (!dev->enabled || !t || !v)
         return 0;
