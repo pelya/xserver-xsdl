@@ -10,11 +10,11 @@
 // the basic X server headers. Use QD_<name> to use the QuickDraw
 // definition of any of these symbols, or the normal name for the
 // X11 definition.
-#define Cursor       QD_Cursor
-#define WindowPtr    QD_WindowPtr
-#define Picture      QD_Picture
-#define BOOL         OSX_BOOL
-#define EventType    HIT_EventType
+#define Cursor    QD_Cursor
+#define WindowPtr QD_WindowPtr
+#define Picture   QD_Picture
+#define BOOL      OSX_BOOL
+#define EventType HIT_EventType
 
 #import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
@@ -26,7 +26,7 @@
 #undef EventType
 
 #ifndef __has_feature
-#define __has_feature(x) 0      // Compatibility with non-clang compilers.
+#define __has_feature(x) 0 // Compatibility with non-clang compilers.
 #endif
 
 #ifndef NS_RETURNS_RETAINED
@@ -61,4 +61,4 @@
 #endif
 #endif
 
-#endif                          /* _XQ_SANITIZED_COCOA_H_ */
+#endif  /* _XQ_SANITIZED_COCOA_H_ */
