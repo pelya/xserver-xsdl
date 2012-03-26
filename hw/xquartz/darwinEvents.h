@@ -55,9 +55,7 @@ DarwinSendProximityEvents(DeviceIntPtr pDev, int ev_type, double pointer_x,
 void
 DarwinSendKeyboardEvents(int ev_type, int keycode);
 void
-DarwinSendScrollEvents(double scroll_x, double scroll_y, double pointer_x,
-                       double pointer_y, double pressure, double tilt_x,
-                       double tilt_y);
+DarwinSendScrollEvents(double scroll_x, double scroll_y);
 void
 DarwinUpdateModKeys(int flags);
 void

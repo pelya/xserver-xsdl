@@ -653,42 +653,33 @@ DarwinSendProximityEvents(DeviceIntPtr pDev, int ev_type, double pointer_x,
 
 /* Send the appropriate number of button clicks to emulate scroll wheel */
 void
-DarwinSendScrollEvents(double scroll_x, double scroll_y,
-                       double pointer_x, double pointer_y,
-                       double pressure, double tilt_x, double tilt_y)
-{
-    int sign_x, sign_y;
+DarwinSendScrollEvents(double scroll_x, double scroll_y) {
+    ScreenPtr screen;
+    ValuatorMask valuators;
+
     if (!darwinEvents) {
         DEBUG_LOG(
             "DarwinSendScrollEvents called before darwinEvents was initialized\n");
         return;
     }
 
-    sign_x = scroll_x > 0.0f ? SCROLLWHEELLEFTFAKE : SCROLLWHEELRIGHTFAKE;
-    sign_y = scroll_y > 0.0f ? SCROLLWHEELUPFAKE : SCROLLWHEELDOWNFAKE;
-    scroll_x = fabs(scroll_x);
-    scroll_y = fabs(scroll_y);
-
-    while ((scroll_x > 0.0f) || (scroll_y > 0.0f)) {
-        if (scroll_x > 0.0f) {
-            DarwinSendPointerEvents(darwinPointer, ButtonPress, sign_x,
-                                    pointer_x, pointer_y, pressure, tilt_x,
-                                    tilt_y);
-            DarwinSendPointerEvents(darwinPointer, ButtonRelease, sign_x,
-                                    pointer_x, pointer_y, pressure, tilt_x,
-                                    tilt_y);
-            scroll_x = scroll_x - 1.0f;
-        }
-        if (scroll_y > 0.0f) {
-            DarwinSendPointerEvents(darwinPointer, ButtonPress, sign_y,
-                                    pointer_x, pointer_y, pressure, tilt_x,
-                                    tilt_y);
-            DarwinSendPointerEvents(darwinPointer, ButtonRelease, sign_y,
-                                    pointer_x, pointer_y, pressure, tilt_x,
-                                    tilt_y);
-            scroll_y = scroll_y - 1.0f;
-        }
+    screen = miPointerGetScreen(darwinPointer);
+    if (!screen) {
+        DEBUG_LOG(
+            "DarwinSendScrollEvents called before screen was initialized\n");
+        return;
     }
+
+    valuator_mask_zero(&valuators);
+    valuator_mask_set_double(&valuators, 2, scroll_y);
+    valuator_mask_set_double(&valuators, 3, scroll_x);
+
+    darwinEvents_lock();
+    {
+        QueuePointerEvents(darwinPointer, MotionNotify, 0,
+                           POINTER_RELATIVE, &valuators);
+        DarwinPokeEQ();
+    } darwinEvents_unlock();    
 }
 
 /* Send the appropriate KeyPress/KeyRelease events to GetKeyboardEvents to

@@ -1656,8 +1656,7 @@ handle_mouse:
             deltaY *= -1;
         }
 #endif
-        DarwinSendScrollEvents(deltaX, deltaY, location.x, location.y,
-                               pressure, tilt.x, tilt.y);
+        DarwinSendScrollEvents(deltaX, deltaY);
         break;
     }
 
