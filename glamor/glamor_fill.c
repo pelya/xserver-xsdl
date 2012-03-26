@@ -206,6 +206,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glUseProgram(0);
+	glamor_set_alu(dispatch, GXcopy);
 	glamor_put_dispatch(glamor_priv);
 	return TRUE;
 }
