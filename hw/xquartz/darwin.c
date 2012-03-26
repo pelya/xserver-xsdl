@@ -606,6 +606,9 @@ DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
                       pScreenInfo->screens[i]->y);
         }
     }
+
+    /* Update screenInfo.x/y */
+    update_desktop_dimensions();
 }
 
 /*
