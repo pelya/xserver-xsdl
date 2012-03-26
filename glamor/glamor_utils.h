@@ -664,6 +664,278 @@ static inline void glamor_dump_pixmap(PixmapPtr pixmap, int x, int y, int w, int
 	glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RO);
 }
 
+static inline void _glamor_compare_pixmaps(PixmapPtr pixmap1, PixmapPtr pixmap2,
+                                           int x, int y, int w, int h,
+                                           PictFormatShort short_format,
+                                           int all, int diffs)
+{
+	int i, j;
+	unsigned char * p1 = pixmap1->devPrivate.ptr;
+	unsigned char * p2 = pixmap2->devPrivate.ptr;
+	int line_need_printed = 0;
+	int test_code = 0xAABBCCDD;
+	int little_endian = 0;
+	unsigned char *p_test;
+	int bpp = pixmap1->drawable.depth == 8 ? 1 : 4;
+
+	assert(pixmap1->devKind == pixmap2->devKind);
+	int stride = pixmap1->devKind;
+
+	ErrorF("stride:%d, width:%d, height:%d\n", stride, w, h);
+
+	p1 = p1 + y * stride + x;
+	p2 = p2 + y * stride + x;
+
+	if (all) {
+		for (i = 0; i < h; i++) {
+			ErrorF("line %3d: ", i);
+
+			for (j = 0; j < stride; j++) {
+				if (j % bpp == 0)
+					ErrorF("[%d]%2x:%2x ", j / bpp, p1[j], p2[j]);
+				else
+					ErrorF("%2x:%2x ", p1[j], p2[j]);
+			}
+
+			p1 += stride;
+			p2 += stride;
+			ErrorF("\n");
+		}
+	} else {
+		if (short_format == PICT_a8r8g8b8) {
+			p_test = (unsigned char *) & test_code;
+			little_endian = (*p_test == 0xDD);
+			bpp = 4;
+
+			for (i = 0; i < h; i++) {
+				line_need_printed = 0;
+
+				for (j = 0; j < stride; j++) {
+					if (p1[j] != p2[j] && (p1[j] - p2[j] > diffs || p2[j] - p1[j] > diffs)) {
+						if (line_need_printed) {
+							if (little_endian) {
+								switch (j % 4) {
+									case 2:
+										ErrorF("[%d]RED:%2x:%2x ", j / bpp, p1[j], p2[j]);
+										break;
+									case 1:
+										ErrorF("[%d]GREEN:%2x:%2x ", j / bpp, p1[j], p2[j]);
+										break;
+									case 0:
+										ErrorF("[%d]BLUE:%2x:%2x ", j / bpp, p1[j], p2[j]);
+										break;
+									case 3:
+										ErrorF("[%d]Alpha:%2x:%2x ", j / bpp, p1[j], p2[j]);
+										break;
+								}
+							} else {
+								switch (j % 4) {
+									case 1:
+										ErrorF("[%d]RED:%2x:%2x ", j / bpp, p1[j], p2[j]);
+										break;
+									case 2:
+										ErrorF("[%d]GREEN:%2x:%2x ", j / bpp, p1[j], p2[j]);
+										break;
+									case 3:
+										ErrorF("[%d]BLUE:%2x:%2x ", j / bpp, p1[j], p2[j]);
+										break;
+									case 0:
+										ErrorF("[%d]Alpha:%2x:%2x ", j / bpp, p1[j], p2[j]);
+										break;
+								}
+							}
+						} else {
+							line_need_printed = 1;
+							j = -1;
+							ErrorF("line %3d: ", i);
+							continue;
+						}
+					}
+				}
+
+				p1 += stride;
+				p2 += stride;
+				ErrorF("\n");
+			}
+		} //more format can be added here.
+		else { // the default format, just print.
+			for (i = 0; i < h; i++) {
+				line_need_printed = 0;
+
+				for (j = 0; j < stride; j++) {
+					if (p1[j] != p2[j]) {
+						if (line_need_printed) {
+							ErrorF("[%d]%2x:%2x ", j / bpp, p1[j], p2[j]);
+						} else {
+							line_need_printed = 1;
+							j = -1;
+							ErrorF("line %3d: ", i);
+							continue;
+						}
+					}
+				}
+
+				p1 += stride;
+				p2 += stride;
+				ErrorF("\n");
+			}
+		}
+	}
+}
+
+static inline void glamor_compare_pixmaps(PixmapPtr pixmap1, PixmapPtr pixmap2,
+                                          int x, int y, int w, int h, int all, int diffs)
+{
+	assert(pixmap1->drawable.depth == pixmap2->drawable.depth);
+
+	glamor_prepare_access(&pixmap1->drawable, GLAMOR_ACCESS_RO);
+	glamor_prepare_access(&pixmap2->drawable, GLAMOR_ACCESS_RO);
+
+	_glamor_compare_pixmaps(pixmap1, pixmap2, x, y, w, h, -1, all, diffs);
+
+	glamor_finish_access(&pixmap1->drawable, GLAMOR_ACCESS_RO);
+	glamor_finish_access(&pixmap2->drawable, GLAMOR_ACCESS_RO);
+}
+
+/* This function is used to compare two pictures.
+   If the picture has no drawable, we use fb functions to generate it. */
+static inline void glamor_compare_pictures( ScreenPtr screen,
+                                            PicturePtr fst_picture,
+                                            PicturePtr snd_picture,
+                                            int x_source, int y_source,
+                                            int width, int height,
+                                            int all, int diffs)
+{
+	PixmapPtr fst_pixmap;
+	PixmapPtr snd_pixmap;
+	int fst_generated, snd_generated;
+	glamor_pixmap_private *fst_pixmap_priv;
+	glamor_pixmap_private *snd_pixmap_priv;
+	int error;
+	int fst_type = -1;
+	int snd_type = -1; // -1 represent has drawable.
+
+	if (fst_picture->format != snd_picture->format) {
+		ErrorF("Different picture format can not compare!\n");
+		return;
+	}
+
+	if (!fst_picture->pDrawable) {
+		fst_type = fst_picture->pSourcePict->type;
+	}
+
+	if (!snd_picture->pDrawable) {
+		snd_type = snd_picture->pSourcePict->type;
+	}
+
+	if ((fst_type != -1) && (snd_type != -1) && (fst_type != snd_type)) {
+		ErrorF("Different picture type will never be same!\n");
+		return;
+	}
+
+	fst_generated = snd_generated = 0;
+
+	if (!fst_picture->pDrawable) {
+		PicturePtr pixman_pic;
+		PixmapPtr pixmap = NULL;
+		PictFormatShort format;
+
+		format = fst_picture->format;
+
+		pixmap = glamor_create_pixmap(screen,
+		                              width, height,
+		                              PIXMAN_FORMAT_DEPTH(format),
+		                              GLAMOR_CREATE_PIXMAP_CPU);
+
+		pixman_pic = CreatePicture(0,
+		                           &pixmap->drawable,
+		                           PictureMatchFormat(screen,
+		                               PIXMAN_FORMAT_DEPTH(format), format),
+		                           0, 0, serverClient, &error);
+
+		fbComposite(PictOpSrc, fst_picture, NULL, pixman_pic,
+		            x_source, y_source,
+		            0, 0,
+		            0, 0,
+		            width, height);
+
+		glamor_destroy_pixmap(pixmap);
+
+		fst_picture = pixman_pic;
+		fst_generated = 1;
+	}
+
+	if (!snd_picture->pDrawable) {
+		PicturePtr pixman_pic;
+		PixmapPtr pixmap = NULL;
+		PictFormatShort format;
+
+		format = snd_picture->format;
+
+		pixmap = glamor_create_pixmap(screen,
+		                              width, height,
+		                              PIXMAN_FORMAT_DEPTH(format),
+		                              GLAMOR_CREATE_PIXMAP_CPU);
+
+		pixman_pic = CreatePicture(0,
+		                           &pixmap->drawable,
+		                           PictureMatchFormat(screen,
+		                               PIXMAN_FORMAT_DEPTH(format), format),
+		                           0, 0, serverClient, &error);
+
+		fbComposite(PictOpSrc, snd_picture, NULL, pixman_pic,
+		            x_source, y_source,
+		            0, 0,
+		            0, 0,
+		            width, height);
+
+		glamor_destroy_pixmap(pixmap);
+
+		snd_picture = pixman_pic;
+		snd_generated = 1;
+	}
+
+	fst_pixmap = glamor_get_drawable_pixmap(fst_picture->pDrawable);
+	snd_pixmap = glamor_get_drawable_pixmap(snd_picture->pDrawable);
+
+	if (fst_pixmap->drawable.depth != snd_pixmap->drawable.depth) {
+		if (fst_generated)
+			glamor_destroy_picture(fst_picture);
+		if (snd_generated)
+			glamor_destroy_picture(snd_picture);
+
+		ErrorF("Different pixmap depth can not compare!\n");
+		return;
+	}
+
+	glamor_prepare_access(&fst_pixmap->drawable, GLAMOR_ACCESS_RO);
+	glamor_prepare_access(&snd_pixmap->drawable, GLAMOR_ACCESS_RO);
+
+	if ((fst_type == SourcePictTypeLinear) ||
+	     (fst_type == SourcePictTypeRadial) ||
+	     (fst_type == SourcePictTypeConical) ||
+	     (snd_type == SourcePictTypeLinear) ||
+	     (snd_type == SourcePictTypeRadial) ||
+	     (snd_type == SourcePictTypeConical)) {
+		x_source = y_source = 0;
+	}
+
+	_glamor_compare_pixmaps(fst_pixmap, snd_pixmap,
+	                        x_source, y_source,
+	                        width, height,
+	                        fst_picture->format, all, diffs);
+
+	glamor_finish_access(&fst_pixmap->drawable, GLAMOR_ACCESS_RO);
+	glamor_finish_access(&snd_pixmap->drawable, GLAMOR_ACCESS_RO);
+
+	if (fst_generated)
+		glamor_destroy_picture(fst_picture);
+	if (snd_generated)
+		glamor_destroy_picture(snd_picture);
+
+	return;
+}
+
 static inline void glamor_make_current(ScreenPtr screen)
 {
 	glamor_egl_make_current(screen);
