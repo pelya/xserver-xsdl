@@ -512,11 +512,13 @@ InitInput(int argc, char **argv)
         .rules   = "base", .model         = "empty", .layout = "empty",
         .variant = NULL,   .options       = NULL
     };
+
     /* We need to really have rules... or something... */
     XkbSetRulesDflts(&rmlvo);
 
-    darwinKeyboard = AddInputDevice(serverClient, DarwinKeybdProc, TRUE);
-    darwinKeyboard->name = strdup("keyboard");
+    assert(Success == AllocDevicePair(serverClient, "xquartz virtual",
+                                      &darwinPointer, &darwinKeyboard,
+                                      DarwinMouseProc, DarwinKeybdProc, FALSE));
 
     /* here's the snippet from the current gdk sources:
        if (!strcmp (tmp_name, "pointer"))
@@ -532,16 +534,16 @@ InitInput(int argc, char **argv)
        gdkdev->info.source = GDK_SOURCE_PEN;
      */
 
-    darwinPointer = AddInputDevice(serverClient, DarwinMouseProc, TRUE);
-    darwinPointer->name = strdup("pointer");
-
-    darwinTabletStylus = AddInputDevice(serverClient, DarwinTabletProc, TRUE);
+    darwinTabletStylus = AddInputDevice(serverClient, DarwinTabletProc, FALSE);
+    assert(darwinTabletStylus);
     darwinTabletStylus->name = strdup("pen");
 
-    darwinTabletCursor = AddInputDevice(serverClient, DarwinTabletProc, TRUE);
+    darwinTabletCursor = AddInputDevice(serverClient, DarwinTabletProc, FALSE);
+    assert(darwinTabletCursor);
     darwinTabletCursor->name = strdup("cursor");
 
-    darwinTabletEraser = AddInputDevice(serverClient, DarwinTabletProc, TRUE);
+    darwinTabletEraser = AddInputDevice(serverClient, DarwinTabletProc, FALSE);
+    assert(darwinTabletEraser);
     darwinTabletEraser->name = strdup("eraser");
 
     DarwinEQInit();
