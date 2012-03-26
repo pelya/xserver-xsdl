@@ -1355,22 +1355,23 @@ untrusted_str(NSEvent *e)
     }
 #endif
 
-    isMouseOrTabletEvent = [e type] == NSLeftMouseDown || [e type] ==
-                           NSOtherMouseDown || [e type] ==
-                           NSRightMouseDown ||
-                           [e type] == NSLeftMouseUp || [e type] ==
-                           NSOtherMouseUp || [e type] == NSRightMouseUp ||
-                           [e type] == NSLeftMouseDragged || [e type] ==
-                           NSOtherMouseDragged || [e type] ==
-                           NSRightMouseDragged ||
-                           [e type] == NSMouseMoved || [e type] ==
-                           NSTabletPoint || [e type] == NSScrollWheel;
+    isMouseOrTabletEvent = [e type] == NSLeftMouseDown ||
+                           [e type] == NSOtherMouseDown ||
+                           [e type] == NSRightMouseDown ||
+                           [e type] == NSLeftMouseUp ||
+                           [e type] == NSOtherMouseUp ||
+                           [e type] == NSRightMouseUp ||
+                           [e type] == NSLeftMouseDragged ||
+                           [e type] == NSOtherMouseDragged ||
+                           [e type] == NSRightMouseDragged ||
+                           [e type] == NSMouseMoved ||
+                           [e type] == NSTabletPoint || 
+                           [e type] == NSScrollWheel;
 
     isTabletEvent = ([e type] == NSTabletPoint) ||
                     (isMouseOrTabletEvent &&
                      ([e subtype] == NSTabletPointEventSubtype ||
-                      [e subtype] ==
-                      NSTabletProximityEventSubtype));
+                      [e subtype] == NSTabletProximityEventSubtype));
 
     if (isMouseOrTabletEvent) {
         static NSPoint lastpt;
@@ -1388,19 +1389,16 @@ untrusted_str(NSEvent *e)
         // The deltaXY for middle click events also appear erroneous after fast user switching
         // <rdar://problem/7979468> deltaX and deltaY are incorrect for NSOtherMouseDown and NSOtherMouseUp after FUS
         // http://xquartz.macosforge.org/trac/ticket/389
-        hasUntrustedPointerDelta = hasUntrustedPointerDelta || [e type] ==
-                                   NSOtherMouseDown || [e type] ==
-                                   NSOtherMouseUp;
+        hasUntrustedPointerDelta |= [e type] == NSOtherMouseDown ||
+                                    [e type] == NSOtherMouseUp;
 
         // The deltaXY for scroll events correspond to the scroll delta, not the pointer delta
         // <rdar://problem/7989690> deltaXY for wheel events are being sent as mouse movement
-        hasUntrustedPointerDelta = hasUntrustedPointerDelta || [e type] ==
-                                   NSScrollWheel;
+        hasUntrustedPointerDelta |= [e type] == NSScrollWheel;
 
 #ifdef DEBUG_UNTRUSTED_POINTER_DELTA
-        hasUntrustedPointerDelta = hasUntrustedPointerDelta || [e type] ==
-                                   NSLeftMouseDown || [e type] ==
-                                   NSLeftMouseUp;
+        hasUntrustedPointerDelta |= [e type] == NSLeftMouseDown ||
+                                    [e type] == NSLeftMouseUp;
 #endif
 
         if (window != nil) {
@@ -1446,21 +1444,18 @@ untrusted_str(NSEvent *e)
     /* This is to workaround a bug in the VNC server where we sometimes see the L
      * modifier and sometimes see no "side"
      */
-    modifierFlags =
-        ensure_flag(modifierFlags, NX_CONTROLMASK, NX_DEVICELCTLKEYMASK |
-                    NX_DEVICERCTLKEYMASK,
-                    NX_DEVICELCTLKEYMASK);
-    modifierFlags = ensure_flag(
-        modifierFlags, NX_SHIFTMASK, NX_DEVICELSHIFTKEYMASK |
-        NX_DEVICERSHIFTKEYMASK, NX_DEVICELSHIFTKEYMASK);
-    modifierFlags =
-        ensure_flag(modifierFlags, NX_COMMANDMASK, NX_DEVICELCMDKEYMASK |
-                    NX_DEVICERCMDKEYMASK,
-                    NX_DEVICELCMDKEYMASK);
-    modifierFlags =
-        ensure_flag(modifierFlags, NX_ALTERNATEMASK, NX_DEVICELALTKEYMASK |
-                    NX_DEVICERALTKEYMASK,
-                    NX_DEVICELALTKEYMASK);
+    modifierFlags = ensure_flag(modifierFlags, NX_CONTROLMASK,
+                                NX_DEVICELCTLKEYMASK | NX_DEVICERCTLKEYMASK,
+                                NX_DEVICELCTLKEYMASK);
+    modifierFlags = ensure_flag(modifierFlags, NX_SHIFTMASK,
+                                NX_DEVICELSHIFTKEYMASK | NX_DEVICERSHIFTKEYMASK, 
+                                NX_DEVICELSHIFTKEYMASK);
+    modifierFlags = ensure_flag(modifierFlags, NX_COMMANDMASK,
+                                NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK,
+                                NX_DEVICELCMDKEYMASK);
+    modifierFlags = ensure_flag(modifierFlags, NX_ALTERNATEMASK,
+                                NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK,
+                                NX_DEVICELALTKEYMASK);
 #endif
 
     modifierFlags &= darwin_all_modifier_mask;
@@ -1560,8 +1555,8 @@ handle_mouse:
             return;
         }
 
-        if ([e type] == NSTabletPoint || [e subtype] ==
-            NSTabletPointEventSubtype) {
+        if ([e type] == NSTabletPoint ||
+            [e subtype] == NSTabletPointEventSubtype) {
             pressure = [e pressure];
             tilt = [e tilt];
 
@@ -1608,9 +1603,7 @@ handle_mouse:
         }
 
         DarwinSendPointerEvents(pDev, ev_type, ev_button, location.x,
-                                location.y,
-                                pressure, tilt.x,
-                                tilt.y);
+                                location.y, pressure, tilt.x, tilt.y);
 
         break;
 
@@ -1650,9 +1643,8 @@ handle_mouse:
         if (!XQuartzServerVisible && noTestExtensions) {
             bgMouseLocationUpdated = FALSE;
             DarwinSendPointerEvents(darwinPointer, MotionNotify, 0,
-                                    location.x,
-                                    location.y, pressure, tilt.x,
-                                    tilt.y);
+                                    location.x, location.y, pressure, 
+                                    tilt.x, tilt.y);
         }
 #endif
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
@@ -1684,7 +1676,7 @@ handle_mouse:
 
         if (darwinSyncKeymap) {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
-            TISInputSourceRef key_layout =
+            TISInputSourceRef key_layout = 
                 TISCopyCurrentKeyboardLayoutInputSource();
             TISInputSourceRef clear;
             if (CFEqual(key_layout, last_key_layout)) {
