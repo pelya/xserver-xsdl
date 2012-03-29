@@ -699,11 +699,21 @@ dnl DDX Detection... Yes, it's ugly to have it here... but we need to
 dnl handle this early on so that we don't require unsupported extensions
 case $host_os in
 	cygwin*)
+		CONFIG_DBUS_API=no
+		CONFIG_HAL=no
+		CONFIG_UDEV=no
 		DGA=no
 		DRI2=no
+		INT10MODULE=no
+		PCI=no
+		VGAHW=no
+		VBE=no
+		XAA=no
+		XF86UTILS=no
 		XF86VIDMODE=no
 		XSELINUX=no
 		XV=no
+		SYMBOL_VISIBILITY=no
 		;;
 	darwin*)
 		PCI=no
