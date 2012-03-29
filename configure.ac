@@ -1473,8 +1473,19 @@ AC_SUBST([UTILS_SYS_LIBS])
 # necessary flags for each platform when -export-dynamic is passed to it.
 LD_EXPORT_SYMBOLS_FLAG="-export-dynamic"
 LD_NO_UNDEFINED_FLAG=
+XORG_DRIVER_LIBS=
+case "$host_os" in
+    cygwin*)
+	LD_EXPORT_SYMBOLS_FLAG="-Wl,--export-all,--out-implib,lib\$@.a"
+	LD_NO_UNDEFINED_FLAG="-no-undefined -Wl,\$(top_builddir)/hw/xfree86/libXorg.exe.a"
+	XORG_DRIVER_LIBS="-lXorg.exe -L\${moduledir} -lshadow -lfb -no-undefined"
+	CYGWIN=yes
+	;;
+esac
 AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 AC_SUBST([LD_NO_UNDEFINED_FLAG])
+AC_SUBST([XORG_DRIVER_LIBS])
+AM_CONDITIONAL([CYGWIN], [test x"$CYGWIN" = xyes])
 AM_CONDITIONAL([NO_UNDEFINED], [test x"$LD_NO_UNDEFINED_FLAG" != x])
 
 dnl Imake defines SVR4 on SVR4 systems, and many files check for it, so
