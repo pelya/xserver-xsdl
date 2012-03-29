@@ -1070,6 +1070,7 @@ if test "x$GLX_USE_TLS" = xyes ; then
 	GLX_SYS_LIBS="$GLX_SYS_LIBS -lpthread"
 fi
 AC_SUBST([GLX_DEFINES])
+AC_SUBST([GLX_SYS_LIBS])
 
 AM_CONDITIONAL(DRI, test "x$DRI" = xyes)
 if test "x$DRI" = xyes; then
@@ -1471,7 +1472,10 @@ AC_SUBST([UTILS_SYS_LIBS])
 # Some platforms require extra flags to do this.   libtool should set the
 # necessary flags for each platform when -export-dynamic is passed to it.
 LD_EXPORT_SYMBOLS_FLAG="-export-dynamic"
+LD_NO_UNDEFINED_FLAG=
 AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
+AC_SUBST([LD_NO_UNDEFINED_FLAG])
+AM_CONDITIONAL([NO_UNDEFINED], [test x"$LD_NO_UNDEFINED_FLAG" != x])
 
 dnl Imake defines SVR4 on SVR4 systems, and many files check for it, so
 dnl we need to replicate that here until those can all be fixed
