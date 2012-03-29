@@ -272,6 +272,7 @@ xf86RotateDestroy(xf86CrtcPtr crtc)
     ScrnInfoPtr pScrn = crtc->scrn;
     ScreenPtr pScreen = pScrn->pScreen;
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
+    DrawablePtr screenDrawable = &pScreen->root->drawable;
     int c;
 
     /* Free memory from rotation */
@@ -289,7 +290,7 @@ xf86RotateDestroy(xf86CrtcPtr crtc)
     /*
      * Clean up damage structures when no crtcs are rotated
      */
-    if (xf86_config->rotation_damage) {
+    if (screenDrawable && xf86_config->rotation_damage) {
         /* Free damage structure */
         if (xf86_config->rotation_damage_registered) {
             DamageUnregister(&pScreen->root->drawable,
