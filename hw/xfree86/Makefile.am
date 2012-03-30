@@ -112,7 +112,7 @@ CLEANFILES = sdksyms.c sdksyms.dep
 EXTRA_DIST += sdksyms.sh
 
 sdksyms.dep sdksyms.c: sdksyms.sh
-	CPP='$(CPP)' AWK='$(AWK)' $(SHELL) $(srcdir)/sdksyms.sh $(top_srcdir) $(CFLAGS) $(AM_CFLAGS) $(INCLUDES)
+	$(AM_V_GEN)CPP='$(CPP)' AWK='$(AWK)' $(SHELL) $(srcdir)/sdksyms.sh $(top_srcdir) $(CFLAGS) $(AM_CFLAGS) $(INCLUDES)
 
 SDKSYMS_DEP = sdksyms.dep
 include $(SDKSYMS_DEP)
