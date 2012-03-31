@@ -817,6 +817,12 @@ winMultiWindowWMProc(void *pArg)
             {
             HWND zstyle = HWND_NOTOPMOST;
             UINT flags;
+            XWindowAttributes attr;
+
+            /* Don't do anything if this is an override-redirect window */
+            XGetWindowAttributes (pWMInfo->pDisplay, pNode->msg.iWindow, &attr);
+            if (attr.override_redirect)
+              break;
 
             pNode->msg.hwndWindow = getHwnd(pWMInfo, pNode->msg.iWindow);
 
