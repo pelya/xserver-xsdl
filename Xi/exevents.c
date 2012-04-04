@@ -1327,6 +1327,7 @@ RetrieveTouchDeliveryData(DeviceIntPtr dev, TouchPointInfoPtr ti,
 {
     int rc;
     InputClients *iclients = NULL;
+    *mask = NULL;
 
     if (listener->type == LISTENER_GRAB ||
         listener->type == LISTENER_POINTER_GRAB) {
@@ -1378,6 +1379,7 @@ RetrieveTouchDeliveryData(DeviceIntPtr dev, TouchPointInfoPtr ti,
             if (!iclients)
                 return FALSE;
 
+            *mask = iclients->xi2mask;
             *client = rClient(iclients);
         }
         else if (listener->level == XI) {
@@ -1409,7 +1411,6 @@ RetrieveTouchDeliveryData(DeviceIntPtr dev, TouchPointInfoPtr ti,
             *client = oclients ? rClient(oclients) : wClient(*win);
         }
 
-        *mask = iclients ? iclients->xi2mask : NULL;
         *grab = NULL;
     }
 
