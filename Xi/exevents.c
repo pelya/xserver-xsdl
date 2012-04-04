@@ -1377,6 +1377,8 @@ RetrieveTouchDeliveryData(DeviceIntPtr dev, TouchPointInfoPtr ti,
             BUG_WARN(!iclients);
             if (!iclients)
                 return FALSE;
+
+            *client = rClient(iclients);
         }
         else if (listener->level == XI) {
             int xi_type = GetXIType(TouchGetPointerEventType(ev));
@@ -1389,20 +1391,24 @@ RetrieveTouchDeliveryData(DeviceIntPtr dev, TouchPointInfoPtr ti,
             BUG_WARN(!iclients);
             if (!iclients)
                 return FALSE;
+
+            *client = rClient(iclients);
         }
         else {
             int coretype = GetCoreType(TouchGetPointerEventType(ev));
             Mask core_filter = event_get_filter_from_type(dev, coretype);
+            OtherClients *oclients;
 
             /* all others */
-            nt_list_for_each_entry(iclients,
-                                   (InputClients *) wOtherClients(*win), next)
-                if (iclients->mask[XIAllDevices] & core_filter)
-                break;
-            /* if owner selected, iclients is NULL */
+            nt_list_for_each_entry(oclients,
+                                   (OtherClients *) wOtherClients(*win), next)
+                if (oclients->mask & core_filter)
+                    break;
+
+            /* if owner selected, oclients is NULL */
+            *client = oclients ? rClient(oclients) : wClient(*win);
         }
 
-        *client = iclients ? rClient(iclients) : wClient(*win);
         *mask = iclients ? iclients->xi2mask : NULL;
         *grab = NULL;
     }
