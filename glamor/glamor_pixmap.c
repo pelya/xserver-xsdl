@@ -210,8 +210,202 @@ glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 #endif
 }
 
+void *
+_glamor_color_convert_a1_a8(void *src_bits, int w, int h, int stride, int revert)
+{
+	void *bits;
+	PictFormatShort dst_format, src_format;
+	pixman_image_t *dst_image;
+	pixman_image_t *src_image;
 
+	if (revert == REVERT_UPLOADING_A1) {
+		src_format = PICT_a1;
+		dst_format = PICT_a8;
+	} else {
+		dst_format = PICT_a1;
+		src_format = PICT_a8;
+	}
 
+	bits = malloc(stride * h);
+	if (bits == NULL)
+		return NULL;
+	dst_image = pixman_image_create_bits(dst_format,
+					     w, h,
+					     bits,
+					     stride);
+	if (dst_image == NULL) {
+		free(bits);
+		return NULL;
+	}
+
+	src_image = pixman_image_create_bits(src_format,
+					     w, h,
+					     src_bits,
+					     stride);
+
+	if (src_image == NULL) {
+		pixman_image_unref(dst_image);
+		free(bits);
+		return NULL;
+	}
+
+	pixman_image_composite(PictOpSrc, src_image, NULL, dst_image,
+			       0, 0, 0, 0, 0, 0,
+			       w,h);
+
+	pixman_image_unref(src_image);
+	pixman_image_unref(dst_image);
+	return bits;
+}
+
+#define ADJUST_BITS(d, src_bits, dst_bits)	(((dst_bits) == (src_bits)) ? (d) : 				\
+							(((dst_bits) > (src_bits)) ? 				\
+							  (((d) << ((dst_bits) - (src_bits))) 			\
+								   + (( 1 << ((dst_bits) - (src_bits))) >> 1))	\
+								:  ((d) >> ((src_bits) - (dst_bits)))))
+
+#define GLAMOR_DO_CONVERT(src, dst, no_alpha, swap,		\
+			  a_shift_src, a_bits_src,		\
+			  b_shift_src, b_bits_src,		\
+			  g_shift_src, g_bits_src,		\
+			  r_shift_src, r_bits_src,		\
+			  a_shift, a_bits,			\
+			  b_shift, b_bits,			\
+			  g_shift, g_bits,			\
+			  r_shift, r_bits)			\
+	{								\
+		typeof(src) a,b,g,r;					\
+		typeof(src) a_mask_src, b_mask_src, g_mask_src, r_mask_src;\
+		a_mask_src = (((1 << (a_bits_src)) - 1) << a_shift_src);\
+		b_mask_src = (((1 << (b_bits_src)) - 1) << b_shift_src);\
+		g_mask_src = (((1 << (g_bits_src)) - 1) << g_shift_src);\
+		r_mask_src = (((1 << (r_bits_src)) - 1) << r_shift_src);\
+		if (no_alpha)						\
+			a = (a_mask_src) >> (a_shift_src);			\
+		else							\
+			a = ((src) & (a_mask_src)) >> (a_shift_src);	\
+		b = ((src) & (b_mask_src)) >> (b_shift_src);		\
+		g = ((src) & (g_mask_src)) >> (g_shift_src);		\
+		r = ((src) & (r_mask_src)) >> (r_shift_src);		\
+		a = ADJUST_BITS(a, a_bits_src, a_bits);			\
+		b = ADJUST_BITS(b, b_bits_src, b_bits);			\
+		g = ADJUST_BITS(g, g_bits_src, g_bits);			\
+		r = ADJUST_BITS(r, r_bits_src, r_bits);			\
+		if (swap == 0)						\
+			(*dst) = ((a) << (a_shift)) | ((b) << (b_shift)) | ((g) << (g_shift)) | ((r) << (r_shift)); \
+		else 												    \
+			(*dst) = ((a) << (a_shift)) | ((r) << (b_shift)) | ((g) << (g_shift)) | ((b) << (r_shift)); \
+	}
+
+void *
+_glamor_color_revert_x2b10g10r10(void *src_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
+{
+	int x,y;
+	unsigned int *words, *saved_words, *source_words;
+	int swap = !(swap_rb == SWAP_NONE_DOWNLOADING || swap_rb == SWAP_NONE_UPLOADING);
+
+	words = malloc(stride * h);
+	source_words = src_bits;
+	if (words == NULL)
+		return NULL;
+	saved_words = words;
+
+	for (y = 0; y < h; y++)
+	{
+		DEBUGF("Line %d :  ", y);
+		for (x = 0; x < w; x++)
+		{
+			unsigned int pixel = source_words[x];
+
+			if (revert == REVERT_DOWNLOADING_2_10_10_10)
+				GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
+						  24, 8, 16, 8, 8, 8, 0, 8,
+						  30, 2, 20, 10, 10, 10, 0, 10)
+			else
+				GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
+						  30, 2, 20, 10, 10, 10, 0, 10,
+						  24, 8, 16, 8, 8, 8, 0, 8);
+			DEBUGF("%x:%x ", pixel, words[x]);
+		}
+		DEBUGF("\n");
+		words += stride / sizeof(*words);
+		source_words += stride / sizeof(*words);
+	}
+	DEBUGF("\n");
+	return saved_words;
+
+}
+
+void *
+_glamor_color_revert_x1b5g5r5(void *src_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
+{
+	int x,y;
+	unsigned short *words, *saved_words, *source_words;
+	int swap = !(swap_rb == SWAP_NONE_DOWNLOADING || swap_rb == SWAP_NONE_UPLOADING);
+
+	words = malloc(stride * h);
+	source_words = src_bits;
+	if (words == NULL)
+		return NULL;
+	saved_words = words;
+
+	for (y = 0; y < h; y++)
+	{
+		DEBUGF("Line %d :  ", y);
+		for (x = 0; x < w; x++)
+		{
+			unsigned short pixel = source_words[x];
+
+			if (revert == REVERT_DOWNLOADING_1_5_5_5)
+				GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
+						  0, 1, 1, 5, 6, 5, 11, 5,
+						  15, 1, 10, 5, 5, 5, 0, 5)
+			else
+				GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
+						  15, 1, 10, 5, 5, 5, 0, 5,
+						  0, 1, 1, 5, 6, 5, 11, 5);
+			DEBUGF("%04x:%04x ", pixel, words[x]);
+		}
+		DEBUGF("\n");
+		words += stride / sizeof(*words);
+		source_words += stride / sizeof(*words);
+	}
+	DEBUGF("\n");
+	return saved_words;
+}
+
+/*
+ * This function is to convert an unsupported color format to/from a
+ * supported GL format.
+ * Here are the current scenarios:
+ *
+ * @no_alpha:
+ * 	If it is set, then we need to wire the alpha value to 1.
+ * @revert:
+	REVERT_DOWNLOADING_A1		: convert an Alpha8 buffer to a A1 buffer.
+	REVERT_UPLOADING_A1		: convert an A1 buffer to an Alpha8 buffer
+	REVERT_DOWNLOADING_2_10_10_10 	: convert r10G10b10X2 to X2B10G10R10
+	REVERT_UPLOADING_2_10_10_10 	: convert X2B10G10R10 to R10G10B10X2
+	REVERT_DOWNLOADING_1_5_5_5  	: convert B5G5R5X1 to X1R5G5B5
+	REVERT_UPLOADING_1_5_5_5    	: convert X1R5G5B5 to B5G5R5X1
+   @swap_rb: if we have the swap_rb set, then we need to swap the R and B's position.
+ *
+ */
+
+void *
+glamor_color_convert_to_bits(void *src_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
+{
+	if (revert == REVERT_DOWNLOADING_A1 || revert == REVERT_UPLOADING_A1) {
+		return _glamor_color_convert_a1_a8(src_bits, w, h, stride, revert);
+	} else if (revert == REVERT_DOWNLOADING_2_10_10_10 || revert == REVERT_UPLOADING_2_10_10_10) {
+		return _glamor_color_revert_x2b10g10r10(src_bits, w, h, stride, no_alpha, revert, swap_rb);
+	} else if (revert == REVERT_DOWNLOADING_1_5_5_5 || revert == REVERT_UPLOADING_1_5_5_5) {
+		return _glamor_color_revert_x1b5g5r5(src_bits, w, h, stride, no_alpha, revert, swap_rb);
+	} else
+		ErrorF("convert a non-supported mode %x.\n", revert);
+
+	return NULL;
+}
 
 /**
  * Upload pixmap to a specified texture.
@@ -220,7 +414,8 @@ glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 int in_restore = 0;
 static void
 __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
-				  GLenum type, GLuint tex, int sub)
+				  GLenum type, GLuint tex, int sub,
+				  void *bits)
 {
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
@@ -228,7 +423,6 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
 	glamor_gl_dispatch *dispatch;
 	unsigned int stride, row_length;
-	void *texels;
 	GLenum iformat;
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2)
@@ -253,47 +447,35 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 		dispatch->glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	}
 
-	if (pixmap_priv->fbo->pbo && pixmap_priv->fbo->pbo_valid) {
-		texels = NULL;
+	if (bits == NULL)
 		dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER,
 				       pixmap_priv->fbo->pbo);
-	} else
-		texels = pixmap->devPrivate.ptr;
 
 	if (sub)
 		dispatch->glTexSubImage2D(GL_TEXTURE_2D,
 				       0,0,0,
 				       pixmap->drawable.width,
 				       pixmap->drawable.height, format, type,
-				       texels);
+				       bits);
 	else
 		dispatch->glTexImage2D(GL_TEXTURE_2D,
 				       0,
 				       iformat,
 				       pixmap->drawable.width,
 				       pixmap->drawable.height, 0, format, type,
-				       texels);
+				       bits);
 
-	if (pixmap_priv->fbo->pbo && pixmap_priv->fbo->pbo_valid)
+	if (bits == NULL)
 		dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	glamor_put_dispatch(glamor_priv);
 }
 
-
-/* 
- * Load texture from the pixmap's data pointer and then
- * draw the texture to the fbo, and flip the y axis.
- * */
-
-static void
-_glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type,
-				int no_alpha, int revert, int swap_rb)
+Bool
+glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format, GLenum type,
+				     int no_alpha, int revert, int swap_rb, void *bits)
 {
-
-	glamor_pixmap_private *pixmap_priv =
-	    glamor_get_pixmap_private(pixmap);
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(pixmap->drawable.pScreen);
+	glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+	glamor_screen_private *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 	glamor_gl_dispatch *dispatch;
 	static float vertices[8];
 	static float texcoords[8] = { 0, 1,
@@ -310,28 +492,40 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type,
 	float dst_xscale, dst_yscale;
 	GLuint tex;
 	int need_flip;
+	int need_free_bits = 0;
 
-	if (!pixmap_priv)
-		return;
 	need_flip = !glamor_priv->yInverted;
 
-	glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DYNAMIC_UPLOAD,
-			    "Uploading pixmap %p  %dx%d depth%d.\n",
-			    pixmap,
-			    pixmap->drawable.width,
-			    pixmap->drawable.height,
-			    pixmap->drawable.depth);
+	if (bits == NULL)
+		goto ready_to_upload;
 
+	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
+	    &&  revert > REVERT_NORMAL) {
+		bits = glamor_color_convert_to_bits(bits, pixmap->drawable.width,
+						    pixmap->drawable.height,
+						    pixmap->devKind,
+						    no_alpha, revert, swap_rb);
+		if (bits == NULL) {
+			ErrorF("Failed to convert pixmap no_alpha %d, revert mode %d, swap mode %d\n", swap_rb);
+			return FALSE;
+		}
+		no_alpha = 0;
+		revert = REVERT_NONE;
+		swap_rb = SWAP_NONE_UPLOADING;
+		need_free_bits = TRUE;
+	}
+
+ready_to_upload:
 	/* Try fast path firstly, upload the pixmap to the texture attached
 	 * to the fbo directly. */
 	if (no_alpha == 0
 	    && revert == REVERT_NONE
 	    && swap_rb == SWAP_NONE_UPLOADING
 	    && !need_flip) {
-
 		__glamor_upload_pixmap_to_texture(pixmap, format, type,
-						  pixmap_priv->fbo->tex, 1);
-		return;
+						  pixmap_priv->fbo->tex, 1,
+						  bits);
+		return TRUE;
 	}
 
 	if (need_flip)
@@ -361,7 +555,7 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type,
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 	dispatch->glGenTextures(1, &tex);
 
-	__glamor_upload_pixmap_to_texture(pixmap, format, type, tex, 0);
+	__glamor_upload_pixmap_to_texture(pixmap, format, type, tex, 0, bits);
 	dispatch->glActiveTexture(GL_TEXTURE0);
 	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
 
@@ -391,6 +585,43 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format, GLenum type,
 	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glamor_put_dispatch(glamor_priv);
+
+	if (need_free_bits)
+		free(bits);
+	return TRUE;
+}
+
+/*
+ * Load texture from the pixmap's data pointer and then
+ * draw the texture to the fbo, and flip the y axis.
+ * */
+
+static Bool
+_glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
+				 GLenum type, int no_alpha, int revert,
+				 int swap_rb)
+{
+	glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+	glamor_screen_private *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
+	void *bits;
+	int need_free_bits = 0;
+
+	if (!pixmap_priv)
+		return TRUE;
+
+	glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DYNAMIC_UPLOAD,
+			    "Uploading pixmap %p  %dx%d depth%d.\n",
+			    pixmap,
+			    pixmap->drawable.width,
+			    pixmap->drawable.height,
+			    pixmap->drawable.depth);
+
+	if (pixmap_priv->fbo->pbo && pixmap_priv->fbo->pbo_valid)
+		bits = NULL;
+
+	return glamor_upload_bits_to_pixmap_texture(pixmap, format, type, no_alpha,
+						    revert, swap_rb,
+						    pixmap->devPrivate.ptr);
 }
 
 void
@@ -442,7 +673,7 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 	glamor_put_dispatch(fbo->glamor_priv);
 }
 
-/*  
+/*
  * Prepare to upload a pixmap to texture memory.
  * no_alpha equals 1 means the format needs to wire alpha to 1.
  * Two condtion need to setup a fbo for a pixmap
@@ -520,27 +751,14 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 	if (glamor_pixmap_upload_prepare(pixmap, format, no_alpha, revert, swap_rb))
 		return GLAMOR_UPLOAD_FAILED;
 
-	_glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha,
-					 revert, swap_rb);
+	if (_glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha,
+					     revert, swap_rb))
+		return GLAMOR_UPLOAD_DONE;
+	else
+		return GLAMOR_UPLOAD_FAILED;
+
 	return GLAMOR_UPLOAD_DONE;
 }
-
-#if 0
-enum glamor_pixmap_status
-glamor_upload_pixmap_to_texure_from_data(PixmapPtr pixmap, void *data)
-{
-	enum glamor_pixmap_status upload_status;
-	glamor_pixmap_private *pixmap_priv =
-	    glamor_get_pixmap_private(pixmap);
-
-	assert(pixmap_priv->pbo_valid == 0);
-	assert(pixmap->devPrivate.ptr == NULL);
-	pixmap->devPrivate.ptr = data;
-	upload_status = glamor_upload_pixmap_to_texture(pixmap);
-	pixmap->devPrivate.ptr = NULL;
-	return upload_status;
-}
-#endif
 
 void
 glamor_restore_pixmap_to_texture(PixmapPtr pixmap)
@@ -557,14 +775,16 @@ glamor_restore_pixmap_to_texture(PixmapPtr pixmap)
 		assert(0);
 	}
 
-	_glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha,
-					 revert, swap_rb);
+	if (!_glamor_upload_pixmap_to_texture(pixmap, format, type, no_alpha,
+					      revert, swap_rb))
+		LogMessage(X_WARNING, "Failed to restore pixmap to texture.\n",
+			   pixmap->drawable.pScreen->myNum);
 }
 
-/* 
+/*
  * as gles2 only support a very small set of color format and
- * type when do glReadPixel,  
- * Before we use glReadPixels to get back a textured pixmap, 
+ * type when do glReadPixel,
+ * Before we use glReadPixels to get back a textured pixmap,
  * Use shader to convert it to a supported format and thus
  * get a new temporary pixmap returned.
  * */
@@ -654,7 +874,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum format,
 /**
  * Move a pixmap to CPU memory.
  * The input data is the pixmap's fbo.
- * The output data is at pixmap->devPrivate.ptr. We always use pbo 
+ * The output data is at pixmap->devPrivate.ptr. We always use pbo
  * to read the fbo and then map it to va. If possible, we will use
  * it directly as devPrivate.ptr.
  * If successfully download a fbo to cpu then return TRUE.
@@ -674,6 +894,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
 	glamor_gl_dispatch *dispatch;
 	glamor_pixmap_fbo *temp_fbo = NULL;
+	int need_post_conversion = 0;
 
 	screen = pixmap->drawable.pScreen;
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
@@ -704,7 +925,11 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	 * we can just validate it on CPU. */
 	glamor_validate_pixmap(pixmap);
 
+
+	need_post_conversion = (revert > REVERT_NORMAL);
+
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
+	    && !need_post_conversion
 	    && (swap_rb != SWAP_NONE_DOWNLOADING || revert != REVERT_NONE)) {
 		 if (!(temp_fbo = glamor_es2_pixmap_read_prepare(pixmap, format,
 								 type, no_alpha,
@@ -775,8 +1000,6 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 			dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
 		} else {
-			if (type == GL_UNSIGNED_SHORT_1_5_5_5_REV)
-				type = GL_UNSIGNED_SHORT_5_5_5_1;
 			dispatch->glReadPixels(0, 0,
 					       pixmap->drawable.width,
 					       pixmap->drawable.height,
@@ -815,6 +1038,30 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 
 	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glamor_put_dispatch(glamor_priv);
+
+	if (need_post_conversion) {
+		/* As OpenGL desktop version never enters here.
+		 * Don't need to consider if the pbo is valid.*/
+		char *new_data;
+		int stride;
+		assert(pixmap_priv->fbo->pbo_valid == 0);
+
+		/* Only A1 <--> A8 conversion need to adjust the stride value. */
+		if (pixmap->drawable.depth == 1)
+			stride = (((pixmap->drawable.width * 8 + 7) / 8) + 3) & ~3;
+		else
+			stride = pixmap->devKind;
+		new_data = glamor_color_convert_to_bits(data, pixmap->drawable.width,
+							pixmap->drawable.height,
+							stride, no_alpha,
+							revert, swap_rb);
+		free(data);
+		if (new_data == NULL) {
+			return FALSE;
+		}
+		data = new_data;
+	}
+
       done:
 
 	pixmap_priv->gl_fbo = GLAMOR_FBO_DOWNLOADED;

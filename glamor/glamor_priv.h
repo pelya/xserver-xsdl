@@ -633,12 +633,20 @@ void glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo);
 enum glamor_pixmap_status glamor_upload_pixmap_to_texture(PixmapPtr
 							  pixmap);
 
-/** 
+/**
  * Upload a picture to gl texture. Similar to the
  * glamor_upload_pixmap_to_texture. Used in rendering.
  **/
 enum glamor_pixmap_status
  glamor_upload_picture_to_texture(PicturePtr picture);
+
+/**
+ * Upload bits to a pixmap's texture. This function will
+ * convert the bits to the specified format/type format
+ * if the conversion is unavoidable.
+ **/
+Bool glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format, GLenum type,
+					  int no_alpha, int revert, int swap_rb, void *bits);
 
 /**
  * Destroy all the resources allocated on the uploading

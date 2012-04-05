@@ -286,9 +286,17 @@ format_for_pixmap(PixmapPtr pixmap)
 	return pict_format;
 }
 
-
 #define REVERT_NONE       		0
 #define REVERT_NORMAL     		1
+#define REVERT_DOWNLOADING_A1		2
+#define REVERT_UPLOADING_A1		3
+#define REVERT_DOWNLOADING_2_10_10_10 	4
+#define REVERT_UPLOADING_2_10_10_10 	5
+#define REVERT_DOWNLOADING_1_5_5_5  	7
+#define REVERT_UPLOADING_1_5_5_5    	8
+#define REVERT_DOWNLOADING_10_10_10_2 	9
+#define REVERT_UPLOADING_10_10_10_2 	10
+
 #define SWAP_NONE_DOWNLOADING  	0
 #define SWAP_DOWNLOADING  	1
 #define SWAP_UPLOADING	  	2
@@ -455,17 +463,48 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 	case PICT_x2r10g10b10:
 		*no_alpha = 1;
 	case PICT_a2r10g10b10:
-		*tex_format = GL_BGRA;
-		*tex_type = GL_UNSIGNED_INT_10_10_10_2;
-		*revert = REVERT_NONE;
+		*tex_format = GL_RGBA;
+		/* glReadPixmap doesn't support GL_UNSIGNED_INT_10_10_10_2.
+		 * we have to use GL_UNSIGNED_BYTE and do the conversion in
+		 * shader latter.*/
+		*tex_type = GL_UNSIGNED_BYTE;
+		if (is_upload == 1) {
+			if (!IS_LITTLE_ENDIAN)
+				*revert = REVERT_UPLOADING_10_10_10_2;
+			else
+				*revert = REVERT_UPLOADING_2_10_10_10;
+		}
+		else {
+			if (!IS_LITTLE_ENDIAN) {
+				*revert = REVERT_DOWNLOADING_10_10_10_2;
+			}
+			else {
+				*revert = REVERT_DOWNLOADING_2_10_10_10;
+			}
+		}
+		need_swap_rb = 1;
+
 		break;
 
 	case PICT_x2b10g10r10:
 		*no_alpha = 1;
 	case PICT_a2b10g10r10:
 		*tex_format = GL_RGBA;
-		*tex_type = GL_UNSIGNED_INT_10_10_10_2;
-		*revert = REVERT_NONE;
+		*tex_type = GL_UNSIGNED_BYTE;
+		if (is_upload == 1) {
+			if (!IS_LITTLE_ENDIAN)
+				*revert = REVERT_UPLOADING_10_10_10_2;
+			else
+				*revert = REVERT_UPLOADING_2_10_10_10;
+		}
+		else {
+			if (!IS_LITTLE_ENDIAN) {
+				*revert = REVERT_DOWNLOADING_10_10_10_2;
+			}
+			else {
+				*revert = REVERT_DOWNLOADING_2_10_10_10;
+			}
+		}
 		break;
 
 	case PICT_r5g6b5:
@@ -485,16 +524,29 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 		*no_alpha = 1;
 	case PICT_a1b5g5r5:
 		*tex_format = GL_RGBA;
-		*tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-		*revert = REVERT_NONE;
+		*tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
+		if (IS_LITTLE_ENDIAN) {
+			*revert = is_upload ? REVERT_UPLOADING_1_5_5_5 : REVERT_DOWNLOADING_1_5_5_5;
+		} else
+			*revert = REVERT_NONE;
 		break;
 
 	case PICT_x1r5g5b5:
 		*no_alpha = 1;
 	case PICT_a1r5g5b5:
-		*tex_format = GL_BGRA;
-		*tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-		*revert = REVERT_NONE;
+		*tex_format = GL_RGBA;
+		*tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
+		if (IS_LITTLE_ENDIAN) {
+			*revert = is_upload ? REVERT_UPLOADING_1_5_5_5 : REVERT_DOWNLOADING_1_5_5_5;
+		} else
+			*revert = REVERT_NONE;
+		need_swap_rb = 1;
+		break;
+
+	case PICT_a1:
+		*tex_format = GL_ALPHA;
+		*tex_type = GL_UNSIGNED_BYTE;
+		*revert = is_upload ? REVERT_UPLOADING_A1 : REVERT_DOWNLOADING_A1;
 		break;
 
 	case PICT_a8:
