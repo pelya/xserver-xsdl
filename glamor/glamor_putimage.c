@@ -264,8 +264,9 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	float vertices[8], texcoords[8];
 	GLfloat xscale, yscale, txscale, tyscale;
 	GLuint tex;
-	int no_alpha, no_revert;
+	int no_alpha, revert;
 	Bool ret = FALSE;
+	int swap_rb;
 
 	if (image_format == XYBitmap) {
 		assert(depth == 1);
@@ -289,7 +290,9 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	if (glamor_get_tex_format_type_from_pixmap(pixmap,
 						   &format,
 						   &type, &no_alpha,
-						   &no_revert)) {
+						   &revert,
+						   &swap_rb,
+						   1)) {
 		glamor_fallback("unknown depth. %d \n", drawable->depth);
 		goto fail;
 	}
@@ -341,10 +344,10 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 #endif
 	dispatch->glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
 	dispatch->glUniform1i(glamor_priv->
-			      finish_access_no_revert[no_alpha],
-			      no_revert);
+			      finish_access_revert[no_alpha],
+			      revert);
 	dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha],
-			      0);
+			      swap_rb);
 
 	x += drawable->x;
 	y += drawable->y;

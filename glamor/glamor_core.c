@@ -107,6 +107,35 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	return glamor_download_pixmap_to_cpu(pixmap, access);
 }
 
+/*
+ *  When downloading a unsupported color format to CPU memory,
+    we need to shuffle the color elements and then use a supported
+    color format to read it back to CPU memory.
+
+    For an example, the picture's format is PICT_b8g8r8a8,
+    Then the expecting color layout is as below (little endian):
+    0	1	2	3   : address
+    a	r	g	b
+
+    Now the in GLES2 the supported color format is GL_RGBA, type is
+    GL_UNSIGNED_TYPE, then we need to shuffle the fragment
+    color as :
+	frag_color = sample(texture).argb;
+    before we use glReadPixel to get it back.
+
+    For the uploading process, the shuffle is a revert shuffle.
+    We still use GL_RGBA, GL_UNSIGNED_BYTE to upload the color
+    to a texture, then let's see
+    0	1	2	3   : address
+    a	r	g	b   : correct colors
+    R	G	B	A   : GL_RGBA with GL_UNSIGNED_BYTE
+
+    Now we need to shuffle again, the mapping rule is
+    r = G, g = B, b = A, a = R. Then the uploading shuffle is as
+    below:
+	frag_color = sample(texture).gbar;
+*/
+
 void
 glamor_init_finish_access_shaders(ScreenPtr screen)
 {
@@ -121,53 +150,67 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 	    "	gl_Position = v_position;\n"
 	    "	source_texture = v_texcoord0.xy;\n" "}\n";
 
-	const char *fs_source =
+	const char *common_source =
 	    GLAMOR_DEFAULT_PRECISION
 	    "varying vec2 source_texture;\n"
 	    "uniform sampler2D sampler;\n"
-	    "uniform int no_revert;\n"
+	    "uniform int revert;\n"
 	    "uniform int swap_rb;\n"
+
+	    "#define REVERT_NONE       			0\n"
+	    "#define REVERT_NORMAL     			1\n"
+	    "#define SWAP_NONE_DOWNLOADING  		0\n"
+	    "#define SWAP_DOWNLOADING  			1\n"
+	    "#define SWAP_UPLOADING	  		2\n"
+	    "#define SWAP_NONE_UPLOADING		3\n";
+
+	const char *fs_source =
 	    "void main()\n"
 	    "{\n"
-	    "   if (no_revert == 1) \n"
+	    "   if (revert == REVERT_NONE) \n"
 	    "    { \n"
-	    "     if (swap_rb == 1)   \n"
-	    "	  gl_FragColor = texture2D(sampler, source_texture).bgra;\n"
+	    "     if ((swap_rb != SWAP_NONE_DOWNLOADING) && (swap_rb != SWAP_NONE_UPLOADING))   \n"
+	    "	  	gl_FragColor = texture2D(sampler, source_texture).bgra;\n"
 	    "     else \n"
-	    "	  gl_FragColor = texture2D(sampler, source_texture).rgba;\n"
+	    "	  	gl_FragColor = texture2D(sampler, source_texture).rgba;\n"
 	    "    } \n"
 	    "   else \n"
 	    "    { \n"
-	    "     if (swap_rb == 1)   \n"
-	    "	    gl_FragColor = texture2D(sampler, source_texture).argb;\n"
-	    "     else \n"
-	    "	    gl_FragColor = texture2D(sampler, source_texture).abgr;\n"
+	    "     if (swap_rb == SWAP_DOWNLOADING)   \n"
+	    "	  	gl_FragColor = texture2D(sampler, source_texture).argb;\n"
+	    "     else if (swap_rb == SWAP_NONE_DOWNLOADING)\n"
+	    "	  	gl_FragColor = texture2D(sampler, source_texture).abgr;\n"
+	    "     else if (swap_rb == SWAP_UPLOADING)\n"
+	    "	  	gl_FragColor = texture2D(sampler, source_texture).gbar;\n"
+	    "     else if (swap_rb == SWAP_NONE_UPLOADING)\n"
+	    "	  	gl_FragColor = texture2D(sampler, source_texture).abgr;\n"
 	    "    } \n" "}\n";
 
 	const char *set_alpha_source =
-	    GLAMOR_DEFAULT_PRECISION
-	    "varying vec2 source_texture;\n"
-	    "uniform sampler2D sampler;\n"
-	    "uniform int no_revert;\n"
-	    "uniform int swap_rb;\n"
 	    "void main()\n"
 	    "{\n"
-	    "   if (no_revert == 1) \n"
+	    "   if (revert == REVERT_NONE) \n"
 	    "    { \n"
-	    "     if (swap_rb == 1)   \n"
-	    "	  gl_FragColor = vec4(texture2D(sampler, source_texture).bgr, 1);\n"
+	    "     if ((swap_rb != SWAP_NONE_DOWNLOADING) && (swap_rb != SWAP_NONE_UPLOADING))   \n"
+	    "	  	gl_FragColor = vec4(texture2D(sampler, source_texture).bgr, 1);\n"
 	    "     else \n"
-	    "	  gl_FragColor = vec4(texture2D(sampler, source_texture).rgb, 1);\n"
+	    "	  	gl_FragColor = vec4(texture2D(sampler, source_texture).rgb, 1);\n"
 	    "    } \n"
 	    "   else \n"
 	    "    { \n"
-	    "     if (swap_rb == 1)   \n"
-	    "	  gl_FragColor = vec4(1,  texture2D(sampler, source_texture).rgb);\n"
-	    "     else \n"
-	    "	  gl_FragColor = vec4(1, texture2D(sampler, source_texture).bgr);\n"
-	    "    } \n" "}\n";
+	    "     if (swap_rb == SWAP_DOWNLOADING)   \n"
+	    "	  	gl_FragColor = vec4(1, texture2D(sampler, source_texture).rgb);\n"
+	    "     else if (swap_rb == SWAP_NONE_DOWNLOADING)\n"
+	    "	  	gl_FragColor = vec4(1, texture2D(sampler, source_texture).bgr);\n"
+	    "     else if (swap_rb == SWAP_UPLOADING)\n"
+	    "	  	gl_FragColor = vec4(texture2D(sampler, source_texture).gba, 1);\n"
+	    "     else if (swap_rb == SWAP_NONE_UPLOADING)\n"
+	    "	  	gl_FragColor = vec4(texture2D(sampler, source_texture).abg, 1);\n"
+	    "    } \n"
+	    "}\n";
 	GLint fs_prog, vs_prog, avs_prog, set_alpha_prog;
 	GLint sampler_uniform_location;
+	char *source;
 
 	glamor_priv = glamor_get_screen_private(screen);
 	dispatch =  glamor_get_dispatch(glamor_priv);
@@ -176,8 +219,12 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 
 	vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER,
 				     vs_source);
+
+	XNFasprintf(&source, "%s%s", common_source, fs_source);
 	fs_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
-				     fs_source);
+				     source);
+	free(source);
+
 	dispatch->glAttachShader(glamor_priv->finish_access_prog[0],
 				 vs_prog);
 	dispatch->glAttachShader(glamor_priv->finish_access_prog[0],
@@ -185,8 +232,12 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 
 	avs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER,
 				     vs_source);
+
+	XNFasprintf(&source, "%s%s", common_source, set_alpha_source);
 	set_alpha_prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
-				     set_alpha_source);
+						  source);
+	free(source);
+
 	dispatch->glAttachShader(glamor_priv->finish_access_prog[1],
 				 avs_prog);
 	dispatch->glAttachShader(glamor_priv->finish_access_prog[1],
@@ -208,10 +259,10 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 	glamor_link_glsl_prog(dispatch,
 			      glamor_priv->finish_access_prog[1]);
 
-	glamor_priv->finish_access_no_revert[0] =
+	glamor_priv->finish_access_revert[0] =
 	    dispatch->
 	    glGetUniformLocation(glamor_priv->finish_access_prog[0],
-				 "no_revert");
+				 "revert");
 
 	glamor_priv->finish_access_swap_rb[0] =
 	    dispatch->
@@ -223,14 +274,14 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 				 "sampler");
 	dispatch->glUseProgram(glamor_priv->finish_access_prog[0]);
 	dispatch->glUniform1i(sampler_uniform_location, 0);
-	dispatch->glUniform1i(glamor_priv->finish_access_no_revert[0], 1);
+	dispatch->glUniform1i(glamor_priv->finish_access_revert[0], 0);
 	dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[0], 0);
 	dispatch->glUseProgram(0);
 
-	glamor_priv->finish_access_no_revert[1] =
+	glamor_priv->finish_access_revert[1] =
 	    dispatch->
 	    glGetUniformLocation(glamor_priv->finish_access_prog[1],
-				 "no_revert");
+				 "revert");
 	glamor_priv->finish_access_swap_rb[1] =
 	    dispatch->
 	    glGetUniformLocation(glamor_priv->finish_access_prog[1],
@@ -240,7 +291,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
 	    glGetUniformLocation(glamor_priv->finish_access_prog[1],
 				 "sampler");
 	dispatch->glUseProgram(glamor_priv->finish_access_prog[1]);
-	dispatch->glUniform1i(glamor_priv->finish_access_no_revert[1], 1);
+	dispatch->glUniform1i(glamor_priv->finish_access_revert[1], 0);
 	dispatch->glUniform1i(sampler_uniform_location, 0);
 	dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[1], 0);
 	dispatch->glUseProgram(0);

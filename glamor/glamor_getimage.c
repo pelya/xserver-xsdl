@@ -39,10 +39,11 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	struct glamor_screen_private *glamor_priv;
 	int x_off, y_off;
 	GLenum tex_format, tex_type;
-	int no_alpha, no_revert;
-	PixmapPtr temp_pixmap = NULL;
+	int no_alpha, revert;
+	glamor_pixmap_fbo *temp_fbo = NULL;
 	glamor_gl_dispatch * dispatch;
 	Bool ret = FALSE;
+	int swap_rb;
 
 	goto fall_back;
 
@@ -69,7 +70,9 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 						   &tex_format,
 						   &tex_type,
 						   &no_alpha,
-						   &no_revert)) {
+						   &revert,
+						   &swap_rb,
+						   0)) {
 		glamor_fallback("unknown depth. %d \n", drawable->depth);
 		goto fall_back;
 	}
@@ -78,14 +81,16 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	glamor_validate_pixmap(pixmap);
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-	    && (glamor_tex_format_is_readable(format) || !no_revert)) {
+	    && ( swap_rb != SWAP_NONE_DOWNLOADING
+		 || revert != REVERT_NONE)) {
 		/* XXX prepare whole pixmap is not efficient. */
-		temp_pixmap =
-		    glamor_es2_pixmap_read_prepare(pixmap, &tex_format,
-						   &tex_type, no_alpha,
-						   no_revert);
-		pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
-		glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+		temp_fbo =
+		    glamor_es2_pixmap_read_prepare(pixmap, tex_format,
+						   tex_type, no_alpha,
+						   revert, swap_rb);
+		if (temp_fbo == NULL)
+			goto fall_back;
+
 	}
 
 	int row_length = PixmapBytePad(w, drawable->depth);
@@ -113,8 +118,8 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 				       tex_format,
 				       tex_type, d);
 	glamor_put_dispatch(glamor_priv);
-	if (temp_pixmap)
-		glamor_destroy_pixmap(temp_pixmap);
+	if (temp_fbo)
+		glamor_destroy_fbo(temp_fbo);
 
 	ret = TRUE;
 

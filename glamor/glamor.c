@@ -84,6 +84,7 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, unsigned int tex)
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv;
 	glamor_pixmap_fbo *fbo;
+	GLenum format;
 
 	glamor_priv = glamor_get_screen_private(screen);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -93,9 +94,10 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, unsigned int tex)
 		glamor_destroy_fbo(fbo);
 	}
 
+	gl_iformat_for_depth(pixmap->drawable.depth, &format);
 	fbo = glamor_create_fbo_from_tex(glamor_priv, pixmap->drawable.width,
 					 pixmap->drawable.height,
-					 pixmap->drawable.depth, tex, 0);
+					 format, tex, 0);
 
 	if (fbo == NULL) {
 		ErrorF("XXX fail to create fbo.\n");
@@ -133,11 +135,14 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	glamor_pixmap_fbo *fbo;
 	int pitch;
 	int flag;
+	GLenum format;
 
 	if (w > 32767 || h > 32767)
 		return NullPixmap;
 
-	if (usage == GLAMOR_CREATE_PIXMAP_CPU || (w == 0 && h == 0))
+	if (usage == GLAMOR_CREATE_PIXMAP_CPU
+	    || (w == 0 && h == 0)
+	    || !glamor_check_pixmap_fbo_depth(depth))
 		return fbCreatePixmap(screen, w, h, depth, usage);
 	else
 		pixmap = fbCreatePixmap(screen, 0, 0, depth, usage);
@@ -154,7 +159,8 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	pixmap_priv->glamor_priv = glamor_priv;
 	pixmap_priv->type = type;
 
-	fbo = glamor_create_fbo(glamor_priv, w, h, depth, usage);
+	gl_iformat_for_depth(depth, &format);
+	fbo = glamor_create_fbo(glamor_priv, w, h, format, usage);
 
 	if (fbo == NULL) {
 		fbDestroyPixmap(pixmap);

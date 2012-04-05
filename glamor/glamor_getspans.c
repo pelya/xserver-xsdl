@@ -35,17 +35,18 @@ _glamor_get_spans(DrawablePtr drawable,
 {
 	PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 	GLenum format, type;
-	int no_alpha, no_revert;
+	int no_alpha, revert;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(drawable->pScreen);
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
 	glamor_gl_dispatch *dispatch;
-	PixmapPtr temp_pixmap = NULL;
+	glamor_pixmap_fbo *temp_fbo = NULL;
 	int i;
 	uint8_t *readpixels_dst = (uint8_t *) dst;
 	int x_off, y_off;
 	Bool ret = FALSE;
+	int swap_rb;
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
 		glamor_fallback("pixmap has no fbo.\n");
@@ -55,24 +56,29 @@ _glamor_get_spans(DrawablePtr drawable,
 	if (glamor_get_tex_format_type_from_pixmap(pixmap,
 						   &format,
 						   &type, &no_alpha,
-						   &no_revert)) {
+						   &revert, &swap_rb, 0)) {
 		glamor_fallback("unknown depth. %d \n", drawable->depth);
 		goto fail;
 	}
+
+	if (revert > REVERT_NORMAL)
+		goto fail;
 
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 	glamor_validate_pixmap(pixmap);
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-	    && (!glamor_tex_format_is_readable(format) || !no_revert)) {
+	    && ( swap_rb != SWAP_NONE_DOWNLOADING
+		 || revert != REVERT_NONE)) {
 
 		/* XXX prepare whole pixmap is not efficient. */
-		temp_pixmap =
-		    glamor_es2_pixmap_read_prepare(pixmap, &format,
-						   &type, no_alpha,
-						   no_revert);
-		pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
-		glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+		temp_fbo =
+		    glamor_es2_pixmap_read_prepare(pixmap, format,
+						   type, no_alpha,
+						   revert, swap_rb);
+		if (temp_fbo == NULL)
+			goto fail;
+
 	}
 
 	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
@@ -94,8 +100,8 @@ _glamor_get_spans(DrawablePtr drawable,
 		    PixmapBytePad(widths[i], drawable->depth);
 	}
 	glamor_put_dispatch(glamor_priv);
-	if (temp_pixmap)
-		glamor_destroy_pixmap(temp_pixmap);
+	if (temp_fbo)
+		glamor_destroy_fbo(temp_fbo);
 
 	ret = TRUE;
 	goto done;
@@ -105,6 +111,7 @@ fail:
 	    && glamor_ddx_fallback_check_pixmap(drawable))
 		goto done;
 
+	ret = TRUE;
 	glamor_fallback("from %p (%c)\n", drawable,
 			glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RO)) {

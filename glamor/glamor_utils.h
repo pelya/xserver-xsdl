@@ -194,14 +194,14 @@ glamor_transform_boxes(BoxPtr boxes, int nbox, int dx, int dy)
                                                     && (_w_) < _glamor_->max_fbo_size  \
                                                     && (_h_) < _glamor_->max_fbo_size)
 
-#define glamor_check_fbo_depth(_depth_) (			\
-                                         _depth_ == 8		\
-	                                 || _depth_ == 15	\
-                                         || _depth_ == 16	\
-                                         || _depth_ == 24	\
-                                         || _depth_ == 30	\
-                                         || _depth_ == 32)
-
+/* For 1bpp pixmap, we don't store it as texture. */
+#define glamor_check_pixmap_fbo_depth(_depth_) (			\
+						_depth_ == 8		\
+						|| _depth_ == 15	\
+						|| _depth_ == 16	\
+						|| _depth_ == 24	\
+						|| _depth_ == 30	\
+						|| _depth_ == 32)
 
 #define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv && pixmap_priv->is_picture == 1)
 #define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv && pixmap_priv->gl_fbo == GLAMOR_FBO_NORMAL)
@@ -286,6 +286,14 @@ format_for_pixmap(PixmapPtr pixmap)
 	return pict_format;
 }
 
+
+#define REVERT_NONE       		0
+#define REVERT_NORMAL     		1
+#define SWAP_NONE_DOWNLOADING  	0
+#define SWAP_DOWNLOADING  	1
+#define SWAP_UPLOADING	  	2
+#define SWAP_NONE_UPLOADING	3
+
 /*
  * Map picture's format to the correct gl texture format and type.
  * no_alpha is used to indicate whehter we need to wire alpha to 1. 
@@ -297,10 +305,15 @@ static inline int
 glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 					   GLenum * tex_format,
 					   GLenum * tex_type,
-					   int *no_alpha, int *no_revert)
+					   int *no_alpha,
+					   int *revert,
+					   int *swap_rb,
+					   int is_upload)
+
 {
 	*no_alpha = 0;
-	*no_revert = 1;
+	*revert = REVERT_NONE;
+	*swap_rb = is_upload ? SWAP_NONE_UPLOADING : SWAP_NONE_DOWNLOADING;
 	switch (format) {
 	case PICT_a1:
 		*tex_format = GL_COLOR_INDEX;
@@ -385,6 +398,18 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 	}
 	return 0;
 }
+
+/* Currently, we use RGBA to represent all formats. */
+inline static int cache_format(GLenum format)
+{
+	switch (format) {
+	case GL_RGBA:
+		return 0;
+	default:
+		return -1;
+	}
+}
+
 #else
 #define IS_LITTLE_ENDIAN  (IMAGE_BYTE_ORDER == LSBFirst)
 
@@ -392,25 +417,32 @@ static inline int
 glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 					   GLenum * tex_format,
 					   GLenum * tex_type,
-					   int *no_alpha, int *no_revert)
+					   int *no_alpha,
+					   int *revert,
+					   int *swap_rb,
+					   int is_upload)
 {
+	int need_swap_rb = 0;
+
 	*no_alpha = 0;
-	*no_revert = IS_LITTLE_ENDIAN;
+	*revert = IS_LITTLE_ENDIAN ? REVERT_NONE : REVERT_NORMAL;
 
 	switch (format) {
 	case PICT_b8g8r8x8:
 		*no_alpha = 1;
 	case PICT_b8g8r8a8:
-		*tex_format = GL_BGRA;
+		*tex_format = GL_RGBA;
 		*tex_type = GL_UNSIGNED_BYTE;
-		*no_revert = !IS_LITTLE_ENDIAN;
+		need_swap_rb = 1;
+		*revert = IS_LITTLE_ENDIAN ? REVERT_NORMAL : REVERT_NONE;
 		break;
 
 	case PICT_x8r8g8b8:
 		*no_alpha = 1;
 	case PICT_a8r8g8b8:
-		*tex_format = GL_BGRA;
+		*tex_format = GL_RGBA;
 		*tex_type = GL_UNSIGNED_BYTE;
+		need_swap_rb = 1;
 		break;
 
 	case PICT_x8b8g8r8:
@@ -425,7 +457,7 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 	case PICT_a2r10g10b10:
 		*tex_format = GL_BGRA;
 		*tex_type = GL_UNSIGNED_INT_10_10_10_2;
-		*no_revert = TRUE;
+		*revert = REVERT_NONE;
 		break;
 
 	case PICT_x2b10g10r10:
@@ -433,19 +465,20 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 	case PICT_a2b10g10r10:
 		*tex_format = GL_RGBA;
 		*tex_type = GL_UNSIGNED_INT_10_10_10_2;
-		*no_revert = TRUE;
+		*revert = REVERT_NONE;
 		break;
 
 	case PICT_r5g6b5:
 		*tex_format = GL_RGB;
 		*tex_type = GL_UNSIGNED_SHORT_5_6_5;
-		*no_revert = TRUE;
+		*revert = IS_LITTLE_ENDIAN ? REVERT_NONE : REVERT_NORMAL;
+
 		break;
 
 	case PICT_b5g6r5:
 		*tex_format = GL_RGB;
 		*tex_type = GL_UNSIGNED_SHORT_5_6_5;
-		*no_revert = FALSE;
+		need_swap_rb = IS_LITTLE_ENDIAN ? 1 : 0;;
 		break;
 
 	case PICT_x1b5g5r5:
@@ -453,7 +486,7 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 	case PICT_a1b5g5r5:
 		*tex_format = GL_RGBA;
 		*tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-		*no_revert = TRUE;
+		*revert = REVERT_NONE;
 		break;
 
 	case PICT_x1r5g5b5:
@@ -461,29 +494,30 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 	case PICT_a1r5g5b5:
 		*tex_format = GL_BGRA;
 		*tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-		*no_revert = TRUE;
+		*revert = REVERT_NONE;
 		break;
 
 	case PICT_a8:
 		*tex_format = GL_ALPHA;
 		*tex_type = GL_UNSIGNED_BYTE;
-		*no_revert = TRUE;
+		*revert = REVERT_NONE;
 		break;
 
 	case PICT_x4r4g4b4:
 		*no_alpha = 1;
 	case PICT_a4r4g4b4:
-		*tex_format = GL_BGRA;
-		*tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
-		*no_revert = TRUE;
+		*tex_format = GL_RGBA;
+		*tex_type = GL_UNSIGNED_SHORT_4_4_4_4;
+		*revert = IS_LITTLE_ENDIAN ? REVERT_NORMAL : REVERT_NONE;
+		need_swap_rb = 1;
 		break;
 
 	case PICT_x4b4g4r4:
 		*no_alpha = 1;
 	case PICT_a4b4g4r4:
 		*tex_format = GL_RGBA;
-		*tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
-		*no_revert = TRUE;
+		*tex_type = GL_UNSIGNED_SHORT_4_4_4_4;
+		*revert = IS_LITTLE_ENDIAN ? REVERT_NORMAL : REVERT_NONE;
 		break;
 
 	default:
@@ -492,9 +526,27 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 			       format);
 		return -1;
 	}
+
+	if (need_swap_rb)
+		*swap_rb = is_upload ? SWAP_UPLOADING : SWAP_DOWNLOADING;
+	else
+		*swap_rb = is_upload ? SWAP_NONE_UPLOADING : SWAP_NONE_DOWNLOADING;
 	return 0;
 }
 
+inline static int cache_format(GLenum format)
+{
+	switch (format) {
+	case GL_ALPHA:
+		return 2;
+	case GL_RGB:
+		return 1;
+	case GL_RGBA:
+		return 0;
+	default:
+		return -1;
+	}
+}
 
 #endif
 
@@ -503,7 +555,10 @@ static inline int
 glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
 				       GLenum * format,
 				       GLenum * type,
-				       int *no_alpha, int *no_revert)
+				       int *no_alpha,
+				       int *revert,
+				       int *swap_rb,
+				       int is_upload)
 {
 	glamor_pixmap_private *pixmap_priv;
 	PictFormatShort pict_format;
@@ -517,7 +572,9 @@ glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
 	return glamor_get_tex_format_type_from_pictformat(pict_format,
 							  format, type,
 							  no_alpha,
-							  no_revert);
+							  revert,
+							  swap_rb,
+							  is_upload);
 }
 
 

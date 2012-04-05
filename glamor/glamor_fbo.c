@@ -62,18 +62,6 @@ inline static int cache_hbucket(int size)
 		order = CACHE_BUCKET_HCOUNT - 1;
 	return order;
 }
-inline static int cache_format(GLenum format)
-{
-	switch (format) {
-#if 0
-	case GL_ALPHA:
-		return 1;
-#endif
-	case GL_RGBA:
-	default:
-		return 0;
-	}
-}
 
 glamor_pixmap_fbo *
 glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
@@ -82,23 +70,27 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 	struct xorg_list *cache;
 	glamor_pixmap_fbo *fbo_entry;
 	int size;
+	int n_format;
 #ifdef NO_FBO_CACHE
 	return NULL;
 #else
+	n_format = cache_format(format);
+	if (n_format == -1)
+		return NULL;
 	if (!(flag & GLAMOR_CACHE_TEXTURE))
-		cache = &glamor_priv->fbo_cache[cache_format(format)]
+		cache = &glamor_priv->fbo_cache[n_format]
 					       [cache_wbucket(w)]
 					       [cache_hbucket(h)];
 	else
-		cache = &glamor_priv->tex_cache[cache_format(format)]
+		cache = &glamor_priv->tex_cache[n_format]
 					       [cache_wbucket(w)]
 					       [cache_hbucket(h)];
 	if (!(flag & GLAMOR_CACHE_EXACT_SIZE)) {
 		xorg_list_for_each_entry(fbo_entry, cache, list) {
 			if (fbo_entry->width >= w && fbo_entry->height >= h) {
 
-				DEBUGF("Request w %d h %d \n", w, h);
-				DEBUGF("got cache entry %p w %d h %d fbo %d tex %d\n",
+				DEBUGF("Request w %d h %d format %x \n", w, h, format);
+				DEBUGF("got cache entry %p w %d h %d fbo %d tex %d format %x\n",
 					fbo_entry, fbo_entry->width, fbo_entry->height,
 					fbo_entry->fb, fbo_entry->tex);
 				xorg_list_del(&fbo_entry->list);
@@ -110,10 +102,11 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 		xorg_list_for_each_entry(fbo_entry, cache, list) {
 			if (fbo_entry->width == w && fbo_entry->height == h) {
 
-				DEBUGF("Request w %d h %d \n", w, h);
-				DEBUGF("got cache entry %p w %d h %d fbo %d tex %d\n",
+				DEBUGF("Request w %d h %d format %x \n", w, h, format);
+				DEBUGF("got cache entry %p w %d h %d fbo %d tex %d format %x\n",
 					fbo_entry, fbo_entry->width, fbo_entry->height,
-					fbo_entry->fb, fbo_entry->tex);
+					fbo_entry->fb, fbo_entry->tex, fbo_entry->format);
+				assert(format == fbo_entry->format);
 				xorg_list_del(&fbo_entry->list);
 				return fbo_entry;
 			}
@@ -144,21 +137,25 @@ static void
 glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 {
 	struct xorg_list *cache;
+	int n_format;
+
 #ifdef NO_FBO_CACHE
 	glamor_purge_fbo(fbo);
 	return;
 #else
-	if (fbo->fb == 0) {
+	n_format = cache_format(fbo->format);
+
+	if (fbo->fb == 0 || n_format == -1) {
 		glamor_purge_fbo(fbo);
 		return;
 	}
 
 	if (fbo->fb)
-		cache = &fbo->glamor_priv->fbo_cache[cache_format(fbo->format)]
+		cache = &fbo->glamor_priv->fbo_cache[n_format]
 						    [cache_wbucket(fbo->width)]
 						    [cache_hbucket(fbo->height)];
 	else
-		cache = &fbo->glamor_priv->tex_cache[cache_format(fbo->format)]
+		cache = &fbo->glamor_priv->tex_cache[n_format]
 						    [cache_wbucket(fbo->width)]
 						    [cache_hbucket(fbo->height)];
 	DEBUGF("Put cache entry %p to cache %p w %d h %d format %x fbo %d tex %d \n", fbo, cache,
@@ -170,17 +167,15 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 
 glamor_pixmap_fbo *
 glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
-		  int w, int h, int depth, GLint tex, int flag)
+		  int w, int h, GLenum format, GLint tex, int flag)
 {
 	glamor_pixmap_fbo *fbo;
-	GLenum format;
 
 	fbo = calloc(1, sizeof(*fbo));
 	if (fbo == NULL)
 		return NULL;
 
 	xorg_list_init(&fbo->list);
-	gl_iformat_for_depth(depth, &format);
 
 	fbo->tex = tex;
 	fbo->width = w;
@@ -338,19 +333,18 @@ glamor_destroy_tex_obj(glamor_pixmap_fbo * tex_obj)
 
 glamor_pixmap_fbo *
 glamor_create_fbo(glamor_screen_private *glamor_priv,
-		  int w, int h, int depth, int flag)
+		  int w, int h,
+		  GLenum format,
+		  int flag)
 {
 	glamor_gl_dispatch *dispatch;
 	glamor_pixmap_fbo *fbo;
-	GLenum format;
 	GLint tex;
 	int cache_flag;
 
-	if (!glamor_check_fbo_size(glamor_priv, w, h)
-	    || !glamor_check_fbo_depth(depth))
+	if (!glamor_check_fbo_size(glamor_priv, w, h))
 		return NULL;
 
-	gl_iformat_for_depth(depth, &format);
 	if (flag == GLAMOR_CREATE_FBO_NO_FBO)
 		goto new_fbo;
 
@@ -374,7 +368,7 @@ new_fbo:
 	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format,
 			       GL_UNSIGNED_BYTE, NULL);
 
-	fbo = glamor_create_fbo_from_tex(glamor_priv, w, h, depth, tex, flag);
+	fbo = glamor_create_fbo_from_tex(glamor_priv, w, h, format, tex, flag);
 	glamor_put_dispatch(glamor_priv);
 
 	return fbo;

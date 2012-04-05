@@ -182,7 +182,12 @@ struct glamor_saved_procs {
 	UnrealizeGlyphProcPtr unrealize_glyph;
 };
 
+#ifdef GLAMOR_GLES2
+#define CACHE_FORMAT_COUNT 3
+#else
 #define CACHE_FORMAT_COUNT 1
+#endif
+
 #define CACHE_BUCKET_WCOUNT 4
 #define CACHE_BUCKET_HCOUNT 4
 
@@ -221,7 +226,7 @@ typedef struct glamor_screen_private {
 
 	/* shaders to restore a texture to another texture.*/
 	GLint finish_access_prog[2];
-	GLint finish_access_no_revert[2];
+	GLint finish_access_revert[2];
 	GLint finish_access_swap_rb[2];
 
 	/* glamor_tile */
@@ -395,9 +400,9 @@ Bool glamor_destroy_pixmap(PixmapPtr pixmap);
 glamor_pixmap_fbo* glamor_pixmap_detach_fbo(glamor_pixmap_private *pixmap_priv);
 void glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo);
 glamor_pixmap_fbo * glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
-					       int w, int h, int depth, GLint tex, int flag);
+					       int w, int h, GLenum format, GLint tex, int flag);
 glamor_pixmap_fbo * glamor_create_fbo(glamor_screen_private *glamor_priv,
-				      int w, int h, int depth, int flag);
+				      int w, int h, GLenum format, int flag);
 void glamor_destroy_fbo(glamor_pixmap_fbo *fbo);
 void glamor_purge_fbo(glamor_pixmap_fbo *fbo);
 
@@ -451,6 +456,7 @@ void glamor_get_color_4f_from_pixel(PixmapPtr pixmap,
 int glamor_set_destination_pixmap(PixmapPtr pixmap);
 int glamor_set_destination_pixmap_priv(glamor_pixmap_private *
 				       pixmap_priv);
+void glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *);
 
 /* nc means no check. caller must ensure this pixmap has valid fbo.
  * usually use the GLAMOR_PIXMAP_PRIV_HAS_FBO firstly. 
@@ -458,10 +464,9 @@ int glamor_set_destination_pixmap_priv(glamor_pixmap_private *
 void glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *
 					   pixmap_priv);
 
-
-PixmapPtr
-glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum * format,
-			       GLenum * type, int no_alpha, int no_revert);
+glamor_pixmap_fbo *
+glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum format,
+			       GLenum type, int no_alpha, int revert, int swap_rb);
 
 void glamor_set_alu(struct glamor_gl_dispatch *dispatch,
 		    unsigned char alu);

@@ -239,12 +239,10 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 						texcoords);
 		dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 		dispatch->glUseProgram(glamor_priv->finish_access_prog[0]);
-		dispatch->
-		    glUniform1i(glamor_priv->finish_access_no_revert[0],
-				1);
-		dispatch->
-		    glUniform1i(glamor_priv->finish_access_swap_rb[0], 0);
-
+		dispatch->glUniform1i(glamor_priv->finish_access_revert[0],
+				      REVERT_NONE);
+		dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[0],
+				      SWAP_NONE_UPLOADING);
 	} else {
 		GLAMOR_CHECK_PENDING_FILL(dispatch, glamor_priv,
 					  src_pixmap_priv);
