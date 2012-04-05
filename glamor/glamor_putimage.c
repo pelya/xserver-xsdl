@@ -267,6 +267,8 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	int no_alpha, revert;
 	Bool ret = FALSE;
 	int swap_rb;
+	PixmapPtr temp_pixmap;
+	glamor_pixmap_private *temp_pixmap_priv;
 
 	if (image_format == XYBitmap) {
 		assert(depth == 1);
@@ -297,7 +299,27 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		goto fail;
 	}
 
-	/* XXX consider to reuse a function to do the following work. */
+	/* create a temporary pixmap and upload the bits to that
+	 * pixmap, then apply clip copy it to the destination pixmap.*/
+
+	temp_pixmap = glamor_create_pixmap(drawable->pScreen, w, h, depth, 0);
+
+	if (temp_pixmap == NULL)
+		goto fail;
+	temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
+
+	if (temp_pixmap_priv->fbo == NULL) {
+		glamor_destroy_pixmap(temp_pixmap);
+		goto fail;
+	}
+
+	if (!glamor_upload_bits_to_pixmap_texture(temp_pixmap, format, type,
+						  no_alpha, revert, swap_rb, bits)) {
+		glamor_destroy_pixmap(temp_pixmap);
+		goto fail;
+	}
+
+
 	dispatch = glamor_get_dispatch(glamor_priv);
 	glamor_set_alu(dispatch, gc->alu);
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
@@ -311,43 +333,18 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 					GL_FALSE, 2 * sizeof(float),
 					texcoords);
 	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-
-	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-		dispatch->glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		dispatch->glPixelStorei(GL_UNPACK_ROW_LENGTH,
-					src_stride * 8 /
-					pixmap->drawable.bitsPerPixel);
-	} else {
-		dispatch->glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	}
-
-	dispatch->glGenTextures(1, &tex);
 	dispatch->glActiveTexture(GL_TEXTURE0);
-	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-				  GL_NEAREST);
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-				  GL_NEAREST);
-
-	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
-		iformat = format;
-	} else {
-		iformat = GL_RGBA;
-	}
-
-	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, iformat,
-			       w, h, 0, format, type, bits);
-
+	dispatch->glBindTexture(GL_TEXTURE_2D, temp_pixmap_priv->fbo->tex);
 
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
 #endif
-	dispatch->glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
+	dispatch->glUseProgram(glamor_priv->finish_access_prog[0]);
 	dispatch->glUniform1i(glamor_priv->
 			      finish_access_revert[no_alpha],
-			      revert);
+			      REVERT_NONE);
 	dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha],
-			      swap_rb);
+			      SWAP_NONE_UPLOADING);
 
 	x += drawable->x;
 	y += drawable->y;
@@ -355,8 +352,7 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
 	clip = fbGetCompositeClip(gc);
 
-	txscale = 1.0 / w;
-	tyscale = 1.0 / h;
+	pixmap_priv_get_scale(temp_pixmap_priv, &txscale, &tyscale);
 	pixmap_priv_get_scale(pixmap_priv, &xscale, &yscale);
 
 	for (nbox = REGION_NUM_RECTS(clip),
@@ -404,6 +400,7 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	glamor_set_planemask(pixmap, ~0);
 	glamor_put_dispatch(glamor_priv);
 
+	glamor_destroy_pixmap(temp_pixmap);
 	ret = TRUE;
 	goto done;
 
