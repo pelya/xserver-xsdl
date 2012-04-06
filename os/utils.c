@@ -204,6 +204,8 @@ int auditTrailLevel = 1;
 
 char *SeatId = NULL;
 
+sig_atomic_t inSignalContext = FALSE;
+
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
