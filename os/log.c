@@ -463,6 +463,16 @@ LogVMessageVerb(MessageType type, int verb, const char *format, va_list args)
     Bool newline;
     size_t len = 0;
 
+    if (inSignalContext) {
+        BUG_WARN_MSG(inSignalContext,
+                     "Warning: attempting to log data in a signal unsafe "
+                     "manner while in signal context. Please update to check "
+                     "inSignalContext and/or use LogMessageVerbSigSafe() or "
+                     "ErrorFSigSafe(). The offending log format message is:\n"
+                     "%s\n", format);
+        return;
+    }
+
     type_str = LogMessageTypeVerbString(type, verb);
     if (!type_str)
         return;
@@ -551,6 +561,16 @@ LogVHdrMessageVerb(MessageType type, int verb, const char *msg_format,
     const size_t size = sizeof(buf);
     Bool newline;
     size_t len = 0;
+
+    if (inSignalContext) {
+        BUG_WARN_MSG(inSignalContext,
+                     "Warning: attempting to log data in a signal unsafe "
+                     "manner while in signal context. Please update to check "
+                     "inSignalContext and/or use LogMessageVerbSigSafe(). The "
+                     "offending header and log message formats are:\n%s %s\n",
+                     hdr_format, msg_format);
+        return;
+    }
 
     type_str = LogMessageTypeVerbString(type, verb);
     if (!type_str)
