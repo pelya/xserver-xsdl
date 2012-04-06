@@ -38,17 +38,10 @@ _glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
 	if (!fallback 
 	    && glamor_ddx_fallback_check_pixmap(pDrawable)
 	    && glamor_ddx_fallback_check_gc(pGC))
-		goto fail;
+		return FALSE;
 
-	glamor_priv = glamor_get_screen_private(pDrawable->pScreen);
-	glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
-	glamor_prepare_access_gc(pGC);
-	fbImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
-	glamor_finish_access_gc(pGC);
-	glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
+	miImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 	return TRUE;
- fail:
-	return FALSE;
 }
 
 void
@@ -74,17 +67,12 @@ _glamor_poly_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
 {
 	glamor_screen_private *glamor_priv;
 
-	if (!fallback 
+	if (!fallback
 	    && glamor_ddx_fallback_check_pixmap(pDrawable)
 	    && glamor_ddx_fallback_check_gc(pGC))
 		return FALSE;
 
-	glamor_priv = glamor_get_screen_private(pDrawable->pScreen);
-	glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
-	glamor_prepare_access_gc(pGC);
-	fbPolyGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
-	glamor_finish_access_gc(pGC);
-	glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
+	miPolyGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase);
 	return TRUE;
 }
 
@@ -108,19 +96,13 @@ static Bool
 _glamor_push_pixels(GCPtr pGC, PixmapPtr pBitmap,
 		    DrawablePtr pDrawable, int w, int h, int x, int y, Bool fallback)
 {
-	if (!fallback 
+	if (!fallback
 	    && glamor_ddx_fallback_check_pixmap(pDrawable)
 	    && glamor_ddx_fallback_check_pixmap(&pBitmap->drawable)
 	    && glamor_ddx_fallback_check_gc(pGC))
 		return FALSE;
 
-	glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
-	glamor_prepare_access(&pBitmap->drawable, GLAMOR_ACCESS_RO);
-	glamor_prepare_access_gc(pGC);
-	fbPushPixels(pGC, pBitmap, pDrawable, w, h, x, y);
-	glamor_finish_access_gc(pGC);
-	glamor_finish_access(&pBitmap->drawable, GLAMOR_ACCESS_RO);
-	glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
+	miPushPixels(pGC, pBitmap, pDrawable, w, h, x, y);
 	return TRUE;
 }
 

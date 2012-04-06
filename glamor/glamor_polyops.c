@@ -37,11 +37,8 @@ _glamor_poly_point(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 	    && glamor_ddx_fallback_check_pixmap(pDrawable))
 		return FALSE;
 
-	glamor_prepare_access_gc(pGC);
-	glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
-	fbPolyPoint(pDrawable, pGC, mode, npt, ppt);
-	glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
-	glamor_finish_access_gc(pGC);
+	miPolyPoint(pDrawable, pGC, mode, npt, ppt);
+
 	return TRUE;
 }
 
@@ -68,15 +65,7 @@ _glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
 	    && glamor_ddx_fallback_check_pixmap(pDrawable))
 		return FALSE;
 
-	/* For lineWidth is not zero, fb calls to mi functions. */
-	if (pGC->lineWidth == 0) {
-		glamor_prepare_access_gc(pGC);
-		glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
-		fbPolySegment(pDrawable, pGC, nseg, pSeg);
-		glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
-		glamor_finish_access_gc(pGC);
-	} else
-		fbPolySegment(pDrawable, pGC, nseg, pSeg);
+	miPolySegment(pDrawable, pGC, nseg, pSeg);
 
 	return TRUE;
 }
@@ -94,40 +83,3 @@ glamor_poly_segment_nf(DrawablePtr pDrawable, GCPtr pGC, int nseg,
 {
 	return _glamor_poly_segment(pDrawable, pGC, nseg, pSeg, FALSE);
 }
-
-static Bool
-_glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
-		  DDXPointPtr ppt, Bool fallback)
-{
-	if (!fallback 
-	    && glamor_ddx_fallback_check_gc(pGC)
-	    && glamor_ddx_fallback_check_pixmap(pDrawable))
-		return FALSE;
-	/* For lineWidth is not zero, fb calls to mi functions. */
-
-	if (pGC->lineWidth == 0) {
-		glamor_prepare_access_gc(pGC);
-		glamor_prepare_access(pDrawable, GLAMOR_ACCESS_RW);
-		fbPolyLine(pDrawable, pGC, mode, npt, ppt);
-		glamor_finish_access(pDrawable, GLAMOR_ACCESS_RW);
-		glamor_finish_access_gc(pGC);
-	} else
-		fbPolyLine(pDrawable, pGC, mode, npt, ppt);
-
-	return TRUE;
-}
-
-void
-glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
-		 DDXPointPtr ppt)
-{
-	_glamor_poly_line(pDrawable, pGC, mode, npt, ppt, TRUE);
-}
-
-Bool
-glamor_poly_line_nf(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
-		    DDXPointPtr ppt)
-{
-	return _glamor_poly_line(pDrawable, pGC, mode, npt, ppt, FALSE);
-}
-
