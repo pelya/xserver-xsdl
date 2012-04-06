@@ -190,8 +190,13 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (!glamor_set_alu(dispatch, alu)) {
-		glamor_put_dispatch(glamor_priv);
-		return FALSE;
+		if (alu == GXclear)
+			color[0] = color[1] = color[2] = color[3] = 0.0;
+		else {
+			glamor_fallback("unsupported alu %x\n", alu);
+			glamor_put_dispatch(glamor_priv);
+			return FALSE;
+		}
 	}
 	dispatch->glUseProgram(glamor_priv->solid_prog);
 

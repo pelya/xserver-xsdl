@@ -204,10 +204,8 @@ glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 		return FALSE;
 	}
 #else
-	if (alu != GXcopy) {
-		glamor_fallback("unsupported alu %x\n", alu);
+	if (alu != GXcopy)
 		return FALSE;
-	}
 #endif
 	return TRUE;
 }
@@ -871,7 +869,6 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum format,
 	glamor_put_dispatch(glamor_priv);
 	return temp_fbo;
 }
-
 
 /**
  * Move a pixmap to CPU memory.
