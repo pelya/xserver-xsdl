@@ -229,6 +229,8 @@ pad_to_int32(const int bytes)
 }
 
 extern char **xstrtokenize(const char *str, const char *separators);
+extern void FormatUInt64(uint64_t num, char *string);
+extern void FormatUInt64Hex(uint64_t num, char *string);
 
 /**
  * Compare the two version numbers comprising of major.minor.
