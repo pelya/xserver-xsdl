@@ -461,11 +461,6 @@ glamor_set_composite_op(ScreenPtr screen,
 	if (mask && mask->componentAlpha
 	    && PICT_FORMAT_RGB(mask->format) != 0 && op_info->source_alpha)
 	{
-		if (source_blend != GL_ZERO) {
-			glamor_fallback
-			    ("Dual-source composite blending not supported\n");
-			return GL_FALSE;
-		}
 		if (dest_blend == GL_SRC_ALPHA)
 			dest_blend = GL_SRC_COLOR;
 		else if (dest_blend == GL_ONE_MINUS_SRC_ALPHA)
@@ -954,15 +949,17 @@ glamor_composite_with_shader(CARD8 op,
 		if (!mask->componentAlpha) {
 			key.in = SHADER_IN_NORMAL;
 		} else {
-			/* We only handle two CA modes. */
-			if (op == PictOpAdd)
+			if (op == PictOpClear)
+				key.mask = SHADER_MASK_NONE;
+			else if (op == PictOpSrc || op == PictOpAdd
+				 || op == PictOpIn || op == PictOpOut
+				 || op == PictOpOverReverse)
 				key.in = SHADER_IN_CA_SOURCE;
-			else if (op == PictOpOutReverse) {
+			else if (op == PictOpOutReverse || op == PictOpInReverse) {
 				key.in = SHADER_IN_CA_ALPHA;
 			} else {
 				glamor_fallback
-				    ("Unsupported component alpha op: %d\n",
-				     op);
+				    ("Unsupported component alpha op: %d\n", op);
 				goto fail;
 			}
 		}
@@ -2911,10 +2908,13 @@ _glamor_composite(CARD8 op,
 					 x_dest, y_dest, width, height);
 			goto done;
 
-		} else if (op != PictOpAdd && op != PictOpOutReverse) {
-			glamor_fallback
-			    ("glamor_composite(): component alpha\n");
-			goto fail;
+		} else if (op == PictOpAtop
+			   || op == PictOpAtopReverse
+			   || op == PictOpXor
+			   || op >= PictOpSaturate) {
+				glamor_fallback
+					("glamor_composite(): component alpha op %x\n", op);
+				goto fail;
 		}
 	}
 	if (!mask) {
