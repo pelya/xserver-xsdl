@@ -194,7 +194,11 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 
-	glamor_set_alu(dispatch, alu);
+	if (!glamor_set_alu(dispatch, alu)) {
+		glamor_put_dispatch(glamor_priv);
+		return FALSE;
+	}
+
 	if (alu != GXcopy) {
 		glamor_set_destination_pixmap_priv_nc (src_pixmap_priv);
 		glamor_validate_pixmap(src_pixmap);

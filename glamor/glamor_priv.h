@@ -468,7 +468,7 @@ glamor_pixmap_fbo *
 glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum format,
 			       GLenum type, int no_alpha, int revert, int swap_rb);
 
-void glamor_set_alu(struct glamor_gl_dispatch *dispatch,
+Bool glamor_set_alu(struct glamor_gl_dispatch *dispatch,
 		    unsigned char alu);
 Bool glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask);
 Bool glamor_change_window_attributes(WindowPtr pWin, unsigned long mask);

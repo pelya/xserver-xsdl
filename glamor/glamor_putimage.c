@@ -321,7 +321,11 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 
 
 	dispatch = glamor_get_dispatch(glamor_priv);
-	glamor_set_alu(dispatch, gc->alu);
+	if (!glamor_set_alu(dispatch, gc->alu)) {
+		glamor_put_dispatch(glamor_priv);
+		goto fail;
+	}
+
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 	glamor_validate_pixmap(pixmap);
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,

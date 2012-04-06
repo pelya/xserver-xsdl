@@ -144,15 +144,13 @@ glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask)
 	return GL_FALSE;
 }
 
-
-
-void
+Bool
 glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 {
 #ifndef GLAMOR_GLES2
 	if (alu == GXcopy) {
 		dispatch->glDisable(GL_COLOR_LOGIC_OP);
-		return;
+		return TRUE;
 	}
 	dispatch->glEnable(GL_COLOR_LOGIC_OP);
 	switch (alu) {
@@ -202,12 +200,16 @@ glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 		dispatch->glLogicOp(GL_SET);
 		break;
 	default:
-		FatalError("unknown logic op\n");
+		glamor_fallback("unsupported alu %x\n", alu);
+		return FALSE;
 	}
 #else
-	if (alu != GXcopy)
-		ErrorF("unsupported alu %x \n", alu);
+	if (alu != GXcopy) {
+		glamor_fallback("unsupported alu %x\n", alu);
+		return FALSE;
+	}
 #endif
+	return TRUE;
 }
 
 void *

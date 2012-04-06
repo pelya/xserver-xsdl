@@ -75,7 +75,11 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	glamor_get_drawable_deltas(drawable, dest_pixmap, &x_off, &y_off);
 
 	dispatch = glamor_get_dispatch(glamor_priv);
-	glamor_set_alu(dispatch, gc->alu);
+	if (!glamor_set_alu(dispatch, gc->alu)) {
+		glamor_put_dispatch(glamor_priv);
+		goto fail;
+	}
+
 	for (i = 0; i < n; i++) {
 
 		n = REGION_NUM_RECTS(clip);

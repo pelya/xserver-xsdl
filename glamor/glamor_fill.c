@@ -189,7 +189,10 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	glamor_validate_pixmap(pixmap);
 
 	dispatch = glamor_get_dispatch(glamor_priv);
-	glamor_set_alu(dispatch, alu);
+	if (!glamor_set_alu(dispatch, alu)) {
+		glamor_put_dispatch(glamor_priv);
+		return FALSE;
+	}
 	dispatch->glUseProgram(glamor_priv->solid_prog);
 
 	dispatch->glUniform4fv(glamor_priv->solid_color_uniform_location,

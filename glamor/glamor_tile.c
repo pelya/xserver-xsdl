@@ -162,7 +162,10 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
 
 	dispatch = glamor_get_dispatch(glamor_priv);
-	glamor_set_alu(dispatch, alu);
+	if (!glamor_set_alu(dispatch, alu)) {
+		glamor_put_dispatch(glamor_priv);
+		goto fail;
+	}
 
 	if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
 		pixmap_priv_get_scale(src_pixmap_priv, &src_xscale,
