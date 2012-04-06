@@ -714,6 +714,7 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 //#define GLAMOR_DELAYED_FILLING
+//#define GLAMOR_GRADIENT_SHADER
 
 
 
