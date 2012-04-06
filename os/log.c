@@ -108,6 +108,7 @@ void (*OsVendorVErrorFProc) (const char *, va_list args) = NULL;
 #endif
 
 static FILE *logFile = NULL;
+static int logFileFd = -1;
 static Bool logFlush = FALSE;
 static Bool logSync = FALSE;
 static int logVerbosity = DEFAULT_LOG_VERBOSITY;
@@ -211,6 +212,8 @@ LogInit(const char *fname, const char *backup)
             FatalError("Cannot open log file \"%s\"\n", logFileName);
         setvbuf(logFile, NULL, _IONBF, 0);
 
+        logFileFd = fileno(logFile);
+
         /* Flush saved log information. */
         if (saveBuffer && bufferSize > 0) {
             fwrite(saveBuffer, bufferPos, 1, logFile);
@@ -243,6 +246,7 @@ LogClose(enum ExitCode error)
                (error == EXIT_NO_ERROR) ? "successfully" : "with error", error);
         fclose(logFile);
         logFile = NULL;
+        logFileFd = -1;
     }
 }
 
