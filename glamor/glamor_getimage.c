@@ -45,14 +45,13 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	Bool ret = FALSE;
 	int swap_rb;
 
-	goto fall_back;
-
-	glamor_priv = glamor_get_screen_private(drawable->pScreen);
-
 	if (format != ZPixmap)
 		goto fall_back;
 
+	glamor_priv = glamor_get_screen_private(drawable->pScreen);
 	pixmap = glamor_get_drawable_pixmap(drawable);
+	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
+
 	if (!glamor_set_planemask(pixmap, planeMask)) {
 		glamor_fallback
 		    ("Failedto set planemask  in glamor_solid.\n");
@@ -64,7 +63,6 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		goto fall_back;
-	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
 
 	if (glamor_get_tex_format_type_from_pixmap(pixmap,
 						   &tex_format,
@@ -76,6 +74,9 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 		glamor_fallback("unknown depth. %d \n", drawable->depth);
 		goto fall_back;
 	}
+
+	if (revert > REVERT_NORMAL)
+		goto fall_back;
 
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 	glamor_validate_pixmap(pixmap);
@@ -93,26 +94,29 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 
 	}
 
-	int row_length = PixmapBytePad(w, drawable->depth);
-	row_length = (row_length * 8) / drawable->bitsPerPixel;
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+		int row_length = PixmapBytePad(w, drawable->depth);
+		row_length = (row_length * 8) / drawable->bitsPerPixel;
 		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
 	} else {
 		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	}
 
+	x += drawable->x + x_off;
+	y += drawable->y + y_off;
+
 	if (glamor_priv->yInverted)
-		dispatch->glReadPixels(x + x_off,
-				       y + y_off,
+		dispatch->glReadPixels(x,
+				       y,
 				       w, h,
 				       tex_format,
 				       tex_type, d);
 	else
-		dispatch->glReadPixels(x + x_off,
-				       pixmap->drawable.height - 1 - (y + y_off),
+		dispatch->glReadPixels(x,
+				       pixmap->drawable.height - 1 - y,
 				       w,
 				       h,
 				       tex_format,
