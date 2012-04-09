@@ -867,6 +867,175 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h, GLe
 	return temp_fbo;
 }
 
+/*
+ * Download a sub region of pixmap to a specified memory region.
+ * The pixmap must have a valid FBO, otherwise return a NULL.
+ * */
+
+void *
+glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
+				  int stride, void *bits, int pbo, glamor_access_t access)
+{
+	glamor_pixmap_private *pixmap_priv;
+	unsigned int row_length;
+	GLenum format, type, gl_access, gl_usage;
+	int no_alpha, revert, swap_rb;
+	void *data, *read;
+	ScreenPtr screen;
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(pixmap->drawable.pScreen);
+	glamor_gl_dispatch *dispatch;
+	glamor_pixmap_fbo *temp_fbo = NULL;
+	int need_post_conversion = 0;
+	int need_free_data = 0;
+
+	data = bits;
+	screen = pixmap->drawable.pScreen;
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+		return NULL;
+
+	switch (access) {
+	case GLAMOR_ACCESS_RO:
+		gl_access = GL_READ_ONLY;
+		gl_usage = GL_STREAM_READ;
+		break;
+	case GLAMOR_ACCESS_WO:
+		return bits;
+	case GLAMOR_ACCESS_RW:
+		gl_access = GL_READ_WRITE;
+		gl_usage = GL_DYNAMIC_DRAW;
+		break;
+	default:
+		ErrorF("Glamor: Invalid access code. %d\n", access);
+		assert(0);
+	}
+
+	if (glamor_get_tex_format_type_from_pixmap(pixmap,
+						   &format,
+						   &type,
+						   &no_alpha,
+						   &revert,
+						   &swap_rb, 0)) {
+		ErrorF("Unknown pixmap depth %d.\n",
+		       pixmap->drawable.depth);
+		assert(0);	// Should never happen.
+		return NULL;
+	}
+
+	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+	/* XXX we may don't need to validate it on GPU here,
+	 * we can just validate it on CPU. */
+	glamor_validate_pixmap(pixmap);
+
+	need_post_conversion = (revert > REVERT_NORMAL);
+	if (need_post_conversion) {
+		if (pixmap->drawable.depth == 1) {
+			stride = (((w * 8 + 7) / 8) + 3) & ~3;
+			data = malloc(stride * h);
+			if (data == NULL)
+				return NULL;
+			need_free_data = 1;
+		}
+	}
+
+	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
+	    && !need_post_conversion
+	    && (swap_rb != SWAP_NONE_DOWNLOADING || revert != REVERT_NONE)) {
+		 if (!(temp_fbo = glamor_es2_pixmap_read_prepare(pixmap, x, y, w, h,
+								 format, type, no_alpha,
+								 revert, swap_rb)))
+			return NULL;
+		x = 0;
+		y = 0;
+	}
+
+
+	dispatch = glamor_get_dispatch(glamor_priv);
+	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+		row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
+		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
+	} else {
+		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	}
+	if (glamor_priv->has_pack_invert || glamor_priv->yInverted) {
+
+		if (!glamor_priv->yInverted) {
+			assert(glamor_priv->gl_flavor ==
+			       GLAMOR_GL_DESKTOP);
+			dispatch->glPixelStorei(GL_PACK_INVERT_MESA, 1);
+		}
+
+		if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP && data == NULL) {
+			assert(pbo > 0);
+			dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+			dispatch->glBufferData(GL_PIXEL_PACK_BUFFER,
+					       stride *
+					       h,
+					       NULL, gl_usage);
+		}
+
+		dispatch->glReadPixels(x, y, w, h, format, type, data);
+
+		if (!glamor_priv->yInverted) {
+			assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
+			dispatch->glPixelStorei(GL_PACK_INVERT_MESA, 0);
+		}
+		if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP && bits == NULL) {
+			bits = dispatch->glMapBuffer(GL_PIXEL_PACK_BUFFER,
+						     gl_access);
+			dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		}
+	} else {
+		int temp_pbo;
+		int yy;
+
+		dispatch = glamor_get_dispatch(glamor_priv);
+		dispatch->glGenBuffers(1, &temp_pbo);
+		dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER,
+				       temp_pbo);
+		dispatch->glBufferData(GL_PIXEL_PACK_BUFFER,
+				       stride *
+				       pixmap->drawable.height,
+				       NULL, GL_STREAM_READ);
+		dispatch->glReadPixels(0, 0, row_length,
+				       pixmap->drawable.height,
+				       format, type, 0);
+		read = dispatch->glMapBuffer(GL_PIXEL_PACK_BUFFER,
+					     GL_READ_ONLY);
+		for (yy = 0; yy < pixmap->drawable.height; yy++)
+			memcpy(data + yy * stride,
+			       read + (pixmap->drawable.height -
+			       yy - 1) * stride, stride);
+		dispatch->glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		dispatch->glDeleteBuffers(1, &temp_pbo);
+	}
+
+	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glamor_put_dispatch(glamor_priv);
+
+	if (need_post_conversion) {
+		/* As OpenGL desktop version never enters here.
+		 * Don't need to consider if the pbo is valid.*/
+		bits = glamor_color_convert_to_bits(data, bits,
+						    w, h,
+						    stride, no_alpha,
+						    revert, swap_rb);
+	}
+
+      done:
+
+	if (temp_fbo != NULL)
+		glamor_destroy_fbo(temp_fbo);
+	if (need_free_data)
+		free(data);
+
+	return bits;
+}
+
+
 /**
  * Move a pixmap to CPU memory.
  * The input data is the pixmap's fbo.
@@ -884,28 +1053,16 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	unsigned int stride, row_length, y;
 	GLenum format, type, gl_access, gl_usage;
 	int no_alpha, revert, swap_rb;
-	uint8_t *data = NULL, *read;
+	void *data = NULL, *dst;
 	ScreenPtr screen;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
 	glamor_gl_dispatch *dispatch;
-	glamor_pixmap_fbo *temp_fbo = NULL;
-	int need_post_conversion = 0;
+	int pbo = 0;
 
 	screen = pixmap->drawable.pScreen;
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return TRUE;
-	if (glamor_get_tex_format_type_from_pixmap(pixmap,
-						   &format,
-						   &type,
-						   &no_alpha,
-						   &revert,
-						   &swap_rb, 0)) {
-		ErrorF("Unknown pixmap depth %d.\n",
-		       pixmap->drawable.depth);
-		assert(0);	// Should never happen.
-		return FALSE;
-	}
 
 	glamor_debug_output(GLAMOR_DEBUG_TEXTURE_DOWNLOAD,
 			    "Downloading pixmap %p  %dx%d depth%d\n",
@@ -916,150 +1073,40 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 
 	stride = pixmap->devKind;
 
-	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-	/* XXX we may don't need to validate it on GPU here,
-	 * we can just validate it on CPU. */
-	glamor_validate_pixmap(pixmap);
-
-
-	need_post_conversion = (revert > REVERT_NORMAL);
-
-	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-	    && !need_post_conversion
-	    && (swap_rb != SWAP_NONE_DOWNLOADING || revert != REVERT_NONE)) {
-		 if (!(temp_fbo = glamor_es2_pixmap_read_prepare(pixmap, 0, 0,
-								 pixmap->drawable.width, pixmap->drawable.height, format,
-								 type, no_alpha,
-								 revert, swap_rb)))
-			return FALSE;
-	}
-	switch (access) {
-	case GLAMOR_ACCESS_RO:
-		gl_access = GL_READ_ONLY;
-		gl_usage = GL_STREAM_READ;
-		break;
-	case GLAMOR_ACCESS_WO:
+	if (access == GLAMOR_ACCESS_WO
+	    || glamor_priv->gl_flavor == GLAMOR_GL_ES2
+	    || (!glamor_priv->has_pack_invert && !glamor_priv->yInverted)) {
 		data = malloc(stride * pixmap->drawable.height);
-		goto done;
-		break;
-	case GLAMOR_ACCESS_RW:
-		gl_access = GL_READ_WRITE;
-		gl_usage = GL_DYNAMIC_DRAW;
-		break;
-	default:
-		ErrorF("Glamor: Invalid access code. %d\n", access);
-		assert(0);
-	}
-	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
-		data = malloc(stride * pixmap->drawable.height);
-	}
-	row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
-
-	dispatch = glamor_get_dispatch(glamor_priv);
-	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
 	} else {
-		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 4);
-		//  dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-	}
-	if (glamor_priv->has_pack_invert || glamor_priv->yInverted) {
-
-		if (!glamor_priv->yInverted) {
-			assert(glamor_priv->gl_flavor ==
-			       GLAMOR_GL_DESKTOP);
-			dispatch->glPixelStorei(GL_PACK_INVERT_MESA, 1);
-		}
-
-		if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-			if (pixmap_priv->fbo->pbo == 0)
-				dispatch->glGenBuffers(1,
-						       &pixmap_priv->fbo->pbo);
-			dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER,
-					       pixmap_priv->fbo->pbo);
-			dispatch->glBufferData(GL_PIXEL_PACK_BUFFER,
-					       stride *
-					       pixmap->drawable.height,
-					       NULL, gl_usage);
-			dispatch->glReadPixels(0, 0, row_length,
-					       pixmap->drawable.height,
-					       format, type, 0);
-			data = dispatch->glMapBuffer(GL_PIXEL_PACK_BUFFER,
-						     gl_access);
-			pixmap_priv->fbo->pbo_valid = TRUE;
-
-			if (!glamor_priv->yInverted) {
-				assert(glamor_priv->gl_flavor ==
-				       GLAMOR_GL_DESKTOP);
-				dispatch->glPixelStorei
-				    (GL_PACK_INVERT_MESA, 0);
-			}
-			dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-		} else {
-			dispatch->glReadPixels(0, 0,
-					       pixmap->drawable.width,
-					       pixmap->drawable.height,
-					       format, type, data);
-		}
-	} else {
-		data = malloc(stride * pixmap->drawable.height);
-		assert(data);
-		if (access != GLAMOR_ACCESS_WO) {
-			if (pixmap_priv->fbo->pbo == 0)
-				dispatch->glGenBuffers(1,
-						       &pixmap_priv->fbo->pbo);
-			dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER,
-					       pixmap_priv->fbo->pbo);
-			dispatch->glBufferData(GL_PIXEL_PACK_BUFFER,
-					       stride *
-					       pixmap->drawable.height,
-					       NULL, GL_STREAM_READ);
-			dispatch->glReadPixels(0, 0, row_length,
-					       pixmap->drawable.height,
-					       format, type, 0);
-			read = dispatch->glMapBuffer(GL_PIXEL_PACK_BUFFER,
-						     GL_READ_ONLY);
-
-			for (y = 0; y < pixmap->drawable.height; y++)
-				memcpy(data + y * stride,
-				       read + (pixmap->drawable.height -
-					       y - 1) * stride, stride);
-			dispatch->glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-			dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-			pixmap_priv->fbo->pbo_valid = FALSE;
-			dispatch->glDeleteBuffers(1, &pixmap_priv->fbo->pbo);
-			pixmap_priv->fbo->pbo = 0;
-		}
+		dispatch = glamor_get_dispatch(glamor_priv);
+		if (pixmap_priv->fbo->pbo == 0)
+			dispatch->glGenBuffers(1,
+					       &pixmap_priv->fbo->pbo);
+		glamor_put_dispatch(glamor_priv);
+		pbo = pixmap_priv->fbo->pbo;
+		glamor_put_dispatch(glamor_priv);
 	}
 
-	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glamor_put_dispatch(glamor_priv);
+	dst = glamor_download_sub_pixmap_to_cpu(pixmap, 0, 0,
+						pixmap->drawable.width,
+						pixmap->drawable.height,
+						pixmap->devKind,
+						data, pbo, access);
 
-	if (need_post_conversion) {
-		/* As OpenGL desktop version never enters here.
-		 * Don't need to consider if the pbo is valid.*/
-		int stride;
-		assert(pixmap_priv->fbo->pbo_valid == 0);
-
-		/* Only A1 <--> A8 conversion need to adjust the stride value. */
-		if (pixmap->drawable.depth == 1)
-			stride = (((pixmap->drawable.width * 8 + 7) / 8) + 3) & ~3;
-		else
-			stride = pixmap->devKind;
-		glamor_color_convert_to_bits(data, data, pixmap->drawable.width,
-					     pixmap->drawable.height,
-					     stride, no_alpha,
-					     revert, swap_rb);
+	if (!dst) {
+		if (data)
+			free(data);
+		return FALSE;
 	}
+
+	if (pbo != 0)
+		pixmap_priv->fbo->pbo_valid = 1;
+
+	pixmap_priv->gl_fbo = GLAMOR_FBO_DOWNLOADED;
 
       done:
 
-	pixmap_priv->gl_fbo = GLAMOR_FBO_DOWNLOADED;
-	pixmap->devPrivate.ptr = data;
-
-	if (temp_fbo != NULL)
-		glamor_destroy_fbo(temp_fbo);
+	pixmap->devPrivate.ptr = dst;
 
 	return TRUE;
 }
