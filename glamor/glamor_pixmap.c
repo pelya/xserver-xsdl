@@ -788,7 +788,7 @@ glamor_restore_pixmap_to_texture(PixmapPtr pixmap)
  * */
 
 glamor_pixmap_fbo *
-glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum format,
+glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h, GLenum format,
 			       GLenum type, int no_alpha, int revert, int swap_rb)
 
 {
@@ -806,8 +806,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum format,
 	glamor_priv = glamor_get_screen_private(screen);
 	source_priv = glamor_get_pixmap_private(source);
 	temp_fbo = glamor_create_fbo(glamor_priv,
-				     source->drawable.width,
-				     source->drawable.height,
+				     w, h,
 				     format,
 				     0);
 	if (temp_fbo == NULL)
@@ -820,7 +819,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum format,
 	glamor_set_normalize_vcoords(temp_xscale,
 				     temp_yscale,
 				     0, 0,
-				     source->drawable.width, source->drawable.height,
+				     w, h,
 				     glamor_priv->yInverted,
 				     vertices);
 
@@ -832,8 +831,8 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum format,
 	pixmap_priv_get_scale(source_priv, &source_xscale, &source_yscale);
 	glamor_set_normalize_tcoords(source_xscale,
 				     source_yscale,
-				     0, 0,
-				     source->drawable.width, source->drawable.height,
+				     x, y,
+				     x + w, y + h,
 				     glamor_priv->yInverted,
 				     texcoords);
 
@@ -928,7 +927,8 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
 	    && !need_post_conversion
 	    && (swap_rb != SWAP_NONE_DOWNLOADING || revert != REVERT_NONE)) {
-		 if (!(temp_fbo = glamor_es2_pixmap_read_prepare(pixmap, format,
+		 if (!(temp_fbo = glamor_es2_pixmap_read_prepare(pixmap, 0, 0,
+								 pixmap->drawable.width, pixmap->drawable.height, format,
 								 type, no_alpha,
 								 revert, swap_rb)))
 			return FALSE;

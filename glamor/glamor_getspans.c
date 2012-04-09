@@ -73,7 +73,7 @@ _glamor_get_spans(DrawablePtr drawable,
 
 		/* XXX prepare whole pixmap is not efficient. */
 		temp_fbo =
-		    glamor_es2_pixmap_read_prepare(pixmap, format,
+		    glamor_es2_pixmap_read_prepare(pixmap, 0, 0, pixmap->drawable.width, pixmap->drawable.height, format,
 						   type, no_alpha,
 						   revert, swap_rb);
 		if (temp_fbo == NULL)

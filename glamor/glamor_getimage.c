@@ -81,19 +81,24 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 	glamor_validate_pixmap(pixmap);
 
+	x += drawable->x + x_off;
+	y += drawable->y + y_off;
+
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
 	    && ( swap_rb != SWAP_NONE_DOWNLOADING
 		 || revert != REVERT_NONE)) {
-		/* XXX prepare whole pixmap is not efficient. */
 		temp_fbo =
-		    glamor_es2_pixmap_read_prepare(pixmap, tex_format,
+		    glamor_es2_pixmap_read_prepare(pixmap, x, y, w, h, tex_format,
 						   tex_type, no_alpha,
 						   revert, swap_rb);
-		if (temp_fbo == NULL)
+		if (temp_fbo == NULL) {
+			x -= (drawable->x + x_off);
+			y -= (drawable->y + y_off);
 			goto fall_back;
-
+		}
+		x = 0;
+		y = 0;
 	}
-
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
@@ -104,9 +109,6 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	} else {
 		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	}
-
-	x += drawable->x + x_off;
-	y += drawable->y + y_off;
 
 	if (glamor_priv->yInverted)
 		dispatch->glReadPixels(x,
@@ -124,7 +126,6 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	glamor_put_dispatch(glamor_priv);
 	if (temp_fbo)
 		glamor_destroy_fbo(temp_fbo);
-
 	ret = TRUE;
 
 fall_back:

@@ -465,7 +465,7 @@ void glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *
 					   pixmap_priv);
 
 glamor_pixmap_fbo *
-glamor_es2_pixmap_read_prepare(PixmapPtr source, GLenum format,
+glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h, GLenum format,
 			       GLenum type, int no_alpha, int revert, int swap_rb);
 
 Bool glamor_set_alu(struct glamor_gl_dispatch *dispatch,
