@@ -211,7 +211,7 @@ glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 }
 
 void *
-_glamor_color_convert_a1_a8(void *src_bits, int w, int h, int stride, int revert)
+_glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int stride, int revert)
 {
 	void *bits;
 	PictFormatShort dst_format, src_format;
@@ -226,12 +226,9 @@ _glamor_color_convert_a1_a8(void *src_bits, int w, int h, int stride, int revert
 		src_format = PICT_a8;
 	}
 
-	bits = malloc(stride * h);
-	if (bits == NULL)
-		return NULL;
 	dst_image = pixman_image_create_bits(dst_format,
 					     w, h,
-					     bits,
+					     dst_bits,
 					     stride);
 	if (dst_image == NULL) {
 		free(bits);
@@ -255,7 +252,7 @@ _glamor_color_convert_a1_a8(void *src_bits, int w, int h, int stride, int revert
 
 	pixman_image_unref(src_image);
 	pixman_image_unref(dst_image);
-	return bits;
+	return dst_bits;
 }
 
 #define ADJUST_BITS(d, src_bits, dst_bits)	(((dst_bits) == (src_bits)) ? (d) : 				\
@@ -298,16 +295,14 @@ _glamor_color_convert_a1_a8(void *src_bits, int w, int h, int stride, int revert
 	}
 
 void *
-_glamor_color_revert_x2b10g10r10(void *src_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
+_glamor_color_revert_x2b10g10r10(void *src_bits, void *dst_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
 {
 	int x,y;
 	unsigned int *words, *saved_words, *source_words;
 	int swap = !(swap_rb == SWAP_NONE_DOWNLOADING || swap_rb == SWAP_NONE_UPLOADING);
 
-	words = malloc(stride * h);
 	source_words = src_bits;
-	if (words == NULL)
-		return NULL;
+	words = dst_bits;
 	saved_words = words;
 
 	for (y = 0; y < h; y++)
@@ -337,16 +332,14 @@ _glamor_color_revert_x2b10g10r10(void *src_bits, int w, int h, int stride, int n
 }
 
 void *
-_glamor_color_revert_x1b5g5r5(void *src_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
+_glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
 {
 	int x,y;
 	unsigned short *words, *saved_words, *source_words;
 	int swap = !(swap_rb == SWAP_NONE_DOWNLOADING || swap_rb == SWAP_NONE_UPLOADING);
 
-	words = malloc(stride * h);
+	words = dst_bits;
 	source_words = src_bits;
-	if (words == NULL)
-		return NULL;
 	saved_words = words;
 
 	for (y = 0; y < h; y++)
@@ -393,14 +386,14 @@ _glamor_color_revert_x1b5g5r5(void *src_bits, int w, int h, int stride, int no_a
  */
 
 void *
-glamor_color_convert_to_bits(void *src_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
+glamor_color_convert_to_bits(void *src_bits, void *dst_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
 {
 	if (revert == REVERT_DOWNLOADING_A1 || revert == REVERT_UPLOADING_A1) {
-		return _glamor_color_convert_a1_a8(src_bits, w, h, stride, revert);
+		return _glamor_color_convert_a1_a8(src_bits, dst_bits, w, h, stride, revert);
 	} else if (revert == REVERT_DOWNLOADING_2_10_10_10 || revert == REVERT_UPLOADING_2_10_10_10) {
-		return _glamor_color_revert_x2b10g10r10(src_bits, w, h, stride, no_alpha, revert, swap_rb);
+		return _glamor_color_revert_x2b10g10r10(src_bits, dst_bits, w, h, stride, no_alpha, revert, swap_rb);
 	} else if (revert == REVERT_DOWNLOADING_1_5_5_5 || revert == REVERT_UPLOADING_1_5_5_5) {
-		return _glamor_color_revert_x1b5g5r5(src_bits, w, h, stride, no_alpha, revert, swap_rb);
+		return _glamor_color_revert_x1b5g5r5(src_bits, dst_bits, w, h, stride, no_alpha, revert, swap_rb);
 	} else
 		ErrorF("convert a non-supported mode %x.\n", revert);
 
@@ -501,7 +494,12 @@ glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format, GLenum typ
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
 	    &&  revert > REVERT_NORMAL) {
-		bits = glamor_color_convert_to_bits(bits, pixmap->drawable.width,
+		/* XXX if we are restoring the pixmap, then we may not need to allocate
+		 * new buffer */
+		void *converted_bits = malloc(pixmap->drawable.height * pixmap->devKind);
+		if (converted_bits == NULL)
+			return FALSE;
+		bits = glamor_color_convert_to_bits(bits, converted_bits, pixmap->drawable.width,
 						    pixmap->drawable.height,
 						    pixmap->devKind,
 						    no_alpha, revert, swap_rb);
@@ -1041,7 +1039,6 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	if (need_post_conversion) {
 		/* As OpenGL desktop version never enters here.
 		 * Don't need to consider if the pbo is valid.*/
-		char *new_data;
 		int stride;
 		assert(pixmap_priv->fbo->pbo_valid == 0);
 
@@ -1050,15 +1047,10 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 			stride = (((pixmap->drawable.width * 8 + 7) / 8) + 3) & ~3;
 		else
 			stride = pixmap->devKind;
-		new_data = glamor_color_convert_to_bits(data, pixmap->drawable.width,
-							pixmap->drawable.height,
-							stride, no_alpha,
-							revert, swap_rb);
-		free(data);
-		if (new_data == NULL) {
-			return FALSE;
-		}
-		data = new_data;
+		glamor_color_convert_to_bits(data, data, pixmap->drawable.width,
+					     pixmap->drawable.height,
+					     stride, no_alpha,
+					     revert, swap_rb);
 	}
 
       done:
