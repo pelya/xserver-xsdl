@@ -33,6 +33,10 @@ glamor_fill(DrawablePtr drawable,
 {
 	PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(drawable);
 	int off_x, off_y;
+	PixmapPtr sub_pixmap = NULL;
+	glamor_access_t sub_pixmap_access;
+	DrawablePtr saved_drawable = NULL;
+	int saved_x, saved_y;
 
 	glamor_get_drawable_deltas(drawable, dst_pixmap, &off_x, &off_y);
 
@@ -82,7 +86,26 @@ glamor_fill(DrawablePtr drawable,
 		   && glamor_ddx_fallback_check_gc(gc))
 		return FALSE;
 	}
+	/* Is it possible to set the access as WO? */
 
+	sub_pixmap_access = GLAMOR_ACCESS_RW;
+
+	sub_pixmap = glamor_get_sub_pixmap(dst_pixmap, x + off_x,
+					   y + off_y, width, height,
+					   sub_pixmap_access);
+
+	if (sub_pixmap != NULL) {
+		if (gc->fillStyle != FillSolid) {
+			gc->patOrg.x += (drawable->x - x);
+			gc->patOrg.y += (drawable->y - y);
+		}
+		saved_drawable = drawable;
+		drawable = &sub_pixmap->drawable;
+		saved_x = x;
+		saved_y = y;
+		x = 0;
+		y = 0;
+	}
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 		if (glamor_prepare_access_gc(gc)) {
 			fbFill(drawable, gc, x, y, width, height);
@@ -90,6 +113,23 @@ glamor_fill(DrawablePtr drawable,
 		}
 		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
+
+	if (sub_pixmap != NULL) {
+		struct pixman_box16 box;
+		int dx, dy;
+		if (gc->fillStyle != FillSolid) {
+			gc->patOrg.x -= (saved_drawable->x - saved_x);
+			gc->patOrg.y -= (saved_drawable->y - saved_y);
+		}
+
+		x = saved_x;
+		y = saved_y;
+
+		glamor_put_sub_pixmap(sub_pixmap, dst_pixmap,
+				      x + off_x, y + off_y,
+				      width, height, sub_pixmap_access);
+	}
+
 	return TRUE;
 }
 

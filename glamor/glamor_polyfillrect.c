@@ -47,10 +47,6 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 
 	glamor_priv = glamor_get_screen_private(drawable->pScreen);
 
-	if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled) {
-		goto fail;
-	}
-
 	xorg = drawable->x;
 	yorg = drawable->y;
 
