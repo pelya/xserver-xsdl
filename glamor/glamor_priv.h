@@ -145,8 +145,8 @@ enum glamor_gl_flavor {
 
 #define GLAMOR_CREATE_PIXMAP_CPU  0x100
 #define GLAMOR_CREATE_PIXMAP_FIXUP 0x101
-
 #define GLAMOR_CREATE_FBO_NO_FBO   0x103
+#define GLAMOR_CREATE_PIXMAP_MAP 0x104
 
 #define GLAMOR_CREATE_TEXTURE_EXACT_SIZE 0x104
 
@@ -615,15 +615,16 @@ Bool glamor_download_pixmap_to_cpu(PixmapPtr pixmap,
  * must be 1.
  **/
 void glamor_restore_pixmap_to_texture(PixmapPtr pixmap);
+
 /**
- * Ensure to have a fbo has a valid/complete glfbo.
+ * According to the flag,
+ * if the flag is GLAMOR_CREATE_FBO_NO_FBO then just ensure
+ * the fbo has a valid texture. Otherwise, it will ensure
+ * the fbo has valid texture and attach to a valid fb.
  * If the fbo already has a valid glfbo then do nothing.
- * Otherwise, it will generate a new glfbo, and bind
- * the fbo's texture to the glfbo.
- * The fbo must has a valid texture before call this
- * API, othersie, it will trigger a assert.
  */
-void glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo);
+Bool
+glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag);
 
 /**
  * Upload a pixmap to gl texture. Used by dynamic pixmap
@@ -632,6 +633,16 @@ void glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo);
  */
 enum glamor_pixmap_status glamor_upload_pixmap_to_texture(PixmapPtr
 							  pixmap);
+
+
+PixmapPtr
+glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y,
+		      int w, int h, glamor_access_t access);
+
+PixmapPtr
+glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y,
+		      int w, int h, glamor_access_t access);
+
 
 /**
  * Upload a picture to gl texture. Similar to the

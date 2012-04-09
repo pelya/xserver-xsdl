@@ -622,54 +622,6 @@ _glamor_upload_pixmap_to_texture(PixmapPtr pixmap, GLenum format,
 						    pixmap->devPrivate.ptr);
 }
 
-void
-glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
-{
-	glamor_gl_dispatch *dispatch;
-	int status;
-
-	dispatch = glamor_get_dispatch(fbo->glamor_priv);
-
-	if (fbo->fb == 0)
-		dispatch->glGenFramebuffers(1, &fbo->fb);
-	assert(fbo->tex != 0);
-	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
-	dispatch->glFramebufferTexture2D(GL_FRAMEBUFFER,
-					 GL_COLOR_ATTACHMENT0,
-					 GL_TEXTURE_2D, fbo->tex,
-					 0);
-	status = dispatch->glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		const char *str;
-		switch (status) {
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-			str = "incomplete attachment";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-			str = "incomplete/missing attachment";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-			str = "incomplete draw buffer";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-			str = "incomplete read buffer";
-			break;
-		case GL_FRAMEBUFFER_UNSUPPORTED:
-			str = "unsupported";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-			str = "incomplete multiple";
-			break;
-		default:
-			str = "unknown error";
-			break;
-		}
-
-		FatalError("destination is framebuffer incomplete: %s [%#x]\n",
-			   str, status);
-	}
-	glamor_put_dispatch(fbo->glamor_priv);
-}
 
 /*
  * Prepare to upload a pixmap to texture memory.
@@ -681,7 +633,7 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 static int
 glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha, int revert, int swap_rb)
 {
-	int flag;
+	int flag = 0;
 	glamor_pixmap_private *pixmap_priv;
 	glamor_screen_private *glamor_priv;
 	glamor_pixmap_fbo *fbo;
@@ -696,35 +648,37 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha, int 
 	      || !glamor_priv->yInverted)) {
 		/* We don't need a fbo, a simple texture uploading should work. */
 
-		if (pixmap_priv && pixmap_priv->fbo)
-			return 0;
 		flag = GLAMOR_CREATE_FBO_NO_FBO;
-	} else {
-
-		if (GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
-			return 0;
-		flag = 0;
 	}
+
+	if ((flag == 0 && pixmap_priv && pixmap_priv->fbo && pixmap_priv->fbo->tex)
+	    || (flag != 0 && pixmap_priv && pixmap_priv->fbo && pixmap_priv->fbo->fb))
+		return 0;
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
 		gl_iformat_for_depth(pixmap->drawable.depth, &iformat);
 	else
 		iformat = format;
 
+	if (pixmap_priv == NULL || pixmap_priv->fbo == NULL) {
 
-	fbo = glamor_create_fbo(glamor_priv, pixmap->drawable.width,
-				pixmap->drawable.height,
-				iformat,
-				flag);
-	if (fbo == NULL) {
-		glamor_fallback
-		    ("upload failed, depth %d x %d @depth %d \n",
-		     pixmap->drawable.width, pixmap->drawable.height,
-		     pixmap->drawable.depth);
-		return -1;
+		fbo = glamor_create_fbo(glamor_priv, pixmap->drawable.width,
+					pixmap->drawable.height,
+					iformat,
+					flag);
+		if (fbo == NULL) {
+			glamor_fallback
+			    ("upload failed, depth %d x %d @depth %d \n",
+			     pixmap->drawable.width, pixmap->drawable.height,
+			     pixmap->drawable.depth);
+			return -1;
+		}
+
+		glamor_pixmap_attach_fbo(pixmap, fbo);
+	} else {
+		/* We do have a fbo, but it may lack of fb or tex. */
+		glamor_pixmap_ensure_fbo(pixmap, iformat, flag);
 	}
-
-	glamor_pixmap_attach_fbo(pixmap, fbo);
 
 	return 0;
 }
@@ -1172,4 +1126,111 @@ fail:
 		glamor_destroy_pixmap(scratch);
 
 	return ret;
+}
+
+/*
+ * We may use this function to reduce a large pixmap to a small sub
+ * pixmap. Two scenarios currently:
+ * 1. When fallback a large textured pixmap to CPU but we do need to
+ * do rendering within a small sub region, then we can just get a
+ * sub region.
+ *
+ * 2. When uploading a large pixmap to texture but we only need to
+ * use part of the source/mask picture. As glTexImage2D will be more
+ * efficient to upload a contingent region rather than a sub block
+ * in a large buffer. We use this function to gather the sub region
+ * to a contingent sub pixmap.
+ *
+ * The sub-pixmap must have the same format as the source pixmap.
+ *
+ * */
+PixmapPtr
+glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_access_t access)
+{
+	glamor_screen_private *glamor_priv;
+	PixmapPtr sub_pixmap;
+	glamor_pixmap_private *sub_pixmap_priv, *pixmap_priv;
+	void *data;
+	int pbo;
+	int flag;
+
+	if (access == GLAMOR_ACCESS_WO) {
+		sub_pixmap = glamor_create_pixmap(pixmap->drawable.pScreen, w, h,
+						  pixmap->drawable.depth, GLAMOR_CREATE_PIXMAP_CPU);
+		ErrorF("WO\n");
+		return sub_pixmap;
+	}
+
+	glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+		return NULL;
+
+	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2)
+		flag = GLAMOR_CREATE_PIXMAP_CPU;
+	else
+		flag = GLAMOR_CREATE_PIXMAP_MAP;
+
+	sub_pixmap = glamor_create_pixmap(pixmap->drawable.pScreen, w, h,
+					  pixmap->drawable.depth, flag);
+
+	if (sub_pixmap == NULL)
+		return NULL;
+
+	sub_pixmap_priv = glamor_get_pixmap_private(sub_pixmap);
+	pbo = sub_pixmap_priv ? (sub_pixmap_priv->fbo ? sub_pixmap_priv->fbo->pbo : 0): 0;
+
+	if (pbo)
+		data = NULL;
+	else {
+		data = sub_pixmap->devPrivate.ptr;
+		assert(flag != GLAMOR_CREATE_PIXMAP_MAP);
+	}
+	data = glamor_download_sub_pixmap_to_cpu(pixmap, x, y, w, h, sub_pixmap->devKind,
+						 data, pbo, access);
+	if (pbo) {
+		assert(sub_pixmap->devPrivate.ptr == NULL);
+		sub_pixmap->devPrivate.ptr = data;
+		sub_pixmap_priv->fbo->pbo_valid = 1;
+	}
+#if 0
+	struct pixman_box16 box;
+	PixmapPtr new_sub_pixmap;
+	int dx, dy;
+	box.x1 = 0;
+	box.y1 = 0;
+	box.x2 = w;
+	box.y2 = h;
+
+	dx = x;
+	dy = y;
+
+	new_sub_pixmap = glamor_create_pixmap(pixmap->drawable.pScreen, w, h,
+					      pixmap->drawable.depth, GLAMOR_CREATE_PIXMAP_CPU);
+	glamor_copy_n_to_n(&pixmap->drawable, &new_sub_pixmap, NULL, &box, 1, dx, dy, 0, 0, 0, NULL);
+	glamor_compare_pixmaps(new_sub_pixmap, sub_pixmap, 0, 0, w, h, 1, 1);
+#endif
+
+	return sub_pixmap;
+}
+
+PixmapPtr
+glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y, int w, int h, glamor_access_t access)
+{
+	struct pixman_box16 box;
+	int dx, dy;
+	box.x1 = x;
+	box.y1 = y;
+	box.x2 = x + w;
+	box.y2 = y + h;
+
+	dx = -(x);
+	dy = -(y);
+
+	glamor_copy_n_to_n(&sub_pixmap->drawable,
+			   &pixmap->drawable,
+			   NULL, &box, 1, dx, dy,
+			   0, 0, 0, NULL);
+	glamor_destroy_pixmap(sub_pixmap);
 }

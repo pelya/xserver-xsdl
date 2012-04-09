@@ -132,7 +132,6 @@ glamor_purge_fbo(glamor_pixmap_fbo *fbo)
 	free(fbo);
 }
 
-
 static void
 glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 {
@@ -165,6 +164,55 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 #endif
 }
 
+static void
+glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
+{
+	glamor_gl_dispatch *dispatch;
+	int status;
+
+	dispatch = glamor_get_dispatch(fbo->glamor_priv);
+
+	if (fbo->fb == 0)
+		dispatch->glGenFramebuffers(1, &fbo->fb);
+	assert(fbo->tex != 0);
+	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
+	dispatch->glFramebufferTexture2D(GL_FRAMEBUFFER,
+					 GL_COLOR_ATTACHMENT0,
+					 GL_TEXTURE_2D, fbo->tex,
+					 0);
+	status = dispatch->glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		const char *str;
+		switch (status) {
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			str = "incomplete attachment";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+			str = "incomplete/missing attachment";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+			str = "incomplete draw buffer";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+			str = "incomplete read buffer";
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			str = "unsupported";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+			str = "incomplete multiple";
+			break;
+		default:
+			str = "unknown error";
+			break;
+		}
+
+		FatalError("destination is framebuffer incomplete: %s [%#x]\n",
+			   str, status);
+	}
+	glamor_put_dispatch(fbo->glamor_priv);
+}
+
 glamor_pixmap_fbo *
 glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
 		  int w, int h, GLenum format, GLint tex, int flag)
@@ -183,9 +231,18 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
 	fbo->format = format;
 	fbo->glamor_priv = glamor_priv;
 
+	if (flag == GLAMOR_CREATE_PIXMAP_MAP) {
+		glamor_gl_dispatch *dispatch;
+		dispatch = glamor_get_dispatch(glamor_priv);
+		dispatch->glGenBuffers(1, &fbo->pbo);
+		glamor_put_dispatch(glamor_priv);
+		goto done;
+	}
+
 	if (flag != GLAMOR_CREATE_FBO_NO_FBO)
 		glamor_pixmap_ensure_fb(fbo);
 
+done:
 	return fbo;
 }
 
@@ -331,6 +388,28 @@ glamor_destroy_tex_obj(glamor_pixmap_fbo * tex_obj)
 	glamor_pixmap_fbo_cache_put(tex_obj);
 }
 
+int
+_glamor_create_tex(glamor_screen_private *glamor_priv,
+		   int w, int h, GLenum format)
+{
+	glamor_gl_dispatch *dispatch;
+	int tex;
+
+	dispatch = glamor_get_dispatch(glamor_priv);
+	dispatch->glGenTextures(1, &tex);
+	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format,
+			       GL_UNSIGNED_BYTE, NULL);
+	glamor_put_dispatch(glamor_priv);
+	return tex;
+}
+
+
+
 glamor_pixmap_fbo *
 glamor_create_fbo(glamor_screen_private *glamor_priv,
 		  int w, int h,
@@ -339,7 +418,7 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 {
 	glamor_gl_dispatch *dispatch;
 	glamor_pixmap_fbo *fbo;
-	GLint tex;
+	GLint tex = 0;
 	int cache_flag;
 
 	if (!glamor_check_fbo_size(glamor_priv, w, h))
@@ -347,6 +426,9 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 
 	if (flag == GLAMOR_CREATE_FBO_NO_FBO)
 		goto new_fbo;
+
+	if (flag == GLAMOR_CREATE_PIXMAP_MAP)
+		goto no_tex;
 
 	if (flag == GLAMOR_CREATE_PIXMAP_FIXUP)
 		cache_flag = GLAMOR_CACHE_EXACT_SIZE;
@@ -358,18 +440,9 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 	if (fbo)
 		return fbo;
 new_fbo:
-	dispatch = glamor_get_dispatch(glamor_priv);
-	dispatch->glGenTextures(1, &tex);
-	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-				  GL_NEAREST);
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-				  GL_NEAREST);
-	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format,
-			       GL_UNSIGNED_BYTE, NULL);
-
+	tex = _glamor_create_tex(glamor_priv, w, h, format);
+no_tex:
 	fbo = glamor_create_fbo_from_tex(glamor_priv, w, h, format, tex, flag);
-	glamor_put_dispatch(glamor_priv);
 
 	return fbo;
 }
@@ -424,11 +497,46 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
 			/* XXX For the Xephyr only, may be broken now.*/
 			pixmap_priv->gl_tex = 0;
 		}
+	case GLAMOR_MEMORY_MAP:
 		pixmap->devPrivate.ptr = NULL;
 		break;
 	default:
 		break;
 	}
+}
+
+
+Bool
+glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_pixmap_private *pixmap_priv;
+	glamor_pixmap_fbo *fbo;
+
+	glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	if (pixmap_priv == NULL || pixmap_priv->fbo == NULL) {
+
+		fbo = glamor_create_fbo(glamor_priv, pixmap->drawable.width,
+					pixmap->drawable.height,
+					format,
+					flag);
+		if (fbo == NULL)
+			return FALSE;
+
+		glamor_pixmap_attach_fbo(pixmap, fbo);
+	} else {
+		/* We do have a fbo, but it may lack of fb or tex. */
+		if (pixmap_priv->fbo->tex)
+			pixmap_priv->fbo->tex = _glamor_create_tex(glamor_priv, pixmap->drawable.width,
+								   pixmap->drawable.height, format);
+
+		if (flag != GLAMOR_CREATE_FBO_NO_FBO && pixmap_priv->fbo->fb == 0)
+			glamor_pixmap_ensure_fb(pixmap_priv->fbo);
+	}
+
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	return TRUE;
 }
 /*
  * XXX how to handle those pending OPs.

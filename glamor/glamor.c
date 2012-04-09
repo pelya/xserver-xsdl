@@ -155,6 +155,9 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	}
 	glamor_set_pixmap_private(pixmap, pixmap_priv);
 
+	if (usage == GLAMOR_CREATE_PIXMAP_MAP)
+		type = GLAMOR_MEMORY_MAP;
+
 	pixmap_priv->container = pixmap;
 	pixmap_priv->glamor_priv = glamor_priv;
 	pixmap_priv->type = type;
