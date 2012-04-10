@@ -44,6 +44,7 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 	RegionPtr pClip = fbGetCompositeClip(gc);
 	Bool ret = FALSE;
 	glamor_screen_private *glamor_priv;
+	xRectangle *saved_prect = prect;
 
 	glamor_priv = glamor_get_screen_private(drawable->pScreen);
 
@@ -55,7 +56,6 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 		fullY1 = prect->y + yorg;
 		fullX2 = fullX1 + (int) prect->width;
 		fullY2 = fullY1 + (int) prect->height;
-		prect++;
 
 		n = REGION_NUM_RECTS(pClip);
 		pbox = REGION_RECTS(pClip);
@@ -78,14 +78,17 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 				y1 = pbox->y1;
 			if (pbox->y2 < y2)
 				y2 = pbox->y2;
-			pbox++;
 
+			pbox++;
 			if (x1 >= x2 || y1 >= y2)
 				continue;
 			if (!glamor_fill(drawable, gc, x1, y1, x2 - x1,
-					 y2 - y1, fallback))
+					 y2 - y1, fallback)) {
+				nrect++;
 				goto fail;
+			}
 		}
+		prect++;
 	}
 	ret = TRUE;
 	goto done;
