@@ -639,6 +639,10 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag);
 enum glamor_pixmap_status glamor_upload_pixmap_to_texture(PixmapPtr
 							  pixmap);
 
+Bool
+glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h,
+				    int stride, void *bits, int pbo);
+
 
 PixmapPtr
 glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y,

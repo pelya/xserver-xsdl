@@ -263,10 +263,7 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	int x_off, y_off;
 	float vertices[8], texcoords[8];
 	GLfloat xscale, yscale, txscale, tyscale;
-	GLuint tex;
-	int no_alpha, revert;
 	Bool ret = FALSE;
-	int swap_rb;
 	PixmapPtr temp_pixmap;
 	glamor_pixmap_private *temp_pixmap_priv;
 
@@ -288,37 +285,19 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	if (!glamor_set_planemask(pixmap, gc->planemask)) {
 		goto fail;
 	}
-
-	if (glamor_get_tex_format_type_from_pixmap(pixmap,
-						   &format,
-						   &type, &no_alpha,
-						   &revert,
-						   &swap_rb,
-						   1)) {
-		glamor_fallback("unknown depth. %d \n", drawable->depth);
-		goto fail;
-	}
-
 	/* create a temporary pixmap and upload the bits to that
 	 * pixmap, then apply clip copy it to the destination pixmap.*/
 
 	temp_pixmap = glamor_create_pixmap(drawable->pScreen, w, h, depth, 0);
-
 	if (temp_pixmap == NULL)
 		goto fail;
+
 	temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
+	temp_pixmap_priv->pict_format = pixmap_priv->pict_format;
+	temp_pixmap_priv->is_picture = pixmap_priv->is_picture;
 
-	if (temp_pixmap_priv->fbo == NULL) {
-		glamor_destroy_pixmap(temp_pixmap);
-		goto fail;
-	}
-
-	if (!glamor_upload_bits_to_pixmap_texture(temp_pixmap, format, type,
-						  no_alpha, revert, swap_rb, bits)) {
-		glamor_destroy_pixmap(temp_pixmap);
-		goto fail;
-	}
-
+	glamor_upload_sub_pixmap_to_texture(temp_pixmap, 0, 0, w, h,
+					    pixmap->devKind, bits, 0);
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (!glamor_set_alu(dispatch, gc->alu)) {
@@ -345,9 +324,9 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 #endif
 	dispatch->glUseProgram(glamor_priv->finish_access_prog[0]);
 	dispatch->glUniform1i(glamor_priv->
-			      finish_access_revert[no_alpha],
+			      finish_access_revert[0],
 			      REVERT_NONE);
-	dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha],
+	dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[0],
 			      SWAP_NONE_UPLOADING);
 
 	x += drawable->x;
@@ -397,7 +376,6 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
-	dispatch->glDeleteTextures(1, &tex);
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
 		dispatch->glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	glamor_set_alu(dispatch, GXcopy);
