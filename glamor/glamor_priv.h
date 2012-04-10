@@ -605,6 +605,11 @@ void glamor_pixmap_fini(ScreenPtr screen);
 Bool glamor_download_pixmap_to_cpu(PixmapPtr pixmap,
 				   glamor_access_t access);
 
+void *
+glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
+				  int stride, void *bits, int pbo, glamor_access_t access);
+
+
 /**
  * Restore a pixmap's data which is downloaded by 
  * glamor_download_pixmap_to_cpu to its original 

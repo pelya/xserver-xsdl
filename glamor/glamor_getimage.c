@@ -44,6 +44,8 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	glamor_gl_dispatch * dispatch;
 	Bool ret = FALSE;
 	int swap_rb;
+	int stride;
+	void *data;
 
 	if (format != ZPixmap)
 		goto fall_back;
@@ -63,71 +65,17 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		goto fall_back;
-
-	if (glamor_get_tex_format_type_from_pixmap(pixmap,
-						   &tex_format,
-						   &tex_type,
-						   &no_alpha,
-						   &revert,
-						   &swap_rb,
-						   0)) {
-		glamor_fallback("unknown depth. %d \n", drawable->depth);
-		goto fall_back;
-	}
-
-	if (revert > REVERT_NORMAL)
-		goto fall_back;
-
-	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-	glamor_validate_pixmap(pixmap);
+	stride = PixmapBytePad(w, drawable->depth);
 
 	x += drawable->x + x_off;
 	y += drawable->y + y_off;
 
-	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-	    && ( swap_rb != SWAP_NONE_DOWNLOADING
-		 || revert != REVERT_NONE)) {
-		temp_fbo =
-		    glamor_es2_pixmap_read_prepare(pixmap, x, y, w, h, tex_format,
-						   tex_type, no_alpha,
-						   revert, swap_rb);
-		if (temp_fbo == NULL) {
-			x -= (drawable->x + x_off);
-			y -= (drawable->y + y_off);
-			goto fall_back;
-		}
-		x = 0;
-		y = 0;
+	data = glamor_download_sub_pixmap_to_cpu(pixmap, x, y, w, h, stride,
+						 d, 0, GLAMOR_ACCESS_RO);
+	if (data != NULL) {
+		ret = TRUE;
+		assert(data == d);
 	}
-
-	dispatch = glamor_get_dispatch(glamor_priv);
-	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-		int row_length = PixmapBytePad(w, drawable->depth);
-		row_length = (row_length * 8) / drawable->bitsPerPixel;
-		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
-	} else {
-		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 4);
-	}
-
-	if (glamor_priv->yInverted)
-		dispatch->glReadPixels(x,
-				       y,
-				       w, h,
-				       tex_format,
-				       tex_type, d);
-	else
-		dispatch->glReadPixels(x,
-				       pixmap->drawable.height - 1 - y,
-				       w,
-				       h,
-				       tex_format,
-				       tex_type, d);
-	glamor_put_dispatch(glamor_priv);
-	if (temp_fbo)
-		glamor_destroy_fbo(temp_fbo);
-	ret = TRUE;
-
 fall_back:
 	if (ret == FALSE)
 		miGetImage(drawable, x, y, w, h, format, planeMask, d);
