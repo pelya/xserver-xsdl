@@ -1577,7 +1577,7 @@ xf86SetBackingStore(ScreenPtr pScreen)
 {
     Bool useBS = FALSE;
     MessageType from = X_DEFAULT;
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     OptionInfoPtr options;
 
     options = xnfalloc(sizeof(BSOptions));
@@ -1618,7 +1618,7 @@ xf86SetSilkenMouse(ScreenPtr pScreen)
 {
     Bool useSM = TRUE;
     MessageType from = X_DEFAULT;
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     OptionInfoPtr options;
 
     options = xnfalloc(sizeof(SMOptions));

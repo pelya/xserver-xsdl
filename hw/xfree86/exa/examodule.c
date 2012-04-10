@@ -112,7 +112,7 @@ exaDDXDriverInit(ScreenPtr pScreen)
 {
     ExaScreenPriv(pScreen);
     /* Do NOT use XF86SCRNINFO macro here!! */
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     ExaXorgScreenPrivPtr pScreenPriv;
 
     if (!dixRegisterPrivateKey(&exaXorgScreenPrivateKeyRec, PRIVATE_SCREEN, 0))

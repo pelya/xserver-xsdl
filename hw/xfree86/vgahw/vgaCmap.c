@@ -85,7 +85,7 @@ xColorItem *pdefs;
     /* This can get called before the ScrnInfoRec is installed so we
        can't rely on getting it with XF86SCRNINFO() */
     int scrnIndex = pmap->pScreen->myNum;
-    ScrnInfoPtr scrninfp = xf86Screens[scrnIndex];
+    ScrnInfoPtr scrninfp = xf86ScreenToScrn(pmap->pScreen);
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
 
     unsigned char overscan = hwp->ModeReg.Attribute[OVERSCAN];
