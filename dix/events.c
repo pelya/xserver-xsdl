@@ -1273,18 +1273,11 @@ ComputeFreezes(void)
                        event->root_x, event->root_y);
         if (!CheckDeviceGrabs(replayDev, event, syncEvents.replayWin)) {
             if (IsTouchEvent((InternalEvent *) event)) {
-                InternalEvent *events = InitEventList(GetMaximumEventsNum());
-                int i, nev;
                 TouchPointInfoPtr ti =
                     TouchFindByClientID(replayDev, event->touchid);
                 BUG_WARN(!ti);
-                nev =
-                    GetTouchOwnershipEvents(events, replayDev, ti,
-                                            XIRejectTouch,
-                                            ti->listeners[0].listener, 0);
-                for (i = 0; i < nev; i++)
-                    mieqProcessDeviceEvent(replayDev, events + i, NULL);
-                ProcessInputEvents();
+
+                TouchListenerAcceptReject(replayDev, ti, 0, XIRejectTouch);
             }
             else if (replayDev->focus &&
                      !IsPointerEvent((InternalEvent *) event))

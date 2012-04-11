@@ -960,15 +960,48 @@ TouchListenerGone(XID resource)
 }
 
 int
+TouchListenerAcceptReject(DeviceIntPtr dev, TouchPointInfoPtr ti, int listener,
+                          int mode)
+{
+    InternalEvent *events;
+    int nev;
+    int i;
+
+    if (listener > 0) {
+        if (mode == XIRejectTouch)
+            TouchRejected(dev, ti, ti->listeners[listener].listener, NULL);
+        else
+            ti->listeners[listener].state = LISTENER_EARLY_ACCEPT;
+
+        return Success;
+    }
+
+    events = InitEventList(GetMaximumEventsNum());
+    if (!events) {
+        BUG_WARN_MSG(TRUE, "Failed to allocate touch ownership events\n");
+        return BadAlloc;
+    }
+
+    nev = GetTouchOwnershipEvents(events, dev, ti, mode,
+                                  ti->listeners[0].listener, 0);
+    BUG_WARN_MSG(nev == 0, "Failed to get touch ownership events\n");
+
+    for (i = 0; i < nev; i++)
+        mieqProcessDeviceEvent(dev, events + i, NULL);
+
+    ProcessInputEvents();
+
+    FreeEventList(events, GetMaximumEventsNum());
+
+    return nev ? Success : BadMatch;
+}
+
+int
 TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
                   uint32_t touchid, Window grab_window, XID *error)
 {
     TouchPointInfoPtr ti;
-    int nev, i;
-    InternalEvent *events = InitEventList(GetMaximumEventsNum());
-
-    if (!events)
-        return BadAlloc;
+    int i;
 
     if (!dev->touch) {
         *error = dev->id;
@@ -989,24 +1022,5 @@ TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
     if (i == ti->num_listeners)
         return BadAccess;
 
-    if (i > 0) {
-        if (mode == XIRejectTouch)
-            TouchRejected(dev, ti, ti->listeners[i].listener, NULL);
-        else
-            ti->listeners[i].state = LISTENER_EARLY_ACCEPT;
-
-        return Success;
-    }
-
-    nev = GetTouchOwnershipEvents(events, dev, ti, mode,
-                                  ti->listeners[0].listener, 0);
-    if (nev == 0)
-        return BadAlloc;
-    for (i = 0; i < nev; i++)
-        mieqProcessDeviceEvent(dev, events + i, NULL);
-
-    ProcessInputEvents();
-
-    FreeEventList(events, GetMaximumEventsNum());
-    return Success;
+    return TouchListenerAcceptReject(dev, ti, i, mode);
 }

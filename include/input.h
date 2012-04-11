@@ -572,6 +572,8 @@ extern int TouchConvertToPointerEvent(const InternalEvent *ev,
 extern int TouchGetPointerEventType(const InternalEvent *ev);
 extern void TouchRemovePointerGrab(DeviceIntPtr dev);
 extern void TouchListenerGone(XID resource);
+extern int TouchListenerAcceptReject(DeviceIntPtr dev, TouchPointInfoPtr ti,
+                                     int listener, int mode);
 extern int TouchAcceptReject(ClientPtr client, DeviceIntPtr dev, int mode,
                              uint32_t touchid, Window grab_window, XID *error);
 
