@@ -75,7 +75,7 @@ static unsigned char XF86VidModeReqCode = 0;
 #ifdef XF86VIDMODE_EVENTS
 static int XF86VidModeEventBase = 0;
 
-static void SXF86VidModeNotifyEvent();
+static void SXF86VidModeNotifyEvent(
 xXF86VidModeNotifyEvent * /* from */ , xXF86VidModeNotifyEvent *        /* to */
     );
 
