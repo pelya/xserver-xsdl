@@ -144,7 +144,7 @@ xf86CrtcDamageShadow(xf86CrtcPtr crtc)
     ScrnInfoPtr pScrn = crtc->scrn;
     BoxRec damage_box;
     RegionRec damage_region;
-    ScreenPtr pScreen = pScrn->pScreen;
+    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
 
     damage_box.x1 = 0;
     damage_box.x2 = crtc->mode.HDisplay;
@@ -270,7 +270,7 @@ void
 xf86RotateDestroy(xf86CrtcPtr crtc)
 {
     ScrnInfoPtr pScrn = crtc->scrn;
-    ScreenPtr pScreen = pScrn->pScreen;
+    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
     int c;
 
