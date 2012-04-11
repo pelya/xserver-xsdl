@@ -1389,8 +1389,10 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
 
             if (ev->any.type == ET_TouchEnd &&
                 !dev->button->buttonsDown &&
-                dev->deviceGrab.fromPassiveGrab && GrabIsPointerGrab(grab))
+                dev->deviceGrab.fromPassiveGrab && GrabIsPointerGrab(grab)) {
                 (*dev->deviceGrab.DeactivateGrab) (dev);
+                return Success;
+            }
         }
     }
     else {
