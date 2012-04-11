@@ -54,13 +54,12 @@ _glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 		 */
 		goto wide_line;
 	}
-	if (gc->lineStyle != LineSolid || gc->fillStyle != FillSolid) {
+	if (gc->lineStyle != LineSolid) {
 		glamor_fallback
-		    ("non-solid fill line style %d, fill style %d\n",
-		     gc->lineStyle, gc->fillStyle);
+		    ("non-solid fill line style %d\n",
+		     gc->lineStyle);
 		goto fail;
 	}
-
 	rects = malloc(sizeof(xRectangle) * (n - 1));
 	x1 = points[0].x;
 	y1 = points[0].y;
