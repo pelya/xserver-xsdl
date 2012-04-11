@@ -447,7 +447,7 @@ static Bool
 xf86RandR12GetInfo(ScreenPtr pScreen, Rotation * rotations)
 {
     RRScreenSizePtr pSize;
-    ScrnInfoPtr scrp = XF86SCRNINFO(pScreen);
+    ScrnInfoPtr scrp = xf86ScreenToScrn(pScreen);
     XF86RandRInfoPtr randrp = XF86RANDRINFO(pScreen);
     DisplayModePtr mode;
     int refresh0 = 60;
@@ -504,7 +504,7 @@ xf86RandR12SetMode(ScreenPtr pScreen,
                    DisplayModePtr mode,
                    Bool useVirtual, int mmWidth, int mmHeight)
 {
-    ScrnInfoPtr scrp = XF86SCRNINFO(pScreen);
+    ScrnInfoPtr scrp = xf86ScreenToScrn(pScreen);
     XF86RandRInfoPtr randrp = XF86RANDRINFO(pScreen);
     int oldWidth = pScreen->width;
     int oldHeight = pScreen->height;
@@ -576,7 +576,7 @@ Bool
 xf86RandR12SetConfig(ScreenPtr pScreen,
                      Rotation rotation, int rate, RRScreenSizePtr pSize)
 {
-    ScrnInfoPtr scrp = XF86SCRNINFO(pScreen);
+    ScrnInfoPtr scrp = xf86ScreenToScrn(pScreen);
     XF86RandRInfoPtr randrp = XF86RANDRINFO(pScreen);
     DisplayModePtr mode;
     int pos[MAXDEVICES][2];
@@ -671,7 +671,7 @@ xf86RandR12ScreenSetSize(ScreenPtr pScreen,
                          CARD16 height, CARD32 mmWidth, CARD32 mmHeight)
 {
     XF86RandRInfoPtr randrp = XF86RANDRINFO(pScreen);
-    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
     WindowPtr pRoot = pScreen->root;
     PixmapPtr pScrnPix;

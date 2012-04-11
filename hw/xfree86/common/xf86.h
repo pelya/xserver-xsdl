@@ -76,8 +76,8 @@ extern _X_EXPORT Bool xf86DRI2Enabled(void);
 
 extern _X_EXPORT Bool VTSwitchEnabled;  /* kbd driver */
 
-#define XF86SCRNINFO(p) ((ScrnInfoPtr)dixLookupPrivate(&(p)->devPrivates, \
-						       xf86ScreenKey))
+#define XF86SCRNINFO(p) xf86ScreenToScrn(p)
+
 #define XF86FLIP_PIXELS() \
 	do { \
 	    if (xf86GetFlipPixels()) { \
