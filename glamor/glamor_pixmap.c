@@ -217,13 +217,16 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int st
 	PictFormatShort dst_format, src_format;
 	pixman_image_t *dst_image;
 	pixman_image_t *src_image;
+	int src_stride;
 
 	if (revert == REVERT_UPLOADING_A1) {
 		src_format = PICT_a1;
 		dst_format = PICT_a8;
+		src_stride = PixmapBytePad(w, 1);
 	} else {
 		dst_format = PICT_a1;
 		src_format = PICT_a8;
+		src_stride = (((w * 8 + 7) / 8) + 3) & ~3;
 	}
 
 	dst_image = pixman_image_create_bits(dst_format,
@@ -238,7 +241,7 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int st
 	src_image = pixman_image_create_bits(src_format,
 					     w, h,
 					     src_bits,
-					     stride);
+					     src_stride);
 
 	if (src_image == NULL) {
 		pixman_image_unref(dst_image);
@@ -490,7 +493,13 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format, GLenum ty
 	    &&  revert > REVERT_NORMAL) {
 		/* XXX if we are restoring the pixmap, then we may not need to allocate
 		 * new buffer */
-		void *converted_bits = malloc(h * stride);
+		void *converted_bits;
+
+		if (pixmap->drawable.depth == 1)
+			stride = (((w * 8 + 7) / 8) + 3) & ~3;
+
+		converted_bits = malloc(h * stride);
+
 		if (converted_bits == NULL)
 			return FALSE;
 		bits = glamor_color_convert_to_bits(bits, converted_bits, w, h,
@@ -864,8 +873,9 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 	need_post_conversion = (revert > REVERT_NORMAL);
 	if (need_post_conversion) {
 		if (pixmap->drawable.depth == 1) {
-			stride = (((w * 8 + 7) / 8) + 3) & ~3;
-			data = malloc(stride * h);
+			int temp_stride;
+			temp_stride = (((w * 8 + 7) / 8) + 3) & ~3;
+			data = malloc(temp_stride * h);
 			if (data == NULL)
 				return NULL;
 			need_free_data = 1;
@@ -877,12 +887,13 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 	    && (swap_rb != SWAP_NONE_DOWNLOADING || revert != REVERT_NONE)) {
 		 if (!(temp_fbo = glamor_es2_pixmap_read_prepare(pixmap, x, y, w, h,
 								 format, type, no_alpha,
-								 revert, swap_rb)))
+								 revert, swap_rb))) {
+			free(data);
 			return NULL;
+		}
 		x = 0;
 		y = 0;
 	}
-
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
@@ -954,7 +965,8 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 		 * Don't need to consider if the pbo is valid.*/
 		bits = glamor_color_convert_to_bits(data, bits,
 						    w, h,
-						    stride, no_alpha,
+						    stride,
+						    no_alpha,
 						    revert, swap_rb);
 	}
 
