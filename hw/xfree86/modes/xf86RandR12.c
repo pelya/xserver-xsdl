@@ -960,7 +960,7 @@ xf86RandR12SetTransformSupport(ScreenPtr pScreen, Bool transforms)
 void
 xf86RandR12GetOriginalVirtualSize(ScrnInfoPtr pScrn, int *x, int *y)
 {
-    ScreenPtr pScreen = screenInfo.screens[pScrn->scrnIndex];
+    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
 
     if (xf86RandR12Generation != serverGeneration ||
         XF86RANDRINFO(pScreen)->virtualX == -1) {
