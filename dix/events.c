@@ -1473,6 +1473,8 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
     DeviceIntPtr dev;
     Bool wasImplicit = (mouse->deviceGrab.fromPassiveGrab &&
                         mouse->deviceGrab.implicitGrab);
+    XID grab_resource = grab->resource;
+    int i;
 
     TouchRemovePointerGrab(mouse);
 
@@ -1497,6 +1499,15 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
         ReattachToOldMaster(mouse);
 
     ComputeFreezes();
+
+    /* If an explicit grab was deactivated, we must remove it from the head of
+     * all the touches' listener lists. */
+    for (i = 0; mouse->touch && i < mouse->touch->num_touches; i++) {
+        TouchPointInfoPtr ti = mouse->touch->touches + i;
+
+        if (ti->active && TouchResourceIsOwner(ti, grab_resource))
+            TouchListenerAcceptReject(mouse, ti, 0, XIRejectTouch);
+    }
 }
 
 /**
