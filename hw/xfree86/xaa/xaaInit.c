@@ -92,7 +92,7 @@ XAADestroyInfoRec(XAAInfoRecPtr infoRec)
         return;
 
     if (infoRec->ClosePixmapCache)
-        (*infoRec->ClosePixmapCache) (infoRec->pScrn->pScreen);
+        (*infoRec->ClosePixmapCache) (xf86ScrnToScreen(infoRec->pScrn));
 
     free(infoRec->PreAllocMem);
 
