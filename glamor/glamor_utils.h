@@ -257,10 +257,10 @@ static inline void
 gl_iformat_for_depth(int depth, GLenum * format)
 {
 	switch (depth) {
-#if 0
 	case 8:
 		*format = GL_ALPHA;
 		break;
+#if 0
 	case 24:
 		*format = GL_RGB;
 		break;
@@ -411,6 +411,8 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 inline static int cache_format(GLenum format)
 {
 	switch (format) {
+	case GL_ALPHA:
+		return 1;
 	case GL_RGBA:
 		return 0;
 	default:
