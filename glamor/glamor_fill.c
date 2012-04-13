@@ -213,20 +213,8 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 				   &color[1],
 				   &color[2],
 				   &color[3], format_for_pixmap(pixmap));
-#ifdef GLAMOR_DELAYED_FILLING
-	if (x == 0 && y == 0
-	    && width == pixmap->drawable.width
-	    && height == pixmap->drawable.height
-	    && pixmap_priv->fb != glamor_priv->screen_fbo) {
-		pixmap_priv->pending_op.type = GLAMOR_PENDING_FILL;
-		memcpy(&pixmap_priv->pending_op.fill.color4fv,
-		       color, 4 * sizeof(GLfloat));
-		pixmap_priv->pending_op.fill.colori = fg_pixel;
-		return TRUE;
-	}
-#endif
+
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-	glamor_validate_pixmap(pixmap);
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (!glamor_set_alu(dispatch, alu)) {

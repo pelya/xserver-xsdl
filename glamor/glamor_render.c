@@ -997,12 +997,6 @@ glamor_composite_with_shader(CARD8 op,
 			glamor_fallback("no texture in source\n");
 			goto fail;
 #endif
-		} else if (source_pixmap_priv->pending_op.type ==
-			   GLAMOR_PENDING_FILL) {
-			key.source = SHADER_SOURCE_SOLID;
-			memcpy(source_solid_color,
-			       source_pixmap_priv->pending_op.
-			       fill.color4fv, 4 * sizeof(float));
 		}
 	}
 	if (key.mask == SHADER_MASK_TEXTURE ||
@@ -1020,12 +1014,6 @@ glamor_composite_with_shader(CARD8 op,
 			glamor_fallback("no texture in mask\n");
 			goto fail;
 #endif
-		} else if (mask_pixmap_priv->pending_op.type ==
-			   GLAMOR_PENDING_FILL) {
-			key.mask = SHADER_MASK_SOLID;
-			memcpy(mask_solid_color,
-			       mask_pixmap_priv->pending_op.fill.color4fv,
-			       4 * sizeof(float));
 		}
 	}
 #ifdef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
@@ -1103,7 +1091,6 @@ glamor_composite_with_shader(CARD8 op,
 	}
 #endif
 	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
-	glamor_validate_pixmap(dest_pixmap);
 
 	if (!glamor_set_composite_op(screen, op, dest, mask)) {
 		goto fail;

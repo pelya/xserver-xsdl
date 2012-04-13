@@ -207,23 +207,6 @@ glamor_transform_boxes(BoxPtr boxes, int nbox, int dx, int dy)
 #define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv && pixmap_priv->gl_fbo == GLAMOR_FBO_NORMAL)
 #define GLAMOR_PIXMAP_PRIV_HAS_FBO_DOWNLOADED(pixmap_priv)    (pixmap_priv && (pixmap_priv->gl_fbo == GLAMOR_FBO_DOWNLOADED))
 
-#define GLAMOR_PIXMAP_PRIV_NEED_VALIDATE(pixmap_priv)  \
-	(GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv) \
-	&& (pixmap_priv->pending_op.type != GLAMOR_PENDING_NONE))
-
-#define GLAMOR_PIXMAP_PRIV_NO_PENDING(pixmap_priv)   \
-	(pixmap_priv->pending_op.type == GLAMOR_PENDING_NONE)
-
-#define GLAMOR_CHECK_PENDING_FILL(_dispatch_, _glamor_priv_, _pixmap_priv_) do \
-  { \
-      if (_pixmap_priv_->pending_op.type == GLAMOR_PENDING_FILL) { \
-        _dispatch_->glUseProgram(_glamor_priv_->solid_prog); \
-        _dispatch_->glUniform4fv(_glamor_priv_->solid_color_uniform_location, 1,  \
-                        _pixmap_priv_->pending_op.fill.color4fv); \
-      } \
-  } while(0)
-
-
 /**
  * Borrow from uxa.
  */

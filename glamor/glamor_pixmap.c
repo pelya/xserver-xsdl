@@ -23,69 +23,15 @@ glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
 }
 
 
-static void
-_glamor_pixmap_validate_filling(glamor_screen_private * glamor_priv,
-				glamor_pixmap_private * pixmap_priv)
-{
-	glamor_gl_dispatch *dispatch = glamor_get_dispatch(glamor_priv);
-	GLfloat vertices[8];
-	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
-					GL_FALSE, 2 * sizeof(float),
-					vertices);
-	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-	dispatch->glUseProgram(glamor_priv->solid_prog);
-	dispatch->glUniform4fv(glamor_priv->solid_color_uniform_location,
-			       1, pixmap_priv->pending_op.fill.color4fv);
-	vertices[0] = -1;
-	vertices[1] = -1;
-	vertices[2] = 1;
-	vertices[3] = -1;
-	vertices[4] = 1;
-	vertices[5] = 1;
-	vertices[6] = -1;
-	vertices[7] = 1;
-	dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-	dispatch->glUseProgram(0);
-	pixmap_priv->pending_op.type = GLAMOR_PENDING_NONE;
-	glamor_put_dispatch(glamor_priv);
-}
-
-
-glamor_pixmap_validate_function_t pixmap_validate_funcs[] = {
-	NULL,
-	_glamor_pixmap_validate_filling
-};
-
 void
 glamor_pixmap_init(ScreenPtr screen)
 {
-	glamor_screen_private *glamor_priv;
 
-	glamor_priv = glamor_get_screen_private(screen);
-	glamor_priv->pixmap_validate_funcs = pixmap_validate_funcs;
 }
 
 void
 glamor_pixmap_fini(ScreenPtr screen)
 {
-}
-
-void
-glamor_validate_pixmap(PixmapPtr pixmap)
-{
-	glamor_pixmap_validate_function_t validate_op;
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(pixmap->drawable.pScreen);
-	glamor_pixmap_private *pixmap_priv =
-	    glamor_get_pixmap_private(pixmap);
-
-	validate_op =
-	    glamor_priv->pixmap_validate_funcs[pixmap_priv->
-					       pending_op.type];
-	if (validate_op) {
-		(*validate_op) (glamor_priv, pixmap_priv);
-	}
 }
 
 void
@@ -865,9 +811,6 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 	}
 
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-	/* XXX we may don't need to validate it on GPU here,
-	 * we can just validate it on CPU. */
-	glamor_validate_pixmap(pixmap);
 
 	need_post_conversion = (revert > REVERT_NORMAL);
 	if (need_post_conversion) {

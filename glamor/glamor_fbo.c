@@ -538,12 +538,6 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	return TRUE;
 }
-/*
- * XXX how to handle those pending OPs.
- * By default, pending OP is disabled. Maybe we will give up the pending
- * OP latter.
- *
- * */
 
 _X_EXPORT void
 glamor_pixmap_exchange_fbos(PixmapPtr front, PixmapPtr back)

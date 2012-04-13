@@ -132,11 +132,6 @@ enum gradient_shader_type {
 
 struct glamor_screen_private;
 struct glamor_pixmap_private;
-typedef void (*glamor_pixmap_validate_function_t) (struct
-						   glamor_screen_private *,
-						   struct
-						   glamor_pixmap_private
-						   *);
 
 enum glamor_gl_flavor {
 	GLAMOR_GL_DESKTOP,	// OPENGL API
@@ -246,7 +241,6 @@ typedef struct glamor_screen_private {
 	struct glamor_saved_procs saved_procs;
 	char delayed_fallback_string[GLAMOR_DELAYED_STRING_MAX + 1];
 	int delayed_fallback_pending;
-	glamor_pixmap_validate_function_t *pixmap_validate_funcs;
 	int flags;
 	ScreenPtr screen;
 } glamor_screen_private;
@@ -256,22 +250,6 @@ typedef enum glamor_access {
 	GLAMOR_ACCESS_RW,
 	GLAMOR_ACCESS_WO,
 } glamor_access_t;
-
-enum _glamor_pending_op_type {
-	GLAMOR_PENDING_NONE,
-	GLAMOR_PENDING_FILL
-};
-
-typedef struct _glamor_pending_fill {
-	unsigned int type;
-	GLfloat color4fv[4];
-	CARD32 colori;
-} glamor_pending_fill;
-
-typedef union _glamor_pending_op {
-	unsigned int type;
-	glamor_pending_fill fill;
-} glamor_pending_op;
 
 #define GLAMOR_FBO_NORMAL     1
 #define GLAMOR_FBO_DOWNLOADED 2
@@ -315,7 +293,6 @@ typedef struct glamor_pixmap_fbo {
  * @gl_tex:  The pixmap is in a gl texture originally.
  * @is_picture: The drawable is attached to a picture.
  * @pict_format: the corresponding picture's format.
- * #pending_op: currently only support pending filling.
  * @container: The corresponding pixmap's pointer.
  **/
 typedef struct glamor_pixmap_private {
@@ -325,7 +302,6 @@ typedef struct glamor_pixmap_private {
 	glamor_pixmap_type_t type;
 	glamor_pixmap_fbo *fbo;
 	PictFormatShort pict_format;
-	glamor_pending_op pending_op;
 	PixmapPtr container;
 	int drm_stride;
 	glamor_screen_private *glamor_priv;
@@ -682,8 +658,6 @@ Bool glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format, GLenu
  **/
 void glamor_destroy_upload_pixmap(PixmapPtr pixmap);
 
-void glamor_validate_pixmap(PixmapPtr pixmap);
-
 int glamor_create_picture(PicturePtr picture);
 
 Bool
@@ -754,7 +728,7 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
  * this will increase performance obviously. */
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
-//#define GLAMOR_DELAYED_FILLING
+#define GLAMOR_DELAYED_FILLING
 //#define GLAMOR_GRADIENT_SHADER
 
 

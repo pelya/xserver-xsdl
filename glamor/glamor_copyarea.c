@@ -49,9 +49,6 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 	}
 	src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 
-	if (src_pixmap_priv->pending_op.type == GLAMOR_PENDING_FILL)
-		return FALSE;
-
 	if (gc) {
 		if (gc->alu != GXcopy) {
 			glamor_delayed_fallback(screen, "non-copy ALU\n");
@@ -69,10 +66,8 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 		return FALSE;
 	}
 
-	if (glamor_set_destination_pixmap(dst_pixmap)) {
+	if (glamor_set_destination_pixmap(dst_pixmap))
 		return FALSE;
-	}
-	glamor_validate_pixmap(dst_pixmap);
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT,
@@ -199,58 +194,48 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 		return FALSE;
 	}
 
-	if (alu != GXcopy) {
-		glamor_set_destination_pixmap_priv_nc (src_pixmap_priv);
-		glamor_validate_pixmap(src_pixmap);
-	}
 	glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
-	glamor_validate_pixmap(dst_pixmap);
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
 					GL_FALSE, 2 * sizeof(float),
 					vertices);
 	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
 
-	if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
-		glamor_get_drawable_deltas(src, src_pixmap, &src_x_off,
-					   &src_y_off);
-		dx += src_x_off;
-		dy += src_y_off;
-		pixmap_priv_get_scale(src_pixmap_priv, &src_xscale,
-				      &src_yscale);
+	glamor_get_drawable_deltas(src, src_pixmap, &src_x_off,
+				   &src_y_off);
+	dx += src_x_off;
+	dy += src_y_off;
+	pixmap_priv_get_scale(src_pixmap_priv, &src_xscale,
+			      &src_yscale);
 
-		dispatch->glActiveTexture(GL_TEXTURE0);
-		dispatch->glBindTexture(GL_TEXTURE_2D,
-					src_pixmap_priv->fbo->tex);
+	dispatch->glActiveTexture(GL_TEXTURE0);
+	dispatch->glBindTexture(GL_TEXTURE_2D,
+				src_pixmap_priv->fbo->tex);
 #ifndef GLAMOR_GLES2
-		dispatch->glEnable(GL_TEXTURE_2D);
-		dispatch->glTexParameteri(GL_TEXTURE_2D,
-					  GL_TEXTURE_WRAP_S,
-					  GL_CLAMP_TO_BORDER);
-		dispatch->glTexParameteri(GL_TEXTURE_2D,
-					  GL_TEXTURE_WRAP_T,
-					  GL_CLAMP_TO_BORDER);
+	dispatch->glEnable(GL_TEXTURE_2D);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_WRAP_S,
+				  GL_CLAMP_TO_BORDER);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_WRAP_T,
+				  GL_CLAMP_TO_BORDER);
 #endif
-		dispatch->glTexParameteri(GL_TEXTURE_2D,
-					  GL_TEXTURE_MIN_FILTER,
-					  GL_NEAREST);
-		dispatch->glTexParameteri(GL_TEXTURE_2D,
-					  GL_TEXTURE_MAG_FILTER,
-					  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_MIN_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_MAG_FILTER,
+				  GL_NEAREST);
 
-		dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2,
-						GL_FLOAT, GL_FALSE,
-						2 * sizeof(float),
-						texcoords);
-		dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-		dispatch->glUseProgram(glamor_priv->finish_access_prog[0]);
-		dispatch->glUniform1i(glamor_priv->finish_access_revert[0],
-				      REVERT_NONE);
-		dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[0],
-				      SWAP_NONE_UPLOADING);
-	} else {
-		GLAMOR_CHECK_PENDING_FILL(dispatch, glamor_priv,
-					  src_pixmap_priv);
-	}
+	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2,
+					GL_FLOAT, GL_FALSE,
+					2 * sizeof(float),
+					texcoords);
+	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+	dispatch->glUseProgram(glamor_priv->finish_access_prog[0]);
+	dispatch->glUniform1i(glamor_priv->finish_access_revert[0],
+			      REVERT_NONE);
+	dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[0],
+			      SWAP_NONE_UPLOADING);
 
 	for (i = 0; i < nbox; i++) {
 
@@ -262,26 +247,22 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 					     glamor_priv->yInverted,
 					     vertices);
 
-		if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv))
-			glamor_set_normalize_tcoords(src_xscale,
-						     src_yscale,
-						     box[i].x1 + dx,
-						     box[i].y1 + dy,
-						     box[i].x2 + dx,
-						     box[i].y2 + dy,
-						     glamor_priv->yInverted,
-						     texcoords);
-
+		glamor_set_normalize_tcoords(src_xscale,
+					     src_yscale,
+					     box[i].x1 + dx,
+					     box[i].y1 + dy,
+					     box[i].x2 + dx,
+					     box[i].y2 + dy,
+					     glamor_priv->yInverted,
+					     texcoords);
 		dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-	if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
-		dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 #ifndef GLAMOR_GLES2
-		dispatch->glDisable(GL_TEXTURE_2D);
+	dispatch->glDisable(GL_TEXTURE_2D);
 #endif
-	}
 	dispatch->glUseProgram(0);
 	/* The source texture is bound to a fbo, we have to flush it here. */
 	if (flush_needed)

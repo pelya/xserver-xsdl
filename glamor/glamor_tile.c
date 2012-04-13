@@ -152,13 +152,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 		goto fail;
 	}
 
-	if (alu != GXcopy) {
-		glamor_set_destination_pixmap_priv_nc(src_pixmap_priv);
-		glamor_validate_pixmap(tile);
-	}
-
 	glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
-	glamor_validate_pixmap(pixmap);
 	pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
 
 	dispatch = glamor_get_dispatch(glamor_priv);
@@ -167,45 +161,40 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 		goto fail;
 	}
 
-	if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
-		pixmap_priv_get_scale(src_pixmap_priv, &src_xscale,
-				      &src_yscale);
-		dispatch->glUseProgram(glamor_priv->tile_prog);
+	pixmap_priv_get_scale(src_pixmap_priv, &src_xscale,
+			      &src_yscale);
+	dispatch->glUseProgram(glamor_priv->tile_prog);
 
-		wh[0] = (float)src_pixmap_priv->fbo->width / tile->drawable.width;
-		wh[1] = (float)src_pixmap_priv->fbo->height / tile->drawable.height;
+	wh[0] = (float)src_pixmap_priv->fbo->width / tile->drawable.width;
+	wh[1] = (float)src_pixmap_priv->fbo->height / tile->drawable.height;
 
-		dispatch->glUniform2fv(glamor_priv->tile_wh, 1, wh);
-		dispatch->glActiveTexture(GL_TEXTURE0);
-		dispatch->glBindTexture(GL_TEXTURE_2D,
-					src_pixmap_priv->fbo->tex);
-		dispatch->glTexParameteri(GL_TEXTURE_2D,
-					  GL_TEXTURE_MIN_FILTER,
-					  GL_NEAREST);
-		dispatch->glTexParameteri(GL_TEXTURE_2D,
-					  GL_TEXTURE_MAG_FILTER,
-					  GL_NEAREST);
-		dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-					  GL_REPEAT);
-		dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-					  GL_REPEAT);
+	dispatch->glUniform2fv(glamor_priv->tile_wh, 1, wh);
+	dispatch->glActiveTexture(GL_TEXTURE0);
+	dispatch->glBindTexture(GL_TEXTURE_2D,
+				src_pixmap_priv->fbo->tex);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_MIN_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D,
+				  GL_TEXTURE_MAG_FILTER,
+				  GL_NEAREST);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+				  GL_REPEAT);
+	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+				  GL_REPEAT);
 #ifndef GLAMOR_GLES2
-		dispatch->glEnable(GL_TEXTURE_2D);
+	dispatch->glEnable(GL_TEXTURE_2D);
 #endif
-		glamor_set_normalize_tcoords(src_xscale, src_yscale,
-					     tile_x1, tile_y1,
-					     tile_x2, tile_y2,
-					     glamor_priv->yInverted,
-					     source_texcoords);
-		dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2,
-						GL_FLOAT, GL_FALSE,
-						2 * sizeof(float),
-						source_texcoords);
-		dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-	} else {
-		GLAMOR_CHECK_PENDING_FILL(dispatch, glamor_priv,
-					  src_pixmap_priv);
-	}
+	glamor_set_normalize_tcoords(src_xscale, src_yscale,
+				     tile_x1, tile_y1,
+				     tile_x2, tile_y2,
+				     glamor_priv->yInverted,
+				     source_texcoords);
+	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2,
+					GL_FLOAT, GL_FALSE,
+					2 * sizeof(float),
+					source_texcoords);
+	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
 	glamor_set_normalize_vcoords(dst_xscale, dst_yscale,
 				     x1, y1, x2, y2,
@@ -217,12 +206,10 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	if (GLAMOR_PIXMAP_PRIV_NO_PENDING(src_pixmap_priv)) {
-		dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 #ifndef GLAMOR_GLES2
 		dispatch->glDisable(GL_TEXTURE_2D);
 #endif
-	}
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glUseProgram(0);
 	glamor_set_alu(dispatch, GXcopy);
