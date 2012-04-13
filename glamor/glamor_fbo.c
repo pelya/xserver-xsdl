@@ -527,7 +527,7 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
 		glamor_pixmap_attach_fbo(pixmap, fbo);
 	} else {
 		/* We do have a fbo, but it may lack of fb or tex. */
-		if (pixmap_priv->fbo->tex)
+		if (!pixmap_priv->fbo->tex)
 			pixmap_priv->fbo->tex = _glamor_create_tex(glamor_priv, pixmap->drawable.width,
 								   pixmap->drawable.height, format);
 
