@@ -327,7 +327,10 @@ static void dispatch_dirty(ScreenPtr pScreen)
 	drmModeClip *clip = malloc(num_cliprects * sizeof(drmModeClip));
 	BoxPtr rect = REGION_RECTS(dirty);
 	int i, ret;
-	    
+	
+	if (!clip)
+		return;
+
 	/* XXX no need for copy? */
 	for (i = 0; i < num_cliprects; i++, rect++) {
 	    clip[i].x1 = rect->x1;
