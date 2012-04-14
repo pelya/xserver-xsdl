@@ -324,7 +324,7 @@ static void dispatch_dirty(ScreenPtr pScreen)
     unsigned num_cliprects = REGION_NUM_RECTS(dirty);
 
     if (num_cliprects) {
-	drmModeClip *clip = alloca(num_cliprects * sizeof(drmModeClip));
+	drmModeClip *clip = malloc(num_cliprects * sizeof(drmModeClip));
 	BoxPtr rect = REGION_RECTS(dirty);
 	int i, ret;
 	    
@@ -338,6 +338,7 @@ static void dispatch_dirty(ScreenPtr pScreen)
 
 	/* TODO query connector property to see if this is needed */
 	ret = drmModeDirtyFB(ms->fd, ms->drmmode.fb_id, clip, num_cliprects);
+	free(clip);
 	if (ret) {
 	    if (ret == -EINVAL || ret == -ENOSYS) {
 		ms->dirty_enabled = FALSE;
