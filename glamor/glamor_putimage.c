@@ -376,8 +376,6 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
-	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
-		dispatch->glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	glamor_set_alu(dispatch, GXcopy);
 	glamor_set_planemask(pixmap, ~0);
 	glamor_put_dispatch(glamor_priv);

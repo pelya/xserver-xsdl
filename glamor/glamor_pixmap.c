@@ -819,7 +819,6 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 				  int stride, void *bits, int pbo, glamor_access_t access)
 {
 	glamor_pixmap_private *pixmap_priv;
-	unsigned int row_length;
 	GLenum format, type, gl_access, gl_usage;
 	int no_alpha, revert, swap_rb;
 	void *data, *read;
@@ -896,13 +895,8 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 	}
 
 	dispatch = glamor_get_dispatch(glamor_priv);
-	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-		row_length = (stride * 8) / pixmap->drawable.bitsPerPixel;
-		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		dispatch->glPixelStorei(GL_PACK_ROW_LENGTH, row_length);
-	} else {
-		dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 4);
-	}
+	dispatch->glPixelStorei(GL_PACK_ALIGNMENT, 4);
+
 	if (glamor_priv->has_pack_invert || glamor_priv->yInverted) {
 
 		if (!glamor_priv->yInverted) {
@@ -941,17 +935,15 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 				       temp_pbo);
 		dispatch->glBufferData(GL_PIXEL_PACK_BUFFER,
 				       stride *
-				       pixmap->drawable.height,
+				       h,
 				       NULL, GL_STREAM_READ);
-		dispatch->glReadPixels(0, 0, row_length,
-				       pixmap->drawable.height,
+		dispatch->glReadPixels(0, 0, w, h,
 				       format, type, 0);
 		read = dispatch->glMapBuffer(GL_PIXEL_PACK_BUFFER,
 					     GL_READ_ONLY);
 		for (yy = 0; yy < pixmap->drawable.height; yy++)
 			memcpy(data + yy * stride,
-			       read + (pixmap->drawable.height -
-			       yy - 1) * stride, stride);
+			       read + (h - yy - 1) * stride, stride);
 		dispatch->glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 		dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		dispatch->glDeleteBuffers(1, &temp_pbo);
@@ -995,7 +987,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 {
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
-	unsigned int stride, row_length, y;
+	unsigned int stride, y;
 	GLenum format, type, gl_access, gl_usage;
 	int no_alpha, revert, swap_rb;
 	void *data = NULL, *dst;
