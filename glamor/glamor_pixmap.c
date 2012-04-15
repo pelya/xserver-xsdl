@@ -1021,7 +1021,6 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 					       &pixmap_priv->fbo->pbo);
 		glamor_put_dispatch(glamor_priv);
 		pbo = pixmap_priv->fbo->pbo;
-		glamor_put_dispatch(glamor_priv);
 	}
 
 	dst = glamor_download_sub_pixmap_to_cpu(pixmap, 0, 0,
