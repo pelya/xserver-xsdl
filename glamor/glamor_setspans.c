@@ -34,17 +34,12 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 {
 	PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
 	glamor_pixmap_private *dest_pixmap_priv;
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(drawable->pScreen);
-	glamor_gl_dispatch *dispatch;
-	GLenum format, type;
-	int no_alpha, revert, i;
+	int i;
 	uint8_t *drawpixels_src = (uint8_t *) src;
 	RegionPtr clip = fbGetCompositeClip(gc);
 	BoxRec *pbox;
 	int x_off, y_off;
 	Bool ret = FALSE;
-	int swap_rb;
 
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
@@ -52,57 +47,32 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		goto fail;
 	}
 
-	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
-		glamor_fallback("ES2 fallback.\n");
-		goto fail;
-	}
-
-	if (glamor_get_tex_format_type_from_pixmap(dest_pixmap,
-						   &format,
-						   &type, &no_alpha,
-						   &revert,
-						   &swap_rb,
-						   1)) {
-		glamor_fallback("unknown depth. %d \n", drawable->depth);
-		goto fail;
-	}
-
-	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
-	glamor_validate_pixmap(dest_pixmap);
+	/* XXX Shall we set alu here? */
 	if (!glamor_set_planemask(dest_pixmap, gc->planemask))
 		goto fail;
 
 	glamor_get_drawable_deltas(drawable, dest_pixmap, &x_off, &y_off);
-
-	dispatch = glamor_get_dispatch(glamor_priv);
-	if (!glamor_set_alu(dispatch, gc->alu)) {
-		glamor_put_dispatch(glamor_priv);
-		goto fail;
-	}
-
 	for (i = 0; i < n; i++) {
 
 		n = REGION_NUM_RECTS(clip);
 		pbox = REGION_RECTS(clip);
 		while (n--) {
-			if (pbox->y1 > points[i].y)
+			int x1 = points[i].x;
+			int x2 = x1 + widths[i];
+			int y1 = points[i].y;
+
+			if (pbox->y1 > points[i].y || pbox->y2 < points[i].y)
 				break;
-			dispatch->glScissor(pbox->x1,
-					    points[i].y + y_off,
-					    pbox->x2 - pbox->x1, 1);
-			dispatch->glEnable(GL_SCISSOR_TEST);
-			dispatch->glRasterPos2i(points[i].x + x_off,
-						points[i].y + y_off);
-			dispatch->glDrawPixels(widths[i], 1, format,
-					       type, drawpixels_src);
+			x1 = x1 > pbox->x1 ? x1 : pbox->x1;
+			x2 = x2 < pbox->x2 ? x2 : pbox->x2;
+			if (x1 >= x2)
+				continue;
+			glamor_upload_sub_pixmap_to_texture(dest_pixmap, x1 + x_off,  y1 + y_off, x2 - x1, 1,
+							    PixmapBytePad(widths[i], drawable->depth),
+							    drawpixels_src, 0);
 		}
-		drawpixels_src +=
-		    PixmapBytePad(widths[i], drawable->depth);
+		drawpixels_src += PixmapBytePad(widths[i], drawable->depth);
 	}
-	glamor_set_planemask(dest_pixmap, ~0);
-	glamor_set_alu(dispatch, GXcopy);
-	dispatch->glDisable(GL_SCISSOR_TEST);
-	glamor_put_dispatch(glamor_priv);
 	ret = TRUE;
 	goto done;
 
