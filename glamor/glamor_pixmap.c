@@ -1170,6 +1170,11 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 	sub_pixmap_priv = glamor_get_pixmap_private(sub_pixmap);
 	pbo = sub_pixmap_priv ? (sub_pixmap_priv->fbo ? sub_pixmap_priv->fbo->pbo : 0): 0;
 
+	if (pixmap_priv->is_picture) {
+		sub_pixmap_priv->pict_format = pixmap_priv->pict_format;
+		sub_pixmap_priv->is_picture = pixmap_priv->is_picture;
+	}
+
 	if (pbo)
 		data = NULL;
 	else {
@@ -1207,19 +1212,20 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 PixmapPtr
 glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y, int w, int h, glamor_access_t access)
 {
-	struct pixman_box16 box;
-	int dx, dy;
-	box.x1 = x;
-	box.y1 = y;
-	box.x2 = x + w;
-	box.y2 = y + h;
+	void *bits;
+	int pbo;
+	glamor_pixmap_private *sub_pixmap_priv;
 
-	dx = -(x);
-	dy = -(y);
-
-	glamor_copy_n_to_n(&sub_pixmap->drawable,
-			   &pixmap->drawable,
-			   NULL, &box, 1, dx, dy,
-			   0, 0, 0, NULL);
+	sub_pixmap_priv = glamor_get_pixmap_private(sub_pixmap);
+	if (sub_pixmap_priv
+	    && sub_pixmap_priv->fbo
+	    && sub_pixmap_priv->fbo->pbo_valid) {
+		bits = NULL;
+		pbo = sub_pixmap_priv->fbo->pbo;
+	} else {
+		bits = sub_pixmap->devPrivate.ptr;
+		pbo = 0;
+	}
+	glamor_upload_sub_pixmap_to_texture(pixmap, x, y, w, h, sub_pixmap->devKind, bits, pbo);
 	glamor_destroy_pixmap(sub_pixmap);
 }
