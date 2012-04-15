@@ -674,7 +674,6 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h
 				pixmap->drawable.depth);
 		return TRUE;
 	}
-
 	if (glamor_pixmap_upload_prepare(pixmap, format, no_alpha, revert, swap_rb))
 		return FALSE;
 
@@ -1155,7 +1154,6 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return NULL;
-
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2)
 		flag = GLAMOR_CREATE_PIXMAP_CPU;
 	else
@@ -1215,17 +1213,18 @@ glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y, int 
 	void *bits;
 	int pbo;
 	glamor_pixmap_private *sub_pixmap_priv;
-
-	sub_pixmap_priv = glamor_get_pixmap_private(sub_pixmap);
-	if (sub_pixmap_priv
-	    && sub_pixmap_priv->fbo
-	    && sub_pixmap_priv->fbo->pbo_valid) {
-		bits = NULL;
-		pbo = sub_pixmap_priv->fbo->pbo;
-	} else {
-		bits = sub_pixmap->devPrivate.ptr;
-		pbo = 0;
+	if (access != GLAMOR_ACCESS_RO) {
+		sub_pixmap_priv = glamor_get_pixmap_private(sub_pixmap);
+		if (sub_pixmap_priv
+		    && sub_pixmap_priv->fbo
+		    && sub_pixmap_priv->fbo->pbo_valid) {
+			bits = NULL;
+			pbo = sub_pixmap_priv->fbo->pbo;
+		} else {
+			bits = sub_pixmap->devPrivate.ptr;
+			pbo = 0;
+		}
+		glamor_upload_sub_pixmap_to_texture(pixmap, x, y, w, h, sub_pixmap->devKind, bits, pbo);
 	}
-	glamor_upload_sub_pixmap_to_texture(pixmap, x, y, w, h, sub_pixmap->devKind, bits, pbo);
 	glamor_destroy_pixmap(sub_pixmap);
 }

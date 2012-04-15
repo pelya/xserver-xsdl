@@ -2816,6 +2816,16 @@ _glamor_composite(CARD8 op,
 	RegionRec region;
 	BoxPtr box;
 	int nbox, i, ok;
+	PixmapPtr sub_dest_pixmap = NULL;
+	PixmapPtr sub_source_pixmap = NULL;
+	PixmapPtr sub_mask_pixmap = NULL;
+	int dest_x_off, dest_y_off, saved_dest_x, saved_dest_y;
+	int source_x_off, source_y_off, saved_source_x, saved_source_y;
+	int mask_x_off, mask_y_off, saved_mask_x, saved_mask_y;
+	DrawablePtr saved_dest_drawable;
+	DrawablePtr saved_source_drawable;
+	DrawablePtr saved_mask_drawable;
+
 
 	x_temp_src = x_source;
 	y_temp_src = y_source;
@@ -2824,10 +2834,6 @@ _glamor_composite(CARD8 op,
 
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 	/* Currently. Always fallback to cpu if destination is in CPU memory. */
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
-		goto fail;
-	}
-
 	if (source->pDrawable) {
 		source_pixmap = glamor_get_drawable_pixmap(source->pDrawable);
 		source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
@@ -2841,6 +2847,14 @@ _glamor_composite(CARD8 op,
 		if (mask_pixmap_priv && mask_pixmap_priv->type == GLAMOR_DRM_ONLY)
 			goto fail;
 	}
+
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+		goto fail;
+	}
+
+	if (op >= ARRAY_SIZE(composite_op_info))
+		goto fail;
+
 	if ((!source->pDrawable
 	     && (source->pSourcePict->type != SourcePictTypeSolidFill))
 	    || (source->pDrawable
@@ -3006,6 +3020,28 @@ fail:
 	     dest->pDrawable->width, dest->pDrawable->height,
 	     glamor_get_picture_location(dest));
 
+#define GET_SUB_PICTURE(p, access)		do {					\
+	glamor_get_drawable_deltas(p->pDrawable, p ##_pixmap,				\
+				   & p ##_x_off, & p ##_y_off);				\
+	sub_ ##p ##_pixmap = glamor_get_sub_pixmap(p ##_pixmap,				\
+					      x_ ##p + p ##_x_off + p->pDrawable->x,	\
+					      y_ ##p + p ##_y_off + p->pDrawable->y,	\
+					      width, height, access);			\
+	if (sub_ ##p ##_pixmap != NULL) {						\
+		saved_ ##p ##_drawable = p->pDrawable;					\
+		p->pDrawable = &sub_ ##p ##_pixmap->drawable;				\
+		saved_ ##p ##_x = x_ ##p;						\
+		saved_ ##p ##_y = y_ ##p;						\
+		if (p->pCompositeClip)							\
+			pixman_region_translate (p->pCompositeClip,			\
+						 p ##_x_off - x_ ##p,			\
+						 p ##_y_off - y_ ##p);			\
+		x_ ##p = 0;								\
+		y_ ##p = 0;								\
+	} } while(0)
+
+	GET_SUB_PICTURE(dest, GLAMOR_ACCESS_RW);
+
 	if (glamor_prepare_access_picture(dest, GLAMOR_ACCESS_RW)) {
 		if (glamor_prepare_access_picture
 		    (source, GLAMOR_ACCESS_RO)) {
@@ -3025,6 +3061,23 @@ fail:
 		}
 		glamor_finish_access_picture(dest, GLAMOR_ACCESS_RW);
 	}
+
+#define PUT_SUB_PICTURE(p, access)		do {				\
+	if (sub_ ##p ##_pixmap != NULL) {					\
+		x_ ##p = saved_ ##p ##_x;					\
+		y_ ##p = saved_ ##p ##_y;					\
+		if (p->pCompositeClip)						\
+			pixman_region_translate (p->pCompositeClip,		\
+						 - p ## _x_off + x_ ##p,	\
+						 - p ## _y_off + y_ ##p);	\
+		p->pDrawable = saved_ ##p ##_drawable;				\
+		glamor_put_sub_pixmap(sub_ ##p ##_pixmap, p ##_pixmap,		\
+				      x_ ##p + p ##_x_off + p->pDrawable->x,	\
+				      y_ ##p + p ##_y_off + p->pDrawable->y,	\
+				      width, height, access);			\
+	}} while(0)
+
+	PUT_SUB_PICTURE(dest, GLAMOR_ACCESS_RW);
       done:
 	if (temp_src != source)
 		FreePicture(temp_src, 0);
@@ -3044,10 +3097,10 @@ glamor_composite(CARD8 op,
 		 INT16 y_source,
 		 INT16 x_mask,
 		 INT16 y_mask,
-		 INT16 x_dest, INT16 y_dest, 
+		 INT16 x_dest, INT16 y_dest,
 		 CARD16 width, CARD16 height)
 {
-	_glamor_composite(op, source, mask, dest, x_source, y_source, 
+	_glamor_composite(op, source, mask, dest, x_source, y_source,
 			  x_mask, y_mask, x_dest, y_dest, width, height,
 			  TRUE);
 }
@@ -3061,10 +3114,10 @@ glamor_composite_nf(CARD8 op,
 		    INT16 y_source,
 		    INT16 x_mask,
 		    INT16 y_mask,
-		    INT16 x_dest, INT16 y_dest, 
+		    INT16 x_dest, INT16 y_dest,
 		    CARD16 width, CARD16 height)
 {
-	return _glamor_composite(op, source, mask, dest, x_source, y_source, 
+	return _glamor_composite(op, source, mask, dest, x_source, y_source,
 				 x_mask, y_mask, x_dest, y_dest, width, height,
 				 FALSE);
 }
