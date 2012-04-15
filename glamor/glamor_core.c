@@ -344,6 +344,9 @@ glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 		free(pixmap->devPrivate.ptr);
 	}
 
+	if (pixmap_priv->type == GLAMOR_TEXTURE_DRM)
+		pixmap->devKind = pixmap_priv->drm_stride;
+
 	if (pixmap_priv->gl_fbo == GLAMOR_FBO_DOWNLOADED)
 		pixmap_priv->gl_fbo = GLAMOR_FBO_NORMAL;
 

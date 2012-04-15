@@ -688,6 +688,7 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 	glamor_pixmap_private *pixmap_priv;
 	void *data;
 	int pbo;
+	int ret;
 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
@@ -706,11 +707,11 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 						pixmap->drawable.height,
 						pixmap->devKind,
 						data, pbo))
-		return GLAMOR_UPLOAD_DONE;
+		ret = GLAMOR_UPLOAD_DONE;
 	else
-		return GLAMOR_UPLOAD_FAILED;
+		ret = GLAMOR_UPLOAD_FAILED;
 
-	return GLAMOR_UPLOAD_DONE;
+	return ret;
 }
 
 void
@@ -1021,6 +1022,12 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 					       &pixmap_priv->fbo->pbo);
 		glamor_put_dispatch(glamor_priv);
 		pbo = pixmap_priv->fbo->pbo;
+	}
+
+	if (pixmap_priv->type == GLAMOR_TEXTURE_DRM) {
+		stride = PixmapBytePad(pixmap->drawable.width, pixmap->drawable.depth);
+		pixmap_priv->drm_stride = pixmap->devKind;
+		pixmap->devKind = stride;
 	}
 
 	dst = glamor_download_sub_pixmap_to_cpu(pixmap, 0, 0,

@@ -327,6 +327,7 @@ typedef struct glamor_pixmap_private {
 	PictFormatShort pict_format;
 	glamor_pending_op pending_op;
 	PixmapPtr container;
+	int drm_stride;
 	glamor_screen_private *glamor_priv;
 } glamor_pixmap_private;
 
