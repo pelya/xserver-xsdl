@@ -288,99 +288,27 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	/* create a temporary pixmap and upload the bits to that
 	 * pixmap, then apply clip copy it to the destination pixmap.*/
 
-	temp_pixmap = glamor_create_pixmap(drawable->pScreen, w, h, depth, 0);
-	if (temp_pixmap == NULL)
-		goto fail;
-
-	temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
-	temp_pixmap_priv->pict_format = pixmap_priv->pict_format;
-	temp_pixmap_priv->is_picture = pixmap_priv->is_picture;
-
-	glamor_upload_sub_pixmap_to_texture(temp_pixmap, 0, 0, w, h,
-					    pixmap->devKind, bits, 0);
-
-	dispatch = glamor_get_dispatch(glamor_priv);
-	if (!glamor_set_alu(dispatch, gc->alu)) {
-		glamor_put_dispatch(glamor_priv);
-		goto fail;
-	}
-
-	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-	glamor_validate_pixmap(pixmap);
-	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
-					GL_FALSE, 2 * sizeof(float),
-					vertices);
-	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-
-	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT,
-					GL_FALSE, 2 * sizeof(float),
-					texcoords);
-	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-	dispatch->glActiveTexture(GL_TEXTURE0);
-	dispatch->glBindTexture(GL_TEXTURE_2D, temp_pixmap_priv->fbo->tex);
-
-#ifndef GLAMOR_GLES2
-	dispatch->glEnable(GL_TEXTURE_2D);
-#endif
-	dispatch->glUseProgram(glamor_priv->finish_access_prog[0]);
-	dispatch->glUniform1i(glamor_priv->
-			      finish_access_revert[0],
-			      REVERT_NONE);
-	dispatch->glUniform1i(glamor_priv->finish_access_swap_rb[0],
-			      SWAP_NONE_UPLOADING);
-
-	x += drawable->x;
-	y += drawable->y;
-
-	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
 	clip = fbGetCompositeClip(gc);
+	if (clip != NULL) {
+		temp_pixmap = glamor_create_pixmap(drawable->pScreen, w, h, depth, 0);
+		if (temp_pixmap == NULL)
+			goto fail;
 
-	pixmap_priv_get_scale(temp_pixmap_priv, &txscale, &tyscale);
-	pixmap_priv_get_scale(pixmap_priv, &xscale, &yscale);
+		temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
+		temp_pixmap_priv->pict_format = pixmap_priv->pict_format;
+		temp_pixmap_priv->is_picture = pixmap_priv->is_picture;
 
-	for (nbox = REGION_NUM_RECTS(clip),
-	     pbox = REGION_RECTS(clip); nbox--; pbox++) {
-		int x1 = x;
-		int y1 = y;
-		int x2 = x + w;
-		int y2 = y + h;
+		glamor_upload_sub_pixmap_to_texture(temp_pixmap, 0, 0, w, h,
+						    pixmap->devKind, bits, 0);
 
-		if (x1 < pbox->x1)
-			x1 = pbox->x1;
-		if (y1 < pbox->y1)
-			y1 = pbox->y1;
-		if (x2 > pbox->x2)
-			x2 = pbox->x2;
-		if (y2 > pbox->y2)
-			y2 = pbox->y2;
-		if (x1 >= x2 || y1 >= y2)
-			continue;
-
-		glamor_set_normalize_tcoords(txscale, tyscale,
-					     x1 - x, y1 - y,
-					     x2 - x, y2 - y, 1, texcoords);
-
-		glamor_set_normalize_vcoords(xscale, yscale,
-					     x1 + x_off, y1 + y_off,
-					     x2 + x_off, y2 + y_off,
-					     glamor_priv->yInverted,
-					     vertices);
-
-		dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		glamor_copy_area(&temp_pixmap->drawable, drawable, gc, 0, 0, w, h, x, y);
+		glamor_destroy_pixmap(temp_pixmap);
+	} else {
+		ErrorF("put image directly. \n");
+		glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
+		glamor_upload_sub_pixmap_to_texture(pixmap, drawable->x + x_off, drawable->y + y_off,
+						    w, h, pixmap->devKind, bits, 0);
 	}
-
-#ifndef GLAMOR_GLES2
-	dispatch->glDisable(GL_TEXTURE_2D);
-#endif
-	dispatch->glUseProgram(0);
-	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-
-	glamor_set_alu(dispatch, GXcopy);
-	glamor_set_planemask(pixmap, ~0);
-	glamor_put_dispatch(glamor_priv);
-
-	glamor_destroy_pixmap(temp_pixmap);
 	ret = TRUE;
 	goto done;
 
