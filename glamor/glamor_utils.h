@@ -757,7 +757,6 @@ static inline void _glamor_dump_pixmap_byte(PixmapPtr pixmap, int x, int y, int 
 	int stride = pixmap->devKind;
 
 	p = p + y * stride + x;
-	ErrorF("devKind %d, x %d y %d w %d h %d width %d height %d\n", stride, x, y, w, h, pixmap->drawable.width, pixmap->drawable.height);
 
 	for (i = 0; i < h; i++)
 	{

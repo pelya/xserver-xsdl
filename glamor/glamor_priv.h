@@ -370,8 +370,15 @@ glamor_set_screen_private(ScreenPtr screen, glamor_screen_private *priv)
 static inline glamor_pixmap_private *
 glamor_get_pixmap_private(PixmapPtr pixmap)
 {
-	return dixLookupPrivate(&pixmap->devPrivates,
+	glamor_pixmap_private *priv;
+	priv = dixLookupPrivate(&pixmap->devPrivates,
 				glamor_pixmap_private_key);
+	if (!priv) {
+		glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
+		priv = dixLookupPrivate(&pixmap->devPrivates,
+					glamor_pixmap_private_key);
+	}
+	return priv;
 }
 
 void glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv);

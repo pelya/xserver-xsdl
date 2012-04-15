@@ -67,7 +67,8 @@ glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
 
-	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	pixmap_priv = dixLookupPrivate(&pixmap->devPrivates,
+					glamor_pixmap_private_key);
 	if (pixmap_priv == NULL) {
 		pixmap_priv = calloc(sizeof(*pixmap_priv), 1);
 		glamor_set_pixmap_private(pixmap, pixmap_priv);
