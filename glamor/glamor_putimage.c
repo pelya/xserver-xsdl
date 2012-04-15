@@ -249,20 +249,12 @@ static Bool
 _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		 int w, int h, int left_pad, int image_format, char *bits, Bool fallback)
 {
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(drawable->pScreen);
-	glamor_gl_dispatch *dispatch;
 	PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
-	GLenum type, format, iformat;
 	RegionPtr clip;
-	BoxPtr pbox;
-	int nbox;
-	int src_stride = PixmapBytePad(w, drawable->depth);
 	int x_off, y_off;
 	float vertices[8], texcoords[8];
-	GLfloat xscale, yscale, txscale, tyscale;
 	Bool ret = FALSE;
 	PixmapPtr temp_pixmap;
 	glamor_pixmap_private *temp_pixmap_priv;

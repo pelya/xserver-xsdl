@@ -36,30 +36,21 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 {
 	PixmapPtr pixmap;
 	struct glamor_pixmap_private *pixmap_priv;
-	struct glamor_screen_private *glamor_priv;
 	int x_off, y_off;
-	GLenum tex_format, tex_type;
-	int no_alpha, revert;
-	glamor_pixmap_fbo *temp_fbo = NULL;
-	glamor_gl_dispatch * dispatch;
 	Bool ret = FALSE;
-	int swap_rb;
 	int stride;
 	void *data;
 
 	if (format != ZPixmap)
 		goto fall_back;
 
-	glamor_priv = glamor_get_screen_private(drawable->pScreen);
 	pixmap = glamor_get_drawable_pixmap(drawable);
 	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
-
 	if (!glamor_set_planemask(pixmap, planeMask)) {
 		glamor_fallback
 		    ("Failedto set planemask  in glamor_solid.\n");
 		goto fall_back;
 	}
-	glamor_priv = glamor_get_screen_private(drawable->pScreen);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
 
