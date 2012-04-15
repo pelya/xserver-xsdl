@@ -418,40 +418,40 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, int *tex,
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
 	glamor_gl_dispatch *dispatch;
+	int non_sub = 0;
+	int iformat;
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (*tex == 0) {
-		int iformat;
 		dispatch->glGenTextures(1, tex);
 		if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
 			gl_iformat_for_depth(pixmap->drawable.depth, &iformat);
 		else
 			iformat = format;
+		non_sub = 1;
+		assert(x == 0 && y == 0);
+	}
 
-		dispatch->glBindTexture(GL_TEXTURE_2D, *tex);
-		dispatch->glTexImage2D(GL_TEXTURE_2D,
-				       0,
-				       iformat,
-				       w, h, 0, format, type,
-				       bits);
-	} else
-		dispatch->glBindTexture(GL_TEXTURE_2D, *tex);
-
+	dispatch->glBindTexture(GL_TEXTURE_2D, *tex);
 	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 				  GL_NEAREST);
 	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
 				  GL_NEAREST);
-
 	dispatch->glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 	if (bits == NULL)
 		dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER,
 				       pbo);
-
-	dispatch->glTexSubImage2D(GL_TEXTURE_2D,
-				  0, x, y, w, h,
-				  format, type,
-				  bits);
+	if (non_sub)
+		dispatch->glTexImage2D(GL_TEXTURE_2D,
+				       0, iformat, w, h, 0,
+				       format, type,
+				       bits);
+	else
+		dispatch->glTexSubImage2D(GL_TEXTURE_2D,
+					  0, x, y, w, h,
+					  format, type,
+					  bits);
 
 	if (bits == NULL)
 		dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
