@@ -1273,9 +1273,18 @@ ProcessTouchOwnershipEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
     if (ev->reason == XIRejectTouch)
         TouchRejected(dev, ti, ev->resource, ev);
     else if (ev->reason == XIAcceptTouch) {
+        int i;
+
+        /* Go through the motions of ending the touch if the listener has
+         * already seen the end. This ensures that the touch record is ended in
+         * the server. */
+        if (ti->listeners[0].state == LISTENER_HAS_END)
+            EmitTouchEnd(dev, ti, TOUCH_ACCEPT, ti->listeners[0].listener);
+
         /* The touch owner has accepted the touch.  Send TouchEnd events to
          * everyone else, and truncate the list of listeners. */
-        EmitTouchEnd(dev, ti, TOUCH_ACCEPT, 0);
+        for (i = 1; i < ti->num_listeners; i++)
+            EmitTouchEnd(dev, ti, TOUCH_ACCEPT, ti->listeners[i].listener);
 
         while (ti->num_listeners > 1)
             TouchRemoveListener(ti, ti->listeners[1].listener);
