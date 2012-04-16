@@ -1856,7 +1856,8 @@ DeliverTouchEndEvent(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev,
         if (ti->num_listeners > 1) {
             ev->any.type = ET_TouchUpdate;
             ev->device_event.flags |= TOUCH_PENDING_END;
-            ti->pending_finish = TRUE;
+            if (!(ev->device_event.flags & TOUCH_CLIENT_ID))
+                ti->pending_finish = TRUE;
         }
 
         goto out;
