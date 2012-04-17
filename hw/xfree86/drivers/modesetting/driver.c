@@ -756,10 +756,12 @@ static void
 LeaveVT(int scrnIndex, int flags)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
-
+    modesettingPtr ms = modesettingPTR(pScrn);
     xf86_hide_cursors(pScrn);
 
     pScrn->vtSema = FALSE;
+
+    drmDropMaster(ms->fd);
 }
 
 /*
@@ -772,6 +774,11 @@ EnterVT(int scrnIndex, int flags)
     modesettingPtr ms = modesettingPTR(pScrn);
 
     pScrn->vtSema = TRUE;
+
+    if (drmSetMaster(ms->fd)) {
+        xf86DrvMsg(pScrn->scrnIndex, X_WARNING, "drmSetMaster failed: %s\n",
+                   strerror(errno));
+    }
 
     if (!drmmode_set_desired_modes(pScrn, &ms->drmmode))
 	return FALSE;
@@ -814,8 +821,6 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
 
     pScreen->CreateScreenResources = ms->createScreenResources;
     pScreen->BlockHandler = ms->BlockHandler;
-
-    drmDropMaster(ms->fd);
 
     pScrn->vtSema = FALSE;
     pScreen->CloseScreen = ms->CloseScreen;
