@@ -1409,6 +1409,38 @@ ReattachToOldMaster(DeviceIntPtr dev)
 }
 
 /**
+ * Update touch records when an explicit grab is activated. Any touches owned by
+ * the grabbing client are updated so the listener state reflects the new grab.
+ */
+static void
+UpdateTouchesForGrab(DeviceIntPtr mouse)
+{
+    int i;
+
+    if (!mouse->touch || mouse->deviceGrab.fromPassiveGrab)
+        return;
+
+    for (i = 0; i < mouse->touch->num_touches; i++) {
+        TouchPointInfoPtr ti = mouse->touch->touches + i;
+        GrabPtr grab = mouse->deviceGrab.grab;
+
+        if (ti->active &&
+            CLIENT_BITS(ti->listeners[0].listener) == grab->resource) {
+            ti->listeners[0].listener = grab->resource;
+            ti->listeners[0].level = grab->grabtype;
+            ti->listeners[0].state = LISTENER_IS_OWNER;
+            ti->listeners[0].window = grab->window;
+
+            if (grab->grabtype == CORE || grab->grabtype == XI ||
+                !xi2mask_isset(grab->xi2mask, mouse, XI_TouchBegin))
+                ti->listeners[0].type = LISTENER_POINTER_GRAB;
+            else
+                ti->listeners[0].type = LISTENER_GRAB;
+        }
+    }
+}
+
+/**
  * Activate a pointer grab on the given device. A pointer grab will cause all
  * core pointer events of this device to be delivered to the grabbing client only.
  * No other device will send core events to the grab client while the grab is
@@ -1457,6 +1489,7 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
     grabinfo->fromPassiveGrab = isPassive;
     grabinfo->implicitGrab = autoGrab & ImplicitGrabMask;
     PostNewCursor(mouse);
+    UpdateTouchesForGrab(mouse);
     CheckGrabForSyncs(mouse, (Bool) grab->pointerMode,
                       (Bool) grab->keyboardMode);
 }
