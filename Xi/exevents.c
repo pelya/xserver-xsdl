@@ -1610,6 +1610,34 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
     else
         ti = TouchFindByClientID(dev, touchid);
 
+    /* Under the following circumstances we create a new touch record for an
+     * existing touch:
+     *
+     * - The touch may be pointer emulated
+     * - An explicit grab is active on the device
+     * - The grab is a pointer grab
+     *
+     * This allows for an explicit grab to receive pointer events for an already
+     * active touch.
+     */
+    if (!ti && type != ET_TouchBegin && emulate_pointer &&
+        dev->deviceGrab.grab && !dev->deviceGrab.fromPassiveGrab &&
+        (dev->deviceGrab.grab->grabtype == CORE ||
+         dev->deviceGrab.grab->grabtype == XI ||
+         !xi2mask_isset(dev->deviceGrab.grab->xi2mask, dev, XI_TouchBegin))) {
+        ti = TouchBeginTouch(dev, ev->device_event.sourceid, touchid,
+                             emulate_pointer);
+        if (!ti) {
+            DebugF("[Xi] %s: Failed to create new dix record for explicitly "
+                   "grabbed touchpoint %d\n",
+                   dev->name, type, touchid);
+            return;
+        }
+
+        TouchBuildSprite(dev, ti, ev);
+        TouchSetupListeners(dev, ti, ev);
+    }
+
     if (!ti) {
         DebugF("[Xi] %s: Failed to get event %d for touchpoint %d\n",
                dev->name, type, touchid);

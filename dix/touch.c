@@ -864,6 +864,11 @@ TouchSetupListeners(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev)
     if (dev->deviceGrab.grab)
         TouchAddActiveGrabListener(dev, ti, ev, dev->deviceGrab.grab);
 
+    /* We set up an active touch listener for existing touches, but not any
+     * passive grab or regular listeners. */
+    if (ev->any.type != ET_TouchBegin)
+        return;
+
     /* First, find all grabbing clients from the root window down
      * to the deepest child window. */
     for (i = 0; i < sprite->spriteTraceGood; i++) {
