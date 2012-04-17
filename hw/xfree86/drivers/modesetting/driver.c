@@ -757,6 +757,8 @@ LeaveVT(int scrnIndex, int flags)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
 
+    xf86_hide_cursors(pScrn);
+
     pScrn->vtSema = FALSE;
 }
 
