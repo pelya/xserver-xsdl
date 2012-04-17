@@ -1234,14 +1234,6 @@ TouchRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti, XID resource,
         }
     }
 
-    /* If there are no other listeners left, and the touchpoint is pending
-     * finish, then we can just kill it now. */
-    if (ti->num_listeners == 1 && ti->pending_finish) {
-        TouchEndTouch(sourcedev, ti);
-        CheckOldestTouch(sourcedev);
-        return;
-    }
-
     /* Remove the resource from the listener list, updating
      * ti->num_listeners, as well as ti->num_grabs if it was a grab. */
     if (TouchRemoveListener(ti, resource)) {
@@ -1254,6 +1246,8 @@ TouchRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti, XID resource,
      * the TouchOwnership or TouchBegin event to the new owner. */
     if (ev && ti->num_listeners > 0 && was_owner)
         TouchPuntToNextOwner(sourcedev, ti, ev);
+    else if (ti->num_listeners == 0)
+        TouchEndTouch(sourcedev, ti);
 
     CheckOldestTouch(sourcedev);
 }
