@@ -542,21 +542,11 @@ TouchBuildDependentSpriteTrace(DeviceIntPtr dev, SpritePtr sprite)
  * TouchBegin events.
  */
 Bool
-TouchEnsureSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
-                  InternalEvent *ev)
+TouchBuildSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
+                 InternalEvent *ev)
 {
     TouchClassPtr t = sourcedev->touch;
     SpritePtr sprite = &ti->sprite;
-
-    /* We may not have a sprite if there are no applicable grabs or
-     * event selections, or if they've disappeared, or if all the grab
-     * owners have rejected the touch.  Don't bother delivering motion
-     * events if not, but TouchEnd events still need to be processed so
-     * we can call FinishTouchPoint and release it for later use. */
-    if (ev->any.type == ET_TouchEnd)
-        return TRUE;
-    else if (ev->any.type != ET_TouchBegin)
-        return (sprite->spriteTraceGood > 0);
 
     if (t->mode == XIDirectTouch) {
         /* Focus immediately under the touchpoint in direct touch mode.

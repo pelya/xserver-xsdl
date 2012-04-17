@@ -563,8 +563,8 @@ extern void TouchAddListener(TouchPointInfoPtr ti, XID resource,
 extern Bool TouchRemoveListener(TouchPointInfoPtr ti, XID resource);
 extern void TouchSetupListeners(DeviceIntPtr dev, TouchPointInfoPtr ti,
                                 InternalEvent *ev);
-extern Bool TouchEnsureSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
-                              InternalEvent *ev);
+extern Bool TouchBuildSprite(DeviceIntPtr sourcedev, TouchPointInfoPtr ti,
+                             InternalEvent *ev);
 extern Bool TouchBuildDependentSpriteTrace(DeviceIntPtr dev, SpritePtr sprite);
 extern int TouchConvertToPointerEvent(const InternalEvent *ev,
                                       InternalEvent *motion,

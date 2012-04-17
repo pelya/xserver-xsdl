@@ -1625,9 +1625,11 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
         CheckMotion(&ev->device_event, dev);
 
     /* Make sure we have a valid window trace for event delivery; must be
-     * called after event type mutation. */
+     * called after event type mutation. Touch end events are always processed
+     * in order to end touch records. */
     /* FIXME: check this */
-    if (!TouchEnsureSprite(dev, ti, ev))
+    if ((type == ET_TouchBegin && !TouchBuildSprite(dev, ti, ev)) ||
+        (type != ET_TouchEnd && ti->sprite.spriteTraceGood == 0))
         return;
 
     /* TouchOwnership events are handled separately from the rest, as they
