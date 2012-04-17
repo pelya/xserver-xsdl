@@ -364,14 +364,6 @@ TouchEndTouch(DeviceIntPtr dev, TouchPointInfoPtr ti)
 {
     if (ti->emulate_pointer) {
         GrabPtr grab;
-        DeviceEvent ev;
-
-        memset(&ev, 0, sizeof(ev));
-        ev.type = ET_TouchEnd;
-        ev.detail.button = 1;
-        ev.touchid = ti->client_id;
-        ev.flags = TOUCH_POINTER_EMULATED | TOUCH_END;
-        UpdateDeviceState(dev, &ev);
 
         if ((grab = dev->deviceGrab.grab)) {
             if (dev->deviceGrab.fromPassiveGrab &&

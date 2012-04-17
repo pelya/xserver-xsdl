@@ -1597,6 +1597,9 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
     else
         touchid = ev->device_event.touchid;
 
+    if (emulate_pointer)
+        UpdateDeviceState(dev, &ev->device_event);
+
     if (type == ET_TouchBegin) {
         ti = TouchBeginTouch(dev, ev->device_event.sourceid, touchid,
                              emulate_pointer);
@@ -1996,9 +1999,6 @@ DeliverTouchEvents(DeviceIntPtr dev, TouchPointInfoPtr ti,
 
         DeliverTouchEvent(dev, ti, ev, listener, client, win, grab, mask);
     }
-
-    if (ti->emulate_pointer)
-        UpdateDeviceState(dev, &ev->device_event);
 }
 
 int
