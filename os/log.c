@@ -276,12 +276,8 @@ LogVWrite(int verb, const char *f, va_list args)
     int len = 0;
     static Bool newline = TRUE;
 
-    if (newline) {
-        sprintf(tmpBuffer, "[%10.3f] ", GetTimeInMillis() / 1000.0);
-        len = strlen(tmpBuffer);
-        if (logFile)
-            fwrite(tmpBuffer, len, 1, logFile);
-    }
+    if (verb > logFileVerbosity && verb > logVerbosity)
+        return;
 
     /*
      * Since a va_list can only be processed once, write the string to a
@@ -289,14 +285,18 @@ LogVWrite(int verb, const char *f, va_list args)
      * stream(s).
      */
     if (verb < 0 || logFileVerbosity >= verb || logVerbosity >= verb) {
-        vsnprintf(tmpBuffer, sizeof(tmpBuffer), f, args);
-        len = strlen(tmpBuffer);
+        len = Xvscnprintf(tmpBuffer, sizeof(tmpBuffer), f, args);
+        /* If message is truncated, terminate with '\n' */
+        if (sizeof(tmpBuffer) - len == 1)
+            tmpBuffer[len - 1] = '\n';
     }
-    newline = (tmpBuffer[len - 1] == '\n');
     if ((verb < 0 || logVerbosity >= verb) && len > 0)
         fwrite(tmpBuffer, len, 1, stderr);
     if ((verb < 0 || logFileVerbosity >= verb) && len > 0) {
         if (logFile) {
+            if (newline)
+                fprintf(logFile, "[%10.3f] ", GetTimeInMillis() / 1000.0);
+            newline = (tmpBuffer[len - 1] == '\n');
             fwrite(tmpBuffer, len, 1, logFile);
             if (logFlush) {
                 fflush(logFile);
