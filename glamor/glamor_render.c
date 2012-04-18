@@ -2074,26 +2074,35 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 
 static int
 _glamor_gradient_set_stops(PicturePtr src_picture, PictGradient * pgradient,
-                           GLfloat *stop_colors, GLfloat *n_stops)
+        GLfloat *stop_colors, GLfloat *n_stops)
 {
 	int i;
-	int count;
+	int count = 1;
 
-	for (i = 1; i < pgradient->nstops + 1; i++) {
-		stop_colors[i*4] = pixman_fixed_to_double(
-		                       pgradient->stops[i-1].color.red);
-		stop_colors[i*4+1] = pixman_fixed_to_double(
-		                       pgradient->stops[i-1].color.green);
-		stop_colors[i*4+2] = pixman_fixed_to_double(
-		                       pgradient->stops[i-1].color.blue);
-		stop_colors[i*4+3] = pixman_fixed_to_double(
-		                       pgradient->stops[i-1].color.alpha);
+	for (i = 0; i < pgradient->nstops; i++) {
+		/* We find some gradient picture set the stops at the same percentage, which
+		   will cause the shader problem because the (stops[i] - stops[i-1]) will
+		   be used as divisor. We just keep the later one if stops[i] == stops[i-1] */
+		if (i < pgradient->nstops - 1
+		         && pgradient->stops[i].x == pgradient->stops[i+1].x)
+			continue;
 
-		n_stops[i] = (GLfloat)pixman_fixed_to_double(
-		                       pgradient->stops[i-1].x);
+		stop_colors[count*4] = pixman_fixed_to_double(
+		                                pgradient->stops[i].color.red);
+		stop_colors[count*4+1] = pixman_fixed_to_double(
+		                                pgradient->stops[i].color.green);
+		stop_colors[count*4+2] = pixman_fixed_to_double(
+		                                pgradient->stops[i].color.blue);
+		stop_colors[count*4+3] = pixman_fixed_to_double(
+		                                pgradient->stops[i].color.alpha);
+
+		n_stops[count] = (GLfloat)pixman_fixed_to_double(
+		                                pgradient->stops[i].x);
+		count++;
 	}
 
-	count = pgradient->nstops + 2;
+	/* for the end stop. */
+	count++;
 
 	switch (src_picture->repeatType) {
 #define REPEAT_FILL_STOPS(m, n) \
