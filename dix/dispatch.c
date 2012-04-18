@@ -413,8 +413,8 @@ Dispatch(void)
                 if (XSERVER_REQUEST_START_ENABLED())
                     XSERVER_REQUEST_START(LookupMajorName(client->majorOp),
                                           client->majorOp,
-                                          ((xReq *) client->requestBuffer)->
-                                          length, client->index,
+                                          ((xReq *) client->requestBuffer)->length,
+                                          client->index,
                                           client->requestBuffer);
 #endif
                 if (result > (maxBigRequestSize << 2))
