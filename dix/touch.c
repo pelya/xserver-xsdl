@@ -811,6 +811,7 @@ TouchAddRegularListener(DeviceIntPtr dev, TouchPointInfoPtr ti,
     if (mask & EVENT_CORE_MASK) {
         int coretype = GetCoreType(TouchGetPointerEventType(ev));
         Mask core_filter = event_get_filter_from_type(dev, coretype);
+        OtherClients *oclients;
 
         /* window owner */
         if (IsMaster(dev) && (win->eventMask & core_filter)) {
@@ -822,13 +823,12 @@ TouchAddRegularListener(DeviceIntPtr dev, TouchPointInfoPtr ti,
         }
 
         /* all others */
-        nt_list_for_each_entry(iclients, (InputClients *) wOtherClients(win),
-                               next) {
-            if (!(iclients->mask[XIAllDevices] & core_filter))
+        nt_list_for_each_entry(oclients, wOtherClients(win), next) {
+            if (!(oclients->mask & core_filter))
                 continue;
 
             TouchEventHistoryAllocate(ti);
-            TouchAddListener(ti, iclients->resource, CORE,
+            TouchAddListener(ti, oclients->resource, CORE,
                              type, LISTENER_AWAITING_BEGIN, win);
             return TRUE;
         }
