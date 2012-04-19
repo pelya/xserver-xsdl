@@ -474,10 +474,22 @@ TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID resource)
     flags = TOUCH_CLIENT_ID | TOUCH_REPLAYING;
     if (ti->emulate_pointer)
         flags |= TOUCH_POINTER_EMULATED;
-    /* send fake begin event to next owner */
+    /* Generate events based on a fake touch begin event to get DCCE events if
+     * needed */
+    /* FIXME: This needs to be cleaned up */
     nev = GetTouchEvents(tel, dev, ti->client_id, XI_TouchBegin, flags, mask);
-    for (i = 0; i < nev; i++)
-        DeliverTouchEvents(dev, ti, tel + i, resource);
+    for (i = 0; i < nev; i++) {
+        /* Send saved touch begin event */
+        if (tel[i].any.type == ET_TouchBegin) {
+            DeviceEvent *ev = &ti->history[0];
+            ev->flags |= TOUCH_REPLAYING;
+            DeliverTouchEvents(dev, ti, (InternalEvent*)ev, resource);
+        }
+        else {/* Send DCCE event */
+            tel[i].any.time = ti->history[0].time;
+            DeliverTouchEvents(dev, ti, tel + i, resource);
+        }
+    }
 
     valuator_mask_free(&mask);
     FreeEventList(tel, GetMaximumEventsNum());
