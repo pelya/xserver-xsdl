@@ -215,9 +215,7 @@ message_kit_thread(SEL selector, NSObject *arg)
     if (state) {
         if (bgMouseLocationUpdated) {
             DarwinSendPointerEvents(darwinPointer, MotionNotify, 0,
-                                    bgMouseLocation.x, bgMouseLocation.y, 0.0,
-                                    0.0,
-                                    0.0);
+                                    bgMouseLocation.x, bgMouseLocation.y);
             bgMouseLocationUpdated = FALSE;
         }
         DarwinSendDDXEvent(kXquartzActivate, 0);
@@ -1549,9 +1547,9 @@ handle_mouse:
             if ([e isEnteringProximity])
                 needsProximityIn = YES;
             else
-                DarwinSendProximityEvents(darwinTabletCurrent, ProximityOut,
-                                          location.x, location.y, pressure,
-                                          tilt.x, tilt.y);
+                DarwinSendTabletEvents(darwinTabletCurrent, ProximityOut, 0,
+                                       location.x, location.y, pressure,
+                                       tilt.x, tilt.y);
             return;
         }
 
@@ -1563,9 +1561,9 @@ handle_mouse:
             pDev = darwinTabletCurrent;
 
             if (needsProximityIn) {
-                DarwinSendProximityEvents(darwinTabletCurrent, ProximityIn,
-                                          location.x, location.y, pressure,
-                                          tilt.x, tilt.y);
+                DarwinSendTabletEvents(darwinTabletCurrent, ProximityIn, 0,
+                                       location.x, location.y, pressure,
+                                       tilt.x, tilt.y);
 
                 needsProximityIn = NO;
             }
@@ -1596,14 +1594,20 @@ handle_mouse:
 
         if (bgMouseLocationUpdated) {
             if (!(ev_type == MotionNotify && ev_button == 0)) {
-                DarwinSendPointerEvents(pDev, MotionNotify, 0, location.x,
-                                        location.y, pressure, tilt.x, tilt.y);
+                DarwinSendPointerEvents(darwinPointer, MotionNotify, 0,
+                                        location.x, location.y);
             }
             bgMouseLocationUpdated = FALSE;
         }
 
-        DarwinSendPointerEvents(pDev, ev_type, ev_button, location.x,
-                                location.y, pressure, tilt.x, tilt.y);
+        if (pDev == darwinPointer) {
+            DarwinSendPointerEvents(pDev, ev_type, ev_button,
+                                    location.x, location.y);
+        } else {
+            DarwinSendTabletEvents(pDev, ev_type, ev_button,
+                                   location.x, location.y, pressure,
+                                   tilt.x, tilt.y);
+        }
 
         break;
 
@@ -1627,9 +1631,9 @@ handle_mouse:
         if ([e isEnteringProximity])
             needsProximityIn = YES;
         else
-            DarwinSendProximityEvents(darwinTabletCurrent, ProximityOut,
-                                      location.x, location.y, pressure,
-                                      tilt.x, tilt.y);
+            DarwinSendTabletEvents(darwinTabletCurrent, ProximityOut, 0,
+                                   location.x, location.y, pressure,
+                                   tilt.x, tilt.y);
         break;
 
     case NSScrollWheel:
@@ -1643,8 +1647,7 @@ handle_mouse:
         if (!XQuartzServerVisible && noTestExtensions) {
             bgMouseLocationUpdated = FALSE;
             DarwinSendPointerEvents(darwinPointer, MotionNotify, 0,
-                                    location.x, location.y, pressure, 
-                                    tilt.x, tilt.y);
+                                    location.x, location.y);
         }
 #endif
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
