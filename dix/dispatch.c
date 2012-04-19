@@ -214,7 +214,7 @@ UpdateCurrentTimeIf(void)
     systime.milliseconds = GetTimeInMillis();
     if (systime.milliseconds < currentTime.milliseconds)
         systime.months++;
-    if (*checkForInput[0] == *checkForInput[1])
+    if (CompareTimeStamps(systime, currentTime) == LATER)
         currentTime = systime;
 }
 
@@ -393,6 +393,9 @@ Dispatch(void)
                 }
                 /* now, finally, deal with client requests */
 
+                /* Update currentTime so request time checks, such as for input
+                 * device grabs, are calculated correctly */
+                UpdateCurrentTimeIf();
                 result = ReadRequestFromClient(client);
                 if (result <= 0) {
                     if (result < 0)
