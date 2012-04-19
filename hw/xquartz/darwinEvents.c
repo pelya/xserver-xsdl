@@ -504,8 +504,8 @@ DarwinSendTabletEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
         pointer_y = 0.0;
     
     /* Adjust our pointer location to the [0,1] range */
-    pointer_x = pointer_x / (double)screenInfo.screens[0]->width;
-    pointer_y = pointer_y / (double)screenInfo.screens[0]->height;
+    pointer_x = pointer_x / (double)screenInfo.width;
+    pointer_y = pointer_y / (double)screenInfo.height;
 
     valuator_mask_zero(&valuators);
     valuator_mask_set_double(&valuators, 0, XQUARTZ_VALUATOR_LIMIT * pointer_x);
