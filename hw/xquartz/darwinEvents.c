@@ -74,12 +74,6 @@
 
 #include <IOKit/hidsystem/IOLLEvent.h>
 
-/* Fake button press/release for scroll wheel move. */
-#define SCROLLWHEELUPFAKE    4
-#define SCROLLWHEELDOWNFAKE  5
-#define SCROLLWHEELLEFTFAKE  6
-#define SCROLLWHEELRIGHTFAKE 7
-
 #include <X11/extensions/applewmconst.h>
 #include "applewmExt.h"
 
@@ -497,12 +491,6 @@ DarwinSendTabletEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
     pointer_x -= darwinMainScreenX + screen->x;
     pointer_y -= darwinMainScreenY + screen->y;
 
-    if (pointer_x < 0.0)
-        pointer_x = 0.0;
-
-    if (pointer_y < 0.0)
-        pointer_y = 0.0;
-    
     /* Adjust our pointer location to the [0,1] range */
     pointer_x = pointer_x / (double)screenInfo.width;
     pointer_y = pointer_y / (double)screenInfo.height;
@@ -528,7 +516,8 @@ DarwinSendTabletEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
 
 void
 DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
-                        double pointer_x, double pointer_y)
+                        double pointer_x, double pointer_y,
+                        double pointer_dx, double pointer_dy)
 {
     static int darwinFakeMouseButtonDown = 0;
     ScreenPtr screen;
@@ -553,7 +542,7 @@ DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
             /* We're currently "down" with another button, so release it first */
             DarwinSendPointerEvents(pDev, ButtonRelease,
                                     darwinFakeMouseButtonDown,
-                                    pointer_x, pointer_y);
+                                    pointer_x, pointer_y, 0.0, 0.0);
             darwinFakeMouseButtonDown = 0;
         }
         if (darwin_all_modifier_flags & darwinFakeMouse2Mask) {
@@ -591,22 +580,23 @@ DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
     pointer_x -= darwinMainScreenX + screen->x;
     pointer_y -= darwinMainScreenY + screen->y;
 
-    if (pointer_x < 0.0)
-        pointer_x = 0.0;
-
-    if (pointer_y < 0.0)
-        pointer_y = 0.0;
-
     valuator_mask_zero(&valuators);
     valuator_mask_set_double(&valuators, 0, pointer_x);
     valuator_mask_set_double(&valuators, 1, pointer_y);
+
+    if (ev_type == MotionNotify) {
+        if (pointer_dx != 0.0)
+            valuator_mask_set_double(&valuators, 2, pointer_dx);
+        if (pointer_dy != 0.0)
+            valuator_mask_set_double(&valuators, 3, pointer_dy);
+    }
 
     darwinEvents_lock();
     {
         QueuePointerEvents(pDev, ev_type, ev_button, POINTER_ABSOLUTE,
                            &valuators);
         DarwinPokeEQ();
-    } darwinEvents_unlock();
+    } darwinEvents_unlock();   
 }
 
 void
@@ -647,8 +637,8 @@ DarwinSendScrollEvents(double scroll_x, double scroll_y) {
     }
 
     valuator_mask_zero(&valuators);
-    valuator_mask_set_double(&valuators, 2, scroll_y);
-    valuator_mask_set_double(&valuators, 3, scroll_x);
+    valuator_mask_set_double(&valuators, 4, scroll_y);
+    valuator_mask_set_double(&valuators, 5, scroll_x);
 
     darwinEvents_lock();
     {

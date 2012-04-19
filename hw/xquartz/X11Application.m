@@ -215,7 +215,8 @@ message_kit_thread(SEL selector, NSObject *arg)
     if (state) {
         if (bgMouseLocationUpdated) {
             DarwinSendPointerEvents(darwinPointer, MotionNotify, 0,
-                                    bgMouseLocation.x, bgMouseLocation.y);
+                                    bgMouseLocation.x, bgMouseLocation.y,
+                                    0.0, 0.0);
             bgMouseLocationUpdated = FALSE;
         }
         DarwinSendDDXEvent(kXquartzActivate, 0);
@@ -1595,14 +1596,16 @@ handle_mouse:
         if (bgMouseLocationUpdated) {
             if (!(ev_type == MotionNotify && ev_button == 0)) {
                 DarwinSendPointerEvents(darwinPointer, MotionNotify, 0,
-                                        location.x, location.y);
+                                        location.x, location.y,
+                                        0.0, 0.0);
             }
             bgMouseLocationUpdated = FALSE;
         }
 
         if (pDev == darwinPointer) {
             DarwinSendPointerEvents(pDev, ev_type, ev_button,
-                                    location.x, location.y);
+                                    location.x, location.y,
+                                    [e deltaX], [e deltaY]);
         } else {
             DarwinSendTabletEvents(pDev, ev_type, ev_button,
                                    location.x, location.y, pressure,
@@ -1667,7 +1670,8 @@ handle_mouse:
         if (!XQuartzServerVisible && noTestExtensions) {
             bgMouseLocationUpdated = FALSE;
             DarwinSendPointerEvents(darwinPointer, MotionNotify, 0,
-                                    location.x, location.y);
+                                    location.x, location.y,
+                                    0.0, 0.0);
         }
 #endif
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070

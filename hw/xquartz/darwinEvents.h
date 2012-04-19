@@ -49,7 +49,8 @@ DarwinSendTabletEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
                        double tilt_x, double tilt_y);
 void
 DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button,
-                        double pointer_x, double pointer_y);
+                        double pointer_x, double pointer_y,
+                        double pointer_dx, double pointer_dy);
 void
 DarwinSendKeyboardEvents(int ev_type, int keycode);
 void
