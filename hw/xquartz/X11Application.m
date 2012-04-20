@@ -1638,8 +1638,28 @@ handle_mouse:
 
     case NSScrollWheel:
     {
-        float deltaX = [e deltaX];
-        float deltaY = [e deltaY];
+        CGFloat deltaX = [e deltaX];
+        CGFloat deltaY = [e deltaY];
+        CGEventRef cge = [e CGEvent];
+        BOOL isContinuous =
+            CGEventGetIntegerValueField(cge, kCGScrollWheelEventIsContinuous);
+
+#if 0
+        /* Scale the scroll value by line height */
+        CGEventSourceRef source = CGEventCreateSourceFromEvent(cge);
+        if (source) {
+            double lineHeight = CGEventSourceGetPixelsPerLine(source);
+            CFRelease(source);
+            
+            /* There's no real reason for the 1/5 ratio here other than that
+             * it feels like a good ratio after some testing.
+             */
+            
+            deltaX *= lineHeight / 5.0;
+            deltaY *= lineHeight / 5.0;
+        }
+#endif
+        
 #if !defined(XPLUGIN_VERSION) || XPLUGIN_VERSION == 0
         /* If we're in the background, we need to send a MotionNotify event
          * first, since we aren't getting them on background mouse motion
@@ -1659,6 +1679,93 @@ handle_mouse:
             deltaY *= -1;
         }
 #endif
+        /* This hack is in place to better deal with "clicky" scroll wheels:
+         * http://xquartz.macosforge.org/trac/ticket/562
+         */
+        if (!isContinuous) {
+            static NSTimeInterval lastScrollTime = 0.0;
+
+            /* These store how much extra we have already scrolled.
+             * ie, this is how much we ignore on the next event.
+             */
+            static double deficit_x = 0.0;
+            static double deficit_y = 0.0;
+
+            /* If we have past a second since the last scroll, wipe the slate
+             * clean
+             */
+            if ([e timestamp] - lastScrollTime > 1.0) {
+                deficit_x = deficit_y = 0.0;
+            }
+            lastScrollTime = [e timestamp];
+
+            if (deltaX != 0.0) {
+                /* If we changed directions, wipe the slate clean */
+                if ((deficit_x < 0.0 && deltaX > 0.0) ||
+                    (deficit_x > 0.0 && deltaX < 0.0)) {
+                    deficit_x = 0.0;
+                }
+
+                /* Eat up the deficit, but ensure that something is
+                 * always sent 
+                 */
+                if (fabs(deltaX) > fabs(deficit_x)) {
+                    deltaX -= deficit_x;
+
+                    if (deltaX > 0.0) {
+                        deficit_x = ceil(deltaX) - deltaX;
+                        deltaX = ceil(deltaX);
+                    } else {
+                        deficit_x = floor(deltaX) - deltaX;
+                        deltaX = floor(deltaX);
+                    }
+                } else {
+                    deficit_x -= deltaX;
+
+                    if (deltaX > 0.0) {
+                        deltaX = 1.0;
+                    } else {
+                        deltaX = -1.0;
+                    }
+
+                    deficit_x += deltaX;
+                }
+            }
+
+            if (deltaY != 0.0) {
+                /* If we changed directions, wipe the slate clean */
+                if ((deficit_y < 0.0 && deltaY > 0.0) ||
+                    (deficit_y > 0.0 && deltaY < 0.0)) {
+                    deficit_y = 0.0;
+                }
+
+                /* Eat up the deficit, but ensure that something is
+                 * always sent 
+                 */
+                if (fabs(deltaY) > fabs(deficit_y)) {
+                    deltaY -= deficit_y;
+
+                    if (deltaY > 0.0) {
+                        deficit_y = ceil(deltaY) - deltaY;
+                        deltaY = ceil(deltaY);
+                    } else {
+                        deficit_y = floor(deltaY) - deltaY;
+                        deltaY = floor(deltaY);
+                    }
+                } else {
+                    deficit_y -= deltaY;
+
+                    if (deltaY > 0.0) {
+                        deltaY = 1.0;
+                    } else {
+                        deltaY = -1.0;
+                    }
+
+                    deficit_y += deltaY;
+                }
+            }
+        }
+
         DarwinSendScrollEvents(deltaX, deltaY);
         break;
     }
