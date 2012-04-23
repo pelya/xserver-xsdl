@@ -6,6 +6,10 @@ if XFAKESERVER
 XFAKE_SUBDIRS = fake
 endif
 
+if XSDLSERVER
+XSDL_SUBDIRS = sdl
+endif
+
 if XEPHYR
 XEPHYR_SUBDIRS = ephyr
 endif
@@ -15,6 +19,7 @@ LINUX_SUBDIRS = linux
 endif
 
 SERVER_SUBDIRS = 		\
+	$(XSDL_SUBDIRS)		\
 	$(FBDEV_SUBDIRS)	\
 	$(XEPHYR_SUBDIRS)       \
 	$(XFAKE_SUBDIRS)
@@ -24,7 +29,7 @@ SUBDIRS =			\
 	$(LINUX_SUBDIRS)	\
 	$(SERVER_SUBDIRS)
 
-DIST_SUBDIRS = fbdev ephyr src linux fake
+DIST_SUBDIRS = fbdev sdl ephyr src linux fake
 
 relink:
 	$(AM_V_at)for i in $(SERVER_SUBDIRS) ; do $(MAKE) -C $$i relink || exit 1 ; done
