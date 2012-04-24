@@ -31,12 +31,11 @@
 #ifndef ENTERLEAVE_H
 #define ENTERLEAVE_H
 
+#include <dix.h> /* DoFocusEvents() */
+
 extern void DoEnterLeaveEvents(DeviceIntPtr pDev,
                                int sourceid,
                                WindowPtr fromWin, WindowPtr toWin, int mode);
-
-extern void DoFocusEvents(DeviceIntPtr pDev,
-                          WindowPtr fromWin, WindowPtr toWin, int mode);
 
 extern void EnterLeaveEvent(DeviceIntPtr mouse,
                             int type,
