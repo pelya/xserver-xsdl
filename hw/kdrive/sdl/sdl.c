@@ -88,12 +88,12 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 		screen->width = 640;
 		screen->height = 480;
 	}
-	if (!screen->fb[0].depth)
-		screen->fb[0].depth = 4;
+	if (!screen->fb.depth)
+		screen->fb.depth = 4;
 #ifdef DEBUG
-	printf("Attempting for %dx%d/%dbpp mode\n", screen->width, screen->height, screen->fb[0].depth);
+	printf("Attempting for %dx%d/%dbpp mode\n", screen->width, screen->height, screen->fb.depth);
 #endif
-	sdlDriver->screen=SDL_SetVideoMode(screen->width, screen->height, screen->fb[0].depth, 0);
+	sdlDriver->screen=SDL_SetVideoMode(screen->width, screen->height, screen->fb.depth, 0);
 	if(sdlDriver->screen==NULL)
 		return FALSE;
 #ifdef DEBUG
@@ -101,20 +101,20 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 #endif
 	screen->width=sdlDriver->screen->w;
 	screen->height=sdlDriver->screen->h;
-	screen->fb[0].depth=sdlDriver->screen->format->BitsPerPixel;
-	screen->fb[0].visuals=(1<<TrueColor);
-	screen->fb[0].redMask=sdlDriver->screen->format->Rmask;
-	screen->fb[0].greenMask=sdlDriver->screen->format->Gmask;
-	screen->fb[0].blueMask=sdlDriver->screen->format->Bmask;
-	screen->fb[0].bitsPerPixel=sdlDriver->screen->format->BitsPerPixel;
+	screen->fb.depth=sdlDriver->screen->format->BitsPerPixel;
+	screen->fb.visuals=(1<<TrueColor);
+	screen->fb.redMask=sdlDriver->screen->format->Rmask;
+	screen->fb.greenMask=sdlDriver->screen->format->Gmask;
+	screen->fb.blueMask=sdlDriver->screen->format->Bmask;
+	screen->fb.bitsPerPixel=sdlDriver->screen->format->BitsPerPixel;
 	screen->rate=60;
-	screen->memory_base=(CARD8 *)sdlDriver->screen->pixels;
-	screen->memory_size=0;
-	screen->off_screen_base=0;
+	//screen->memory_base=(CARD8 *)sdlDriver->screen->pixels;
+	//screen->memory_size=0;
+	//screen->off_screen_base=0;
 	screen->driver=sdlDriver;
-	screen->fb[0].byteStride=(sdlDriver->screen->w*sdlDriver->screen->format->BitsPerPixel)/8;
-	screen->fb[0].pixelStride=sdlDriver->screen->w;
-	screen->fb[0].frameBuffer=(CARD8 *)sdlDriver->screen->pixels;
+	screen->fb.byteStride=(sdlDriver->screen->w*sdlDriver->screen->format->BitsPerPixel)/8;
+	screen->fb.pixelStride=sdlDriver->screen->w;
+	screen->fb.frameBuffer=(CARD8 *)sdlDriver->screen->pixels;
 	SDL_WM_SetCaption("Freedesktop.org X server (SDL)", NULL);
 	return TRUE;
 }
@@ -161,7 +161,7 @@ static Bool sdlCreateRes(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
-	KdShadowFbAlloc(screen, 0, FALSE);
+	KdShadowFbAlloc(screen, 0);
 	KdShadowSet(pScreen, RR_Rotate_0, sdlShadowUpdate, sdlShadowWindow);
 	return TRUE;
 }
@@ -209,8 +209,7 @@ static void sdlMouseFini(KdPointerInfo *pi)
 
 void InitCard(char *name)
 {
-	KdCardAttr attr;
-        KdCardInfoAdd (&sdlFuncs, &attr, 0);
+        KdCardInfoAdd (&sdlFuncs,  0);
 #ifdef DEBUG
 	printf("InitCard: %s\n", name);
 #endif
@@ -326,6 +325,12 @@ static int xsdlInit(void)
 static void xsdlFini(void)
 {
 	SDL_Quit();
+}
+
+void
+CloseInput (void)
+{
+    KdCloseInput ();
 }
 
 KdOsFuncs sdlOsFuncs={

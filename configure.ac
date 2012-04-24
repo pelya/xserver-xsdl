@@ -2596,6 +2596,7 @@ hw/xquartz/xpr/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ephyr/Makefile
 hw/kdrive/ephyr/man/Makefile
+hw/kdrive/sdl/Makefile
 hw/kdrive/src/Makefile
 hw/xwayland/Makefile
 test/Makefile
