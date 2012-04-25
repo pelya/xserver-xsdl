@@ -76,6 +76,7 @@ glamor_gl_dispatch_init_impl(struct glamor_gl_dispatch *dispatch,
 	INIT_FUNC(dispatch, glCreateShader, get_proc_address);
 	INIT_FUNC(dispatch, glCompileShader, get_proc_address);
 	INIT_FUNC(dispatch, glAttachShader, get_proc_address);
+	INIT_FUNC(dispatch, glDeleteShader, get_proc_address);
 	INIT_FUNC(dispatch, glGetShaderiv, get_proc_address);
 	INIT_FUNC(dispatch, glGetShaderInfoLog, get_proc_address);
 	INIT_FUNC(dispatch, glGetProgramiv, get_proc_address);

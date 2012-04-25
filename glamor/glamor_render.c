@@ -1412,11 +1412,12 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count, int use_ar
 	return fs_getcolor_prog;
 }
 
-static GLint
-_glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count, int use_array)
+static void
+_glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count, int dyn_gen)
 {
 	glamor_screen_private *glamor_priv;
 	glamor_gl_dispatch *dispatch;
+	int index;
 
 	GLint gradient_prog = 0;
 	char *gradient_fs = NULL;
@@ -1564,12 +1565,35 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count, int us
 	    "}\n";
 
 	glamor_priv = glamor_get_screen_private(screen);
+
+	if ((glamor_priv->radial_max_nstops >= stops_count) && (dyn_gen)) {
+		/* Very Good, not to generate again. */
+		return;
+	}
+
+	if (dyn_gen && glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2]) {
+		dispatch->glDeleteShader(
+		    glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_VS_PROG][2]);
+		glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_VS_PROG][2] = 0;
+
+		dispatch->glDeleteShader(
+		    glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][2]);
+		glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][2] = 0;
+
+		dispatch->glDeleteShader(
+		    glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][2]);
+		glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][2] = 0;
+
+		dispatch->glDeleteProgram(glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2]);
+		glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2] = 0;
+	}
+
 	dispatch = glamor_get_dispatch(glamor_priv);
 
 	gradient_prog = dispatch->glCreateProgram();
 
 	vs_prog = glamor_compile_glsl_prog(dispatch,
-	          GL_VERTEX_SHADER, gradient_vs);
+	                                   GL_VERTEX_SHADER, gradient_vs);
 
 	XNFasprintf(&gradient_fs,
 	            gradient_fs_template,
@@ -1580,8 +1604,8 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count, int us
 
 	free(gradient_fs);
 
-	fs_getcolor_prog = _glamor_create_getcolor_fs_program(screen,
-	                                                      stops_count, use_array);
+	fs_getcolor_prog =
+	    _glamor_create_getcolor_fs_program(screen, stops_count, (stops_count > 0));
 
 	dispatch->glAttachShader(gradient_prog, vs_prog);
 	dispatch->glAttachShader(gradient_prog, fs_getcolor_prog);
@@ -1594,16 +1618,30 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count, int us
 
 	dispatch->glUseProgram(0);
 
+	if (dyn_gen) {
+		index = 2;
+		glamor_priv->radial_max_nstops = stops_count;
+	} else if (stops_count) {
+		index = 1;
+	} else {
+		index = 0;
+	}
+
+	glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][index] = gradient_prog;
+	glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_VS_PROG][index] = vs_prog;
+	glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][index] = fs_main_prog;
+	glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][index] = fs_getcolor_prog;
+
 	glamor_put_dispatch(glamor_priv);
-	return gradient_prog;
 }
 
-static GLint
-_glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int use_array)
+static void
+_glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int dyn_gen)
 {
 	glamor_screen_private *glamor_priv;
 	glamor_gl_dispatch *dispatch;
 
+	int index = 0;
 	GLint gradient_prog = 0;
 	char *gradient_fs = NULL;
 	GLint fs_main_prog, fs_getcolor_prog, vs_prog;
@@ -1757,7 +1795,31 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int us
 	    "    gl_FragColor = get_color(stop_len);\n"
 	    "}\n";
 
+
 	glamor_priv = glamor_get_screen_private(screen);
+
+	if ((glamor_priv->linear_max_nstops >= stops_count) && (dyn_gen)) {
+		/* Very Good, not to generate again. */
+		return;
+	}
+
+	if (dyn_gen && glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2]) {
+		dispatch->glDeleteShader(
+		    glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_VS_PROG][2]);
+		glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_VS_PROG][2] = 0;
+
+		dispatch->glDeleteShader(
+		    glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][2]);
+		glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][2] = 0;
+
+		dispatch->glDeleteShader(
+		    glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][2]);
+		glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][2] = 0;
+
+		dispatch->glDeleteProgram(glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2]);
+		glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2] = 0;
+	}
+
 	dispatch = glamor_get_dispatch(glamor_priv);
 
 	gradient_prog = dispatch->glCreateProgram();
@@ -1773,8 +1835,8 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int us
 	                                        GL_FRAGMENT_SHADER, gradient_fs);
 	free(gradient_fs);
 
-	fs_getcolor_prog = _glamor_create_getcolor_fs_program(screen,
-	                                                      stops_count, use_array);
+	fs_getcolor_prog =
+	    _glamor_create_getcolor_fs_program(screen, stops_count, (stops_count > 0));
 
 	dispatch->glAttachShader(gradient_prog, vs_prog);
 	dispatch->glAttachShader(gradient_prog, fs_getcolor_prog);
@@ -1787,26 +1849,56 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int us
 
 	dispatch->glUseProgram(0);
 
+	if (dyn_gen) {
+		index = 2;
+		glamor_priv->linear_max_nstops = stops_count;
+	} else if (stops_count) {
+		index = 1;
+	} else {
+		index = 0;
+	}
+
+	glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][index] = gradient_prog;
+	glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_VS_PROG][index] = vs_prog;
+	glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][index] = fs_main_prog;
+	glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][index] = fs_getcolor_prog;
+
 	glamor_put_dispatch(glamor_priv);
-	return gradient_prog;
 }
 
-#define LINEAR_DEFAULT_STOPS 6 + 2
-#define RADIAL_DEFAULT_STOPS 6 + 2
+#define LINEAR_SMALL_STOPS 6 + 2
+#define LINEAR_LARGE_STOPS 16 + 2
+
+#define RADIAL_SMALL_STOPS 6 + 2
+#define RADIAL_LARGE_STOPS 16 + 2
 
 void
 glamor_init_gradient_shader(ScreenPtr screen)
 {
 	glamor_screen_private *glamor_priv;
+	int i;
 
 	glamor_priv = glamor_get_screen_private(screen);
 
-	glamor_priv->gradient_prog[GRADIENT_SHADER_LINEAR] =
-	    _glamor_create_linear_gradient_program(screen,
-	            LINEAR_DEFAULT_STOPS, 0);
-	glamor_priv->gradient_prog[GRADIENT_SHADER_RADIAL] =
-	    _glamor_create_radial_gradient_program(screen,
-	            RADIAL_DEFAULT_STOPS, 0);
+	for (i = 0; i < 3; i++) {
+		glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][i] = 0;
+		glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_VS_PROG][i] = 0;
+		glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][i] = 0;
+		glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][i] = 0;
+
+		glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][i] = 0;
+		glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_VS_PROG][i] = 0;
+		glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][i] = 0;
+		glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][i] = 0;
+	}
+	glamor_priv->linear_max_nstops = 0;
+	glamor_priv->radial_max_nstops = 0;
+
+	_glamor_create_linear_gradient_program(screen, 0, 0);
+	_glamor_create_linear_gradient_program(screen, LINEAR_LARGE_STOPS, 0);
+
+	_glamor_create_radial_gradient_program(screen, 0, 0);
+	_glamor_create_radial_gradient_program(screen, RADIAL_LARGE_STOPS, 0);
 }
 
 void
@@ -1814,14 +1906,44 @@ glamor_fini_gradient_shader(ScreenPtr screen)
 {
 	glamor_screen_private *glamor_priv;
 	glamor_gl_dispatch *dispatch;
+	int i = 0;
 
 	glamor_priv = glamor_get_screen_private(screen);
 	dispatch = glamor_get_dispatch(glamor_priv);
 
-	dispatch->glDeleteProgram(
-	    glamor_priv->gradient_prog[GRADIENT_SHADER_LINEAR]);
-	dispatch->glDeleteProgram(
-	    glamor_priv->gradient_prog[GRADIENT_SHADER_RADIAL]);
+	for (i = 0; i < 3; i++) {
+		/* Linear Gradient */
+		if (glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_VS_PROG][i])
+			dispatch->glDeleteShader(
+			    glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_VS_PROG][i]);
+
+		if (glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][i])
+			dispatch->glDeleteShader(
+			    glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][i]);
+
+		if (glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][i])
+			dispatch->glDeleteShader(
+			    glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][i]);
+
+		if (glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][i])
+			dispatch->glDeleteProgram(glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][i]);
+
+		/* Radial Gradient */
+		if (glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_VS_PROG][i])
+			dispatch->glDeleteShader(
+			    glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_VS_PROG][i]);
+
+		if (glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][i])
+			dispatch->glDeleteShader(
+			    glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][i]);
+
+		if (glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][i])
+			dispatch->glDeleteShader(
+			    glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][i]);
+
+		if (glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][i])
+			dispatch->glDeleteProgram(glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][i]);
+	}
 
 	glamor_put_dispatch(glamor_priv);
 }
@@ -2053,8 +2175,8 @@ _glamor_generate_radial_gradient_picture(ScreenPtr screen,
 	static const float identity_mat[3][3] = {{1.0, 0.0, 0.0},
 	                                         {0.0, 1.0, 0.0},
 	                                         {0.0, 0.0, 1.0}};
-	GLfloat stop_colors_st[RADIAL_DEFAULT_STOPS*4];
-	GLfloat n_stops_st[RADIAL_DEFAULT_STOPS];
+	GLfloat stop_colors_st[RADIAL_SMALL_STOPS*4];
+	GLfloat n_stops_st[RADIAL_SMALL_STOPS];
 	GLfloat A_value;
 	GLfloat cxy[4];
 	float c1x, c1y, c2x, c2y, r1, r2;
@@ -2110,15 +2232,17 @@ _glamor_generate_radial_gradient_picture(ScreenPtr screen,
 
 	ValidatePicture(dst_picture);
 
-	stops_count = src_picture->pSourcePict->radial.nstops + 2 > RADIAL_DEFAULT_STOPS ?
-	              src_picture->pSourcePict->radial.nstops + 2 : RADIAL_DEFAULT_STOPS;
+	stops_count = src_picture->pSourcePict->radial.nstops + 2;
 
-	/* Because the max value of nstops is unkown, so create a programwhen nstops > default.*/
-	if (src_picture->pSourcePict->radial.nstops + 2 <= RADIAL_DEFAULT_STOPS) {
-		gradient_prog = glamor_priv->gradient_prog[GRADIENT_SHADER_RADIAL];
+	/* Because the max value of nstops is unkown, so create a program
+	   when nstops > LINEAR_LARGE_STOPS.*/
+	if (stops_count <= RADIAL_SMALL_STOPS) {
+		gradient_prog = glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][0];
+	} else if (stops_count <= RADIAL_LARGE_STOPS) {
+		gradient_prog = glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][1];
 	} else {
-		gradient_prog = _glamor_create_radial_gradient_program(screen,
-		                          src_picture->pSourcePict->radial.nstops + 2, 1);
+		_glamor_create_radial_gradient_program(screen, src_picture->pSourcePict->linear.nstops + 2, 1);
+		gradient_prog = glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2];
 	}
 
 	/* Bind all the uniform vars .*/
@@ -2141,7 +2265,7 @@ _glamor_generate_radial_gradient_picture(ScreenPtr screen,
 	r2_uniform_location =
 	    dispatch->glGetUniformLocation(gradient_prog, "r2");
 
-	if (src_picture->pSourcePict->radial.nstops + 2 <= RADIAL_DEFAULT_STOPS) {
+	if (src_picture->pSourcePict->radial.nstops + 2 <= RADIAL_SMALL_STOPS) {
 		stop0_uniform_location =
 		    dispatch->glGetUniformLocation(gradient_prog, "stop0");
 		stop1_uniform_location =
@@ -2204,7 +2328,7 @@ _glamor_generate_radial_gradient_picture(ScreenPtr screen,
 		goto GRADIENT_FAIL;
 
 	/* Set all the stops and colors to shader. */
-	if (stops_count > RADIAL_DEFAULT_STOPS) {
+	if (stops_count > RADIAL_SMALL_STOPS) {
 		stop_colors = malloc(4 * stops_count * sizeof(float));
 		if (stop_colors == NULL) {
 			ErrorF("Failed to allocate stop_colors memory.\n");
@@ -2224,7 +2348,7 @@ _glamor_generate_radial_gradient_picture(ScreenPtr screen,
 	count = _glamor_gradient_set_stops(src_picture, &src_picture->pSourcePict->gradient,
 	                                   stop_colors, n_stops);
 
-	if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_DEFAULT_STOPS) {
+	if (src_picture->pSourcePict->linear.nstops + 2 <= RADIAL_SMALL_STOPS) {
 		int j = 0;
 		dispatch->glUniform4f(stop_color0_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
 		                      stop_colors[4*j+2], stop_colors[4*j+3]);
@@ -2309,7 +2433,7 @@ _glamor_generate_radial_gradient_picture(ScreenPtr screen,
 
 
 	/* Do the clear logic.*/
-	if (stops_count > RADIAL_DEFAULT_STOPS) {
+	if (stops_count > RADIAL_SMALL_STOPS) {
 		free(n_stops);
 		free(stop_colors);
 	}
@@ -2321,9 +2445,6 @@ _glamor_generate_radial_gradient_picture(ScreenPtr screen,
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 	dispatch->glUseProgram(0);
 
-	if (src_picture->pSourcePict->radial.nstops + 2 > RADIAL_DEFAULT_STOPS)
-		dispatch->glDeleteProgram(gradient_prog);
-
 	glamor_put_dispatch(glamor_priv);
 	return dst_picture;
 
@@ -2332,7 +2453,7 @@ GRADIENT_FAIL:
 		FreePicture(dst_picture, 0);
 	}
 
-	if (stops_count > RADIAL_DEFAULT_STOPS) {
+	if (stops_count > RADIAL_SMALL_STOPS) {
 		if (n_stops)
 			free(n_stops);
 		if (stop_colors)
@@ -2345,8 +2466,6 @@ GRADIENT_FAIL:
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 	dispatch->glUseProgram(0);
-	if (src_picture->pSourcePict->radial.nstops + 2 > RADIAL_DEFAULT_STOPS)
-		dispatch->glDeleteProgram(gradient_prog);
 	glamor_put_dispatch(glamor_priv);
 	return NULL;
 }
@@ -2381,8 +2500,8 @@ _glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	static const float identity_mat[3][3] = {{1.0, 0.0, 0.0},
 	                                         {0.0, 1.0, 0.0},
 	                                         {0.0, 0.0, 1.0}};
-	GLfloat stop_colors_st[LINEAR_DEFAULT_STOPS*4];
-	GLfloat n_stops_st[LINEAR_DEFAULT_STOPS];
+	GLfloat stop_colors_st[LINEAR_SMALL_STOPS*4];
+	GLfloat n_stops_st[LINEAR_SMALL_STOPS];
 
 	GLint transform_mat_uniform_location;
 	GLint pt1_uniform_location;
@@ -2438,16 +2557,18 @@ _glamor_generate_linear_gradient_picture(ScreenPtr screen,
 
 	ValidatePicture(dst_picture);
 
-	stops_count = src_picture->pSourcePict->linear.nstops + 2 > LINEAR_DEFAULT_STOPS ?
-	              src_picture->pSourcePict->linear.nstops + 2 : LINEAR_DEFAULT_STOPS;
+	stops_count = src_picture->pSourcePict->linear.nstops + 2;
 
 	/* Because the max value of nstops is unkown, so create a program
-	   when nstops > default.*/
-	if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_DEFAULT_STOPS) {
-		gradient_prog = glamor_priv->gradient_prog[GRADIENT_SHADER_LINEAR];
+	   when nstops > LINEAR_LARGE_STOPS.*/
+	if (stops_count <= LINEAR_SMALL_STOPS) {
+		gradient_prog = glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][0];
+	} else if (stops_count <= LINEAR_LARGE_STOPS) {
+		gradient_prog = glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][1];
 	} else {
-		gradient_prog = _glamor_create_linear_gradient_program(screen,
-		                        src_picture->pSourcePict->linear.nstops + 2, 1);
+		_glamor_create_linear_gradient_program(screen,
+		        src_picture->pSourcePict->linear.nstops + 2, 1);
+		gradient_prog = glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2];
 	}
 
 	/* Bind all the uniform vars .*/
@@ -2472,7 +2593,7 @@ _glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	pt_distance_uniform_location =
 	    dispatch->glGetUniformLocation(gradient_prog, "pt_distance");
 
-	if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_DEFAULT_STOPS) {
+	if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_SMALL_STOPS) {
 		stop0_uniform_location =
 		    dispatch->glGetUniformLocation(gradient_prog, "stop0");
 		stop1_uniform_location =
@@ -2555,7 +2676,7 @@ _glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	DEBUGF("pt2:(%f %f)\n", pt2[0], pt2[1]);
 
 	/* Set all the stops and colors to shader. */
-	if (stops_count > LINEAR_DEFAULT_STOPS) {
+	if (stops_count > LINEAR_SMALL_STOPS) {
 		stop_colors = malloc(4 * stops_count * sizeof(float));
 		if (stop_colors == NULL) {
 			ErrorF("Failed to allocate stop_colors memory.\n");
@@ -2575,7 +2696,7 @@ _glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	count = _glamor_gradient_set_stops(src_picture, &src_picture->pSourcePict->gradient,
 	                                   stop_colors, n_stops);
 
-	if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_DEFAULT_STOPS) {
+	if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_SMALL_STOPS) {
 		int j = 0;
 		dispatch->glUniform4f(stop_color0_uniform_location, stop_colors[4*j+0], stop_colors[4*j+1],
 		                      stop_colors[4*j+2], stop_colors[4*j+3]);
@@ -2670,7 +2791,7 @@ _glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	}
 
 	/* Do the clear logic.*/
-	if (stops_count > LINEAR_DEFAULT_STOPS) {
+	if (stops_count > LINEAR_SMALL_STOPS) {
 		free(n_stops);
 		free(stop_colors);
 	}
@@ -2682,9 +2803,6 @@ _glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 	dispatch->glUseProgram(0);
 
-	if (src_picture->pSourcePict->linear.nstops + 2 > LINEAR_DEFAULT_STOPS)
-		dispatch->glDeleteProgram(gradient_prog);
-
 	glamor_put_dispatch(glamor_priv);
 	return dst_picture;
 
@@ -2693,7 +2811,7 @@ GRADIENT_FAIL:
 		FreePicture(dst_picture, 0);
 	}
 
-	if (stops_count > LINEAR_DEFAULT_STOPS) {
+	if (stops_count > LINEAR_SMALL_STOPS) {
 		if (n_stops)
 			free(n_stops);
 		if (stop_colors)
@@ -2706,8 +2824,6 @@ GRADIENT_FAIL:
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 	dispatch->glUseProgram(0);
-	if (src_picture->pSourcePict->linear.nstops + 2 > LINEAR_DEFAULT_STOPS)
-		dispatch->glDeleteProgram(gradient_prog);
 	glamor_put_dispatch(glamor_priv);
 	return NULL;
 }

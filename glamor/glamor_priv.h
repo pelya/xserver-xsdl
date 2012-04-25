@@ -123,11 +123,18 @@ enum shader_in {
 	SHADER_IN_COUNT,
 };
 
-enum gradient_shader_type {
-	GRADIENT_SHADER_LINEAR,
-	GRADIENT_SHADER_RADIAL,
-	GRADIENT_SHADER_CONICAL,
-	GRADIENT_SHADER_COUNT,
+enum gradient_shader {
+	SHADER_GRADIENT_LINEAR,
+	SHADER_GRADIENT_RADIAL,
+	SHADER_GRADIENT_CONICAL,
+	SHADER_GRADIENT_COUNT,
+};
+
+enum gradient_shader_prog {
+	SHADER_GRADIENT_VS_PROG,
+	SHADER_GRADIENT_FS_MAIN_PROG,
+	SHADER_GRADIENT_FS_GETCOLOR_PROG,
+	SHADER_GRADIENT_PROG_COUNT,
 };
 
 struct glamor_screen_private;
@@ -228,8 +235,13 @@ typedef struct glamor_screen_private {
 	GLint tile_prog;
 	GLint tile_wh;
 
-	/* glamor gradient */
-	GLint gradient_prog[GRADIENT_SHADER_COUNT];
+	/* glamor gradient, 0 for small nstops, 1 for
+	   large nstops and 2 for dynamic generate. */
+	GLint gradient_prog[SHADER_GRADIENT_COUNT][3];
+	GLint linear_gradient_shaders[SHADER_GRADIENT_PROG_COUNT][3];
+	int linear_max_nstops;
+	GLint radial_gradient_shaders[SHADER_GRADIENT_PROG_COUNT][3];
+	int radial_max_nstops;
 
 	/* glamor_putimage */
 	GLint put_image_xybitmap_prog;
@@ -729,7 +741,7 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 #define GLAMOR_DELAYED_FILLING
-//#define GLAMOR_GRADIENT_SHADER
+#define GLAMOR_GRADIENT_SHADER
 
 
 

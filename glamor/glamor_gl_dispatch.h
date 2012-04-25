@@ -108,6 +108,7 @@ typedef struct glamor_gl_dispatch {
 	GLuint (*glCreateShader) (GLenum type);
 	void (*glCompileShader) (GLuint shader);
 	void (*glAttachShader) (GLuint program, GLuint shader);
+	void (*glDeleteShader) (GLuint shader);
 	void (*glGetShaderiv) (GLuint shader, GLenum pname,
 			       GLint * params);
 	void (*glGetShaderInfoLog) (GLuint shader, GLsizei bufSize,
