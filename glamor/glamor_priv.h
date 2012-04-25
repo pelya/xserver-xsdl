@@ -80,6 +80,8 @@ typedef struct glamor_composite_shader {
 	GLint mask_uniform_location;
 	GLint source_wh;
 	GLint mask_wh;
+	GLint source_repeat_mode;
+	GLint mask_repeat_mode;
 } glamor_composite_shader;
 
 typedef struct {
@@ -742,7 +744,7 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 #define GLAMOR_DELAYED_FILLING
 #ifndef GLAMOR_GLES2
-#define GLAMOR_GRADIENT_SHADER
+//#define GLAMOR_GRADIENT_SHADER
 #endif
 
 #endif				/* GLAMOR_PRIV_H */
