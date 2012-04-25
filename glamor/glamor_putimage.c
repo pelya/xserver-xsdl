@@ -256,9 +256,12 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	int x_off, y_off;
 	float vertices[8], texcoords[8];
 	Bool ret = FALSE;
-	PixmapPtr temp_pixmap;
+	PixmapPtr temp_pixmap, sub_pixmap;
 	glamor_pixmap_private *temp_pixmap_priv;
+	BoxRec box;
 
+	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
+	clip = fbGetCompositeClip(gc);
 	if (image_format == XYBitmap) {
 		assert(depth == 1);
 		goto fail;
@@ -279,9 +282,13 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	}
 	/* create a temporary pixmap and upload the bits to that
 	 * pixmap, then apply clip copy it to the destination pixmap.*/
+	box.x1 = x + drawable->x;
+	box.y1 = y + drawable->y;
+	box.x2 = x + w + drawable->x;
+	box.y2 = y + h + drawable->y;
 
-	clip = fbGetCompositeClip(gc);
-	if (clip != NULL) {
+	if ((clip != NULL && !RegionContainsRect(clip, &box))
+	     || gc->alu != GXcopy) {
 		temp_pixmap = glamor_create_pixmap(drawable->pScreen, w, h, depth, 0);
 		if (temp_pixmap == NULL)
 			goto fail;
@@ -298,12 +305,9 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 
 		glamor_copy_area(&temp_pixmap->drawable, drawable, gc, 0, 0, w, h, x, y);
 		glamor_destroy_pixmap(temp_pixmap);
-	} else {
-		ErrorF("put image directly. \n");
-		glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
-		glamor_upload_sub_pixmap_to_texture(pixmap, drawable->x + x_off, drawable->y + y_off,
+	} else
+		glamor_upload_sub_pixmap_to_texture(pixmap, x + drawable->x + x_off, y + drawable->y + y_off,
 						    w, h, pixmap->devKind, bits, 0);
-	}
 	ret = TRUE;
 	goto done;
 
@@ -316,11 +320,26 @@ fail:
 
 	glamor_fallback("to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
-	if (glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RW)) {
+
+	sub_pixmap = glamor_get_sub_pixmap(pixmap, x + x_off + drawable->x,
+					   y + y_off + drawable->y, w, h,
+					   GLAMOR_ACCESS_RW);
+	if (sub_pixmap) {
+		if (clip != NULL)
+			pixman_region_translate (clip, -x - drawable->x, -y - drawable->y);
+
+		fbPutImage(&sub_pixmap->drawable, gc, depth, 0, 0, w, h,
+			   left_pad, image_format, bits);
+
+		glamor_put_sub_pixmap(sub_pixmap, pixmap,
+				      x + x_off + drawable->x,
+				      y + y_off + drawable->y,
+				      w, h, GLAMOR_ACCESS_RW);
+		if (clip != NULL)
+			pixman_region_translate (clip, x + drawable->x, y + drawable->y);
+	} else
 		fbPutImage(drawable, gc, depth, x, y, w, h,
 			   left_pad, image_format, bits);
-		glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RW);
-	}
 	ret = TRUE;
 
 done:
