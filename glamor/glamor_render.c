@@ -2011,7 +2011,7 @@ _glamor_gradient_convert_trans_matrix(PictTransform *from, float to[3][3],
 static int
 _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
                                         glamor_screen_private *glamor_priv,
-                                        PicturePtr dst_picure,
+                                        PicturePtr dst_picture,
                                         GLfloat *xscale, GLfloat *yscale,
                                         int x_source, int y_source,
                                         float vertices[8],
@@ -2021,7 +2021,7 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 	glamor_pixmap_private *pixmap_priv;
 	PixmapPtr pixmap = NULL;
 
-	pixmap = glamor_get_drawable_pixmap(dst_picure->pDrawable);
+	pixmap = glamor_get_drawable_pixmap(dst_picture->pDrawable);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) { /* should always have here. */
@@ -2039,24 +2039,24 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 	DEBUGF("xscale = %f, yscale = %f,"
 	       " x_source = %d, y_source = %d, width = %d, height = %d\n",
 	       *xscale, *yscale, x_source, y_source,
-	       pixmap_priv->fbo->width, pixmap_priv->fbo->height);
+	       dst_picture->pDrawable->width, dst_picture->pDrawable->height);
 
 	glamor_set_normalize_vcoords(*xscale, *yscale,
 	                             0, 0,
-	                             (INT16)(pixmap_priv->fbo->width),
-	                             (INT16)(pixmap_priv->fbo->height),
+	                             (INT16)(dst_picture->pDrawable->width),
+	                             (INT16)(dst_picture->pDrawable->height),
 	                             glamor_priv->yInverted, vertices);
 
 	if (tex_normalize) {
 		glamor_set_normalize_tcoords(*xscale, *yscale,
 		                             0, 0,
-		                             (INT16)(pixmap_priv->fbo->width),
-		                             (INT16)(pixmap_priv->fbo->height),
+		                             (INT16)(dst_picture->pDrawable->width),
+		                             (INT16)(dst_picture->pDrawable->height),
 		                             glamor_priv->yInverted, tex_vertices);
 	} else {
 		glamor_set_tcoords(0, 0,
-		                   (INT16)(pixmap_priv->fbo->width),
-		                   (INT16)(pixmap_priv->fbo->height),
+		                   (INT16)(dst_picture->pDrawable->width),
+		                   (INT16)(dst_picture->pDrawable->height),
 		                   glamor_priv->yInverted, tex_vertices);
 	}
 
@@ -2224,7 +2224,7 @@ _glamor_generate_radial_gradient_picture(ScreenPtr screen,
 	pixmap = glamor_create_pixmap(screen,
 	                              width, height,
 	                              PIXMAN_FORMAT_DEPTH(format),
-	                              GLAMOR_CREATE_PIXMAP_FIXUP);
+	                              0);
 	if (!pixmap)
 		goto GRADIENT_FAIL;
 
@@ -2548,7 +2548,7 @@ _glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	pixmap = glamor_create_pixmap(screen,
 	                              width, height,
 	                              PIXMAN_FORMAT_DEPTH(format),
-	                              GLAMOR_CREATE_PIXMAP_FIXUP);
+	                              0);
 
 	if (!pixmap)
 		goto GRADIENT_FAIL;
