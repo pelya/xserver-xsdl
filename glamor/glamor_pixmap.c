@@ -559,7 +559,14 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha, int 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 
-	if (pixmap_priv && pixmap_priv->fbo && pixmap_priv->fbo->fb)
+	if (pixmap_priv->fbo
+	     && (pixmap_priv->fbo->width < pixmap->drawable.width
+           || pixmap_priv->fbo->height < pixmap->drawable.height)) {
+		fbo = glamor_pixmap_detach_fbo(pixmap_priv);
+		glamor_destroy_fbo(fbo);
+        }
+
+	if (pixmap_priv->fbo && pixmap_priv->fbo->fb)
 		return 0;
 
 	if (!(no_alpha
@@ -1085,6 +1092,9 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 	int pbo;
 	int flag;
 
+	assert(x >= 0 && y >= 0);
+	w = (x + w) > pixmap->drawable.width ? (pixmap->drawable.width - x) : w;
+	h = (y + h) > pixmap->drawable.height ? (pixmap->drawable.height - y) : h;
 	if (access == GLAMOR_ACCESS_WO) {
 		sub_pixmap = glamor_create_pixmap(pixmap->drawable.pScreen, w, h,
 						  pixmap->drawable.depth, GLAMOR_CREATE_PIXMAP_CPU);
@@ -1167,6 +1177,10 @@ glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y, int 
 			bits = sub_pixmap->devPrivate.ptr;
 			pbo = 0;
 		}
+
+		assert(x >= 0 && y >= 0);
+		w = (w > sub_pixmap->drawable.width) ? sub_pixmap->drawable.width : w;
+		h = (h > sub_pixmap->drawable.height) ? sub_pixmap->drawable.height : h;
 		glamor_upload_sub_pixmap_to_texture(pixmap, x, y, w, h, sub_pixmap->devKind, bits, pbo);
 	}
 	glamor_destroy_pixmap(sub_pixmap);
