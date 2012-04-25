@@ -34,18 +34,19 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 		  unsigned int format, unsigned long planeMask, char *d,
 		  Bool fallback)
 {
-	PixmapPtr pixmap;
+	PixmapPtr pixmap, sub_pixmap;
 	struct glamor_pixmap_private *pixmap_priv;
 	int x_off, y_off;
 	Bool ret = FALSE;
 	int stride;
 	void *data;
 
+	pixmap = glamor_get_drawable_pixmap(drawable);
+	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
+
 	if (format != ZPixmap)
 		goto fall_back;
 
-	pixmap = glamor_get_drawable_pixmap(drawable);
-	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
 	if (!glamor_set_planemask(pixmap, planeMask)) {
 		glamor_fallback
 		    ("Failedto set planemask  in glamor_solid.\n");
@@ -64,12 +65,22 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	data = glamor_download_sub_pixmap_to_cpu(pixmap, x, y, w, h, stride,
 						 d, 0, GLAMOR_ACCESS_RO);
 	if (data != NULL) {
-		ret = TRUE;
 		assert(data == d);
+		return TRUE;
 	}
 fall_back:
-	if (ret == FALSE)
-		miGetImage(drawable, x, y, w, h, format, planeMask, d);
+	sub_pixmap = glamor_get_sub_pixmap(pixmap, x + x_off + drawable->x,
+					   y + y_off + drawable->y, w, h,
+					   GLAMOR_ACCESS_RO);
+	if (sub_pixmap) {
+		fbGetImage(&sub_pixmap->drawable, 0, 0, w, h, format, planeMask, d);
+		glamor_put_sub_pixmap(sub_pixmap, pixmap,
+				      x + x_off + drawable->x,
+				      y + y_off + drawable->y,
+				      w, h, GLAMOR_ACCESS_RO);
+	} else
+		fbGetImage(drawable, x, y, w, h, format, planeMask, d);
+
 	return TRUE;
 }
 
