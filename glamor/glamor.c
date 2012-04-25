@@ -399,7 +399,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	glamor_init_tile_shader(screen);
 	glamor_init_putimage_shaders(screen);
 	glamor_init_finish_access_shaders(screen);
+#ifdef GLAMOR_GRADIENT_SHADER
 	glamor_init_gradient_shader(screen);
+#endif
 	glamor_pixmap_init(screen);
 
 	glamor_priv->flags = flags;
