@@ -60,9 +60,6 @@ extern void LeaveWindow(DeviceIntPtr dev);
 extern void CoreFocusEvent(DeviceIntPtr kbd,
                            int type, int mode, int detail, WindowPtr pWin);
 
-extern void DeviceFocusEvent(DeviceIntPtr kbd,
-                             int type, int mode, int detail, WindowPtr pWin);
-
 extern void SetFocusIn(DeviceIntPtr kbd, WindowPtr win);
 
 extern void SetFocusOut(DeviceIntPtr dev);
