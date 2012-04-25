@@ -240,12 +240,9 @@ static inline void
 gl_iformat_for_depth(int depth, GLenum * format)
 {
 	switch (depth) {
+#ifndef GLAMOR_GLES2
 	case 8:
 		*format = GL_ALPHA;
-		break;
-#if 0
-	case 24:
-		*format = GL_RGB;
 		break;
 #endif
 	default:
