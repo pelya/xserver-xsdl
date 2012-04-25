@@ -395,6 +395,13 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	    && glamor_ddx_fallback_check_pixmap(dst))
 		goto done;
 
+	if (src_pixmap_priv->type == GLAMOR_DRM_ONLY
+	    || dst_pixmap_priv->type == GLAMOR_DRM_ONLY) {
+		LogMessage(X_WARNING,
+			   "Access a DRM only pixmap is not allowed within glamor.\n",
+			   dst->pScreen->myNum);
+		return TRUE;
+	}
 	glamor_report_delayed_fallbacks(src->pScreen);
 	glamor_report_delayed_fallbacks(dst->pScreen);
 
