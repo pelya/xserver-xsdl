@@ -9,6 +9,7 @@
 #define GLAMOR_CACHE_TEXTURE	2
 
 //#define NO_FBO_CACHE 1
+#define FBO_CACHE_THRESHOLD  (256*1024*1024)
 
 /* Loop from the tail to the head. */
 #define xorg_list_for_each_entry_reverse(pos, head, member)             \
@@ -68,7 +69,7 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 			    int w, int h, GLenum format, int flag)
 {
 	struct xorg_list *cache;
-	glamor_pixmap_fbo *fbo_entry;
+	glamor_pixmap_fbo *fbo_entry, *ret_fbo = NULL;
 	int size;
 	int n_format;
 #ifdef NO_FBO_CACHE
@@ -94,7 +95,8 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 					fbo_entry, fbo_entry->width, fbo_entry->height,
 					fbo_entry->fb, fbo_entry->tex);
 				xorg_list_del(&fbo_entry->list);
-				return fbo_entry;
+				ret_fbo = fbo_entry;
+				break;
 			}
 		}
 	}
@@ -108,12 +110,18 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 					fbo_entry->fb, fbo_entry->tex, fbo_entry->format);
 				assert(format == fbo_entry->format);
 				xorg_list_del(&fbo_entry->list);
-				return fbo_entry;
+				ret_fbo = fbo_entry;
+				break;
 			}
 		}
 	}
 
-	return NULL;
+	if (ret_fbo)
+		glamor_priv->fbo_cache_watermark -= ret_fbo->width * ret_fbo->height;
+
+	assert(glamor_priv->fbo_cache_watermark >= 0);
+
+	return ret_fbo;
 #endif
 }
 
@@ -144,7 +152,9 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 #else
 	n_format = cache_format(fbo->format);
 
-	if (fbo->fb == 0 || n_format == -1) {
+	if (fbo->fb == 0 || n_format == -1
+	   || fbo->glamor_priv->fbo_cache_watermark >= FBO_CACHE_THRESHOLD) {
+		fbo->glamor_priv->tick ++;
 		glamor_purge_fbo(fbo);
 		return;
 	}
@@ -159,6 +169,8 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 						    [cache_hbucket(fbo->height)];
 	DEBUGF("Put cache entry %p to cache %p w %d h %d format %x fbo %d tex %d \n", fbo, cache,
 		fbo->width, fbo->height, fbo->format, fbo->fb, fbo->tex);
+
+	fbo->glamor_priv->fbo_cache_watermark += fbo->width * fbo->height;
 	xorg_list_add(&fbo->list, cache);
 	fbo->expire = fbo->glamor_priv->tick + GLAMOR_CACHE_EXPIRE_MAX;
 #endif
@@ -264,6 +276,8 @@ glamor_fbo_expire(glamor_screen_private *glamor_priv)
 						empty_cache = FALSE;
 						break;
 					}
+
+					glamor_priv->fbo_cache_watermark -= fbo_entry->width * fbo_entry->height;
 					xorg_list_del(&fbo_entry->list);
 					DEBUGF("cache %p fbo %p expired %d current %d \n", cache, fbo_entry,
 						fbo_entry->expire, glamor_priv->tick);
@@ -300,6 +314,7 @@ glamor_init_pixmap_fbo(ScreenPtr screen)
 				xorg_list_init(&glamor_priv->fbo_cache[i][j][k]);
 				xorg_list_init(&glamor_priv->tex_cache[i][j][k]);
 			}
+	glamor_priv->fbo_cache_watermark = 0;
 }
 
 void

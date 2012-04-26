@@ -209,6 +209,7 @@ typedef struct glamor_screen_private {
 
 	struct xorg_list fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
 	struct xorg_list tex_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
+	unsigned long    fbo_cache_watermark;
 
 	/* glamor_solid */
 	GLint solid_prog;
@@ -742,7 +743,6 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
  * this will increase performance obviously. */
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
-#define GLAMOR_DELAYED_FILLING
 #ifndef GLAMOR_GLES2
 //#define GLAMOR_GRADIENT_SHADER
 #endif
