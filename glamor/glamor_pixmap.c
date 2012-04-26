@@ -435,8 +435,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format, GLenum ty
 	if (bits == NULL)
 		goto ready_to_upload;
 
-	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-	    &&  revert > REVERT_NORMAL) {
+	if (revert > REVERT_NORMAL) {
 		/* XXX if we are restoring the pixmap, then we may not need to allocate
 		 * new buffer */
 		void *converted_bits;

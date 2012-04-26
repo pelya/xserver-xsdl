@@ -241,6 +241,7 @@ gl_iformat_for_depth(int depth, GLenum * format)
 {
 	switch (depth) {
 #ifndef GLAMOR_GLES2
+	case 1:
 	case 8:
 		*format = GL_ALPHA;
 		break;
@@ -286,6 +287,9 @@ format_for_pixmap(PixmapPtr pixmap)
  * Map picture's format to the correct gl texture format and type.
  * no_alpha is used to indicate whehter we need to wire alpha to 1. 
  *
+ * Although opengl support A1/GL_BITMAP, we still don't use it
+ * here, it seems that mesa has bugs when uploading a A1 bitmap.
+ *
  * Return 0 if find a matched texture type. Otherwise return -1.
  **/
 #ifndef GLAMOR_GLES2
@@ -304,8 +308,9 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
 	*swap_rb = is_upload ? SWAP_NONE_UPLOADING : SWAP_NONE_DOWNLOADING;
 	switch (format) {
 	case PICT_a1:
-		*tex_format = GL_COLOR_INDEX;
-		*tex_type = GL_BITMAP;
+		*tex_format = GL_ALPHA;
+		*tex_type = GL_UNSIGNED_BYTE;
+		*revert = is_upload ? REVERT_UPLOADING_A1 : REVERT_DOWNLOADING_A1;
 		break;
 	case PICT_b8g8r8x8:
 		*no_alpha = 1;
@@ -730,6 +735,24 @@ inline static Bool glamor_tex_format_is_readable(GLenum format)
 
 }
 
+static inline void _glamor_dump_pixmap_bits(PixmapPtr pixmap, int x, int y, int w, int h)
+{
+	int i,j;
+	unsigned char * p = pixmap->devPrivate.ptr;
+	int stride = pixmap->devKind;
+
+	p = p + y * stride + x;
+
+	for (i = 0; i < h; i++)
+	{
+		ErrorF("line %3d: ", i);
+		for(j = 0; j < w; j++)
+			ErrorF("%2d ", (p[j/8] & (1 << (j%8)))>>(j%8));
+		p += stride;
+		ErrorF("\n");
+	}
+}
+
 static inline void _glamor_dump_pixmap_byte(PixmapPtr pixmap, int x, int y, int w, int h)
 {
 	int i,j;
@@ -802,6 +825,9 @@ static inline void glamor_dump_pixmap(PixmapPtr pixmap, int x, int y, int w, int
 	case 24:
 	case 32:
 		_glamor_dump_pixmap_word(pixmap, x, y, w, h);
+		break;
+	case 1:
+		_glamor_dump_pixmap_bits(pixmap, x, y, w, h);
 		break;
 	default:
 		ErrorF("dump depth %d, not implemented.\n", pixmap->drawable.depth);
