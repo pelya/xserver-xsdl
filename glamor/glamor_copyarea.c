@@ -150,7 +150,6 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	int src_x_off, src_y_off, dst_x_off, dst_y_off;
 	enum glamor_pixmap_status src_status = GLAMOR_NONE;
 	GLfloat dst_xscale, dst_yscale, src_xscale, src_yscale;
-	int flush_needed = 0;
 	int alu = GXcopy;
 
 	src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
@@ -172,8 +171,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
 		src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 #endif
-	} else
-		flush_needed = 1;
+	}
 
 	if (gc) {
 		if (!glamor_set_planemask(dst_pixmap, gc->planemask))
@@ -265,8 +263,6 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 #endif
 	dispatch->glUseProgram(0);
 	/* The source texture is bound to a fbo, we have to flush it here. */
-	if (flush_needed)
-		dispatch->glFlush();
 	glamor_put_dispatch(glamor_priv);
 	return TRUE;
 }
@@ -297,12 +293,13 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	int overlaped = 0;
 	Bool ret = FALSE;
 
+	if (nbox == 0)
+		return TRUE;
 	dst_pixmap = glamor_get_drawable_pixmap(dst);
 	dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
 	src_pixmap = glamor_get_drawable_pixmap(src);
 	src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 	screen = dst_pixmap->drawable.pScreen;
-
 	glamor_priv = glamor_get_screen_private(dst->pScreen);
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
