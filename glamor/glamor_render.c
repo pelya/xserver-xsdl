@@ -522,12 +522,12 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch;
+	float wh[2];
+	Bool has_repeat;
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glActiveTexture(GL_TEXTURE0 + unit);
 	dispatch->glBindTexture(GL_TEXTURE_2D, pixmap_priv->fbo->tex);
-	float wh[2];
-	Bool has_repeat;
 
 	switch (picture->repeatType) {
 	case RepeatNone:
@@ -581,19 +581,14 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
 #endif
-	if (picture->repeatType == RepeatNone) {
-		has_repeat = picture->transform
-			     && !pixman_transform_is_int_translate(picture->transform);
-		if (has_repeat)
-			dispatch->glUniform1i(repeat_location, RepeatNormal);
+	dispatch->glUniform1i(repeat_location, picture->repeatType);
+	if (picture->repeatType != RepeatNone) {
+		wh[0] = (float)pixmap_priv->fbo->width
+			/ pixmap_priv->container->drawable.width;
+		wh[1] = (float)pixmap_priv->fbo->height
+			/ pixmap_priv->container->drawable.height;
+		dispatch->glUniform2fv(wh_location, 1, wh);
 	}
-	else {
-		has_repeat = TRUE;
-		dispatch->glUniform1i(repeat_location, picture->repeatType);
-	}
-	wh[0] = (float)pixmap_priv->fbo->width / pixmap_priv->container->drawable.width;
-	wh[1] = (float)pixmap_priv->fbo->height / pixmap_priv->container->drawable.height;
-	dispatch->glUniform2fv(wh_location, 1, wh);
 	glamor_put_dispatch(glamor_priv);
 }
 
@@ -699,7 +694,6 @@ glamor_composite_with_copy(CARD8 op,
 		if (region.extents.y2 + y_source - y_dest > source->pDrawable->height)
 			goto cleanup_region;
 	}
-
 	ret = glamor_copy_n_to_n_nf(source->pDrawable,
 				    dest->pDrawable, NULL,
 				    REGION_RECTS(&region),
@@ -1126,6 +1120,22 @@ glamor_composite_with_shader(CARD8 op,
 		}
 	}
 #endif
+
+	/*Before enter the rendering stage, we need to fixup
+	 * transformed source and mask, if the transform is not int translate. */
+	if (key.source != SHADER_SOURCE_SOLID
+	    && source->transform
+	    && !pixman_transform_is_int_translate(source->transform)) {
+		if (!glamor_fixup_pixmap_priv(screen, source_pixmap_priv))
+			goto fail;
+	}
+	if (key.mask != SHADER_SOURCE_SOLID && key.mask != SHADER_MASK_SOLID
+	    && mask->transform
+	    && !pixman_transform_is_int_translate(mask->transform)) {
+		if (!glamor_fixup_pixmap_priv(screen, mask_pixmap_priv))
+			goto fail;
+	}
+
 	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
 
 	if (!glamor_set_composite_op(screen, op, dest, mask)) {
@@ -3006,10 +3016,6 @@ _glamor_composite(CARD8 op,
 	if (op >= ARRAY_SIZE(composite_op_info))
 		goto fail;
 
-	/*XXXXX, maybe we can make a copy of dest pixmap.*/
-	if (source_pixmap == dest_pixmap)
-		goto full_fallback;
-
 	if ((!source->pDrawable
 	     && (source->pSourcePict->type != SourcePictTypeSolidFill))
 	    || (source->pDrawable
@@ -3086,6 +3092,7 @@ _glamor_composite(CARD8 op,
 				goto fail;
 		}
 	}
+
 	if (!mask) {
 		if (glamor_composite_with_copy(op, temp_src, dest,
 					       x_temp_src, y_temp_src,
@@ -3093,6 +3100,10 @@ _glamor_composite(CARD8 op,
 					       height))
 			goto done;
 	}
+
+	/*XXXXX, maybe we can make a copy of dest pixmap.*/
+	if (source_pixmap == dest_pixmap)
+		goto full_fallback;
 
 	x_dest += dest->pDrawable->x;
 	y_dest += dest->pDrawable->y;
