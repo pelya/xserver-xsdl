@@ -213,7 +213,6 @@ glamor_block_handler(ScreenPtr screen)
 	dispatch = glamor_get_dispatch(glamor_priv);
 	glamor_priv->tick++;
 	dispatch->glFlush();
-	dispatch->glFinish();
 	glamor_fbo_expire(glamor_priv);
 	glamor_put_dispatch(glamor_priv);
 }
@@ -225,7 +224,6 @@ _glamor_block_handler(void *data, OSTimePtr timeout,
 	glamor_screen_private *glamor_priv = data;
 	glamor_gl_dispatch *dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glFlush();
-	dispatch->glFinish();
 	glamor_put_dispatch(glamor_priv);
 }
 
