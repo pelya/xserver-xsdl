@@ -65,7 +65,7 @@ static struct blendinfo composite_op_info[] = {
 	    {1, 1, GL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA},
 	[PictOpAdd] = {0, 0, GL_ONE, GL_ONE},
 };
-
+#define RepeatFix			10
 static GLuint
 glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 			   struct shader_key *key)
@@ -75,6 +75,7 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 	    "#define RepeatNormal                     1\n"
 	    "#define RepeatPad                        2\n"
 	    "#define RepeatReflect                    3\n"
+	    "#define RepeatFix		      	      10\n"
 	    "uniform int 			source_repeat_mode;\n"
 	    "uniform int 			mask_repeat_mode;\n";
 	const char *relocate_texture =
@@ -83,7 +84,9 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 	    "{\n"
 	    "   vec2 rel_tex; \n"
 	    "   rel_tex = texture * wh; \n"
-	    "   if (repeat == RepeatNormal) \n"
+	    "	if (repeat == RepeatNone)\n"
+	    "		return rel_tex; \n"
+	    "   else if (repeat == RepeatNormal) \n"
 	    "   	rel_tex = floor(rel_tex) + (fract(rel_tex) / wh); \n"
 	    "   else if(repeat == RepeatPad) { \n"
 	    "           if (rel_tex.x > 1.0) rel_tex.x = 1.0;		  \n"
@@ -104,6 +107,24 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 	    "    } \n"
             "   return rel_tex; \n"
 	    "}\n";
+	/* The texture and the pixmap size is not match eaxctly, so can't sample it directly.
+	 * rel_sampler will recalculate the texture coords.*/
+	const char *rel_sampler =
+	    " vec4 rel_sampler(sampler2D tex_image, vec2 tex, vec2 wh, int repeat, int set_alpha)\n"
+	    "{\n"
+	    "	tex = rel_tex_coord(tex, wh, repeat - RepeatFix);\n"
+	    "   if (repeat == RepeatFix) {\n"
+	    "		if (!(tex.x >= 0.0 && tex.x <= 1.0 \n"
+	    "		    && tex.y >= 0.0 && tex.y <= 1.0))\n"
+	    "			return vec4(0.0, 0.0, 0.0, set_alpha);\n"
+	    "		tex = (fract(tex) / wh);\n"
+	    "	}\n"
+	    "	if (set_alpha != 1)\n"
+	    "		return texture2D(tex_image, tex);\n"
+	    "	else\n"
+	    "		return vec4(texture2D(tex_image, tex).rgb, 1.0);\n"
+	    "}\n";
+
 	const char *source_solid_fetch =
 	    GLAMOR_DEFAULT_PRECISION
 	    "uniform vec4 source;\n"
@@ -115,12 +136,11 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 	    "uniform vec2 source_wh;"
 	    "vec4 get_source()\n"
 	    "{\n"
-	    "   if (source_repeat_mode == RepeatNone) \n"
+	    "   if (source_repeat_mode < RepeatFix)\n"
 	    "		return texture2D(source_sampler, source_texture);\n"
-	    "	else \n"
-	    "		return texture2D(source_sampler,\n"
-	    "				 rel_tex_coord(source_texture,\n"
-	    "				 source_wh, source_repeat_mode));\n"
+	    "   else \n"
+	    "		return rel_sampler(source_sampler, source_texture,\n"
+	    "				   source_wh, source_repeat_mode, 0);\n"
 	    "}\n";
 	const char *source_pixmap_fetch =
 	    GLAMOR_DEFAULT_PRECISION "varying vec2 source_texture;\n"
@@ -128,12 +148,11 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 	    "uniform vec2 source_wh;\n"
 	    "vec4 get_source()\n"
 	    "{\n"
-	    "   if (source_repeat_mode == RepeatNone) \n"
+	    "   if (source_repeat_mode < RepeatFix) \n"
 	    "		return vec4(texture2D(source_sampler, source_texture).rgb, 1);\n"
 	    "	else \n"
-	    "   	return vec4(texture2D(source_sampler, \n"
-	    "			    rel_tex_coord(source_texture,\n"
-	    "			    source_wh, source_repeat_mode)).rgb, 1);\n"
+	    "		return rel_sampler(source_sampler, source_texture,\n"
+	    "				   source_wh, source_repeat_mode, 1);\n"
 	    "}\n";
 	const char *mask_solid_fetch =
 	    GLAMOR_DEFAULT_PRECISION "uniform vec4 mask;\n"
@@ -144,12 +163,11 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 	    "uniform vec2 mask_wh;\n"
 	    "vec4 get_mask()\n"
 	    "{\n"
-	    "   if (mask_repeat_mode == RepeatNone) \n"
+	    "   if (mask_repeat_mode < RepeatFix) \n"
 	    "		return texture2D(mask_sampler, mask_texture);\n"
 	    "   else \n"
-	    "		return texture2D(mask_sampler, \n"
-	    "				 rel_tex_coord(mask_texture, \n"
-	    "				 mask_wh, mask_repeat_mode));\n"
+	    "		return rel_sampler(mask_sampler, mask_texture,\n"
+	    "				   mask_wh, mask_repeat_mode, 0);\n"
 	    "}\n";
 	const char *mask_pixmap_fetch =
 	    GLAMOR_DEFAULT_PRECISION "varying vec2 mask_texture;\n"
@@ -157,12 +175,11 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 	    "uniform vec2 mask_wh;\n"
 	    "vec4 get_mask()\n"
 	    "{\n"
-	    "   if (mask_repeat_mode == RepeatNone) \n"
+	    "   if (mask_repeat_mode < RepeatFix) \n"
 	    "   	return vec4(texture2D(mask_sampler, mask_texture).rgb, 1);\n"
 	    "   else \n"
-	    "   	return vec4(texture2D(mask_sampler, \n"
-	    "			    rel_tex_coord(mask_texture, \n"
-	    "			    mask_wh, mask_repeat_mode)).rgb, 1);\n"
+	    "		return rel_sampler(mask_sampler, mask_texture,\n"
+	    "				   mask_wh, mask_repeat_mode, 1);\n"
 	    "}\n";
 	const char *in_source_only =
 	    GLAMOR_DEFAULT_PRECISION "void main()\n" "{\n"
@@ -229,7 +246,7 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 		FatalError("Bad composite IN type");
 	}
 
-	XNFasprintf(&source, "%s%s%s%s%s", repeat_define, relocate_texture, source_fetch, mask_fetch, in);
+	XNFasprintf(&source, "%s%s%s%s%s%s", repeat_define, relocate_texture, rel_sampler,source_fetch, mask_fetch, in);
 
 
 	prog = glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
@@ -524,11 +541,12 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 	glamor_gl_dispatch *dispatch;
 	float wh[2];
 	Bool has_repeat;
+	int repeat_type;
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glActiveTexture(GL_TEXTURE0 + unit);
 	dispatch->glBindTexture(GL_TEXTURE_2D, pixmap_priv->fbo->tex);
-
+	repeat_type = picture->repeatType;
 	switch (picture->repeatType) {
 	case RepeatNone:
 #ifndef GLAMOR_GLES2
@@ -537,6 +555,11 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 					  GL_CLAMP_TO_BORDER);
 		dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
 					  GL_CLAMP_TO_BORDER);
+#else
+		dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+					  GL_CLAMP_TO_EDGE);
+		dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+					  GL_CLAMP_TO_EDGE);
 #endif
 		break;
 	case RepeatNormal:
@@ -560,6 +583,7 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 	}
 
 	switch (picture->filter) {
+	default:
 	case PictFilterNearest:
 		dispatch->glTexParameteri(GL_TEXTURE_2D,
 					  GL_TEXTURE_MIN_FILTER,
@@ -569,7 +593,6 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 					  GL_NEAREST);
 		break;
 	case PictFilterBilinear:
-	default:
 		dispatch->glTexParameteri(GL_TEXTURE_2D,
 					  GL_TEXTURE_MIN_FILTER,
 					  GL_LINEAR);
@@ -581,14 +604,22 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
 #endif
-	dispatch->glUniform1i(repeat_location, picture->repeatType);
-	if (picture->repeatType != RepeatNone) {
-		wh[0] = (float)pixmap_priv->fbo->width
-			/ pixmap_priv->container->drawable.width;
-		wh[1] = (float)pixmap_priv->fbo->height
-			/ pixmap_priv->container->drawable.height;
+	/* XXX may be we can eaxctly check whether we need to touch
+	 * the out-of-box area then determine whether we need to fix.
+	 * */
+	if (repeat_type != RepeatNone)
+		repeat_type += RepeatFix;
+	else if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
+		if (picture->transform
+		   || (GLAMOR_PIXMAP_FBO_NOT_EAXCT_SIZE(pixmap_priv)))
+			repeat_type += RepeatFix;
+	}
+
+	if (repeat_type >= RepeatFix) {
+		glamor_pixmap_fbo_fix_wh_ratio(wh, pixmap_priv);
 		dispatch->glUniform2fv(wh_location, 1, wh);
 	}
+	dispatch->glUniform1i(repeat_location, repeat_type);
 	glamor_put_dispatch(glamor_priv);
 }
 
@@ -694,6 +725,7 @@ glamor_composite_with_copy(CARD8 op,
 		if (region.extents.y2 + y_source - y_dest > source->pDrawable->height)
 			goto cleanup_region;
 	}
+
 	ret = glamor_copy_n_to_n_nf(source->pDrawable,
 				    dest->pDrawable, NULL,
 				    REGION_RECTS(&region),

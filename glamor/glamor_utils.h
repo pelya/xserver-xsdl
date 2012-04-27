@@ -18,6 +18,17 @@
     *(_pyscale_) = 1.0 / (_pixmap_priv_)->fbo->height;			\
   } while(0)
 
+#define GLAMOR_PIXMAP_FBO_NOT_EAXCT_SIZE(priv)				\
+	(priv->fbo->width != priv->container->drawable.width 	\
+	 || priv->fbo->height != priv->container->drawable.height)
+
+#define glamor_pixmap_fbo_fix_wh_ratio(wh, priv)  do {			\
+	wh[0] = (float)priv->fbo->width					\
+		/ priv->container->drawable.width;			\
+	wh[1] = (float)priv->fbo->height				\
+		/ priv->container->drawable.height;			\
+	} while(0)
+
 #define xFixedToFloat(_val_) ((float)xFixedToInt(_val_)			\
 			      + ((float)xFixedFrac(_val_) / 65536.0))
 
