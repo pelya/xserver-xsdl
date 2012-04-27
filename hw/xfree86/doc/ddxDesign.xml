@@ -5989,26 +5989,6 @@ typedef struct {
 
 	  </blockquote></para></blockquote>
 
-      <blockquote><para>
-	  <programlisting>
-    void LoadFont(FontModule *font);
-	  </programlisting>
-	  <blockquote><para>
-    This registers the entry points for the font rasteriser module
-    identified by <parameter>font</parameter>.  The <structname>FontModule</structname>
-    struct is defined as:
-
-	      <programlisting>
- typedef struct {
-    InitFont    initFunc;
-    char *      name;
-    pointer     module;
-} FontModule;
-	      </programlisting>
-	    </para>
-
-	  </blockquote></para></blockquote>
-
     </sect2>
 
   </sect1>
