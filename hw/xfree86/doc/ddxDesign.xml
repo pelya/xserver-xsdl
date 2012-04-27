@@ -665,11 +665,6 @@ Here is what <function>InitOutput()</function> does:
       </para>
 
       <para>
-    The core server contains a list of mandatory modules.  These are loaded
-    first.  Currently the only module on this list is the bitmap font module.
-      </para>
-
-      <para>
     The next set of modules loaded are those specified explicitly in the
     &k.module; section of the config file.
       </para>
