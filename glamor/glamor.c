@@ -136,7 +136,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	    glamor_get_screen_private(screen);
 	glamor_pixmap_fbo *fbo;
 	int pitch;
-	int flag;
 	GLenum format;
 
 	if (w > 32767 || h > 32767)
@@ -463,8 +462,6 @@ glamor_close_screen(int idx, ScreenPtr screen)
 {
 	glamor_screen_private *glamor_priv;
 	PixmapPtr screen_pixmap;
-	glamor_pixmap_private *screen_pixmap_priv;
-	glamor_pixmap_fbo *fbo;
 	int flags;
 
 	glamor_priv = glamor_get_screen_private(screen);

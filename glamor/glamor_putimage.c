@@ -255,7 +255,6 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	    glamor_get_pixmap_private(pixmap);
 	RegionPtr clip;
 	int x_off, y_off;
-	float vertices[8], texcoords[8];
 	Bool ret = FALSE;
 	PixmapPtr temp_pixmap, sub_pixmap;
 	glamor_pixmap_private *temp_pixmap_priv;

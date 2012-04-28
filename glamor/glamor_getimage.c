@@ -37,7 +37,6 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 	PixmapPtr pixmap, sub_pixmap;
 	struct glamor_pixmap_private *pixmap_priv;
 	int x_off, y_off;
-	Bool ret = FALSE;
 	int stride;
 	void *data;
 

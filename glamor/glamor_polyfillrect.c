@@ -44,7 +44,6 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 	RegionPtr pClip = fbGetCompositeClip(gc);
 	Bool ret = FALSE;
 	glamor_screen_private *glamor_priv;
-	xRectangle *saved_prect = prect;
 
 	glamor_priv = glamor_get_screen_private(drawable->pScreen);
 

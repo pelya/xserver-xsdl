@@ -33,8 +33,6 @@ _glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                     int x, int y, unsigned int nglyph,
                     CharInfoPtr * ppci, pointer pglyphBase, Bool fallback)
 {
-	glamor_screen_private *glamor_priv;
-
 	if (!fallback 
 	    && glamor_ddx_fallback_check_pixmap(pDrawable)
 	    && glamor_ddx_fallback_check_gc(pGC))
@@ -65,8 +63,6 @@ _glamor_poly_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                     int x, int y, unsigned int nglyph,
                     CharInfoPtr * ppci, pointer pglyphBase, Bool fallback)
 {
-	glamor_screen_private *glamor_priv;
-
 	if (!fallback
 	    && glamor_ddx_fallback_check_pixmap(pDrawable)
 	    && glamor_ddx_fallback_check_gc(pGC))

@@ -260,10 +260,9 @@ glamor_egl_check_has_gem(int fd)
 {
 	struct drm_gem_flink flink;
 	flink.handle = 0;
-	int err;
 
 	ioctl(fd, DRM_IOCTL_GEM_FLINK, &flink);
-	if (errno == ENOENT || err == EINVAL)
+	if (errno == ENOENT || errno == EINVAL)
 		return TRUE;
 	return FALSE;
 }

@@ -188,7 +188,6 @@ glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 void *
 _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int stride, int revert)
 {
-	void *bits;
 	PictFormatShort dst_format, src_format;
 	pixman_image_t *dst_image;
 	pixman_image_t *src_image;
@@ -209,7 +208,6 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int st
 					     dst_bits,
 					     stride);
 	if (dst_image == NULL) {
-		free(bits);
 		return NULL;
 	}
 
@@ -220,7 +218,6 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int st
 
 	if (src_image == NULL) {
 		pixman_image_unref(dst_image);
-		free(bits);
 		return NULL;
 	}
 
@@ -384,7 +381,7 @@ glamor_color_convert_to_bits(void *src_bits, void *dst_bits, int w, int h, int s
  **/
 int in_restore = 0;
 static void
-__glamor_upload_pixmap_to_texture(PixmapPtr pixmap, int *tex,
+__glamor_upload_pixmap_to_texture(PixmapPtr pixmap, unsigned int *tex,
 				  GLenum format,
 				  GLenum type,
 				  int x, int y, int w, int h,
@@ -394,7 +391,7 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, int *tex,
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
 	glamor_gl_dispatch *dispatch;
 	int non_sub = 0;
-	int iformat;
+	unsigned int iformat = 0;
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (*tex == 0) {
@@ -480,7 +477,8 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format, GLenum ty
 						    stride,
 						    no_alpha, revert, swap_rb);
 		if (bits == NULL) {
-			ErrorF("Failed to convert pixmap no_alpha %d, revert mode %d, swap mode %d\n", swap_rb);
+			ErrorF("Failed to convert pixmap no_alpha %d,"
+				"revert mode %d, swap mode %d\n", no_alpha, revert, swap_rb);
 			return FALSE;
 		}
 		no_alpha = 0;
@@ -698,8 +696,7 @@ void
 glamor_restore_pixmap_to_texture(PixmapPtr pixmap)
 {
 	if (glamor_upload_pixmap_to_texture(pixmap) != GLAMOR_UPLOAD_DONE)
-		LogMessage(X_WARNING, "Failed to restore pixmap to texture.\n",
-			   pixmap->drawable.pScreen->myNum);
+		LogMessage(X_WARNING, "Failed to restore pixmap to texture.\n");
 }
 
 /*
@@ -800,7 +797,7 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 				  int stride, void *bits, int pbo, glamor_access_t access)
 {
 	glamor_pixmap_private *pixmap_priv;
-	GLenum format, type, gl_access, gl_usage;
+	GLenum format, type, gl_access = 0, gl_usage = 0;
 	int no_alpha, revert, swap_rb;
 	void *data, *read;
 	ScreenPtr screen;
@@ -904,7 +901,7 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 			dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		}
 	} else {
-		int temp_pbo;
+		unsigned int temp_pbo;
 		int yy;
 
 		dispatch = glamor_get_dispatch(glamor_priv);
@@ -940,8 +937,6 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 						    revert, swap_rb);
 	}
 
-      done:
-
 	if (temp_fbo != NULL)
 		glamor_destroy_fbo(temp_fbo);
 	if (need_free_data)
@@ -965,9 +960,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 {
 	glamor_pixmap_private *pixmap_priv =
 	    glamor_get_pixmap_private(pixmap);
-	unsigned int stride, y;
-	GLenum format, type, gl_access, gl_usage;
-	int no_alpha, revert, swap_rb;
+	unsigned int stride;
 	void *data = NULL, *dst;
 	ScreenPtr screen;
 	glamor_screen_private *glamor_priv =
@@ -1023,8 +1016,6 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 		pixmap_priv->fbo->pbo_valid = 1;
 
 	pixmap_priv->gl_fbo = GLAMOR_FBO_DOWNLOADED;
-
-      done:
 
 	pixmap->devPrivate.ptr = dst;
 
@@ -1188,7 +1179,7 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 	return sub_pixmap;
 }
 
-PixmapPtr
+void
 glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y, int w, int h, glamor_access_t access)
 {
 	void *bits;

@@ -98,7 +98,6 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 {
 	struct xorg_list *cache;
 	glamor_pixmap_fbo *fbo_entry, *ret_fbo = NULL;
-	int size;
 	int n_format;
 #ifdef NO_FBO_CACHE
 	return NULL;
@@ -436,7 +435,7 @@ _glamor_create_tex(glamor_screen_private *glamor_priv,
 		   int w, int h, GLenum format)
 {
 	glamor_gl_dispatch *dispatch;
-	int tex;
+	unsigned int tex;
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glGenTextures(1, &tex);
@@ -451,15 +450,12 @@ _glamor_create_tex(glamor_screen_private *glamor_priv,
 	return tex;
 }
 
-
-
 glamor_pixmap_fbo *
 glamor_create_fbo(glamor_screen_private *glamor_priv,
 		  int w, int h,
 		  GLenum format,
 		  int flag)
 {
-	glamor_gl_dispatch *dispatch;
 	glamor_pixmap_fbo *fbo;
 	GLint tex = 0;
 	int cache_flag;

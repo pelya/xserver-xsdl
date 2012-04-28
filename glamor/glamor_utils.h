@@ -1018,8 +1018,6 @@ static inline void glamor_compare_pictures( ScreenPtr screen,
 	PixmapPtr fst_pixmap;
 	PixmapPtr snd_pixmap;
 	int fst_generated, snd_generated;
-	glamor_pixmap_private *fst_pixmap_priv;
-	glamor_pixmap_private *snd_pixmap_priv;
 	int error;
 	int fst_type = -1;
 	int snd_type = -1; // -1 represent has drawable.

@@ -40,7 +40,7 @@ glamor_fill(DrawablePtr drawable,
 	PixmapPtr sub_pixmap = NULL;
 	glamor_access_t sub_pixmap_access;
 	DrawablePtr saved_drawable = NULL;
-	int saved_x, saved_y;
+	int saved_x = x, saved_y = y;
 
 	glamor_get_drawable_deltas(drawable, dst_pixmap, &off_x, &off_y);
 
@@ -119,8 +119,6 @@ glamor_fill(DrawablePtr drawable,
 	}
 
 	if (sub_pixmap != NULL) {
-		struct pixman_box16 box;
-		int dx, dy;
 		if (gc->fillStyle != FillSolid) {
 			gc->patOrg.x -= (saved_drawable->x - saved_x);
 			gc->patOrg.y -= (saved_drawable->y - saved_y);

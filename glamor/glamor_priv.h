@@ -648,8 +648,7 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h
 PixmapPtr
 glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y,
 		      int w, int h, glamor_access_t access);
-
-PixmapPtr
+void
 glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y,
 		      int w, int h, glamor_access_t access);
 
