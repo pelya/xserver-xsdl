@@ -403,9 +403,8 @@ glamor_init_composite_shaders(ScreenPtr screen)
 	glamor_screen_private *glamor_priv;
 	glamor_gl_dispatch *dispatch;
 	unsigned short *eb;
-	float *vb;
+	float *vb = NULL;
 	int eb_size;
-	int vb_size;
 
 	glamor_priv = glamor_get_screen_private(screen);
 	dispatch = glamor_get_dispatch(glamor_priv);
@@ -542,7 +541,6 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch;
 	float wh[2];
-	Bool has_repeat;
 	int repeat_type;
 
 	dispatch = glamor_get_dispatch(glamor_priv);
@@ -1163,7 +1161,7 @@ glamor_composite_with_shader(CARD8 op,
 		if (!glamor_fixup_pixmap_priv(screen, source_pixmap_priv))
 			goto fail;
 	}
-	if (key.mask != SHADER_SOURCE_SOLID && key.mask != SHADER_MASK_SOLID
+	if (key.mask != SHADER_MASK_NONE && key.mask != SHADER_MASK_SOLID
 	    && mask->transform
 	    && !pixman_transform_is_int_translate(mask->transform)) {
 		if (!glamor_fixup_pixmap_priv(screen, mask_pixmap_priv))
@@ -1341,6 +1339,7 @@ done:
 	return ret;
 }
 
+#ifdef GLAMOR_GRADIENT_SHADER
 static GLint
 _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count, int use_array)
 {
@@ -1348,7 +1347,6 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count, int use_ar
 	glamor_gl_dispatch *dispatch;
 
 	char *gradient_fs = NULL;
-	GLint gradient_prog = 0;
 	GLint fs_getcolor_prog;
 
 	const char *gradient_fs_getcolor =
@@ -2252,7 +2250,6 @@ _glamor_generate_radial_gradient_picture(ScreenPtr screen,
 	glamor_gl_dispatch *dispatch;
 	PicturePtr dst_picture = NULL;
 	PixmapPtr pixmap = NULL;
-	glamor_pixmap_private *pixmap_priv;
 	GLint gradient_prog = 0;
 	int error;
 	float tex_vertices[8];
@@ -2581,7 +2578,6 @@ _glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	int stops_count;
 	GLfloat *stop_colors = NULL;
 	GLfloat *n_stops = NULL;
-	int i = 0;
 	int count = 0;
 	float slope;
 	GLfloat xscale, yscale;
@@ -2919,6 +2915,7 @@ GRADIENT_FAIL:
 	return NULL;
 }
 #undef LINEAR_DEFAULT_STOPS
+#endif
 
 static PicturePtr
 glamor_convert_gradient_picture(ScreenPtr screen,
@@ -3009,17 +3006,16 @@ _glamor_composite(CARD8 op,
 	Bool ret = TRUE;
 	RegionRec region;
 	BoxPtr box;
-	int nbox, i, ok;
+	int nbox, i, ok = FALSE;
 	PixmapPtr sub_dest_pixmap = NULL;
 	PixmapPtr sub_source_pixmap = NULL;
 	PixmapPtr sub_mask_pixmap = NULL;
-	int dest_x_off, dest_y_off, saved_dest_x, saved_dest_y;
-	int source_x_off, source_y_off, saved_source_x, saved_source_y;
-	int mask_x_off, mask_y_off, saved_mask_x, saved_mask_y;
-	DrawablePtr saved_dest_drawable;
-	DrawablePtr saved_source_drawable;
-	DrawablePtr saved_mask_drawable;
-
+	int dest_x_off, dest_y_off, saved_dest_x = 0, saved_dest_y = 0;
+	int source_x_off, source_y_off, saved_source_x = 0, saved_source_y = 0;
+	int mask_x_off, mask_y_off, saved_mask_x = 0, saved_mask_y = 0;
+	DrawablePtr saved_dest_drawable = NULL;
+	DrawablePtr saved_source_drawable = NULL;
+	DrawablePtr saved_mask_drawable = NULL;
 
 	x_temp_src = x_source;
 	y_temp_src = y_source;
