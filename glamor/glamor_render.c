@@ -427,7 +427,7 @@ glamor_init_composite_shaders(ScreenPtr screen)
 	}
 
 	if (eb == NULL)
-		FatalError("fatal error, fail to get eb.\n");
+		FatalError("fatal error, fail to get element buffer. GL context may be not created correctly.\n");
 	glamor_init_eb(eb, GLAMOR_COMPOSITE_VBO_VERT_CNT);
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {

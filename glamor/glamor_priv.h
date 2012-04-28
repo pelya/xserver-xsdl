@@ -32,7 +32,9 @@
 #endif
 
 #include <xorg-server.h>
-
+#ifndef DEBUG
+#define NDEBUG
+#endif
 #include "glamor.h"
 
 #define GL_GLEXT_PROTOTYPES

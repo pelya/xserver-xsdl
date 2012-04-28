@@ -287,7 +287,8 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 			xf86DrvMsg(scrn->scrnIndex, X_ERROR,
 				   "Couldn't flink pixmap handle\n");
 			glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
-			exit(1);
+			assert(0);
+			return FALSE;
 		}
 	} else
 		name = handle;
