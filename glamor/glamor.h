@@ -33,7 +33,6 @@
 #include <xf86str.h>
 #endif
 #include <pixmapstr.h>
-#include <windowstr.h>
 #include <gcstruct.h>
 #include <picturestr.h>
 #include <fb.h>
