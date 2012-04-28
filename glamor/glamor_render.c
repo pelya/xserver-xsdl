@@ -1651,6 +1651,8 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count, int dy
 		return;
 	}
 
+	dispatch = glamor_get_dispatch(glamor_priv);
+
 	if (dyn_gen && glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2]) {
 		dispatch->glDeleteShader(
 		    glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_VS_PROG][2]);
@@ -1667,8 +1669,6 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count, int dy
 		dispatch->glDeleteProgram(glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2]);
 		glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2] = 0;
 	}
-
-	dispatch = glamor_get_dispatch(glamor_priv);
 
 	gradient_prog = dispatch->glCreateProgram();
 
@@ -1883,6 +1883,7 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int dy
 		return;
 	}
 
+	dispatch = glamor_get_dispatch(glamor_priv);
 	if (dyn_gen && glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2]) {
 		dispatch->glDeleteShader(
 		    glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_VS_PROG][2]);
@@ -1899,8 +1900,6 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int dy
 		dispatch->glDeleteProgram(glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2]);
 		glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2] = 0;
 	}
-
-	dispatch = glamor_get_dispatch(glamor_priv);
 
 	gradient_prog = dispatch->glCreateProgram();
 
