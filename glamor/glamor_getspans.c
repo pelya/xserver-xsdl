@@ -22,6 +22,7 @@
  *
  * Authors:
  *    Eric Anholt <eric@anholt.net>
+ *    Zhigang Gong <zhigang.gong@linux.intel.com>
  *
  */
 

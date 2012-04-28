@@ -19,6 +19,10 @@
  * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
+ *
+ * Authors:
+ *    Eric Anholt <eric@anholt.net>
+ *    Zhigang Gong <zhigang.gong@linux.intel.com>
  */
 
 #include "glamor_priv.h"
@@ -329,7 +333,6 @@ _glamor_copy_n_to_n(DrawablePtr src,
 			}
 		}
 	}
-	/* XXX need revisit to handle overlapped area copying. */
 #ifndef GLAMOR_GLES2
 	if ((overlaped
 	     || !src_pixmap_priv->gl_tex || !dst_pixmap_priv->gl_tex)
