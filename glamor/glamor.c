@@ -427,7 +427,9 @@ glamor_release_screen_priv(ScreenPtr screen)
 	glamor_fini_tile_shader(screen);
 	glamor_fini_putimage_shaders(screen);
 	glamor_fini_finish_access_shaders(screen);
+#ifdef GLAMOR_GRADIENT_SHADER
 	glamor_fini_gradient_shader(screen);
+#endif
 	glamor_pixmap_fini(screen);
 	free(glamor_priv);
 
