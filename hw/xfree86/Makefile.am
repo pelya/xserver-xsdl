@@ -106,7 +106,7 @@ xorg.conf.example: xorgconf.cpp
 	$(AM_V_GEN)$(SED) $(CONF_SUBSTS) < $(srcdir)/xorgconf.cpp > $@
 
 relink:
-	$(AM_V_at)rm -f Xorg && $(MAKE) Xorg
+	$(AM_V_at)rm -f Xorg$(EXEEXT) && $(MAKE) Xorg$(EXEEXT)
 
 CLEANFILES = sdksyms.c sdksyms.dep
 EXTRA_DIST += sdksyms.sh
