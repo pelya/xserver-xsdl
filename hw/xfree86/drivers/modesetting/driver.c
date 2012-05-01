@@ -437,6 +437,28 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     pScrn->progClock = TRUE;
     pScrn->rgbBits = 8;
 
+    ms->PciInfo = xf86GetPciInfoForEntity(ms->pEnt->index);
+    if (ms->PciInfo) {
+       BusID = malloc(64);
+       sprintf(BusID, "PCI:%d:%d:%d",
+#if XSERVER_LIBPCIACCESS
+	        ((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
+	        ms->PciInfo->dev, ms->PciInfo->func
+#else
+	        ((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
+	        ((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
+	        ((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
+#endif
+	    );
+
+       ms->fd = drmOpen(NULL, BusID);
+    } else {
+       devicename = xf86FindOptionValue(ms->pEnt->device->options, "kmsdev");
+       ms->fd = open_hw(devicename);
+    }
+    if (ms->fd < 0)
+	return FALSE;
+
     if (!xf86SetDepthBpp
 	(pScrn, 0, 0, 0,
 	 PreferConvert24to32 | SupportConvert24to32 | Support32bppFb))
@@ -461,28 +483,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 	return FALSE;
     memcpy(ms->Options, Options, sizeof(Options));
     xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, ms->Options);
-
-    ms->PciInfo = xf86GetPciInfoForEntity(ms->pEnt->index);
-    if (ms->PciInfo) {
-       BusID = malloc(64);
-       sprintf(BusID, "PCI:%d:%d:%d",
-#if XSERVER_LIBPCIACCESS
-	        ((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
-	        ms->PciInfo->dev, ms->PciInfo->func
-#else
-	        ((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
-	        ((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
-	        ((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
-#endif
-	    );
-
-       ms->fd = drmOpen(NULL, BusID);
-    } else {
-       devicename = xf86GetOptValString(ms->Options, OPTION_DEVICE_PATH);
-       ms->fd = open_hw(devicename);
-    }
-    if (ms->fd < 0)
-	return FALSE;
 
     if (!xf86SetWeight(pScrn, defaultWeight, defaultWeight))
 	return FALSE;
