@@ -132,7 +132,7 @@ ProcXIQueryPointer(ClientPtr client)
     }
 
     if (pDev->button) {
-        int i, down;
+        int i;
 
         rep.buttons_len =
             bytes_to_int32(bits_to_bytes(pDev->button->numButtons));
@@ -142,14 +142,9 @@ ProcXIQueryPointer(ClientPtr client)
         if (!buttons)
             return BadAlloc;
 
-        down = pDev->button->buttonsDown;
-
-        for (i = 0; i < pDev->button->numButtons && down; i++) {
-            if (BitIsOn(pDev->button->down, i)) {
-                SetBit(buttons, i);
-                down--;
-            }
-        }
+        for (i = 1; i < pDev->button->numButtons; i++)
+            if (BitIsOn(pDev->button->down, i))
+                SetBit(buttons, pDev->button->map[i]);
     }
     else
         rep.buttons_len = 0;
