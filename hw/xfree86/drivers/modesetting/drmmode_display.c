@@ -1355,3 +1355,50 @@ void drmmode_free_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 		dumb_bo_destroy(drmmode->fd, drmmode_crtc->cursor_bo);
 	}
 }
+
+/* ugly workaround to see if we can create 32bpp */
+void drmmode_get_default_bpp(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int *depth, int *bpp)
+{
+	drmModeResPtr mode_res;
+	uint64_t value;
+	struct dumb_bo *bo;
+	uint32_t fb_id;
+	int ret;
+
+	/* 16 is fine */
+	ret = drmGetCap(drmmode->fd, DRM_CAP_DUMB_PREFERRED_DEPTH, &value);
+	if (!ret && (value == 16 || value == 8)) {
+		*depth = value;
+		*bpp = value;
+		return;
+	}
+
+	*depth = 24;
+	mode_res = drmModeGetResources(drmmode->fd);
+	if (!mode_res)
+		return;
+
+	/*create a bo */
+	bo = dumb_bo_create(drmmode->fd, mode_res->min_width, mode_res->min_height, 32);
+	if (!bo) {
+		*bpp = 24;
+		goto out;
+	}
+
+	ret = drmModeAddFB(drmmode->fd, mode_res->min_width, mode_res->min_height,
+			    24, 32, bo->pitch, bo->handle, &fb_id);
+
+	if (ret) {
+		*bpp = 24;
+		dumb_bo_destroy(drmmode->fd, bo);
+		goto out;
+	}
+
+	drmModeRmFB(drmmode->fd, fb_id);
+	*bpp = 32;
+
+	dumb_bo_destroy(drmmode->fd, bo);
+out:	
+	drmModeFreeResources(mode_res);
+	return;
+}

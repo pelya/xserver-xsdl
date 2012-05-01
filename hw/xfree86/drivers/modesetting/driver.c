@@ -59,10 +59,6 @@
 
 #include "driver.h"
 
-#ifndef DRM_CAP_DUMB_PREFER_SHADOW
-#define DRM_CAP_DUMB_PREFER_SHADOW 4
-#endif
-
 static void AdjustFrame(int scrnIndex, int x, int y, int flags);
 static Bool CloseScreen(int scrnIndex, ScreenPtr pScreen);
 static Bool EnterVT(int scrnIndex, int flags);
@@ -397,6 +393,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     Bool prefer_shadow = TRUE;
     uint64_t value = 0;
     int ret;
+    int bppflags;
+    int defaultdepth, defaultbpp;
 
     if (pScrn->numEntities != 1)
 	return FALSE;
@@ -459,9 +457,16 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     if (ms->fd < 0)
 	return FALSE;
 
+    ms->drmmode.fd = ms->fd;
+
+    drmmode_get_default_bpp(pScrn, &ms->drmmode, &defaultdepth, &defaultbpp);
+    if (defaultdepth == 24 && defaultbpp == 24)
+	    bppflags = Support24bppFb;
+    else
+	    bppflags = PreferConvert24to32 | SupportConvert24to32 | Support32bppFb;
+    
     if (!xf86SetDepthBpp
-	(pScrn, 0, 0, 0,
-	 PreferConvert24to32 | SupportConvert24to32 | Support32bppFb))
+	(pScrn, defaultdepth, defaultdepth, defaultbpp, bppflags))
 	return FALSE;
 
     switch (pScrn->depth) {
@@ -501,7 +506,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     ms->drmmode.shadow_enable = xf86ReturnOptValBool(ms->Options, OPTION_SHADOW_FB, prefer_shadow);
 
     xf86DrvMsg(pScrn->scrnIndex, X_INFO, "ShadowFB: preferred %s, enabled %s\n", prefer_shadow ? "YES" : "NO", ms->drmmode.shadow_enable ? "YES" : "NO");
-    ms->drmmode.fd = ms->fd;
     if (drmmode_pre_init(pScrn, &ms->drmmode, pScrn->bitsPerPixel / 8) == FALSE) {
 	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "KMS setup failed\n");
 	goto fail;

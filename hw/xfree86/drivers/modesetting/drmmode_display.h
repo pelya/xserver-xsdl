@@ -103,4 +103,14 @@ Bool drmmode_create_initial_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 void *drmmode_map_front_bo(drmmode_ptr drmmode);
 Bool drmmode_map_cursor_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 void drmmode_free_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
+void drmmode_get_default_bpp(ScrnInfoPtr pScrn, drmmode_ptr drmmmode, int *depth, int *bpp);
+
+#ifndef DRM_CAP_DUMB_PREFERRED_DEPTH
+#define DRM_CAP_DUMB_PREFERRED_DEPTH 3
+#endif
+#ifndef DRM_CAP_DUMB_PREFER_SHADOW
+#define DRM_CAP_DUMB_PREFER_SHADOW 4
+#endif
+
+
 #endif
