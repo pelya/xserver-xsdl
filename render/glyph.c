@@ -684,3 +684,13 @@ miGlyphs(CARD8 op,
         (*pScreen->DestroyPixmap) (pMaskPixmap);
     }
 }
+
+PicturePtr GetGlyphPicture(GlyphPtr glyph, ScreenPtr pScreen)
+{
+    return GlyphPicture(glyph)[pScreen->myNum];
+}
+
+void SetGlyphPicture(GlyphPtr glyph, ScreenPtr pScreen, PicturePtr picture)
+{
+    GlyphPicture(glyph)[pScreen->myNum] = picture;
+}
