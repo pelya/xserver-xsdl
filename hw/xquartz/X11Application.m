@@ -1641,6 +1641,11 @@ handle_mouse:
 
     case NSScrollWheel:
     {
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1050
+        float deltaX = [e deltaX];
+        float deltaY = [e deltaY];
+        BOOL isContinuous = NO;
+#else
         CGFloat deltaX = [e deltaX];
         CGFloat deltaY = [e deltaY];
         CGEventRef cge = [e CGEvent];
@@ -1661,6 +1666,7 @@ handle_mouse:
             deltaX *= lineHeight / 5.0;
             deltaY *= lineHeight / 5.0;
         }
+#endif
 #endif
         
 #if !defined(XPLUGIN_VERSION) || XPLUGIN_VERSION == 0
