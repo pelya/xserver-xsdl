@@ -501,6 +501,26 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     return TRUE;
 }
 
+void
+DisableAllDevices(void)
+{
+    DeviceIntPtr dev, tmp;
+
+    nt_list_for_each_entry_safe(dev, tmp, inputInfo.devices, next) {
+        if (!IsMaster(dev))
+            DisableDevice(dev, FALSE);
+    }
+    /* master keyboards need to be disabled first */
+    nt_list_for_each_entry_safe(dev, tmp, inputInfo.devices, next) {
+        if (dev->enabled && IsMaster(dev) && IsKeyboardDevice(dev))
+            DisableDevice(dev, FALSE);
+    }
+    nt_list_for_each_entry_safe(dev, tmp, inputInfo.devices, next) {
+        if (dev->enabled)
+            DisableDevice(dev, FALSE);
+    }
+}
+
 /**
  * Initialise a new device through the driver and tell all clients about the
  * new device.
