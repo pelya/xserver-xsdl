@@ -366,3 +366,72 @@ config_udev_fini(void)
     udev_monitor = NULL;
     udev_unref(udev);
 }
+
+#ifdef CONFIG_UDEV_KMS
+
+static Bool
+config_udev_odev_setup_attribs(const char *path, const char *syspath,
+                               config_odev_probe_proc_ptr probe_callback)
+{
+    struct OdevAttributes *attribs = config_odev_allocate_attribute_list();
+    int ret;
+
+    if (!attribs)
+        return FALSE;
+
+    ret = config_odev_add_attribute(attribs, ODEV_ATTRIB_PATH, path);
+    if (ret == FALSE)
+        goto fail;
+
+    ret = config_odev_add_attribute(attribs, ODEV_ATTRIB_SYSPATH, syspath);
+    if (ret == FALSE)
+        goto fail;
+
+    /* ownership of attribs is passed to probe layer */
+    probe_callback(attribs);
+    return TRUE;
+fail:
+    config_odev_free_attributes(attribs);
+    free(attribs);
+    return FALSE;
+}
+
+void
+config_udev_odev_probe(config_odev_probe_proc_ptr probe_callback)
+{
+    struct udev *udev;
+    struct udev_enumerate *enumerate;
+    struct udev_list_entry *devices, *device;
+
+    udev = udev_monitor_get_udev(udev_monitor);
+    enumerate = udev_enumerate_new(udev);
+    if (!enumerate)
+        return;
+
+    udev_enumerate_add_match_subsystem(enumerate, "drm");
+    udev_enumerate_add_match_sysname(enumerate, "card[0-9]*");
+    udev_enumerate_scan_devices(enumerate);
+    devices = udev_enumerate_get_list_entry(enumerate);
+    udev_list_entry_foreach(device, devices) {
+        const char *syspath = udev_list_entry_get_name(device);
+        struct udev_device *udev_device = udev_device_new_from_syspath(udev, syspath);
+        const char *path = udev_device_get_devnode(udev_device);
+        const char *sysname = udev_device_get_sysname(udev_device);
+
+        if (!path || !syspath)
+            goto no_probe;
+        else if (strcmp(udev_device_get_subsystem(udev_device), "drm") != 0)
+            goto no_probe;
+        else if (strncmp(sysname, "card", 4) != 0)
+            goto no_probe;
+
+        config_udev_odev_setup_attribs(path, syspath, probe_callback);
+
+    no_probe:
+        udev_device_unref(udev_device);
+    }
+    udev_enumerate_unref(enumerate);
+    return;
+}
+#endif
+

@@ -77,8 +77,14 @@ xf86CallDriverProbe(DriverPtr drv, Bool detect_only)
 {
     Bool foundScreen = FALSE;
 
+#ifdef XSERVER_PLATFORM_BUS
+    if (drv->platformProbe != NULL) {
+        foundScreen = xf86platformProbeDev(drv);
+    }
+#endif
+
 #ifdef XSERVER_LIBPCIACCESS
-    if (drv->PciProbe != NULL) {
+    if (!foundScreen && (drv->PciProbe != NULL)) {
         if (xf86DoConfigure && xf86DoConfigurePass1) {
             assert(detect_only);
             foundScreen = xf86PciAddMatchingDev(drv);
@@ -202,6 +208,9 @@ xf86BusConfig(void)
 void
 xf86BusProbe(void)
 {
+#ifdef XSERVER_PLATFORM_BUS
+    xf86platformProbe();
+#endif
 #ifdef XSERVER_LIBPCIACCESS
     xf86PciProbe();
 #endif
@@ -238,6 +247,8 @@ StringToBusType(const char *busID, const char **retID)
         ret = BUS_PCI;
     if (!xf86NameCmp(p, "sbus"))
         ret = BUS_SBUS;
+    if (!xf86NameCmp(p, "platform"))
+        ret = BUS_PLATFORM;
     if (ret != BUS_NONE)
         if (retID)
             *retID = busID + strlen(p) + 1;
@@ -270,6 +281,8 @@ xf86IsEntityPrimary(int entityIndex)
         return pEnt->bus.id.pci == primaryBus.id.pci;
     case BUS_SBUS:
         return pEnt->bus.id.sbus.fbNum == primaryBus.id.sbus.fbNum;
+    case BUS_PLATFORM:
+        return pEnt->bus.id.plat == primaryBus.id.plat;
     default:
         return FALSE;
     }
@@ -540,6 +553,9 @@ xf86PostProbe(void)
     if (fbSlotClaimed && (
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
                              sbusSlotClaimed ||
+#endif
+#ifdef XSERVER_PLATFORM_BUS
+                             platformSlotClaimed ||
 #endif
 #ifdef XSERVER_LIBPCIACCESS
                              pciSlotClaimed

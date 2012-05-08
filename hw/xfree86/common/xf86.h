@@ -71,6 +71,11 @@ extern _X_EXPORT Bool fbSlotClaimed;
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 extern _X_EXPORT Bool sbusSlotClaimed;
 #endif
+
+#if defined(XSERVER_PLATFORM_BUS)
+extern _X_EXPORT int platformSlotClaimed;
+#endif
+
 extern _X_EXPORT confDRIRec xf86ConfigDRI;
 extern _X_EXPORT Bool xf86DRI2Enabled(void);
 
