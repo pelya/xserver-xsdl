@@ -198,6 +198,39 @@ static Bool probe_hw(char *dev)
     return FALSE;
 }
 
+static char *
+ms_DRICreatePCIBusID(const struct pci_device *dev)
+{
+    char *busID;
+
+    if (asprintf(&busID, "pci:%04x:%02x:%02x.%d",
+                 dev->domain, dev->bus, dev->dev, dev->func) == -1)
+        return NULL;
+
+    return busID;
+}
+
+
+static Bool probe_hw_pci(char *dev, struct pci_device *pdev)
+{
+    int fd = open_hw(dev);
+    char *id, *devid;
+
+    if (fd == -1)
+	return FALSE;
+
+    id = drmGetBusid(fd);
+    devid = ms_DRICreatePCIBusID(pdev);
+    close(fd);
+
+    if (!id || !devid)
+	return FALSE;
+
+    if (!strcmp(id, devid))
+	return TRUE;
+
+    return FALSE;
+}
 static const OptionInfoRec *
 AvailableOptions(int chipid, int busid)
 {
@@ -219,7 +252,7 @@ ms_pci_probe(DriverPtr driver,
 						  scrn->entityInstanceList[0]);
 
 	devpath = xf86FindOptionValue(devSection->options, "kmsdev");
-	if (probe_hw(devpath)) {
+	if (probe_hw_pci(devpath, dev)) {
 	    scrn->driverVersion = 1;
 	    scrn->driverName = "modesetting";
 	    scrn->name = "modeset";
