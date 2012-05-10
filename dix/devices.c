@@ -918,12 +918,7 @@ CloseDevice(DeviceIntPtr dev)
         free(classes);
     }
 
-    if (DevHasCursor(dev) && dev->spriteInfo->sprite) {
-        if (dev->spriteInfo->sprite->current)
-            FreeCursor(dev->spriteInfo->sprite->current, None);
-        free(dev->spriteInfo->sprite->spriteTrace);
-        free(dev->spriteInfo->sprite);
-    }
+    FreeSprite(dev);
 
     /* a client may have the device set as client pointer */
     for (j = 0; j < currentMaxClients; j++) {
