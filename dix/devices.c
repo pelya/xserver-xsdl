@@ -458,9 +458,12 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
 
     if (IsMaster(dev) && dev->spriteInfo->sprite) {
         for (other = inputInfo.devices; other; other = other->next)
-            BUG_RETURN_VAL_MSG(other->spriteInfo->paired == dev, FALSE,
-                               "%s still paired with %s", dev->name, other->spriteInfo->paired->name);
+            if (other->spriteInfo->paired == dev && !other->spriteInfo->spriteOwner)
+                DisableDevice(other, sendevent);
     }
+
+    if (dev->spriteInfo->paired)
+        dev->spriteInfo->paired = NULL;
 
     (void) (*dev->deviceProc) (dev, DEVICE_OFF);
     dev->enabled = FALSE;
