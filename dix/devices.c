@@ -365,13 +365,12 @@ EnableDevice(DeviceIntPtr dev, BOOL sendevent)
                 /* mode doesn't matter */
                 EnterWindow(dev, screenInfo.screens[0]->root, NotifyAncestor);
             }
-            else if ((other = NextFreePointerDevice()) == NULL) {
-                ErrorF("[dix] cannot find pointer to pair with. "
-                       "This is a bug.\n");
-                return FALSE;
-            }
-            else
+            else {
+                other = NextFreePointerDevice();
+                BUG_RETURN_VAL_MSG(other == NULL, FALSE,
+                                   "[dix] cannot find pointer to pair with.\n");
                 PairDevices(NULL, other, dev);
+            }
         }
         else {
             if (dev->coreEvents)
