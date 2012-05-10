@@ -178,12 +178,9 @@ DeviceSetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
 
 /* Pair the keyboard to the pointer device. Keyboard events will follow the
  * pointer sprite. Only applicable for master devices.
- * If the client is set, the request to pair comes from some client. In this
- * case, we need to check for access. If the client is NULL, it's from an
- * internal automatic pairing, we must always permit this.
  */
 static int
-PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
+PairDevices(DeviceIntPtr ptr, DeviceIntPtr kbd)
 {
     if (!ptr)
         return BadDevice;
@@ -369,7 +366,7 @@ EnableDevice(DeviceIntPtr dev, BOOL sendevent)
                 other = NextFreePointerDevice();
                 BUG_RETURN_VAL_MSG(other == NULL, FALSE,
                                    "[dix] cannot find pointer to pair with.\n");
-                PairDevices(NULL, other, dev);
+                PairDevices(other, dev);
             }
         }
         else {
