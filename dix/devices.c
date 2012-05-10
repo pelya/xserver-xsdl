@@ -465,6 +465,8 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     (void) (*dev->deviceProc) (dev, DEVICE_OFF);
     dev->enabled = FALSE;
 
+    FreeSprite(dev);
+
     /* now that the device is disabled, we can reset the signal handler's
      * last.slave */
     OsBlockSignals();
