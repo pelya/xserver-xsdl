@@ -103,11 +103,11 @@ TouchResizeQueue(ClientPtr client, pointer closure)
 
         tmp = realloc(dev->last.touches, size * sizeof(*dev->last.touches));
         if (tmp) {
-            int i;
+            int j;
 
             dev->last.touches = tmp;
-            for (i = dev->last.num_touches; i < size; i++)
-                TouchInitDDXTouchPoint(dev, &dev->last.touches[i]);
+            for (j = dev->last.num_touches; j < size; j++)
+                TouchInitDDXTouchPoint(dev, &dev->last.touches[j]);
             dev->last.num_touches = size;
         }
 
