@@ -170,5 +170,5 @@ SRepXGetSelectedExtensionEvents(ClientPtr client, int size,
     swapl(&rep->length);
     swaps(&rep->this_client_count);
     swaps(&rep->all_clients_count);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

@@ -84,7 +84,7 @@ ProcXDGAQueryVersion(ClientPtr client)
     rep.majorVersion = SERVER_XDGA_MAJOR_VERSION;
     rep.minorVersion = SERVER_XDGA_MINOR_VERSION;
 
-    WriteToClient(client, sizeof(xXDGAQueryVersionReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXDGAQueryVersionReply), &rep);
     return Success;
 }
 
@@ -117,7 +117,7 @@ ProcXDGAOpenFramebuffer(ClientPtr client)
     nameSize = deviceName ? (strlen(deviceName) + 1) : 0;
     rep.length = bytes_to_int32(nameSize);
 
-    WriteToClient(client, sizeof(xXDGAOpenFramebufferReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXDGAOpenFramebufferReply), &rep);
     if (rep.length)
         WriteToClient(client, nameSize, deviceName);
 
@@ -164,12 +164,12 @@ ProcXDGAQueryModes(ClientPtr client)
     if (!DGAAvailable(stuff->screen)) {
         rep.number = 0;
         rep.length = 0;
-        WriteToClient(client, sz_xXDGAQueryModesReply, (char *) &rep);
+        WriteToClient(client, sz_xXDGAQueryModesReply, &rep);
         return Success;
     }
 
     if (!(num = DGAGetModes(stuff->screen))) {
-        WriteToClient(client, sz_xXDGAQueryModesReply, (char *) &rep);
+        WriteToClient(client, sz_xXDGAQueryModesReply, &rep);
         return Success;
     }
 
@@ -186,7 +186,7 @@ ProcXDGAQueryModes(ClientPtr client)
     rep.number = num;
     rep.length = bytes_to_int32(size);
 
-    WriteToClient(client, sz_xXDGAQueryModesReply, (char *) &rep);
+    WriteToClient(client, sz_xXDGAQueryModesReply, &rep);
 
     for (i = 0; i < num; i++) {
         size = strlen(mode[i].name) + 1;
@@ -218,7 +218,7 @@ ProcXDGAQueryModes(ClientPtr client)
         info.reserved1 = mode[i].reserved1;
         info.reserved2 = mode[i].reserved2;
 
-        WriteToClient(client, sz_xXDGAModeInfo, (char *) (&info));
+        WriteToClient(client, sz_xXDGAModeInfo, (&info));
         WriteToClient(client, size, mode[i].name);
     }
 
@@ -293,7 +293,7 @@ ProcXDGASetMode(ClientPtr client)
         DGA_SETCLIENT(stuff->screen, NULL);
         DGASelectInput(stuff->screen, NULL, 0);
         DGASetMode(stuff->screen, 0, &mode, &pPix);
-        WriteToClient(client, sz_xXDGASetModeReply, (char *) &rep);
+        WriteToClient(client, sz_xXDGASetModeReply, &rep);
         return Success;
     }
 
@@ -345,8 +345,8 @@ ProcXDGASetMode(ClientPtr client)
 
     rep.length = bytes_to_int32(sz_xXDGAModeInfo + info.name_size);
 
-    WriteToClient(client, sz_xXDGASetModeReply, (char *) &rep);
-    WriteToClient(client, sz_xXDGAModeInfo, (char *) (&info));
+    WriteToClient(client, sz_xXDGASetModeReply, &rep);
+    WriteToClient(client, sz_xXDGAModeInfo, (&info));
     WriteToClient(client, size, mode.name);
 
     return Success;
@@ -494,7 +494,7 @@ ProcXDGAGetViewportStatus(ClientPtr client)
 
     rep.status = DGAGetViewportStatus(stuff->screen);
 
-    WriteToClient(client, sizeof(xXDGAGetViewportStatusReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXDGAGetViewportStatusReply), &rep);
     return Success;
 }
 
@@ -517,7 +517,7 @@ ProcXDGASync(ClientPtr client)
 
     DGASync(stuff->screen);
 
-    WriteToClient(client, sizeof(xXDGASyncReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXDGASyncReply), &rep);
     return Success;
 }
 
@@ -568,7 +568,7 @@ ProcXDGAChangePixmapMode(ClientPtr client)
 
     rep.x = x;
     rep.y = y;
-    WriteToClient(client, sizeof(xXDGAChangePixmapModeReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXDGAChangePixmapModeReply), &rep);
 
     return Success;
 }
@@ -641,7 +641,7 @@ ProcXF86DGAGetVideoLL(ClientPtr client)
     rep.width = mode.bytesPerScanline / (mode.bitsPerPixel >> 3);
     rep.ram_size = rep.bank_size >> 10;
 
-    WriteToClient(client, SIZEOF(xXF86DGAGetVideoLLReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xXF86DGAGetVideoLLReply), &rep);
     return Success;
 }
 
@@ -732,7 +732,7 @@ ProcXF86DGAGetViewPortSize(ClientPtr client)
     rep.width = mode.viewportWidth;
     rep.height = mode.viewportHeight;
 
-    WriteToClient(client, SIZEOF(xXF86DGAGetViewPortSizeReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xXF86DGAGetViewPortSizeReply), &rep);
     return Success;
 }
 
@@ -777,7 +777,7 @@ ProcXF86DGAGetVidPage(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.vpage = 0;              /* silently fail */
 
-    WriteToClient(client, SIZEOF(xXF86DGAGetVidPageReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xXF86DGAGetVidPageReply), &rep);
     return Success;
 }
 
@@ -844,7 +844,7 @@ ProcXF86DGAQueryDirectVideo(ClientPtr client)
     if (DGAAvailable(stuff->screen))
         rep.flags = XF86DGADirectPresent;
 
-    WriteToClient(client, SIZEOF(xXF86DGAQueryDirectVideoReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xXF86DGAQueryDirectVideoReply), &rep);
     return Success;
 }
 
@@ -870,7 +870,7 @@ ProcXF86DGAViewPortChanged(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.result = 1;
 
-    WriteToClient(client, SIZEOF(xXF86DGAViewPortChangedReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xXF86DGAViewPortChangedReply), &rep);
     return Success;
 }
 

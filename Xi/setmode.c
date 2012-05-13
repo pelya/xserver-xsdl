@@ -137,5 +137,5 @@ SRepXSetDeviceMode(ClientPtr client, int size, xSetDeviceModeReply * rep)
 {
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

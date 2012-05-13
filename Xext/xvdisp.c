@@ -62,7 +62,7 @@ SWriteQueryExtensionReply(ClientPtr client, xvQueryExtensionReply * rep)
     swaps(&rep->version);
     swaps(&rep->revision);
 
-    (void) WriteToClient(client, sz_xvQueryExtensionReply, (char *) rep);
+    WriteToClient(client, sz_xvQueryExtensionReply, rep);
 
     return Success;
 }
@@ -74,7 +74,7 @@ SWriteQueryAdaptorsReply(ClientPtr client, xvQueryAdaptorsReply * rep)
     swapl(&rep->length);
     swaps(&rep->num_adaptors);
 
-    (void) WriteToClient(client, sz_xvQueryAdaptorsReply, (char *) rep);
+    WriteToClient(client, sz_xvQueryAdaptorsReply, rep);
 
     return Success;
 }
@@ -86,7 +86,7 @@ SWriteQueryEncodingsReply(ClientPtr client, xvQueryEncodingsReply * rep)
     swapl(&rep->length);
     swaps(&rep->num_encodings);
 
-    (void) WriteToClient(client, sz_xvQueryEncodingsReply, (char *) rep);
+    WriteToClient(client, sz_xvQueryEncodingsReply, rep);
 
     return Success;
 }
@@ -99,7 +99,7 @@ SWriteAdaptorInfo(ClientPtr client, xvAdaptorInfo * pAdaptor)
     swaps(&pAdaptor->num_ports);
     swaps(&pAdaptor->num_formats);
 
-    (void) WriteToClient(client, sz_xvAdaptorInfo, (char *) pAdaptor);
+    WriteToClient(client, sz_xvAdaptorInfo, pAdaptor);
 
     return Success;
 }
@@ -114,7 +114,7 @@ SWriteEncodingInfo(ClientPtr client, xvEncodingInfo * pEncoding)
     swaps(&pEncoding->height);
     swapl(&pEncoding->rate.numerator);
     swapl(&pEncoding->rate.denominator);
-    (void) WriteToClient(client, sz_xvEncodingInfo, (char *) pEncoding);
+    WriteToClient(client, sz_xvEncodingInfo, pEncoding);
 
     return Success;
 }
@@ -123,7 +123,7 @@ static int
 SWriteFormat(ClientPtr client, xvFormat * pFormat)
 {
     swapl(&pFormat->visual);
-    (void) WriteToClient(client, sz_xvFormat, (char *) pFormat);
+    WriteToClient(client, sz_xvFormat, pFormat);
 
     return Success;
 }
@@ -135,7 +135,7 @@ SWriteAttributeInfo(ClientPtr client, xvAttributeInfo * pAtt)
     swapl(&pAtt->size);
     swapl(&pAtt->min);
     swapl(&pAtt->max);
-    (void) WriteToClient(client, sz_xvAttributeInfo, (char *) pAtt);
+    WriteToClient(client, sz_xvAttributeInfo, pAtt);
 
     return Success;
 }
@@ -157,7 +157,7 @@ SWriteImageFormatInfo(ClientPtr client, xvImageFormatInfo * pImage)
     swapl(&pImage->vert_u_period);
     swapl(&pImage->vert_v_period);
 
-    (void) WriteToClient(client, sz_xvImageFormatInfo, (char *) pImage);
+    WriteToClient(client, sz_xvImageFormatInfo, pImage);
 
     return Success;
 }
@@ -168,7 +168,7 @@ SWriteGrabPortReply(ClientPtr client, xvGrabPortReply * rep)
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
 
-    (void) WriteToClient(client, sz_xvGrabPortReply, (char *) rep);
+    WriteToClient(client, sz_xvGrabPortReply, rep);
 
     return Success;
 }
@@ -180,7 +180,7 @@ SWriteGetPortAttributeReply(ClientPtr client, xvGetPortAttributeReply * rep)
     swapl(&rep->length);
     swapl(&rep->value);
 
-    (void) WriteToClient(client, sz_xvGetPortAttributeReply, (char *) rep);
+    WriteToClient(client, sz_xvGetPortAttributeReply, rep);
 
     return Success;
 }
@@ -193,7 +193,7 @@ SWriteQueryBestSizeReply(ClientPtr client, xvQueryBestSizeReply * rep)
     swaps(&rep->actual_width);
     swaps(&rep->actual_height);
 
-    (void) WriteToClient(client, sz_xvQueryBestSizeReply, (char *) rep);
+    WriteToClient(client, sz_xvQueryBestSizeReply, rep);
 
     return Success;
 }
@@ -207,7 +207,7 @@ SWriteQueryPortAttributesReply(ClientPtr client,
     swapl(&rep->num_attributes);
     swapl(&rep->text_size);
 
-    (void) WriteToClient(client, sz_xvQueryPortAttributesReply, (char *) rep);
+    WriteToClient(client, sz_xvQueryPortAttributesReply, rep);
 
     return Success;
 }
@@ -223,7 +223,7 @@ SWriteQueryImageAttributesReply(ClientPtr client,
     swaps(&rep->width);
     swaps(&rep->height);
 
-    (void) WriteToClient(client, sz_xvQueryImageAttributesReply, (char *) rep);
+    WriteToClient(client, sz_xvQueryImageAttributesReply, rep);
 
     return Success;
 }
@@ -235,66 +235,66 @@ SWriteListImageFormatsReply(ClientPtr client, xvListImageFormatsReply * rep)
     swapl(&rep->length);
     swapl(&rep->num_formats);
 
-    (void) WriteToClient(client, sz_xvListImageFormatsReply, (char *) rep);
+    WriteToClient(client, sz_xvListImageFormatsReply, rep);
 
     return Success;
 }
 
 #define _WriteQueryAdaptorsReply(_c,_d) \
   if ((_c)->swapped) SWriteQueryAdaptorsReply(_c, _d); \
-  else WriteToClient(_c, sz_xvQueryAdaptorsReply, (char*)_d)
+  else WriteToClient(_c, sz_xvQueryAdaptorsReply, _d)
 
 #define _WriteQueryExtensionReply(_c,_d) \
   if ((_c)->swapped) SWriteQueryExtensionReply(_c, _d); \
-  else WriteToClient(_c, sz_xvQueryExtensionReply, (char*)_d)
+  else WriteToClient(_c, sz_xvQueryExtensionReply, _d)
 
 #define _WriteQueryEncodingsReply(_c,_d) \
   if ((_c)->swapped) SWriteQueryEncodingsReply(_c, _d); \
-  else WriteToClient(_c, sz_xvQueryEncodingsReply, (char*)_d)
+  else WriteToClient(_c, sz_xvQueryEncodingsReply, _d)
 
 #define _WriteAdaptorInfo(_c,_d) \
   if ((_c)->swapped) SWriteAdaptorInfo(_c, _d); \
-  else WriteToClient(_c, sz_xvAdaptorInfo, (char*)_d)
+  else WriteToClient(_c, sz_xvAdaptorInfo, _d)
 
 #define _WriteAttributeInfo(_c,_d) \
   if ((_c)->swapped) SWriteAttributeInfo(_c, _d); \
-  else WriteToClient(_c, sz_xvAttributeInfo, (char*)_d)
+  else WriteToClient(_c, sz_xvAttributeInfo, _d)
 
 #define _WriteEncodingInfo(_c,_d) \
   if ((_c)->swapped) SWriteEncodingInfo(_c, _d); \
-  else WriteToClient(_c, sz_xvEncodingInfo, (char*)_d)
+  else WriteToClient(_c, sz_xvEncodingInfo, _d)
 
 #define _WriteFormat(_c,_d) \
   if ((_c)->swapped) SWriteFormat(_c, _d); \
-  else WriteToClient(_c, sz_xvFormat, (char*)_d)
+  else WriteToClient(_c, sz_xvFormat, _d)
 
 #define _WriteGrabPortReply(_c,_d) \
   if ((_c)->swapped) SWriteGrabPortReply(_c, _d); \
-  else WriteToClient(_c, sz_xvGrabPortReply, (char*)_d)
+  else WriteToClient(_c, sz_xvGrabPortReply, _d)
 
 #define _WriteGetPortAttributeReply(_c,_d) \
   if ((_c)->swapped) SWriteGetPortAttributeReply(_c, _d); \
-  else WriteToClient(_c, sz_xvGetPortAttributeReply, (char*)_d)
+  else WriteToClient(_c, sz_xvGetPortAttributeReply, _d)
 
 #define _WriteQueryBestSizeReply(_c,_d) \
   if ((_c)->swapped) SWriteQueryBestSizeReply(_c, _d); \
-  else WriteToClient(_c, sz_xvQueryBestSizeReply,(char*) _d)
+  else WriteToClient(_c, sz_xvQueryBestSizeReply, _d)
 
 #define _WriteQueryPortAttributesReply(_c,_d) \
   if ((_c)->swapped) SWriteQueryPortAttributesReply(_c, _d); \
-  else WriteToClient(_c, sz_xvQueryPortAttributesReply,(char*) _d)
+  else WriteToClient(_c, sz_xvQueryPortAttributesReply, _d)
 
 #define _WriteQueryImageAttributesReply(_c,_d) \
   if ((_c)->swapped) SWriteQueryImageAttributesReply(_c, _d); \
-  else WriteToClient(_c, sz_xvQueryImageAttributesReply,(char*) _d)
+  else WriteToClient(_c, sz_xvQueryImageAttributesReply, _d)
 
 #define _WriteListImageFormatsReply(_c,_d) \
   if ((_c)->swapped) SWriteListImageFormatsReply(_c, _d); \
-  else WriteToClient(_c, sz_xvListImageFormatsReply,(char*) _d)
+  else WriteToClient(_c, sz_xvListImageFormatsReply, _d)
 
 #define _WriteImageFormatInfo(_c,_d) \
   if ((_c)->swapped) SWriteImageFormatInfo(_c, _d); \
-  else WriteToClient(_c, sz_xvImageFormatInfo, (char*)_d)
+  else WriteToClient(_c, sz_xvImageFormatInfo, _d)
 
 #define _AllocatePort(_i,_p) \
   ((_p)->id != _i) ? (* (_p)->pAdaptor->ddAllocatePort)(_i,_p,&_p) : Success
@@ -1100,7 +1100,7 @@ ProcXvQueryImageAttributes(ClientPtr client)
     _WriteQueryImageAttributesReply(client, &rep);
     if (client->swapped)
         SwapLongs((CARD32 *) offsets, planeLength);
-    WriteToClient(client, planeLength << 2, (char *) offsets);
+    WriteToClient(client, planeLength << 2, offsets);
 
     free(offsets);
 

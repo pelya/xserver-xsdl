@@ -307,8 +307,7 @@ ProcXF86BigfontQueryVersion(ClientPtr client)
         swapl(&reply.gid);
         swapl(&reply.signature);
     }
-    WriteToClient(client,
-                  sizeof(xXF86BigfontQueryVersionReply), (char *) &reply);
+    WriteToClient(client, sizeof(xXF86BigfontQueryVersionReply), &reply);
     return Success;
 }
 
@@ -644,7 +643,7 @@ ProcXF86BigfontQueryFont(ClientPtr client)
                 }
             }
         }
-        WriteToClient(client, rlength, (char *) reply);
+        WriteToClient(client, rlength, reply);
         free(reply);
         if (nCharInfos > 0) {
             if (shmid == -1)

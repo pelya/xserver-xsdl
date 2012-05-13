@@ -667,7 +667,7 @@ DoMakeCurrent(__GLXclientState * cl,
         __glXSwapMakeCurrentReply(client, &reply);
     }
     else {
-        WriteToClient(client, sz_xGLXMakeCurrentReply, (char *) &reply);
+        WriteToClient(client, sz_xGLXMakeCurrentReply, &reply);
     }
     return Success;
 }
@@ -731,7 +731,7 @@ __glXDisp_IsDirect(__GLXclientState * cl, GLbyte * pc)
         __glXSwapIsDirectReply(client, &reply);
     }
     else {
-        WriteToClient(client, sz_xGLXIsDirectReply, (char *) &reply);
+        WriteToClient(client, sz_xGLXIsDirectReply, &reply);
     }
 
     return Success;
@@ -767,7 +767,7 @@ __glXDisp_QueryVersion(__GLXclientState * cl, GLbyte * pc)
         __glXSwapQueryVersionReply(client, &reply);
     }
     else {
-        WriteToClient(client, sz_xGLXQueryVersionReply, (char *) &reply);
+        WriteToClient(client, sz_xGLXQueryVersionReply, &reply);
     }
     return Success;
 }
@@ -949,7 +949,7 @@ __glXDisp_GetVisualConfigs(__GLXclientState * cl, GLbyte * pc)
         __GLX_SWAP_INT(&reply.numProps);
     }
 
-    WriteToClient(client, sz_xGLXGetVisualConfigsReply, (char *) &reply);
+    WriteToClient(client, sz_xGLXGetVisualConfigsReply, &reply);
 
     for (i = 0; i < pGlxScreen->numVisuals; i++) {
         modes = pGlxScreen->visuals[i];
@@ -1006,7 +1006,7 @@ __glXDisp_GetVisualConfigs(__GLXclientState * cl, GLbyte * pc)
         if (client->swapped) {
             __GLX_SWAP_INT_ARRAY(buf, p);
         }
-        WriteToClient(client, __GLX_SIZE_CARD32 * p, (char *) buf);
+        WriteToClient(client, __GLX_SIZE_CARD32 * p, buf);
     }
     return Success;
 }
@@ -1052,7 +1052,7 @@ DoGetFBConfigs(__GLXclientState * cl, unsigned screen)
         __GLX_SWAP_INT(&reply.numAttribs);
     }
 
-    WriteToClient(client, sz_xGLXGetFBConfigsReply, (char *) &reply);
+    WriteToClient(client, sz_xGLXGetFBConfigsReply, &reply);
 
     for (modes = pGlxScreen->fbconfigs; modes != NULL; modes = modes->next) {
         p = 0;
@@ -1685,8 +1685,8 @@ DoQueryContext(__GLXclientState * cl, GLXContextID gcId)
         __glXSwapQueryContextInfoEXTReply(client, &reply, sendBuf);
     }
     else {
-        WriteToClient(client, sz_xGLXQueryContextInfoEXTReply, (char *) &reply);
-        WriteToClient(client, nReplyBytes, (char *) sendBuf);
+        WriteToClient(client, sz_xGLXQueryContextInfoEXTReply, &reply);
+        WriteToClient(client, nReplyBytes, sendBuf);
     }
     free((char *) sendBuf);
 
@@ -1887,10 +1887,8 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
         __glXSwapGetDrawableAttributesReply(client, &reply, attributes);
     }
     else {
-        WriteToClient(client, sz_xGLXGetDrawableAttributesReply,
-                      (char *) &reply);
-        WriteToClient(client, reply.length * sizeof(CARD32),
-                      (char *) attributes);
+        WriteToClient(client, sz_xGLXGetDrawableAttributesReply, &reply);
+        WriteToClient(client, reply.length * sizeof(CARD32), attributes);
     }
 
     return Success;
@@ -2326,9 +2324,8 @@ __glXDisp_QueryExtensionsString(__GLXclientState * cl, GLbyte * pc)
         glxSwapQueryExtensionsStringReply(client, &reply, buf);
     }
     else {
-        WriteToClient(client, sz_xGLXQueryExtensionsStringReply,
-                      (char *) &reply);
-        WriteToClient(client, (int) (length << 2), (char *) buf);
+        WriteToClient(client, sz_xGLXQueryExtensionsStringReply, &reply);
+        WriteToClient(client, (int) (length << 2), buf);
     }
 
     free(buf);
@@ -2388,7 +2385,7 @@ __glXDisp_QueryServerString(__GLXclientState * cl, GLbyte * pc)
         glxSwapQueryServerStringReply(client, &reply, buf);
     }
     else {
-        WriteToClient(client, sz_xGLXQueryServerStringReply, (char *) &reply);
+        WriteToClient(client, sz_xGLXQueryServerStringReply, &reply);
         WriteToClient(client, (int) (length << 2), buf);
     }
 

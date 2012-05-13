@@ -109,7 +109,7 @@ ProcXGetDeviceModifierMapping(ClientPtr client)
     rep.length = max_keys_per_mod << 1;
 
     WriteReplyToClient(client, sizeof(xGetDeviceModifierMappingReply), &rep);
-    WriteToClient(client, max_keys_per_mod * 8, (char *) modkeymap);
+    WriteToClient(client, max_keys_per_mod * 8, modkeymap);
 
     free(modkeymap);
 
@@ -129,5 +129,5 @@ SRepXGetDeviceModifierMapping(ClientPtr client, int size,
 {
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

@@ -228,7 +228,7 @@ ProcRRGetScreenSizeRange(ClientPtr client)
         swaps(&rep.maxWidth);
         swaps(&rep.maxHeight);
     }
-    WriteToClient(client, sizeof(xRRGetScreenSizeRangeReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRRGetScreenSizeRangeReply), &rep);
     return Success;
 }
 
@@ -450,9 +450,9 @@ rrGetMultiScreenResources(ClientPtr client, Bool query, ScreenPtr pScreen)
         swaps(&rep.nModes);
         swaps(&rep.nbytesNames);
     }
-    WriteToClient(client, sizeof(xRRGetScreenResourcesReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRRGetScreenResourcesReply), &rep);
     if (extraLen) {
-        WriteToClient(client, extraLen, (char *) extra);
+        WriteToClient(client, extraLen, extra);
         free(extra);
     }
     return Success;
@@ -860,9 +860,9 @@ ProcRRGetScreenInfo(ClientPtr client)
         swaps(&rep.rate);
         swaps(&rep.nrateEnts);
     }
-    WriteToClient(client, sizeof(xRRGetScreenInfoReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRRGetScreenInfoReply), &rep);
     if (extraLen) {
-        WriteToClient(client, extraLen, (char *) extra);
+        WriteToClient(client, extraLen, extra);
         free(extra);
     }
     return Success;
@@ -1092,7 +1092,7 @@ ProcRRSetScreenConfig(ClientPtr client)
         swapl(&rep.newConfigTimestamp);
         swapl(&rep.root);
     }
-    WriteToClient(client, sizeof(xRRSetScreenConfigReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRRSetScreenConfigReply), &rep);
 
     return Success;
 }

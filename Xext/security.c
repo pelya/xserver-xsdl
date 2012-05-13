@@ -351,8 +351,7 @@ ProcSecurityQueryVersion(ClientPtr client)
         swaps(&rep.majorVersion);
         swaps(&rep.minorVersion);
     }
-    (void) WriteToClient(client, SIZEOF(xSecurityQueryVersionReply),
-                         (char *) &rep);
+    WriteToClient(client, SIZEOF(xSecurityQueryVersionReply), &rep);
     return Success;
 }                               /* ProcSecurityQueryVersion */
 
@@ -541,8 +540,7 @@ ProcSecurityGenerateAuthorization(ClientPtr client)
         swaps(&rep.dataLength);
     }
 
-    WriteToClient(client, SIZEOF(xSecurityGenerateAuthorizationReply),
-                  (char *) &rep);
+    WriteToClient(client, SIZEOF(xSecurityGenerateAuthorizationReply), &rep);
     WriteToClient(client, authdata_len, pAuthdata);
 
     SecurityAudit

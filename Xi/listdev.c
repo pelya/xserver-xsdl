@@ -417,5 +417,5 @@ SRepXListInputDevices(ClientPtr client, int size, xListInputDevicesReply * rep)
 {
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

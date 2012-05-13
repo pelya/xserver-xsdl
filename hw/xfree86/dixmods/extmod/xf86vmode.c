@@ -296,7 +296,7 @@ ProcXF86VidModeQueryVersion(ClientPtr client)
         swaps(&rep.majorVersion);
         swaps(&rep.minorVersion);
     }
-    WriteToClient(client, sizeof(xXF86VidModeQueryVersionReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86VidModeQueryVersionReply), &rep);
     return Success;
 }
 
@@ -391,12 +391,10 @@ ProcXF86VidModeGetModeLine(ClientPtr client)
         oldrep.vtotal = rep.vtotal;
         oldrep.flags = rep.flags;
         oldrep.privsize = rep.privsize;
-        WriteToClient(client, sizeof(xXF86OldVidModeGetModeLineReply),
-                      (char *) &oldrep);
+        WriteToClient(client, sizeof(xXF86OldVidModeGetModeLineReply), &oldrep);
     }
     else {
-        WriteToClient(client, sizeof(xXF86VidModeGetModeLineReply),
-                      (char *) &rep);
+        WriteToClient(client, sizeof(xXF86VidModeGetModeLineReply), &rep);
     }
     return Success;
 }
@@ -443,8 +441,7 @@ ProcXF86VidModeGetAllModeLines(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.modecount);
     }
-    WriteToClient(client, sizeof(xXF86VidModeGetAllModeLinesReply),
-                  (char *) &rep);
+    WriteToClient(client, sizeof(xXF86VidModeGetAllModeLinesReply), &rep);
 
     do {
         mdinf.dotclock = dotClock;
@@ -485,12 +482,10 @@ ProcXF86VidModeGetAllModeLines(ClientPtr client)
             oldmdinf.vtotal = mdinf.vtotal;
             oldmdinf.flags = mdinf.flags;
             oldmdinf.privsize = mdinf.privsize;
-            WriteToClient(client, sizeof(xXF86OldVidModeModeInfo),
-                          (char *) &oldmdinf);
+            WriteToClient(client, sizeof(xXF86OldVidModeModeInfo), &oldmdinf);
         }
         else {
-            WriteToClient(client, sizeof(xXF86VidModeModeInfo),
-                          (char *) &mdinf);
+            WriteToClient(client, sizeof(xXF86VidModeModeInfo), &mdinf);
         }
 
     } while (VidModeGetNextModeline(stuff->screen, &mode, &dotClock));
@@ -1040,8 +1035,7 @@ ProcXF86VidModeValidateModeLine(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.status);
     }
-    WriteToClient(client, sizeof(xXF86VidModeValidateModeLineReply),
-                  (char *) &rep);
+    WriteToClient(client, sizeof(xXF86VidModeValidateModeLineReply), &rep);
     if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
         ErrorF("ValidateModeLine - Succeeded (status = %d)\n", status);
     return Success;
@@ -1262,20 +1256,16 @@ ProcXF86VidModeGetMonitor(ClientPtr client)
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
     }
-    WriteToClient(client, SIZEOF(xXF86VidModeGetMonitorReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xXF86VidModeGetMonitorReply), &rep);
     client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
     WriteSwappedDataToClient(client, nHsync * sizeof(CARD32), hsyncdata);
     WriteSwappedDataToClient(client, nVrefresh * sizeof(CARD32), vsyncdata);
     if (rep.vendorLength)
         WriteToClient(client, rep.vendorLength,
-                      (char
-                       *) (VidModeGetMonitorValue(monitor, VIDMODE_MON_VENDOR,
-                                                  0)).ptr);
+                 (VidModeGetMonitorValue(monitor, VIDMODE_MON_VENDOR, 0)).ptr);
     if (rep.modelLength)
         WriteToClient(client, rep.modelLength,
-                      (char
-                       *) (VidModeGetMonitorValue(monitor, VIDMODE_MON_MODEL,
-                                                  0)).ptr);
+                 (VidModeGetMonitorValue(monitor, VIDMODE_MON_MODEL, 0)).ptr);
 
     free(hsyncdata);
     free(vsyncdata);
@@ -1311,7 +1301,7 @@ ProcXF86VidModeGetViewPort(ClientPtr client)
         swapl(&rep.x);
         swapl(&rep.y);
     }
-    WriteToClient(client, SIZEOF(xXF86VidModeGetViewPortReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xXF86VidModeGetViewPortReply), &rep);
     return Success;
 }
 
@@ -1380,7 +1370,7 @@ ProcXF86VidModeGetDotClocks(ClientPtr client)
         swapl(&rep.maxclocks);
         swapl(&rep.flags);
     }
-    WriteToClient(client, sizeof(xXF86VidModeGetDotClocksReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86VidModeGetDotClocksReply), &rep);
     if (!ClockProg) {
         for (n = 0; n < numClocks; n++) {
             dotclock = *Clocks++;
@@ -1388,7 +1378,7 @@ ProcXF86VidModeGetDotClocks(ClientPtr client)
                 WriteSwappedDataToClient(client, 4, (char *) &dotclock);
             }
             else {
-                WriteToClient(client, 4, (char *) &dotclock);
+                WriteToClient(client, 4, &dotclock);
             }
         }
     }
@@ -1446,7 +1436,7 @@ ProcXF86VidModeGetGamma(ClientPtr client)
         swapl(&rep.green);
         swapl(&rep.blue);
     }
-    WriteToClient(client, sizeof(xXF86VidModeGetGammaReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86VidModeGetGammaReply), &rep);
 
     return Success;
 }
@@ -1520,10 +1510,10 @@ ProcXF86VidModeGetGammaRamp(ClientPtr client)
         swaps(&rep.size);
         SwapShorts((short *) ramp, length * 3);
     }
-    WriteToClient(client, sizeof(xXF86VidModeGetGammaRampReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86VidModeGetGammaRampReply), &rep);
 
     if (stuff->size) {
-        WriteToClient(client, ramplen, (char *) ramp);
+        WriteToClient(client, ramplen, ramp);
         free(ramp);
     }
 
@@ -1551,8 +1541,7 @@ ProcXF86VidModeGetGammaRampSize(ClientPtr client)
         swapl(&rep.length);
         swaps(&rep.size);
     }
-    WriteToClient(client, sizeof(xXF86VidModeGetGammaRampSizeReply),
-                  (char *) &rep);
+    WriteToClient(client, sizeof(xXF86VidModeGetGammaRampSizeReply), &rep);
 
     return Success;
 }
@@ -1582,8 +1571,7 @@ ProcXF86VidModeGetPermissions(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.permissions);
     }
-    WriteToClient(client, sizeof(xXF86VidModeGetPermissionsReply),
-                  (char *) &rep);
+    WriteToClient(client, sizeof(xXF86VidModeGetPermissionsReply), &rep);
 
     return Success;
 }

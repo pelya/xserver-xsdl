@@ -193,7 +193,7 @@ ProcXkbUseExtension(ClientPtr client)
         swaps(&rep.serverMajor);
         swaps(&rep.serverMinor);
     }
-    WriteToClient(client, SIZEOF(xkbUseExtensionReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbUseExtensionReply), &rep);
     return Success;
 }
 
@@ -596,7 +596,7 @@ ProcXkbGetState(ClientPtr client)
         swaps(&rep.sequenceNumber);
         swaps(&rep.ptrBtnState);
     }
-    WriteToClient(client, SIZEOF(xkbGetStateReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbGetStateReply), &rep);
     return Success;
 }
 
@@ -741,7 +741,7 @@ ProcXkbGetControls(ClientPtr client)
         swaps(&rep.axtOptsValues);
         swaps(&rep.axOptions);
     }
-    WriteToClient(client, SIZEOF(xkbGetControlsReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbGetControlsReply), &rep);
     return Success;
 }
 
@@ -1433,7 +1433,7 @@ XkbSendMap(ClientPtr client, XkbDescPtr xkb, xkbGetMapReply * rep)
         swaps(&rep->totalSyms);
         swaps(&rep->totalActs);
     }
-    WriteToClient(client, (i = SIZEOF(xkbGetMapReply)), (char *) rep);
+    WriteToClient(client, (i = SIZEOF(xkbGetMapReply)), rep);
     WriteToClient(client, len, start);
     free((char *) start);
     return Success;
@@ -2744,7 +2744,7 @@ XkbSendCompatMap(ClientPtr client,
         swaps(&rep->nTotalSI);
     }
 
-    WriteToClient(client, SIZEOF(xkbGetCompatMapReply), (char *) rep);
+    WriteToClient(client, SIZEOF(xkbGetCompatMapReply), rep);
     if (data) {
         WriteToClient(client, size, data);
         free((char *) data);
@@ -3044,7 +3044,7 @@ ProcXkbGetIndicatorState(ClientPtr client)
         swaps(&rep.sequenceNumber);
         swapl(&rep.state);
     }
-    WriteToClient(client, SIZEOF(xkbGetIndicatorStateReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbGetIndicatorStateReply), &rep);
     return Success;
 }
 
@@ -3118,9 +3118,9 @@ XkbSendIndicatorMap(ClientPtr client,
         swapl(&rep->which);
         swapl(&rep->realIndicators);
     }
-    WriteToClient(client, SIZEOF(xkbGetIndicatorMapReply), (char *) rep);
+    WriteToClient(client, SIZEOF(xkbGetIndicatorMapReply), rep);
     if (map) {
-        WriteToClient(client, length, (char *) map);
+        WriteToClient(client, length, map);
         free((char *) map);
     }
     return Success;
@@ -3343,7 +3343,7 @@ ProcXkbGetNamedIndicator(ClientPtr client)
         swapl(&rep.ctrls);
     }
 
-    WriteToClient(client, SIZEOF(xkbGetNamedIndicatorReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbGetNamedIndicatorReply), &rep);
     return Success;
 }
 
@@ -3857,7 +3857,7 @@ XkbSendNames(ClientPtr client, XkbDescPtr xkb, xkbGetNamesReply * rep)
         ErrorF("[xkb] BOGUS LENGTH in write names, expected %d, got %ld\n",
                length, (unsigned long) (desc - start));
     }
-    WriteToClient(client, SIZEOF(xkbGetNamesReply), (char *) rep);
+    WriteToClient(client, SIZEOF(xkbGetNamesReply), rep);
     WriteToClient(client, length, start);
     free((char *) start);
     return Success;
@@ -4904,7 +4904,7 @@ XkbSendGeometry(ClientPtr client,
         swaps(&rep->nDoodads);
         swaps(&rep->nKeyAliases);
     }
-    WriteToClient(client, SIZEOF(xkbGetGeometryReply), (char *) rep);
+    WriteToClient(client, SIZEOF(xkbGetGeometryReply), rep);
     if (len > 0)
         WriteToClient(client, len, start);
     if (start != NULL)
@@ -5538,7 +5538,7 @@ ProcXkbPerClientFlags(ClientPtr client)
         swapl(&rep.autoCtrls);
         swapl(&rep.autoCtrlValues);
     }
-    WriteToClient(client, SIZEOF(xkbPerClientFlagsReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbPerClientFlagsReply), &rep);
     return Success;
 }
 
@@ -5667,9 +5667,9 @@ ProcXkbListComponents(ClientPtr client)
         swaps(&rep.nGeometries);
         swaps(&rep.extra);
     }
-    WriteToClient(client, SIZEOF(xkbListComponentsReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbListComponentsReply), &rep);
     if (list.nPool && list.pool) {
-        WriteToClient(client, XkbPaddedSize(list.nPool), (char *) list.pool);
+        WriteToClient(client, XkbPaddedSize(list.nPool), list.pool);
         free(list.pool);
         list.pool = NULL;
     }
@@ -5939,7 +5939,7 @@ ProcXkbGetKbdByName(ClientPtr client)
         swaps(&rep.found);
         swaps(&rep.reported);
     }
-    WriteToClient(client, SIZEOF(xkbGetKbdByNameReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbGetKbdByNameReply), &rep);
     if (reported & (XkbGBN_SymbolsMask | XkbGBN_TypesMask))
         XkbSendMap(client, new, &mrep);
     if (reported & XkbGBN_CompatMapMask)
@@ -6136,7 +6136,7 @@ SendDeviceLedInfo(XkbSrvLedInfoPtr sli, ClientPtr client)
         swapl(&wire.physIndicators);
         swapl(&wire.state);
     }
-    WriteToClient(client, SIZEOF(xkbDeviceLedsWireDesc), (char *) &wire);
+    WriteToClient(client, SIZEOF(xkbDeviceLedsWireDesc), &wire);
     length += SIZEOF(xkbDeviceLedsWireDesc);
     if (sli->namesPresent | sli->mapsPresent) {
         register unsigned i, bit;
@@ -6150,7 +6150,7 @@ SendDeviceLedInfo(XkbSrvLedInfoPtr sli, ClientPtr client)
                     if (client->swapped) {
                         swapl(&awire);
                     }
-                    WriteToClient(client, 4, (char *) &awire);
+                    WriteToClient(client, 4, &awire);
                     length += 4;
                 }
             }
@@ -6173,7 +6173,7 @@ SendDeviceLedInfo(XkbSrvLedInfoPtr sli, ClientPtr client)
                         swapl(&iwire.ctrls);
                     }
                     WriteToClient(client, SIZEOF(xkbIndicatorMapWireDesc),
-                                  (char *) &iwire);
+                                  &iwire);
                     length += SIZEOF(xkbIndicatorMapWireDesc);
                 }
             }
@@ -6343,7 +6343,7 @@ ProcXkbGetDeviceInfo(ClientPtr client)
         swaps(&rep.dfltLedFB);
         swapl(&rep.devType);
     }
-    WriteToClient(client, SIZEOF(xkbGetDeviceInfoReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbGetDeviceInfoReply), &rep);
 
     str = malloc(nameLen);
     if (!str)
@@ -6359,7 +6359,7 @@ ProcXkbGetDeviceInfo(ClientPtr client)
 
         sz = rep.nBtnsRtrn * SIZEOF(xkbActionWireDesc);
         awire = (xkbActionWireDesc *) & dev->button->xkb_acts[rep.firstBtnRtrn];
-        WriteToClient(client, sz, (char *) awire);
+        WriteToClient(client, sz, awire);
         length -= sz;
     }
     if (nDeviceLedFBs > 0) {
@@ -6760,7 +6760,7 @@ ProcXkbSetDebuggingFlags(ClientPtr client)
         swapl(&rep.supportedFlags);
         swapl(&rep.supportedCtrls);
     }
-    WriteToClient(client, SIZEOF(xkbSetDebuggingFlagsReply), (char *) &rep);
+    WriteToClient(client, SIZEOF(xkbSetDebuggingFlagsReply), &rep);
     return Success;
 }
 

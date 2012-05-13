@@ -1035,7 +1035,7 @@ ProcGetAtomName(ClientPtr client)
         reply.sequenceNumber = client->sequence;
         reply.nameLength = len;
         WriteReplyToClient(client, sizeof(xGetAtomNameReply), &reply);
-        (void) WriteToClient(client, len, str);
+        WriteToClient(client, len, str);
         return Success;
     }
     else {
@@ -2143,8 +2143,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
                               BitsPerPixel(pDraw->depth), ClientOrder(client));
 
 /* Don't split me, gcc pukes when you do */
-                (void) WriteToClient(client,
-                                     (int) (nlines * widthBytesLine), pBuf);
+                WriteToClient(client, (int) (nlines * widthBytesLine), pBuf);
             }
             linesDone += nlines;
         }
@@ -2179,9 +2178,8 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
                                       1, ClientOrder(client));
 
 /* Don't split me, gcc pukes when you do */
-                        (void) WriteToClient(client,
-                                             (int) (nlines * widthBytesLine),
-                                             pBuf);
+                        WriteToClient(client, (int) (nlines * widthBytesLine),
+				      pBuf);
                     }
                     linesDone += nlines;
                 }
@@ -3250,8 +3248,7 @@ ProcGetFontPath(ClientPtr client)
 
     WriteReplyToClient(client, sizeof(xGetFontPathReply), &reply);
     if (stringLens || numpaths)
-        (void) WriteToClient(client, stringLens + numpaths,
-                             (char *) bufferStart);
+        WriteToClient(client, stringLens + numpaths, bufferStart);
     return Success;
 }
 
@@ -3523,8 +3520,8 @@ SendConnSetup(ClientPtr client, const char *reason)
         if (client->swapped)
             WriteSConnSetupPrefix(client, &csp);
         else
-            (void) WriteToClient(client, sz_xConnSetupPrefix, (char *) &csp);
-        (void) WriteToClient(client, (int) csp.lengthReason, reason);
+            WriteToClient(client, sz_xConnSetupPrefix, &csp);
+        WriteToClient(client, (int) csp.lengthReason, reason);
         return client->noClientException = -1;
     }
 
@@ -3577,10 +3574,9 @@ SendConnSetup(ClientPtr client, const char *reason)
                              lConnectionInfo);
     }
     else {
-        (void) WriteToClient(client, sizeof(xConnSetupPrefix),
-                             (char *) lconnSetupPrefix);
-        (void) WriteToClient(client, (int) (lconnSetupPrefix->length << 2),
-                             lConnectionInfo);
+        WriteToClient(client, sizeof(xConnSetupPrefix), lconnSetupPrefix);
+        WriteToClient(client, (int) (lconnSetupPrefix->length << 2),
+		      lConnectionInfo);
     }
     client->clientState = ClientStateRunning;
     if (ClientStateCallback) {

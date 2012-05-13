@@ -2003,7 +2003,7 @@ PanoramiXGetImage(ClientPtr client)
                                  format, planemask, pBuf, widthBytesLine,
                                  isRoot);
 
-            (void) WriteToClient(client, (int) (nlines * widthBytesLine), pBuf);
+            WriteToClient(client, (int) (nlines * widthBytesLine), pBuf);
             linesDone += nlines;
         }
     }
@@ -2020,8 +2020,7 @@ PanoramiXGetImage(ClientPtr client)
                                          nlines, format, plane, pBuf,
                                          widthBytesLine, isRoot);
 
-                    (void) WriteToClient(client,
-                                         (int) (nlines * widthBytesLine), pBuf);
+                    WriteToClient(client, (int)(nlines * widthBytesLine), pBuf);
 
                     linesDone += nlines;
                 }

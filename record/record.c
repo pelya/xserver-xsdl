@@ -241,12 +241,12 @@ RecordFlushReplyBuffer(RecordContextPtr pContext,
     ++pContext->inFlush;
     if (pContext->numBufBytes)
         WriteToClient(pContext->pRecordingClient, pContext->numBufBytes,
-                      (char *) pContext->replyBuffer);
+                      pContext->replyBuffer);
     pContext->numBufBytes = 0;
     if (len1)
-        WriteToClient(pContext->pRecordingClient, len1, (char *) data1);
+        WriteToClient(pContext->pRecordingClient, len1, data1);
     if (len2)
-        WriteToClient(pContext->pRecordingClient, len2, (char *) data2);
+        WriteToClient(pContext->pRecordingClient, len2, data2);
     --pContext->inFlush;
 }                               /* RecordFlushReplyBuffer */
 
@@ -1829,8 +1829,7 @@ ProcRecordQueryVersion(ClientPtr client)
         swaps(&rep.majorVersion);
         swaps(&rep.minorVersion);
     }
-    (void) WriteToClient(client, sizeof(xRecordQueryVersionReply),
-                         (char *) &rep);
+    WriteToClient(client, sizeof(xRecordQueryVersionReply), &rep);
     return Success;
 }                               /* ProcRecordQueryVersion */
 
@@ -2240,7 +2239,7 @@ ProcRecordGetContext(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.nClients);
     }
-    (void) WriteToClient(client, sizeof(xRecordGetContextReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRecordGetContextReply), &rep);
 
     /* write all the CLIENT_INFOs */
 
@@ -2257,9 +2256,9 @@ ProcRecordGetContext(ClientPtr client)
             rci.clientResource = pRCAP->pClientIDs[i];
             if (client->swapped)
                 swapl(&rci.clientResource);
-            WriteToClient(client, sizeof(xRecordClientInfo), (char *) &rci);
+            WriteToClient(client, sizeof(xRecordClientInfo), &rci);
             WriteToClient(client, sizeof(xRecordRange) * pri->nRanges,
-                          (char *) pri->pRanges);
+                          pri->pRanges);
         }
     }
     err = Success;

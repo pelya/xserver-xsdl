@@ -219,5 +219,5 @@ SRepXIQueryPointer(ClientPtr client, int size, xXIQueryPointerReply * rep)
     swapl(&rep->win_y);
     swaps(&rep->buttons_len);
 
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

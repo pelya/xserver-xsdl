@@ -169,7 +169,7 @@ ephyrGLXQueryVersion(__GLXclientState * a_cl, GLbyte * a_pc)
         __glXSwapQueryVersionReply(client, &reply);
     }
     else {
-        WriteToClient(client, sz_xGLXQueryVersionReply, (char *) &reply);
+        WriteToClient(client, sz_xGLXQueryVersionReply, &reply);
     }
 
     res = Success;
@@ -228,7 +228,7 @@ ephyrGLXGetVisualConfigsReal(__GLXclientState * a_cl,
         __GLX_SWAP_INT(&reply.numProps);
         __GLX_SWAP_INT_ARRAY(props_buf, num_props);
     }
-    WriteToClient(client, sz_xGLXGetVisualConfigsReply, (char *) &reply);
+    WriteToClient(client, sz_xGLXGetVisualConfigsReply, &reply);
     props_per_visual_size = props_buf_size / num_visuals;
     for (i = 0; i < num_visuals; i++) {
         WriteToClient(client,
@@ -282,7 +282,7 @@ ephyrGLXGetFBConfigsSGIXReal(__GLXclientState * a_cl,
         __GLX_SWAP_INT(&reply.numProps);
         __GLX_SWAP_INT_ARRAY(props_buf, num_props);
     }
-    WriteToClient(client, sz_xGLXGetVisualConfigsReply, (char *) &reply);
+    WriteToClient(client, sz_xGLXGetVisualConfigsReply, &reply);
     props_per_visual_size = props_buf_size / num_visuals;
     for (i = 0; i < num_visuals; i++) {
         WriteToClient(client,
@@ -375,7 +375,7 @@ ephyrGLXQueryServerString(__GLXclientState * a_cl, GLbyte * a_pc)
     }
     memcpy(buf, server_string, length);
 
-    WriteToClient(client, sz_xGLXQueryServerStringReply, (char *) &reply);
+    WriteToClient(client, sz_xGLXQueryServerStringReply, &reply);
     WriteToClient(client, (int) (reply.length << 2), server_string);
 
     res = Success;
@@ -538,7 +538,7 @@ ephyrGLXMakeCurrentReal(__GLXclientState * a_cl, GLbyte * a_pc, Bool a_do_swap)
         __GLX_SWAP_INT(&reply.length);
         __GLX_SWAP_INT(&reply.contextTag);
     }
-    WriteToClient(a_cl->client, sz_xGLXMakeCurrentReply, (char *) &reply);
+    WriteToClient(a_cl->client, sz_xGLXMakeCurrentReply, &reply);
 
     res = Success;
  out:
@@ -601,7 +601,7 @@ ephyrGLXGetStringReal(__GLXclientState * a_cl, GLbyte * a_pc, Bool a_do_swap)
         __GLX_SWAP_REPLY_SIZE();
         __GLX_SWAP_REPLY_HEADER();
     }
-    WriteToClient(client, length, (char *) string);
+    WriteToClient(client, length, string);
 
     res = Success;
  out:
@@ -690,7 +690,7 @@ ephyrGLXIsDirectReal(__GLXclientState * a_cl, GLbyte * a_pc, Bool a_do_swap)
     reply.length = 0;
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
-    WriteToClient(client, sz_xGLXIsDirectReply, (char *) &reply);
+    WriteToClient(client, sz_xGLXIsDirectReply, &reply);
     res = Success;
 
  out:

@@ -156,5 +156,5 @@ SRepXIGrabDevice(ClientPtr client, int size, xXIGrabDeviceReply * rep)
 {
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

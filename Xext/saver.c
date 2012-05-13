@@ -646,7 +646,7 @@ ProcScreenSaverQueryVersion(ClientPtr client)
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
     }
-    WriteToClient(client, sizeof(xScreenSaverQueryVersionReply), (char *) &rep);
+    WriteToClient(client, sizeof(xScreenSaverQueryVersionReply), &rep);
     return Success;
 }
 
@@ -717,7 +717,7 @@ ProcScreenSaverQueryInfo(ClientPtr client)
         swapl(&rep.idle);
         swapl(&rep.eventMask);
     }
-    WriteToClient(client, sizeof(xScreenSaverQueryInfoReply), (char *) &rep);
+    WriteToClient(client, sizeof(xScreenSaverQueryInfoReply), &rep);
     return Success;
 }
 

@@ -64,7 +64,7 @@ ProcBigReqDispatch(ClientPtr client)
         swaps(&rep.sequenceNumber);
         swapl(&rep.max_request_size);
     }
-    WriteToClient(client, sizeof(xBigReqEnableReply), (char *) &rep);
+    WriteToClient(client, sizeof(xBigReqEnableReply), &rep);
     return Success;
 }
 

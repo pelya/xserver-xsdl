@@ -147,7 +147,7 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
                 bufptr++;
             }
         }
-        WriteToClient(client, length * 4, (char *) coords);
+        WriteToClient(client, length * 4, coords);
     }
     free(coords);
     return Success;
@@ -167,5 +167,5 @@ SRepXGetDeviceMotionEvents(ClientPtr client, int size,
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
     swapl(&rep->nEvents);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

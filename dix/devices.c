@@ -1704,7 +1704,7 @@ ProcGetModifierMapping(ClientPtr client)
     rep.length = max_keys_per_mod << 1;
 
     WriteReplyToClient(client, sizeof(xGetModifierMappingReply), &rep);
-    (void) WriteToClient(client, max_keys_per_mod * 8, (char *) modkeymap);
+    WriteToClient(client, max_keys_per_mod * 8, modkeymap);
 
     free(modkeymap);
 
@@ -1898,7 +1898,7 @@ ProcGetPointerMapping(ClientPtr client)
     rep.length = ((unsigned) rep.nElts + (4 - 1)) / 4;
     WriteReplyToClient(client, sizeof(xGetPointerMappingReply), &rep);
     if (butc)
-        WriteToClient(client, (int) rep.nElts, (char *) &butc->map[1]);
+        WriteToClient(client, (int) rep.nElts, &butc->map[1]);
     return Success;
 }
 

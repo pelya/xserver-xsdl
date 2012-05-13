@@ -118,7 +118,7 @@ ProcXvMCQueryVersion(ClientPtr client)
     rep.length = 0;
     rep.major = SERVER_XVMC_MAJOR_VERSION;
     rep.minor = SERVER_XVMC_MINOR_VERSION;
-    WriteToClient(client, sizeof(xvmcQueryVersionReply), (char *) &rep);
+    WriteToClient(client, sizeof(xvmcQueryVersionReply), &rep);
     return Success;
 }
 
@@ -156,7 +156,7 @@ ProcXvMCListSurfaceTypes(ClientPtr client)
     rep.num = (adaptor) ? adaptor->num_surfaces : 0;
     rep.length = bytes_to_int32(rep.num * sizeof(xvmcSurfaceInfo));
 
-    WriteToClient(client, sizeof(xvmcListSurfaceTypesReply), (char *) &rep);
+    WriteToClient(client, sizeof(xvmcListSurfaceTypesReply), &rep);
 
     for (i = 0; i < rep.num; i++) {
         surface = adaptor->surfaces[i];
@@ -168,7 +168,7 @@ ProcXvMCListSurfaceTypes(ClientPtr client)
         info.subpicture_max_height = surface->subpicture_max_height;
         info.mc_type = surface->mc_type;
         info.flags = surface->flags;
-        WriteToClient(client, sizeof(xvmcSurfaceInfo), (char *) &info);
+        WriteToClient(client, sizeof(xvmcSurfaceInfo), &info);
     }
 
     return Success;
@@ -254,9 +254,9 @@ ProcXvMCCreateContext(ClientPtr client)
     rep.flags_return = pContext->flags;
     rep.length = dwords;
 
-    WriteToClient(client, sizeof(xvmcCreateContextReply), (char *) &rep);
+    WriteToClient(client, sizeof(xvmcCreateContextReply), &rep);
     if (dwords)
-        WriteToClient(client, dwords << 2, (char *) data);
+        WriteToClient(client, dwords << 2, data);
     AddResource(pContext->context_id, XvMCRTContext, pContext);
 
     free(data);
@@ -325,9 +325,9 @@ ProcXvMCCreateSurface(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.length = dwords;
 
-    WriteToClient(client, sizeof(xvmcCreateSurfaceReply), (char *) &rep);
+    WriteToClient(client, sizeof(xvmcCreateSurfaceReply), &rep);
     if (dwords)
-        WriteToClient(client, dwords << 2, (char *) data);
+        WriteToClient(client, dwords << 2, data);
     AddResource(pSurface->surface_id, XvMCRTSurface, pSurface);
 
     free(data);
@@ -448,9 +448,9 @@ ProcXvMCCreateSubpicture(ClientPtr client)
     rep.component_order[3] = pSubpicture->component_order[3];
     rep.length = dwords;
 
-    WriteToClient(client, sizeof(xvmcCreateSubpictureReply), (char *) &rep);
+    WriteToClient(client, sizeof(xvmcCreateSubpictureReply), &rep);
     if (dwords)
-        WriteToClient(client, dwords << 2, (char *) data);
+        WriteToClient(client, dwords << 2, data);
     AddResource(pSubpicture->subpicture_id, XvMCRTSubpicture, pSubpicture);
 
     free(data);
@@ -533,7 +533,7 @@ ProcXvMCListSubpictureTypes(ClientPtr client)
 
     rep.length = bytes_to_int32(rep.num * sizeof(xvImageFormatInfo));
 
-    WriteToClient(client, sizeof(xvmcListSubpictureTypesReply), (char *) &rep);
+    WriteToClient(client, sizeof(xvmcListSubpictureTypesReply), &rep);
 
     for (i = 0; i < rep.num; i++) {
         pImage = NULL;
@@ -569,7 +569,7 @@ ProcXvMCListSubpictureTypes(ClientPtr client)
         info.vert_v_period = pImage->vert_v_period;
         memcpy(&info.comp_order, pImage->component_order, 32);
         info.scanline_order = pImage->scanline_order;
-        WriteToClient(client, sizeof(xvImageFormatInfo), (char *) &info);
+        WriteToClient(client, sizeof(xvImageFormatInfo), &info);
     }
 
     return Success;
@@ -634,7 +634,7 @@ ProcXvMCGetDRInfo(ClientPtr client)
     }
 #endif                          /* HAS_XVMCSHM */
 
-    WriteToClient(client, sizeof(xvmcGetDRInfoReply), (char *) &rep);
+    WriteToClient(client, sizeof(xvmcGetDRInfoReply), &rep);
     if (rep.length) {
         WriteToClient(client, rep.nameLen, pScreenPriv->clientDriverName);
         WriteToClient(client, rep.busIDLen, pScreenPriv->busID);

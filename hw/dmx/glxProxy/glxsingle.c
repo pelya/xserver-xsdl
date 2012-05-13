@@ -147,9 +147,9 @@ SendSwappedReply(ClientPtr client,
 
     }
 
-    WriteToClient(client, sizeof(xGLXSingleReply), (char *) reply);
+    WriteToClient(client, sizeof(xGLXSingleReply), reply);
     if (buf_size > 0)
-        WriteToClient(client, buf_size, (char *) buf);
+        WriteToClient(client, buf_size, buf);
 
 }
 
@@ -281,9 +281,9 @@ __glXForwardPipe0WithReply(__GLXclientState * cl, GLbyte * pc)
         SendSwappedReply(client, &reply, be_buf, be_buf_size);
     }
     else {
-        WriteToClient(client, sizeof(xGLXSingleReply), (char *) &reply);
+        WriteToClient(client, sizeof(xGLXSingleReply), &reply);
         if (be_buf_size > 0)
-            WriteToClient(client, be_buf_size, (char *) be_buf);
+            WriteToClient(client, be_buf_size, be_buf);
     }
 
     if (be_buf_size > 0)
@@ -383,9 +383,9 @@ __glXForwardAllWithReply(__GLXclientState * cl, GLbyte * pc)
         SendSwappedReply(client, &reply, be_buf, be_buf_size);
     }
     else {
-        WriteToClient(client, sizeof(xGLXSingleReply), (char *) &reply);
+        WriteToClient(client, sizeof(xGLXSingleReply), &reply);
         if (be_buf_size > 0)
-            WriteToClient(client, be_buf_size, (char *) be_buf);
+            WriteToClient(client, be_buf_size, be_buf);
     }
 
     if (be_buf_size > 0)
@@ -1013,9 +1013,9 @@ __glXDisp_ReadPixels(__GLXclientState * cl, GLbyte * pc)
         __GLX_SWAP_INT(&reply.length);
     }
 
-    WriteToClient(client, sizeof(xGLXReadPixelsReply), (char *) &reply);
+    WriteToClient(client, sizeof(xGLXReadPixelsReply), &reply);
     if (buf_size > 0) {
-        WriteToClient(client, buf_size, (char *) buf);
+        WriteToClient(client, buf_size, buf);
         free(buf);
     }
 

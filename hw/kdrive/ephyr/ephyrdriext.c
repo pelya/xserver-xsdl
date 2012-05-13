@@ -536,7 +536,7 @@ ProcXF86DRIQueryVersion(register ClientPtr client)
         swaps(&rep.minorVersion);
         swapl(&rep.patchVersion);
     }
-    WriteToClient(client, sizeof(xXF86DRIQueryVersionReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86DRIQueryVersionReply), &rep);
     EPHYR_LOG("leave\n");
     return Success;
 }
@@ -574,7 +574,7 @@ ProcXF86DRIQueryDirectRenderingCapable(register ClientPtr client)
     }
 
     WriteToClient(client, sizeof(xXF86DRIQueryDirectRenderingCapableReply),
-                  (char *) &rep);
+                  &rep);
     EPHYR_LOG("leave\n");
 
     return Success;
@@ -617,7 +617,7 @@ ProcXF86DRIOpenConnection(register ClientPtr client)
     rep.hSAREAHigh = 0;
 #endif
 
-    WriteToClient(client, sizeof(xXF86DRIOpenConnectionReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86DRIOpenConnectionReply), &rep);
     if (rep.busIdStringLength)
         WriteToClient(client, rep.busIdStringLength, busIdString);
     free(busIdString);
@@ -648,7 +648,7 @@ ProcXF86DRIAuthConnection(register ClientPtr client)
         ErrorF("Failed to authenticate %lu\n", (unsigned long) stuff->magic);
         rep.authenticated = 0;
     }
-    WriteToClient(client, sizeof(xXF86DRIAuthConnectionReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86DRIAuthConnectionReply), &rep);
     EPHYR_LOG("leave\n");
     return Success;
 }
@@ -702,8 +702,7 @@ ProcXF86DRIGetClientDriverName(register ClientPtr client)
                                 SIZEOF(xGenericReply) +
                                 pad_to_int32(rep.clientDriverNameLength));
 
-    WriteToClient(client,
-                  sizeof(xXF86DRIGetClientDriverNameReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86DRIGetClientDriverNameReply), &rep);
     if (rep.clientDriverNameLength)
         WriteToClient(client, rep.clientDriverNameLength, clientDriverName);
     EPHYR_LOG("leave\n");
@@ -752,7 +751,7 @@ ProcXF86DRICreateContext(register ClientPtr client)
         return BadValue;
     }
 
-    WriteToClient(client, sizeof(xXF86DRICreateContextReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86DRICreateContextReply), &rep);
     EPHYR_LOG("leave\n");
     return Success;
 }
@@ -974,7 +973,7 @@ ProcXF86DRICreateDrawable(ClientPtr client)
         EPHYR_LOG("paired window '%p' with remote '%d'\n", window, remote_win);
     }
 
-    WriteToClient(client, sizeof(xXF86DRICreateDrawableReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86DRICreateDrawableReply), &rep);
     EPHYR_LOG("leave\n");
     return Success;
 }
@@ -1136,18 +1135,18 @@ ProcXF86DRIGetDrawableInfo(register ClientPtr client)
 
     rep.length = bytes_to_int32(rep.length);
 
-    WriteToClient(client, sizeof(xXF86DRIGetDrawableInfoReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86DRIGetDrawableInfoReply), &rep);
 
     if (rep.numClipRects) {
         WriteToClient(client,
                       sizeof(drm_clip_rect_t) * rep.numClipRects,
-                      (char *) clipRects);
+                      clipRects);
     }
 
     if (rep.numBackClipRects) {
         WriteToClient(client,
                       sizeof(drm_clip_rect_t) * rep.numBackClipRects,
-                      (char *) backClipRects);
+                      backClipRects);
     }
     free(clipRects);
     clipRects = NULL;
@@ -1200,9 +1199,9 @@ ProcXF86DRIGetDeviceInfo(register ClientPtr client)
                                     pad_to_int32(rep.devPrivateSize));
     }
 
-    WriteToClient(client, sizeof(xXF86DRIGetDeviceInfoReply), (char *) &rep);
+    WriteToClient(client, sizeof(xXF86DRIGetDeviceInfoReply), &rep);
     if (rep.length) {
-        WriteToClient(client, rep.devPrivateSize, (char *) pDevPrivate);
+        WriteToClient(client, rep.devPrivateSize, pDevPrivate);
     }
     EPHYR_LOG("leave\n");
     return Success;

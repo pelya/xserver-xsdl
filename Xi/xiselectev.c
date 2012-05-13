@@ -335,5 +335,5 @@ SRepXIGetSelectedEvents(ClientPtr client,
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
     swaps(&rep->num_masks);
-    WriteToClient(client, len, (char *) rep);
+    WriteToClient(client, len, rep);
 }

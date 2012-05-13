@@ -184,5 +184,5 @@ SRepXQueryDeviceState(ClientPtr client, int size, xQueryDeviceStateReply * rep)
 {
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

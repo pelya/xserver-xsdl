@@ -76,7 +76,7 @@ ProcSELinuxQueryVersion(ClientPtr client)
         swaps(&rep.server_major);
         swaps(&rep.server_minor);
     }
-    WriteToClient(client, sizeof(rep), (char *) &rep);
+    WriteToClient(client, sizeof(rep), &rep);
     return Success;
 }
 
@@ -104,7 +104,7 @@ SELinuxSendContextReply(ClientPtr client, security_id_t sid)
         swapl(&rep.context_len);
     }
 
-    WriteToClient(client, sizeof(SELinuxGetContextReply), (char *) &rep);
+    WriteToClient(client, sizeof(SELinuxGetContextReply), &rep);
     WriteToClient(client, len, ctx);
     freecon(ctx);
     return Success;
@@ -383,8 +383,8 @@ SELinuxSendItemsToClient(ClientPtr client, SELinuxListItemRec * items,
         swapl(&rep.count);
     }
 
-    WriteToClient(client, sizeof(SELinuxListItemsReply), (char *) &rep);
-    WriteToClient(client, size * 4, (char *) buf);
+    WriteToClient(client, sizeof(SELinuxListItemsReply), &rep);
+    WriteToClient(client, size * 4, buf);
 
     /* Free stuff and return */
     rc = Success;

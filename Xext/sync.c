@@ -1198,7 +1198,7 @@ ProcSyncInitialize(ClientPtr client)
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
     }
-    WriteToClient(client, sizeof(rep), (char *) &rep);
+    WriteToClient(client, sizeof(rep), &rep);
     return Success;
 }
 
@@ -1263,9 +1263,9 @@ ProcSyncListSystemCounters(ClientPtr client)
                                                         namelen));
     }
 
-    WriteToClient(client, sizeof(rep), (char *) &rep);
+    WriteToClient(client, sizeof(rep), &rep);
     if (len) {
-        WriteToClient(client, len, (char *) list);
+        WriteToClient(client, len, list);
         free(list);
     }
 
@@ -1338,7 +1338,7 @@ ProcSyncGetPriority(ClientPtr client)
         swapl(&rep.priority);
     }
 
-    WriteToClient(client, sizeof(xSyncGetPriorityReply), (char *) &rep);
+    WriteToClient(client, sizeof(xSyncGetPriorityReply), &rep);
 
     return Success;
 }
@@ -1624,7 +1624,7 @@ ProcSyncQueryCounter(ClientPtr client)
         swapl(&rep.value_hi);
         swapl(&rep.value_lo);
     }
-    WriteToClient(client, sizeof(xSyncQueryCounterReply), (char *) &rep);
+    WriteToClient(client, sizeof(xSyncQueryCounterReply), &rep);
     return Success;
 }
 
@@ -1809,7 +1809,7 @@ ProcSyncQueryAlarm(ClientPtr client)
         swapl(&rep.delta_lo);
     }
 
-    WriteToClient(client, sizeof(xSyncQueryAlarmReply), (char *) &rep);
+    WriteToClient(client, sizeof(xSyncQueryAlarmReply), &rep);
     return Success;
 }
 
@@ -1966,7 +1966,7 @@ ProcSyncQueryFence(ClientPtr client)
         swapl(&rep.length);
     }
 
-    WriteToClient(client, sizeof(xSyncQueryFenceReply), (char *) &rep);
+    WriteToClient(client, sizeof(xSyncQueryFenceReply), &rep);
     return client->noClientException;
 }
 

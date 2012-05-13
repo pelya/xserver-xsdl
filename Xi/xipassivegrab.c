@@ -224,7 +224,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
 
     WriteReplyToClient(client, sizeof(rep), &rep);
     if (rep.num_modifiers)
-        WriteToClient(client, rep.length * 4, (char *) modifiers_failed);
+        WriteToClient(client, rep.length * 4, modifiers_failed);
 
     free(modifiers_failed);
  out:
@@ -240,7 +240,7 @@ SRepXIPassiveGrabDevice(ClientPtr client, int size,
     swapl(&rep->length);
     swaps(&rep->num_modifiers);
 
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }
 
 int

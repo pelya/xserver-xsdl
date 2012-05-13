@@ -975,9 +975,9 @@ ProcRRGetCrtcInfo(ClientPtr client)
         swaps(&rep.nOutput);
         swaps(&rep.nPossibleOutput);
     }
-    WriteToClient(client, sizeof(xRRGetCrtcInfoReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRRGetCrtcInfoReply), &rep);
     if (extraLen) {
-        WriteToClient(client, extraLen, (char *) extra);
+        WriteToClient(client, extraLen, extra);
         free(extra);
     }
 
@@ -1181,7 +1181,7 @@ ProcRRSetCrtcConfig(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.newTimestamp);
     }
-    WriteToClient(client, sizeof(xRRSetCrtcConfigReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRRSetCrtcConfigReply), &rep);
 
     return Success;
 }
@@ -1250,7 +1250,7 @@ ProcRRGetPanning(ClientPtr client)
         swaps(&rep.border_right);
         swaps(&rep.border_bottom);
     }
-    WriteToClient(client, sizeof(xRRGetPanningReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRRGetPanningReply), &rep);
     return Success;
 }
 
@@ -1318,7 +1318,7 @@ ProcRRSetPanning(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.newTimestamp);
     }
-    WriteToClient(client, sizeof(xRRSetPanningReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRRSetPanningReply), &rep);
     return Success;
 }
 
@@ -1345,7 +1345,7 @@ ProcRRGetCrtcGammaSize(ClientPtr client)
         swapl(&reply.length);
         swaps(&reply.size);
     }
-    WriteToClient(client, sizeof(xRRGetCrtcGammaSizeReply), (char *) &reply);
+    WriteToClient(client, sizeof(xRRGetCrtcGammaSizeReply), &reply);
     return Success;
 }
 
@@ -1382,7 +1382,7 @@ ProcRRGetCrtcGamma(ClientPtr client)
         swapl(&reply.length);
         swaps(&reply.size);
     }
-    WriteToClient(client, sizeof(xRRGetCrtcGammaReply), (char *) &reply);
+    WriteToClient(client, sizeof(xRRGetCrtcGammaReply), &reply);
     if (crtc->gammaSize) {
         memcpy(extra, crtc->gammaRed, len);
         client->pSwapReplyFunc = (ReplySwapPtr) CopySwap16Write;
@@ -1548,8 +1548,7 @@ ProcRRGetCrtcTransform(ClientPtr client)
         swaps(&reply->sequenceNumber);
         swapl(&reply->length);
     }
-    WriteToClient(client, sizeof(xRRGetCrtcTransformReply) + nextra,
-                  (char *) reply);
+    WriteToClient(client, sizeof(xRRGetCrtcTransformReply) + nextra, reply);
     free(reply);
     return Success;
 }

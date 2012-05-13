@@ -63,7 +63,7 @@ ProcRRQueryVersion(ClientPtr client)
         swapl(&rep.majorVersion);
         swapl(&rep.minorVersion);
     }
-    WriteToClient(client, sizeof(xRRQueryVersionReply), (char *) &rep);
+    WriteToClient(client, sizeof(xRRQueryVersionReply), &rep);
     return Success;
 }
 

@@ -243,7 +243,7 @@ XkbSendStateNotify(DeviceIntPtr kbd, xkbStateNotify * pSN)
                 swaps(&pSN->changed);
                 swaps(&pSN->ptrBtnState);
             }
-            WriteToClient(interest->client, sizeof(xEvent), (char *) pSN);
+            WriteToClient(interest->client, sizeof(xEvent), pSN);
         }
         interest = interest->next;
     }
@@ -416,7 +416,7 @@ XkbSendControlsNotify(DeviceIntPtr kbd, xkbControlsNotify * pCN)
                 swapl(&pCN->enabledControlChanges);
                 swapl(&pCN->time);
             }
-            WriteToClient(interest->client, sizeof(xEvent), (char *) pCN);
+            WriteToClient(interest->client, sizeof(xEvent), pCN);
         }
         interest = interest->next;
     }
@@ -463,7 +463,7 @@ XkbSendIndicatorNotify(DeviceIntPtr kbd, int xkbType, xkbIndicatorNotify * pEv)
                 swapl(&pEv->changed);
                 swapl(&pEv->state);
             }
-            WriteToClient(interest->client, sizeof(xEvent), (char *) pEv);
+            WriteToClient(interest->client, sizeof(xEvent), pEv);
         }
         interest = interest->next;
     }
@@ -550,7 +550,7 @@ XkbHandleBell(BOOL force,
                 swapl(&bn.name);
                 swapl(&bn.window);
             }
-            WriteToClient(interest->client, sizeof(xEvent), (char *) &bn);
+            WriteToClient(interest->client, sizeof(xEvent), &bn);
         }
         interest = interest->next;
     }
@@ -594,7 +594,7 @@ XkbSendAccessXNotify(DeviceIntPtr kbd, xkbAccessXNotify * pEv)
                 swaps(&pEv->slowKeysDelay);
                 swaps(&pEv->debounceDelay);
             }
-            WriteToClient(interest->client, sizeof(xEvent), (char *) pEv);
+            WriteToClient(interest->client, sizeof(xEvent), pEv);
         }
         interest = interest->next;
     }
@@ -642,7 +642,7 @@ XkbSendNamesNotify(DeviceIntPtr kbd, xkbNamesNotify * pEv)
                 swapl(&pEv->changedIndicators);
                 swaps(&pEv->changedVirtualMods);
             }
-            WriteToClient(interest->client, sizeof(xEvent), (char *) pEv);
+            WriteToClient(interest->client, sizeof(xEvent), pEv);
         }
         interest = interest->next;
     }
@@ -689,7 +689,7 @@ XkbSendCompatMapNotify(DeviceIntPtr kbd, xkbCompatMapNotify * pEv)
                 swaps(&pEv->nSI);
                 swaps(&pEv->nTotalSI);
             }
-            WriteToClient(interest->client, sizeof(xEvent), (char *) pEv);
+            WriteToClient(interest->client, sizeof(xEvent), pEv);
         }
         interest = interest->next;
     }
@@ -732,7 +732,7 @@ XkbSendActionMessage(DeviceIntPtr kbd, xkbActionMessage * pEv)
                 swaps(&pEv->sequenceNumber);
                 swapl(&pEv->time);
             }
-            WriteToClient(interest->client, sizeof(xEvent), (char *) pEv);
+            WriteToClient(interest->client, sizeof(xEvent), pEv);
         }
         interest = interest->next;
     }
@@ -786,7 +786,7 @@ XkbSendExtensionDeviceNotify(DeviceIntPtr dev,
                 swaps(&pEv->reason);
                 swaps(&pEv->supported);
             }
-            WriteToClient(interest->client, sizeof(xEvent), (char *) pEv);
+            WriteToClient(interest->client, sizeof(xEvent), pEv);
         }
         interest = interest->next;
     }

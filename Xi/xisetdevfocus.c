@@ -121,5 +121,5 @@ SRepXIGetFocus(ClientPtr client, int len, xXIGetFocusReply * rep)
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
     swapl(&rep->focus);
-    WriteToClient(client, len, (char *) rep);
+    WriteToClient(client, len, rep);
 }

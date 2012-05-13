@@ -100,5 +100,5 @@ SRepXIGetClientPointer(ClientPtr client, int size,
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
     swaps(&rep->deviceid);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

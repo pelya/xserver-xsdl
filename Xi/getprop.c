@@ -178,5 +178,5 @@ SRepXGetDeviceDontPropagateList(ClientPtr client, int size,
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
     swaps(&rep->count);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

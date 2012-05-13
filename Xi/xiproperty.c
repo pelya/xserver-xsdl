@@ -1063,7 +1063,7 @@ SRepXListDeviceProperties(ClientPtr client, int size,
     swapl(&rep->length);
     swaps(&rep->nAtoms);
     /* properties will be swapped later, see ProcXListDeviceProperties */
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }
 
 void
@@ -1076,7 +1076,7 @@ SRepXGetDeviceProperty(ClientPtr client, int size,
     swapl(&rep->bytesAfter);
     swapl(&rep->nItems);
     /* data will be swapped, see ProcXGetDeviceProperty */
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }
 
 /* XI2 Request/reply handling */
@@ -1300,7 +1300,7 @@ SRepXIListProperties(ClientPtr client, int size, xXIListPropertiesReply * rep)
     swapl(&rep->length);
     swaps(&rep->num_properties);
     /* properties will be swapped later, see ProcXIListProperties */
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }
 
 void
@@ -1312,5 +1312,5 @@ SRepXIGetProperty(ClientPtr client, int size, xXIGetPropertyReply * rep)
     swapl(&rep->bytes_after);
     swapl(&rep->num_items);
     /* data will be swapped, see ProcXIGetProperty */
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

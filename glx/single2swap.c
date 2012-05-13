@@ -216,9 +216,9 @@ __glXDispSwap_RenderMode(__GLXclientState * cl, GLbyte * pc)
     __GLX_SWAP_INT(&reply.retval);
     __GLX_SWAP_INT(&reply.size);
     __GLX_SWAP_INT(&reply.newMode);
-    WriteToClient(client, sz_xGLXRenderModeReply, (char *) &reply);
+    WriteToClient(client, sz_xGLXRenderModeReply, &reply);
     if (retBytes) {
-        WriteToClient(client, retBytes, (char *) retBuffer);
+        WriteToClient(client, retBytes, retBuffer);
     }
     return Success;
 }

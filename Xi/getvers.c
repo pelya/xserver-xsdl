@@ -127,5 +127,5 @@ SRepXGetExtensionVersion(ClientPtr client, int size,
     swapl(&rep->length);
     swaps(&rep->major_version);
     swaps(&rep->minor_version);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

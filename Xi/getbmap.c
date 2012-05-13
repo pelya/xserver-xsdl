@@ -109,7 +109,7 @@ ProcXGetDeviceButtonMapping(ClientPtr client)
     rep.nElts = b->numButtons;
     rep.length = bytes_to_int32(rep.nElts);
     WriteReplyToClient(client, sizeof(xGetDeviceButtonMappingReply), &rep);
-    (void) WriteToClient(client, rep.nElts, (char *) &b->map[1]);
+    WriteToClient(client, rep.nElts, &b->map[1]);
     return Success;
 }
 
@@ -126,5 +126,5 @@ SRepXGetDeviceButtonMapping(ClientPtr client, int size,
 {
     swaps(&rep->sequenceNumber);
     swapl(&rep->length);
-    WriteToClient(client, size, (char *) rep);
+    WriteToClient(client, size, rep);
 }

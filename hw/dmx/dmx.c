@@ -225,7 +225,7 @@ ProcDMXQueryVersion(ClientPtr client)
         swapl(&rep.minorVersion);
         swapl(&rep.patchVersion);
     }
-    WriteToClient(client, sizeof(xDMXQueryVersionReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXQueryVersionReply), &rep);
     return Success;
 }
 
@@ -247,7 +247,7 @@ ProcDMXSync(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.status);
     }
-    WriteToClient(client, sizeof(xDMXSyncReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXSyncReply), &rep);
     return Success;
 }
 
@@ -297,7 +297,7 @@ ProcDMXForceWindowCreation(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.status);
     }
-    WriteToClient(client, sizeof(xDMXForceWindowCreationReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXForceWindowCreationReply), &rep);
     return Success;
 }
 
@@ -317,7 +317,7 @@ ProcDMXGetScreenCount(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.screenCount);
     }
-    WriteToClient(client, sizeof(xDMXGetScreenCountReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXGetScreenCountReply), &rep);
     return Success;
 }
 
@@ -377,9 +377,9 @@ ProcDMXGetScreenAttributes(ClientPtr client)
         swaps(&rep.rootWindowXorigin);
         swaps(&rep.rootWindowYorigin);
     }
-    WriteToClient(client, sizeof(xDMXGetScreenAttributesReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXGetScreenAttributesReply), &rep);
     if (length)
-        WriteToClient(client, length, (char *) attr.displayName);
+        WriteToClient(client, length, attr.displayName);
     return Success;
 }
 
@@ -453,8 +453,7 @@ ProcDMXChangeScreensAttributes(ClientPtr client)
         swapl(&rep.status);
         swapl(&rep.errorScreen);
     }
-    WriteToClient(client,
-                  sizeof(xDMXChangeScreensAttributesReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXChangeScreensAttributesReply), &rep);
     return Success;
 }
 
@@ -503,7 +502,7 @@ ProcDMXAddScreen(ClientPtr client)
         swapl(&rep.status);
         swapl(&rep.physicalScreen);
     }
-    WriteToClient(client, sizeof(xDMXAddScreenReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXAddScreenReply), &rep);
     return Success;
 }
 
@@ -527,7 +526,7 @@ ProcDMXRemoveScreen(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.status);
     }
-    WriteToClient(client, sizeof(xDMXRemoveScreenReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXRemoveScreenReply), &rep);
     return Success;
 }
 
@@ -663,12 +662,12 @@ ProcDMXGetWindowAttributes(ClientPtr client)
 
     dmxFlushPendingSyncs();
 
-    WriteToClient(client, sizeof(xDMXGetWindowAttributesReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXGetWindowAttributesReply), &rep);
     if (count) {
-        WriteToClient(client, count * sizeof(*screens), (char *) screens);
-        WriteToClient(client, count * sizeof(*windows), (char *) windows);
-        WriteToClient(client, count * sizeof(*pos), (char *) pos);
-        WriteToClient(client, count * sizeof(*vis), (char *) vis);
+        WriteToClient(client, count * sizeof(*screens), screens);
+        WriteToClient(client, count * sizeof(*windows), windows);
+        WriteToClient(client, count * sizeof(*pos), pos);
+        WriteToClient(client, count * sizeof(*vis), vis);
     }
 
     free(vis);
@@ -706,7 +705,7 @@ ProcDMXGetDesktopAttributes(ClientPtr client)
         swaps(&rep.shiftX);
         swaps(&rep.shiftY);
     }
-    WriteToClient(client, sizeof(xDMXGetDesktopAttributesReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXGetDesktopAttributesReply), &rep);
     return Success;
 }
 
@@ -749,8 +748,7 @@ ProcDMXChangeDesktopAttributes(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.status);
     }
-    WriteToClient(client,
-                  sizeof(xDMXChangeDesktopAttributesReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXChangeDesktopAttributesReply), &rep);
     return Success;
 }
 
@@ -770,7 +768,7 @@ ProcDMXGetInputCount(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.inputCount);
     }
-    WriteToClient(client, sizeof(xDMXGetInputCountReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXGetInputCountReply), &rep);
     return Success;
 }
 
@@ -808,9 +806,9 @@ ProcDMXGetInputAttributes(ClientPtr client)
         swapl(&rep.physicalId);
         swapl(&rep.nameLength);
     }
-    WriteToClient(client, sizeof(xDMXGetInputAttributesReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXGetInputAttributesReply), &rep);
     if (length)
-        WriteToClient(client, length, (char *) attr.name);
+        WriteToClient(client, length, attr.name);
     return Success;
 }
 
@@ -862,7 +860,7 @@ ProcDMXAddInput(ClientPtr client)
         swapl(&rep.status);
         swapl(&rep.physicalId);
     }
-    WriteToClient(client, sizeof(xDMXAddInputReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXAddInputReply), &rep);
     return Success;
 }
 
@@ -889,7 +887,7 @@ ProcDMXRemoveInput(ClientPtr client)
         swapl(&rep.length);
         swapl(&rep.status);
     }
-    WriteToClient(client, sizeof(xDMXRemoveInputReply), (char *) &rep);
+    WriteToClient(client, sizeof(xDMXRemoveInputReply), &rep);
     return Success;
 }
 
