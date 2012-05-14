@@ -33,8 +33,6 @@
 #ifndef PROTOCOL_COMMON_H
 #define PROTOCOL_COMMON_H
 
-extern int BadDevice;
-
 /* Check default values in a reply */
 #define reply_check_defaults(rep, len, type) \
     { \

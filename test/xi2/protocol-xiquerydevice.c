@@ -32,6 +32,7 @@
 #include <X11/Xatom.h>
 #include "inputstr.h"
 #include "extinit.h"
+#include "exglobals.h"
 #include "scrnintstr.h"
 #include "xkbsrv.h"
 
