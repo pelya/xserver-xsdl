@@ -54,9 +54,9 @@ struct test_data {
 };
 
 static void reply_XIQueryDevice_data(ClientPtr client, int len, char *data,
-                                     void *userdata);
+                                     void *closure);
 static void reply_XIQueryDevice(ClientPtr client, int len, char *data,
-                                void *userdata);
+                                void *closure);
 
 /* reply handling for the first bytes that constitute the reply */
 static void
@@ -86,10 +86,10 @@ reply_XIQueryDevice(ClientPtr client, int len, char *data, void *userdata)
 
 /* reply handling for the trailing bytes that constitute the device info */
 static void
-reply_XIQueryDevice_data(ClientPtr client, int len, char *data, void *userdata)
+reply_XIQueryDevice_data(ClientPtr client, int len, char *data, void *closure)
 {
     int i, j;
-    struct test_data *querydata = (struct test_data *) userdata;
+    struct test_data *querydata = (struct test_data *) closure;
 
     DeviceIntPtr dev;
     xXIDeviceInfo *info = (xXIDeviceInfo *) data;

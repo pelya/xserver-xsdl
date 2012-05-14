@@ -42,7 +42,7 @@
 
 static ClientRec client_request;
 static void reply_XIQueryPointer_data(ClientPtr client, int len,
-                                      char *data, void *userdata);
+                                      char *data, void *closure);
 
 static struct {
     DeviceIntPtr dev;
@@ -70,7 +70,7 @@ __wrap_dixLookupWindow(WindowPtr *win, XID id, ClientPtr client, Mask access)
 }
 
 static void
-reply_XIQueryPointer(ClientPtr client, int len, char *data, void *userdata)
+reply_XIQueryPointer(ClientPtr client, int len, char *data, void *closure)
 {
     xXIQueryPointerReply *rep = (xXIQueryPointerReply *) data;
     SpritePtr sprite;
@@ -121,7 +121,7 @@ reply_XIQueryPointer(ClientPtr client, int len, char *data, void *userdata)
 }
 
 static void
-reply_XIQueryPointer_data(ClientPtr client, int len, char *data, void *userdata)
+reply_XIQueryPointer_data(ClientPtr client, int len, char *data, void *closure)
 {
     reply_handler = reply_XIQueryPointer;
 }
