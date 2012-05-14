@@ -83,7 +83,7 @@ struct devices {
 
     int num_devices;
     int num_master_devices;
-} devices;
+};
 
 /**
  * The set of default devices available in all tests if necessary.
