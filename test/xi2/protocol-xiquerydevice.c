@@ -223,7 +223,7 @@ reply_XIQueryDevice_data(ClientPtr client, int len, char *data, void *closure)
                            any->type == XIValuatorClass);
 
                 if (any->type == XIButtonClass) {
-                    int len;
+                    int l;
                     xXIButtonInfo *bi = (xXIButtonInfo *) any;
 
                     if (client->swapped)
@@ -231,10 +231,9 @@ reply_XIQueryDevice_data(ClientPtr client, int len, char *data, void *closure)
 
                     assert(bi->num_buttons == devices.vcp->button->numButtons);
 
-                    len =
-                        2 + bi->num_buttons +
+                    l = 2 + bi->num_buttons +
                         bytes_to_int32(bits_to_bytes(bi->num_buttons));
-                    assert(bi->length == len);
+                    assert(bi->length == l);
                 }
                 else if (any->type == XIValuatorClass) {
                     xXIValuatorInfo *vi = (xXIValuatorInfo *) any;
