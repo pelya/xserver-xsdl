@@ -814,14 +814,16 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 
 	if (tex_normalize) {
 		glamor_set_normalize_tcoords(*xscale, *yscale,
-		                             0, 0,
-		                             (INT16)(dst_picture->pDrawable->width),
-		                             (INT16)(dst_picture->pDrawable->height),
+		                             x_source, y_source,
+		                             (INT16)(dst_picture->pDrawable->width + x_source),
+		                             (INT16)(dst_picture->pDrawable->height + y_source),
 		                             glamor_priv->yInverted, tex_vertices);
 	} else {
-		glamor_set_tcoords(0, 0,
-		                   (INT16)(dst_picture->pDrawable->width),
+		glamor_set_tcoords((INT16)(dst_picture->pDrawable->width),
 		                   (INT16)(dst_picture->pDrawable->height),
+		                   x_source, y_source,
+		                   (INT16)(dst_picture->pDrawable->width) + x_source,
+		                   (INT16)(dst_picture->pDrawable->height) + y_source,
 		                   glamor_priv->yInverted, tex_vertices);
 	}
 
@@ -1201,14 +1203,11 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
 	r1 = (float)pixman_fixed_to_double(src_picture->pSourcePict->radial.c1.radius);
 	r2 = (float)pixman_fixed_to_double(src_picture->pSourcePict->radial.c2.radius);
 
-
-	cxy[0] = c1x;
-	cxy[1] = c1y;
+	glamor_set_circle_centre(width, height, c1x, c1y, glamor_priv->yInverted, cxy);
 	dispatch->glUniform2fv(c1_uniform_location, 1, cxy);
 	dispatch->glUniform1f(r1_uniform_location, r1);
 
-	cxy[0] = c2x;
-	cxy[1] = c2y;
+	glamor_set_circle_centre(width, height, c2x, c2y, glamor_priv->yInverted, cxy);
 	dispatch->glUniform2fv(c2_uniform_location, 1, cxy);
 	dispatch->glUniform1f(r2_uniform_location, r2);
 
@@ -1282,7 +1281,7 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	int count = 0;
 	float slope;
 	GLfloat xscale, yscale;
-	GLfloat pt1[4], pt2[4];
+	GLfloat pt1[2], pt2[2];
 	float vertices[8];
 	float transform_mat[3][3];
 	static const float identity_mat[3][3] = {{1.0, 0.0, 0.0},
@@ -1292,8 +1291,6 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	GLfloat n_stops_st[LINEAR_SMALL_STOPS];
 
 	GLint transform_mat_uniform_location = 0;
-	GLint pt1_uniform_location = 0;
-	GLint pt2_uniform_location = 0;
 	GLint n_stop_uniform_location = 0;
 	GLint stops_uniform_location = 0;
 	GLint stop0_uniform_location = 0;
@@ -1441,24 +1438,20 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
 
 	/* Normalize the PTs. */
 	glamor_set_normalize_pt(xscale, yscale,
-	                        pixman_fixed_to_int(src_picture->pSourcePict->linear.p1.x),
-	                        x_source,
-	                        pixman_fixed_to_int(src_picture->pSourcePict->linear.p1.y),
-	                        y_source,
+	                        pixman_fixed_to_double(src_picture->pSourcePict->linear.p1.x),
+	                        pixman_fixed_to_double(src_picture->pSourcePict->linear.p1.y),
 	                        glamor_priv->yInverted,
 	                        pt1);
-	dispatch->glUniform4fv(pt1_uniform_location, 1, pt1);
-	DEBUGF("pt1:(%f %f)\n", pt1[0], pt1[1]);
+	DEBUGF("pt1:(%f, %f) ---> (%f %f)\n", pixman_fixed_to_double(src_picture->pSourcePict->linear.p1.x),
+	       pixman_fixed_to_double(src_picture->pSourcePict->linear.p1.y), pt1[0], pt1[1]);
 
 	glamor_set_normalize_pt(xscale, yscale,
-	                        pixman_fixed_to_int(src_picture->pSourcePict->linear.p2.x),
-	                        x_source,
-	                        pixman_fixed_to_int(src_picture->pSourcePict->linear.p2.y),
-	                        y_source,
+	                        pixman_fixed_to_double(src_picture->pSourcePict->linear.p2.x),
+	                        pixman_fixed_to_double(src_picture->pSourcePict->linear.p2.y),
 	                        glamor_priv->yInverted,
 	                        pt2);
-	dispatch->glUniform4fv(pt2_uniform_location, 1, pt2);
-	DEBUGF("pt2:(%f %f)\n", pt2[0], pt2[1]);
+	DEBUGF("pt2:(%f, %f) ---> (%f %f)\n", pixman_fixed_to_double(src_picture->pSourcePict->linear.p2.x),
+	       pixman_fixed_to_double(src_picture->pSourcePict->linear.p2.y), pt2[0], pt2[1]);
 
 	/* Set all the stops and colors to shader. */
 	if (stops_count > LINEAR_SMALL_STOPS) {
