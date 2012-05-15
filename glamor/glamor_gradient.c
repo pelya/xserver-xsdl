@@ -67,9 +67,12 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count, int use_ar
 	    "            break; \n"
 	    "    }\n"
 	    "    \n"
-	    "    percentage = (stop_len - stops[i-1])/(stops[i] - stops[i-1]);\n"
 	    "    if(stops[i] - stops[i-1] > 2.0)\n"
 	    "        percentage = 0.0;\n" //For comply with pixman, walker->stepper overflow.
+	    "    else if(stops[i] - stops[i-1] < 0.000001)\n"
+	    "        percentage = 0.0;\n"
+	    "    else \n"
+	    "        percentage = (stop_len - stops[i-1])/(stops[i] - stops[i-1]);\n"
 	    "    new_alpha = percentage * stop_colors[i].a + \n"
 	    "                       (1.0-percentage) * stop_colors[i-1].a; \n"
 	    "    gradient_color = vec4((percentage * stop_colors[i].rgb \n"
@@ -116,58 +119,53 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count, int use_ar
 	    "        stop_color_after = stop_color0;\n"
 	    "        stop_after = stop0;\n"
 	    "        stop_before = stop0;\n"
-	    "        percentage = 0.0;\n"
 	    "    } else if((stop_len < stop1) && (n_stop >= 2)) {\n"
 	    "        stop_color_before = stop_color0;\n"
 	    "        stop_color_after = stop_color1;\n"
 	    "        stop_after = stop1;\n"
 	    "        stop_before = stop0;\n"
-	    "        percentage = (stop_len - stop0)/(stop1 - stop0);\n"
 	    "    } else if((stop_len < stop2) && (n_stop >= 3)) {\n"
 	    "        stop_color_before = stop_color1;\n"
 	    "        stop_color_after = stop_color2;\n"
 	    "        stop_after = stop2;\n"
 	    "        stop_before = stop1;\n"
-	    "        percentage = (stop_len - stop1)/(stop2 - stop1);\n"
 	    "    } else if((stop_len < stop3) && (n_stop >= 4)){\n"
 	    "        stop_color_before = stop_color2;\n"
 	    "        stop_color_after = stop_color3;\n"
 	    "        stop_after = stop3;\n"
 	    "        stop_before = stop2;\n"
-	    "        percentage = (stop_len - stop2)/(stop3 - stop2);\n"
 	    "    } else if((stop_len < stop4) && (n_stop >= 5)){\n"
 	    "        stop_color_before = stop_color3;\n"
 	    "        stop_color_after = stop_color4;\n"
 	    "        stop_after = stop4;\n"
 	    "        stop_before = stop3;\n"
-	    "        percentage = (stop_len - stop3)/(stop4 - stop3);\n"
 	    "    } else if((stop_len < stop5) && (n_stop >= 6)){\n"
 	    "        stop_color_before = stop_color4;\n"
 	    "        stop_color_after = stop_color5;\n"
 	    "        stop_after = stop5;\n"
 	    "        stop_before = stop4;\n"
-	    "        percentage = (stop_len - stop4)/(stop5 - stop4);\n"
 	    "    } else if((stop_len < stop6) && (n_stop >= 7)){\n"
 	    "        stop_color_before = stop_color5;\n"
 	    "        stop_color_after = stop_color6;\n"
 	    "        stop_after = stop6;\n"
 	    "        stop_before = stop5;\n"
-	    "        percentage = (stop_len - stop5)/(stop6 - stop5);\n"
 	    "    } else if((stop_len < stop7) && (n_stop >= 8)){\n"
 	    "        stop_color_before = stop_color6;\n"
 	    "        stop_color_after = stop_color7;\n"
 	    "        stop_after = stop7;\n"
 	    "        stop_before = stop6;\n"
-	    "        percentage = (stop_len - stop6)/(stop7 - stop6);\n"
 	    "    } else {\n"
 	    "        stop_color_before = stop_color7;\n"
 	    "        stop_color_after = stop_color7;\n"
 	    "        stop_after = stop7;\n"
 	    "        stop_before = stop7;\n"
-	    "        percentage = 0.0;\n"
 	    "    }\n"
 	    "    if(stop_after - stop_before > 2.0)\n"
 	    "        percentage = 0.0;\n"//For comply with pixman, walker->stepper overflow.
+	    "    else if(stop_after - stop_before < 0.000001)\n"
+	    "        percentage = 0.0;\n"
+	    "    else \n"
+	    "        percentage = (stop_len - stop_before)/(stop_after - stop_before);\n"
 	    "    new_alpha = percentage * stop_color_after.a + \n"
 	    "                       (1.0-percentage) * stop_color_before.a; \n"
 	    "    gradient_color = vec4((percentage * stop_color_after.rgb \n"
@@ -880,13 +878,6 @@ _glamor_gradient_set_stops(PicturePtr src_picture, PictGradient * pgradient,
 	int count = 1;
 
 	for (i = 0; i < pgradient->nstops; i++) {
-		/* We find some gradient picture set the stops at the same percentage, which
-		   will cause the shader problem because the (stops[i] - stops[i-1]) will
-		   be used as divisor. We just keep the later one if stops[i] == stops[i-1] */
-		if (i < pgradient->nstops - 1
-		         && pgradient->stops[i].x == pgradient->stops[i+1].x)
-			continue;
-
 		stop_colors[count*4] = pixman_fixed_to_double(
 		                                pgradient->stops[i].color.red);
 		stop_colors[count*4+1] = pixman_fixed_to_double(
