@@ -577,8 +577,19 @@ Bool glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 void glamor_init_tile_shader(ScreenPtr screen);
 void glamor_fini_tile_shader(ScreenPtr screen);
 
+/* glamor_gradient.c */
 void glamor_init_gradient_shader(ScreenPtr screen);
 void glamor_fini_gradient_shader(ScreenPtr screen);
+PicturePtr glamor_generate_linear_gradient_picture(ScreenPtr screen,
+                                                   PicturePtr src_picture,
+                                                   int x_source, int y_source,
+                                                   int width, int height,
+                                                   PictFormatShort format);
+PicturePtr glamor_generate_radial_gradient_picture(ScreenPtr screen,
+                                                   PicturePtr src_picture,
+                                                   int x_source, int y_source,
+                                                   int width, int height,
+                                                   PictFormatShort format);
 
 /* glamor_triangles.c */
 void
@@ -744,7 +755,7 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 #ifndef GLAMOR_GLES2
-//#define GLAMOR_GRADIENT_SHADER
+#define GLAMOR_GRADIENT_SHADER
 #endif
 
 #endif				/* GLAMOR_PRIV_H */

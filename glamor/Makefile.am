@@ -33,6 +33,7 @@ libglamor_la_SOURCES = \
 	glamor_putimage.c \
 	glamor_setspans.c \
 	glamor_render.c \
+	glamor_gradient.c \
 	glamor_tile.c \
 	glamor_triangles.c\
 	glamor_addtraps.c\
