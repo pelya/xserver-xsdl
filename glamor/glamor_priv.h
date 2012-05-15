@@ -456,7 +456,7 @@ void glamor_get_color_4f_from_pixel(PixmapPtr pixmap,
 int glamor_set_destination_pixmap(PixmapPtr pixmap);
 int glamor_set_destination_pixmap_priv(glamor_pixmap_private *
 				       pixmap_priv);
-void glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *);
+void glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *, int, int, int, int);
 
 /* nc means no check. caller must ensure this pixmap has valid fbo.
  * usually use the GLAMOR_PIXMAP_PRIV_HAS_FBO firstly. 

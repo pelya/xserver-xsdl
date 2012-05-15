@@ -64,7 +64,7 @@ glamor_pixmap_fini(ScreenPtr screen)
 }
 
 void
-glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo * fbo)
+glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo * fbo, int x0, int y0, int width, int height)
 {
 	glamor_gl_dispatch *dispatch = glamor_get_dispatch(fbo->glamor_priv);
 	dispatch->glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
@@ -74,9 +74,8 @@ glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo * fbo)
 	dispatch->glMatrixMode(GL_MODELVIEW);
 	dispatch->glLoadIdentity();
 #endif
-	dispatch->glViewport(0, 0,
-			     fbo->width,
-			     fbo->height);
+	dispatch->glViewport(x0, y0,
+			     width, height);
 
 	glamor_put_dispatch(fbo->glamor_priv);
 }
@@ -84,7 +83,9 @@ glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo * fbo)
 void
 glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private * pixmap_priv)
 {
-	glamor_set_destination_pixmap_fbo(pixmap_priv->fbo);
+	glamor_set_destination_pixmap_fbo(pixmap_priv->fbo, 0, 0,
+					  pixmap_priv->container->drawable.width,
+					  pixmap_priv->container->drawable.height);
 }
 
 int
@@ -507,7 +508,7 @@ ready_to_upload:
 	else
 		ptexcoords = texcoords_inv;
 
-	pixmap_priv_get_scale(pixmap_priv, &dst_xscale, &dst_yscale);
+	pixmap_priv_get_dest_scale(pixmap_priv, &dst_xscale, &dst_yscale);
 	glamor_set_normalize_vcoords(dst_xscale,
 				     dst_yscale,
 				     x, y,
@@ -733,8 +734,8 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h, GLe
 		return NULL;
 
 	dispatch = glamor_get_dispatch(glamor_priv);
-	temp_xscale = 1.0 / temp_fbo->width;
-	temp_yscale = 1.0 / temp_fbo->height;
+	temp_xscale = 1.0 / w;
+	temp_yscale = 1.0 / h;
 
 	glamor_set_normalize_vcoords(temp_xscale,
 				     temp_yscale,
@@ -770,7 +771,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h, GLe
 				  GL_TEXTURE_MAG_FILTER,
 				  GL_NEAREST);
 
-	glamor_set_destination_pixmap_fbo(temp_fbo);
+	glamor_set_destination_pixmap_fbo(temp_fbo, 0, 0, w, h);
 	dispatch->glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
 	dispatch->glUniform1i(glamor_priv->
 			      finish_access_revert[no_alpha],

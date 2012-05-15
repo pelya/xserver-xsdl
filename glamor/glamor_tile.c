@@ -154,7 +154,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	}
 
 	glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
-	pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
+	pixmap_priv_get_dest_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (!glamor_set_alu(dispatch, alu)) {

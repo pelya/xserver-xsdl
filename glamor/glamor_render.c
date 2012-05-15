@@ -1210,7 +1210,7 @@ glamor_composite_with_shader(CARD8 op,
 
 	glamor_get_drawable_deltas(dest->pDrawable, dest_pixmap,
 				   &dest_x_off, &dest_y_off);
-	pixmap_priv_get_scale(dest_pixmap_priv, &dst_xscale, &dst_yscale);
+	pixmap_priv_get_dest_scale(dest_pixmap_priv, &dst_xscale, &dst_yscale);
 
 	if (glamor_priv->has_source_coords) {
 		glamor_get_drawable_deltas(source->pDrawable,
@@ -2109,7 +2109,7 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 
-	pixmap_priv_get_scale(pixmap_priv, xscale, yscale);
+	pixmap_priv_get_dest_scale(pixmap_priv, xscale, yscale);
 
 	glamor_priv->has_source_coords = 1;
 	glamor_priv->has_mask_coords = 0;

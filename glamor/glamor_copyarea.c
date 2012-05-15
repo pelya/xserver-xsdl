@@ -183,7 +183,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 		alu = gc->alu;
 	}
 
-	pixmap_priv_get_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
+	pixmap_priv_get_dest_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
 	pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
 
 	glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off,
@@ -206,8 +206,6 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 				   &src_y_off);
 	dx += src_x_off;
 	dy += src_y_off;
-	pixmap_priv_get_scale(src_pixmap_priv, &src_xscale,
-			      &src_yscale);
 
 	dispatch->glActiveTexture(GL_TEXTURE0);
 	dispatch->glBindTexture(GL_TEXTURE_2D,
