@@ -91,7 +91,8 @@ struct glamor_egl_screen_private {
 	struct gbm_device *gbm;
 #endif
 	int has_gem;
-	void *gl_context, *old_context;
+	void *glamor_context;
+	void *current_context;
 	int gl_context_depth;
 
 	PFNEGLCREATEIMAGEKHRPROC egl_create_image_khr;
@@ -121,10 +122,9 @@ glamor_egl_make_current(ScreenPtr screen)
 	if (glamor_egl->gl_context_depth++)
 		return;
 
-	GET_CURRENT_CONTEXT(current);
-	glamor_egl->old_context = current;
+	GET_CURRENT_CONTEXT(glamor_egl->current_context);
 
-	if (glamor_egl->gl_context != current) {
+	if (glamor_egl->glamor_context != glamor_egl->current_context) {
 		eglMakeCurrent(glamor_egl->display, EGL_NO_SURFACE,
 			       EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		if (!eglMakeCurrent(glamor_egl->display,
@@ -145,9 +145,9 @@ glamor_egl_restore_context(ScreenPtr screen)
 	if (--glamor_egl->gl_context_depth)
 		return;
 
-	if (glamor_egl->old_context &&
-	    glamor_egl->gl_context != glamor_egl->old_context)
-		SET_CURRENT_CONTEXT(glamor_egl->old_context);
+	if (glamor_egl->current_context &&
+	    glamor_egl->glamor_context != glamor_egl->current_context)
+		SET_CURRENT_CONTEXT(glamor_egl->current_context);
 }
 #else
 #define glamor_egl_make_current(x)
@@ -255,7 +255,7 @@ glamor_egl_create_textured_screen_ext(ScreenPtr screen,
 	return TRUE;
 }
 
-Bool
+static Bool
 glamor_egl_check_has_gem(int fd)
 {
 	struct drm_gem_flink flink;
@@ -548,8 +548,7 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 		return FALSE;
 	}
 #ifdef GLX_USE_SHARED_DISPATCH
-	GET_CURRENT_CONTEXT(current);
-	glamor_egl->gl_context = current;
+	GET_CURRENT_CONTEXT(glamor_egl->glamor_context);
 #endif
 	glamor_egl->saved_free_screen = scrn->FreeScreen;
 	scrn->FreeScreen = glamor_egl_free_screen;

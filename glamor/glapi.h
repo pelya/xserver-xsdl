@@ -79,7 +79,7 @@ extern const struct _glapi_table *_glapi_Dispatch;
 extern const void *_glapi_Context;
 
 # define GET_DISPATCH() _glapi_tls_Dispatch
-# define GET_CURRENT_CONTEXT(C)  struct gl_context *C = (struct gl_context *) _glapi_tls_Context
+# define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) _glapi_tls_Context
 # define SET_CURRENT_CONTEXT(C)  _glapi_tls_Context = (void*)C
 
 #else
@@ -92,7 +92,7 @@ extern void *_glapi_Context;
 #  define GET_DISPATCH() \
      (likely(_glapi_Dispatch) ? _glapi_Dispatch : _glapi_get_dispatch())
 
-#  define GET_CURRENT_CONTEXT(C)  struct gl_context *C = (struct gl_context *) \
+#  define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) \
      (likely(_glapi_Context) ? _glapi_Context : _glapi_get_context())
 
 
@@ -104,7 +104,7 @@ extern void *_glapi_Context;
 # else
 
 #  define GET_DISPATCH() _glapi_Dispatch
-#  define GET_CURRENT_CONTEXT(C)  struct gl_context *C = (struct gl_context *) _glapi_Context
+#  define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) _glapi_Context
 # define SET_CURRENT_CONTEXT(C)  _glapi_Context = (void*)C
 
 # endif

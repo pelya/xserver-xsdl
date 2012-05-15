@@ -185,7 +185,7 @@ glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu)
 	return TRUE;
 }
 
-void *
+static void *
 _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int stride, int revert)
 {
 	PictFormatShort dst_format, src_format;
@@ -269,7 +269,7 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int st
 			(*dst) = ((a) << (a_shift)) | ((r) << (b_shift)) | ((g) << (g_shift)) | ((b) << (r_shift)); \
 	}
 
-void *
+static void *
 _glamor_color_revert_x2b10g10r10(void *src_bits, void *dst_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
 {
 	int x,y;
@@ -306,7 +306,7 @@ _glamor_color_revert_x2b10g10r10(void *src_bits, void *dst_bits, int w, int h, i
 
 }
 
-void *
+static void *
 _glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
 {
 	int x,y;
@@ -360,7 +360,7 @@ _glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h, int 
  *
  */
 
-void *
+static void *
 glamor_color_convert_to_bits(void *src_bits, void *dst_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
 {
 	if (revert == REVERT_DOWNLOADING_A1 || revert == REVERT_UPLOADING_A1) {
@@ -917,8 +917,8 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 		read = dispatch->glMapBuffer(GL_PIXEL_PACK_BUFFER,
 					     GL_READ_ONLY);
 		for (yy = 0; yy < pixmap->drawable.height; yy++)
-			memcpy(data + yy * stride,
-			       read + (h - yy - 1) * stride, stride);
+			memcpy((char*)data + yy * stride,
+			       (char*)read + (h - yy - 1) * stride, stride);
 		dispatch->glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 		dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		dispatch->glDeleteBuffers(1, &temp_pbo);

@@ -157,6 +157,9 @@ extern _X_EXPORT void glamor_egl_restore_context(ScreenPtr screen);
  * */
 extern _X_EXPORT void glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back);
 
+extern _X_EXPORT void glamor_pixmap_exchange_fbos(PixmapPtr front, PixmapPtr back);
+
+
 #ifdef GLAMOR_FOR_XORG
 
 #define GLAMOR_EGL_MODULE_NAME  "glamoregl"

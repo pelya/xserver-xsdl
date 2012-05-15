@@ -886,9 +886,9 @@ static inline void _glamor_compare_pixmaps(PixmapPtr pixmap1, PixmapPtr pixmap2,
 	int little_endian = 0;
 	unsigned char *p_test;
 	int bpp = pixmap1->drawable.depth == 8 ? 1 : 4;
+	int stride = pixmap1->devKind;
 
 	assert(pixmap1->devKind == pixmap2->devKind);
-	int stride = pixmap1->devKind;
 
 	ErrorF("stride:%d, width:%d, height:%d\n", stride, w, h);
 

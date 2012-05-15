@@ -961,11 +961,11 @@ glamor_composite_with_shader(CARD8 op,
 	PictFormatShort saved_source_format = 0;
 	float src_matrix[9], mask_matrix[9];
 	GLfloat source_solid_color[4], mask_solid_color[4];
-	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 	int vert_stride = 4;
 	int nrect_max;
 	Bool ret = FALSE;
 
+	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
 		glamor_fallback("dest has no fbo.\n");
 		goto fail;

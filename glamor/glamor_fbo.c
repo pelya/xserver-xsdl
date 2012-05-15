@@ -92,7 +92,7 @@ inline static int cache_hbucket(int size)
 	return order;
 }
 
-glamor_pixmap_fbo *
+static glamor_pixmap_fbo *
 glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 			    int w, int h, GLenum format, int flag)
 {
@@ -380,7 +380,7 @@ glamor_destroy_fbo(glamor_pixmap_fbo *fbo)
 
 }
 
-glamor_pixmap_fbo *
+static glamor_pixmap_fbo *
 glamor_create_tex_obj(glamor_screen_private *glamor_priv,
 		      int w, int h, GLenum format, int flag)
 {
@@ -422,7 +422,7 @@ glamor_create_tex_obj(glamor_screen_private *glamor_priv,
 	return fbo;
 }
 
-void
+static void
 glamor_destroy_tex_obj(glamor_pixmap_fbo * tex_obj)
 {
 	assert(tex_obj->fb == 0);
@@ -430,7 +430,7 @@ glamor_destroy_tex_obj(glamor_pixmap_fbo * tex_obj)
 	glamor_pixmap_fbo_cache_put(tex_obj);
 }
 
-int
+static int
 _glamor_create_tex(glamor_screen_private *glamor_priv,
 		   int w, int h, GLenum format)
 {

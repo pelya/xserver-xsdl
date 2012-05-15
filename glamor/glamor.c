@@ -465,12 +465,11 @@ glamor_close_screen(int idx, ScreenPtr screen)
 	glamor_screen_private *glamor_priv;
 	PixmapPtr screen_pixmap;
 	int flags;
-
-	glamor_priv = glamor_get_screen_private(screen);
-	flags = glamor_priv->flags;
 #ifdef RENDER
 	PictureScreenPtr ps = GetPictureScreenIfSet(screen);
 #endif
+	glamor_priv = glamor_get_screen_private(screen);
+	flags = glamor_priv->flags;
 	glamor_glyphs_fini(screen);
 	screen->CloseScreen = glamor_priv->saved_procs.close_screen;
 	if (flags & GLAMOR_USE_SCREEN) {

@@ -15,7 +15,7 @@ instdir = $(moduledir)
 INCLUDES = \
 	$(XORG_INCS)
 
-AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS) $(LIBDRM_CFLAGS)
+AM_CFLAGS = $(CWARNFLAGS) $(XORG_CFLAGS) $(DIX_CFLAGS) $(LIBDRM_CFLAGS)
 
 libglamor_la_LDFLAGS = -avoid-version
 
