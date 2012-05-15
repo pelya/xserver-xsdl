@@ -491,8 +491,6 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int dy
 	    "uniform mat3 transform_mat;\n"
 	    "uniform int repeat_type;\n"
 	    "uniform int hor_ver;\n"
-	    "uniform vec4 pt1;\n"
-	    "uniform vec4 pt2;\n"
 	    "uniform float pt_slope;\n"
 	    "uniform float cos_val;\n"
 	    "uniform float p1_distance;\n"
@@ -527,10 +525,6 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count, int dy
 	    "        \n"
 	    "    } else if (hor_ver == 1) {\n"//horizontal case.
 	    "        distance = source_texture_trans.x;\n"
-	    "        _p1_distance = p1_distance * source_texture_trans.z;\n"
-	    "        _pt_distance = pt_distance * source_texture_trans.z;\n"
-	    "    } else if (hor_ver == 2) {\n"//vertical case.
-	    "        distance = source_texture_trans.y;\n"
 	    "        _p1_distance = p1_distance * source_texture_trans.z;\n"
 	    "        _pt_distance = pt_distance * source_texture_trans.z;\n"
 	    "    } \n"
@@ -1366,10 +1360,6 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
 	}
 
 	/* Bind all the uniform vars .*/
-	pt1_uniform_location =
-	    dispatch->glGetUniformLocation(gradient_prog, "pt1");
-	pt2_uniform_location =
-	    dispatch->glGetUniformLocation(gradient_prog, "pt2");
 	n_stop_uniform_location =
 	    dispatch->glGetUniformLocation(gradient_prog, "n_stop");
 	pt_slope_uniform_location =
@@ -1542,20 +1532,14 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
 		dispatch->glUniform1i(n_stop_uniform_location, count);
 	}
 
-	if (abs((pt2[1] - pt1[1]) / yscale) < 1.0) { // The horizontal case.
+	if (src_picture->pSourcePict->linear.p2.y ==
+	              src_picture->pSourcePict->linear.p1.y) { // The horizontal case.
 		dispatch->glUniform1i(hor_ver_uniform_location, 1);
-		DEBUGF("p1.x: %f, p2.x: %f, enter the horizontal case\n", pt1[1], pt2[1]);
+		DEBUGF("p1.y: %f, p2.y: %f, enter the horizontal case\n",
+		       pt1[1], pt2[1]);
 
 		p1_distance = pt1[0];
 		pt_distance = (pt2[0] - p1_distance);
-		dispatch->glUniform1f(p1_distance_uniform_location, p1_distance);
-		dispatch->glUniform1f(pt_distance_uniform_location, pt_distance);
-	} else if (abs((pt2[0] - pt1[0]) / xscale) < 1.0) { //The vertical case.
-		dispatch->glUniform1i(hor_ver_uniform_location, 2);
-		DEBUGF("p1.y: %f, p2.y: %f, enter the vertical case\n", pt1[0], pt2[0]);
-
-		p1_distance = pt1[1];
-		pt_distance = (pt2[1] - p1_distance);
 		dispatch->glUniform1f(p1_distance_uniform_location, p1_distance);
 		dispatch->glUniform1f(pt_distance_uniform_location, pt_distance);
 	} else {
