@@ -210,7 +210,6 @@ typedef struct glamor_screen_private {
 	int max_fbo_size;
 
 	struct xorg_list fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
-	struct xorg_list tex_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
 	unsigned long    fbo_cache_watermark;
 
 	/* glamor_solid */

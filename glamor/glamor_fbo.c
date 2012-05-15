@@ -34,7 +34,6 @@
 
 #define GLAMOR_CACHE_DEFAULT    0
 #define GLAMOR_CACHE_EXACT_SIZE 1
-#define GLAMOR_CACHE_TEXTURE	2
 
 //#define NO_FBO_CACHE 1
 #define FBO_CACHE_THRESHOLD  (256*1024*1024)
@@ -105,14 +104,9 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 	n_format = cache_format(format);
 	if (n_format == -1)
 		return NULL;
-	if (!(flag & GLAMOR_CACHE_TEXTURE))
-		cache = &glamor_priv->fbo_cache[n_format]
-					       [cache_wbucket(w)]
-					       [cache_hbucket(h)];
-	else
-		cache = &glamor_priv->tex_cache[n_format]
-					       [cache_wbucket(w)]
-					       [cache_hbucket(h)];
+	cache = &glamor_priv->fbo_cache[n_format]
+				       [cache_wbucket(w)]
+				       [cache_hbucket(h)];
 	if (!(flag & GLAMOR_CACHE_EXACT_SIZE)) {
 		xorg_list_for_each_entry(fbo_entry, cache, list) {
 			if (fbo_entry->width >= w && fbo_entry->height >= h) {
@@ -186,14 +180,9 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 		return;
 	}
 
-	if (fbo->fb)
-		cache = &fbo->glamor_priv->fbo_cache[n_format]
-						    [cache_wbucket(fbo->width)]
-						    [cache_hbucket(fbo->height)];
-	else
-		cache = &fbo->glamor_priv->tex_cache[n_format]
-						    [cache_wbucket(fbo->width)]
-						    [cache_hbucket(fbo->height)];
+	cache = &fbo->glamor_priv->fbo_cache[n_format]
+					    [cache_wbucket(fbo->width)]
+					    [cache_hbucket(fbo->height)];
 	DEBUGF("Put cache entry %p to cache %p w %d h %d format %x fbo %d tex %d \n", fbo, cache,
 		fbo->width, fbo->height, fbo->format, fbo->fb, fbo->tex);
 
@@ -310,19 +299,6 @@ glamor_fbo_expire(glamor_screen_private *glamor_priv)
 						fbo_entry->expire, glamor_priv->tick);
 					glamor_purge_fbo(fbo_entry);
 				}
-#if 0
-				cache = &glamor_priv->tex_cache[i][j][k];
-				xorg_list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
-					if (GLAMOR_TICK_AFTER(fbo_entry->expire, glamor_priv->tick)) {
-						empty_cache = FALSE;
-						break;
-					}
-					xorg_list_del(&fbo_entry->list);
-					DEBUGF("cache %p fbo %p expired %d current %d \n", cache, fbo_entry,
-						fbo_entry->expire, glamor_priv->tick);
-					glamor_purge_fbo(fbo_entry);
-				}
-#endif
 			}
 
 }
@@ -339,7 +315,6 @@ glamor_init_pixmap_fbo(ScreenPtr screen)
 			for(k = 0; k < CACHE_BUCKET_HCOUNT; k++)
 			{
 				xorg_list_init(&glamor_priv->fbo_cache[i][j][k]);
-				xorg_list_init(&glamor_priv->tex_cache[i][j][k]);
 			}
 	glamor_priv->fbo_cache_watermark = 0;
 }
@@ -362,13 +337,6 @@ glamor_fini_pixmap_fbo(ScreenPtr screen)
 					xorg_list_del(&fbo_entry->list);
 					glamor_purge_fbo(fbo_entry);
 				}
-#if 0
-				cache = &glamor_priv->tex_cache[i][j][k];
-				xorg_list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
-					xorg_list_del(&fbo_entry->list);
-					glamor_purge_fbo(fbo_entry);
-				}
-#endif
 			}
 }
 
@@ -378,56 +346,6 @@ glamor_destroy_fbo(glamor_pixmap_fbo *fbo)
 	xorg_list_del(&fbo->list);
 	glamor_pixmap_fbo_cache_put(fbo);
 
-}
-
-static glamor_pixmap_fbo *
-glamor_create_tex_obj(glamor_screen_private *glamor_priv,
-		      int w, int h, GLenum format, int flag)
-{
-	glamor_gl_dispatch *dispatch;
-	glamor_pixmap_fbo *fbo;
-	int cache_flag = GLAMOR_CACHE_TEXTURE;
-	GLuint tex;
-
-	if (flag == GLAMOR_CREATE_TEXTURE_EXACT_SIZE)
-		cache_flag |= GLAMOR_CACHE_EXACT_SIZE;
-
-	fbo = glamor_pixmap_fbo_cache_get(glamor_priv, w, h,
-					  format, cache_flag);
-	if (fbo)
-		return fbo;
-	fbo = calloc(1, sizeof(*fbo));
-	if (fbo == NULL)
-		return NULL;
-
-	xorg_list_init(&fbo->list);
-
-	dispatch = glamor_get_dispatch(glamor_priv);
-	dispatch->glGenTextures(1, &tex);
-	dispatch->glBindTexture(GL_TEXTURE_2D, tex);
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-				  GL_NEAREST);
-	dispatch->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-				  GL_NEAREST);
-	dispatch->glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format,
-			       GL_UNSIGNED_BYTE, NULL);
-	glamor_put_dispatch(glamor_priv);
-
-	fbo->tex = tex;
-	fbo->width = w;
-	fbo->height = h;
-	fbo->format = format;
-	fbo->glamor_priv = glamor_priv;
-
-	return fbo;
-}
-
-static void
-glamor_destroy_tex_obj(glamor_pixmap_fbo * tex_obj)
-{
-	assert(tex_obj->fb == 0);
-	xorg_list_del(&tex_obj->list);
-	glamor_pixmap_fbo_cache_put(tex_obj);
 }
 
 static int
