@@ -1536,8 +1536,6 @@ AC_DEFINE_UNQUOTED(VENDOR_NAME_SHORT, ["$VENDOR_NAME_SHORT"], [Vendor name])
 AC_DEFINE_UNQUOTED(VENDOR_RELEASE, [$VENDOR_RELEASE], [Vendor release])
 AC_DEFINE_UNQUOTED(VENDOR_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man version])
 
-AC_DEFINE(NO_LIBCWRAPPER, 1, [Define to 1 if modules should avoid the libcwrapper])
-
 if test "x$DEBUGGING" = xyes; then
        AC_DEFINE(DEBUG, 1, [Enable debugging code])
 fi
