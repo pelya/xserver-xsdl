@@ -57,6 +57,7 @@
 #include <pciaccess.h>
 #endif
 
+#include "compat-api.h"
 #include "driver.h"
 
 static void AdjustFrame(int scrnIndex, int x, int y, int flags);

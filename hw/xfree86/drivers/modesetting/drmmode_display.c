@@ -49,6 +49,7 @@
 #define DPMS_SERVER
 #include <X11/extensions/dpms.h>
 #endif
+#include "compat-api.h"
 
 static struct dumb_bo *dumb_bo_create(int fd,
 			  const unsigned width, const unsigned height,
