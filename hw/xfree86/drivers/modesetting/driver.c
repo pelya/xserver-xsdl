@@ -348,7 +348,7 @@ GetRec(ScrnInfoPtr pScrn)
 
 static void dispatch_dirty(ScreenPtr pScreen)
 {
-    ScrnInfoPtr scrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr scrn = xf86ScreenToScrn(pScreen);
     modesettingPtr ms = modesettingPTR(scrn);
     RegionPtr dirty = DamageRegion(ms->damage);
     unsigned num_cliprects = REGION_NUM_RECTS(dirty);
@@ -393,7 +393,7 @@ static void msBlockHandler(int i, pointer blockData, pointer pTimeout,
 			   pointer pReadmask)
 {
     ScreenPtr pScreen = screenInfo.screens[i];
-    modesettingPtr ms = modesettingPTR(xf86Screens[pScreen->myNum]);
+    modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(pScreen));
 
     pScreen->BlockHandler = ms->BlockHandler;
     pScreen->BlockHandler(i, blockData, pTimeout, pReadmask);
@@ -586,7 +586,7 @@ static void *
 msShadowWindow(ScreenPtr screen, CARD32 row, CARD32 offset, int mode,
 	       CARD32 *size, void *closure)
 {
-    ScrnInfoPtr pScrn = xf86Screens[screen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(screen);
     modesettingPtr ms = modesettingPTR(pScrn);
     int stride;
 
@@ -599,7 +599,7 @@ msShadowWindow(ScreenPtr screen, CARD32 row, CARD32 offset, int mode,
 static Bool
 CreateScreenResources(ScreenPtr pScreen)
 {
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     modesettingPtr ms = modesettingPTR(pScrn);
     PixmapPtr rootPixmap;
     Bool ret;
@@ -660,7 +660,7 @@ msShadowInit(ScreenPtr pScreen)
 static Bool
 ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 {
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     modesettingPtr ms = modesettingPTR(pScrn);
     VisualPtr visual;
     int ret;
