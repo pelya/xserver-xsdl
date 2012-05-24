@@ -76,6 +76,12 @@ AttachUnboundGPU(ScreenPtr pScreen, ScreenPtr new);
 extern _X_EXPORT void
 DetachUnboundGPU(ScreenPtr unbound);
 
+extern _X_EXPORT void
+AttachOutputGPU(ScreenPtr pScreen, ScreenPtr new);
+
+extern _X_EXPORT void
+DetachOutputGPU(ScreenPtr output);
+
 typedef struct _ColormapRec *ColormapPtr;
 
 #endif                          /* SCREENINT_H */

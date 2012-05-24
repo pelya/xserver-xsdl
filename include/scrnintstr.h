@@ -485,6 +485,9 @@ typedef struct _Screen {
 
     ScreenPtr current_master;
 
+    struct xorg_list output_slave_list;
+    struct xorg_list output_head;
+
 } ScreenRec;
 
 static inline RegionPtr

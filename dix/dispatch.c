@@ -3743,6 +3743,7 @@ static int init_screen(ScreenPtr pScreen, int i, Bool gpu)
     pScreen->CreateScreenResources = 0;
 
     xorg_list_init(&pScreen->unattached_list);
+    xorg_list_init(&pScreen->output_slave_list);
 
     /*
      * This loop gets run once for every Screen that gets added,
@@ -3909,3 +3910,19 @@ DetachUnboundGPU(ScreenPtr slave)
     slave->current_master = NULL;
 }
 
+void
+AttachOutputGPU(ScreenPtr pScreen, ScreenPtr new)
+{
+    assert(new->isGPU);
+    assert(!new->current_master);
+    xorg_list_add(&new->output_head, &pScreen->output_slave_list);
+    new->current_master = pScreen;
+}
+
+void
+DetachOutputGPU(ScreenPtr slave)
+{
+    assert(slave->isGPU);
+    xorg_list_del(&slave->output_head);
+    slave->current_master = NULL;
+}
