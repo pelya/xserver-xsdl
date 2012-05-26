@@ -82,6 +82,12 @@ AttachOutputGPU(ScreenPtr pScreen, ScreenPtr new);
 extern _X_EXPORT void
 DetachOutputGPU(ScreenPtr output);
 
+extern _X_EXPORT void
+AttachOffloadGPU(ScreenPtr pScreen, ScreenPtr new);
+
+extern _X_EXPORT void
+DetachOffloadGPU(ScreenPtr slave);
+
 typedef struct _ColormapRec *ColormapPtr;
 
 #endif                          /* SCREENINT_H */

@@ -76,6 +76,10 @@ ProcRRGetProviders (ClientPtr client)
         pScrPriv = rrGetScrPriv(iter);
         total_providers += pScrPriv->provider ? 1 : 0;
     }
+    xorg_list_for_each_entry(iter, &pScreen->offload_slave_list, offload_head) {
+        pScrPriv = rrGetScrPriv(iter);
+        total_providers += pScrPriv->provider ? 1 : 0;
+    }
     xorg_list_for_each_entry(iter, &pScreen->unattached_list, unattached_head) {
         pScrPriv = rrGetScrPriv(iter);
         total_providers += pScrPriv->provider ? 1 : 0;
@@ -110,6 +114,9 @@ ProcRRGetProviders (ClientPtr client)
         providers = (RRProvider *)extra;
         ADD_PROVIDER(pScreen);
         xorg_list_for_each_entry(iter, &pScreen->output_slave_list, output_head) {
+            ADD_PROVIDER(iter);
+        }
+        xorg_list_for_each_entry(iter, &pScreen->offload_slave_list, offload_head) {
             ADD_PROVIDER(iter);
         }
         xorg_list_for_each_entry(iter, &pScreen->unattached_list, unattached_head) {
