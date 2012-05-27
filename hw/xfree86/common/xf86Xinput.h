@@ -98,7 +98,7 @@ typedef struct _InputInfoRec {
     int fd;
     DeviceIntPtr dev;
     pointer private;
-    char *type_name;
+    const char *type_name;
     InputDriverPtr drv;
     pointer module;
     XF86OptionPtr options;
