@@ -68,14 +68,14 @@
 /* This holds the input driver entry and module information. */
 typedef struct _InputDriverRec {
     int driverVersion;
-    char *driverName;
+    const char *driverName;
     void (*Identify) (int flags);
     int (*PreInit) (struct _InputDriverRec * drv,
                     struct _InputInfoRec * pInfo, int flags);
     void (*UnInit) (struct _InputDriverRec * drv,
                     struct _InputInfoRec * pInfo, int flags);
     pointer module;
-    char **default_options;
+    const char **default_options;
 } InputDriverRec, *InputDriverPtr;
 
 /* This is to input devices what the ScrnInfoRec is to screens. */
