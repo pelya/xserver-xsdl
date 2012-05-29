@@ -1125,6 +1125,16 @@ ProcRRSetCrtcConfig(ClientPtr client)
             int source_height;
             PictTransform transform;
             struct pixman_f_transform f_transform, f_inverse;
+            int width, height;
+
+            if (pScreen->isGPU) {
+                width = pScreen->current_master->width;
+                height = pScreen->current_master->height;
+            }
+            else {
+                width = pScreen->width;
+                height = pScreen->height;
+            }
 
             RRTransformCompute(stuff->x, stuff->y,
                                mode->mode.width, mode->mode.height,
@@ -1134,13 +1144,13 @@ ProcRRSetCrtcConfig(ClientPtr client)
 
             RRModeGetScanoutSize(mode, &transform, &source_width,
                                  &source_height);
-            if (stuff->x + source_width > pScreen->width) {
+            if (stuff->x + source_width > width) {
                 client->errorValue = stuff->x;
                 free(outputs);
                 return BadValue;
             }
 
-            if (stuff->y + source_height > pScreen->height) {
+            if (stuff->y + source_height > height) {
                 client->errorValue = stuff->y;
                 free(outputs);
                 return BadValue;
