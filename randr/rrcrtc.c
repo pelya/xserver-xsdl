@@ -1544,18 +1544,10 @@ ProcRRGetCrtcTransform(ClientPtr client)
     return Success;
 }
 
-void
-RRConstrainCursorHarder(DeviceIntPtr pDev, ScreenPtr pScreen, int mode, int *x,
-                        int *y)
+static Bool check_all_screen_crtcs(ScreenPtr pScreen, int *x, int *y)
 {
     rrScrPriv(pScreen);
     int i;
-
-    /* intentional dead space -> let it float */
-    if (pScrPriv->discontiguous)
-        return;
-
-    /* if we're moving inside a crtc, we're fine */
     for (i = 0; i < pScrPriv->numCrtcs; i++) {
         RRCrtcPtr crtc = pScrPriv->crtcs[i];
 
@@ -1567,8 +1559,15 @@ RRConstrainCursorHarder(DeviceIntPtr pDev, ScreenPtr pScreen, int mode, int *x,
         crtc_bounds(crtc, &left, &right, &top, &bottom);
 
         if ((*x >= left) && (*x < right) && (*y >= top) && (*y < bottom))
-            return;
+            return TRUE;
     }
+    return FALSE;
+}
+
+static Bool constrain_all_screen_crtcs(DeviceIntPtr pDev, ScreenPtr pScreen, int *x, int *y)
+{
+    rrScrPriv(pScreen);
+    int i;
 
     /* if we're trying to escape, clamp to the CRTC we're coming from */
     for (i = 0; i < pScrPriv->numCrtcs; i++) {
@@ -1592,7 +1591,43 @@ RRConstrainCursorHarder(DeviceIntPtr pDev, ScreenPtr pScreen, int mode, int *x,
             if (*y >= bottom)
                 *y = bottom - 1;
 
-            return;
+            return TRUE;
         }
+    }
+    return FALSE;
+}
+
+void
+RRConstrainCursorHarder(DeviceIntPtr pDev, ScreenPtr pScreen, int mode, int *x,
+                        int *y)
+{
+    rrScrPriv(pScreen);
+    Bool ret;
+    ScreenPtr slave;
+
+    /* intentional dead space -> let it float */
+    if (pScrPriv->discontiguous)
+        return;
+
+    /* if we're moving inside a crtc, we're fine */
+    ret = check_all_screen_crtcs(pScreen, x, y);
+    if (ret == TRUE)
+        return;
+
+    xorg_list_for_each_entry(slave, &pScreen->output_slave_list, output_head) {
+        ret = check_all_screen_crtcs(slave, x, y);
+        if (ret == TRUE)
+            return;
+    }
+
+    /* if we're trying to escape, clamp to the CRTC we're coming from */
+    ret = constrain_all_screen_crtcs(pDev, pScreen, x, y);
+    if (ret == TRUE)
+        return;
+
+    xorg_list_for_each_entry(slave, &pScreen->output_slave_list, output_head) {
+        ret = constrain_all_screen_crtcs(pDev, slave, x, y);
+        if (ret == TRUE)
+            return;
     }
 }
