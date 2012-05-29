@@ -467,25 +467,37 @@ TellChanged(WindowPtr pWin, pointer value)
 void
 RRTellChanged(ScreenPtr pScreen)
 {
+    ScreenPtr master;
     rrScrPriv(pScreen);
+    rrScrPrivPtr mastersp;
     int i;
+
+    if (pScreen->isGPU) {
+        master = pScreen->current_master;
+        mastersp = rrGetScrPriv(master);
+    }
+    else {
+        master = pScreen;
+        mastersp = pScrPriv;
+    }
 
     if (pScrPriv->changed) {
         UpdateCurrentTimeIf();
-        if (pScrPriv->configChanged) {
-            pScrPriv->lastConfigTime = currentTime;
-            pScrPriv->configChanged = FALSE;
+        if (mastersp->configChanged) {
+            mastersp->lastConfigTime = currentTime;
+            mastersp->configChanged = FALSE;
         }
         pScrPriv->changed = FALSE;
-        WalkTree(pScreen, TellChanged, (pointer) pScreen);
+        mastersp->changed = FALSE;
+        WalkTree(master, TellChanged, (pointer) master);
         for (i = 0; i < pScrPriv->numOutputs; i++)
             pScrPriv->outputs[i]->changed = FALSE;
         for (i = 0; i < pScrPriv->numCrtcs; i++)
             pScrPriv->crtcs[i]->changed = FALSE;
-        if (pScrPriv->layoutChanged) {
+        if (mastersp->layoutChanged) {
             pScrPriv->layoutChanged = FALSE;
-            RRPointerScreenConfigured(pScreen);
-            RRSendConfigNotify(pScreen);
+            RRPointerScreenConfigured(master);
+            RRSendConfigNotify(master);
         }
     }
 }
