@@ -688,10 +688,6 @@ void glamor_composite(CARD8 op,
 		      INT16 yMask,
 		      INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
 
-void glamor_trapezoids(CARD8 op,
-		       PicturePtr src, PicturePtr dst,
-		       PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
-		       int ntrap, xTrapezoid * traps);
 void glamor_init_composite_shaders(ScreenPtr screen);
 void glamor_fini_composite_shaders(ScreenPtr screen);
 void glamor_composite_glyph_rects(CARD8 op,
@@ -704,6 +700,11 @@ void glamor_composite_rects (CARD8         op,
 			     int           nRect,
 			     xRectangle    *rects);
 
+/* glamor_trapezoid.c */
+void glamor_trapezoids(CARD8 op,
+		       PicturePtr src, PicturePtr dst,
+		       PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
+		       int ntrap, xTrapezoid * traps);
 
 /* glamor_tile.c */
 Bool glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
@@ -935,7 +936,7 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 #define GLAMOR_GRADIENT_SHADER
 #endif
 #define GLAMOR_TEXTURED_LARGE_PIXMAP 1
-#if 0
+#if 1
 #define MAX_FBO_SIZE 32 /* For test purpose only. */
 #endif
 
