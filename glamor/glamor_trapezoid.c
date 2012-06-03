@@ -37,6 +37,739 @@
 #include "fbpict.h"
 
 #ifdef GLAMOR_TRAPEZOID_SHADER
+
+#define POINT_INSIDE_CLIP_RECT(point, rect)	\
+    (point[0] >= IntToxFixed(rect->x1)		\
+     && point[0] <= IntToxFixed(rect->x2) 	\
+     && point[1] >= IntToxFixed(rect->y1)	\
+     && point[1] <= IntToxFixed(rect->y2))
+
+static xFixed
+_glamor_linefixedX (xLineFixed *l, xFixed y, Bool ceil)
+{
+	xFixed dx = l->p2.x - l->p1.x;
+	xFixed_32_32 ex = (xFixed_32_32) (y - l->p1.y) * dx;
+	xFixed dy = l->p2.y - l->p1.y;
+	if (ceil)
+		ex += (dy - 1);
+	return l->p1.x + (xFixed) (ex / dy);
+}
+
+static xFixed
+_glamor_linefixedY (xLineFixed *l, xFixed x, Bool ceil)
+{
+	xFixed dy = l->p2.y - l->p1.y;
+	xFixed_32_32 ey = (xFixed_32_32) (x - l->p1.x) * dy;
+	xFixed dx = l->p2.x - l->p1.x;
+	if (ceil)
+		ey += (dx - 1);
+	return l->p1.y + (xFixed) (ey / dx);
+}
+
+static Bool
+point_inside_trapezoid(int point[2], xTrapezoid * trap)
+{
+	int ret = TRUE;
+	int tmp;
+	if (point[1] > trap->bottom
+	     || point[1] < trap->top)
+		ret = FALSE;
+
+	tmp = _glamor_linefixedX (&trap->left, point[1], FALSE);
+	if (point[0] < tmp)
+		ret = FALSE;
+
+	tmp = _glamor_linefixedX (&trap->right, point[1], TRUE);
+	if (point[0] > tmp)
+		ret = FALSE;
+
+	return ret;
+}
+
+static void
+glamor_emit_composite_triangle(ScreenPtr screen,
+        const float *src_coords,
+        const float *mask_coords,
+        const float *dst_coords)
+{
+	glamor_emit_composite_vert(screen, src_coords, mask_coords,
+	        dst_coords, 0);
+	glamor_emit_composite_vert(screen, src_coords, mask_coords,
+	        dst_coords, 1);
+	glamor_emit_composite_vert(screen, src_coords, mask_coords,
+	        dst_coords, 2);
+}
+
+static void
+glamor_flush_composite_triangles(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(screen);
+	glamor_gl_dispatch *dispatch;
+
+	if (!glamor_priv->render_nr_verts)
+		return;
+
+	dispatch = glamor_get_dispatch(glamor_priv);
+	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
+		dispatch->glUnmapBuffer(GL_ARRAY_BUFFER);
+	else {
+
+		dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
+		dispatch->glBufferData(GL_ARRAY_BUFFER,
+		        glamor_priv->vbo_offset,
+		        glamor_priv->vb, GL_DYNAMIC_DRAW);
+	}
+
+	dispatch->glDrawArrays(GL_TRIANGLES, 0, glamor_priv->render_nr_verts);
+	glamor_put_dispatch(glamor_priv);
+}
+
+#define DEBUG_CLIP_VTX 0
+
+static Bool
+_glamor_clip_trapezoid_vertex(xTrapezoid * trap, BoxPtr pbox,
+        int vertex[6], int *num)
+{
+	int tl[2];
+	int bl[2];
+	int tr[2];
+	int br[2];
+	int left_cut_top[2];
+	int left_cut_left[2];
+	int left_cut_right[2];
+	int left_cut_bottom[2];
+	int right_cut_top[2];
+	int right_cut_left[2];
+	int right_cut_right[2];
+	int right_cut_bottom[2];
+	int tmp[2];
+	int tmp_vtx[20*2];
+	float tmp_vtx_slope[20];
+	BoxRec trap_bound;
+	int i = 0;
+	int vertex_num = 0;
+
+	if (DEBUG_CLIP_VTX) {
+		ErrorF("The parameter of xTrapezoid is:\ntop: %d  0x%x\tbottom: %d  0x%x\n"
+		       "left:  p1 (%d   0x%x, %d   0x%x)\tp2 (%d   0x%x, %d   0x%x)\n"
+		       "right: p1 (%d   0x%x, %d   0x%x)\tp2 (%d   0x%x, %d   0x%x)\n",
+		       xFixedToInt(trap->top), (unsigned int)trap->top,
+		       xFixedToInt(trap->bottom), (unsigned int)trap->bottom,
+		       xFixedToInt(trap->left.p1.x), (unsigned int)trap->left.p1.x,
+		       xFixedToInt(trap->left.p1.y), (unsigned int)trap->left.p1.y,
+		       xFixedToInt(trap->left.p2.x), (unsigned int)trap->left.p2.x,
+		       xFixedToInt(trap->left.p2.y), (unsigned int)trap->left.p2.y,
+		       xFixedToInt(trap->right.p1.x), (unsigned int)trap->right.p1.x,
+		       xFixedToInt(trap->right.p1.y), (unsigned int)trap->right.p1.y,
+		       xFixedToInt(trap->right.p2.x), (unsigned int)trap->right.p2.x,
+		       xFixedToInt(trap->right.p2.y), (unsigned int)trap->right.p2.y);
+	}
+
+	miTrapezoidBounds(1, trap, &trap_bound);
+	if (DEBUG_CLIP_VTX)
+		ErrorF("The bounds for this traps is: bounds.x1 = %d, bounds.x2 = %d, "
+		       "bounds.y1 = %d, bounds.y2 = %d\n", trap_bound.x1, trap_bound.x2,
+		       trap_bound.y1, trap_bound.y2);
+
+	if (trap_bound.x1 > pbox->x2 || trap_bound.x2 < pbox->x1)
+		return FALSE;
+	if (trap_bound.y1 > pbox->y2 || trap_bound.y2 < pbox->y1)
+		return FALSE;
+
+#define IS_TRAP_EDGE_VERTICAL(edge)		\
+	(edge->p1.x == edge->p2.x)
+
+#define CACULATE_CUT_VERTEX(vtx, cal_x, ceil, vh_edge, edge)		\
+	do {								\
+	    if(cal_x) {							\
+		vtx[1] = (vh_edge);					\
+		vtx[0] = (_glamor_linefixedX(				\
+			      edge, vh_edge, ceil));			\
+		if(DEBUG_CLIP_VTX)					\
+		    ErrorF("The intersection point of line y=%d and "	\
+			   "line of p1:(%d,%d) -- p2 (%d,%d) "		\
+			   "is (%d, %d)\n",				\
+			   xFixedToInt(vh_edge),			\
+			   xFixedToInt(edge->p1.x),			\
+			   xFixedToInt(edge->p1.y),			\
+			   xFixedToInt(edge->p2.x),			\
+			   xFixedToInt(edge->p2.y),			\
+			   xFixedToInt(vtx[0]),				\
+			   xFixedToInt(vtx[1]));			\
+	    } else {							\
+		vtx[0] = (vh_edge);					\
+		vtx[1] = (_glamor_linefixedY(				\
+			      edge, vh_edge, ceil));			\
+		if(DEBUG_CLIP_VTX)					\
+		    ErrorF("The intersection point of line x=%d and "	\
+			   "line of p1:(%d,%d) -- p2 (%d,%d) "		\
+			   "is (%d, %d)\n",				\
+			   xFixedToInt(vh_edge),			\
+			   xFixedToInt(edge->p1.x),			\
+			   xFixedToInt(edge->p1.y),			\
+			   xFixedToInt(edge->p2.x),			\
+			   xFixedToInt(edge->p2.y),			\
+			   xFixedToInt(vtx[0]),				\
+			   xFixedToInt(vtx[1]));			\
+	    }								\
+	} while(0)
+
+#define ADD_VERTEX_IF_INSIDE(vtx)				\
+	if(POINT_INSIDE_CLIP_RECT(vtx, pbox)			\
+	   && point_inside_trapezoid(vtx, trap)){		\
+	    tmp_vtx[vertex_num] = xFixedToInt(vtx[0]);		\
+	    tmp_vtx[vertex_num + 1] = xFixedToInt(vtx[1]);	\
+	    vertex_num += 2;					\
+	    if(DEBUG_CLIP_VTX)					\
+		ErrorF("@ Point: (%d, %d) is inside "		\
+		       "the Rect and Trapezoid\n",		\
+		       xFixedToInt(vtx[0]),			\
+		       xFixedToInt(vtx[1]));			\
+	} else if(DEBUG_CLIP_VTX){				\
+	    ErrorF("X Point: (%d, %d) is outside "		\
+		   "the Rect and Trapezoid\t",			\
+		   xFixedToInt(vtx[0]),				\
+		   xFixedToInt(vtx[1]));			\
+	    if(POINT_INSIDE_CLIP_RECT(vtx, pbox))		\
+		ErrorF("The Point is outside "			\
+		       "the Trapezoid\n");			\
+	    else						\
+		ErrorF("The Point is outside "			\
+		       "the Rect\n");				\
+	}
+
+	/*Trap's TopLeft, BottomLeft, TopRight and BottomRight. */
+	CACULATE_CUT_VERTEX(tl, 1, FALSE, trap->top, (&trap->left));
+	CACULATE_CUT_VERTEX(bl, 1, FALSE, trap->bottom, (&trap->left));
+	CACULATE_CUT_VERTEX(tr, 1, TRUE, trap->top, (&trap->right));
+	CACULATE_CUT_VERTEX(br, 1, TRUE, trap->bottom, (&trap->right));
+
+	if (DEBUG_CLIP_VTX)
+		ErrorF("Trap's TopLeft, BottomLeft, TopRight and BottomRight\n");
+	if (DEBUG_CLIP_VTX)
+		ErrorF("Caculate the vertex of trapezoid:\n"
+		       "      (%3d, %3d)-------------------------(%3d, %3d)\n"
+		       "              /                           \\       \n"
+		       "             /                             \\      \n"
+		       "            /                               \\     \n"
+		       "  (%3d, %3d)---------------------------------(%3d, %3d)\n"
+		       "Clip with rect:\n"
+		       "  (%3d, %3d)------------------------(%3d, %3d)    \n"
+		       "           |                        |             \n"
+		       "           |                        |             \n"
+		       "           |                        |             \n"
+		       "  (%3d, %3d)------------------------(%3d, %3d)    \n",
+		       xFixedToInt(tl[0]), xFixedToInt(tl[1]), xFixedToInt(tr[0]),
+		       xFixedToInt(tr[1]), xFixedToInt(bl[0]), xFixedToInt(bl[1]),
+		       xFixedToInt(br[0]), xFixedToInt(br[1]),
+		       pbox->x1, pbox->y1, pbox->x2, pbox->y1, pbox->x1, pbox->y2,
+		       pbox->x2, pbox->y2);
+
+	ADD_VERTEX_IF_INSIDE(tl);
+	ADD_VERTEX_IF_INSIDE(bl);
+	ADD_VERTEX_IF_INSIDE(tr);
+	ADD_VERTEX_IF_INSIDE(br);
+
+	/*Trap's left edge cut Rect. */
+	if (DEBUG_CLIP_VTX)
+		ErrorF("Trap's left edge cut Rect\n");
+	CACULATE_CUT_VERTEX(left_cut_top, 1, FALSE, IntToxFixed(pbox->y1), (&trap->left));
+	ADD_VERTEX_IF_INSIDE(left_cut_top);
+	if (!IS_TRAP_EDGE_VERTICAL((&trap->left))) {
+		CACULATE_CUT_VERTEX(left_cut_left, 0, FALSE, IntToxFixed(pbox->x1), (&trap->left));
+		ADD_VERTEX_IF_INSIDE(left_cut_left);
+	}
+	CACULATE_CUT_VERTEX(left_cut_bottom, 1, FALSE, IntToxFixed(pbox->y2), (&trap->left));
+	ADD_VERTEX_IF_INSIDE(left_cut_bottom);
+	if (!IS_TRAP_EDGE_VERTICAL((&trap->left))) {
+		CACULATE_CUT_VERTEX(left_cut_right, 0, FALSE, IntToxFixed(pbox->x2), (&trap->left));
+		ADD_VERTEX_IF_INSIDE(left_cut_right);
+	}
+
+	/*Trap's right edge cut Rect. */
+	if (DEBUG_CLIP_VTX)
+		ErrorF("Trap's right edge cut Rect\n");
+	CACULATE_CUT_VERTEX(right_cut_top, 1, TRUE, IntToxFixed(pbox->y1), (&trap->right));
+	ADD_VERTEX_IF_INSIDE(right_cut_top);
+	if (!IS_TRAP_EDGE_VERTICAL((&trap->right))) {
+		CACULATE_CUT_VERTEX(right_cut_left, 0, TRUE, IntToxFixed(pbox->x1), (&trap->right));
+		ADD_VERTEX_IF_INSIDE(right_cut_left);
+	}
+	CACULATE_CUT_VERTEX(right_cut_bottom, 1, TRUE, IntToxFixed(pbox->y2), (&trap->right));
+	ADD_VERTEX_IF_INSIDE(right_cut_bottom);
+	if (!IS_TRAP_EDGE_VERTICAL((&trap->right))) {
+		CACULATE_CUT_VERTEX(right_cut_right, 0, TRUE, IntToxFixed(pbox->x2), (&trap->right));
+		ADD_VERTEX_IF_INSIDE(right_cut_right);
+	}
+
+	/* Trap's top cut Left and Right of rect. */
+	if (DEBUG_CLIP_VTX)
+		ErrorF("Trap's top cut Left and Right of rect\n");
+	tmp[0] = IntToxFixed(pbox->x1);
+	tmp[1] = trap->top;
+	ADD_VERTEX_IF_INSIDE(tmp);
+	tmp[0] = IntToxFixed(pbox->x2);
+	tmp[1] = trap->top;
+	ADD_VERTEX_IF_INSIDE(tmp);
+
+	/* Trap's bottom cut Left and Right of rect. */
+	if (DEBUG_CLIP_VTX)
+		ErrorF("Trap's bottom cut Left and Right of rect\n");
+	tmp[0] = IntToxFixed(pbox->x1);
+	tmp[1] = trap->bottom;
+	ADD_VERTEX_IF_INSIDE(tmp);
+	tmp[0] = IntToxFixed(pbox->x2);
+	tmp[1] = trap->bottom;
+	ADD_VERTEX_IF_INSIDE(tmp);
+
+	/* The orginal 4 vertex of rect. */
+	if (DEBUG_CLIP_VTX)
+		ErrorF("The orginal 4 vertex of rect\n");
+	tmp[0] = IntToxFixed(pbox->x1);
+	tmp[1] = IntToxFixed(pbox->y1);
+	ADD_VERTEX_IF_INSIDE(tmp);
+	tmp[0] = IntToxFixed(pbox->x1);
+	tmp[1] = IntToxFixed(pbox->y2);
+	ADD_VERTEX_IF_INSIDE(tmp);
+	tmp[0] = IntToxFixed(pbox->x2);
+	tmp[1] = IntToxFixed(pbox->y2);
+	ADD_VERTEX_IF_INSIDE(tmp);
+	tmp[0] = IntToxFixed(pbox->x2);
+	tmp[1] = IntToxFixed(pbox->y1);
+	ADD_VERTEX_IF_INSIDE(tmp);
+
+	if (DEBUG_CLIP_VTX) {
+		ErrorF("\nThe candidate vertex number is %d\n", vertex_num / 2);
+		for (i = 0; i < vertex_num / 2; i++) {
+			ErrorF("(%d, %d) ", tmp_vtx[2*i], tmp_vtx[2*i + 1]);
+		}
+		ErrorF("\n");
+	}
+
+	/* Sort the vertex by X and then Y. */
+	for (i = 0; i < vertex_num / 2; i++) {
+		int j;
+		for (j = 0; j < vertex_num / 2 - i - 1; j++) {
+			if (tmp_vtx[2*j] > tmp_vtx[2*(j+1)]
+			     || (tmp_vtx[2*j] == tmp_vtx[2*(j+1)]
+			         && tmp_vtx[2*j + 1] > tmp_vtx[2*(j+1) + 1])) {
+				tmp[0] = tmp_vtx[2*j];
+				tmp[1] = tmp_vtx[2*j + 1];
+				tmp_vtx[2*j] = tmp_vtx[2*(j+1)];
+				tmp_vtx[2*j + 1] = tmp_vtx[2*(j+1) + 1];
+				tmp_vtx[2*(j+1)] = tmp[0];
+				tmp_vtx[2*(j+1) + 1] = tmp[1];
+			}
+		}
+
+	}
+
+	if (DEBUG_CLIP_VTX) {
+		ErrorF("\nAfter sort vertex number is:\n");
+		for (i = 0; i < vertex_num / 2; i++) {
+			ErrorF("(%d, %d) ", tmp_vtx[2*i], tmp_vtx[2*i + 1]);
+		}
+		ErrorF("\n");
+	}
+
+	memset(vertex, -1, 2*6);
+	*num = 0;
+
+	for (i = 0; i < vertex_num / 2; i++) {
+		if (*num > 0 && vertex[2*(*num - 1)] == tmp_vtx[2*i]
+		     && vertex[2*(*num - 1) + 1] == tmp_vtx[2*i + 1]) {
+			/*same vertex.*/
+			if (DEBUG_CLIP_VTX)
+				ErrorF("X Point:(%d, %d) discard\n",
+				       tmp_vtx[2*i], tmp_vtx[2*i + 1]);
+			continue;
+		}
+
+		(*num)++;
+		if (*num > 6) {
+			if (DEBUG_CLIP_VTX)
+				FatalError("Trapezoid clip with Rect can never have vtx"
+				           "number bigger than 6\n");
+			else {
+				ErrorF("Trapezoid clip with Rect can never have vtx"
+				       "number bigger than 6\n");
+				*num = 6;
+				break;
+			}
+		}
+
+		vertex[2*(*num - 1)] = tmp_vtx[2*i];
+		vertex[2*(*num - 1) + 1] = tmp_vtx[2*i + 1];
+		if (DEBUG_CLIP_VTX)
+			ErrorF("@ Point:(%d, %d) select, num now is %d\n",
+			       tmp_vtx[2*i], tmp_vtx[2*i + 1], *num);
+	}
+
+	/* Now we need to arrange the vtx in the polygon's counter-clockwise
+	order. We first select the left and top point as the start point and
+	sort every vtx by the slope from vtx to the start vtx. */
+	for (i = 1; i < *num; i++) {
+		tmp_vtx_slope[i] = (vertex[2*i] != vertex[0] ?
+		                    (float)(vertex[2*i + 1] - vertex[1]) / (float)(vertex[2*i] - vertex[0])
+		                    : (float)INT_MAX);
+	}
+
+	if (DEBUG_CLIP_VTX) {
+		ErrorF("\nvtx number: %d, VTX and slope:\n", *num);
+		for (i = 0; i < *num; i++) {
+			ErrorF("(%d, %d):%f ",
+			       vertex[2*i], vertex[2*i + 1],
+			       tmp_vtx_slope[i]);
+		}
+		ErrorF("\n");
+	}
+
+	/* Sort the vertex by slope. */
+	for (i = 0; i < *num - 1; i++) {
+		int j;
+		float tmp_slope;
+		for (j = 1; j < *num - i - 1; j++) {
+			if (tmp_vtx_slope[j] < tmp_vtx_slope[j + 1]) {
+				tmp_slope = tmp_vtx_slope[j];
+				tmp_vtx_slope[j] = tmp_vtx_slope[j + 1];
+				tmp_vtx_slope[j + 1] = tmp_slope;
+				tmp[0] = vertex[2*j];
+				tmp[1] = vertex[2*j + 1];
+				vertex[2*j] = vertex[2*(j+1)];
+				vertex[2*j + 1] = vertex[2*(j+1) + 1];
+				vertex[2*(j+1)] = tmp[0];
+				vertex[2*(j+1) + 1] = tmp[1];
+			}
+		}
+	}
+
+	if (DEBUG_CLIP_VTX) {
+		ErrorF("\nBefore return, vtx number: %d, VTX and slope:\n", *num);
+		for (i = 0; i < *num; i++) {
+			ErrorF("(%d, %d):%f ",
+			       vertex[2*i], vertex[2*i + 1],
+			       tmp_vtx_slope[i]);
+		}
+		ErrorF("\n");
+	}
+
+	return TRUE;
+}
+
+static Bool
+_glamor_trapezoids_with_shader(CARD8 op,
+        PicturePtr src, PicturePtr dst,
+        PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
+        int ntrap, xTrapezoid * traps)
+{
+	ScreenPtr screen = dst->pDrawable->pScreen;
+	glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+	struct shader_key key;
+	PictFormatShort saved_source_format = 0;
+	PixmapPtr source_pixmap = NULL;
+	PixmapPtr dest_pixmap = NULL;
+	glamor_pixmap_private *source_pixmap_priv = NULL;
+	glamor_pixmap_private *dest_pixmap_priv = NULL;
+	glamor_pixmap_private *temp_src_priv = NULL;
+	int x_temp_src, y_temp_src;
+	int src_width, src_height;
+	int source_x_off, source_y_off;
+	GLfloat src_xscale = 1, src_yscale = 1;
+	int x_dst, y_dst;
+	int dest_x_off, dest_y_off;
+	GLfloat dst_xscale, dst_yscale;
+	BoxRec bounds;
+	PicturePtr temp_src = src;
+	glamor_gl_dispatch *dispatch = NULL;
+	int vert_stride = 3;
+	int ntriangle_per_loop;
+	int nclip_rect;
+	int mclip_rect;
+	int clip_processed;
+	int clipped_vtx[6*2];
+	RegionRec region;
+	BoxPtr box = NULL;
+	BoxPtr pbox = NULL;
+	int traps_count = 0;
+	int traps_not_completed = 0;
+	xTrapezoid * ptrap = NULL;
+	int nbox;
+	float src_matrix[9];
+	Bool ret = FALSE;
+
+	/* If a mask format wasn't provided, we get to choose, but behavior should
+	 * be as if there was no temporary mask the traps were accumulated into.
+	 */
+	if (!mask_format) {
+		if (dst->polyEdge == PolyEdgeSharp)
+			mask_format = PictureMatchFormat(screen, 1, PICT_a1);
+		else
+			mask_format = PictureMatchFormat(screen, 8, PICT_a8);
+		for (; ntrap; ntrap--, traps++)
+			glamor_trapezoids(op, src, dst, mask_format, x_src,
+			                  y_src, 1, traps);
+		return TRUE;
+	}
+
+	miTrapezoidBounds(ntrap, traps, &bounds);
+	DEBUGF("The bounds for all traps is: bounds.x1 = %d, bounds.x2 = %d, "
+	       "bounds.y1 = %d, bounds.y2 = %d\n", bounds.x1, bounds.x2,
+	       bounds.y1, bounds.y2);
+
+	/* No area need to render. */
+	if (bounds.y1 >= bounds.y2 || bounds.x1 >= bounds.x2)
+		return TRUE;
+
+	dest_pixmap = glamor_get_drawable_pixmap(dst->pDrawable);
+	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
+
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+		/* Currently. Always fallback to cpu if destination is in CPU memory.*/
+		ret = FALSE;
+		DEBUGF("dst pixmap has no FBO.\n");
+		goto TRAPEZOID_OUT;
+	}
+
+	if (src->pDrawable) {
+		source_pixmap = glamor_get_drawable_pixmap(src->pDrawable);
+		source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
+		temp_src_priv = source_pixmap_priv;
+		if (source_pixmap_priv && source_pixmap_priv->type == GLAMOR_DRM_ONLY) {
+			ret = FALSE;
+			goto TRAPEZOID_OUT;
+		}
+	}
+
+	x_dst = bounds.x1;
+	y_dst = bounds.y1;
+
+	src_width = bounds.x2 - bounds.x1;
+	src_height = bounds.y2 - bounds.y1;
+
+	x_temp_src = x_src + bounds.x1 - (traps[0].left.p1.x >> 16);
+	y_temp_src = y_src + bounds.y1 - (traps[0].left.p1.y >> 16);
+
+	if ((!src->pDrawable &&
+	     (src->pSourcePict->type != SourcePictTypeSolidFill)) //1. The Gradient case.
+	     /* 2. Has no fbo but can upload.*/
+	     || (src->pDrawable && !GLAMOR_PIXMAP_PRIV_HAS_FBO(source_pixmap_priv)
+	         && ((src_width * src_height * 4 <
+	              source_pixmap->drawable.width * source_pixmap->drawable.height)
+	             || !glamor_check_fbo_size(glamor_priv, source_pixmap->drawable.width,
+	                     source_pixmap->drawable.height)))) {
+		temp_src = glamor_convert_gradient_picture(screen, src,
+		           x_src, y_src,
+		           src_width, src_height);
+		if (!temp_src) {
+			temp_src = src;
+			ret = FALSE;
+			DEBUGF("Convert gradient picture failed\n");
+			goto TRAPEZOID_OUT;
+		}
+		temp_src_priv = glamor_get_pixmap_private((PixmapPtr)temp_src->pDrawable);
+		x_temp_src = y_temp_src = 0;
+	}
+
+	x_dst += dst->pDrawable->x;
+	y_dst += dst->pDrawable->y;
+	if (temp_src->pDrawable) {
+		x_temp_src += temp_src->pDrawable->x;
+		y_temp_src += temp_src->pDrawable->y;
+	}
+
+	if (!miComputeCompositeRegion(&region,
+	        temp_src, NULL, dst,
+	        x_temp_src, y_temp_src,
+	        0, 0,
+	        x_dst, y_dst,
+	        src_width, src_height)) {
+		DEBUGF("All the regions are clipped out, do nothing\n");
+		goto TRAPEZOID_OUT;
+	}
+
+	box = REGION_RECTS(&region);
+	nbox = REGION_NUM_RECTS(&region);
+	pbox = box;
+
+	ret = glamor_composite_choose_shader(op, temp_src, NULL, dst,
+					     temp_src_priv, NULL, dest_pixmap_priv,
+					     &key, &saved_source_format);
+	if (ret == FALSE) {
+		DEBUGF("can not set the shader program for composite\n");
+		goto TRAPEZOID_RESET_GL;
+	}
+
+	glamor_priv->has_source_coords = key.source != SHADER_SOURCE_SOLID;
+	glamor_priv->has_mask_coords = (key.mask != SHADER_MASK_NONE &&
+	        key.mask != SHADER_MASK_SOLID);
+
+	dispatch = glamor_get_dispatch(glamor_priv);
+
+	glamor_get_drawable_deltas(dst->pDrawable, dest_pixmap,
+	        &dest_x_off, &dest_y_off);
+
+	pixmap_priv_get_scale(dest_pixmap_priv, &dst_xscale, &dst_yscale);
+
+	if (glamor_priv->has_source_coords) {
+		source_pixmap = glamor_get_drawable_pixmap(temp_src->pDrawable);
+		source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
+		glamor_get_drawable_deltas(temp_src->pDrawable,
+		        source_pixmap,
+		        &source_x_off, &source_y_off);
+		pixmap_priv_get_scale(source_pixmap_priv,
+		        &src_xscale, &src_yscale);
+		glamor_picture_get_matrixf(temp_src, src_matrix);
+		vert_stride += 3;
+	}
+
+	if (glamor_priv->has_mask_coords) {
+		DEBUGF("Should never have mask coords here!\n");
+		ret = FALSE;
+		goto TRAPEZOID_RESET_GL;
+	}
+
+	/* A trapezoid clip with a rectangle will at most generate a hexagon,
+	   which can be devided	into 4 triangles to render. */
+	ntriangle_per_loop = (vert_stride * nbox * ntrap * 4) > GLAMOR_COMPOSITE_VBO_VERT_CNT ?
+	        (GLAMOR_COMPOSITE_VBO_VERT_CNT / vert_stride) : nbox * ntrap * 4;
+	ntriangle_per_loop = (ntriangle_per_loop / 4) * 4;
+
+	nclip_rect = nbox;
+	while (nclip_rect) {
+		mclip_rect = (nclip_rect * ntrap * 4) > ntriangle_per_loop ?
+		             (ntriangle_per_loop / (4 * ntrap)) : nclip_rect;
+
+		if (!mclip_rect) {/* Maybe too many traps. */
+			mclip_rect = 1;
+			ptrap = traps;
+			traps_count = ntriangle_per_loop / 4;
+			traps_not_completed = ntrap - traps_count;
+		} else {
+			traps_count = ntrap;
+			ptrap = traps;
+			traps_not_completed = 0;
+		}
+
+NTRAPS_LOOP_AGAIN:
+
+		glamor_setup_composite_vbo(screen,  mclip_rect * traps_count * 4 * vert_stride);
+		clip_processed = mclip_rect;
+
+
+		while (mclip_rect--) {
+			while (traps_count--) {
+				int vtx_num;
+				int i;
+				float vertices[3*2], source_texcoords[3*2];
+
+				DEBUGF("In loop of render trapezoid, nclip_rect = %d, mclip_rect = %d, "
+				       "clip_processed = %d, traps_count = %d, traps_not_completed = %d\n",
+				       nclip_rect, mclip_rect, clip_processed, traps_count, traps_not_completed);
+
+				if (_glamor_clip_trapezoid_vertex(ptrap, pbox, clipped_vtx, &vtx_num)) {
+					for (i = 0; i < vtx_num - 2; i++) {
+						int clipped_vtx_tmp[3*2];
+
+						clipped_vtx_tmp[0] = clipped_vtx[0];
+						clipped_vtx_tmp[1] = clipped_vtx[1];
+						clipped_vtx_tmp[2] = clipped_vtx[(i+1)*2];
+						clipped_vtx_tmp[3] = clipped_vtx[(i+1)*2 + 1];
+						clipped_vtx_tmp[4] = clipped_vtx[(i+2)*2];
+						clipped_vtx_tmp[5] = clipped_vtx[(i+2)*2 + 1];
+						glamor_set_normalize_tri_vcoords(
+						    dst_xscale, dst_yscale, clipped_vtx_tmp,
+						    glamor_priv->yInverted, vertices);
+						DEBUGF("vertices of triangle: (%f X %f), (%f X %f), "
+						       "(%f X %f)\n", vertices[0], vertices[1],
+						       vertices[2], vertices[3], vertices[4], vertices[5]);
+
+
+						if (key.source != SHADER_SOURCE_SOLID) {
+							if (src->transform) {
+								glamor_set_transformed_normalize_tri_tcoords(
+								    source_pixmap_priv,
+								    src_matrix, src_xscale, src_yscale,
+								    clipped_vtx_tmp,
+								    glamor_priv->yInverted,
+								    source_texcoords);
+							} else {
+								glamor_set_normalize_tri_tcoords(
+								    src_xscale, src_yscale,
+								    clipped_vtx_tmp,
+								    glamor_priv->yInverted,
+								    source_texcoords);
+							}
+
+							DEBUGF("source_texcoords of triangle: (%f X %f), "
+							       "(%f X %f), (%f X %f)\n",
+							       source_texcoords[0], source_texcoords[1],
+							       source_texcoords[2], source_texcoords[3],
+							       source_texcoords[4], source_texcoords[5]);
+						}
+
+						glamor_emit_composite_triangle(screen, source_texcoords,
+						        NULL, vertices);
+					}
+				}
+
+				ptrap++;
+			}
+
+			if (traps_not_completed) { /* one loop of ntraps not completed */
+				mclip_rect = 1;
+				traps_count = traps_not_completed > (ntriangle_per_loop / 4) ?
+				              (ntriangle_per_loop / 4) : traps_not_completed;
+				traps_not_completed -= traps_count;
+				glamor_flush_composite_triangles(screen);
+				goto NTRAPS_LOOP_AGAIN;
+			}
+
+			pbox++;
+		}
+
+		glamor_flush_composite_triangles(screen);
+
+		nclip_rect -= clip_processed;
+	}
+
+	ret = TRUE;
+
+TRAPEZOID_RESET_GL:
+	dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
+	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_MASK);
+	dispatch->glDisable(GL_BLEND);
+#ifndef GLAMOR_GLES2
+	dispatch->glActiveTexture(GL_TEXTURE0);
+	dispatch->glDisable(GL_TEXTURE_2D);
+	dispatch->glActiveTexture(GL_TEXTURE1);
+	dispatch->glDisable(GL_TEXTURE_2D);
+#endif
+	dispatch->glUseProgram(0);
+
+TRAPEZOID_OUT:
+	if (box) {
+		REGION_UNINIT(dst->pDrawable->pScreen, &region);
+	}
+
+	if (temp_src != src) {
+		FreePicture(temp_src, 0);
+	} else {
+		if (saved_source_format) {
+			src->format = saved_source_format;
+		}
+	}
+
+	if (dispatch) {
+		glamor_put_dispatch(glamor_priv);
+	}
+
+	return ret;
+}
+
 void
 glamor_init_trapezoid_shader(ScreenPtr screen)
 {

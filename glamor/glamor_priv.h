@@ -716,6 +716,15 @@ PicturePtr glamor_convert_gradient_picture(ScreenPtr screen,
                                            PicturePtr source,
                                            int x_source,
                                            int y_source, int width, int height);
+Bool glamor_composite_choose_shader(CARD8 op,
+                                    PicturePtr source,
+                                    PicturePtr mask,
+                                    PicturePtr dest,
+			     	    glamor_pixmap_private *source_pixmap_priv,
+			     	    glamor_pixmap_private *mask_pixmap_priv,
+			     	    glamor_pixmap_private *dest_pixmap_priv,
+                                    struct shader_key *s_key,
+                                    PictFormatShort *psaved_source_format);
 void glamor_setup_composite_vbo(ScreenPtr screen, int n_verts);
 void glamor_emit_composite_vert(ScreenPtr screen,
                                 const float *src_coords,

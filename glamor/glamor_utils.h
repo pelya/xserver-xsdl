@@ -349,6 +349,25 @@
     DEBUGF("normalized tx %f ty %f \n", (texcoord)[0], (texcoord)[1]);	\
   } while(0)
 
+#define glamor_set_transformed_normalize_tri_tcoords(priv,		\
+						     matrix,		\
+						     xscale,		\
+						     yscale,		\
+						     vtx,		\
+						     yInverted,		\
+						     texcoords)		\
+    do {								\
+	glamor_set_transformed_point(priv, matrix, xscale, yscale,	\
+				     texcoords, (vtx)[0], (vtx)[1],	\
+				     yInverted);			\
+	glamor_set_transformed_point(priv, matrix, xscale, yscale,	\
+				     texcoords+2, (vtx)[2], (vtx)[3],	\
+				     yInverted);			\
+	glamor_set_transformed_point(priv, matrix, xscale, yscale,	\
+				     texcoords+4, (vtx)[4], (vtx)[5],	\
+				     yInverted);			\
+    } while (0)
+
 #define glamor_set_transformed_normalize_tcoords( priv,			\
 						  matrix,		\
 						  xscale,		\
@@ -369,6 +388,26 @@
 				 texcoords + 6, tx1, ty2,		\
 				 yInverted);				\
   } while (0)
+
+#define glamor_set_normalize_tri_tcoords(xscale,		\
+					 yscale,		\
+					 vtx,			\
+					 yInverted,		\
+					 texcoords)		\
+    do {							\
+	_glamor_set_normalize_tpoint(xscale, yscale,		\
+				(vtx)[0], (vtx)[1],		\
+				texcoords,			\
+				yInverted);			\
+	_glamor_set_normalize_tpoint(xscale, yscale,		\
+				(vtx)[2], (vtx)[3],		\
+				texcoords+2,			\
+				yInverted);			\
+	_glamor_set_normalize_tpoint(xscale, yscale,		\
+				(vtx)[4], (vtx)[5],		\
+				texcoords+4,			\
+				yInverted);			\
+    } while (0)
 
 #define glamor_set_repeat_transformed_normalize_tcoords( priv,		\
 							 repeat_type,	\
@@ -518,6 +557,31 @@
 	}							\
 	(vertices)[3] = (vertices)[1];				\
 	(vertices)[7] = (vertices)[5];				\
+    } while(0)
+
+#define glamor_set_normalize_one_vcoord(xscale, yscale, x, y,		\
+					yInverted, vertices)		\
+    do {								\
+	(vertices)[0] = v_from_x_coord_x(xscale, x);			\
+	if (yInverted) {						\
+	    (vertices)[1] = v_from_x_coord_y_inverted(yscale, y);	\
+	} else {							\
+	    (vertices)[1] = v_from_x_coord_y(yscale, y);		\
+	}								\
+    } while(0)
+
+#define glamor_set_normalize_tri_vcoords(xscale, yscale, vtx,		\
+					 yInverted, vertices)		\
+    do {								\
+	glamor_set_normalize_one_vcoord(xscale, yscale,			\
+					(vtx)[0], (vtx)[1],		\
+					yInverted, vertices);		\
+	glamor_set_normalize_one_vcoord(xscale, yscale,			\
+					(vtx)[2], (vtx)[3],		\
+					yInverted, vertices+2);		\
+	glamor_set_normalize_one_vcoord(xscale, yscale,			\
+					(vtx)[4], (vtx)[5],		\
+					yInverted, vertices+4);		\
     } while(0)
 
 #define glamor_set_tcoords_tri_strip(width, height, x1, y1, x2, y2,	\
