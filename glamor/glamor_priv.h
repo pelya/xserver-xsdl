@@ -127,6 +127,12 @@ enum shader_in {
 	SHADER_IN_COUNT,
 };
 
+struct shader_key {
+	enum shader_source source;
+	enum shader_mask mask;
+	enum shader_in in;
+};
+
 enum gradient_shader {
 	SHADER_GRADIENT_LINEAR,
 	SHADER_GRADIENT_RADIAL,
@@ -157,6 +163,8 @@ enum glamor_gl_flavor {
 #define GLAMOR_CREATE_TEXTURE_EXACT_SIZE 0x104
 
 #define GLAMOR_NUM_GLYPH_CACHE_FORMATS 2
+
+#define GLAMOR_COMPOSITE_VBO_VERT_CNT 1024
 
 typedef struct {
 	PicturePtr picture;	/* Where the glyphs of the cache are stored */
@@ -704,6 +712,15 @@ void glamor_composite_rects (CARD8         op,
 			     xRectangle    *rects);
 void glamor_init_trapezoid_shader(ScreenPtr screen);
 void glamor_fini_trapezoid_shader(ScreenPtr screen);
+PicturePtr glamor_convert_gradient_picture(ScreenPtr screen,
+                                           PicturePtr source,
+                                           int x_source,
+                                           int y_source, int width, int height);
+void glamor_setup_composite_vbo(ScreenPtr screen, int n_verts);
+void glamor_emit_composite_vert(ScreenPtr screen,
+                                const float *src_coords,
+                                const float *mask_coords,
+                                const float *dst_coords, int i);
 
 /* glamor_trapezoid.c */
 void glamor_trapezoids(CARD8 op,
@@ -939,10 +956,10 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 #ifndef GLAMOR_GLES2
 #define GLAMOR_GRADIENT_SHADER
-//#define GLAMOR_TRAPEZOID_SHADER
+#define GLAMOR_TRAPEZOID_SHADER
 #endif
 #define GLAMOR_TEXTURED_LARGE_PIXMAP 1
-#if 1
+#if 0
 #define MAX_FBO_SIZE 32 /* For test purpose only. */
 #endif
 

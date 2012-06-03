@@ -395,7 +395,6 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 	BoxRec one_trap_bound;
 	float vertices[8];
 	float tex_vertices[8];
-	float tmp;
 	int i;
 
 	glamor_priv = glamor_get_screen_private(screen);
@@ -410,8 +409,8 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 	}
 
 	/* First, clear all to zero */
-	if (!glamor_solid(pixmap, 0, 0, pixmap_priv->container->drawable.width,
-	                  pixmap_priv->container->drawable.height,
+	if (!glamor_solid(pixmap, 0, 0, pixmap_priv->base.pixmap->drawable.width,
+	                  pixmap_priv->base.pixmap->drawable.height,
 	                  GXclear, 0xFFFFFFFF, 0)) {
 		DEBUGF("glamor_solid failed, fallback\n");
 		return FALSE;
@@ -490,8 +489,8 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 		       xFixedToInt(ptrap->right.p2.y), ptrap->right.p2.y);
 
 		miTrapezoidBounds(1, ptrap, &one_trap_bound);
-		glamor_set_tcoords_tri_strip((pixmap_priv->container->drawable.width),
-		                             (pixmap_priv->container->drawable.height),
+		glamor_set_tcoords_tri_strip((pixmap_priv->base.pixmap->drawable.width),
+		                             (pixmap_priv->base.pixmap->drawable.height),
 		                             (one_trap_bound.x1),
 		                             (one_trap_bound.y1),
 		                             (one_trap_bound.x2),

@@ -788,7 +788,6 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 	glamor_pixmap_private *pixmap_priv;
 	PixmapPtr pixmap = NULL;
 	glamor_gl_dispatch *dispatch = NULL;
-	float tmp;
 
 	pixmap = glamor_get_drawable_pixmap(dst_picture->pDrawable);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
