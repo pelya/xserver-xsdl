@@ -806,25 +806,25 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 	       *xscale, *yscale, x_source, y_source,
 	       dst_picture->pDrawable->width, dst_picture->pDrawable->height);
 
-	glamor_set_normalize_vcoords(pixmap_priv, *xscale, *yscale,
-	                             0, 0,
-	                             (INT16)(dst_picture->pDrawable->width),
-	                             (INT16)(dst_picture->pDrawable->height),
-	                             glamor_priv->yInverted, vertices);
+	glamor_set_normalize_vcoords_tri_strip(*xscale, *yscale,
+	                  0, 0,
+	                  (INT16)(dst_picture->pDrawable->width),
+	                  (INT16)(dst_picture->pDrawable->height),
+	                  glamor_priv->yInverted, vertices);
 
 	if (tex_normalize) {
-		glamor_set_normalize_tcoords(pixmap_priv, *xscale, *yscale,
-		                             x_source, y_source,
-		                             (INT16)(dst_picture->pDrawable->width + x_source),
-		                             (INT16)(dst_picture->pDrawable->height + y_source),
-		                             glamor_priv->yInverted, tex_vertices);
+		glamor_set_normalize_tcoords_tri_stripe(*xscale, *yscale,
+		                x_source, y_source,
+		                (INT16)(dst_picture->pDrawable->width + x_source),
+		                (INT16)(dst_picture->pDrawable->height + y_source),
+		                glamor_priv->yInverted, tex_vertices);
 	} else {
-		glamor_set_tcoords((INT16)(dst_picture->pDrawable->width),
-		                   (INT16)(dst_picture->pDrawable->height),
-		                   x_source, y_source,
-		                   (INT16)(dst_picture->pDrawable->width) + x_source,
-		                   (INT16)(dst_picture->pDrawable->height) + y_source,
-		                   glamor_priv->yInverted, tex_vertices);
+		glamor_set_tcoords_tri_strip((INT16)(dst_picture->pDrawable->width),
+		                 (INT16)(dst_picture->pDrawable->height),
+		                 x_source, y_source,
+		                 (INT16)(dst_picture->pDrawable->width) + x_source,
+		                 (INT16)(dst_picture->pDrawable->height) + y_source,
+		                 glamor_priv->yInverted, tex_vertices);
 	}
 
 	DEBUGF("vertices --> leftup : %f X %f, rightup: %f X %f,"
@@ -835,21 +835,6 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 	       "rightbottom: %f X %f, leftbottom : %f X %f\n",
 	       tex_vertices[0], tex_vertices[1], tex_vertices[2], tex_vertices[3],
 	       tex_vertices[4], tex_vertices[5], tex_vertices[6], tex_vertices[7]);
-
-	/* Swap the vtx for triangle render. */
-	tmp = vertices[4];
-	vertices[4] = vertices[6];
-	vertices[6] = tmp;
-	tmp = vertices[5];
-	vertices[5] = vertices[7];
-	vertices[7] = tmp;
-
-	tmp = tex_vertices[4];
-	tex_vertices[4] = tex_vertices[6];
-	tex_vertices[6] = tmp;
-	tmp = tex_vertices[5];
-	tex_vertices[5] = tex_vertices[7];
-	tex_vertices[7] = tmp;
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 

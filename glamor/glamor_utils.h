@@ -481,6 +481,25 @@
 				   tx2, ty2, yInverted, vertices);	\
  } while(0)
 
+#define glamor_set_normalize_tcoords_tri_stripe(xscale, yscale,		\
+						x1, y1, x2, y2,		\
+						yInverted, vertices)	\
+    do {								\
+	(vertices)[0] = t_from_x_coord_x(xscale, x1);			\
+	(vertices)[2] = t_from_x_coord_x(xscale, x2);			\
+	(vertices)[6] = (vertices)[2];					\
+	(vertices)[4] = (vertices)[0];					\
+	if (yInverted) {						\
+	    (vertices)[1] = t_from_x_coord_y_inverted(yscale, y1);	\
+	    (vertices)[7] = t_from_x_coord_y_inverted(yscale, y2);	\
+	}								\
+	else {								\
+	    (vertices)[1] = t_from_x_coord_y(yscale, y1);		\
+	    (vertices)[7] = t_from_x_coord_y(yscale, y2);		\
+	}								\
+	(vertices)[3] = (vertices)[1];					\
+	(vertices)[5] = (vertices)[7];					\
+    } while(0)
 
 #define glamor_set_tcoords(width, height, x1, y1, x2, y2,	\
 			   yInverted, vertices)			\
@@ -501,6 +520,24 @@
 	(vertices)[7] = (vertices)[5];				\
     } while(0)
 
+#define glamor_set_tcoords_tri_strip(width, height, x1, y1, x2, y2,	\
+				     yInverted, vertices)		\
+    do {								\
+	(vertices)[0] = (x1);						\
+	(vertices)[2] = (x2);						\
+	(vertices)[6] = (vertices)[2];					\
+	(vertices)[4] = (vertices)[0];					\
+	if (yInverted) {						\
+	    (vertices)[1] = (y1);					\
+	    (vertices)[7] = (y2);					\
+	}								\
+	else {								\
+	    (vertices)[1] = height - (y2);				\
+	    (vertices)[7] = height - (y1);				\
+	}								\
+	(vertices)[3] = (vertices)[1];					\
+	(vertices)[5] = (vertices)[7];					\
+    } while(0)
 
 #define glamor_set_normalize_vcoords(priv, xscale, yscale,		\
 				     x1, y1, x2, y2,			\
@@ -523,6 +560,26 @@
     (vertices)[3] = (vertices)[1];					\
     (vertices)[7] = (vertices)[5];					\
   } while(0)
+
+#define glamor_set_normalize_vcoords_tri_strip(xscale, yscale,		\
+					       x1, y1, x2, y2,		\
+					       yInverted, vertices)	\
+    do {								\
+	(vertices)[0] = v_from_x_coord_x(xscale, x1);			\
+	(vertices)[2] = v_from_x_coord_x(xscale, x2);			\
+	(vertices)[6] = (vertices)[2];					\
+	(vertices)[4] = (vertices)[0];					\
+	if (yInverted) {						\
+	    (vertices)[1] = v_from_x_coord_y_inverted(yscale, y1);	\
+	    (vertices)[7] = v_from_x_coord_y_inverted(yscale, y2);	\
+	}								\
+	else {								\
+	    (vertices)[1] = v_from_x_coord_y(yscale, y1);		\
+	    (vertices)[7] = v_from_x_coord_y(yscale, y2);		\
+	}								\
+	(vertices)[3] = (vertices)[1];					\
+	(vertices)[5] = (vertices)[7];					\
+    } while(0)
 
 #define glamor_set_normalize_pt(xscale, yscale, x, y,		\
                                 yInverted, pt)			\

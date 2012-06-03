@@ -490,38 +490,23 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 		       xFixedToInt(ptrap->right.p2.y), ptrap->right.p2.y);
 
 		miTrapezoidBounds(1, ptrap, &one_trap_bound);
-		glamor_set_tcoords((pixmap_priv->container->drawable.width),
-		                   (pixmap_priv->container->drawable.height),
-		                   (one_trap_bound.x1),
-		                   (one_trap_bound.y1),
-		                   (one_trap_bound.x2),
-		                   (one_trap_bound.y2),
-		                   glamor_priv->yInverted, tex_vertices);
+		glamor_set_tcoords_tri_strip((pixmap_priv->container->drawable.width),
+		                             (pixmap_priv->container->drawable.height),
+		                             (one_trap_bound.x1),
+		                             (one_trap_bound.y1),
+		                             (one_trap_bound.x2),
+		                             (one_trap_bound.y2),
+		                             glamor_priv->yInverted, tex_vertices);
 
 		/* Need to rebase. */
 		one_trap_bound.x1 -= bounds->x1;
 		one_trap_bound.x2 -= bounds->x1;
 		one_trap_bound.y1 -= bounds->y1;
 		one_trap_bound.y2 -= bounds->y1;
-		glamor_set_normalize_vcoords(xscale, yscale,
+		glamor_set_normalize_vcoords_tri_strip(xscale, yscale,
 		        one_trap_bound.x1, one_trap_bound.y1,
 		        one_trap_bound.x2, one_trap_bound.y2,
 		        glamor_priv->yInverted, vertices);
-
-		/* Swap the vtx for triangle render. */
-		tmp = vertices[4];
-		vertices[4] = vertices[6];
-		vertices[6] = tmp;
-		tmp = vertices[5];
-		vertices[5] = vertices[7];
-		vertices[7] = tmp;
-
-		tmp = tex_vertices[4];
-		tex_vertices[4] = tex_vertices[6];
-		tex_vertices[6] = tmp;
-		tmp = tex_vertices[5];
-		tex_vertices[5] = tex_vertices[7];
-		tex_vertices[7] = tmp;
 
 		DEBUGF("vertices --> leftup : %f X %f, rightup: %f X %f,"
 		       "rightbottom: %f X %f, leftbottom : %f X %f\n",
