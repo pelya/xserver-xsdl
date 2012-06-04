@@ -965,7 +965,7 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 #ifndef GLAMOR_GLES2
 #define GLAMOR_GRADIENT_SHADER
-#define GLAMOR_TRAPEZOID_SHADER
+//#define GLAMOR_TRAPEZOID_SHADER
 #endif
 #define GLAMOR_TEXTURED_LARGE_PIXMAP 1
 #if 0

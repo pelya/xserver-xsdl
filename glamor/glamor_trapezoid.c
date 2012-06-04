@@ -1409,15 +1409,34 @@ _glamor_trapezoids(CARD8 op,
 	stride = PixmapBytePad(width, mask_format->depth);
 
 #ifdef GLAMOR_TRAPEZOID_SHADER
-	picture = glamor_create_mask_picture(screen, dst, mask_format,
-	          width, height, 1);
-	if (!picture)
-		return TRUE;
+	/* We seperate the render to two paths.
+	   Some GL implemetation do not implement the Anti-Alias for triangles
+	   and polygen's filling. So when the edge is not vertical or horizontal,
+	   sawtooth will be obvious. The trapezoid is widely used to render wide
+	   lines and circles. In these case, the line or circle will be divided
+	   into a large number of small trapezoids to approximate it, so the sawtooth
+	   at the edge will cause the result not be acceptable.
+	   When the depth of the mask is 1, there is no Anti-Alias needed, so we
+	   use the clip logic to generate the result directly(fast path).
+	   When the depth is not 1, AA is needed and we use a shader to generate
+	   a temp mask pixmap.
+	 */
+	if(mask_format->depth == 1) {
+		ret = _glamor_trapezoids_with_shader(op, src, dst, mask_format,
+		                                     x_src, y_src, ntrap, traps);
+		if(ret)
+			return TRUE;
+	} else {
+		picture = glamor_create_mask_picture(screen, dst, mask_format,
+		          width, height, 1);
+		if (!picture)
+			return TRUE;
 
-	ret = _glamor_generate_trapezoid_with_shader(screen, picture, traps, ntrap, &bounds);
+		ret = _glamor_generate_trapezoid_with_shader(screen, picture, traps, ntrap, &bounds);
 
-	if (!ret)
-		FreePicture(picture, 0);
+		if (!ret)
+			FreePicture(picture, 0);
+	}
 #endif
 
 	if (!ret) {
