@@ -41,7 +41,7 @@ typedef struct {
     ClipNotifyProcPtr ClipNotify;
     WindowExposuresProcPtr WindowExposures;
     PostValidateTreeProcPtr PostValidateTree;
-    void (*AdjustFrame) (ScrnInfoPtr, int, int, int);
+    void (*AdjustFrame) (ScrnInfoPtr, int, int);
     Bool (*EnterVT) (ScrnInfoPtr);
     void (*LeaveVT) (ScrnInfoPtr);
     xf86ModeSetProc *ModeSet;
