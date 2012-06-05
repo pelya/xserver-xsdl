@@ -376,4 +376,107 @@ xf86platformProbeDev(DriverPtr drvp)
     return foundScreen;
 }
 
+int
+xf86platformAddDevice(int index)
+{
+    int i, old_screens, scr_index;
+    DriverPtr drvp = NULL;
+    int entity;
+    screenLayoutPtr layout;
+    static char *hotplug_driver_name = "modesetting";
+
+    /* force load the driver for now */
+    xf86LoadOneModule(hotplug_driver_name, NULL);
+
+    for (i = 0; i < xf86NumDrivers; i++) {
+        if (!xf86DriverList[i])
+            continue;
+
+        if (!strcmp(xf86DriverList[i]->driverName, hotplug_driver_name)) {
+            drvp = xf86DriverList[i];
+            break;
+        }
+    }
+    if (i == xf86NumDrivers)
+        return -1;
+
+    old_screens = xf86NumGPUScreens;
+    entity = xf86ClaimPlatformSlot(&xf86_platform_devices[index],
+                                   drvp, 0, 0, 0);
+    if (!drvp->platformProbe(drvp, entity, PLATFORM_PROBE_GPU_SCREEN, &xf86_platform_devices[index], 0)) {
+        xf86UnclaimPlatformSlot(&xf86_platform_devices[index], NULL);
+    }
+    if (old_screens == xf86NumGPUScreens)
+        return -1;
+    i = old_screens;
+
+    for (layout = xf86ConfigLayout.screens; layout->screen != NULL;
+         layout++) {
+        xf86GPUScreens[i]->confScreen = layout->screen;
+        break;
+    }
+
+    if (xf86GPUScreens[i]->PreInit &&
+        xf86GPUScreens[i]->PreInit(xf86GPUScreens[i], 0))
+        xf86GPUScreens[i]->configured = TRUE; 
+
+    if (!xf86GPUScreens[i]->configured) {
+        ErrorF("hotplugged device %d didn't configure\n", i);
+        xf86DeleteScreen(xf86GPUScreens[i]);
+        return -1;
+    }
+        
+   scr_index = AddGPUScreen(xf86GPUScreens[i]->ScreenInit, 0, NULL);
+   
+   dixSetPrivate(&xf86GPUScreens[i]->pScreen->devPrivates,
+                 xf86ScreenKey, xf86GPUScreens[i]);
+
+   CreateScratchPixmapsForScreen(xf86GPUScreens[i]->pScreen);
+  
+   return 0;
+}
+
+void
+xf86platformRemoveDevice(int index)
+{
+    EntityPtr entity;
+    int ent_num, i, j;
+    Bool found;
+
+    for (ent_num = 0; ent_num < xf86NumEntities; ent_num++) {
+        entity = xf86Entities[ent_num];
+        if (entity->bus.type == BUS_PLATFORM &&
+            entity->bus.id.plat == &xf86_platform_devices[index])
+            break;
+    }
+    if (ent_num == xf86NumEntities)
+        goto out;
+
+    found = FALSE;
+    for (i = 0; i < xf86NumGPUScreens; i++) {
+        for (j = 0; j < xf86GPUScreens[i]->numEntities; j++)
+            if (xf86GPUScreens[i]->entityList[j] == ent_num) {
+                found = TRUE;
+                break;
+            }
+        if (found)
+            break;
+    }
+    if (!found) {
+        ErrorF("failed to find screen to remove\n");
+        goto out;
+    }
+
+    xf86GPUScreens[i]->pScreen->CloseScreen(xf86GPUScreens[i]->pScreen);
+
+    RemoveGPUScreen(xf86GPUScreens[i]->pScreen);
+    xf86DeleteScreen(xf86GPUScreens[i]);
+
+    xf86UnclaimPlatformSlot(&xf86_platform_devices[index], NULL);
+
+    xf86_remove_platform_device(index);
+
+ out:
+    return;
+}
 #endif

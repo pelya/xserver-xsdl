@@ -15,6 +15,8 @@
 #include "xf86platformBus.h"
 #include "xf86Bus.h"
 
+#include "hotplug.h"
+
 static Bool
 get_drm_info(struct OdevAttributes *attribs, char *path)
 {
@@ -124,6 +126,53 @@ xf86PlatformDeviceProbe(struct OdevAttributes *attribs)
     return;
 
 out_free:
+    config_odev_free_attribute_list(attribs);
+}
+
+void NewGPUDeviceRequest(struct OdevAttributes *attribs)
+{
+    int old_num = xf86_num_platform_devices;
+    int ret;
+    xf86PlatformDeviceProbe(attribs);
+
+    if (old_num == xf86_num_platform_devices)
+        return;
+
+    ret = xf86platformAddDevice(xf86_num_platform_devices-1);
+    if (ret == -1)
+        xf86_remove_platform_device(xf86_num_platform_devices-1);
+
+    ErrorF("xf86: found device %d\n", xf86_num_platform_devices);
+    return;
+}
+
+void DeleteGPUDeviceRequest(struct OdevAttributes *attribs)
+{
+    struct OdevAttribute *attrib;
+    int index;
+    char *syspath = NULL;
+
+    xorg_list_for_each_entry(attrib, &attribs->list, member) {
+        if (attrib->attrib_id == ODEV_ATTRIB_SYSPATH) {
+            syspath = attrib->attrib_name;
+            break;
+        }
+    }
+
+    for (index = 0; index < xf86_num_platform_devices; index++) {
+        char *dspath;
+        dspath = xf86_get_platform_attrib(index, ODEV_ATTRIB_SYSPATH);
+        if (!strcmp(syspath, dspath))
+            break;
+    }
+
+    if (index == xf86_num_platform_devices)
+        goto out;
+
+    ErrorF("xf86: remove device %d %s\n", index, syspath);
+
+    xf86platformRemoveDevice(index);
+out:
     config_odev_free_attribute_list(attribs);
 }
 

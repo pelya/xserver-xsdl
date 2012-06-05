@@ -47,6 +47,11 @@ xf86_remove_platform_device(int dev_index);
 extern Bool
 xf86_add_platform_device_attrib(int index, int attrib_id, char *attrib_str);
 
+extern int
+xf86platformAddDevice(int index);
+extern void
+xf86platformRemoveDevice(int index);
+
 extern _X_EXPORT char *
 xf86_get_platform_device_attrib(struct xf86_platform_device *device, int attrib_id);
 extern _X_EXPORT Bool
