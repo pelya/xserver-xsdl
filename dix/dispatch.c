@@ -3724,29 +3724,13 @@ with its screen number, a pointer to its ScreenRec, argc, and argv.
 
 */
 
-int
-AddScreen(Bool (*pfnInit) (ScreenPtr /*pScreen */ ,
-                           int /*argc */ ,
-                           char **      /*argv */
-          ), int argc, char **argv)
+static int init_screen(ScreenPtr pScreen, int i)
 {
-
-    int i;
     int scanlinepad, format, depth, bitsPerPixel, j, k;
-    ScreenPtr pScreen;
-
-    i = screenInfo.numScreens;
-    if (i == MAXSCREENS)
-        return -1;
-
-    pScreen = (ScreenPtr) calloc(1, sizeof(ScreenRec));
-    if (!pScreen)
-        return -1;
 
     dixInitScreenSpecificPrivates(pScreen);
 
     if (!dixAllocatePrivates(&pScreen->devPrivates, PRIVATE_SCREEN)) {
-        free(pScreen);
         return -1;
     }
     pScreen->myNum = i;
@@ -3784,7 +3768,33 @@ AddScreen(Bool (*pfnInit) (ScreenPtr /*pScreen */ ,
             PixmapWidthPaddingInfo[depth].notPower2 = 0;
         }
     }
+    return 0;
+}
 
+int
+AddScreen(Bool (*pfnInit) (ScreenPtr /*pScreen */ ,
+                           int /*argc */ ,
+                           char **      /*argv */
+          ), int argc, char **argv)
+{
+
+    int i;
+    ScreenPtr pScreen;
+    Bool ret;
+
+    i = screenInfo.numScreens;
+    if (i == MAXSCREENS)
+        return -1;
+
+    pScreen = (ScreenPtr) calloc(1, sizeof(ScreenRec));
+    if (!pScreen)
+        return -1;
+
+    ret = init_screen(pScreen, i);
+    if (ret != 0) {
+        free(pScreen);
+        return ret;
+    }
     /* This is where screen specific stuff gets initialized.  Load the
        screen structure, call the hardware, whatever.
        This is also where the default colormap should be allocated and
