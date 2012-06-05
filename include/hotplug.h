@@ -65,4 +65,8 @@ config_odev_free_attributes(struct OdevAttributes *attribs);
 typedef void (*config_odev_probe_proc_ptr)(struct OdevAttributes *attribs);
 void config_odev_probe(config_odev_probe_proc_ptr probe_callback);
 
+#ifdef CONFIG_UDEV_KMS
+void NewGPUDeviceRequest(struct OdevAttributes *attribs);
+void DeleteGPUDeviceRequest(struct OdevAttributes *attribs);
+#endif
 #endif                          /* HOTPLUG_H */

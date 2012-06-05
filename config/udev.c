@@ -52,6 +52,12 @@
 
 static struct udev_monitor *udev_monitor;
 
+#ifdef CONFIG_UDEV_KMS
+static Bool
+config_udev_odev_setup_attribs(const char *path, const char *syspath,
+                               config_odev_probe_proc_ptr probe_callback);
+#endif
+
 static void
 device_added(struct udev_device *udev_device)
 {
@@ -84,6 +90,20 @@ device_added(struct udev_device *udev_device)
 
     if (!SeatId && strcmp(dev_seat, "seat0"))
         return;
+
+#ifdef CONFIG_UDEV_KMS
+    if (!strcmp(udev_device_get_subsystem(udev_device), "drm")) {
+        const char *sysname = udev_device_get_sysname(udev_device);
+
+        if (strncmp(sysname, "card", 4) != 0)
+            return;
+
+        LogMessage(X_INFO, "config/udev: Adding drm device (%s)\n", path);
+
+        config_udev_odev_setup_attribs(path, syspath, NewGPUDeviceRequest);
+        return;
+    }
+#endif
 
     if (!udev_device_get_property_value(udev_device, "ID_INPUT")) {
         LogMessageVerb(X_INFO, 10,
@@ -240,6 +260,22 @@ device_removed(struct udev_device *device)
     char *value;
     const char *syspath = udev_device_get_syspath(device);
 
+#ifdef CONFIG_UDEV_KMS
+    if (!strcmp(udev_device_get_subsystem(device), "drm")) {
+        const char *sysname = udev_device_get_sysname(device);
+        const char *path = udev_device_get_devnode(device);
+
+        if (strncmp(sysname,"card", 4) != 0)
+            return;
+        ErrorF("removing GPU device %s %d\n", syspath, path);
+        if (!path)
+            return;
+
+        config_udev_odev_setup_attribs(path, syspath, DeleteGPUDeviceRequest);
+        return;
+    }
+#endif
+
     if (asprintf(&value, "udev:%s", syspath) == -1)
         return;
 
@@ -296,6 +332,9 @@ config_udev_pre_init(void)
     udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "input",
                                                     NULL);
     udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "tty", NULL); /* For Wacom serial devices */
+#ifdef CONFIG_UDEV_KMS
+    udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "drm", NULL); /* For output GPU devices */
+#endif
 
 #ifdef HAVE_UDEV_MONITOR_FILTER_ADD_MATCH_TAG
     if (SeatId && strcmp(SeatId, "seat0"))
@@ -322,6 +361,9 @@ config_udev_init(void)
 
     udev_enumerate_add_match_subsystem(enumerate, "input");
     udev_enumerate_add_match_subsystem(enumerate, "tty");
+#ifdef CONFIG_UDEV_KMS
+    udev_enumerate_add_match_subsystem(enumerate, "drm");
+#endif
 
 #ifdef HAVE_UDEV_ENUMERATE_ADD_MATCH_TAG
     if (SeatId && strcmp(SeatId, "seat0"))
