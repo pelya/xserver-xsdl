@@ -275,7 +275,7 @@ typedef void (*winShadowUpdateProcPtr) (ScreenPtr, shadowBufPtr);
 
 typedef Bool (*winInitScreenProcPtr) (ScreenPtr);
 
-typedef Bool (*winCloseScreenProcPtr) (int, ScreenPtr);
+typedef Bool (*winCloseScreenProcPtr) (ScreenPtr);
 
 typedef Bool (*winInitVisualsProcPtr) (ScreenPtr);
 
@@ -779,7 +779,7 @@ void winSetAuthorization(void);
 
 void
 
-winBlockHandler(int nScreen,
+winBlockHandler(ScreenPtr pScreen,
                 pointer pBlockData, pointer pTimeout, pointer pReadMask);
 
 #ifdef XWIN_NATIVEGDI
@@ -1070,7 +1070,7 @@ winPushPixels(GCPtr pGC, PixmapPtr pBitMap, DrawablePtr pDrawable,
  */
 
 Bool
- winScreenInit(int index, ScreenPtr pScreen, int argc, char **argv);
+ winScreenInit(ScreenPtr pScreen, int argc, char **argv);
 
 Bool
  winFinishScreenInitFB(int index, ScreenPtr pScreen, int argc, char **argv);
@@ -1122,7 +1122,7 @@ Bool
 
 void
 
-winWakeupHandler(int nScreen,
+winWakeupHandler(ScreenPtr pScreen,
                  pointer pWakeupData,
                  unsigned long ulResult, pointer pReadmask);
 
