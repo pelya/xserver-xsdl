@@ -373,6 +373,13 @@ xf86platformProbeDev(DriverPtr drvp)
             continue;
     }
 
+    /* if autoaddgpu devices is enabled then go find a few more and add them as GPU screens */
+    if (xf86Info.autoAddGPU && numDevs) {
+        for (j = 0; j < xf86_num_platform_devices; j++) {
+            probeSingleDevice(&xf86_platform_devices[j], drvp, devList[0], PLATFORM_PROBE_GPU_SCREEN);
+        }
+    }
+
     return foundScreen;
 }
 

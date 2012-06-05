@@ -126,11 +126,16 @@ xf86InfoRec xf86Info = {
 #if defined(CONFIG_HAL) || defined(CONFIG_UDEV) || defined(CONFIG_WSCONS)
     .forceInputDevices = FALSE,
     .autoAddDevices = TRUE,
-    .autoEnableDevices = TRUE
+    .autoEnableDevices = TRUE,
 #else
     .forceInputDevices = TRUE,
     .autoAddDevices = FALSE,
-    .autoEnableDevices = FALSE
+    .autoEnableDevices = FALSE,
+#endif
+#if defined(CONFIG_UDEV_KMS)
+    .autoAddGPU = TRUE,
+#else
+    .autoAddGPU = FALSE,
 #endif
 };
 
