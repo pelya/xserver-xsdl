@@ -780,7 +780,7 @@ void winSetAuthorization(void);
 void
 
 winBlockHandler(ScreenPtr pScreen,
-                pointer pBlockData, pointer pTimeout, pointer pReadMask);
+                pointer pTimeout, pointer pReadMask);
 
 #ifdef XWIN_NATIVEGDI
 /*
@@ -1123,7 +1123,6 @@ Bool
 void
 
 winWakeupHandler(ScreenPtr pScreen,
-                 pointer pWakeupData,
                  unsigned long ulResult, pointer pReadmask);
 
 /*

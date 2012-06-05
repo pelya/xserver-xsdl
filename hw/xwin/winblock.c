@@ -37,10 +37,10 @@
 /* See Porting Layer Definition - p. 6 */
 void
 winBlockHandler(ScreenPtr pScreen,
-                pointer pBlockData, pointer pTimeout, pointer pReadMask)
+                pointer pTimeout, pointer pReadMask)
 {
 #if defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
-    winScreenPriv((ScreenPtr) pBlockData);
+    winScreenPriv(pScreen);
 #endif
     MSG msg;
 
