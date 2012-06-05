@@ -52,6 +52,9 @@
 #include "xf86xv.h"
 #include <X11/extensions/Xv.h>
 #include <xorg-server.h>
+#ifdef XSERVER_PLATFORM_BUS
+#include "xf86platformBus.h"
+#endif
 #if XSERVER_LIBPCIACCESS
 #include <pciaccess.h>
 #endif
@@ -88,6 +91,12 @@ static const struct pci_id_match ms_device_match[] = {
 };
 #endif
 
+#ifdef XSERVER_PLATFORM_BUS
+static Bool ms_platform_probe(DriverPtr driver,
+                          int entity_num, int flags, struct xf86_platform_device *device,
+			  intptr_t match_data);
+#endif
+
 _X_EXPORT DriverRec modesetting = {
     1,
     "modesetting",
@@ -99,6 +108,9 @@ _X_EXPORT DriverRec modesetting = {
     NULL,
     ms_device_match,
     ms_pci_probe,
+#ifdef XSERVER_PLATFORM_BUS
+    ms_platform_probe,
+#endif
 };
 
 static SymTabRec Chipsets[] = {
@@ -288,6 +300,40 @@ ms_pci_probe(DriverPtr driver,
 }
 #endif
 
+#ifdef XSERVER_PLATFORM_BUS
+static Bool
+ms_platform_probe(DriverPtr driver,
+              int entity_num, int flags, struct xf86_platform_device *dev, intptr_t match_data)
+{
+    ScrnInfoPtr scrn = NULL;
+    char *path = xf86_get_platform_device_attrib(dev, ODEV_ATTRIB_PATH);
+    int scr_flags = 0;
+
+    if (flags & PLATFORM_PROBE_GPU_SCREEN)
+            scr_flags = XF86_ALLOCATE_GPU_SCREEN;
+
+    if (probe_hw(path)) {
+        scrn = xf86AllocateScreen(driver, scr_flags);
+        xf86AddEntityToScreen(scrn, entity_num);
+
+        scrn->driverName = "modesetting";
+        scrn->name = "modesetting";
+        scrn->PreInit = PreInit;
+        scrn->ScreenInit = ScreenInit;
+        scrn->SwitchMode = SwitchMode;
+        scrn->AdjustFrame = AdjustFrame;
+        scrn->EnterVT = EnterVT;
+        scrn->LeaveVT = LeaveVT;
+        scrn->FreeScreen = FreeScreen;
+        scrn->ValidMode = ValidMode;
+        xf86DrvMsg(scrn->scrnIndex, X_INFO,
+                   "using drv %s\n", path ? path : "default device");
+    }
+
+    return scrn != NULL;
+}
+#endif
+
 static Bool
 Probe(DriverPtr drv, int flags)
 {
@@ -431,7 +477,7 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     rgb defaultWeight = { 0, 0, 0 };
     EntityInfoPtr pEnt;
     EntPtr msEnt = NULL;
-    char *BusID, *devicename;
+    char *BusID = NULL, *devicename;
     Bool prefer_shadow = TRUE;
     uint64_t value = 0;
     int ret;
@@ -477,24 +523,32 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     pScrn->progClock = TRUE;
     pScrn->rgbBits = 8;
 
-    ms->PciInfo = xf86GetPciInfoForEntity(ms->pEnt->index);
-    if (ms->PciInfo) {
-       BusID = malloc(64);
-       sprintf(BusID, "PCI:%d:%d:%d",
-#if XSERVER_LIBPCIACCESS
-	        ((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
-	        ms->PciInfo->dev, ms->PciInfo->func
-#else
-	        ((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
-	        ((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
-	        ((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
+#if XSERVER_PLATFORM_BUS
+    if (pEnt->location.type == BUS_PLATFORM) {
+            char *path = xf86_get_platform_device_attrib(pEnt->location.id.plat, ODEV_ATTRIB_PATH);
+            ms->fd = open_hw(path);
+    }
+    else 
 #endif
-	    );
-
-       ms->fd = drmOpen(NULL, BusID);
+    if (pEnt->location.type == BUS_PCI) {
+        ms->PciInfo = xf86GetPciInfoForEntity(ms->pEnt->index);
+        if (ms->PciInfo) {
+            BusID = malloc(64);
+            sprintf(BusID, "PCI:%d:%d:%d",
+#if XSERVER_LIBPCIACCESS
+                    ((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
+                    ms->PciInfo->dev, ms->PciInfo->func
+#else
+                    ((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
+                    ((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
+                    ((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
+#endif
+                );
+        }
+        ms->fd = drmOpen(NULL, BusID);
     } else {
-       devicename = xf86FindOptionValue(ms->pEnt->device->options, "kmsdev");
-       ms->fd = open_hw(devicename);
+        devicename = xf86FindOptionValue(ms->pEnt->device->options, "kmsdev");
+        ms->fd = open_hw(devicename);
     }
     if (ms->fd < 0)
 	return FALSE;
