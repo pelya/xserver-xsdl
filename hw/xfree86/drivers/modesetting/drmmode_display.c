@@ -1379,6 +1379,10 @@ void drmmode_get_default_bpp(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int *depth,
 	if (!mode_res)
 		return;
 
+	if (mode_res->min_width == 0)
+		mode_res->min_width = 1;
+	if (mode_res->min_height == 0)
+		mode_res->min_height = 1;
 	/*create a bo */
 	bo = dumb_bo_create(drmmode->fd, mode_res->min_width, mode_res->min_height, 32);
 	if (!bo) {
