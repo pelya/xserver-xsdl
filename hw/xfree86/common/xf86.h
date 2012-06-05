@@ -465,4 +465,7 @@ extern _X_EXPORT ScreenPtr xf86ScrnToScreen(ScrnInfoPtr pScrn);
 
 #define XF86_SCRN_INTERFACE 1 /* define for drivers to use in api compat */
 
+/* flags passed to xf86 allocate screen */
+#define XF86_ALLOCATE_GPU_SCREEN 1
+
 #endif                          /* _XF86_H */

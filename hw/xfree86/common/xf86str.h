@@ -332,9 +332,9 @@ typedef struct _DriverRec {
 
 /*
  * platform probe flags
- * no flags are defined yet - but drivers should fail to load if a flag they
- * don't understand is passed.
  */
+#define PLATFORM_PROBE_GPU_SCREEN 1
+
 /*
  *  AddDriver flags
  */
@@ -813,6 +813,7 @@ typedef struct _ScrnInfoRec {
      */
     funcPointer reservedFuncs[NUM_RESERVED_FUNCS];
 
+    Bool is_gpu;
 } ScrnInfoRec;
 
 typedef struct {

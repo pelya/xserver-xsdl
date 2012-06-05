@@ -189,6 +189,10 @@ xf86BusConfig(void)
         }
     }
 
+    /* bind GPU conf screen to protocol screen 0 */
+    for (i = 0; i < xf86NumGPUScreens; i++)
+        xf86GPUScreens[i]->confScreen = xf86Screens[0]->confScreen;
+
     /* If no screens left, return now.  */
     if (xf86NumScreens == 0) {
         xf86Msg(X_ERROR,
