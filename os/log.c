@@ -780,6 +780,22 @@ ErrorF(const char *f, ...)
 }
 
 void
+VErrorFSigSafe(const char *f, va_list args)
+{
+    LogVMessageVerbSigSafe(X_ERROR, -1, f, args);
+}
+
+void
+ErrorFSigSafe(const char *f, ...)
+{
+    va_list args;
+
+    va_start(args, f);
+    VErrorFSigSafe(f, args);
+    va_end(args);
+}
+
+void
 LogPrintMarkers(void)
 {
     /* Show what the message marker symbols mean. */

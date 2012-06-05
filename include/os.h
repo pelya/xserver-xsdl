@@ -656,6 +656,12 @@ extern _X_EXPORT void
 ErrorF(const char *f, ...)
 _X_ATTRIBUTE_PRINTF(1, 2);
 extern _X_EXPORT void
+VErrorFSigSafe(const char *f, va_list args)
+_X_ATTRIBUTE_PRINTF(1, 0);
+extern _X_EXPORT void
+ErrorFSigSafe(const char *f, ...)
+_X_ATTRIBUTE_PRINTF(1, 2);
+extern _X_EXPORT void
 LogPrintMarkers(void);
 
 extern _X_EXPORT void
