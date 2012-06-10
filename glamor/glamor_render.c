@@ -1732,7 +1732,17 @@ _glamor_composite(CARD8 op,
 		&& source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE)
 	    || (mask_pixmap_priv
 		&& mask_pixmap_priv->type == GLAMOR_TEXTURE_LARGE))
-		goto fail;
+		ok = glamor_composite_largepixmap_region(op,
+						   source, mask, dest,
+						   source_pixmap_priv,
+						   mask_pixmap_priv,
+						   dest_pixmap_priv,
+						   &region, force_clip,
+						   x_source, y_source,
+						   x_mask, y_mask,
+						   x_dest, y_dest,
+						   width, height);
+
 	else
 		ok = glamor_composite_clipped_region(op, source,
 						     mask, dest, &region,

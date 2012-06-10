@@ -410,3 +410,186 @@ glamor_compute_clipped_regions(glamor_pixmap_private *priv, RegionPtr region, in
 {
 	return _glamor_compute_clipped_regions(priv, region, n_region, repeat_type, 0);
 }
+
+Bool
+glamor_composite_largepixmap_region(CARD8 op,
+			  PicturePtr source,
+			  PicturePtr mask,
+			  PicturePtr dest,
+			  glamor_pixmap_private * source_pixmap_priv,
+			  glamor_pixmap_private * mask_pixmap_priv,
+			  glamor_pixmap_private * dest_pixmap_priv,
+			  RegionPtr region, Bool force_clip,
+			  INT16 x_source,
+			  INT16 y_source,
+			  INT16 x_mask,
+			  INT16 y_mask,
+			  INT16 x_dest, INT16 y_dest,
+			  CARD16 width, CARD16 height)
+{
+	glamor_screen_private *glamor_priv;
+	glamor_pixmap_clipped_regions *clipped_dest_regions;
+	glamor_pixmap_clipped_regions *clipped_source_regions;
+	glamor_pixmap_clipped_regions *clipped_mask_regions;
+	int n_dest_regions;
+	int n_mask_regions;
+	int n_source_regions;
+	int i,j,k;
+	int need_clean_source_fbo = 0;
+	int need_clean_mask_fbo = 0;
+	int is_normal_source_fbo = 0;
+	int is_normal_mask_fbo = 0;
+	int fixed_block_width, fixed_block_height;
+	int null_source, null_mask;
+	glamor_pixmap_private * need_free_source_pixmap_priv = NULL;
+	glamor_pixmap_private * need_free_mask_pixmap_priv = NULL;
+	int source_repeat_type = 0, mask_repeat_type = 0;
+	PixmapPtr source_pixmap = NULL;
+	PixmapPtr mask_pixmap = NULL;
+	int ok = TRUE;
+
+	if (source_pixmap_priv) {
+		source_pixmap = source_pixmap_priv->base.pixmap;
+		if (source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE
+		    && (source->transform
+			|| source->repeatType != RepeatNone))
+			return FALSE;
+	}
+
+	if (mask_pixmap_priv) {
+		mask_pixmap = mask_pixmap_priv->base.pixmap;
+		if (mask_pixmap_priv->type == GLAMOR_TEXTURE_LARGE
+		    && (mask->transform
+		         || mask->repeatType != RepeatNone))
+			return FALSE;
+	}
+
+	if (source->repeat)
+		source_repeat_type = source->repeatType;
+	else
+		source_repeat_type = RepeatNone;
+
+	if (mask && mask->repeat)
+		mask_repeat_type = mask->repeatType;
+	else
+		mask_repeat_type = RepeatNone;
+
+	glamor_priv = dest_pixmap_priv->base.glamor_priv;
+	fixed_block_width = glamor_priv->max_fbo_size;
+	fixed_block_height = glamor_priv->max_fbo_size;
+	RegionTranslate(region, -dest->pDrawable->x,
+			-dest->pDrawable->y);
+
+	if (force_clip)
+		clipped_dest_regions = glamor_compute_clipped_regions_ext(dest_pixmap_priv,
+									  region,
+									  &n_dest_regions,
+									  fixed_block_width,
+									  fixed_block_height);
+	else
+		clipped_dest_regions = glamor_compute_clipped_regions(dest_pixmap_priv,
+								      region,
+								      &n_dest_regions,
+								      0);
+	DEBUGF("dest clipped result %d region: \n", n_dest_regions);
+	for(i = 0; i < n_dest_regions; i++)
+	{
+		DEBUGF("dest region %d  idx %d\n", i, clipped_dest_regions[i].block_idx);
+		DEBUGRegionPrint(clipped_dest_regions[i].region);
+		SET_PIXMAP_FBO_CURRENT(dest_pixmap_priv, clipped_dest_regions[i].block_idx);
+		if ( source_pixmap_priv && source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+				RegionTranslate(clipped_dest_regions[i].region,
+						x_source - x_dest,
+						y_source - y_dest);
+				clipped_source_regions = glamor_compute_clipped_regions(source_pixmap_priv,
+										        clipped_dest_regions[i].region,
+										        &n_source_regions, source_repeat_type);
+			DEBUGF("source clipped result %d region: \n", n_source_regions);
+			for(j = 0; j < n_source_regions; j++)
+			{
+				SET_PIXMAP_FBO_CURRENT(source_pixmap_priv,
+						       clipped_source_regions[j].block_idx);
+
+				if (mask_pixmap_priv && mask_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+					DEBUGF("source region %d  idx %d\n", j, clipped_source_regions[j].block_idx);
+					DEBUGRegionPrint(clipped_source_regions[j].region);
+					RegionTranslate(clipped_source_regions[j].region,
+							- x_source + x_mask,
+							- y_source + y_mask);
+					clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
+										     clipped_source_regions[j].region,
+										     &n_mask_regions, mask_repeat_type);
+					DEBUGF("mask clipped result %d region: \n", n_mask_regions);
+
+#define COMPOSITE_REGION(region) do {				\
+	if (!glamor_composite_clipped_region(op,		\
+			 source,				\
+			 mask, dest, region,			\
+			 x_source, y_source, x_mask, y_mask,	\
+			 x_dest, y_dest)) {			\
+		assert(0);					\
+	}							\
+   } while(0)
+					for(k = 0; k < n_mask_regions; k++)
+					{
+						DEBUGF("mask region %d  idx %d\n", k, clipped_mask_regions[k].block_idx);
+						DEBUGRegionPrint(clipped_mask_regions[k].region);
+						SET_PIXMAP_FBO_CURRENT(mask_pixmap_priv,
+							       clipped_mask_regions[k].block_idx);
+						DEBUGF("mask fbo off %d %d \n",
+							mask_pixmap_priv->large.box.x1,
+							mask_pixmap_priv->large.box.y1);
+						DEBUGF("start composite mask hasn't transform.\n");
+						RegionTranslate(clipped_mask_regions[k].region,
+								x_dest - x_mask + dest->pDrawable->x,
+								y_dest - y_mask + dest->pDrawable->y);
+						COMPOSITE_REGION(clipped_mask_regions[k].region);
+						RegionDestroy(clipped_mask_regions[k].region);
+					}
+					free(clipped_mask_regions);
+				} else {
+					RegionTranslate(clipped_source_regions[j].region,
+							-x_source + x_dest + dest->pDrawable->x,
+							-y_source + y_dest + dest->pDrawable->y);
+					COMPOSITE_REGION(clipped_source_regions[j].region);
+				}
+				if (clipped_source_regions && clipped_source_regions[j].region)
+					RegionDestroy(clipped_source_regions[j].region);
+			}
+			free(clipped_source_regions);
+		}
+		else {
+			if (mask_pixmap_priv && mask_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+				RegionTranslate(clipped_dest_regions[i].region,
+						x_mask - x_dest,
+						y_mask - y_dest);
+				clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
+							        clipped_dest_regions[i].region,
+							        &n_mask_regions, mask_repeat_type);
+				for(k = 0; k < n_mask_regions; k++)
+				{
+					DEBUGF("mask region %d  idx %d\n", k, clipped_mask_regions[k].block_idx);
+					DEBUGRegionPrint(clipped_mask_regions[k].region);
+					SET_PIXMAP_FBO_CURRENT(mask_pixmap_priv,
+							       clipped_mask_regions[k].block_idx);
+					RegionTranslate(clipped_mask_regions[k].region,
+							x_dest - x_mask + dest->pDrawable->x,
+							y_dest - y_mask + dest->pDrawable->y);
+					COMPOSITE_REGION(clipped_mask_regions[k].region);
+					RegionDestroy(clipped_mask_regions[k].region);
+				}
+				free(clipped_mask_regions);
+			}
+			else {
+				RegionTranslate(clipped_dest_regions[i].region,
+						dest->pDrawable->x,
+						dest->pDrawable->y);
+				COMPOSITE_REGION(clipped_dest_regions[i].region);
+			}
+		}
+		RegionDestroy(clipped_dest_regions[i].region);
+	}
+	free(clipped_dest_regions);
+	ok = TRUE;
+	return ok;
+}
