@@ -45,6 +45,8 @@ _glamor_get_image(DrawablePtr drawable, int x, int y, int w, int h,
 
 	if (format != ZPixmap)
 		goto fall_back;
+	pixmap = glamor_get_drawable_pixmap(drawable);
+	glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
 
 	if (!glamor_set_planemask(pixmap, planeMask)) {
 		glamor_fallback
@@ -78,7 +80,7 @@ fall_back:
 				      y + y_off + drawable->y,
 				      w, h, GLAMOR_ACCESS_RO);
 	} else
-		fbGetImage(drawable, x, y, w, h, format, planeMask, d);
+		miGetImage(drawable, x, y, w, h, format, planeMask, d);
 
 	return TRUE;
 }
