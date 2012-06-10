@@ -43,9 +43,9 @@ glamor_get_drawable_location(const DrawablePtr drawable)
 	    glamor_get_pixmap_private(pixmap);
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(drawable->pScreen);
-	if (pixmap_priv == NULL || pixmap_priv->gl_fbo == 0)
+	if (pixmap_priv == NULL || pixmap_priv->base.gl_fbo == 0)
 		return 'm';
-	if (pixmap_priv->fbo->fb == glamor_priv->screen_fbo)
+	if (pixmap_priv->base.fbo->fb == glamor_priv->screen_fbo)
 		return 's';
 	else
 		return 'f';
@@ -327,7 +327,7 @@ glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 		glamor_restore_pixmap_to_texture(pixmap);
 	}
 
-	if (pixmap_priv->fbo->pbo != 0 && pixmap_priv->fbo->pbo_valid) {
+	if (pixmap_priv->base.fbo->pbo != 0 && pixmap_priv->base.fbo->pbo_valid) {
 		glamor_gl_dispatch *dispatch;
 
 		assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
@@ -335,20 +335,20 @@ glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
 		dispatch = glamor_get_dispatch(glamor_priv);
 		dispatch->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		dispatch->glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-		dispatch->glDeleteBuffers(1, &pixmap_priv->fbo->pbo);
+		dispatch->glDeleteBuffers(1, &pixmap_priv->base.fbo->pbo);
 		glamor_put_dispatch(glamor_priv);
 
-		pixmap_priv->fbo->pbo_valid = FALSE;
-		pixmap_priv->fbo->pbo = 0;
+		pixmap_priv->base.fbo->pbo_valid = FALSE;
+		pixmap_priv->base.fbo->pbo = 0;
 	} else {
 		free(pixmap->devPrivate.ptr);
 	}
 
 	if (pixmap_priv->type == GLAMOR_TEXTURE_DRM)
-		pixmap->devKind = pixmap_priv->drm_stride;
+		pixmap->devKind = pixmap_priv->base.drm_stride;
 
-	if (pixmap_priv->gl_fbo == GLAMOR_FBO_DOWNLOADED)
-		pixmap_priv->gl_fbo = GLAMOR_FBO_NORMAL;
+	if (pixmap_priv->base.gl_fbo == GLAMOR_FBO_DOWNLOADED)
+		pixmap_priv->base.gl_fbo = GLAMOR_FBO_NORMAL;
 
 	pixmap->devPrivate.ptr = NULL;
 }

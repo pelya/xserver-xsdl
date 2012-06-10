@@ -295,9 +295,9 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 
 		temp_pixmap_priv = glamor_get_pixmap_private(temp_pixmap);
 
-		if (pixmap_priv->is_picture) {
-			temp_pixmap_priv->pict_format = pixmap_priv->pict_format;
-			temp_pixmap_priv->is_picture = pixmap_priv->is_picture;
+		if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv)) {
+			temp_pixmap_priv->base.picture = pixmap_priv->base.picture;
+			temp_pixmap_priv->base.is_picture = pixmap_priv->base.is_picture;
 		}
 
 		glamor_upload_sub_pixmap_to_texture(temp_pixmap, 0, 0, w, h,

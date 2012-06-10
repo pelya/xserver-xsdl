@@ -41,26 +41,50 @@
 
 #define pixmap_priv_get_dest_scale(_pixmap_priv_, _pxscale_, _pyscale_)	\
    do {									\
-    *(_pxscale_) = 1.0 / (_pixmap_priv_)->container->drawable.width;	\
-    *(_pyscale_) = 1.0 / (_pixmap_priv_)->container->drawable.height;	\
+    *(_pxscale_) = 1.0 / (_pixmap_priv_)->base.pixmap->drawable.width;			\
+    *(_pyscale_) = 1.0 / (_pixmap_priv_)->base.pixmap->drawable.height;			\
   } while(0)
 
 #define pixmap_priv_get_scale(_pixmap_priv_, _pxscale_, _pyscale_)	\
    do {									\
-    *(_pxscale_) = 1.0 / (_pixmap_priv_)->fbo->width;			\
-    *(_pyscale_) = 1.0 / (_pixmap_priv_)->fbo->height;			\
+    *(_pxscale_) = 1.0 / (_pixmap_priv_)->base.fbo->width;			\
+    *(_pyscale_) = 1.0 / (_pixmap_priv_)->base.fbo->height;			\
   } while(0)
 
-#define GLAMOR_PIXMAP_FBO_NOT_EAXCT_SIZE(priv)				\
-	(priv->fbo->width != priv->container->drawable.width 	\
-	 || priv->fbo->height != priv->container->drawable.height)
+#define GLAMOR_PIXMAP_FBO_NOT_EAXCT_SIZE(priv)			\
+   (priv->base.fbo->width != priv->base.pixmap->drawable.width 	\
+      || priv->base.fbo->height != priv->base.pixmap->drawable.height)	\
 
-#define glamor_pixmap_fbo_fix_wh_ratio(wh, priv)  do {			\
-	wh[0] = (float)priv->fbo->width					\
-		/ priv->container->drawable.width;			\
-	wh[1] = (float)priv->fbo->height				\
-		/ priv->container->drawable.height;			\
-	} while(0)
+#define PIXMAP_PRIV_GET_ACTUAL_SIZE(priv, w, h)			\
+  do {								\
+	if (priv->type == GLAMOR_TEXTURE_LARGE) {		\
+		w = priv->large.box.x2 - priv->large.box.x1;	\
+		h = priv->large.box.y2 - priv->large.box.y1;	\
+	} else {						\
+		w = priv->base.pixmap->drawable.width;		\
+		h = priv->base.pixmap->drawable.height;		\
+	}							\
+  } while(0)
+
+#define glamor_pixmap_fbo_fix_wh_ratio(wh, priv)  		\
+  do {								\
+	int actual_w, actual_h;					\
+	PIXMAP_PRIV_GET_ACTUAL_SIZE(priv, actual_w, actual_h);	\
+	wh[0] = (float)priv->base.fbo->width / actual_w;	\
+	wh[1] = (float)priv->base.fbo->height / actual_h;	\
+  } while(0)
+
+#define pixmap_priv_get_fbo_off(_priv_, _xoff_, _yoff_)		\
+   do {								\
+	if (_priv_ && (_priv_)->type				\
+		== GLAMOR_TEXTURE_LARGE) {			\
+		*(_xoff_) = - (_priv_)->large.box.x1;	\
+		*(_yoff_) = - (_priv_)->large.box.y1;	\
+	} else {						\
+		*(_xoff_) = 0;					\
+		*(_yoff_) = 0;					\
+	}							\
+   } while(0)
 
 #define xFixedToFloat(_val_) ((float)xFixedToInt(_val_)			\
 			      + ((float)xFixedFrac(_val_) / 65536.0))
@@ -82,66 +106,112 @@
       }									\
   }  while(0)
 
-#define glamor_set_transformed_point(matrix, xscale, yscale, texcoord,	\
-                                     x, y, yInverted)			\
+#define glamor_transform_point(matrix, tx, ty, x, y)			\
   do {									\
-    float result[4];							\
     int i;								\
-    float tx, ty;							\
-									\
+    float result[4];							\
     for (i = 0; i < 3; i++) {						\
       result[i] = (matrix)[i * 3] * (x) + (matrix)[i * 3 + 1] * (y)	\
 	+ (matrix)[i * 3 + 2];						\
     }									\
     tx = result[0] / result[2];						\
     ty = result[1] / result[2];						\
+  } while(0)
+
+#define _glamor_set_normalize_tpoint(xscale, yscale, _tx_, _ty_,	\
+				     texcoord, yInverted)		\
+  do {									\
+	(texcoord)[0] = t_from_x_coord_x(xscale, _tx_);			\
+	if (yInverted)							\
+		(texcoord)[1] = t_from_x_coord_y_inverted(yscale, _ty_);\
+	else								\
+		(texcoord)[1] = t_from_x_coord_y(yscale, _ty_);		\
+        DEBUGF("normalized point tx %f ty %f \n", (texcoord)[0],	\
+		(texcoord)[1]);						\
+  } while(0)
+
+#define glamor_set_transformed_point(priv, matrix, xscale,		\
+				     yscale, texcoord,			\
+                                     x, y, 				\
+				     yInverted)				\
+  do {									\
+    float tx, ty;							\
+    int fbo_x_off, fbo_y_off;						\
+    pixmap_priv_get_fbo_off(priv, &fbo_x_off, &fbo_y_off);		\
+    glamor_transform_point(matrix, tx, ty, x, y);			\
+    DEBUGF("tx %f ty %f fbooff %d %d \n",				\
+	    tx, ty, fbo_x_off, fbo_y_off);				\
 									\
+    tx += fbo_x_off;							\
+    ty += fbo_y_off;							\
     (texcoord)[0] = t_from_x_coord_x(xscale, tx);			\
     if (yInverted)							\
       (texcoord)[1] = t_from_x_coord_y_inverted(yscale, ty);		\
     else								\
       (texcoord)[1] = t_from_x_coord_y(yscale, ty);			\
+    DEBUGF("normalized tx %f ty %f \n", (texcoord)[0], (texcoord)[1]);	\
   } while(0)
 
-
-#define glamor_set_transformed_normalize_tcoords( matrix,		\
+#define glamor_set_transformed_normalize_tcoords( priv,			\
+						  matrix,		\
 						  xscale,		\
 						  yscale,		\
                                                   tx1, ty1, tx2, ty2,   \
                                                   yInverted, texcoords)	\
   do {									\
-    glamor_set_transformed_point(matrix, xscale, yscale,		\
+    glamor_set_transformed_point(priv, matrix, xscale, yscale,		\
 				 texcoords, tx1, ty1,			\
 				 yInverted);				\
-    glamor_set_transformed_point(matrix, xscale, yscale,		\
+    glamor_set_transformed_point(priv, matrix, xscale, yscale,		\
 				 texcoords + 2, tx2, ty1,		\
 				 yInverted);				\
-    glamor_set_transformed_point(matrix, xscale, yscale,		\
+    glamor_set_transformed_point(priv, matrix, xscale, yscale,		\
 				 texcoords + 4, tx2, ty2,		\
 				 yInverted);				\
-    glamor_set_transformed_point(matrix, xscale, yscale,		\
+    glamor_set_transformed_point(priv, matrix, xscale, yscale,		\
 				 texcoords + 6, tx1, ty2,		\
 				 yInverted);				\
   } while (0)
 
-#define glamor_set_normalize_tcoords(xscale, yscale, x1, y1, x2, y2,	\
-                                     yInverted, vertices)		\
+#define _glamor_set_normalize_tcoords(xscale, yscale, tx1,		\
+				      ty1, tx2, ty2,			\
+				      yInverted, vertices)		\
   do {									\
-    (vertices)[0] = t_from_x_coord_x(xscale, x1);			\
-    (vertices)[2] = t_from_x_coord_x(xscale, x2);			\
+    (vertices)[0] = t_from_x_coord_x(xscale, tx1);			\
+    (vertices)[2] = t_from_x_coord_x(xscale, tx2);			\
     (vertices)[4] = (vertices)[2];					\
     (vertices)[6] = (vertices)[0];					\
     if (yInverted) {							\
-      (vertices)[1] = t_from_x_coord_y_inverted(yscale, y1);		\
-      (vertices)[5] = t_from_x_coord_y_inverted(yscale, y2);		\
+      (vertices)[1] = t_from_x_coord_y_inverted(yscale, ty1);		\
+      (vertices)[5] = t_from_x_coord_y_inverted(yscale, ty2);		\
     }									\
     else {								\
-      (vertices)[1] = t_from_x_coord_y(yscale, y1);			\
-      (vertices)[5] = t_from_x_coord_y(yscale, y2);			\
+      (vertices)[1] = t_from_x_coord_y(yscale, ty1);			\
+      (vertices)[5] = t_from_x_coord_y(yscale, ty2);			\
     }									\
     (vertices)[3] = (vertices)[1];					\
     (vertices)[7] = (vertices)[5];					\
+    DEBUGF("texture %f %f %f %f\n", tx1, ty1, tx2, ty2);		\
+    DEBUGF("texture %f %f %f %f\n", (vertices)[0], (vertices)[1],	\
+	(vertices)[2], (vertices)[3]);					\
+    DEBUGF("texture %f %f %f %f\n", (vertices)[4], (vertices)[5],	\
+	(vertices)[6], (vertices)[7]);					\
   } while(0)
+
+#define glamor_set_normalize_tcoords(priv, xscale, yscale,		\
+				     x1, y1, x2, y2,			\
+                                     yInverted, vertices)		\
+  do {									\
+     float tx1, tx2, ty1, ty2;						\
+     int fbo_x_off, fbo_y_off;						\
+     pixmap_priv_get_fbo_off(priv, &fbo_x_off, &fbo_y_off);		\
+     tx1 = x1 + fbo_x_off; 						\
+     tx2 = x2 + fbo_x_off;						\
+     ty1 = y1 + fbo_y_off;						\
+     ty2 = y2 + fbo_y_off;						\
+     _glamor_set_normalize_tcoords(xscale, yscale, tx1, ty1,		\
+				   tx2, ty2, yInverted, vertices);	\
+ } while(0)
 
 #define glamor_set_tcoords(width, height, x1, y1, x2, y2,	\
 			   yInverted, vertices)			\
@@ -163,24 +233,27 @@
     } while(0)
 
 
-#define glamor_set_normalize_vcoords(xscale, yscale, x1, y1, x2, y2,	\
+#define glamor_set_normalize_vcoords(priv, xscale, yscale,		\
+				     x1, y1, x2, y2,			\
                                      yInverted, vertices)		\
-    do {								\
-	(vertices)[0] = v_from_x_coord_x(xscale, x1);			\
-	(vertices)[2] = v_from_x_coord_x(xscale, x2);			\
-	(vertices)[4] = (vertices)[2];					\
-	(vertices)[6] = (vertices)[0];					\
-	if (yInverted) {						\
-	    (vertices)[1] = v_from_x_coord_y_inverted(yscale, y1);	\
-	    (vertices)[5] = v_from_x_coord_y_inverted(yscale, y2);	\
-	}								\
-	else {								\
-	    (vertices)[1] = v_from_x_coord_y(yscale, y1);		\
-	    (vertices)[5] = v_from_x_coord_y(yscale, y2);		\
-	}								\
-	(vertices)[3] = (vertices)[1];					\
-	(vertices)[7] = (vertices)[5];					\
-    } while(0)
+  do {									\
+    int fbo_x_off, fbo_y_off;						\
+    pixmap_priv_get_fbo_off(priv, &fbo_x_off, &fbo_y_off);		\
+    (vertices)[0] = v_from_x_coord_x(xscale, x1 + fbo_x_off);		\
+    (vertices)[2] = v_from_x_coord_x(xscale, x2 + fbo_x_off);		\
+    (vertices)[4] = (vertices)[2];					\
+    (vertices)[6] = (vertices)[0];					\
+    if (yInverted) {							\
+      (vertices)[1] = v_from_x_coord_y_inverted(yscale, y1 + fbo_y_off);\
+      (vertices)[5] = v_from_x_coord_y_inverted(yscale, y2 + fbo_y_off);\
+    }									\
+    else {								\
+      (vertices)[1] = v_from_x_coord_y(yscale, y1 + fbo_y_off);		\
+      (vertices)[5] = v_from_x_coord_y(yscale, y2 + fbo_y_off);		\
+    }									\
+    (vertices)[3] = (vertices)[1];					\
+    (vertices)[7] = (vertices)[5];					\
+  } while(0)
 
 #define glamor_set_normalize_pt(xscale, yscale, x, y,		\
                                 yInverted, pt)			\
@@ -244,10 +317,11 @@ glamor_transform_boxes(BoxPtr boxes, int nbox, int dx, int dy)
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #define ALIGN(i,m)	(((i) + (m) - 1) & ~((m) - 1))
 #define MIN(a,b)	((a) < (b) ? (a) : (b))
+#define MAX(a,b)	((a) > (b) ? (a) : (b))
 
 #define glamor_check_fbo_size(_glamor_,_w_, _h_)    ((_w_) > 0 && (_h_) > 0 \
-                                                    && (_w_) < _glamor_->max_fbo_size  \
-                                                    && (_h_) < _glamor_->max_fbo_size)
+                                                    && (_w_) <= _glamor_->max_fbo_size  \
+                                                    && (_h_) <= _glamor_->max_fbo_size)
 
 /* For 1bpp pixmap, we don't store it as texture. */
 #define glamor_check_pixmap_fbo_depth(_depth_) (			\
@@ -258,9 +332,9 @@ glamor_transform_boxes(BoxPtr boxes, int nbox, int dx, int dy)
 						|| _depth_ == 30	\
 						|| _depth_ == 32)
 
-#define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv && pixmap_priv->is_picture == 1)
-#define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv && pixmap_priv->gl_fbo == GLAMOR_FBO_NORMAL)
-#define GLAMOR_PIXMAP_PRIV_HAS_FBO_DOWNLOADED(pixmap_priv)    (pixmap_priv && (pixmap_priv->gl_fbo == GLAMOR_FBO_DOWNLOADED))
+#define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv && pixmap_priv->base.is_picture == 1)
+#define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv && pixmap_priv->base.gl_fbo == GLAMOR_FBO_NORMAL)
+#define GLAMOR_PIXMAP_PRIV_HAS_FBO_DOWNLOADED(pixmap_priv)    (pixmap_priv && (pixmap_priv->base.gl_fbo == GLAMOR_FBO_DOWNLOADED))
 
 /**
  * Borrow from uxa.
@@ -315,7 +389,7 @@ format_for_pixmap(PixmapPtr pixmap)
 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv))
-		pict_format = pixmap_priv->pict_format;
+		pict_format = pixmap_priv->base.picture->format;
 	else
 		pict_format = format_for_depth(pixmap->drawable.depth);
 
@@ -659,7 +733,7 @@ glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv))
-		pict_format = pixmap_priv->pict_format;
+		pict_format = pixmap_priv->base.picture->format;
 	else
 		pict_format = format_for_depth(pixmap->drawable.depth);
 
@@ -782,6 +856,24 @@ inline static Bool glamor_ddx_fallback_check_gc(GCPtr gc)
 		pixmap = NULL;
         }
 	return (!pixmap || glamor_ddx_fallback_check_pixmap(&pixmap->drawable));
+}
+inline static Bool glamor_is_large_pixmap(PixmapPtr pixmap)
+{
+	glamor_pixmap_private *priv;
+
+	priv = glamor_get_pixmap_private(pixmap);
+	return (priv->type == GLAMOR_TEXTURE_LARGE);
+}
+
+inline static Bool glamor_is_large_picture(PicturePtr picture)
+{
+	PixmapPtr pixmap;
+
+	if (picture->pDrawable) {
+		pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
+		return glamor_is_large_pixmap(pixmap);
+	}
+	return FALSE;
 }
 
 inline static Bool glamor_tex_format_is_readable(GLenum format)

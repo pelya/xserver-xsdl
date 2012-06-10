@@ -412,11 +412,11 @@ glamor_pixmap_detach_fbo(glamor_pixmap_private *pixmap_priv)
 	if (pixmap_priv == NULL)
 		return NULL;
 
-	fbo = pixmap_priv->fbo;
+	fbo = pixmap_priv->base.fbo;
 	if (fbo == NULL)
 		return NULL;
 
-	pixmap_priv->fbo = NULL;
+	pixmap_priv->base.fbo = NULL;
 	return fbo;
 }
 
@@ -434,25 +434,25 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
 		pixmap_priv = calloc(1, sizeof(*pixmap_priv));
 		dixSetPrivate(&pixmap->devPrivates,
 			      glamor_pixmap_private_key, pixmap_priv);
-		pixmap_priv->container = pixmap;
-		pixmap_priv->glamor_priv = glamor_priv;
+		pixmap_priv->base.pixmap = pixmap;
+		pixmap_priv->base.glamor_priv = glamor_priv;
 		pixmap_priv->type = GLAMOR_MEMORY;
 	}
 
-	if (pixmap_priv->fbo)
+	if (pixmap_priv->base.fbo)
 		return;
 
-	pixmap_priv->fbo = fbo;
+	pixmap_priv->base.fbo = fbo;
 
 	switch (pixmap_priv->type) {
 	case GLAMOR_TEXTURE_ONLY:
 	case GLAMOR_TEXTURE_DRM:
-		pixmap_priv->gl_fbo = 1;
+		pixmap_priv->base.gl_fbo = 1;
 		if (fbo->tex != 0)
-			pixmap_priv->gl_tex = 1;
+			pixmap_priv->base.gl_tex = 1;
 		else {
 			/* XXX For the Xephyr only, may be broken now.*/
-			pixmap_priv->gl_tex = 0;
+			pixmap_priv->base.gl_tex = 0;
 		}
 	case GLAMOR_MEMORY_MAP:
 		pixmap->devPrivate.ptr = NULL;
@@ -472,7 +472,7 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
 
 	glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
-	if (pixmap_priv == NULL || pixmap_priv->fbo == NULL) {
+	if (pixmap_priv == NULL || pixmap_priv->base.fbo == NULL) {
 
 		fbo = glamor_create_fbo(glamor_priv, pixmap->drawable.width,
 					pixmap->drawable.height,
@@ -484,12 +484,12 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
 		glamor_pixmap_attach_fbo(pixmap, fbo);
 	} else {
 		/* We do have a fbo, but it may lack of fb or tex. */
-		if (!pixmap_priv->fbo->tex)
-			pixmap_priv->fbo->tex = _glamor_create_tex(glamor_priv, pixmap->drawable.width,
+		if (!pixmap_priv->base.fbo->tex)
+			pixmap_priv->base.fbo->tex = _glamor_create_tex(glamor_priv, pixmap->drawable.width,
 								   pixmap->drawable.height, format);
 
-		if (flag != GLAMOR_CREATE_FBO_NO_FBO && pixmap_priv->fbo->fb == 0)
-			glamor_pixmap_ensure_fb(pixmap_priv->fbo);
+		if (flag != GLAMOR_CREATE_FBO_NO_FBO && pixmap_priv->base.fbo->fb == 0)
+			glamor_pixmap_ensure_fb(pixmap_priv->base.fbo);
 	}
 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -504,7 +504,7 @@ glamor_pixmap_exchange_fbos(PixmapPtr front, PixmapPtr back)
 
 	front_priv = glamor_get_pixmap_private(front);
 	back_priv = glamor_get_pixmap_private(back);
-	temp_fbo = front_priv->fbo;
-	front_priv->fbo = back_priv->fbo;
-	back_priv->fbo = temp_fbo;
+	temp_fbo = front_priv->base.fbo;
+	front_priv->base.fbo = back_priv->base.fbo;
+	back_priv->base.fbo = temp_fbo;
 }

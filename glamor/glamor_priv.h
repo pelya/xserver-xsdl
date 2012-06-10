@@ -309,19 +309,132 @@ typedef struct glamor_pixmap_fbo {
  * @gl_tex:  The pixmap is in a gl texture originally.
  * @is_picture: The drawable is attached to a picture.
  * @pict_format: the corresponding picture's format.
- * @container: The corresponding pixmap's pointer.
+ * @pixmap: The corresponding pixmap's pointer.
+ *
+ * For GLAMOR_TEXTURE_LARGE, nbox should larger than 1.
+ * And the box and fbo will both have nbox elements.
+ * and box[i] store the relatively coords in this pixmap
+ * of the fbo[i]. The reason why use boxes not region to
+ * represent this structure is we may need to use overlapped
+ * boxes for one pixmap for some special reason.
+ *
+ * pixmap
+ * ******************
+ * *  fbo0 * fbo1   *
+ * *       *        *
+ * ******************
+ * *  fbo2 * fbo3   *
+ * *       *        *
+ * ******************
+ *
+ * Let's assume the texture has size of 1024x1024
+ * box[0] = {0,0,1024,1024}
+ * box[1] = {1024,0,2048,2048}
+ * ...
+ *
+ * For GLAMOR_TEXTURE_ATLAS nbox should be 1. And box
+ * and fbo both has one elements, and the box store
+ * the relatively coords in the fbo of this pixmap:
+ *
+ * fbo
+ * ******************
+ * *   pixmap       *
+ * *   *********    *
+ * *   *       *    *
+ * *   *********    *
+ * *                *
+ * ******************
+ *
+ * Assume the pixmap is at the (100,100) relatively to
+ * the fbo's origin.
+ * box[0]={100, 100, 1124, 1124};
+ *
+ * Considering large pixmap is not a normal case, to keep
+ * it simple, I designe it as the following way.
+ * When deal with a large pixmap, it split the working
+ * rectangle into serval boxes, and each box fit into a
+ * corresponding fbo. And then the rendering function will
+ * loop from the left-top box to the right-bottom box,
+ * each time, we will set current box and current fbo
+ * to the box and fbo elements. Thus the inner routines
+ * can handle it as normal, only the coords calculation need
+ * to aware of it's large pixmap.
+ *
+ * Currently, we haven't implemented the atlas pixmap.
+ *
  **/
-typedef struct glamor_pixmap_private {
+
+typedef struct glamor_pixmap_clipped_regions{
+	int block_idx;
+	RegionPtr region;
+} glamor_pixmap_clipped_regions;
+
+#define SET_PIXMAP_FBO_CURRENT(priv, idx) 				\
+  do {									\
+	if (priv->type == GLAMOR_TEXTURE_LARGE) {			\
+		(priv)->large.base.fbo = priv->large.fbo_array[idx]; 	\
+		(priv)->large.box = priv->large.box_array[idx]; 	\
+	}								\
+  } while(0)
+
+typedef struct glamor_pixmap_private_base {
+	glamor_pixmap_type_t type;
 	unsigned char gl_fbo:2;
 	unsigned char is_picture:1;
 	unsigned char gl_tex:1;
-	glamor_pixmap_type_t type;
 	glamor_pixmap_fbo *fbo;
-	PictFormatShort pict_format;
-	PixmapPtr container;
+	PixmapPtr pixmap;
 	int drm_stride;
 	glamor_screen_private *glamor_priv;
-} glamor_pixmap_private;
+	PicturePtr picture;
+}glamor_pixmap_private_base_t;
+
+/*
+ * @base.fbo: current fbo.
+ * @box: current fbo's coords in the whole pixmap.
+ * @block_w: block width of this large pixmap.
+ * @block_h: block height of this large pixmap.
+ * @block_wcnt: block count in one block row.
+ * @block_hcnt: block count in one block column.
+ * @nbox: total block count.
+ * @box_array: contains each block's corresponding box.
+ * @fbo_array: contains each block's fbo pointer.
+ *
+ **/
+typedef struct glamor_pixmap_private_large {
+	union {
+		glamor_pixmap_type_t type;
+		glamor_pixmap_private_base_t base;
+	};
+	BoxRec box;
+	int block_w;
+	int block_h;
+	int block_wcnt;
+	int block_hcnt;
+	int nbox;
+	BoxPtr box_array;
+	glamor_pixmap_fbo **fbo_array;
+}glamor_pixmap_private_large_t;
+
+/*
+ * @box: the relative coords in the corresponding fbo.
+ */
+typedef struct glamor_pixmap_private_atlas {
+	union {
+		glamor_pixmap_type_t type;
+		glamor_pixmap_private_base_t base;
+	};
+	BoxRec box;
+}glamor_pixmap_private_atlas_t;
+
+typedef struct glamor_pixmap_private {
+	union {
+		glamor_pixmap_type_t type;
+		glamor_pixmap_private_base_t base;
+		glamor_pixmap_private_large_t large;
+		glamor_pixmap_private_atlas_t atlas;
+	};
+}glamor_pixmap_private;
 
 /* 
  * Pixmap dynamic status, used by dynamic upload feature.
@@ -404,6 +517,7 @@ glamor_pixmap_fbo * glamor_create_fbo_from_tex(glamor_screen_private *glamor_pri
 glamor_pixmap_fbo * glamor_create_fbo(glamor_screen_private *glamor_priv,
 				      int w, int h, GLenum format, int flag);
 void glamor_destroy_fbo(glamor_pixmap_fbo *fbo);
+void glamor_pixmap_destroy_fbo(glamor_pixmap_private *priv);
 void glamor_purge_fbo(glamor_pixmap_fbo *fbo);
 
 void glamor_init_pixmap_fbo(ScreenPtr screen);
@@ -412,6 +526,11 @@ Bool glamor_pixmap_fbo_fixup(ScreenPtr screen, PixmapPtr pixmap);
 void glamor_fbo_expire(glamor_screen_private *glamor_priv);
 void glamor_init_pixmap_fbo(ScreenPtr screen);
 void glamor_fini_pixmap_fbo(ScreenPtr screen);
+
+glamor_pixmap_fbo *
+glamor_create_fbo_array(glamor_screen_private *glamor_priv,
+			int w, int h, GLenum format, int flag,
+			int block_w, int block_h, glamor_pixmap_private *);
 
 Bool glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv);
 
@@ -543,6 +662,19 @@ void glamor_init_putimage_shaders(ScreenPtr screen);
 void glamor_fini_putimage_shaders(ScreenPtr screen);
 
 /* glamor_render.c */
+Bool
+glamor_composite_clipped_region(CARD8 op,
+				PicturePtr source,
+				PicturePtr mask,
+				PicturePtr dest,
+				RegionPtr region,
+				int x_source,
+				int y_source,
+				int x_mask,
+				int y_mask,
+				int x_dest,
+				int y_dest);
+
 void glamor_composite(CARD8 op,
 		      PicturePtr pSrc,
 		      PicturePtr pMask,
@@ -552,6 +684,7 @@ void glamor_composite(CARD8 op,
 		      INT16 xMask,
 		      INT16 yMask,
 		      INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
+
 void glamor_trapezoids(CARD8 op,
 		       PicturePtr src, PicturePtr dst,
 		       PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
@@ -654,7 +787,6 @@ Bool
 glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h,
 				    int stride, void *bits, int pbo);
 
-
 PixmapPtr
 glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y,
 		      int w, int h, glamor_access_t access);
@@ -662,6 +794,44 @@ void
 glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y,
 		      int w, int h, glamor_access_t access);
 
+glamor_pixmap_clipped_regions *
+glamor_compute_clipped_regions(glamor_pixmap_private *priv, RegionPtr region, int *clipped_nbox, int repeat_type);
+
+glamor_pixmap_clipped_regions *
+glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
+				   RegionPtr region,
+				   int *n_region,
+				   int inner_block_w, int inner_block_h);
+
+glamor_pixmap_clipped_regions *
+glamor_compute_transform_clipped_regions(glamor_pixmap_private *priv, struct pixman_transform *transform,
+					 RegionPtr region, int *n_region, int dx, int dy, int repeat_type);
+
+Bool
+glamor_composite_largepixmap_region(CARD8 op,
+			  PicturePtr source,
+			  PicturePtr mask,
+			  PicturePtr dest,
+			  glamor_pixmap_private * source_pixmap_priv,
+			  glamor_pixmap_private * mask_pixmap_priv,
+			  glamor_pixmap_private * dest_pixmap_priv,
+			  RegionPtr region, Bool force_clip,
+			  INT16 x_source,
+			  INT16 y_source,
+			  INT16 x_mask,
+			  INT16 y_mask,
+			  INT16 x_dest, INT16 y_dest,
+			  CARD16 width, CARD16 height);
+
+Bool
+glamor_get_transform_block_size(struct pixman_transform *transform,
+			   int block_w, int block_h,
+			   int *transformed_block_w,
+			   int *transformed_block_h);
+
+void
+glamor_get_transform_extent_from_box(struct pixman_box32 *temp_box,
+		struct pixman_transform *transform);
 
 /**
  * Upload a picture to gl texture. Similar to the
@@ -757,5 +927,6 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 #ifndef GLAMOR_GLES2
 #define GLAMOR_GRADIENT_SHADER
 #endif
+#define GLAMOR_TEXTURED_LARGE_PIXMAP 1
 
 #endif				/* GLAMOR_PRIV_H */

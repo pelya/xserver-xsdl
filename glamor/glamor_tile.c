@@ -166,13 +166,12 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 			      &src_yscale);
 	dispatch->glUseProgram(glamor_priv->tile_prog);
 
-	wh[0] = (float)src_pixmap_priv->fbo->width / tile->drawable.width;
-	wh[1] = (float)src_pixmap_priv->fbo->height / tile->drawable.height;
+	glamor_pixmap_fbo_fix_wh_ratio(wh, src_pixmap_priv);
 
 	dispatch->glUniform2fv(glamor_priv->tile_wh, 1, wh);
 	dispatch->glActiveTexture(GL_TEXTURE0);
 	dispatch->glBindTexture(GL_TEXTURE_2D,
-				src_pixmap_priv->fbo->tex);
+				src_pixmap_priv->base.fbo->tex);
 	dispatch->glTexParameteri(GL_TEXTURE_2D,
 				  GL_TEXTURE_MIN_FILTER,
 				  GL_NEAREST);
@@ -186,7 +185,8 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
 #endif
-	glamor_set_normalize_tcoords(src_xscale, src_yscale,
+	glamor_set_normalize_tcoords(src_pixmap_priv, src_xscale,
+				     src_yscale,
 				     tile_x1, tile_y1,
 				     tile_x2, tile_y2,
 				     glamor_priv->yInverted,
@@ -197,7 +197,8 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 					source_texcoords);
 	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
-	glamor_set_normalize_vcoords(dst_xscale, dst_yscale,
+	glamor_set_normalize_vcoords(dst_pixmap_priv, dst_xscale,
+				     dst_yscale,
 				     x1, y1, x2, y2,
 				     glamor_priv->yInverted, vertices);
 

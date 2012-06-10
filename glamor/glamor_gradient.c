@@ -806,14 +806,14 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 	       *xscale, *yscale, x_source, y_source,
 	       dst_picture->pDrawable->width, dst_picture->pDrawable->height);
 
-	glamor_set_normalize_vcoords(*xscale, *yscale,
+	glamor_set_normalize_vcoords(pixmap_priv, *xscale, *yscale,
 	                             0, 0,
 	                             (INT16)(dst_picture->pDrawable->width),
 	                             (INT16)(dst_picture->pDrawable->height),
 	                             glamor_priv->yInverted, vertices);
 
 	if (tex_normalize) {
-		glamor_set_normalize_tcoords(*xscale, *yscale,
+		glamor_set_normalize_tcoords(pixmap_priv, *xscale, *yscale,
 		                             x_source, y_source,
 		                             (INT16)(dst_picture->pDrawable->width + x_source),
 		                             (INT16)(dst_picture->pDrawable->height + y_source),

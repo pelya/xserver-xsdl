@@ -107,8 +107,10 @@ AbortServer(void)
 		     _glamor_priv_->delayed_fallback_string);		\
       _glamor_priv_->delayed_fallback_pending = 0;  } } while(0)
 
-#define DEBUGF(str, ...)
+#define DEBUGF(str, ...)  do {} while(0)
 //#define DEBUGF(str, ...) ErrorF(str, ##__VA_ARGS__)
+#define DEBUGRegionPrint(x) do {} while (0)
+//#define DEBUGRegionPrint RegionPrint
 
 
 #endif

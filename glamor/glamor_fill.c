@@ -239,7 +239,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
 	pixmap_priv_get_dest_scale(pixmap_priv, &xscale, &yscale);
 
-	glamor_set_normalize_vcoords(xscale, yscale, x1, y1, x2, y2,
+	glamor_set_normalize_vcoords(pixmap_priv, xscale, yscale, x1, y1, x2, y2,
 				     glamor_priv->yInverted, vertices);
 	dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);

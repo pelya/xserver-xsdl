@@ -73,8 +73,8 @@ glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
 	if (pixmap_priv == NULL) {
 		pixmap_priv = calloc(sizeof(*pixmap_priv), 1);
 		glamor_set_pixmap_private(pixmap, pixmap_priv);
-		pixmap_priv->container = pixmap;
-		pixmap_priv->glamor_priv = glamor_priv;
+		pixmap_priv->base.pixmap = pixmap;
+		pixmap_priv->base.glamor_priv = glamor_priv;
 	}
 	pixmap_priv->type = type;
 }
@@ -91,7 +91,7 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, unsigned int tex)
 	glamor_priv = glamor_get_screen_private(screen);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-	if (pixmap_priv->fbo) {
+	if (pixmap_priv->base.fbo) {
 		fbo = glamor_pixmap_detach_fbo(pixmap_priv);
 		glamor_destroy_fbo(fbo);
 	}
@@ -117,10 +117,10 @@ glamor_set_screen_pixmap(PixmapPtr screen_pixmap, PixmapPtr *back_pixmap)
 
 	glamor_priv = glamor_get_screen_private(screen_pixmap->drawable.pScreen);
 	pixmap_priv = glamor_get_pixmap_private(screen_pixmap);
-	glamor_priv->screen_fbo = pixmap_priv->fbo->fb;
+	glamor_priv->screen_fbo = pixmap_priv->base.fbo->fb;
 
-	pixmap_priv->fbo->width = screen_pixmap->drawable.width;
-	pixmap_priv->fbo->height = screen_pixmap->drawable.height;
+	pixmap_priv->base.fbo->width = screen_pixmap->drawable.width;
+	pixmap_priv->base.fbo->height = screen_pixmap->drawable.height;
 
 	glamor_priv->back_pixmap = back_pixmap;
 }
@@ -159,8 +159,8 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	if (usage == GLAMOR_CREATE_PIXMAP_MAP)
 		type = GLAMOR_MEMORY_MAP;
 
-	pixmap_priv->container = pixmap;
-	pixmap_priv->glamor_priv = glamor_priv;
+	pixmap_priv->base.pixmap = pixmap;
+	pixmap_priv->base.glamor_priv = glamor_priv;
 	pixmap_priv->type = type;
 
 	gl_iformat_for_depth(depth, &format);

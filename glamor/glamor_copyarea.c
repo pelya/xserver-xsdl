@@ -75,7 +75,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT,
-				    src_pixmap_priv->fbo->fb);
+				    src_pixmap_priv->base.fbo->fb);
 	glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off,
 				   &dst_y_off);
 	glamor_get_drawable_deltas(src, src_pixmap, &src_x_off,
@@ -164,7 +164,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 		return FALSE;
 	}
 
-	if (!src_pixmap_priv || !src_pixmap_priv->gl_fbo) {
+	if (!src_pixmap_priv || !src_pixmap_priv->base.gl_fbo) {
 #ifndef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 		glamor_delayed_fallback(dst->pScreen, "src has no fbo.\n");
 		return FALSE;
@@ -209,7 +209,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
 	dispatch->glActiveTexture(GL_TEXTURE0);
 	dispatch->glBindTexture(GL_TEXTURE_2D,
-				src_pixmap_priv->fbo->tex);
+				src_pixmap_priv->base.fbo->tex);
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
 	dispatch->glTexParameteri(GL_TEXTURE_2D,
@@ -239,7 +239,8 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
 	for (i = 0; i < nbox; i++) {
 
-		glamor_set_normalize_vcoords(dst_xscale, dst_yscale,
+		glamor_set_normalize_vcoords(dst_pixmap_priv, dst_xscale,
+					     dst_yscale,
 					     box[i].x1 + dst_x_off,
 					     box[i].y1 + dst_y_off,
 					     box[i].x2 + dst_x_off,
@@ -247,7 +248,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 					     glamor_priv->yInverted,
 					     vertices);
 
-		glamor_set_normalize_tcoords(src_xscale,
+		glamor_set_normalize_tcoords(src_pixmap_priv, src_xscale,
 					     src_yscale,
 					     box[i].x1 + dx,
 					     box[i].y1 + dy,
@@ -320,7 +321,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off,
 				   &dst_y_off);
 
-	if (src_pixmap_priv->fbo && src_pixmap_priv->fbo->fb == dst_pixmap_priv->fbo->fb) {
+	if (src_pixmap_priv->base.fbo && src_pixmap_priv->base.fbo->fb == dst_pixmap_priv->base.fbo->fb) {
 		int x_shift = abs(src_x_off - dx - dst_x_off);
 		int y_shift = abs(src_y_off - dy - dst_y_off);
 		for (i = 0; i < nbox; i++) {
@@ -333,7 +334,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	}
 #ifndef GLAMOR_GLES2
 	if ((overlaped
-	     || !src_pixmap_priv->gl_tex || !dst_pixmap_priv->gl_tex)
+	     || !src_pixmap_priv->base.gl_tex || !dst_pixmap_priv->base.gl_tex)
 	    && glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx,
 					   dy)) {
 		ret = TRUE;

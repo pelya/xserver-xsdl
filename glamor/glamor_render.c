@@ -545,7 +545,7 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glActiveTexture(GL_TEXTURE0 + unit);
-	dispatch->glBindTexture(GL_TEXTURE_2D, pixmap_priv->fbo->tex);
+	dispatch->glBindTexture(GL_TEXTURE_2D, pixmap_priv->base.fbo->tex);
 	repeat_type = picture->repeatType;
 	switch (picture->repeatType) {
 	case RepeatNone:
@@ -1047,7 +1047,7 @@ glamor_composite_with_shader(CARD8 op,
 			glamor_fallback("source == dest\n");
 			goto fail;
 		}
-		if (!source_pixmap_priv || source_pixmap_priv->gl_fbo == 0) {
+		if (!source_pixmap_priv || source_pixmap_priv->base.gl_fbo == 0) {
 			/* XXX in Xephyr, we may have gl_fbo equal to 1 but gl_tex 
 			 * equal to zero when the pixmap is screen pixmap. Then we may
 			 * refer the tex zero directly latter in the composition. 
@@ -1068,7 +1068,7 @@ glamor_composite_with_shader(CARD8 op,
 			glamor_fallback("mask == dest\n");
 			goto fail;
 		}
-		if (!mask_pixmap_priv || mask_pixmap_priv->gl_fbo == 0) {
+		if (!mask_pixmap_priv || mask_pixmap_priv->base.gl_fbo == 0) {
 #ifdef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 			mask_status = GLAMOR_UPLOAD_PENDING;
 #else
@@ -1259,7 +1259,7 @@ glamor_composite_with_shader(CARD8 op,
 			width = rects->width;
 			height = rects->height;
 
-			glamor_set_normalize_vcoords(dst_xscale,
+			glamor_set_normalize_vcoords(dest_pixmap_priv, dst_xscale,
 						     dst_yscale,
 						     x_dest, y_dest,
 						     x_dest + width, y_dest + height,
@@ -1269,14 +1269,14 @@ glamor_composite_with_shader(CARD8 op,
 			if (key.source != SHADER_SOURCE_SOLID) {
 				if (source->transform)
 					glamor_set_transformed_normalize_tcoords
-						(src_matrix, src_xscale,
+						(source_pixmap_priv, src_matrix, src_xscale,
 						 src_yscale, x_source, y_source,
 						 x_source + width, y_source + height,
 						 glamor_priv->yInverted,
 						 source_texcoords);
 				else
 					glamor_set_normalize_tcoords
-						(src_xscale, src_yscale,
+						(source_pixmap_priv, src_xscale, src_yscale,
 						 x_source, y_source,
 						 x_source + width, y_source + height,
 						 glamor_priv->yInverted,
@@ -1287,7 +1287,7 @@ glamor_composite_with_shader(CARD8 op,
 			    && key.mask != SHADER_MASK_SOLID) {
 				if (mask->transform)
 					glamor_set_transformed_normalize_tcoords
-						(mask_matrix,
+						(mask_pixmap_priv, mask_matrix,
 						 mask_xscale,
 						 mask_yscale, x_mask, y_mask,
 						 x_mask + width, y_mask + height,
@@ -1295,7 +1295,7 @@ glamor_composite_with_shader(CARD8 op,
 						 mask_texcoords);
 				else
 					glamor_set_normalize_tcoords
-						(mask_xscale,
+						(mask_pixmap_priv, mask_xscale,
 						 mask_yscale, x_mask, y_mask,
 						 x_mask + width, y_mask + height,
 						 glamor_priv->yInverted,
