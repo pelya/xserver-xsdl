@@ -175,7 +175,8 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 
 	if (fbo->fb == 0 || n_format == -1
 	   || fbo->glamor_priv->fbo_cache_watermark >= FBO_CACHE_THRESHOLD) {
-		fbo->glamor_priv->tick ++;
+		fbo->glamor_priv->tick += GLAMOR_CACHE_EXPIRE_MAX;
+		glamor_fbo_expire(fbo->glamor_priv);
 		glamor_purge_fbo(fbo);
 		return;
 	}
@@ -404,6 +405,92 @@ no_tex:
 	return fbo;
 }
 
+static glamor_pixmap_fbo *
+_glamor_create_fbo_array(glamor_screen_private *glamor_priv,
+			 int w, int h, GLenum format, int flag,
+			 int block_w, int block_h,
+			 glamor_pixmap_private *pixmap_priv,
+			 int has_fbo)
+{
+	int block_wcnt;
+	int block_hcnt;
+	glamor_pixmap_fbo **fbo_array;
+	BoxPtr box_array;
+	int i,j;
+	glamor_pixmap_private_large_t *priv;
+
+	priv = &pixmap_priv->large;
+
+	block_wcnt = (w + block_w - 1) / block_w;
+	block_hcnt = (h + block_h - 1) / block_h;
+
+	box_array = calloc(block_wcnt * block_hcnt, sizeof(box_array[0]));
+	if (box_array == NULL)
+		return NULL;
+
+	fbo_array = calloc(block_wcnt * block_hcnt, sizeof(glamor_pixmap_fbo*));
+	if (fbo_array == NULL) {
+		free(box_array);
+		return FALSE;
+	}
+	for(i = 0; i < block_hcnt; i++)
+	{
+		int block_y1, block_y2;
+		int fbo_w, fbo_h;
+
+		block_y1 = i * block_h;
+		block_y2 = (block_y1 + block_h) > h ? h : (block_y1 + block_h);
+		fbo_h = block_y2 - block_y1;
+
+		for (j = 0; j < block_wcnt; j++)
+		{
+			box_array[i * block_wcnt + j].x1 = j * block_w;
+			box_array[i * block_wcnt + j].y1 = block_y1;
+			box_array[i * block_wcnt + j].x2 = (j + 1) * block_w > w ? w : (j + 1) * block_w;
+			box_array[i * block_wcnt + j].y2 = block_y2;
+			fbo_w = box_array[i * block_wcnt + j].x2 - box_array[i * block_wcnt + j].x1;
+			if (!has_fbo)
+				fbo_array[i * block_wcnt + j] = glamor_create_fbo(glamor_priv,
+										  fbo_w, fbo_h, format,
+										  GLAMOR_CREATE_PIXMAP_FIXUP);
+			else
+				fbo_array[i * block_wcnt + j] = priv->base.fbo;
+			if (fbo_array[i * block_wcnt + j] == NULL)
+				goto cleanup;
+		}
+	}
+
+	priv->box = box_array[0];
+	priv->box_array = box_array;
+	priv->fbo_array = fbo_array;
+	priv->block_wcnt = block_wcnt;
+	priv->block_hcnt = block_hcnt;
+	return fbo_array[0];
+
+cleanup:
+	for(i = 0; i < block_wcnt * block_hcnt; i++)
+		if ((fbo_array)[i])
+			glamor_destroy_fbo((fbo_array)[i]);
+	free(box_array);
+	free(fbo_array);
+	return NULL;
+}
+
+
+/* Create a fbo array to cover the w*h region, by using block_w*block_h
+ * block.*/
+glamor_pixmap_fbo *
+glamor_create_fbo_array(glamor_screen_private *glamor_priv,
+			int w, int h, GLenum format, int flag,
+			int block_w, int block_h,
+			glamor_pixmap_private *pixmap_priv)
+{
+	pixmap_priv->large.block_w = block_w;
+	pixmap_priv->large.block_h = block_h;
+	return _glamor_create_fbo_array(glamor_priv, w, h, format, flag,
+					block_w, block_h, pixmap_priv, 0);
+}
+
 glamor_pixmap_fbo *
 glamor_pixmap_detach_fbo(glamor_pixmap_private *pixmap_priv)
 {
@@ -428,23 +515,13 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-	if (pixmap_priv == NULL) {
-		glamor_screen_private *glamor_priv;
-		glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
-		pixmap_priv = calloc(1, sizeof(*pixmap_priv));
-		dixSetPrivate(&pixmap->devPrivates,
-			      glamor_pixmap_private_key, pixmap_priv);
-		pixmap_priv->base.pixmap = pixmap;
-		pixmap_priv->base.glamor_priv = glamor_priv;
-		pixmap_priv->type = GLAMOR_MEMORY;
-	}
-
 	if (pixmap_priv->base.fbo)
 		return;
 
 	pixmap_priv->base.fbo = fbo;
 
 	switch (pixmap_priv->type) {
+	case GLAMOR_TEXTURE_LARGE:
 	case GLAMOR_TEXTURE_ONLY:
 	case GLAMOR_TEXTURE_DRM:
 		pixmap_priv->base.gl_fbo = 1;
@@ -462,6 +539,23 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
 	}
 }
 
+void
+glamor_pixmap_destroy_fbo(glamor_pixmap_private *priv)
+{
+	glamor_pixmap_fbo *fbo;
+	if (priv->type == GLAMOR_TEXTURE_LARGE) {
+		int i;
+		glamor_pixmap_private_large_t *large = &priv->large;
+		for(i = 0; i < large->block_wcnt * large->block_hcnt; i++)
+			glamor_destroy_fbo(large->fbo_array[i]);
+		free(large->fbo_array);
+	} else {
+		fbo = glamor_pixmap_detach_fbo(priv);
+		if (fbo)
+			glamor_destroy_fbo(fbo);
+		free(priv);
+	}
+}
 
 Bool
 glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
@@ -472,7 +566,7 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
 
 	glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
-	if (pixmap_priv == NULL || pixmap_priv->base.fbo == NULL) {
+	if (pixmap_priv->base.fbo == NULL) {
 
 		fbo = glamor_create_fbo(glamor_priv, pixmap->drawable.width,
 					pixmap->drawable.height,
@@ -492,7 +586,6 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
 			glamor_pixmap_ensure_fb(pixmap_priv->base.fbo);
 	}
 
-	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	return TRUE;
 }
 

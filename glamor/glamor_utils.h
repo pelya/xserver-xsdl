@@ -41,8 +41,10 @@
 
 #define pixmap_priv_get_dest_scale(_pixmap_priv_, _pxscale_, _pyscale_)	\
    do {									\
-    *(_pxscale_) = 1.0 / (_pixmap_priv_)->base.pixmap->drawable.width;			\
-    *(_pyscale_) = 1.0 / (_pixmap_priv_)->base.pixmap->drawable.height;			\
+    int w,h;								\
+    PIXMAP_PRIV_GET_ACTUAL_SIZE(_pixmap_priv_, w, h);			\
+    *(_pxscale_) = 1.0 / w;						\
+    *(_pyscale_) = 1.0 / h;						\
   } while(0)
 
 #define pixmap_priv_get_scale(_pixmap_priv_, _pxscale_, _pyscale_)	\
@@ -105,6 +107,52 @@
 	  }								\
       }									\
   }  while(0)
+
+#define _glamor_get_repeat_coords(priv, repeat_type, tx1,	\
+				  ty1, tx2, ty2,		\
+				  _x1_, _y1_, _x2_,		\
+				  _y2_, c, d, odd_x, odd_y)	\
+  do {								\
+	if (repeat_type == RepeatReflect) {			\
+		assert(0);					\
+	} else if (repeat_type == RepeatNormal) {		\
+		tx1 = (c - priv->box.x1);  			\
+		ty1 = (d - priv->box.y1);			\
+		tx2 = tx1 + ((_x2_) - (_x1_));			\
+		ty2 = ty1 + ((_y2_) - (_y1_));			\
+	} else {						\
+		assert(0);					\
+	}							\
+   } while(0)
+
+
+
+/* _x1_ ... _y2_ must be integer. */
+#define glamor_get_repeat_coords(priv, repeat_type, tx1,		\
+				 ty1, tx2, ty2, _x1_, _y1_, _x2_,	\
+				 _y2_) 					\
+  do {									\
+	int c, d;							\
+	int odd_x = 0, odd_y = 0;					\
+	DEBUGF("width %d box.x1 %d x2 %d y1 %d y2 %d\n",		\
+		(priv)->base.pixmap->drawable.width,			\
+		priv->box.x1, priv->box.x2,				\
+		priv->box.y1, priv->box.y2);				\
+	modulus((_x1_), (priv)->base.pixmap->drawable.width, c); 	\
+	modulus((_y1_), (priv)->base.pixmap->drawable.height, d);	\
+	DEBUGF("c %d d %d \n", c, d);					\
+	if (repeat_type == RepeatReflect) {				\
+		odd_x = abs((_x1_ - c)					\
+			/ (priv->base.pixmap->drawable.width)) & 1;	\
+		odd_y = abs((_y1_ - d)					\
+			/ (priv->base.pixmap->drawable.height)) & 1;	\
+	}								\
+	_glamor_get_repeat_coords(priv, repeat_type, tx1, ty1, tx2, ty2,\
+				  _x1_, _y1_, _x2_, _y2_, c, d,		\
+				  odd_x, odd_y);			\
+   } while(0)
+
+
 
 #define glamor_transform_point(matrix, tx, ty, x, y)			\
   do {									\
@@ -213,6 +261,24 @@
 				   tx2, ty2, yInverted, vertices);	\
  } while(0)
 
+#define glamor_set_repeat_normalize_tcoords(priv, repeat_type,		\
+					    xscale, yscale,		\
+					    _x1_, _y1_, _x2_, _y2_,	\
+	                                    yInverted, vertices)	\
+  do {									\
+     float tx1, tx2, ty1, ty2;						\
+     if (priv->type == GLAMOR_TEXTURE_LARGE)				\
+	glamor_get_repeat_coords((&priv->large), repeat_type,		\
+				 tx1, ty1, tx2, ty2,			\
+				 _x1_, _y1_, _x2_, _y2_);		\
+     else {								\
+	tx1 = _x1_; tx2 = _x2_; ty1 = _y1_; ty2 = _y2_;			\
+     }									\
+     _glamor_set_normalize_tcoords(xscale, yscale, tx1, ty1,		\
+				   tx2, ty2, yInverted, vertices);	\
+ } while(0)
+
+
 #define glamor_set_tcoords(width, height, x1, y1, x2, y2,	\
 			   yInverted, vertices)			\
     do {							\
@@ -303,7 +369,7 @@ glamor_calculate_boxes_bound(BoxPtr bound, BoxPtr boxes, int nbox)
 }
 
 inline static void
-glamor_transform_boxes(BoxPtr boxes, int nbox, int dx, int dy)
+glamor_translate_boxes(BoxPtr boxes, int nbox, int dx, int dy)
 {
 	int i;
 	for (i = 0; i < nbox; i++) {

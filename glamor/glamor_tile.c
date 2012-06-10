@@ -102,10 +102,9 @@ glamor_fini_tile_shader(ScreenPtr screen)
 	glamor_put_dispatch(glamor_priv);
 }
 
-Bool
-glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
+static void
+_glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	    int x, int y, int width, int height,
-	    unsigned char alu, unsigned long planemask,
 	    int tile_x, int tile_y)
 {
 	ScreenPtr screen = pixmap->drawable.pScreen;
@@ -126,48 +125,17 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	glamor_pixmap_private *src_pixmap_priv;
 	glamor_pixmap_private *dst_pixmap_priv;
 	float wh[2];
-
 	src_pixmap_priv = glamor_get_pixmap_private(tile);
 	dst_pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-	if (src_pixmap_priv == NULL || dst_pixmap_priv == NULL)
-		goto fail;
-
-	if (glamor_priv->tile_prog == 0) {
-		glamor_fallback("Tiling unsupported\n");
-		goto fail;
-	}
-
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv)) {
-		glamor_fallback("dest has no fbo.\n");
-		goto fail;
-	}
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(src_pixmap_priv)) {
-		/* XXX dynamic uploading candidate. */
-		glamor_fallback("Non-texture tile pixmap\n");
-		goto fail;
-	}
-
-	if (!glamor_set_planemask(pixmap, planemask)) {
-		glamor_fallback("unsupported planemask %lx\n", planemask);
-		goto fail;
-	}
-
 	glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
 	pixmap_priv_get_dest_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
-
-	dispatch = glamor_get_dispatch(glamor_priv);
-	if (!glamor_set_alu(dispatch, alu)) {
-		glamor_put_dispatch(glamor_priv);
-		goto fail;
-	}
-
 	pixmap_priv_get_scale(src_pixmap_priv, &src_xscale,
 			      &src_yscale);
+	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glUseProgram(glamor_priv->tile_prog);
 
 	glamor_pixmap_fbo_fix_wh_ratio(wh, src_pixmap_priv);
-
 	dispatch->glUniform2fv(glamor_priv->tile_wh, 1, wh);
 	dispatch->glActiveTexture(GL_TEXTURE0);
 	dispatch->glBindTexture(GL_TEXTURE_2D,
@@ -185,21 +153,23 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
 #endif
-	glamor_set_normalize_tcoords(src_pixmap_priv, src_xscale,
-				     src_yscale,
-				     tile_x1, tile_y1,
-				     tile_x2, tile_y2,
-				     glamor_priv->yInverted,
-				     source_texcoords);
+	glamor_set_repeat_normalize_tcoords
+			(src_pixmap_priv, RepeatNormal,
+			 src_xscale, src_yscale,
+			 tile_x1, tile_y1,
+			 tile_x2, tile_y2,
+			 glamor_priv->yInverted,
+			 source_texcoords);
+
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2,
 					GL_FLOAT, GL_FALSE,
 					2 * sizeof(float),
 					source_texcoords);
 	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
-	glamor_set_normalize_vcoords(dst_pixmap_priv, dst_xscale,
-				     dst_yscale,
-				     x1, y1, x2, y2,
+	glamor_set_normalize_vcoords(dst_pixmap_priv, dst_xscale, dst_yscale,
+				     x1, y1,
+				     x2, y2,
 				     glamor_priv->yInverted, vertices);
 
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
@@ -214,11 +184,139 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 #endif
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glUseProgram(0);
+	glamor_put_dispatch(glamor_priv);
+}
+
+Bool
+glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
+	    int x, int y, int width, int height,
+	    unsigned char alu, unsigned long planemask,
+	    int tile_x, int tile_y)
+{
+	ScreenPtr screen = pixmap->drawable.pScreen;
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(screen);
+	glamor_pixmap_private *dst_pixmap_priv;
+	glamor_pixmap_private *src_pixmap_priv;
+	glamor_gl_dispatch *dispatch;
+
+	dst_pixmap_priv = glamor_get_pixmap_private(pixmap);
+	src_pixmap_priv = glamor_get_pixmap_private(tile);
+
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dst_pixmap_priv))
+		return FALSE;
+
+	if (glamor_priv->tile_prog == 0) {
+		glamor_fallback("Tiling unsupported\n");
+		goto fail;
+	}
+
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(src_pixmap_priv)) {
+		/* XXX dynamic uploading candidate. */
+		glamor_fallback("Non-texture tile pixmap\n");
+		goto fail;
+	}
+
+	if (!glamor_set_planemask(pixmap, planemask)) {
+		glamor_fallback("unsupported planemask %lx\n", planemask);
+		goto fail;
+	}
+
+	dispatch = glamor_get_dispatch(glamor_priv);
+	if (!glamor_set_alu(dispatch, alu)) {
+		glamor_fallback("unsupported alu %x\n", alu);
+		glamor_put_dispatch(glamor_priv);
+		goto fail;
+	}
+
+	if (dst_pixmap_priv->type == GLAMOR_TEXTURE_LARGE
+	    || src_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+			glamor_pixmap_clipped_regions *clipped_dst_regions;
+			int n_dst_region, i, j, k;
+			BoxRec box;
+			RegionRec region;
+
+			box.x1 = x;
+			box.y1 = y;
+			box.x2 = x + width;
+			box.y2 = y + height;
+			RegionInitBoxes(&region, &box, 1);
+			clipped_dst_regions = glamor_compute_clipped_regions(dst_pixmap_priv,
+									     &region, &n_dst_region, 0);
+			for(i = 0; i < n_dst_region; i++)
+			{
+				int n_src_region;
+				glamor_pixmap_clipped_regions *clipped_src_regions;
+				BoxPtr current_boxes;
+				int n_current_boxes;
+
+				SET_PIXMAP_FBO_CURRENT(dst_pixmap_priv, clipped_dst_regions[i].block_idx);
+
+				if (src_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+					RegionTranslate(clipped_dst_regions[i].region,
+							tile_x - x, tile_y - y);
+					DEBUGF("tiled a large src pixmap. %dx%d \n", tile->drawable.width, tile->drawable.height);
+					clipped_src_regions = glamor_compute_clipped_regions(src_pixmap_priv,
+											     clipped_dst_regions[i].region,
+											     &n_src_region, 1);
+					DEBUGF("got %d src regions %d \n", n_src_region);
+					for (j = 0; j < n_src_region; j++)
+					{
+
+						SET_PIXMAP_FBO_CURRENT(src_pixmap_priv, clipped_src_regions[j].block_idx);
+
+						RegionTranslate(clipped_src_regions[j].region,
+								x - tile_x,
+								y - tile_y);
+						current_boxes = RegionRects(clipped_src_regions[j].region);
+						n_current_boxes = RegionNumRects(clipped_src_regions[j].region);
+						for(k = 0; k < n_current_boxes; k++)
+						{
+							DEBUGF("Tile on %d %d %d %d dst block id %d tile block id %d tilex %d tiley %d\n",
+								     current_boxes[k].x1, current_boxes[k].y1,
+								     current_boxes[k].x2 - current_boxes[k].x1,
+								     current_boxes[k].y2 - current_boxes[k].y1,
+									clipped_dst_regions[i].block_idx,
+									clipped_src_regions[j].block_idx,
+								     (tile_x + (current_boxes[k].x1 - x)),
+								     tile_y + (current_boxes[k].y1 - y));
+
+							_glamor_tile(pixmap, tile,
+								     current_boxes[k].x1, current_boxes[k].y1,
+								     current_boxes[k].x2 - current_boxes[k].x1,
+								     current_boxes[k].y2 - current_boxes[k].y1,
+								     (tile_x + (current_boxes[k].x1 - x)),
+								     (tile_y + (current_boxes[k].y1 - y)));
+						}
+
+						RegionDestroy(clipped_src_regions[j].region);
+					}
+					free(clipped_src_regions);
+				} else {
+					current_boxes = RegionRects(clipped_dst_regions[i].region);
+					n_current_boxes = RegionNumRects(clipped_dst_regions[i].region);
+					for(k = 0; k < n_current_boxes; k++)
+					{
+						_glamor_tile(pixmap, tile,
+							     current_boxes[k].x1, current_boxes[k].y1,
+							     current_boxes[k].x2 - current_boxes[k].x1,
+							     current_boxes[k].y2 - current_boxes[k].y1,
+							     (tile_x + (current_boxes[k].x1 - x)),
+							     (tile_y + (current_boxes[k].y1 - y)));
+					}
+				}
+				RegionDestroy(clipped_dst_regions[i].region);
+			}
+			free(clipped_dst_regions);
+			RegionUninit(&region);
+	}
+	else
+		_glamor_tile(pixmap, tile, x, y, width, height, tile_x, tile_y);
+
 	glamor_set_alu(dispatch, GXcopy);
-	glamor_set_planemask(pixmap, ~0);
 	glamor_put_dispatch(glamor_priv);
 	return TRUE;
-
-      fail:
+fail:
 	return FALSE;
+
 }

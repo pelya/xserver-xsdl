@@ -83,9 +83,11 @@ glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo * fbo, int x0, int y0, int w
 void
 glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private * pixmap_priv)
 {
+	int w,h;
+
+	PIXMAP_PRIV_GET_ACTUAL_SIZE(pixmap_priv, w, h);
 	glamor_set_destination_pixmap_fbo(pixmap_priv->base.fbo, 0, 0,
-					  pixmap_priv->base.pixmap->drawable.width,
-					  pixmap_priv->base.pixmap->drawable.height);
+					  w, h);
 }
 
 int
@@ -489,16 +491,23 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format, GLenum ty
 	}
 
 ready_to_upload:
+
 	/* Try fast path firstly, upload the pixmap to the texture attached
 	 * to the fbo directly. */
 	if (no_alpha == 0
 	    && revert == REVERT_NONE
 	    && swap_rb == SWAP_NONE_UPLOADING
 	    && !need_flip) {
+		int fbo_x_off, fbo_y_off;
 		assert(pixmap_priv->base.fbo->tex);
+		pixmap_priv_get_fbo_off(pixmap_priv, &fbo_x_off, &fbo_y_off);
+
+		assert(x + fbo_x_off >= 0 && y + fbo_y_off >= 0);
+		assert(x + fbo_x_off + w <= pixmap_priv->base.fbo->width);
+		assert(y + fbo_y_off + h <= pixmap_priv->base.fbo->height);
 		__glamor_upload_pixmap_to_texture(pixmap, &pixmap_priv->base.fbo->tex,
 						  format, type,
-						  x, y, w, h,
+						  x + fbo_x_off, y + fbo_y_off, w, h,
 						  bits, pbo);
 		return TRUE;
 	}
@@ -515,7 +524,6 @@ ready_to_upload:
 				     x + w, y + h,
 				     glamor_priv->yInverted,
 				     vertices);
-
 	/* Slow path, we need to flip y or wire alpha to 1. */
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
@@ -586,6 +594,9 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha, int 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 
+	if (pixmap_priv->base.gl_fbo)
+		return 0;
+
 	if (pixmap_priv->base.fbo
 	     && (pixmap_priv->base.fbo->width < pixmap->drawable.width
            || pixmap_priv->base.fbo->height < pixmap->drawable.height)) {
@@ -605,8 +616,10 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha, int 
 		flag = GLAMOR_CREATE_FBO_NO_FBO;
 	}
 
-	if ((flag == 0 && pixmap_priv && pixmap_priv->base.fbo && pixmap_priv->base.fbo->tex)
-	    || (flag != 0 && pixmap_priv && pixmap_priv->base.fbo && pixmap_priv->base.fbo->fb))
+	if ((flag == GLAMOR_CREATE_FBO_NO_FBO
+		&& pixmap_priv->base.fbo && pixmap_priv->base.fbo->tex)
+	    || (flag == 0
+		&& pixmap_priv->base.fbo && pixmap_priv->base.fbo->fb))
 		return 0;
 
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
@@ -614,28 +627,55 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha, int 
 	else
 		iformat = format;
 
-	if (pixmap_priv == NULL || pixmap_priv->base.fbo == NULL) {
-
-		fbo = glamor_create_fbo(glamor_priv, pixmap->drawable.width,
-					pixmap->drawable.height,
-					iformat,
-					flag);
-		if (fbo == NULL) {
-			glamor_fallback
-			    ("upload failed, depth %d x %d @depth %d \n",
-			     pixmap->drawable.width, pixmap->drawable.height,
-			     pixmap->drawable.depth);
-			return -1;
-		}
-
-		glamor_pixmap_attach_fbo(pixmap, fbo);
-	} else {
-		/* We do have a fbo, but it may lack of fb or tex. */
-		glamor_pixmap_ensure_fbo(pixmap, iformat, flag);
-	}
+	if (!glamor_pixmap_ensure_fbo(pixmap, iformat, flag))
+		return -1;
 
 	return 0;
 }
+
+/*
+ * upload sub region to a large region.
+ * */
+static void
+glamor_put_bits(char *dst_bits, int dst_stride, char *src_bits,
+		int src_stride, int bpp,
+		int x, int y, int w, int h)
+{
+	int j;
+	int byte_per_pixel;
+
+	byte_per_pixel = bpp / 8;
+	src_bits += y * src_stride + (x * byte_per_pixel);
+
+	for(j = y; j < y + h; j++)
+	{
+		memcpy(dst_bits, src_bits, w * byte_per_pixel);
+		src_bits += src_stride;
+		dst_bits += dst_stride;
+	}
+}
+/*
+ * download sub region from a large region.
+ */
+static void
+glamor_get_bits(char *dst_bits, int dst_stride, char *src_bits,
+		int src_stride, int bpp,
+		int x, int y, int w, int h)
+{
+	int j;
+	int byte_per_pixel;
+
+	byte_per_pixel = bpp / 8;
+	dst_bits += y * dst_stride + x * byte_per_pixel;
+
+	for(j = y; j < y + h; j++)
+	{
+		memcpy(dst_bits, src_bits, w * byte_per_pixel);
+		src_bits += src_stride;
+		dst_bits += dst_stride;
+	}
+}
+
 
 Bool
 glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h,
@@ -643,6 +683,7 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h
 {
 	GLenum format, type;
 	int no_alpha, revert, swap_rb;
+	glamor_pixmap_private *pixmap_priv;
 
 	if (glamor_get_tex_format_type_from_pixmap(pixmap,
 						   &format,
@@ -657,7 +698,77 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h
 	if (glamor_pixmap_upload_prepare(pixmap, format, no_alpha, revert, swap_rb))
 		return FALSE;
 
-	return _glamor_upload_bits_to_pixmap_texture(pixmap, format, type, no_alpha, revert, swap_rb,
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+		RegionRec region;
+		BoxRec box;
+		int n_region;
+		glamor_pixmap_clipped_regions *clipped_regions;
+		void *sub_bits;
+		int i,j;
+
+		sub_bits = malloc(h * stride);
+		if (sub_bits == NULL)
+			return FALSE;
+		box.x1 = x;
+		box.y1 = y;
+		box.x2 = x + w;
+		box.y2 = y + h;
+		RegionInitBoxes(&region, &box, 1);
+		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0);
+		DEBUGF("prepare upload %dx%d to a large pixmap %p\n", w, h, pixmap);
+		for(i = 0; i < n_region; i++)
+		{
+			BoxPtr boxes;
+			int nbox;
+			int temp_stride;
+			void *temp_bits;
+
+			assert(pbo == 0);
+
+			SET_PIXMAP_FBO_CURRENT(pixmap_priv, clipped_regions[i].block_idx);
+
+			boxes = RegionRects(clipped_regions[i].region);
+			nbox = RegionNumRects(clipped_regions[i].region);
+			DEBUGF("split to %d boxes\n", nbox);
+			for(j = 0; j < nbox; j++)
+			{
+				temp_stride = PixmapBytePad(boxes[j].x2 - boxes[j].x1,
+							    pixmap->drawable.depth);
+
+				if (boxes[j].x1 == x && temp_stride == stride) {
+					temp_bits = (char*)bits + (boxes[j].y1 - y) * stride;
+				} else {
+					temp_bits = sub_bits;
+					glamor_put_bits(temp_bits, temp_stride, bits, stride,
+							pixmap->drawable.bitsPerPixel,
+							boxes[j].x1 - x, boxes[j].y1 - y,
+							boxes[j].x2 - boxes[j].x1,
+							boxes[j].y2 - boxes[j].y1);
+				}
+				DEBUGF("upload x %d y %d w %d h %d temp stride %d \n",
+					boxes[j].x1 - x, boxes[j].y1 - y,
+					boxes[j].x2 - boxes[j].x1,
+					boxes[j].y2 - boxes[j].y1, temp_stride);
+				if (_glamor_upload_bits_to_pixmap_texture(pixmap, format, type, no_alpha,
+									  revert, swap_rb, boxes[j].x1, boxes[j].y1,
+									  boxes[j].x2 - boxes[j].x1,
+									  boxes[j].y2 - boxes[j].y1,
+									  temp_stride, temp_bits, pbo) == FALSE) {
+					RegionUninit(&region);
+					free(sub_bits);
+					assert(0);
+					return FALSE;
+				}
+			}
+			RegionDestroy(clipped_regions[i].region);
+		}
+		free(sub_bits);
+		free(clipped_regions);
+		RegionUninit(&region);
+		return TRUE;
+	} else
+		return _glamor_upload_bits_to_pixmap_texture(pixmap, format, type, no_alpha, revert, swap_rb,
 						     x, y, w, h, stride, bits, pbo);
 }
 
@@ -671,8 +782,7 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-	if (pixmap_priv
-	    && (pixmap_priv->base.fbo)
+	if ((pixmap_priv->base.fbo)
 	    && (pixmap_priv->base.fbo->pbo_valid)) {
 		data = NULL;
 		pbo = pixmap_priv->base.fbo->pbo;
@@ -737,7 +847,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h, GLe
 	temp_xscale = 1.0 / w;
 	temp_yscale = 1.0 / h;
 
-	glamor_set_normalize_vcoords((glamor_pixmap_private *)NULL, temp_xscale,
+	glamor_set_normalize_vcoords((struct glamor_pixmap_private*)NULL,temp_xscale,
 				     temp_yscale,
 				     0, 0,
 				     w, h,
@@ -793,13 +903,15 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h, GLe
  * The pixmap must have a valid FBO, otherwise return a NULL.
  * */
 
-void *
-glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
-				  int stride, void *bits, int pbo, glamor_access_t access)
+static void *
+_glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, GLenum format,
+				   GLenum type, int no_alpha,
+				   int revert, int swap_rb,
+				   int x, int y, int w, int h,
+				   int stride, void *bits, int pbo, glamor_access_t access)
 {
 	glamor_pixmap_private *pixmap_priv;
-	GLenum format, type, gl_access = 0, gl_usage = 0;
-	int no_alpha, revert, swap_rb;
+	GLenum gl_access = 0, gl_usage = 0;
 	void *data, *read;
 	ScreenPtr screen;
 	glamor_screen_private *glamor_priv =
@@ -808,6 +920,7 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 	glamor_pixmap_fbo *temp_fbo = NULL;
 	int need_post_conversion = 0;
 	int need_free_data = 0;
+	int fbo_x_off, fbo_y_off;
 
 	data = bits;
 	screen = pixmap->drawable.pScreen;
@@ -831,18 +944,6 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 		assert(0);
 	}
 
-	if (glamor_get_tex_format_type_from_pixmap(pixmap,
-						   &format,
-						   &type,
-						   &no_alpha,
-						   &revert,
-						   &swap_rb, 0)) {
-		ErrorF("Unknown pixmap depth %d.\n",
-		       pixmap->drawable.depth);
-		assert(0);	// Should never happen.
-		return NULL;
-	}
-
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 
 	need_post_conversion = (revert > REVERT_NORMAL);
@@ -857,6 +958,8 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 		}
 	}
 
+	pixmap_priv_get_fbo_off(pixmap_priv, &fbo_x_off, &fbo_y_off);
+
 	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
 	    && !need_post_conversion
 	    && (swap_rb != SWAP_NONE_DOWNLOADING || revert != REVERT_NONE)) {
@@ -868,6 +971,8 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 		}
 		x = 0;
 		y = 0;
+		fbo_x_off = 0;
+		fbo_y_off = 0;
 	}
 
 	dispatch = glamor_get_dispatch(glamor_priv);
@@ -890,7 +995,7 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 					       NULL, gl_usage);
 		}
 
-		dispatch->glReadPixels(x, y, w, h, format, type, data);
+		dispatch->glReadPixels(x + fbo_x_off, y + fbo_y_off, w, h, format, type, data);
 
 		if (!glamor_priv->yInverted) {
 			assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
@@ -913,7 +1018,7 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 				       stride *
 				       h,
 				       NULL, GL_STREAM_READ);
-		dispatch->glReadPixels(0, 0, w, h,
+		dispatch->glReadPixels(x + fbo_x_off, y + fbo_y_off, w, h,
 				       format, type, 0);
 		read = dispatch->glMapBuffer(GL_PIXEL_PACK_BUFFER,
 					     GL_READ_ONLY);
@@ -944,6 +1049,107 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 		free(data);
 
 	return bits;
+}
+
+void *
+glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
+				  int stride, void *bits, int pbo, glamor_access_t access)
+{
+	GLenum format, type;
+	int no_alpha, revert, swap_rb;
+	glamor_pixmap_private *pixmap_priv;
+
+	if (glamor_get_tex_format_type_from_pixmap(pixmap,
+						   &format,
+						   &type,
+						   &no_alpha,
+						   &revert,
+						   &swap_rb, 1)) {
+		glamor_fallback("Unknown pixmap depth %d.\n",
+				pixmap->drawable.depth);
+		return NULL;
+	}
+
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+		return NULL;
+
+	if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+
+		RegionRec region;
+		BoxRec box;
+		int n_region;
+		glamor_pixmap_clipped_regions *clipped_regions;
+		void *sub_bits;
+		int i,j;
+
+		sub_bits = malloc(h * stride);
+		if (sub_bits == NULL)
+			return FALSE;
+		box.x1 = x;
+		box.y1 = y;
+		box.x2 = x + w;
+		box.y2 = y + h;
+		RegionInitBoxes(&region, &box, 1);
+		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0);
+		DEBUGF("start download large pixmap %p %dx%d \n", pixmap, w, h);
+		for(i = 0; i < n_region; i++)
+		{
+			BoxPtr boxes;
+			int nbox;
+			int temp_stride;
+			void *temp_bits;
+
+			assert(pbo == 0);
+			SET_PIXMAP_FBO_CURRENT(pixmap_priv, clipped_regions[i].block_idx);
+
+			boxes = RegionRects(clipped_regions[i].region);
+			nbox = RegionNumRects(clipped_regions[i].region);
+			for(j = 0; j < nbox; j++)
+			{
+				temp_stride = PixmapBytePad(boxes[j].x2 - boxes[j].x1,
+							    pixmap->drawable.depth);
+
+				if (boxes[j].x1 == x && temp_stride == stride) {
+					temp_bits = (char*)bits + (boxes[j].y1 - y) * stride;
+				} else {
+					temp_bits = sub_bits;
+				}
+				DEBUGF("download x %d y %d w %d h %d temp stride %d \n",
+					boxes[j].x1, boxes[j].y1,
+					boxes[j].x2 - boxes[j].x1,
+					boxes[j].y2 - boxes[j].y1, temp_stride);
+
+				/* For large pixmap, we don't support pbo currently.*/
+				assert(pbo == 0);
+				if (_glamor_download_sub_pixmap_to_cpu(pixmap, format, type, no_alpha,
+								       revert, swap_rb, boxes[j].x1, boxes[j].y1,
+								       boxes[j].x2 - boxes[j].x1,
+								       boxes[j].y2 - boxes[j].y1,
+								       temp_stride, temp_bits, pbo, access) == FALSE) {
+					RegionUninit(&region);
+					free(sub_bits);
+					assert(0);
+					return NULL;
+				}
+				if (boxes[j].x1 != x || temp_stride != stride)
+					glamor_get_bits(bits, stride, temp_bits, temp_stride,
+							pixmap->drawable.bitsPerPixel,
+							boxes[j].x1 - x , boxes[j].y1 - y,
+							boxes[j].x2 - boxes[j].x1,
+							boxes[j].y2 - boxes[j].y1);
+			}
+
+			RegionDestroy(clipped_regions[i].region);
+		}
+		free(sub_bits);
+		free(clipped_regions);
+		RegionUninit(&region);
+		return bits;
+	} else
+	return _glamor_download_sub_pixmap_to_cpu(pixmap, format, type, no_alpha, revert, swap_rb,
+						  x, y, w, h, stride,
+						  bits, pbo, access);
 }
 
 
@@ -984,7 +1190,8 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 
 	if (access == GLAMOR_ACCESS_WO
 	    || glamor_priv->gl_flavor == GLAMOR_GL_ES2
-	    || (!glamor_priv->has_pack_invert && !glamor_priv->yInverted)) {
+	    || (!glamor_priv->has_pack_invert && !glamor_priv->yInverted)
+	    || pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
 		data = malloc(stride * pixmap->drawable.height);
 	} else {
 		dispatch = glamor_get_dispatch(glamor_priv);
@@ -1024,6 +1231,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 }
 
 /* fixup a fbo to the exact size as the pixmap. */
+/* XXX LARGE pixmap? */
 Bool
 glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv)
 {
@@ -1038,8 +1246,7 @@ glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv)
 
 	drawable = &pixmap_priv->base.pixmap->drawable;
 
-	if (pixmap_priv->base.pixmap->drawable.width == pixmap_priv->base.fbo->width
-	    && pixmap_priv->base.pixmap->drawable.height == pixmap_priv->base.fbo->height)
+	if (!GLAMOR_PIXMAP_FBO_NOT_EAXCT_SIZE(pixmap_priv))
 		return	TRUE;
 
 	old_fbo = pixmap_priv->base.fbo;
@@ -1058,7 +1265,7 @@ glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv)
 
 	scratch_priv = glamor_get_pixmap_private(scratch);
 
-	if (!scratch_priv || !scratch_priv->base.fbo)
+	if (!scratch_priv->base.fbo)
 		goto fail;
 
 	ValidateGC(&scratch->drawable, gc);
@@ -1111,14 +1318,13 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 	void *data;
 	int pbo;
 	int flag;
-
-	assert(x >= 0 && y >= 0);
+	if (x < 0 || y < 0)
+		return NULL;
 	w = (x + w) > pixmap->drawable.width ? (pixmap->drawable.width - x) : w;
 	h = (y + h) > pixmap->drawable.height ? (pixmap->drawable.height - y) : h;
 	if (access == GLAMOR_ACCESS_WO) {
 		sub_pixmap = glamor_create_pixmap(pixmap->drawable.pScreen, w, h,
 						  pixmap->drawable.depth, GLAMOR_CREATE_PIXMAP_CPU);
-		ErrorF("WO\n");
 		return sub_pixmap;
 	}
 
@@ -1127,7 +1333,7 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return NULL;
-	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2)
+	if (glamor_priv->gl_flavor == GLAMOR_GL_ES2 || pixmap_priv->type == GLAMOR_TEXTURE_LARGE)
 		flag = GLAMOR_CREATE_PIXMAP_CPU;
 	else
 		flag = GLAMOR_CREATE_PIXMAP_MAP;
@@ -1141,17 +1347,16 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 	sub_pixmap_priv = glamor_get_pixmap_private(sub_pixmap);
 	pbo = sub_pixmap_priv ? (sub_pixmap_priv->base.fbo ? sub_pixmap_priv->base.fbo->pbo : 0): 0;
 
-	if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv)) {
+	if (pixmap_priv->base.is_picture) {
 		sub_pixmap_priv->base.picture = pixmap_priv->base.picture;
 		sub_pixmap_priv->base.is_picture = pixmap_priv->base.is_picture;
 	}
 
 	if (pbo)
 		data = NULL;
-	else {
+	else
 		data = sub_pixmap->devPrivate.ptr;
-		assert(flag != GLAMOR_CREATE_PIXMAP_MAP);
-	}
+
 	data = glamor_download_sub_pixmap_to_cpu(pixmap, x, y, w, h, sub_pixmap->devKind,
 						 data, pbo, access);
 	if (pbo) {
@@ -1173,7 +1378,7 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 
 	new_sub_pixmap = glamor_create_pixmap(pixmap->drawable.pScreen, w, h,
 					      pixmap->drawable.depth, GLAMOR_CREATE_PIXMAP_CPU);
-	glamor_copy_n_to_n(&pixmap->drawable, &new_sub_pixmap, NULL, &box, 1, dx, dy, 0, 0, 0, NULL);
+	glamor_copy_n_to_n(&pixmap->drawable, &new_sub_pixmap->drawable, NULL, &box, 1, dx, dy, 0, 0, 0, NULL);
 	glamor_compare_pixmaps(new_sub_pixmap, sub_pixmap, 0, 0, w, h, 1, 1);
 #endif
 
@@ -1188,8 +1393,7 @@ glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y, int 
 	glamor_pixmap_private *sub_pixmap_priv;
 	if (access != GLAMOR_ACCESS_RO) {
 		sub_pixmap_priv = glamor_get_pixmap_private(sub_pixmap);
-		if (sub_pixmap_priv
-		    && sub_pixmap_priv->base.fbo
+		if (sub_pixmap_priv->base.fbo
 		    && sub_pixmap_priv->base.fbo->pbo_valid) {
 			bits = NULL;
 			pbo = sub_pixmap_priv->base.fbo->pbo;

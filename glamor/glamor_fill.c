@@ -180,10 +180,9 @@ glamor_fini_solid_shader(ScreenPtr screen)
 	glamor_put_dispatch(glamor_priv);
 }
 
-Bool
-glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
-	     unsigned char alu, unsigned long planemask,
-	     unsigned long fg_pixel)
+static void
+_glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
+	      float *color)
 {
 	ScreenPtr screen = pixmap->drawable.pScreen;
 	glamor_screen_private *glamor_priv =
@@ -195,14 +194,49 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	int x2 = x + width;
 	int y1 = y;
 	int y2 = y + height;
-	GLfloat color[4];
 	float vertices[8];
 	GLfloat xscale, yscale;
 
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) {
-		glamor_fallback("dest %p has no fbo.\n", pixmap);
+	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+
+	dispatch = glamor_get_dispatch(glamor_priv);
+	dispatch->glUseProgram(glamor_priv->solid_prog);
+
+	dispatch->glUniform4fv(glamor_priv->solid_color_uniform_location,
+			       1, color);
+
+	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
+					GL_FALSE, 2 * sizeof(float),
+					vertices);
+	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+	pixmap_priv_get_dest_scale(pixmap_priv, &xscale, &yscale);
+
+	glamor_set_normalize_vcoords(pixmap_priv, xscale, yscale,
+				     x1, y1,
+				     x2, y2,
+				     glamor_priv->yInverted, vertices);
+	dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+	dispatch->glUseProgram(0);
+	glamor_put_dispatch(glamor_priv);
+}
+
+Bool
+glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
+	     unsigned char alu, unsigned long planemask,
+	     unsigned long fg_pixel)
+{
+	ScreenPtr screen = pixmap->drawable.pScreen;
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(screen);
+	glamor_pixmap_private *pixmap_priv;
+	glamor_gl_dispatch *dispatch;
+	GLfloat color[4];
+
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return FALSE;
-	}
 
 	if (!glamor_set_planemask(pixmap, planemask)) {
 		glamor_fallback
@@ -216,8 +250,6 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 				   &color[2],
 				   &color[3], format_for_pixmap(pixmap));
 
-	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (!glamor_set_alu(dispatch, alu)) {
 		if (alu == GXclear)
@@ -228,23 +260,47 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 			return FALSE;
 		}
 	}
-	dispatch->glUseProgram(glamor_priv->solid_prog);
 
-	dispatch->glUniform4fv(glamor_priv->solid_color_uniform_location,
-			       1, color);
+	if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+		RegionRec region;
+		BoxRec box;
+		int n_region;
+		glamor_pixmap_clipped_regions *clipped_regions;
+		int i,j;
 
-	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
-					GL_FALSE, 2 * sizeof(float),
-					vertices);
-	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-	pixmap_priv_get_dest_scale(pixmap_priv, &xscale, &yscale);
+		box.x1 = x;
+		box.y1 = y;
+		box.x2 = x + width;
+		box.y2 = y + height;
+		RegionInitBoxes(&region, &box, 1);
+		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0);
+		for(i = 0; i < n_region; i++)
+		{
+			BoxPtr boxes;
+			int nbox;
+			SET_PIXMAP_FBO_CURRENT(pixmap_priv, clipped_regions[i].block_idx);
 
-	glamor_set_normalize_vcoords(pixmap_priv, xscale, yscale, x1, y1, x2, y2,
-				     glamor_priv->yInverted, vertices);
-	dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-	dispatch->glUseProgram(0);
+			boxes = RegionRects(clipped_regions[i].region);
+			nbox = RegionNumRects(clipped_regions[i].region);
+			for(j = 0; j < nbox; j++)
+			{
+				_glamor_solid(pixmap, boxes[j].x1, boxes[j].y1,
+					      boxes[j].x2 - boxes[j].x1,
+					      boxes[j].y2 - boxes[j].y1, color);
+			}
+			RegionDestroy(clipped_regions[i].region);
+		}
+		free(clipped_regions);
+		RegionUninit(&region);
+	} else
+		_glamor_solid(pixmap,
+			      x,
+			      y,
+			      width, height,
+			      color);
+
 	glamor_set_alu(dispatch, GXcopy);
 	glamor_put_dispatch(glamor_priv);
+
 	return TRUE;
 }

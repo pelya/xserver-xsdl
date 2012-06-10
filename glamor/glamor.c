@@ -141,9 +141,11 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 	if (w > 32767 || h > 32767)
 		return NullPixmap;
 
-	if (usage == GLAMOR_CREATE_PIXMAP_CPU
-	    || (w == 0 && h == 0)
-	    || !glamor_check_pixmap_fbo_depth(depth))
+	if ((usage == GLAMOR_CREATE_PIXMAP_CPU
+		|| (w == 0 && h == 0)
+		|| !glamor_check_pixmap_fbo_depth(depth))
+	    || (!GLAMOR_TEXTURED_LARGE_PIXMAP &&
+		!glamor_check_fbo_size(glamor_priv, w, h)))
 		return fbCreatePixmap(screen, w, h, depth, usage);
 	else
 		pixmap = fbCreatePixmap(screen, 0, 0, depth, usage);
@@ -161,10 +163,24 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 
 	pixmap_priv->base.pixmap = pixmap;
 	pixmap_priv->base.glamor_priv = glamor_priv;
-	pixmap_priv->type = type;
 
 	gl_iformat_for_depth(depth, &format);
-	fbo = glamor_create_fbo(glamor_priv, w, h, format, usage);
+
+	pitch = (((w * pixmap->drawable.bitsPerPixel + 7) / 8) + 3) & ~3;
+	screen->ModifyPixmapHeader(pixmap, w, h, 0, 0, pitch, NULL);
+
+	if (type == GLAMOR_MEMORY_MAP || glamor_check_fbo_size(glamor_priv, w, h)) {
+		pixmap_priv->type = type;
+		fbo = glamor_create_fbo(glamor_priv, w, h, format, usage);
+	}
+	else {
+		DEBUGF("Create LARGE pixmap %p width %d height %d\n", pixmap, w, h);
+		pixmap_priv->type = GLAMOR_TEXTURE_LARGE;
+		fbo = glamor_create_fbo_array(glamor_priv, w, h, format, usage,
+					      glamor_priv->max_fbo_size,
+					      glamor_priv->max_fbo_size,
+					      pixmap_priv);
+	}
 
 	if (fbo == NULL) {
 		fbDestroyPixmap(pixmap);
@@ -174,8 +190,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 
 	glamor_pixmap_attach_fbo(pixmap, fbo);
 
-	pitch = (((w * pixmap->drawable.bitsPerPixel + 7) / 8) + 3) & ~3;
-	screen->ModifyPixmapHeader(pixmap, w, h, 0, 0, pitch, NULL);
 	return pixmap;
 }
 
@@ -186,13 +200,8 @@ glamor_destroy_textured_pixmap(PixmapPtr pixmap)
 		glamor_pixmap_private *pixmap_priv;
 
 		pixmap_priv = glamor_get_pixmap_private(pixmap);
-		if (pixmap_priv != NULL) {
-			glamor_pixmap_fbo *fbo;
-			fbo = glamor_pixmap_detach_fbo(pixmap_priv);
-			if (fbo)
-				glamor_destroy_fbo(fbo);
-			free(pixmap_priv);
-		}
+		if (pixmap_priv != NULL)
+			glamor_pixmap_destroy_fbo(pixmap_priv);
 	}
 }
 
@@ -315,6 +324,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	    glamor_gl_has_extension("GL_EXT_framebuffer_blit");
 	glamor_priv->_dispatch.glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE,
 					     &glamor_priv->max_fbo_size);
+#ifdef MAX_FBO_SIZE
+	glamor_priv->max_fbo_size = MAX_FBO_SIZE;
+#endif
 
 	glamor_set_debug_level(&glamor_debug_level);
 

@@ -927,6 +927,9 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 #ifndef GLAMOR_GLES2
 #define GLAMOR_GRADIENT_SHADER
 #endif
-#define GLAMOR_TEXTURED_LARGE_PIXMAP 1
+#define GLAMOR_TEXTURED_LARGE_PIXMAP 0
+#if 0
+#define MAX_FBO_SIZE 512 /* For test purpose only. */
+#endif
 
 #endif				/* GLAMOR_PRIV_H */
