@@ -199,6 +199,89 @@ glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
 	return result_regions;
 }
 
+/*
+ *
+ * For the repeat pad mode, we can simply convert the region and
+ * let the out-of-box region can cover the needed edge of the source/mask
+ * Then apply a normal clip we can get what we want.
+ */
+static RegionPtr
+_glamor_convert_pad_region(RegionPtr region, int w, int h)
+{
+	RegionPtr pad_region;
+	int nrect;
+	BoxPtr box;
+	int overlap;
+
+	nrect = RegionNumRects(region);
+	box = RegionRects(region);
+	pad_region = RegionCreate(NULL, 4);
+	if (pad_region == NULL)
+		return NULL;
+	while(nrect--) {
+		BoxRec pad_box;
+		RegionRec temp_region;
+		pad_box = *box;
+		if (pad_box.x1 < 0 && pad_box.x2 <= 0)
+			pad_box.x2 = 1;
+		else if (pad_box.x1 >= w && pad_box.x2 > w)
+			pad_box.x1 = w - 1;
+		if (pad_box.y1 < 0 && pad_box.y2 <=0)
+			pad_box.y2 = 1;
+		else if (pad_box.y1 >= h && pad_box.y2 > h)
+			pad_box.y1 = h - 1;
+		RegionInitBoxes(&temp_region, &pad_box, 1);
+		RegionAppend(pad_region, &temp_region);
+		RegionUninit(&temp_region);
+		box++;
+	}
+	RegionValidate(pad_region, &overlap);
+	return pad_region;
+}
+
+/*
+ * For one type of large pixmap, its one direction is not exceed the
+ * size limitation, and in another word, on one direction it has only
+ * one block.
+ *
+ * This case of reflect repeating, we can optimize it and avoid repeat
+ * clip on that direction. We can just enlarge the repeat box and can
+ * cover all the dest region on that direction. But latter, we need to
+ * fixup the clipped result to get a correct coords for the subsequent
+ * processing. This function is to do the coords correction.
+ *
+ * */
+static void
+_glamor_largepixmap_reflect_fixup(short *xy1, short *xy2, int wh)
+{
+	int odd1, odd2;
+	int c1, c2;
+
+	if (*xy2 - *xy1 > wh) {
+		*xy1 = 0;
+		*xy2 = wh;
+		return;
+	}
+	modulus(*xy1, wh, c1);
+	odd1 = ((*xy1 - c1) / wh) & 0x1;
+	modulus(*xy2, wh, c2);
+	odd2 = ((*xy2 - c2) / wh) & 0x1;
+
+	if (odd1 && odd2) {
+		*xy1 = wh - c2;
+		*xy2 = wh - c1;
+	} else if (odd1 && !odd2) {
+		*xy1 = 0;
+		*xy2 = MAX(c2, wh - c1);
+	} else if (!odd1 && odd2) {
+		*xy2 = wh;
+		*xy1 = MIN(c1, wh - c2);
+	} else {
+		*xy1 = c1;
+		*xy2 = c2;
+	}
+}
+
 /**
  * Clip the boxes regards to each pixmap's block array.
  *
@@ -207,9 +290,7 @@ glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
  *
  * @is_transform: if it is set, it has a transform matrix.
  *
- * XXX Not support repeatPad currently.
  */
-
 static glamor_pixmap_clipped_regions *
 _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 				RegionPtr region, int *n_region,
@@ -242,7 +323,16 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 
 	pixmap_width = priv->base.pixmap->drawable.width;
 	pixmap_height = priv->base.pixmap->drawable.height;
-	if (repeat_type == 0) {
+	if (repeat_type == 0 || repeat_type == RepeatPad) {
+		RegionPtr saved_region = NULL;
+		if (repeat_type == RepeatPad) {
+			saved_region = region;
+			region = _glamor_convert_pad_region(saved_region, pixmap_width, pixmap_height);
+			if (region == NULL) {
+				*n_region = 0;
+				return NULL;
+			}
+		}
 		clipped_regions = __glamor_compute_clipped_regions(priv->block_w,
 							priv->block_h,
 							priv->block_wcnt,
@@ -251,10 +341,9 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 							priv->base.pixmap->drawable.height,
 							region, n_region, 0
 							);
+		if (saved_region)
+			RegionDestroy(region);
 		return clipped_regions;
-	} else if (repeat_type != RepeatNormal) {
-		*n_region = 0;
-		return NULL;
 	}
 	extent = RegionExtents(region);
 
@@ -329,8 +418,10 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 			int shift_x;
 			int shift_y;
 			int saved_y1, saved_y2;
-			int x_idx = 0, y_idx = 0;
+			int x_idx = 0, y_idx = 0, saved_y_idx = 0;
 			RegionRec temp_region;
+			BoxRec reflect_repeat_box;
+			BoxPtr valid_repeat_box;
 
 			shift_x = (extent->x1 / pixmap_width) * pixmap_width;
 			shift_y = (extent->y1 / pixmap_height) * pixmap_height;
@@ -380,12 +471,108 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 						RegionUninit(&repeat_region);
 					}
 				}
+			} else if (repeat_type == RepeatReflect) {
+				saved_y1 = repeat_box.y1;
+				saved_y2 = repeat_box.y2;
+				saved_y_idx = y_idx;
+				for(; ; repeat_box.x1 += dx, repeat_box.x2 += dx)
+				{
+					repeat_box.y1 = saved_y1;
+					repeat_box.y2 = saved_y2;
+					y_idx = saved_y_idx;
+					reflect_repeat_box.x1 = (x_idx & 1) ?
+								((2 * x_idx + 1) * dx - repeat_box.x2) : repeat_box.x1;
+					reflect_repeat_box.x2 = (x_idx & 1) ?
+								((2 * x_idx + 1) * dx - repeat_box.x1) : repeat_box.x2;
+					valid_repeat_box = &reflect_repeat_box;
+
+					if (valid_repeat_box->x1 >= extent->x2)
+						break;
+					for( repeat_box.y1 = saved_y1, repeat_box.y2 = saved_y2;
+					     ;
+					     repeat_box.y1 += dy, repeat_box.y2 += dy)
+					{
+
+						DEBUGF("x_idx %d y_idx %d dx %d dy %d\n", x_idx, y_idx, dx, dy);
+						DEBUGF("repeat box %d %d %d %d \n",
+							repeat_box.x1, repeat_box.y1, repeat_box.x2, repeat_box.y2);
+
+						if (priv->block_hcnt > 1) {
+						reflect_repeat_box.y1 = (y_idx & 1) ?
+							((2 * y_idx + 1) * dy - repeat_box.y2) : repeat_box.y1;
+						reflect_repeat_box.y2 = (y_idx & 1) ?
+							((2 * y_idx + 1) * dy - repeat_box.y1) : repeat_box.y2;
+						} else {
+						reflect_repeat_box.y1 = repeat_box.y1;
+						reflect_repeat_box.y2 = repeat_box.y2;
+						}
+
+						DEBUGF("valid_repeat_box x1 %d y1 %d \n",
+							valid_repeat_box->x1, valid_repeat_box->y1);
+						if (valid_repeat_box->y1 >= extent->y2)
+							break;
+						RegionInitBoxes(&repeat_region, valid_repeat_box, 1);
+						DEBUGF("start to clip repeat[reflect] region: \n");
+						DEBUGRegionPrint(&repeat_region);
+						RegionIntersect(&temp_region, &repeat_region, region);
+						DEBUGF("result:\n");
+						DEBUGRegionPrint(&temp_region);
+						if (is_transform && RegionNumRects(&temp_region)) {
+							BoxRec temp_box;
+							BoxPtr temp_extent;
+							temp_extent = RegionExtents(&temp_region);
+							if (priv->block_wcnt > 1) {
+								if (x_idx & 1) {
+									temp_box.x1 = ((2 * x_idx + 1)*dx - temp_extent->x2);
+									temp_box.x2 = ((2 * x_idx + 1)*dx - temp_extent->x1);
+								} else {
+									temp_box.x1 = temp_extent->x1;
+									temp_box.x2 = temp_extent->x2;
+								}
+								modulus(temp_box.x1, pixmap_width, temp_box.x1);
+								modulus(temp_box.x2, pixmap_width, temp_box.x2);
+								if (temp_box.x2 == 0) temp_box.x2 = pixmap_width;
+							} else {
+								temp_box.x1 = temp_extent->x1;
+								temp_box.x2 = temp_extent->x2;
+								_glamor_largepixmap_reflect_fixup(&temp_box.x1, &temp_box.x2, pixmap_width);
+							}
+
+							if (priv->block_hcnt > 1) {
+								if (y_idx & 1) {
+									temp_box.y1 = ((2 * y_idx + 1)*dy - temp_extent->y2);
+									temp_box.y2 = ((2 * y_idx + 1)*dy - temp_extent->y1);
+								} else {
+									temp_box.y1 = temp_extent->y1;
+									temp_box.y2 = temp_extent->y2;
+								}
+
+								modulus(temp_box.y1, pixmap_height, temp_box.y1);
+								modulus(temp_box.y2, pixmap_height, temp_box.y2);
+								if (temp_box.y2 == 0) temp_box.y2 = pixmap_height;
+							} else {
+								temp_box.y1 = temp_extent->y1;
+								temp_box.y2 = temp_extent->y2;
+								_glamor_largepixmap_reflect_fixup(&temp_box.y1, &temp_box.y2, pixmap_height);
+							}
+
+							RegionInitBoxes(&temp_region, &temp_box, 1);
+							RegionTranslate(&temp_region, x_center_shift * pixmap_width, y_center_shift * pixmap_height);
+							DEBUGF("for transform result:\n");
+							DEBUGRegionPrint(&temp_region);
+						}
+						RegionAppend(current_region, &temp_region);
+						RegionUninit(&repeat_region);
+						y_idx++;
+					}
+					x_idx++;
+				}
 			}
 			DEBUGF("dx %d dy %d \n", dx, dy);
 
 			if (RegionNumRects(current_region)) {
 
-				if ((right_shift != 0 || down_shift != 0))
+				if ((right_shift != 0 || down_shift != 0) && !(is_transform && repeat_type == RepeatReflect))
 					RegionTranslate(current_region,
 							-right_shift * pixmap_width,
 							-down_shift * pixmap_height);
@@ -410,6 +597,323 @@ glamor_compute_clipped_regions(glamor_pixmap_private *priv, RegionPtr region, in
 {
 	return _glamor_compute_clipped_regions(priv, region, n_region, repeat_type, 0);
 }
+
+/* XXX overflow still exist. maybe we need to change to use region32.
+ * by default. Or just use region32 for repeat cases?
+ **/
+glamor_pixmap_clipped_regions *
+glamor_compute_transform_clipped_regions(glamor_pixmap_private *priv, struct pixman_transform *transform,
+					 RegionPtr region, int *n_region, int dx, int dy, int repeat_type)
+{
+	BoxPtr temp_extent;
+	struct pixman_box32 temp_box;
+	struct pixman_box16 short_box;
+	RegionPtr temp_region;
+	glamor_pixmap_clipped_regions *ret;
+
+	temp_region = RegionCreate(NULL, 4);
+	temp_extent = RegionExtents(region);
+	DEBUGF("dest region \n");
+	DEBUGRegionPrint(region);
+	/* dx/dy may exceed MAX SHORT. we have to use
+	 * a box32 to represent it.*/
+	temp_box.x1 = temp_extent->x1 + dx;
+	temp_box.x2 = temp_extent->x2 + dx;
+	temp_box.y1 = temp_extent->y1 + dy;
+	temp_box.y2 = temp_extent->y2 + dy;
+
+	DEBUGF("source box %d %d %d %d \n", temp_box.x1, temp_box.y1, temp_box.x2, temp_box.y2);
+	if (transform)
+		glamor_get_transform_extent_from_box(&temp_box, transform);
+	if (repeat_type == RepeatNone) {
+		if (temp_box.x1 < 0) temp_box.x1 = 0;
+		if (temp_box.y1 < 0) temp_box.y1 = 0;
+		temp_box.x2 = MIN(temp_box.x2, priv->base.pixmap->drawable.width);
+		temp_box.y2 = MIN(temp_box.y2, priv->base.pixmap->drawable.height);
+	}
+	/* Now copy back the box32 to a box16 box. */
+	short_box.x1 = temp_box.x1;
+	short_box.y1 = temp_box.y1;
+	short_box.x2 = temp_box.x2;
+	short_box.y2 = temp_box.y2;
+	RegionInitBoxes(temp_region, &short_box, 1);
+	DEBUGF("copy to temp source region \n");
+	DEBUGRegionPrint(temp_region);
+	ret = _glamor_compute_clipped_regions(priv,
+					      temp_region,
+					      n_region,
+					      repeat_type,
+					      1);
+	DEBUGF("n_regions = %d \n", *n_region);
+	RegionDestroy(temp_region);
+
+	return ret;
+}
+/*
+ * As transform and repeatpad mode.
+ * We may get a clipped result which in multipe regions.
+ * It's not easy to do a 2nd round clipping just as we do
+ * without transform/repeatPad. As it's not easy to reverse
+ * the 2nd round clipping result with a transform/repeatPad mode,
+ * or even impossible for some transformation.
+ *
+ * So we have to merge the fragmental region into one region
+ * if the clipped result cross the region boundary.
+ */
+static void
+glamor_merge_clipped_regions(glamor_pixmap_private *pixmap_priv, int repeat_type,
+			     glamor_pixmap_clipped_regions *clipped_regions,
+			     int *n_regions, int *need_clean_fbo)
+{
+	BoxPtr temp_extent;
+	BoxRec temp_box, copy_box;
+	RegionPtr temp_region;
+	glamor_pixmap_private *temp_priv;
+	PixmapPtr temp_pixmap;
+	int overlap;
+	int i;
+	int pixmap_width, pixmap_height;
+	glamor_pixmap_private_large_t *priv;
+
+	priv = &pixmap_priv->large;
+	pixmap_width = priv->base.pixmap->drawable.width;
+	pixmap_height = priv->base.pixmap->drawable.height;
+
+	temp_region = RegionCreate(NULL, 4);
+	for(i = 0; i < *n_regions; i++)
+	{
+		DEBUGF("Region %d:\n", i);
+		DEBUGRegionPrint(clipped_regions[i].region);
+		RegionAppend(temp_region, clipped_regions[i].region);
+	}
+
+	RegionValidate(temp_region, &overlap);
+	DEBUGF("temp region: \n");
+	DEBUGRegionPrint(temp_region);
+	temp_extent = RegionExtents(temp_region);
+
+	temp_box = *temp_extent;
+
+	DEBUGF("need copy region: \n");
+	DEBUGF("%d %d %d %d \n", temp_box.x1, temp_box.y1, temp_box.x2, temp_box.y2);
+	temp_pixmap = glamor_create_pixmap(priv->base.pixmap->drawable.pScreen,
+					  temp_box.x2 - temp_box.x1,
+					  temp_box.y2 - temp_box.y1,
+					  priv->base.pixmap->drawable.depth,
+					  GLAMOR_CREATE_PIXMAP_FIXUP);
+	if (temp_pixmap == NULL) {
+		assert(0);
+		return;
+	}
+
+	temp_priv = glamor_get_pixmap_private(temp_pixmap);
+	assert(temp_priv->type != GLAMOR_TEXTURE_LARGE);
+
+	priv->box = temp_box;
+	if (temp_extent->x1 >= 0 && temp_extent->x2 <= pixmap_width
+	    && temp_extent->y1 >= 0 && temp_extent->y2 <= pixmap_height) {
+		int dx, dy;
+		copy_box.x1 = 0;
+		copy_box.y1 = 0;
+		copy_box.x2 = temp_extent->x2 - temp_extent->x1;
+		copy_box.y2 = temp_extent->y2 - temp_extent->y1;
+		dx = temp_extent->x1;
+		dy = temp_extent->y1;
+		glamor_copy_n_to_n(&priv->base.pixmap->drawable,
+				   &temp_pixmap->drawable,
+				   NULL, &copy_box, 1, dx,
+				   dy, 0, 0, 0, NULL);
+//		glamor_solid(temp_pixmap, 0, 0, temp_pixmap->drawable.width,
+//			       temp_pixmap->drawable.height, GXcopy, 0xffffffff, 0xff00);
+	} else {
+		for (i = 0; i < *n_regions; i++)
+		{
+			BoxPtr box;
+			int nbox;
+			box = REGION_RECTS(clipped_regions[i].region);
+			nbox = REGION_NUM_RECTS(clipped_regions[i].region);
+			while(nbox--) {
+				int dx, dy, c, d;
+				DEBUGF("box x1 %d y1 %d x2 %d y2 %d \n",
+					box->x1, box->y1, box->x2, box->y2);
+				modulus(box->x1, pixmap_width, c);
+				dx = c - (box->x1 - temp_box.x1);
+				copy_box.x1 = box->x1 - temp_box.x1;
+				copy_box.x2 = box->x2 - temp_box.x1;
+
+				modulus(box->y1, pixmap_height, d);
+				dy = d - (box->y1 - temp_box.y1);
+				copy_box.y1 = box->y1 - temp_box.y1;
+				copy_box.y2 = box->y2 - temp_box.y1;
+
+				DEBUGF("copying box %d %d %d %d, dx %d dy %d\n",
+					copy_box.x1, copy_box.y1, copy_box.x2,
+					copy_box.y2, dx, dy);
+
+				glamor_copy_n_to_n(&priv->base.pixmap->drawable,
+						   &temp_pixmap->drawable,
+						   NULL, &copy_box, 1, dx,
+						   dy, 0, 0, 0, NULL);
+				box++;
+			}
+		}
+		//glamor_solid(temp_pixmap, 0, 0, temp_pixmap->drawable.width,
+		//	       temp_pixmap->drawable.height, GXcopy, 0xffffffff, 0xff);
+	}
+	/* The first region will be released at caller side. */
+	for(i = 1; i < *n_regions; i++)
+		RegionDestroy(clipped_regions[i].region);
+	RegionDestroy(temp_region);
+	priv->box = temp_box;
+	priv->base.fbo = glamor_pixmap_detach_fbo(temp_priv);
+	DEBUGF("priv box x1 %d y1 %d x2 %d y2 %d \n",
+		priv->box.x1, priv->box.y1, priv->box.x2, priv->box.y2);
+	glamor_destroy_pixmap(temp_pixmap);
+	*need_clean_fbo = 1;
+	*n_regions = 1;
+}
+
+
+
+/**
+ * Given an expected transformed block width and block height,
+ *
+ * This function calculate a new block width and height which
+ * guarantee the transform result will not exceed the given
+ * block width and height.
+ *
+ * For large block width and height (> 2048), we choose a
+ * smaller new width and height and to reduce the cross region
+ * boundary and can avoid some overhead.
+ *
+ **/
+Bool
+glamor_get_transform_block_size(struct pixman_transform *transform,
+			   int block_w, int block_h,
+			   int *transformed_block_w,
+			   int *transformed_block_h)
+{
+	double a,b,c,d,e,f,g,h;
+	double scale;
+	int width, height;
+	a = pixman_fixed_to_double(transform->matrix[0][0]);
+	b = pixman_fixed_to_double(transform->matrix[0][1]);
+	c = pixman_fixed_to_double(transform->matrix[1][0]);
+	d = pixman_fixed_to_double(transform->matrix[1][1]);
+	scale = pixman_fixed_to_double(transform->matrix[2][2]);
+	if (block_w > 2048) {
+	/* For large block size, we shrink it to smaller box,
+	 * thus latter we may get less cross boundary regions and
+	 * thus can avoid some extra copy.
+	 *
+	 **/
+		width = block_w  / 4;
+		height = block_h / 4;
+	} else {
+		width = block_w - 2;
+		height = block_h - 2;
+	}
+	e = a + b;
+	f = c + d;
+
+	g = a - b;
+	h = c - d;
+
+	e = MIN(block_w, floor(width * scale) / MAX(fabs(e), fabs(g)));
+	f = MIN(block_h, floor(height * scale) / MAX(fabs(f), fabs(h)));
+	*transformed_block_w = MIN(e, f) - 1;
+	*transformed_block_h = *transformed_block_w;
+	if (*transformed_block_w <= 0 || *transformed_block_h <= 0)
+		return FALSE;
+	DEBUGF("original block_w/h %d %d, fixed %d %d \n", block_w, block_h,
+		*transformed_block_w, *transformed_block_h);
+	return TRUE;
+}
+
+#define VECTOR_FROM_POINT(p, x, y)	\
+	p.v[0] = x;  \
+	p.v[1] = y;  \
+	p.v[2] = 1.0;
+void
+glamor_get_transform_extent_from_box(struct pixman_box32 *box,
+		struct pixman_transform *transform)
+{
+	struct pixman_f_vector p0, p1, p2, p3;
+	float min_x, min_y, max_x, max_y;
+
+	struct pixman_f_transform ftransform;
+
+	VECTOR_FROM_POINT(p0, box->x1, box->y1)
+	VECTOR_FROM_POINT(p1, box->x2, box->y1)
+	VECTOR_FROM_POINT(p2, box->x2, box->y2)
+	VECTOR_FROM_POINT(p3, box->x1, box->y2)
+
+	pixman_f_transform_from_pixman_transform(&ftransform, transform);
+	pixman_f_transform_point(&ftransform, &p0);
+	pixman_f_transform_point(&ftransform, &p1);
+	pixman_f_transform_point(&ftransform, &p2);
+	pixman_f_transform_point(&ftransform, &p3);
+
+	min_x = MIN(p0.v[0], p1.v[0]);
+	min_x = MIN(min_x, p2.v[0]);
+	min_x = MIN(min_x, p3.v[0]);
+
+	min_y = MIN(p0.v[1], p1.v[1]);
+	min_y = MIN(min_y, p2.v[1]);
+	min_y = MIN(min_y, p3.v[1]);
+
+	max_x = MAX(p0.v[0], p1.v[0]);
+	max_x = MAX(max_x, p2.v[0]);
+	max_x = MAX(max_x, p3.v[0]);
+
+	max_y = MAX(p0.v[1], p1.v[1]);
+	max_y = MAX(max_y, p2.v[1]);
+	max_y = MAX(max_y, p3.v[1]);
+	box->x1 = floor(min_x) - 1;
+	box->y1 = floor(min_y) - 1;
+	box->x2 = ceil(max_x) + 1;
+	box->y2 = ceil(max_y) + 1;
+}
+
+static void
+_glamor_process_transformed_clipped_region(glamor_pixmap_private *priv,
+					int repeat_type,
+					glamor_pixmap_clipped_regions *clipped_regions,
+					int *n_regions, int *need_clean_fbo)
+{
+	int shift_x, shift_y;
+	if (*n_regions != 1) {
+	/* Merge all source regions into one region. */
+		glamor_merge_clipped_regions(priv, repeat_type,
+					     clipped_regions, n_regions,
+					     need_clean_fbo);
+	} else {
+		SET_PIXMAP_FBO_CURRENT(priv,
+				       clipped_regions[0].block_idx);
+		if (repeat_type == RepeatReflect || repeat_type == RepeatNormal) {
+			/* The required source areas are in one region,
+			 * we need to shift the corresponding box's coords to proper position,
+			 * thus we can calculate the relative coords correctly.*/
+			BoxPtr temp_box;
+			int rem;
+			temp_box = RegionExtents(clipped_regions[0].region);
+			modulus(temp_box->x1, priv->base.pixmap->drawable.width, rem);
+			shift_x = (temp_box->x1 - rem) / priv->base.pixmap->drawable.width;
+			modulus(temp_box->y1, priv->base.pixmap->drawable.height, rem);
+			shift_y = (temp_box->y1 - rem) / priv->base.pixmap->drawable.height;
+
+			if (shift_x != 0) {
+				priv->large.box.x1 += shift_x * priv->base.pixmap->drawable.width;
+				priv->large.box.x2 += shift_x * priv->base.pixmap->drawable.width;
+			}
+			if (shift_y != 0) {
+				priv->large.box.y1 += shift_y * priv->base.pixmap->drawable.height;
+				priv->large.box.y2 += shift_y * priv->base.pixmap->drawable.height;
+			}
+		}
+	}
+}
+
 
 Bool
 glamor_composite_largepixmap_region(CARD8 op,
@@ -448,21 +952,11 @@ glamor_composite_largepixmap_region(CARD8 op,
 	PixmapPtr mask_pixmap = NULL;
 	int ok = TRUE;
 
-	if (source_pixmap_priv) {
+	if (source_pixmap_priv)
 		source_pixmap = source_pixmap_priv->base.pixmap;
-		if (source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE
-		    && (source->transform
-			|| source->repeatType != RepeatNone))
-			return FALSE;
-	}
 
-	if (mask_pixmap_priv) {
+	if (mask_pixmap_priv)
 		mask_pixmap = mask_pixmap_priv->base.pixmap;
-		if (mask_pixmap_priv->type == GLAMOR_TEXTURE_LARGE
-		    && (mask->transform
-		         || mask->repeatType != RepeatNone))
-			return FALSE;
-	}
 
 	if (source->repeat)
 		source_repeat_type = source->repeatType;
@@ -477,10 +971,68 @@ glamor_composite_largepixmap_region(CARD8 op,
 	glamor_priv = dest_pixmap_priv->base.glamor_priv;
 	fixed_block_width = glamor_priv->max_fbo_size;
 	fixed_block_height = glamor_priv->max_fbo_size;
+	/* If we got an totally out-of-box region for a source or mask
+	 * region without repeat, we need to set it as null_source and
+	 * give it a solid color (0,0,0,0). */
+	null_source = 0;
+	null_mask = 0;
 	RegionTranslate(region, -dest->pDrawable->x,
 			-dest->pDrawable->y);
 
-	if (force_clip)
+	/* need to transform the dest region to the correct sourcei/mask region.
+	 * it's a little complex, as one single edge of the
+	 * target region may be transformed to cross a block boundary of the
+	 * source or mask. Then it's impossible to handle it as usual way.
+	 * We may have to split the original dest region to smaller region, and
+	 * make sure each region's transformed region can fit into one texture,
+	 * and then continue this loop again, and each time when a transformed region
+	 * cross the bound, we need to copy it to a single pixmap and do the composition
+	 * with the new pixmap. If the transformed region doesn't cross a source/mask's
+	 * boundary then we don't need to copy.
+	 *
+	 */
+	if (source_pixmap_priv
+	    && source->transform
+	    && source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+		int source_transformed_block_width, source_transformed_block_height;
+		if (!glamor_get_transform_block_size(source->transform,
+					  source_pixmap_priv->large.block_w,
+					  source_pixmap_priv->large.block_h,
+					  &source_transformed_block_width,
+					  &source_transformed_block_height)) {
+			DEBUGF("source block size less than 1, fallback.\n");
+			RegionTranslate(region, dest->pDrawable->x,
+					dest->pDrawable->y);
+			return FALSE;
+		}
+		fixed_block_width = min(fixed_block_width , source_transformed_block_width);
+		fixed_block_height = min(fixed_block_height , source_transformed_block_height);
+		DEBUGF("new source block size %d x %d \n", fixed_block_width, fixed_block_height);
+	}
+
+	if (mask_pixmap_priv
+	    && mask->transform
+	    && mask_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+		int mask_transformed_block_width, mask_transformed_block_height;
+		if (!glamor_get_transform_block_size(mask->transform,
+					  mask_pixmap_priv->large.block_w,
+					  mask_pixmap_priv->large.block_h,
+					  &mask_transformed_block_width,
+					  &mask_transformed_block_height)) {
+			DEBUGF("mask block size less than 1, fallback.\n");
+			RegionTranslate(region, dest->pDrawable->x,
+					dest->pDrawable->y);
+			return FALSE;
+		}
+		fixed_block_width = min(fixed_block_width , mask_transformed_block_width);
+		fixed_block_height = min(fixed_block_height , mask_transformed_block_height);
+		DEBUGF("new mask block size %d x %d \n", fixed_block_width, fixed_block_height);
+	}
+
+	/*compute the correct block width and height whose transformed source/mask
+	 *region can fit into one texture.*/
+	if (force_clip || fixed_block_width < glamor_priv->max_fbo_size
+	    || fixed_block_height < glamor_priv->max_fbo_size)
 		clipped_dest_regions = glamor_compute_clipped_regions_ext(dest_pixmap_priv,
 									  region,
 									  &n_dest_regions,
@@ -492,93 +1044,238 @@ glamor_composite_largepixmap_region(CARD8 op,
 								      &n_dest_regions,
 								      0);
 	DEBUGF("dest clipped result %d region: \n", n_dest_regions);
+	if (source_pixmap_priv == dest_pixmap_priv
+	    && source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+		/* XXX self-copy...*/
+		need_free_source_pixmap_priv = source_pixmap_priv;
+		source_pixmap_priv = malloc(sizeof(*source_pixmap_priv));
+		*source_pixmap_priv = *need_free_source_pixmap_priv;
+		need_free_source_pixmap_priv = source_pixmap_priv;
+	}
 	for(i = 0; i < n_dest_regions; i++)
 	{
 		DEBUGF("dest region %d  idx %d\n", i, clipped_dest_regions[i].block_idx);
 		DEBUGRegionPrint(clipped_dest_regions[i].region);
 		SET_PIXMAP_FBO_CURRENT(dest_pixmap_priv, clipped_dest_regions[i].block_idx);
 		if ( source_pixmap_priv && source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+			if (!source->transform && source_repeat_type != RepeatPad) {
 				RegionTranslate(clipped_dest_regions[i].region,
 						x_source - x_dest,
 						y_source - y_dest);
 				clipped_source_regions = glamor_compute_clipped_regions(source_pixmap_priv,
 										        clipped_dest_regions[i].region,
 										        &n_source_regions, source_repeat_type);
+				is_normal_source_fbo = 1;
+			}
+			else {
+				clipped_source_regions = glamor_compute_transform_clipped_regions(source_pixmap_priv,
+									source->transform,
+									clipped_dest_regions[i].region,
+									&n_source_regions,
+									x_source - x_dest, y_source - y_dest,
+									source_repeat_type);
+				is_normal_source_fbo = 0;
+				if (n_source_regions == 0) {
+					/* Pad the out-of-box region to (0,0,0,0). */
+					null_source = 1;
+					n_source_regions = 1;
+				} else
+					_glamor_process_transformed_clipped_region(source_pixmap_priv,
+						source_repeat_type, clipped_source_regions, &n_source_regions,
+						&need_clean_source_fbo);
+			}
 			DEBUGF("source clipped result %d region: \n", n_source_regions);
 			for(j = 0; j < n_source_regions; j++)
 			{
-				SET_PIXMAP_FBO_CURRENT(source_pixmap_priv,
-						       clipped_source_regions[j].block_idx);
+				if (is_normal_source_fbo)
+					SET_PIXMAP_FBO_CURRENT(source_pixmap_priv,
+							       clipped_source_regions[j].block_idx);
 
 				if (mask_pixmap_priv && mask_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
-					DEBUGF("source region %d  idx %d\n", j, clipped_source_regions[j].block_idx);
-					DEBUGRegionPrint(clipped_source_regions[j].region);
-					RegionTranslate(clipped_source_regions[j].region,
-							- x_source + x_mask,
+					if (is_normal_mask_fbo && is_normal_source_fbo) {
+						/* both mask and source are normal fbo box without transform or repeatpad.
+						 * The region is clipped against source and then we clip it against mask here.*/
+						DEBUGF("source region %d  idx %d\n", j, clipped_source_regions[j].block_idx);
+						DEBUGRegionPrint(clipped_source_regions[j].region);
+						RegionTranslate(clipped_source_regions[j].region,
+								- x_source + x_mask,
 							- y_source + y_mask);
-					clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
-										     clipped_source_regions[j].region,
-										     &n_mask_regions, mask_repeat_type);
+						clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
+											     clipped_source_regions[j].region,
+											     &n_mask_regions, mask_repeat_type);
+						is_normal_mask_fbo = 1;
+					} else if (is_normal_mask_fbo && !is_normal_source_fbo) {
+						assert(n_source_regions == 1);
+						/* The source fbo is not a normal fbo box, it has transform or repeatpad.
+						 * the valid clip region should be the clip dest region rather than the
+						 * clip source region.*/
+						RegionTranslate(clipped_dest_regions[i].region,
+								- x_dest + x_mask,
+								- y_dest + y_mask);
+						clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
+											     clipped_dest_regions[i].region,
+											     &n_mask_regions, mask_repeat_type);
+						is_normal_mask_fbo = 1;
+					} else {
+						/* This mask region has transform or repeatpad, we need clip it agains the previous
+						 * valid region rather than the mask region. */
+						if (!is_normal_source_fbo)
+							clipped_mask_regions = glamor_compute_transform_clipped_regions(mask_pixmap_priv,
+												mask->transform,
+												clipped_dest_regions[i].region,
+												&n_mask_regions,
+												x_mask - x_dest,
+												y_mask - y_dest,
+												mask_repeat_type);
+						else
+							clipped_mask_regions = glamor_compute_transform_clipped_regions(mask_pixmap_priv,
+												mask->transform,
+												clipped_source_regions[j].region,
+												&n_mask_regions,
+												x_mask - x_source, y_mask - y_source,
+												mask_repeat_type);
+						is_normal_mask_fbo = 0;
+						if (n_mask_regions == 0) {
+						/* Pad the out-of-box region to (0,0,0,0). */
+							null_mask = 1;
+							n_mask_regions = 1;
+						} else
+							_glamor_process_transformed_clipped_region(mask_pixmap_priv,
+								mask_repeat_type, clipped_mask_regions, &n_mask_regions,
+								&need_clean_mask_fbo);
+					}
 					DEBUGF("mask clipped result %d region: \n", n_mask_regions);
 
 #define COMPOSITE_REGION(region) do {				\
 	if (!glamor_composite_clipped_region(op,		\
-			 source,				\
-			 mask, dest, region,			\
+			 null_source ? NULL : source,		\
+			 null_mask ? NULL : mask, dest, region,	\
 			 x_source, y_source, x_mask, y_mask,	\
 			 x_dest, y_dest)) {			\
 		assert(0);					\
 	}							\
    } while(0)
+
 					for(k = 0; k < n_mask_regions; k++)
 					{
 						DEBUGF("mask region %d  idx %d\n", k, clipped_mask_regions[k].block_idx);
 						DEBUGRegionPrint(clipped_mask_regions[k].region);
-						SET_PIXMAP_FBO_CURRENT(mask_pixmap_priv,
-							       clipped_mask_regions[k].block_idx);
-						DEBUGF("mask fbo off %d %d \n",
-							mask_pixmap_priv->large.box.x1,
-							mask_pixmap_priv->large.box.y1);
-						DEBUGF("start composite mask hasn't transform.\n");
-						RegionTranslate(clipped_mask_regions[k].region,
-								x_dest - x_mask + dest->pDrawable->x,
-								y_dest - y_mask + dest->pDrawable->y);
-						COMPOSITE_REGION(clipped_mask_regions[k].region);
+						if (is_normal_mask_fbo) {
+							SET_PIXMAP_FBO_CURRENT(mask_pixmap_priv,
+								       clipped_mask_regions[k].block_idx);
+							DEBUGF("mask fbo off %d %d \n",
+								mask_pixmap_priv->large.box.x1,
+								mask_pixmap_priv->large.box.y1);
+							DEBUGF("start composite mask hasn't transform.\n");
+							RegionTranslate(clipped_mask_regions[k].region,
+									x_dest - x_mask + dest->pDrawable->x,
+									y_dest - y_mask + dest->pDrawable->y);
+							COMPOSITE_REGION(clipped_mask_regions[k].region);
+						} else if (!is_normal_mask_fbo && !is_normal_source_fbo) {
+							DEBUGF("start composite both mask and source have transform.\n");
+							RegionTranslate(clipped_dest_regions[i].region,
+									dest->pDrawable->x,
+									dest->pDrawable->y);
+							COMPOSITE_REGION(clipped_dest_regions[i].region);
+						} else {
+							DEBUGF("start composite only mask has transform.\n");
+							RegionTranslate(clipped_source_regions[j].region,
+									x_dest - x_source + dest->pDrawable->x,
+									y_dest - y_source + dest->pDrawable->y);
+							COMPOSITE_REGION(clipped_source_regions[j].region);
+						}
 						RegionDestroy(clipped_mask_regions[k].region);
 					}
 					free(clipped_mask_regions);
+					if (null_mask) null_mask = 0;
+					if (need_clean_mask_fbo) {
+						assert(is_normal_mask_fbo == 0);
+						glamor_destroy_fbo(mask_pixmap_priv->base.fbo);
+						mask_pixmap_priv->base.fbo = NULL;
+						need_clean_mask_fbo = 0;
+					}
 				} else {
-					RegionTranslate(clipped_source_regions[j].region,
-							-x_source + x_dest + dest->pDrawable->x,
-							-y_source + y_dest + dest->pDrawable->y);
-					COMPOSITE_REGION(clipped_source_regions[j].region);
+					if (is_normal_source_fbo) {
+						RegionTranslate(clipped_source_regions[j].region,
+								-x_source + x_dest + dest->pDrawable->x,
+								-y_source + y_dest + dest->pDrawable->y);
+						COMPOSITE_REGION(clipped_source_regions[j].region);
+					} else {
+						/* Source has transform or repeatPad. dest regions is the right
+						 * region to do the composite. */
+						RegionTranslate(clipped_dest_regions[i].region,
+								dest->pDrawable->x,
+								dest->pDrawable->y);
+						COMPOSITE_REGION(clipped_dest_regions[i].region);
+					}
 				}
 				if (clipped_source_regions && clipped_source_regions[j].region)
 					RegionDestroy(clipped_source_regions[j].region);
 			}
 			free(clipped_source_regions);
+			if (null_source) null_source = 0;
+			if (need_clean_source_fbo) {
+				assert(is_normal_source_fbo == 0);
+				glamor_destroy_fbo(source_pixmap_priv->base.fbo);
+				source_pixmap_priv->base.fbo = NULL;
+				need_clean_source_fbo = 0;
+			}
 		}
 		else {
 			if (mask_pixmap_priv && mask_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
-				RegionTranslate(clipped_dest_regions[i].region,
-						x_mask - x_dest,
-						y_mask - y_dest);
-				clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
-							        clipped_dest_regions[i].region,
-							        &n_mask_regions, mask_repeat_type);
+				if (!mask->transform && mask_repeat_type != RepeatPad) {
+					RegionTranslate(clipped_dest_regions[i].region,
+							x_mask - x_dest,
+							y_mask - y_dest);
+					clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
+								        clipped_dest_regions[i].region,
+								        &n_mask_regions, mask_repeat_type);
+					is_normal_mask_fbo = 1;
+				}
+				else {
+					clipped_mask_regions = glamor_compute_transform_clipped_regions(mask_pixmap_priv,
+										mask->transform,
+										clipped_dest_regions[i].region,
+										&n_mask_regions,
+										x_mask - x_dest, y_mask - y_dest,
+										mask_repeat_type);
+					is_normal_mask_fbo = 0;
+					if (n_mask_regions == 0) {
+						/* Pad the out-of-box region to (0,0,0,0). */
+						null_mask = 1;
+						n_mask_regions = 1;
+					} else
+						_glamor_process_transformed_clipped_region(mask_pixmap_priv,
+							mask_repeat_type, clipped_mask_regions, &n_mask_regions,
+							&need_clean_mask_fbo);
+				}
+
 				for(k = 0; k < n_mask_regions; k++)
 				{
 					DEBUGF("mask region %d  idx %d\n", k, clipped_mask_regions[k].block_idx);
 					DEBUGRegionPrint(clipped_mask_regions[k].region);
-					SET_PIXMAP_FBO_CURRENT(mask_pixmap_priv,
-							       clipped_mask_regions[k].block_idx);
-					RegionTranslate(clipped_mask_regions[k].region,
-							x_dest - x_mask + dest->pDrawable->x,
-							y_dest - y_mask + dest->pDrawable->y);
-					COMPOSITE_REGION(clipped_mask_regions[k].region);
+					if (is_normal_mask_fbo) {
+						SET_PIXMAP_FBO_CURRENT(mask_pixmap_priv,
+								       clipped_mask_regions[k].block_idx);
+						RegionTranslate(clipped_mask_regions[k].region,
+								x_dest - x_mask + dest->pDrawable->x,
+								y_dest - y_mask + dest->pDrawable->y);
+						COMPOSITE_REGION(clipped_mask_regions[k].region);
+					} else {
+						RegionTranslate(clipped_dest_regions[i].region,
+								dest->pDrawable->x,
+								dest->pDrawable->y);
+						COMPOSITE_REGION(clipped_dest_regions[i].region);
+					}
 					RegionDestroy(clipped_mask_regions[k].region);
 				}
 				free(clipped_mask_regions);
+				if (null_mask) null_mask = 0;
+				if (need_clean_mask_fbo) {
+					glamor_destroy_fbo(mask_pixmap_priv->base.fbo);
+					mask_pixmap_priv->base.fbo = NULL;
+					need_clean_mask_fbo = 0;
+				}
 			}
 			else {
 				RegionTranslate(clipped_dest_regions[i].region,
@@ -590,6 +1287,8 @@ glamor_composite_largepixmap_region(CARD8 op,
 		RegionDestroy(clipped_dest_regions[i].region);
 	}
 	free(clipped_dest_regions);
+	free(need_free_source_pixmap_priv);
+	free(need_free_mask_pixmap_priv);
 	ok = TRUE;
 	return ok;
 }

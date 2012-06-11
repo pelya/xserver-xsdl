@@ -39,13 +39,13 @@
 #define t_from_x_coord_y(_yscale_, _y_)          (1.0 - (_y_) * (_yscale_))
 #define t_from_x_coord_y_inverted(_yscale_, _y_) ((_y_) * (_yscale_))
 
-#define pixmap_priv_get_dest_scale(_pixmap_priv_, _pxscale_, _pyscale_)	\
-   do {									\
-    int w,h;								\
-    PIXMAP_PRIV_GET_ACTUAL_SIZE(_pixmap_priv_, w, h);			\
-    *(_pxscale_) = 1.0 / w;						\
-    *(_pyscale_) = 1.0 / h;						\
-  } while(0)
+#define pixmap_priv_get_dest_scale(_pixmap_priv_, _pxscale_, _pyscale_)\
+  do {                                                                 \
+    int w,h;                                                           \
+    PIXMAP_PRIV_GET_ACTUAL_SIZE(_pixmap_priv_, w, h);                  \
+    *(_pxscale_) = 1.0 / w;                                            \
+    *(_pyscale_) = 1.0 / h;                                            \
+   } while(0)
 
 #define pixmap_priv_get_scale(_pixmap_priv_, _pxscale_, _pyscale_)	\
    do {									\
@@ -108,24 +108,175 @@
       }									\
   }  while(0)
 
+#define fmod(x, w)		(x - w * floor((float)x/w))
+
+#define fmodulus(x, w, c)	do {c = fmod(x, w);		\
+				    c = c >= 0 ? c : c + w;}	\
+				while(0)
+/* @x: is current coord
+ * @x2: is the right/bottom edge
+ * @w: is current width or height
+ * @odd: is output value, 0 means we are in an even region, 1 means we are in a
+ * odd region.
+ * @c: is output value, equal to x mod w. */
+#define fodd_repeat_mod(x, x2, w, odd, c)	\
+  do {						\
+	float shift;				\
+	fmodulus((x), w, c); 			\
+	shift = fabs((x) - (c));		\
+	shift = floor(fabs(round(shift)) / w);	\
+	odd = (int)shift & 1;			\
+	if (odd && (((x2 % w) == 0) &&		\
+	    round(fabs(x)) == x2))		\
+		odd = 0;			\
+  } while(0)
+
+/* @txy: output value, is the corrected coords.
+ * @xy: input coords to be fixed up.
+ * @cd: xy mod wh, is a input value.
+ * @wh: current width or height.
+ * @bxy1,bxy2: current box edge's x1/x2 or y1/y2
+ *
+ * case 1:
+ *  ----------
+ *  |  *     |
+ *  |        |
+ *  ----------
+ *  tx = (c - x1) mod w
+ *
+ *  case 2:
+ *     ---------
+ *  *  |       |
+ *     |       |
+ *     ---------
+ *   tx = - (c - (x1 mod w))
+ *
+ *   case 3:
+ *
+ *   ----------
+ *   |        |  *
+ *   |        |
+ *   ----------
+ *   tx = ((x2 mod x) - c) + (x2 - x1)
+ **/
+#define __glamor_repeat_reflect_fixup(txy, xy,		\
+				cd, wh, bxy1, bxy2)	\
+  do {							\
+	cd = wh - cd;					\
+	if ( xy >= bxy1 && xy < bxy2) {			\
+		cd = cd - bxy1;				\
+		fmodulus(cd, wh, txy);			\
+	} else	if (xy < bxy1) {			\
+		float bxy1_mod;				\
+		fmodulus(bxy1, wh, bxy1_mod);		\
+		txy = -(cd - bxy1_mod);			\
+	}						\
+	else if (xy >= bxy2)	{			\
+		float bxy2_mod;				\
+		fmodulus(bxy2, wh, bxy2_mod);		\
+		if (bxy2_mod == 0)			\
+			bxy2_mod = wh;			\
+		txy = (bxy2_mod - cd) + bxy2 - bxy1;	\
+	} else {assert(0); txy = 0;}			\
+  } while(0)
+
+#define _glamor_repeat_reflect_fixup(txy, xy, cd, odd,	\
+				     wh, bxy1, bxy2)	\
+  do {							\
+	if (odd) {					\
+		__glamor_repeat_reflect_fixup(txy, xy, 	\
+			cd, wh, bxy1, bxy2);		\
+	} else						\
+		txy = xy - bxy1;			\
+  } while(0)
+
+#define _glamor_get_reflect_transform_coords(priv, repeat_type,	\
+					    tx1, ty1, 		\
+				            _x1_, _y1_)		\
+  do {								\
+	int odd_x, odd_y;					\
+	float c, d;						\
+	fodd_repeat_mod(_x1_,priv->box.x2,			\
+		    priv->base.pixmap->drawable.width,		\
+		    odd_x, c);					\
+	fodd_repeat_mod(_y1_,	priv->box.y2,			\
+		    priv->base.pixmap->drawable.height,		\
+		    odd_y, d);					\
+	DEBUGF("c %f d %f oddx %d oddy %d \n",			\
+		c, d, odd_x, odd_y);				\
+	DEBUGF("x2 %d x1 %d fbo->width %d \n", priv->box.x2,	\
+		priv->box.x1, priv->base.fbo->width);		\
+	DEBUGF("y2 %d y1 %d fbo->height %d \n", priv->box.y2, 	\
+		priv->box.y1, priv->base.fbo->height);		\
+	_glamor_repeat_reflect_fixup(tx1, _x1_, c, odd_x,	\
+		priv->base.pixmap->drawable.width,		\
+		priv->box.x1, priv->box.x2);			\
+	_glamor_repeat_reflect_fixup(ty1, _y1_, d, odd_y,	\
+		priv->base.pixmap->drawable.height,		\
+		priv->box.y1, priv->box.y2);			\
+   } while(0)
+
 #define _glamor_get_repeat_coords(priv, repeat_type, tx1,	\
 				  ty1, tx2, ty2,		\
 				  _x1_, _y1_, _x2_,		\
 				  _y2_, c, d, odd_x, odd_y)	\
   do {								\
 	if (repeat_type == RepeatReflect) {			\
-		assert(0);					\
+		DEBUGF("x1 y1 %d %d\n",				\
+			_x1_, _y1_ );				\
+		DEBUGF("width %d box.x1 %d \n",			\
+		       (priv)->base.pixmap->drawable.width,	\
+		       priv->box.x1);				\
+		if (odd_x) {					\
+			c = (priv)->base.pixmap->drawable.width	\
+				- c;				\
+			tx1 = c - priv->box.x1;			\
+			tx2 = tx1 - ((_x2_) - (_x1_));		\
+		} else {					\
+			tx1 = c - priv->box.x1;			\
+			tx2 = tx1 + ((_x2_) - (_x1_));		\
+		}						\
+		if (odd_y){					\
+			d = (priv)->base.pixmap->drawable.height\
+			    - d;				\
+			ty1 = d - priv->box.y1;			\
+			ty2 = ty1 - ((_y2_) - (_y1_));		\
+		} else {					\
+			ty1 = d - priv->box.y1;			\
+			ty2 = ty1 + ((_y2_) - (_y1_));		\
+		}						\
 	} else if (repeat_type == RepeatNormal) {		\
 		tx1 = (c - priv->box.x1);  			\
 		ty1 = (d - priv->box.y1);			\
 		tx2 = tx1 + ((_x2_) - (_x1_));			\
 		ty2 = ty1 + ((_y2_) - (_y1_));			\
 	} else {						\
-		assert(0);					\
+		tx1 = _x1_ - priv->box.x1;			\
+		ty1 = _y1_ - priv->box.y1;			\
+		tx2 = tx1 + ((_x2_) - (_x1_));			\
+		ty2 = ty1 + ((_y2_) - (_y1_));			\
 	}							\
    } while(0)
 
 
+/* _x1_ ... _y2_ may has fractional. */
+#define glamor_get_repeat_transform_coords(priv, repeat_type, tx1,	\
+					   ty1, _x1_, _y1_)		\
+  do {									\
+	DEBUGF("width %d box.x1 %d x2 %d y1 %d y2 %d\n",		\
+		(priv)->base.pixmap->drawable.width,			\
+		priv->box.x1, priv->box.x2, priv->box.y1,		\
+		priv->box.y2);						\
+	DEBUGF("x1 %f y1 %f \n", _x1_, _y1_);				\
+	if (repeat_type != RepeatReflect) {				\
+		tx1 = _x1_ - priv->box.x1;				\
+		ty1 = _y1_ - priv->box.y1;				\
+	} else			\
+		_glamor_get_reflect_transform_coords(priv, repeat_type, \
+				  tx1, ty1, 				\
+				  _x1_, _y1_);				\
+	DEBUGF("tx1 %f ty1 %f \n", tx1, ty1);				\
+   } while(0)
 
 /* _x1_ ... _y2_ must be integer. */
 #define glamor_get_repeat_coords(priv, repeat_type, tx1,		\
@@ -151,8 +302,6 @@
 				  _x1_, _y1_, _x2_, _y2_, c, d,		\
 				  odd_x, odd_y);			\
    } while(0)
-
-
 
 #define glamor_transform_point(matrix, tx, ty, x, y)			\
   do {									\
@@ -221,6 +370,58 @@
 				 yInverted);				\
   } while (0)
 
+#define glamor_set_repeat_transformed_normalize_tcoords( priv,		\
+							 repeat_type,	\
+							 matrix,	\
+							 xscale,	\
+							 yscale,	\
+							 _x1_, _y1_,	\
+							 _x2_, _y2_,   	\
+							 yInverted,	\
+							 texcoords)	\
+  do {									\
+    if (priv->type != GLAMOR_TEXTURE_LARGE) {				\
+	glamor_set_transformed_normalize_tcoords(priv, matrix, xscale,	\
+						 yscale, _x1_, _y1_,	\
+						 _x2_, _y2_, yInverted,	\
+						 texcoords);		\
+    } else {								\
+	/* For a large pixmap, if both transform and repeat are set,
+	 * the transform must only has x and y scale factor.*/		\
+    float tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4;			\
+    float ttx1, tty1, ttx2, tty2, ttx3, tty3, ttx4, tty4;		\
+    DEBUGF("original coords %d %d %d %d\n", _x1_, _y1_, _x2_, _y2_);	\
+    glamor_transform_point(matrix, tx1, ty1, _x1_, _y1_);		\
+    glamor_transform_point(matrix, tx2, ty2, _x2_, _y1_);		\
+    glamor_transform_point(matrix, tx3, ty3, _x2_, _y2_);		\
+    glamor_transform_point(matrix, tx4, ty4, _x1_, _y2_);		\
+    DEBUGF("transformed %f %f %f %f %f %f %f %f\n",			\
+	   tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4);			\
+    glamor_get_repeat_transform_coords((&priv->large), repeat_type, 	\
+				       ttx1, tty1, 			\
+				       tx1, ty1);			\
+    glamor_get_repeat_transform_coords((&priv->large), repeat_type, 	\
+				       ttx2, tty2, 			\
+				       tx2, ty2);			\
+    glamor_get_repeat_transform_coords((&priv->large), repeat_type, 	\
+				       ttx3, tty3, 			\
+				       tx3, ty3);			\
+    glamor_get_repeat_transform_coords((&priv->large), repeat_type, 	\
+				       ttx4, tty4, 			\
+				       tx4, ty4);			\
+    DEBUGF("repeat transformed %f %f %f %f %f %f %f %f\n", ttx1, tty1, 	\
+	    ttx2, tty2,	ttx3, tty3, ttx4, tty4);			\
+    _glamor_set_normalize_tpoint(xscale, yscale, ttx1, tty1,		\
+				 texcoords, yInverted);			\
+    _glamor_set_normalize_tpoint(xscale, yscale, ttx2, tty2,		\
+				 texcoords + 2, yInverted);		\
+    _glamor_set_normalize_tpoint(xscale, yscale, ttx3, tty3,		\
+				 texcoords + 4, yInverted);		\
+    _glamor_set_normalize_tpoint(xscale, yscale, ttx4, tty4,		\
+				 texcoords + 6, yInverted);		\
+   }									\
+  } while (0)
+
 #define _glamor_set_normalize_tcoords(xscale, yscale, tx1,		\
 				      ty1, tx2, ty2,			\
 				      yInverted, vertices)		\
@@ -260,6 +461,8 @@
      _glamor_set_normalize_tcoords(xscale, yscale, tx1, ty1,		\
 				   tx2, ty2, yInverted, vertices);	\
  } while(0)
+
+
 
 #define glamor_set_repeat_normalize_tcoords(priv, repeat_type,		\
 					    xscale, yscale,		\
@@ -480,7 +683,7 @@ format_for_pixmap(PixmapPtr pixmap)
 
 /*
  * Map picture's format to the correct gl texture format and type.
- * no_alpha is used to indicate whehter we need to wire alpha to 1. 
+ * no_alpha is used to indicate whehter we need to wire alpha to 1.
  *
  * Although opengl support A1/GL_BITMAP, we still don't use it
  * here, it seems that mesa has bugs when uploading a A1 bitmap.
@@ -899,7 +1102,7 @@ inline static Bool glamor_ddx_fallback_check_pixmap(DrawablePtr drawable)
 {
 	PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
 	glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-	return (!pixmap_priv 
+	return (!pixmap_priv
 		|| (pixmap_priv->type == GLAMOR_TEXTURE_DRM
 		    || pixmap_priv->type == GLAMOR_MEMORY
 		    || pixmap_priv->type == GLAMOR_DRM_ONLY));

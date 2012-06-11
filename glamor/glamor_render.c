@@ -955,7 +955,12 @@ glamor_set_normalize_tcoords_generic(glamor_pixmap_private *priv,
 						    yInverted,
 						    texcoords);
 	else if (matrix && repeat_type != RepeatNone)
-		assert(0);
+		glamor_set_repeat_transformed_normalize_tcoords(priv, repeat_type,
+								matrix, xscale, yscale,
+								x1, y1,
+								x2, y2,
+								yInverted,
+								texcoords);
 }
 
 static Bool
@@ -1718,9 +1723,9 @@ _glamor_composite(CARD8 op,
 		extent->x2 - extent->x1, extent->y2 - extent->y1)
 	   && (dest_pixmap_priv->type != GLAMOR_TEXTURE_LARGE)
            && ((source_pixmap_priv
-	        && source_pixmap_priv->type == GLAMOR_MEMORY)
+	        && (source_pixmap_priv->type == GLAMOR_MEMORY || source->repeatType == RepeatPad))
 	     || (mask_pixmap_priv
-		&& mask_pixmap_priv->type == GLAMOR_MEMORY)
+		&& (mask_pixmap_priv->type == GLAMOR_MEMORY || mask->repeatType == RepeatPad))
 	     || (!source_pixmap_priv
 		   && (source->pSourcePict->type != SourcePictTypeSolidFill))
 	     || (!mask_pixmap_priv && mask
@@ -1742,7 +1747,6 @@ _glamor_composite(CARD8 op,
 						   x_mask, y_mask,
 						   x_dest, y_dest,
 						   width, height);
-
 	else
 		ok = glamor_composite_clipped_region(op, source,
 						     mask, dest, &region,
