@@ -458,17 +458,18 @@ _glamor_copy_n_to_n(DrawablePtr src,
 			int n_dst_region, i, j;
 			PixmapPtr temp_source_pixmap;
 			glamor_pixmap_private *temp_source_priv = NULL;
-			int temp_dx = 0, temp_dy = 0;
 
 			RegionTranslate(&region, dst_x_off, dst_y_off);
 			if (!force_clip)
 				clipped_dst_regions = glamor_compute_clipped_regions(dst_pixmap_priv,
-										     &region, &n_dst_region, 0);
+										     &region, &n_dst_region, 0,
+										     reverse, upsidedown);
 			else
 				clipped_dst_regions = glamor_compute_clipped_regions_ext(dst_pixmap_priv,
 										         &region, &n_dst_region,
 											 glamor_priv->max_fbo_size,
-											 glamor_priv->max_fbo_size);
+											 glamor_priv->max_fbo_size,
+											 reverse, upsidedown);
 			for(i = 0; i < n_dst_region; i++)
 			{
 				int n_src_region;
@@ -484,7 +485,8 @@ _glamor_copy_n_to_n(DrawablePtr src,
 							-dst_x_off + src_x_off + dx, -dst_y_off + src_y_off + dy);
 					clipped_src_regions = glamor_compute_clipped_regions(src_pixmap_priv,
 											     clipped_dst_regions[i].region,
-											     &n_src_region, 0);
+											     &n_src_region, 0,
+											     reverse, upsidedown);
 					DEBUGF("Source is large pixmap.\n");
 					for (j = 0; j < n_src_region; j++)
 					{
@@ -507,9 +509,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 							*temp_source_priv = *src_pixmap_priv;
 							temp_source_priv->large.box = src_pixmap_priv->large.box_array[clipped_src_regions[j].block_idx];
 							temp_source_priv->base.fbo = src_pixmap_priv->large.fbo_array[clipped_src_regions[j].block_idx];
-							/* XXX need revisit here. */
-							temp_dx = dx/* - src_x_off*/;
-							temp_dy = dy/* - src_y_off*/;
+							temp_source_priv->base.pixmap = temp_source_pixmap;
 						}
 						assert(temp_source_pixmap || !(src_pixmap_priv == dst_pixmap_priv
 							&& (clipped_src_regions[j].block_idx != clipped_dst_regions[i].block_idx)));
@@ -531,8 +531,9 @@ _glamor_copy_n_to_n(DrawablePtr src,
 										  n_current_boxes, dx, dy, reverse,
 										  upsidedown, bitplane, closure);
 						else {
-							ok = __glamor_copy_n_to_n(&temp_source_pixmap->drawable, dst, gc, current_boxes,
-										  n_current_boxes, temp_dx, temp_dy, reverse,
+							ok = __glamor_copy_n_to_n(&temp_source_pixmap->drawable,
+										  dst, gc, current_boxes,
+										  n_current_boxes, dx, dy, reverse,
 										  upsidedown, bitplane, closure);
 							temp_source_priv->type = GLAMOR_MEMORY;
 							temp_source_priv->base.fbo = NULL;

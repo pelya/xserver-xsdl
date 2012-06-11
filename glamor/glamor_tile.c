@@ -242,7 +242,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 			box.y2 = y + height;
 			RegionInitBoxes(&region, &box, 1);
 			clipped_dst_regions = glamor_compute_clipped_regions(dst_pixmap_priv,
-									     &region, &n_dst_region, 0);
+									     &region, &n_dst_region, 0, 0, 0);
 			for(i = 0; i < n_dst_region; i++)
 			{
 				int n_src_region;
@@ -258,7 +258,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 					DEBUGF("tiled a large src pixmap. %dx%d \n", tile->drawable.width, tile->drawable.height);
 					clipped_src_regions = glamor_compute_clipped_regions(src_pixmap_priv,
 											     clipped_dst_regions[i].region,
-											     &n_src_region, 1);
+											     &n_src_region, 1, 0, 0);
 					DEBUGF("got %d src regions %d \n", n_src_region);
 					for (j = 0; j < n_src_region; j++)
 					{

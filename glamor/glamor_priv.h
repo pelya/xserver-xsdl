@@ -798,17 +798,21 @@ glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y,
 		      int w, int h, glamor_access_t access);
 
 glamor_pixmap_clipped_regions *
-glamor_compute_clipped_regions(glamor_pixmap_private *priv, RegionPtr region, int *clipped_nbox, int repeat_type);
+glamor_compute_clipped_regions(glamor_pixmap_private *priv, RegionPtr region,
+			       int *clipped_nbox, int repeat_type,
+			       int reverse, int upsidedown);
 
 glamor_pixmap_clipped_regions *
 glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
 				   RegionPtr region,
 				   int *n_region,
-				   int inner_block_w, int inner_block_h);
+				   int inner_block_w, int inner_block_h,
+			           int reverse, int upsidedown);
 
 glamor_pixmap_clipped_regions *
 glamor_compute_transform_clipped_regions(glamor_pixmap_private *priv, struct pixman_transform *transform,
-					 RegionPtr region, int *n_region, int dx, int dy, int repeat_type);
+					 RegionPtr region, int *n_region, int dx, int dy, int repeat_type,
+			                 int reverse, int upsidedown);
 
 Bool
 glamor_composite_largepixmap_region(CARD8 op,

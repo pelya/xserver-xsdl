@@ -715,7 +715,7 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h
 		box.x2 = x + w;
 		box.y2 = y + h;
 		RegionInitBoxes(&region, &box, 1);
-		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0);
+		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0, 0, 0);
 		DEBUGF("prepare upload %dx%d to a large pixmap %p\n", w, h, pixmap);
 		for(i = 0; i < n_region; i++)
 		{
@@ -1091,7 +1091,7 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 		box.x2 = x + w;
 		box.y2 = y + h;
 		RegionInitBoxes(&region, &box, 1);
-		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0);
+		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0, 0, 0);
 		DEBUGF("start download large pixmap %p %dx%d \n", pixmap, w, h);
 		for(i = 0; i < n_region; i++)
 		{

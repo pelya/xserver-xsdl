@@ -22,14 +22,19 @@ __glamor_compute_clipped_regions(int block_w,
 			       int x, int y,
 			       int w, int h,
                                RegionPtr region,
-                               int *n_region)
+                               int *n_region,
+			       int reverse,
+			       int upsidedown)
 {
 	glamor_pixmap_clipped_regions * clipped_regions;
 	BoxPtr extent;
 	int start_x, start_y, end_x, end_y;
 	int start_block_x, start_block_y;
 	int end_block_x, end_block_y;
-	int i, j;
+	int loop_start_block_x, loop_start_block_y;
+	int loop_end_block_x, loop_end_block_y;
+	int loop_block_stride;
+	int i, j, delta_i, delta_j;
 	int width, height;
 	RegionRec temp_region;
 	RegionPtr current_region;
@@ -66,19 +71,41 @@ __glamor_compute_clipped_regions(int block_w,
 				 * (end_block_y - start_block_y + 1),
 				 sizeof(*clipped_regions));
 
-	block_idx = (start_block_y - 1) * block_stride;
 
 	DEBUGF("startx %d starty %d endx %d endy %d \n",
 		start_x, start_y, end_x, end_y);
 	DEBUGF("start_block_x %d end_block_x %d \n", start_block_x, end_block_x);
 	DEBUGF("start_block_y %d end_block_y %d \n", start_block_y, end_block_y);
 
-	for(j = start_block_y; j <= end_block_y; j++)
+	if (!reverse) {
+		loop_start_block_x = start_block_x;
+		loop_end_block_x = end_block_x + 1;
+		delta_i = 1;
+	} else {
+		loop_start_block_x = end_block_x;
+		loop_end_block_x = start_block_x - 1;
+		delta_i = -1;
+	}
+
+	if (!upsidedown) {
+		loop_start_block_y = start_block_y;
+		loop_end_block_y = end_block_y + 1;
+		delta_j = 1;
+	} else {
+		loop_start_block_y = end_block_y;
+		loop_end_block_y = start_block_y - 1;
+		delta_j = -1;
+	}
+
+	loop_block_stride = delta_j * block_stride;
+	block_idx = (loop_start_block_y - delta_j) * block_stride;
+
+	for(j = loop_start_block_y; j != loop_end_block_y; j += delta_j)
 	{
-		block_idx += block_stride;
-		temp_block_idx = block_idx + start_block_x;
-		for(i = start_block_x;
-		    i <= end_block_x; i++, temp_block_idx++)
+		block_idx += loop_block_stride;
+		temp_block_idx = block_idx + loop_start_block_x;
+		for(i = loop_start_block_x;
+		    i != loop_end_block_x; i += delta_i, temp_block_idx += delta_i)
 		{
 			BoxRec temp_box;
 			temp_box.x1 = x + i * block_w;
@@ -123,7 +150,8 @@ glamor_pixmap_clipped_regions *
 glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
 				   RegionPtr region,
 				   int *n_region,
-				   int inner_block_w, int inner_block_h)
+				   int inner_block_w, int inner_block_h,
+				   int reverse, int upsidedown)
 {
 	glamor_pixmap_clipped_regions * clipped_regions, *inner_regions, *result_regions;
 	int i, j, x, y, k, inner_n_regions;
@@ -156,7 +184,7 @@ glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
 					0, 0,
 					priv->base.pixmap->drawable.width,
 					priv->base.pixmap->drawable.height,
-					region, n_region
+					region, n_region, reverse, upsidedown
 					);
 
 		if (clipped_regions == NULL) {
@@ -184,7 +212,7 @@ glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
 					width,
 					height,
 					clipped_regions[i].region,
-					&inner_n_regions);
+					&inner_n_regions, reverse, upsidedown);
 		for(j = 0; j < inner_n_regions; j++)
 		{
 			result_regions[k].region = inner_regions[j].region;
@@ -293,7 +321,8 @@ _glamor_largepixmap_reflect_fixup(short *xy1, short *xy2, int wh)
 static glamor_pixmap_clipped_regions *
 _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 				RegionPtr region, int *n_region,
-				int repeat_type, int is_transform)
+				int repeat_type, int is_transform,
+				int reverse, int upsidedown)
 {
 	glamor_pixmap_clipped_regions * clipped_regions;
 	BoxPtr extent;
@@ -338,7 +367,7 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 							0, 0,
 							priv->base.pixmap->drawable.width,
 							priv->base.pixmap->drawable.height,
-							region, n_region
+							region, n_region, reverse, upsidedown
 							);
 		if (saved_region)
 			RegionDestroy(region);
@@ -592,9 +621,11 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 }
 
 glamor_pixmap_clipped_regions *
-glamor_compute_clipped_regions(glamor_pixmap_private *priv, RegionPtr region, int *n_region, int repeat_type)
+glamor_compute_clipped_regions(glamor_pixmap_private *priv, RegionPtr region,
+			       int *n_region, int repeat_type,
+			       int reverse, int upsidedown)
 {
-	return _glamor_compute_clipped_regions(priv, region, n_region, repeat_type, 0);
+	return _glamor_compute_clipped_regions(priv, region, n_region, repeat_type, 0, reverse, upsidedown);
 }
 
 /* XXX overflow still exist. maybe we need to change to use region32.
@@ -602,7 +633,8 @@ glamor_compute_clipped_regions(glamor_pixmap_private *priv, RegionPtr region, in
  **/
 glamor_pixmap_clipped_regions *
 glamor_compute_transform_clipped_regions(glamor_pixmap_private *priv, struct pixman_transform *transform,
-					 RegionPtr region, int *n_region, int dx, int dy, int repeat_type)
+					 RegionPtr region, int *n_region, int dx, int dy, int repeat_type,
+					 int reverse, int upsidedown)
 {
 	BoxPtr temp_extent;
 	struct pixman_box32 temp_box;
@@ -642,7 +674,8 @@ glamor_compute_transform_clipped_regions(glamor_pixmap_private *priv, struct pix
 					      temp_region,
 					      n_region,
 					      repeat_type,
-					      1);
+					      1, reverse,
+					      upsidedown);
 	DEBUGF("n_regions = %d \n", *n_region);
 	RegionDestroy(temp_region);
 
@@ -1036,12 +1069,13 @@ glamor_composite_largepixmap_region(CARD8 op,
 									  region,
 									  &n_dest_regions,
 									  fixed_block_width,
-									  fixed_block_height);
+									  fixed_block_height,
+									  0, 0);
 	else
 		clipped_dest_regions = glamor_compute_clipped_regions(dest_pixmap_priv,
 								      region,
 								      &n_dest_regions,
-								      0);
+								      0, 0, 0);
 	DEBUGF("dest clipped result %d region: \n", n_dest_regions);
 	if (source_pixmap_priv
 	    && (source_pixmap_priv == dest_pixmap_priv || source_pixmap_priv == mask_pixmap_priv)
@@ -1066,7 +1100,8 @@ glamor_composite_largepixmap_region(CARD8 op,
 						y_source - y_dest);
 				clipped_source_regions = glamor_compute_clipped_regions(source_pixmap_priv,
 										        clipped_dest_regions[i].region,
-										        &n_source_regions, source_repeat_type);
+										        &n_source_regions, source_repeat_type,
+											0, 0);
 				is_normal_source_fbo = 1;
 			}
 			else {
@@ -1075,7 +1110,7 @@ glamor_composite_largepixmap_region(CARD8 op,
 									clipped_dest_regions[i].region,
 									&n_source_regions,
 									x_source - x_dest, y_source - y_dest,
-									source_repeat_type);
+									source_repeat_type, 0, 0);
 				is_normal_source_fbo = 0;
 				if (n_source_regions == 0) {
 					/* Pad the out-of-box region to (0,0,0,0). */
@@ -1104,7 +1139,8 @@ glamor_composite_largepixmap_region(CARD8 op,
 							- y_source + y_mask);
 						clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
 											     clipped_source_regions[j].region,
-											     &n_mask_regions, mask_repeat_type);
+											     &n_mask_regions, mask_repeat_type,
+											     0, 0);
 						is_normal_mask_fbo = 1;
 					} else if (is_normal_mask_fbo && !is_normal_source_fbo) {
 						assert(n_source_regions == 1);
@@ -1116,7 +1152,8 @@ glamor_composite_largepixmap_region(CARD8 op,
 								- y_dest + y_mask);
 						clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
 											     clipped_dest_regions[i].region,
-											     &n_mask_regions, mask_repeat_type);
+											     &n_mask_regions, mask_repeat_type,
+											     0, 0);
 						is_normal_mask_fbo = 1;
 					} else {
 						/* This mask region has transform or repeatpad, we need clip it agains the previous
@@ -1128,14 +1165,14 @@ glamor_composite_largepixmap_region(CARD8 op,
 												&n_mask_regions,
 												x_mask - x_dest,
 												y_mask - y_dest,
-												mask_repeat_type);
+												mask_repeat_type, 0, 0);
 						else
 							clipped_mask_regions = glamor_compute_transform_clipped_regions(mask_pixmap_priv,
 												mask->transform,
 												clipped_source_regions[j].region,
 												&n_mask_regions,
 												x_mask - x_source, y_mask - y_source,
-												mask_repeat_type);
+												mask_repeat_type, 0, 0);
 						is_normal_mask_fbo = 0;
 						if (n_mask_regions == 0) {
 						/* Pad the out-of-box region to (0,0,0,0). */
@@ -1234,7 +1271,7 @@ glamor_composite_largepixmap_region(CARD8 op,
 							y_mask - y_dest);
 					clipped_mask_regions = glamor_compute_clipped_regions(mask_pixmap_priv,
 								        clipped_dest_regions[i].region,
-								        &n_mask_regions, mask_repeat_type);
+								        &n_mask_regions, mask_repeat_type, 0, 0);
 					is_normal_mask_fbo = 1;
 				}
 				else {
@@ -1243,7 +1280,7 @@ glamor_composite_largepixmap_region(CARD8 op,
 										clipped_dest_regions[i].region,
 										&n_mask_regions,
 										x_mask - x_dest, y_mask - y_dest,
-										mask_repeat_type);
+										mask_repeat_type, 0, 0);
 					is_normal_mask_fbo = 0;
 					if (n_mask_regions == 0) {
 						/* Pad the out-of-box region to (0,0,0,0). */

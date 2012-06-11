@@ -273,7 +273,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 		box.x2 = x + width;
 		box.y2 = y + height;
 		RegionInitBoxes(&region, &box, 1);
-		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0);
+		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0, 0, 0);
 		for(i = 0; i < n_region; i++)
 		{
 			BoxPtr boxes;
