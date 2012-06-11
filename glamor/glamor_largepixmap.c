@@ -22,8 +22,7 @@ __glamor_compute_clipped_regions(int block_w,
 			       int x, int y,
 			       int w, int h,
                                RegionPtr region,
-                               int *n_region,
-                               int repeat)
+                               int *n_region)
 {
 	glamor_pixmap_clipped_regions * clipped_regions;
 	BoxPtr extent;
@@ -157,7 +156,7 @@ glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
 					0, 0,
 					priv->base.pixmap->drawable.width,
 					priv->base.pixmap->drawable.height,
-					region, n_region, 0
+					region, n_region
 					);
 
 		if (clipped_regions == NULL) {
@@ -185,7 +184,7 @@ glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
 					width,
 					height,
 					clipped_regions[i].region,
-					&inner_n_regions, 0);
+					&inner_n_regions);
 		for(j = 0; j < inner_n_regions; j++)
 		{
 			result_regions[k].region = inner_regions[j].region;
@@ -339,7 +338,7 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 							0, 0,
 							priv->base.pixmap->drawable.width,
 							priv->base.pixmap->drawable.height,
-							region, n_region, 0
+							region, n_region
 							);
 		if (saved_region)
 			RegionDestroy(region);
@@ -1044,14 +1043,17 @@ glamor_composite_largepixmap_region(CARD8 op,
 								      &n_dest_regions,
 								      0);
 	DEBUGF("dest clipped result %d region: \n", n_dest_regions);
-	if (source_pixmap_priv == dest_pixmap_priv
-	    && source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+	if (source_pixmap_priv
+	    && (source_pixmap_priv == dest_pixmap_priv || source_pixmap_priv == mask_pixmap_priv)
+		&& source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
 		/* XXX self-copy...*/
 		need_free_source_pixmap_priv = source_pixmap_priv;
 		source_pixmap_priv = malloc(sizeof(*source_pixmap_priv));
 		*source_pixmap_priv = *need_free_source_pixmap_priv;
 		need_free_source_pixmap_priv = source_pixmap_priv;
 	}
+	assert(mask_pixmap_priv != dest_pixmap_priv);
+
 	for(i = 0; i < n_dest_regions; i++)
 	{
 		DEBUGF("dest region %d  idx %d\n", i, clipped_dest_regions[i].block_idx);
@@ -1149,7 +1151,10 @@ glamor_composite_largepixmap_region(CARD8 op,
 #define COMPOSITE_REGION(region) do {				\
 	if (!glamor_composite_clipped_region(op,		\
 			 null_source ? NULL : source,		\
-			 null_mask ? NULL : mask, dest, region,	\
+			 null_mask ? NULL : mask, dest,		\
+			 null_source ? NULL : source_pixmap_priv, \
+			 null_mask ? NULL : mask_pixmap_priv, 	\
+			 dest_pixmap_priv, region,		\
 			 x_source, y_source, x_mask, y_mask,	\
 			 x_dest, y_dest)) {			\
 		assert(0);					\
