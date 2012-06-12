@@ -524,7 +524,8 @@ _glamor_trapezoids_with_shader(CARD8 op,
 	dest_pixmap = glamor_get_drawable_pixmap(dst->pDrawable);
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)
+	    || dest_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
 		/* Currently. Always fallback to cpu if destination is in CPU memory.*/
 		ret = FALSE;
 		DEBUGF("dst pixmap has no FBO.\n");
@@ -535,7 +536,9 @@ _glamor_trapezoids_with_shader(CARD8 op,
 		source_pixmap = glamor_get_drawable_pixmap(src->pDrawable);
 		source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
 		temp_src_priv = source_pixmap_priv;
-		if (source_pixmap_priv && source_pixmap_priv->type == GLAMOR_DRM_ONLY) {
+		if (source_pixmap_priv
+		    && (source_pixmap_priv->type == GLAMOR_DRM_ONLY
+		       || source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE)) {
 			ret = FALSE;
 			goto TRAPEZOID_OUT;
 		}
@@ -558,6 +561,11 @@ _glamor_trapezoids_with_shader(CARD8 op,
 	              source_pixmap->drawable.width * source_pixmap->drawable.height)
 	             || !glamor_check_fbo_size(glamor_priv, source_pixmap->drawable.width,
 	                     source_pixmap->drawable.height)))) {
+
+		if (!glamor_check_fbo_size(glamor_priv, src_width, src_height)) {
+			ret = FALSE;
+			goto TRAPEZOID_OUT;
+		}
 		temp_src = glamor_convert_gradient_picture(screen, src,
 		           x_src, y_src,
 		           src_width, src_height);
@@ -609,7 +617,7 @@ _glamor_trapezoids_with_shader(CARD8 op,
 	glamor_get_drawable_deltas(dst->pDrawable, dest_pixmap,
 	        &dest_x_off, &dest_y_off);
 
-	pixmap_priv_get_scale(dest_pixmap_priv, &dst_xscale, &dst_yscale);
+	pixmap_priv_get_dest_scale(dest_pixmap_priv, &dst_xscale, &dst_yscale);
 
 	if (glamor_priv->has_source_coords) {
 		source_pixmap = glamor_get_drawable_pixmap(temp_src->pDrawable);
@@ -1136,7 +1144,8 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)) { /* should always have here. */
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)
+	   || pixmap_priv->type == GLAMOR_TEXTURE_LARGE) { /* should always have here. */
 		DEBUGF("GLAMOR_PIXMAP_PRIV_HAS_FBO check failed, fallback\n");
 		return FALSE;
 	}
