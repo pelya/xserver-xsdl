@@ -479,6 +479,12 @@ typedef struct _Screen {
     Bool canDoBGNoneRoot;
 
     Bool isGPU;
+
+    struct xorg_list unattached_list;
+    struct xorg_list unattached_head;
+
+    ScreenPtr current_master;
+
 } ScreenRec;
 
 static inline RegionPtr

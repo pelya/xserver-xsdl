@@ -71,6 +71,11 @@ extern _X_EXPORT int AddGPUScreen(Bool (*pfnInit) (ScreenPtr /*pScreen */ ,
 
 extern _X_EXPORT void RemoveGPUScreen(ScreenPtr pScreen);
 
+extern _X_EXPORT void
+AttachUnboundGPU(ScreenPtr pScreen, ScreenPtr new);
+extern _X_EXPORT void
+DetachUnboundGPU(ScreenPtr unbound);
+
 typedef struct _ColormapRec *ColormapPtr;
 
 #endif                          /* SCREENINT_H */

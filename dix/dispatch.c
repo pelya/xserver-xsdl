@@ -3742,6 +3742,8 @@ static int init_screen(ScreenPtr pScreen, int i, Bool gpu)
     pScreen->ClipNotify = 0;    /* for R4 ddx compatibility */
     pScreen->CreateScreenResources = 0;
 
+    xorg_list_init(&pScreen->unattached_list);
+
     /*
      * This loop gets run once for every Screen that gets added,
      * but thats ok.  If the ddx layer initializes the formats
@@ -3889,3 +3891,21 @@ RemoveGPUScreen(ScreenPtr pScreen)
     free(pScreen);
 
 }
+
+void
+AttachUnboundGPU(ScreenPtr pScreen, ScreenPtr new)
+{
+    assert(new->isGPU);
+    assert(!new->current_master);
+    xorg_list_add(&new->unattached_head, &pScreen->unattached_list);
+    new->current_master = pScreen;
+}
+
+void
+DetachUnboundGPU(ScreenPtr slave)
+{
+    assert(slave->isGPU);
+    xorg_list_del(&slave->unattached_head);
+    slave->current_master = NULL;
+}
+
