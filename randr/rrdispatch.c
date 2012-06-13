@@ -90,7 +90,8 @@ ProcRRSelectInput(ClientPtr client)
     if (stuff->enable & (RRScreenChangeNotifyMask |
                          RRCrtcChangeNotifyMask |
                          RROutputChangeNotifyMask |
-                         RROutputPropertyNotifyMask)) {
+                         RROutputPropertyNotifyMask |
+                         RRProviderPropertyNotifyMask)) {
         ScreenPtr pScreen = pWin->drawable.pScreen;
 
         rrScrPriv(pScreen);
@@ -241,4 +242,15 @@ int (*ProcRandrVector[RRNumberRequests]) (ClientPtr) = {
         ProcRRSetPanning,       /* 29 */
         ProcRRSetOutputPrimary, /* 30 */
         ProcRRGetOutputPrimary, /* 31 */
+/* V1.4 additions */
+        ProcRRGetProviders,     /* 32 */
+        ProcRRGetProviderInfo,  /* 33 */
+        NULL, /* 34 */
+        NULL, /* 35 */
+        ProcRRListProviderProperties,    /* 36 */
+        ProcRRQueryProviderProperty,     /* 37 */
+        ProcRRConfigureProviderProperty, /* 38 */
+        ProcRRChangeProviderProperty, /* 39 */
+        ProcRRDeleteProviderProperty, /* 40 */
+        ProcRRGetProviderProperty,    /* 41 */
 };
