@@ -59,6 +59,7 @@ ProcRRGetProviders (ClientPtr client)
     unsigned int extraLen;
     RRProvider *providers;
     int total_providers = 0, count_providers = 0;
+    ScreenPtr iter;
 
     REQUEST_SIZE_MATCH(xRRGetProvidersReq);
     rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
@@ -71,6 +72,10 @@ ProcRRGetProviders (ClientPtr client)
 
     if (pScrPriv->provider)
         total_providers++;
+    xorg_list_for_each_entry(iter, &pScreen->unattached_list, unattached_head) {
+        pScrPriv = rrGetScrPriv(iter);
+        total_providers += pScrPriv->provider ? 1 : 0;
+    }
 
     pScrPriv = rrGetScrPriv(pScreen);
     rep.pad = 0;
@@ -100,6 +105,9 @@ ProcRRGetProviders (ClientPtr client)
 
         providers = (RRProvider *)extra;
         ADD_PROVIDER(pScreen);
+        xorg_list_for_each_entry(iter, &pScreen->unattached_list, unattached_head) {
+            ADD_PROVIDER(iter);
+        }
     }
 
     if (client->swapped) {
