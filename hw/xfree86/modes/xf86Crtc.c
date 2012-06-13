@@ -738,6 +738,7 @@ xf86CrtcCloseScreen(ScreenPtr screen)
     }
     xf86RandR12CloseScreen(screen);
 
+    free(config->name);
     return screen->CloseScreen(screen);
 }
 
@@ -3202,3 +3203,20 @@ xf86_crtc_supports_gamma(ScrnInfoPtr pScrn)
 
     return FALSE;
 }
+
+void
+xf86ProviderSetup(ScrnInfoPtr scrn,
+                  const xf86ProviderFuncsRec *funcs, const char *name)
+{
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+
+    assert(!xf86_config->name);
+    assert(name);
+
+    xf86_config->name = strdup(name);
+    xf86_config->provider_funcs = funcs;
+#ifdef RANDR_12_INTERFACE
+    xf86_config->randr_provider = NULL;
+#endif
+}
+

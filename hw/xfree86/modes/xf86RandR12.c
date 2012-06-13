@@ -1552,6 +1552,14 @@ xf86RandR12CreateObjects12(ScreenPtr pScreen)
             output->funcs->create_resources(output);
         RRPostPendingProperties(output->randr_output);
     }
+
+    if (config->name) {
+        config->randr_provider = RRProviderCreate(pScreen, config->name,
+                                                  strlen(config->name));
+
+        RRProviderSetCapabilities(config->randr_provider, pScrn->capabilities);
+    }
+
     return TRUE;
 }
 
@@ -1746,6 +1754,42 @@ xf86RandR12EnterVT(ScrnInfoPtr pScrn)
 }
 
 static Bool
+xf86RandR14ProviderSetProperty(ScreenPtr pScreen,
+                             RRProviderPtr randr_provider,
+                             Atom property, RRPropertyValuePtr value)
+{
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
+
+    /* If we don't have any property handler, then we don't care what the
+     * user is setting properties to.
+     */
+    if (config->provider_funcs->set_property == NULL)
+        return TRUE;
+
+    /*
+     * This function gets called even when vtSema is FALSE, as
+     * drivers will need to remember the correct value to apply
+     * when the VT switch occurs
+     */
+    return config->provider_funcs->set_property(pScrn, property, value);
+}
+
+static Bool
+xf86RandR14ProviderGetProperty(ScreenPtr pScreen,
+                               RRProviderPtr randr_provider, Atom property)
+{
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
+
+    if (config->provider_funcs->get_property == NULL)
+        return TRUE;
+
+    /* Should be safe even w/o vtSema */
+    return config->provider_funcs->get_property(pScrn, property);
+}
+
+static Bool
 xf86RandR12Init12(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
@@ -1767,6 +1811,10 @@ xf86RandR12Init12(ScreenPtr pScreen)
 #endif
     rp->rrModeDestroy = xf86RandR12ModeDestroy;
     rp->rrSetConfig = NULL;
+
+    rp->rrProviderSetProperty = xf86RandR14ProviderSetProperty;
+    rp->rrProviderGetProperty = xf86RandR14ProviderGetProperty;
+
     pScrn->PointerMoved = xf86RandR12PointerMoved;
     pScrn->ChangeGamma = xf86RandR12ChangeGamma;
 
