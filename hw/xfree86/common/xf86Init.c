@@ -920,6 +920,9 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
 #endif
     }
 
+    for (i = 0; i < xf86NumGPUScreens; i++)
+        AttachUnboundGPU(xf86Screens[0]->pScreen, xf86GPUScreens[i]->pScreen);
+
     xf86VGAarbiterWrapFunctions();
     OsReleaseSIGIO();
 
