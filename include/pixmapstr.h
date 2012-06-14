@@ -50,6 +50,7 @@ SOFTWARE.
 #include "screenint.h"
 #include "regionstr.h"
 #include "privates.h"
+#include "damage.h"
 
 typedef struct _Drawable {
     unsigned char type;         /* DRAWABLE_<type> */
@@ -83,6 +84,13 @@ typedef struct _Pixmap {
 
     PixmapPtr master_pixmap;    /* pointer to master copy of pixmap for pixmap sharing */
 } PixmapRec;
+
+typedef struct _PixmapDirtyUpdate {
+    PixmapPtr src, slave_dst;
+    int x, y;
+    DamagePtr damage;
+    struct xorg_list ent;
+} PixmapDirtyUpdateRec;
 
 static inline void
 PixmapBox(BoxPtr box, PixmapPtr pixmap)

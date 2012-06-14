@@ -505,6 +505,8 @@ typedef struct _Screen {
 
     StartPixmapTrackingProcPtr StartPixmapTracking;
     StopPixmapTrackingProcPtr StopPixmapTracking;
+
+    struct xorg_list pixmap_dirty_list;
 } ScreenRec;
 
 static inline RegionPtr

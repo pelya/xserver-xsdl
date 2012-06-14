@@ -3742,6 +3742,7 @@ static int init_screen(ScreenPtr pScreen, int i, Bool gpu)
     pScreen->ClipNotify = 0;    /* for R4 ddx compatibility */
     pScreen->CreateScreenResources = 0;
 
+    xorg_list_init(&pScreen->pixmap_dirty_list);
     xorg_list_init(&pScreen->unattached_list);
     xorg_list_init(&pScreen->output_slave_list);
 
