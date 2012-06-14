@@ -521,15 +521,24 @@ DGAChangePixmapMode(int index, int *x, int *y, int mode)
 }
 
 Bool
-DGAAvailable(int index)
+DGAScreenAvailable(ScreenPtr pScreen)
 {
     if (!DGAScreenKeyRegistered)
         return FALSE;
 
-    if (DGA_GET_SCREEN_PRIV(screenInfo.screens[index]))
+    if (DGA_GET_SCREEN_PRIV(pScreen))
         return TRUE;
-
     return FALSE;
+}
+
+Bool
+DGAAvailable(int index)
+{
+    ScreenPtr pScreen;
+
+    assert(index < MAXSCREENS);
+    pScreen = screenInfo.screens[index];
+    return DGAScreenAvailable(pScreen);
 }
 
 Bool

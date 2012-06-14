@@ -64,6 +64,7 @@ extern _X_EXPORT void
  DGASelectInput(int Index, ClientPtr client, long mask);
 
 extern _X_EXPORT Bool DGAAvailable(int Index);
+extern _X_EXPORT Bool DGAScreenAvailable(ScreenPtr pScreen);
 extern _X_EXPORT Bool DGAActive(int Index);
 extern _X_EXPORT void DGAShutdown(void);
 extern _X_EXPORT void DGAInstallCmap(ColormapPtr cmap);
