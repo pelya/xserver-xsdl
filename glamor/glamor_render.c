@@ -602,8 +602,10 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 #ifndef GLAMOR_GLES2
 	dispatch->glEnable(GL_TEXTURE_2D);
 #endif
-	/* XXX may be we can eaxctly check whether we need to touch
-	 * the out-of-box area then determine whether we need to fix.
+
+	/*
+	 *  GLES2 doesn't support RepeatNone. We need to fix it anyway.
+	 *
 	 **/
 	if (repeat_type != RepeatNone)
 		repeat_type += RepeatFix;
@@ -615,7 +617,9 @@ glamor_set_composite_texture(ScreenPtr screen, int unit,
 	}
 	if (repeat_type >= RepeatFix) {
 		glamor_pixmap_fbo_fix_wh_ratio(wh, pixmap_priv);
-		if (wh[0] != 1.0 || wh[1] != 1.0)
+		if ((wh[0] != 1.0 || wh[1] != 1.0 )
+		     || (glamor_priv->gl_flavor == GLAMOR_GL_ES2
+			  && repeat_type == RepeatFix))
 			dispatch->glUniform4fv(wh_location, 1, wh);
 		else
 			repeat_type -= RepeatFix;

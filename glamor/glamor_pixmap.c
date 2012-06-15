@@ -684,6 +684,7 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h
 	GLenum format, type;
 	int no_alpha, revert, swap_rb;
 	glamor_pixmap_private *pixmap_priv;
+	Bool force_clip;
 
 	if (glamor_get_tex_format_type_from_pixmap(pixmap,
 						   &format,
@@ -699,7 +700,10 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h
 		return FALSE;
 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
-	if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+	force_clip = pixmap_priv->base.glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP
+			&& !glamor_check_fbo_size(pixmap_priv->base.glamor_priv, w, h);
+
+	if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE || force_clip) {
 		RegionRec region;
 		BoxRec box;
 		int n_region;
@@ -715,7 +719,12 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w, int h
 		box.x2 = x + w;
 		box.y2 = y + h;
 		RegionInitBoxes(&region, &box, 1);
-		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0, 0, 0);
+		if (!force_clip)
+			clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0, 0, 0);
+		else
+			clipped_regions = glamor_compute_clipped_regions_ext(pixmap_priv, &region, &n_region,
+							pixmap_priv->base.glamor_priv->max_fbo_size,
+							pixmap_priv->base.glamor_priv->max_fbo_size, 0, 0);
 		DEBUGF("prepare upload %dx%d to a large pixmap %p\n", w, h, pixmap);
 		for(i = 0; i < n_region; i++)
 		{
@@ -1058,13 +1067,14 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 	GLenum format, type;
 	int no_alpha, revert, swap_rb;
 	glamor_pixmap_private *pixmap_priv;
+	Bool force_clip;
 
 	if (glamor_get_tex_format_type_from_pixmap(pixmap,
 						   &format,
 						   &type,
 						   &no_alpha,
 						   &revert,
-						   &swap_rb, 1)) {
+						   &swap_rb, 0)) {
 		glamor_fallback("Unknown pixmap depth %d.\n",
 				pixmap->drawable.depth);
 		return NULL;
@@ -1074,7 +1084,10 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return NULL;
 
-	if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+	force_clip = pixmap_priv->base.glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP
+			&& !glamor_check_fbo_size(pixmap_priv->base.glamor_priv, w, h);
+
+	if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE || force_clip) {
 
 		RegionRec region;
 		BoxRec box;
@@ -1091,7 +1104,14 @@ glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w, int h,
 		box.x2 = x + w;
 		box.y2 = y + h;
 		RegionInitBoxes(&region, &box, 1);
-		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0, 0, 0);
+
+		if (!force_clip)
+			clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0, 0, 0);
+		else
+			clipped_regions = glamor_compute_clipped_regions_ext(pixmap_priv, &region, &n_region,
+							pixmap_priv->base.glamor_priv->max_fbo_size,
+							pixmap_priv->base.glamor_priv->max_fbo_size, 0, 0);
+
 		DEBUGF("start download large pixmap %p %dx%d \n", pixmap, w, h);
 		for(i = 0; i < n_region; i++)
 		{
