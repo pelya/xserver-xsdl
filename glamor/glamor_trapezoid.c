@@ -38,11 +38,35 @@
 
 #ifdef GLAMOR_TRAPEZOID_SHADER
 
+#define DEBUG_CLIP_VTX 0
+
 #define POINT_INSIDE_CLIP_RECT(point, rect)	\
     (point[0] >= IntToxFixed(rect->x1)		\
      && point[0] <= IntToxFixed(rect->x2) 	\
      && point[1] >= IntToxFixed(rect->y1)	\
      && point[1] <= IntToxFixed(rect->y2))
+
+static xFixed
+_glamor_lines_crossfixedY (xLineFixed *l, xLineFixed *r)
+{
+	xFixed dx1 = l->p2.x - l->p1.x;
+	xFixed dx2 = r->p2.x - r->p1.x;
+	xFixed dy1 = l->p2.y - l->p1.y;
+	xFixed dy2 = r->p2.y - r->p1.y;
+	xFixed_32_32 tmp = (xFixed_32_32) dy2 * dy1;
+	xFixed_32_32 dividend1 = (tmp >> 32) * (l->p1.x - r->p1.x);
+	tmp = (xFixed_32_32) dx1 * dy2;
+	xFixed_32_32 dividend2 = (tmp >> 32) * l->p1.y;
+	tmp = (xFixed_32_32) dy1 * dx2;
+	xFixed_32_32 dividend3 = (tmp >> 32) * r->p1.y;
+	xFixed_32_32 divisor = ((xFixed_32_32) dx1 * (xFixed_32_32) dy2
+	                           - (xFixed_32_32) dy1 * (xFixed_32_32) dx2) >> 32;
+
+	if (divisor)
+		return (xFixed)((dividend2 - dividend1 - dividend3) / divisor);
+
+	return 0xFFFFFFFF;
+}
 
 static xFixed
 _glamor_linefixedX (xLineFixed *l, xFixed y, Bool ceil)
@@ -67,21 +91,85 @@ _glamor_linefixedY (xLineFixed *l, xFixed x, Bool ceil)
 }
 
 static Bool
-point_inside_trapezoid(int point[2], xTrapezoid * trap)
+point_inside_trapezoid(int point[2], xTrapezoid * trap, xFixed cut_y)
 {
 	int ret = TRUE;
 	int tmp;
-	if (point[1] > trap->bottom
-	     || point[1] < trap->top)
+	if (point[1] > trap->bottom) {
 		ret = FALSE;
+		if (DEBUG_CLIP_VTX) {
+			ErrorF("Out of Trap bottom, point[1] = %d(0x%x)), "
+			       "bottom = %d(0x%x)\n",
+			       (unsigned int)xFixedToInt(point[1]), point[1],
+			       (unsigned int)xFixedToInt(trap->bottom),
+			       (unsigned int)trap->bottom);
+		}
+
+		return ret;
+	}
+
+	if (point[1] < trap->top) {
+		ret = FALSE;
+		if (DEBUG_CLIP_VTX) {
+			ErrorF("Out of Trap top, point[1] = %d(0x%x)), "
+			     "top = %d(0x%x)\n",
+			     (unsigned int)xFixedToInt(point[1]), point[1],
+			     (unsigned int)xFixedToInt(trap->top),
+			     (unsigned int)trap->top);
+		}
+
+		return ret;
+	}
 
 	tmp = _glamor_linefixedX (&trap->left, point[1], FALSE);
-	if (point[0] < tmp)
+	if (point[0] < tmp) {
 		ret = FALSE;
 
+		if (abs(cut_y - trap->top) < pixman_fixed_1_minus_e &&
+		           abs(point[1] - trap->top) < pixman_fixed_1_minus_e &&
+		           tmp - point[0] < pixman_fixed_1_minus_e) {
+			ret = TRUE;
+		} else if (abs(cut_y - trap->bottom) < pixman_fixed_1_minus_e &&
+		           point[1] - trap->bottom < pixman_fixed_1_minus_e &&
+		           tmp - point[0] < pixman_fixed_1_minus_e) {
+			ret = TRUE;
+		}
+
+		if (DEBUG_CLIP_VTX && !ret) {
+			ErrorF("Out of Trap left, point[0] = %d(0x%x)), "
+			       "left = %d(0x%x)\n",
+			       (unsigned int)xFixedToInt(point[0]), point[0],
+			       (unsigned int)xFixedToInt(tmp), (unsigned int)tmp);
+		}
+
+		if (!ret)
+			return ret;
+	}
+
 	tmp = _glamor_linefixedX (&trap->right, point[1], TRUE);
-	if (point[0] > tmp)
+	if (point[0] > tmp) {
 		ret = FALSE;
+
+		if (abs(cut_y - trap->top) < pixman_fixed_1_minus_e &&
+		           abs(point[1] - trap->top) < pixman_fixed_1_minus_e &&
+		           point[0] - tmp < pixman_fixed_1_minus_e) {
+			ret = TRUE;
+		} else if (abs(cut_y - trap->bottom) < pixman_fixed_1_minus_e &&
+		           abs(point[1] - trap->bottom) < pixman_fixed_1_minus_e &&
+		           point[0] - tmp < pixman_fixed_1_minus_e) {
+			ret = TRUE;
+		}
+
+		if (DEBUG_CLIP_VTX && !ret) {
+			ErrorF("Out of Trap right, point[0] = %d(0x%x)), "
+			       "right = %d(0x%x)\n",
+			       (unsigned int)xFixedToInt(point[0]), point[0],
+			       (unsigned int)xFixedToInt(tmp), (unsigned int)tmp);
+		}
+
+		if (!ret)
+			return ret;
+	}
 
 	return ret;
 }
@@ -125,12 +213,11 @@ glamor_flush_composite_triangles(ScreenPtr screen)
 	glamor_put_dispatch(glamor_priv);
 }
 
-#define DEBUG_CLIP_VTX 0
-
 static Bool
 _glamor_clip_trapezoid_vertex(xTrapezoid * trap, BoxPtr pbox,
         int vertex[6], int *num)
 {
+	xFixed edge_cross_y = 0xFFFFFFFF;
 	int tl[2];
 	int bl[2];
 	int tr[2];
@@ -217,7 +304,7 @@ _glamor_clip_trapezoid_vertex(xTrapezoid * trap, BoxPtr pbox,
 
 #define ADD_VERTEX_IF_INSIDE(vtx)				\
 	if(POINT_INSIDE_CLIP_RECT(vtx, pbox)			\
-	   && point_inside_trapezoid(vtx, trap)){		\
+	   && point_inside_trapezoid(vtx, trap, edge_cross_y)){	\
 	    tmp_vtx[vertex_num] = xFixedToInt(vtx[0]);		\
 	    tmp_vtx[vertex_num + 1] = xFixedToInt(vtx[1]);	\
 	    vertex_num += 2;					\
@@ -237,6 +324,18 @@ _glamor_clip_trapezoid_vertex(xTrapezoid * trap, BoxPtr pbox,
 	    else						\
 		ErrorF("The Point is outside "			\
 		       "the Rect\n");				\
+	}
+
+	/*Trap's right edge cut right edge. */
+	if((!IS_TRAP_EDGE_VERTICAL((&trap->left))) ||
+	        (!IS_TRAP_EDGE_VERTICAL((&trap->right)))) {
+		edge_cross_y = _glamor_lines_crossfixedY((&trap->left), (&trap->right));
+		if (DEBUG_CLIP_VTX) {
+			ErrorF("Trap's left edge cut right edge at %d(0x%x), "
+			       "trap_top = %x, trap_bottom = %x\n",
+			       xFixedToInt(edge_cross_y), edge_cross_y,
+			       (unsigned int)trap->top, (unsigned int)trap->bottom);
+		}
 	}
 
 	/*Trap's TopLeft, BottomLeft, TopRight and BottomRight. */
