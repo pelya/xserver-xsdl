@@ -226,6 +226,7 @@ glamor_glyph_cache_upload_glyph(ScreenPtr screen,
 	PixmapPtr pGlyphPixmap = (PixmapPtr) pGlyphPicture->pDrawable;
 	PixmapPtr pCachePixmap = (PixmapPtr) cache->picture->pDrawable;
 	PixmapPtr scratch;
+	BoxRec box;
 	GCPtr gc;
 
 	gc = GetScratchGC(pCachePixmap->drawable.depth, screen);
@@ -236,54 +237,51 @@ glamor_glyph_cache_upload_glyph(ScreenPtr screen,
 
 	scratch = pGlyphPixmap;
 	if (pGlyphPixmap->drawable.depth != pCachePixmap->drawable.depth) {
+
 		scratch = glamor_create_pixmap(screen,
 					       glyph->info.width,
 					       glyph->info.height,
 					       pCachePixmap->
 					       drawable.depth, 0);
 		if (scratch) {
-			if (pGlyphPixmap->drawable.depth !=
-			    pCachePixmap->drawable.depth) {
-				PicturePtr picture;
-				int error;
+			PicturePtr picture;
+			int error;
 
-				picture =
-				    CreatePicture(0,
-						  &scratch->drawable,
-						  PictureMatchFormat
-						  (screen,
-						   pCachePixmap->
-						   drawable.depth,
-						   cache->picture->format),
-						  0, NULL, serverClient,
-						  &error);
-				if (picture) {
-					ValidatePicture(picture);
-					glamor_composite(PictOpSrc,
-						      pGlyphPicture,
-						      NULL, picture,
-						      0, 0, 0, 0, 0,
-						      0,
-						      glyph->info.width,
-						      glyph->info.height);
-					FreePicture(picture, 0);
-				}
-			} else {
-				glamor_copy_area(&pGlyphPixmap->drawable,
-						 &scratch->drawable,
-						 gc, 0, 0,
-						 glyph->info.width,
-						 glyph->info.height, 0, 0);
+			picture =
+			    CreatePicture(0,
+					  &scratch->drawable,
+					  PictureMatchFormat
+					  (screen,
+					   pCachePixmap->
+				   drawable.depth,
+				   cache->picture->format),
+					  0, NULL, serverClient,
+				  &error);
+			if (picture) {
+				ValidatePicture(picture);
+				glamor_composite(PictOpSrc,
+					      pGlyphPicture,
+					      NULL, picture,
+					      0, 0, 0, 0, 0,
+					      0,
+				      glyph->info.width,
+					      glyph->info.height);
+				FreePicture(picture, 0);
 			}
 		} else {
 			scratch = pGlyphPixmap;
 		}
 	}
 
-	(*gc->ops->CopyArea)(&scratch->drawable, &pCachePixmap->drawable, gc,
-			     0, 0, glyph->info.width, glyph->info.height, x,
-			     y);
-
+	box.x1 = x;
+	box.y1 = y;
+	box.x2 = x + glyph->info.width;
+	box.y2 = y + glyph->info.height;
+	glamor_copy_n_to_n_nf(&scratch->drawable,
+			    &pCachePixmap->drawable, NULL,
+			    &box, 1,
+			    -x, -y,
+			    FALSE, FALSE, 0, NULL);
 	if (scratch != pGlyphPixmap)
 		screen->DestroyPixmap(scratch);
 
@@ -550,11 +548,13 @@ glamor_glyph_cache(ScreenPtr screen, GlyphPtr glyph, int *out_x,
 	*out_y = priv->y;
 	return cache->picture;
 }
+typedef void (*glyphs_flush)(void * arg);
 
 static glamor_glyph_cache_result_t
 glamor_buffer_glyph(ScreenPtr screen,
 		    glamor_glyph_buffer_t * buffer,
-		    GlyphPtr glyph, int x_glyph, int y_glyph)
+		    GlyphPtr glyph, int x_glyph, int y_glyph,
+		    glyphs_flush glyphs_flush, void *flush_arg)
 {
 	glamor_screen_private *glamor_screen =
 	    glamor_get_screen_private(screen);
@@ -573,11 +573,18 @@ glamor_buffer_glyph(ScreenPtr screen,
 	    &glamor_screen->glyphCaches[PICT_FORMAT_RGB
 					(glyph_picture->format) != 0];
 
-	if (buffer->source && buffer->source != cache->picture)
-		return GLAMOR_GLYPH_NEED_FLUSH;
+	if (buffer->source
+	    && buffer->source != cache->picture
+	    && glyphs_flush) {
+		(*glyphs_flush)(flush_arg);
+		glyphs_flush = NULL;
+	}
 
-	if (buffer->count == GLYPH_BUFFER_SIZE)
-		return GLAMOR_GLYPH_NEED_FLUSH;
+	if (buffer->count == GLYPH_BUFFER_SIZE
+	    && glyphs_flush) {
+		(*glyphs_flush)(flush_arg);
+		glyphs_flush = NULL;
+	}
 
 	priv = glamor_glyph_get_private(glyph);
 
@@ -588,6 +595,8 @@ glamor_buffer_glyph(ScreenPtr screen,
 		if (buffer->source == NULL)
 			buffer->source = priv->cache->picture;
 	} else {
+		if (glyphs_flush)
+			(*glyphs_flush)(flush_arg);
 		source = glamor_glyph_cache(screen, glyph, &x, &y);
 		if (source != NULL) {
 			rect = &buffer->rects[buffer->count++];
@@ -597,8 +606,10 @@ glamor_buffer_glyph(ScreenPtr screen,
 				buffer->source = source;
 		} else {
 			source = GlyphPicture(glyph)[screen->myNum];
-			if (buffer->source && buffer->source != source)
-				return GLAMOR_GLYPH_NEED_FLUSH;
+			if (buffer->source
+			    && buffer->source != source
+			    && glyphs_flush)
+				(*glyphs_flush)(flush_arg);
 			buffer->source = source;
 
 			rect = &buffer->rects[buffer->count++];
@@ -617,16 +628,22 @@ glamor_buffer_glyph(ScreenPtr screen,
 	return GLAMOR_GLYPH_SUCCESS;
 }
 
+struct glyphs_flush_mask_arg {
+	PicturePtr mask;
+	glamor_glyph_buffer_t *buffer;
+};
 
 static void
-glamor_glyphs_flush_mask(PicturePtr mask, glamor_glyph_buffer_t * buffer)
+glamor_glyphs_flush_mask(struct glyphs_flush_mask_arg *arg)
 {
 #ifdef RENDER
-	glamor_composite_glyph_rects(PictOpAdd, buffer->source, NULL, mask,
-				     buffer->count, buffer->rects);
+	glamor_composite_glyph_rects(PictOpAdd, arg->buffer->source,
+				     NULL, arg->mask,
+				     arg->buffer->count,
+				     arg->buffer->rects);
 #endif
-	buffer->count = 0;
-	buffer->source = NULL;
+	arg->buffer->count = 0;
+	arg->buffer->source = NULL;
 }
 
 static void
@@ -651,7 +668,7 @@ glamor_glyphs_via_mask(CARD8 op,
 	XID component_alpha;
 	glamor_glyph_buffer_t buffer;
 	xRectangle fill_rect;
-
+	struct glyphs_flush_mask_arg arg;
 	GCPtr gc;
 
 	glamor_glyph_extents(nlist, list, glyphs, &extents);
@@ -704,18 +721,21 @@ glamor_glyphs_via_mask(CARD8 op,
 		n = list->len;
 		while (n--) {
 			glyph = *glyphs++;
-
 			if (glyph->info.width > 0
-			    && glyph->info.height > 0
-			    && glamor_buffer_glyph(screen, &buffer,
-						   glyph, x,
-						   y) ==
-			    GLAMOR_GLYPH_NEED_FLUSH) {
-
-				glamor_glyphs_flush_mask(mask, &buffer);
+			    && glyph->info.height > 0) {
+				glyphs_flush flush_func;
+				if (buffer.count) {
+					arg.mask = mask;
+					arg.buffer = &buffer;
+					flush_func = (glyphs_flush)glamor_glyphs_flush_mask;
+				}
+				else
+					flush_func = NULL;
 
 				glamor_buffer_glyph(screen, &buffer,
-						    glyph, x, y);
+						    glyph, x, y,
+						    flush_func,
+						    (void*)&arg);
 			}
 
 			x += glyph->info.xOff;
@@ -724,8 +744,11 @@ glamor_glyphs_via_mask(CARD8 op,
 		list++;
 	}
 
-	if (buffer.count)
-		glamor_glyphs_flush_mask(mask, &buffer);
+	if (buffer.count) {
+		arg.mask = mask;
+		arg.buffer = &buffer;
+		glamor_glyphs_flush_mask(&arg);
+	}
 
 	x = extents.x1;
 	y = extents.y1;
@@ -739,27 +762,36 @@ glamor_glyphs_via_mask(CARD8 op,
 	screen->DestroyPixmap(mask_pixmap);
 }
 
+struct glyphs_flush_dst_arg {
+	CARD8 op;
+	PicturePtr src;
+	PicturePtr dst;
+	glamor_glyph_buffer_t * buffer;
+	INT16 x_src;
+	INT16 y_src;
+	INT16 x_dst;
+	INT16 y_dst;
+};
+
 static void
-glamor_glyphs_flush_dst(CARD8 op,
-			PicturePtr src,
-			PicturePtr dst,
-			glamor_glyph_buffer_t * buffer,
-			INT16 x_src, INT16 y_src, INT16 x_dst, INT16 y_dst)
+glamor_glyphs_flush_dst(struct glyphs_flush_dst_arg * arg)
 {
 	int i;
-	glamor_composite_rect_t *rect = &buffer->rects[0];
-	for (i = 0; i < buffer->count; i++, rect++) {
+	glamor_composite_rect_t *rect = &arg->buffer->rects[0];
+	for (i = 0; i < arg->buffer->count; i++, rect++) {
 		rect->x_mask = rect->x_src;
 		rect->y_mask = rect->y_src;
-		rect->x_src = x_src + rect->x_dst - x_dst;
-		rect->y_src = y_src + rect->y_dst - y_dst;
+		rect->x_src = arg->x_src + rect->x_dst - arg->x_dst;
+		rect->y_src = arg->y_src + rect->y_dst - arg->y_dst;
 	}
 
-	glamor_composite_glyph_rects(op, src, buffer->source, dst,
-			       buffer->count, &buffer->rects[0]);
+	glamor_composite_glyph_rects(arg->op, arg->src,
+				arg->buffer->source, arg->dst,
+				arg->buffer->count,
+				&arg->buffer->rects[0]);
 
-	buffer->count = 0;
-	buffer->source = NULL;
+	arg->buffer->count = 0;
+	arg->buffer->source = NULL;
 }
 
 static void
@@ -776,6 +808,7 @@ glamor_glyphs_to_dst(CARD8 op,
 	int n;
 	GlyphPtr glyph;
 	glamor_glyph_buffer_t buffer;
+	struct glyphs_flush_dst_arg arg;
 
 	buffer.count = 0;
 	buffer.source = NULL;
@@ -787,17 +820,28 @@ glamor_glyphs_to_dst(CARD8 op,
 			glyph = *glyphs++;
 
 			if (glyph->info.width > 0
-			    && glyph->info.height > 0
-			    && glamor_buffer_glyph(screen, &buffer,
-						   glyph, x,
-						   y) ==
-			    GLAMOR_GLYPH_NEED_FLUSH) {
-				glamor_glyphs_flush_dst(op, src, dst,
-							&buffer, x_src,
-							y_src, x_dst,
-							y_dst);
-				glamor_buffer_glyph(screen, &buffer,
-						    glyph, x, y);
+			    && glyph->info.height > 0) {
+				glyphs_flush flush_func;
+
+				if (buffer.count) {
+					arg.op = op;
+					arg.src = src;
+					arg.dst = dst;
+					arg.buffer = &buffer;
+					arg.x_src = x_src;
+					arg.y_src = y_src;
+					arg.x_dst = x_dst;
+					arg.y_dst = y_dst;
+					flush_func = (glyphs_flush)glamor_glyphs_flush_dst;
+				} else
+					flush_func = NULL;
+
+				glamor_buffer_glyph(screen,
+						    &buffer,
+						    glyph, x, y,
+						    flush_func,
+						    (void*)&arg);
+
 			}
 
 			x += glyph->info.xOff;
@@ -806,9 +850,17 @@ glamor_glyphs_to_dst(CARD8 op,
 		list++;
 	}
 
-	if (buffer.count)
-		glamor_glyphs_flush_dst(op, src, dst, &buffer,
-					x_src, y_src, x_dst, y_dst);
+	if (buffer.count) {
+		arg.op = op;
+		arg.src = src;
+		arg.dst = dst;
+		arg.buffer = &buffer;
+		arg.x_src = x_src;
+		arg.y_src = y_src;
+		arg.x_dst = x_dst;
+		arg.y_dst = y_dst;
+		glamor_glyphs_flush_dst(&arg);
+	}
 }
 
 static Bool
