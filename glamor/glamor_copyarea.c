@@ -398,8 +398,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	RegionRec region;
 	ScreenPtr screen;
 	int src_x_off, src_y_off, dst_x_off, dst_y_off;
-	Bool ret = FALSE;
-	int ok = TRUE;
+	Bool ok = TRUE;
 	int force_clip = 0;
 
 	if (nbox == 0)
@@ -423,10 +422,11 @@ _glamor_copy_n_to_n(DrawablePtr src,
 
 	if (gc) {
 		if (!glamor_set_planemask(dst_pixmap, gc->planemask))
-			goto fail;
+			goto fall_back;
 		dispatch = glamor_get_dispatch(glamor_priv);
 		if (!glamor_set_alu(dispatch, gc->alu)) {
 			glamor_put_dispatch(glamor_priv);
+			ok = FALSE;
 			goto fail;
 		}
 		glamor_put_dispatch(glamor_priv);
@@ -499,8 +499,10 @@ _glamor_copy_n_to_n(DrawablePtr src,
 							 * it. It's a little hacky, but avoid extra copy. */
 							temp_source_pixmap = glamor_create_pixmap(src->pScreen, 0, 0,
 												  src->depth, 0);
-							if (!temp_source_pixmap)
+							if (!temp_source_pixmap) {
+								ok = FALSE;
 								goto fail;
+							}
 							src->pScreen->ModifyPixmapHeader(temp_source_pixmap,
 										      src_pixmap->drawable.width,
 										      src_pixmap->drawable.height,
@@ -619,12 +621,12 @@ fall_back:
 		}
 		glamor_finish_access(dst, GLAMOR_ACCESS_RW);
 	}
-	ret = TRUE;
+	ok = TRUE;
 
       done:
 	glamor_clear_delayed_fallbacks(src->pScreen);
 	glamor_clear_delayed_fallbacks(dst->pScreen);
-	return ret;
+	return ok;
 }
 
 RegionPtr
