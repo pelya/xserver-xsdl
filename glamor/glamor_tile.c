@@ -124,7 +124,7 @@ _glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	GLfloat dst_xscale, dst_yscale, src_xscale, src_yscale;
 	glamor_pixmap_private *src_pixmap_priv;
 	glamor_pixmap_private *dst_pixmap_priv;
-	float wh[2];
+	float wh[4];
 	src_pixmap_priv = glamor_get_pixmap_private(tile);
 	dst_pixmap_priv = glamor_get_pixmap_private(pixmap);
 
