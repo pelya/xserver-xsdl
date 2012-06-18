@@ -3228,3 +3228,23 @@ xf86ProviderSetup(ScrnInfoPtr scrn,
 #endif
 }
 
+void
+xf86DetachAllCrtc(ScrnInfoPtr scrn)
+{
+        xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+        int i;
+
+        for (i = 0; i < xf86_config->num_crtc; i++) {
+            xf86CrtcPtr crtc = xf86_config->crtc[i];
+
+            if (crtc->randr_crtc)
+                RRCrtcDetachScanoutPixmap(crtc->randr_crtc);
+
+            /* dpms off */
+            (*crtc->funcs->dpms) (crtc, DPMSModeOff);
+            /* force a reset the next time its used */
+            crtc->randr_crtc->mode = NULL;
+            crtc->mode.HDisplay = 0;
+            crtc->x = crtc->y = 0;
+        }
+}

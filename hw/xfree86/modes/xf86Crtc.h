@@ -1014,4 +1014,7 @@ extern _X_EXPORT void
 xf86ProviderSetup(ScrnInfoPtr scrn,
                   const xf86ProviderFuncsRec * funcs, const char *name);
 
+extern _X_EXPORT void
+xf86DetachAllCrtc(ScrnInfoPtr scrn);
+
 #endif                          /* _XF86CRTC_H_ */
