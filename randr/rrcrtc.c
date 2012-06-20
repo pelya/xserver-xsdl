@@ -367,6 +367,154 @@ RRComputeContiguity(ScreenPtr pScreen)
     pScrPriv->discontiguous = discontiguous;
 }
 
+void
+RRCrtcDetachScanoutPixmap(RRCrtcPtr crtc)
+{
+    ScreenPtr master = crtc->pScreen->current_master;
+    int ret;
+    PixmapPtr mscreenpix;
+    rrScrPriv(crtc->pScreen);
+
+    mscreenpix = master->GetScreenPixmap(master);
+
+    ret = pScrPriv->rrCrtcSetScanoutPixmap(crtc, NULL);
+    if (crtc->scanout_pixmap) {
+        master->StopPixmapTracking(mscreenpix, crtc->scanout_pixmap);
+        master->DestroyPixmap(crtc->scanout_pixmap->master_pixmap);
+        crtc->pScreen->DestroyPixmap(crtc->scanout_pixmap);
+    }
+    crtc->scanout_pixmap = NULL;
+    RRCrtcChanged(crtc, TRUE);
+}
+
+static Bool
+rrCreateSharedPixmap(RRCrtcPtr crtc, int width, int height,
+                     int x, int y)
+{
+    PixmapPtr mpix, spix;
+    ScreenPtr master = crtc->pScreen->current_master;
+    Bool ret;
+    int depth;
+    PixmapPtr mscreenpix;
+    PixmapPtr protopix = crtc->pScreen->current_master->GetScreenPixmap(crtc->pScreen->current_master);
+    rrScrPriv(crtc->pScreen);
+
+    /* create a pixmap on the master screen,
+       then get a shared handle for it
+       create a shared pixmap on the slave screen using the handle
+       set the master screen to do dirty updates to the shared pixmap
+       from the screen pixmap.
+       set slave screen to scanout shared linear pixmap
+    */
+
+    mscreenpix = master->GetScreenPixmap(master);
+    depth = protopix->drawable.depth;
+
+    if (crtc->scanout_pixmap)
+        RRCrtcDetachScanoutPixmap(crtc);
+
+    if (width == 0 && height == 0) {
+        return TRUE;
+    }
+
+    mpix = master->CreatePixmap(master, width, height, depth,
+                                CREATE_PIXMAP_USAGE_SHARED);
+    if (!mpix)
+        return FALSE;
+
+    spix = PixmapShareToSlave(mpix, crtc->pScreen);
+    if (spix == NULL) {
+        master->DestroyPixmap(mpix);
+        return FALSE;
+    }
+
+    ret = pScrPriv->rrCrtcSetScanoutPixmap(crtc, spix);
+    if (ret == FALSE) {
+        ErrorF("failed to set shadow slave pixmap\n");
+        return FALSE;
+    }
+
+    crtc->scanout_pixmap = spix;
+
+    master->StartPixmapTracking(mscreenpix, spix, x, y);
+    return TRUE;
+}
+
+static Bool
+rrCheckPixmapBounding(ScreenPtr pScreen,
+                      RRCrtcPtr rr_crtc, int x, int y, int w, int h)
+{
+    RegionRec root_pixmap_region, total_region, new_crtc_region;
+    int i, c;
+    BoxRec newbox;
+    BoxPtr newsize;
+    ScreenPtr slave;
+    int new_width, new_height;
+    PixmapPtr screen_pixmap = pScreen->GetScreenPixmap(pScreen);
+    rrScrPriv(pScreen);
+
+    PixmapRegionInit(&root_pixmap_region, screen_pixmap);
+    RegionInit(&total_region, NULL, 0);
+
+    /* have to iterate all the crtcs of the attached gpu masters
+       and all their output slaves */
+    for (c = 0; c < pScrPriv->numCrtcs; c++) {
+        if (pScrPriv->crtcs[c] == rr_crtc) {
+            newbox.x1 = x;
+            newbox.x2 = x + w;
+            newbox.y1 = y;
+            newbox.y2 = y + h;
+        } else {
+            if (!pScrPriv->crtcs[c]->mode)
+                continue;
+            newbox.x1 = pScrPriv->crtcs[c]->x;
+            newbox.x2 = pScrPriv->crtcs[c]->x + pScrPriv->crtcs[c]->mode->mode.width;
+            newbox.y1 = pScrPriv->crtcs[c]->y;
+            newbox.y2 = pScrPriv->crtcs[c]->y + pScrPriv->crtcs[c]->mode->mode.height;
+        }
+        RegionInit(&new_crtc_region, &newbox, 1);
+        RegionUnion(&total_region, &total_region, &new_crtc_region);
+    }
+
+    xorg_list_for_each_entry(slave, &pScreen->output_slave_list, output_head) {
+        rrScrPriv(slave);
+        for (c = 0; c < pScrPriv->numCrtcs; c++)
+            if (pScrPriv->crtcs[c] == rr_crtc) {
+                newbox.x1 = x;
+                newbox.x2 = x + w;
+                newbox.y1 = y;
+                newbox.y2 = y + h;
+            }
+            else {
+                if (!pScrPriv->crtcs[c]->mode)
+                    continue;
+                newbox.x1 = pScrPriv->crtcs[c]->x;
+                newbox.x2 = pScrPriv->crtcs[c]->x + pScrPriv->crtcs[c]->mode->mode.width;
+                newbox.y1 = pScrPriv->crtcs[c]->y;
+                newbox.y2 = pScrPriv->crtcs[c]->y + pScrPriv->crtcs[c]->mode->mode.height;
+            }
+        RegionInit(&new_crtc_region, &newbox, 1);
+        RegionUnion(&total_region, &total_region, &new_crtc_region);
+    }
+
+    newsize = RegionExtents(&total_region);
+    new_width = newsize->x2 - newsize->x1;
+    new_height = newsize->y2 - newsize->y1;
+
+    if (new_width == screen_pixmap->drawable.width &&
+        new_height == screen_pixmap->drawable.height) {
+        ErrorF("adjust shatters %d %d\n", newsize->x1, newsize->x2);
+    } else {
+        int ret;
+        rrScrPriv(pScreen);
+        ret = pScrPriv->rrScreenSetSize(pScreen,
+                                           new_width, new_height, 0, 0);
+    }
+
+    /* set shatters TODO */
+    return TRUE;
+}
+
 /*
  * Request that the Crtc be reconfigured
  */
@@ -394,6 +542,26 @@ RRCrtcSet(RRCrtcPtr crtc,
         ret = TRUE;
     }
     else {
+        if (pScreen->isGPU) {
+            ScreenPtr master = pScreen->current_master;
+            int width = 0, height = 0;
+
+            if (mode) {
+                width = mode->mode.width;
+                height = mode->mode.height;
+            }
+            ErrorF("have a master to look out for\n");
+            ret = rrCheckPixmapBounding(master, crtc,
+                                        x, y, width, height);
+            if (!ret)
+                return FALSE;
+
+            if (pScreen->current_master) {
+                ret = rrCreateSharedPixmap(crtc, width, height, x, y);
+                ErrorF("need to create shared pixmap %d", ret);
+
+            }
+        }
 #if RANDR_12_INTERFACE
         if (pScrPriv->rrCrtcSet) {
             ret = (*pScrPriv->rrCrtcSet) (pScreen, crtc, mode, x, y,
@@ -508,6 +676,9 @@ RRCrtcDestroyResource(pointer value, XID pid)
             }
         }
     }
+
+    if (crtc->scanout_pixmap)
+        RRCrtcDetachScanoutPixmap(crtc);
     free(crtc->gammaRed);
     if (crtc->mode)
         RRModeDestroy(crtc->mode);

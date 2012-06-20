@@ -109,4 +109,7 @@ extern _X_EXPORT PixmapPtr AllocatePixmap(ScreenPtr /*pScreen */ ,
 
 extern _X_EXPORT void FreePixmap(PixmapPtr /*pPixmap */ );
 
+extern _X_EXPORT PixmapPtr
+PixmapShareToSlave(PixmapPtr pixmap, ScreenPtr slave);
+
 #endif                          /* PIXMAP_H */

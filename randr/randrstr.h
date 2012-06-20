@@ -127,6 +127,8 @@ struct _rrCrtc {
     PictTransform transform;
     struct pict_f_transform f_transform;
     struct pict_f_transform f_inverse;
+
+    PixmapPtr scanout_pixmap;
 };
 
 struct _rrOutput {
@@ -242,6 +244,8 @@ typedef Bool (*RRSetConfigProcPtr) (ScreenPtr pScreen,
 
 #endif
 
+typedef Bool (*RRCrtcSetScanoutPixmapProcPtr)(RRCrtcPtr crtc, PixmapPtr pixmap);
+
 typedef struct _rrScrPriv {
     /*
      * 'public' part of the structure; DDXen fill this in
@@ -265,6 +269,8 @@ typedef struct _rrScrPriv {
     RRGetPanningProcPtr rrGetPanning;
     RRSetPanningProcPtr rrSetPanning;
 #endif
+    /* TODO #if RANDR_15_INTERFACE */
+    RRCrtcSetScanoutPixmapProcPtr rrCrtcSetScanoutPixmap;
 
     RRProviderGetPropertyProcPtr rrProviderGetProperty;
     RRProviderSetPropertyProcPtr rrProviderSetProperty;
@@ -647,6 +653,12 @@ extern _X_EXPORT Bool
  */
 extern _X_EXPORT void
  RRCrtcInitErrorValue(void);
+
+/*
+ * Detach and free a scanout pixmap
+ */
+extern _X_EXPORT void
+ RRCrtcDetachScanoutPixmap(RRCrtcPtr crtc);
 
 /*
  * Crtc dispatch
