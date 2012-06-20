@@ -576,7 +576,7 @@ mieqProcessInputEvents(void)
 {
     EventRec *e = NULL;
     ScreenPtr screen;
-    static InternalEvent event;
+    InternalEvent event;
     DeviceIntPtr dev = NULL, master = NULL;
     size_t n_enqueued;
 
