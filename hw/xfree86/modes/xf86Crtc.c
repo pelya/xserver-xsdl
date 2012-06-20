@@ -734,6 +734,9 @@ xf86CrtcCloseScreen(ScreenPtr screen)
     for (c = 0; c < config->num_crtc; c++) {
         xf86CrtcPtr crtc = config->crtc[c];
 
+        if (crtc->randr_crtc->scanout_pixmap)
+            RRCrtcDetachScanoutPixmap(crtc->randr_crtc);
+
         crtc->randr_crtc = NULL;
     }
     /* detach any providers */

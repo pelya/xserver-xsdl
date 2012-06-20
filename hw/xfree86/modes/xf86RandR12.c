@@ -1790,6 +1790,15 @@ xf86RandR14ProviderGetProperty(ScreenPtr pScreen,
 }
 
 static Bool
+xf86CrtcSetScanoutPixmap(RRCrtcPtr randr_crtc, PixmapPtr pixmap)
+{
+    xf86CrtcPtr crtc = randr_crtc->devPrivate;
+    if (!crtc->funcs->set_scanout_pixmap)
+        return FALSE;
+    return crtc->funcs->set_scanout_pixmap(crtc, pixmap);
+}
+
+static Bool
 xf86RandR12Init12(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
@@ -1814,6 +1823,7 @@ xf86RandR12Init12(ScreenPtr pScreen)
 
     rp->rrProviderSetProperty = xf86RandR14ProviderSetProperty;
     rp->rrProviderGetProperty = xf86RandR14ProviderGetProperty;
+    rp->rrCrtcSetScanoutPixmap = xf86CrtcSetScanoutPixmap;
 
     pScrn->PointerMoved = xf86RandR12PointerMoved;
     pScrn->ChangeGamma = xf86RandR12ChangeGamma;
