@@ -553,8 +553,9 @@ glamor_pixmap_destroy_fbo(glamor_pixmap_private *priv)
 		fbo = glamor_pixmap_detach_fbo(priv);
 		if (fbo)
 			glamor_destroy_fbo(fbo);
-		free(priv);
 	}
+
+	free(priv);
 }
 
 Bool
