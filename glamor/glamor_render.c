@@ -996,7 +996,8 @@ Bool glamor_composite_choose_shader(CARD8 op,
 							   &source_solid_color[2],
 							   &source_solid_color[3],
 							   PICT_a8r8g8b8);
-		}
+		} else
+			goto fail;
 	} else {
 		key.source = SHADER_SOURCE_TEXTURE_ALPHA;
 	}
@@ -1012,7 +1013,8 @@ Bool glamor_composite_choose_shader(CARD8 op,
 				     &mask_solid_color[1],
 				     &mask_solid_color[2],
 				     &mask_solid_color[3], PICT_a8r8g8b8);
-			}
+			} else
+				goto fail;
 		} else {
 			key.mask = SHADER_MASK_TEXTURE_ALPHA;
 		}
@@ -1921,6 +1923,7 @@ glamor_composite_glyph_rects(CARD8 op,
 {
 	int n;
 	glamor_composite_rect_t *r;
+	Bool ok;
 
 	ValidatePicture(src);
 	ValidatePicture(dst);
@@ -1936,10 +1939,29 @@ glamor_composite_glyph_rects(CARD8 op,
 			mask_pixmap_priv = glamor_get_pixmap_private(glamor_get_drawable_pixmap(mask->pDrawable));
 		if (src->pDrawable)
 			src_pixmap_priv = glamor_get_pixmap_private(glamor_get_drawable_pixmap(src->pDrawable));
-		if (glamor_composite_with_shader(op, src, mask, dst, src_pixmap_priv,
+
+		if (mask && mask->componentAlpha) {
+			if (op == PictOpOver) {
+				ok = glamor_composite_with_shader(PictOpOutReverse,
+						 src, mask, dst, src_pixmap_priv,
+						 mask_pixmap_priv, dst_pixmap_priv, nrect, rects);
+				if (!ok)
+					goto fallback;
+				ok |= glamor_composite_with_shader(PictOpAdd,
+						 src, mask, dst, src_pixmap_priv,
+						 mask_pixmap_priv, dst_pixmap_priv, nrect, rects);
+				if (ok)
+					return;
+				assert(0);
+			}
+		} else {
+				if (glamor_composite_with_shader(op, src, mask, dst, src_pixmap_priv,
 						 mask_pixmap_priv, dst_pixmap_priv, nrect, rects))
 			return;
+		}
 	}
+
+fallback:
 	n = nrect;
 	r = rects;
 
