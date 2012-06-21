@@ -1732,6 +1732,30 @@ static inline void glamor_compare_pictures( ScreenPtr screen,
 	return;
 }
 
+#ifdef __i386__
+static inline unsigned long __fls(unsigned long x)
+{
+        asm("bsr %1,%0"
+            : "=r" (x)
+            : "rm" (x));
+        return x;
+}
+#else
+static inline unsigned long __fls(unsigned long x)
+{
+   int n;
+
+   if (x == 0) return(0);
+   n = 0;
+   if (x <= 0x0000FFFF) {n = n +16; x = x <<16;}
+   if (x <= 0x00FFFFFF) {n = n + 8; x = x << 8;}
+   if (x <= 0x0FFFFFFF) {n = n + 4; x = x << 4;}
+   if (x <= 0x3FFFFFFF) {n = n + 2; x = x << 2;}
+   if (x <= 0x7FFFFFFF) {n = n + 1;}
+   return 31 - n;
+}
+#endif
+
 static inline void glamor_make_current(ScreenPtr screen)
 {
 	glamor_egl_make_current(screen);

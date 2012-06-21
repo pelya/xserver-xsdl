@@ -971,5 +971,7 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 #if 0
 #define MAX_FBO_SIZE 32 /* For test purpose only. */
 #endif
+//#define GLYPHS_NO_EDEGEMAP_OVERLAP_CHECK
+#define GLYPHS_EDEGE_OVERLAP_LOOSE_CHECK
 
 #endif				/* GLAMOR_PRIV_H */
