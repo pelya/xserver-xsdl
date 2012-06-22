@@ -259,26 +259,13 @@ xf86RemoveSIGIOHandler(int fd)
 int
 xf86BlockSIGIO(void)
 {
-    sigset_t set, old;
-    int ret;
-
-    sigemptyset(&set);
-    sigaddset(&set, SIGIO);
-    sigprocmask(SIG_BLOCK, &set, &old);
-    ret = sigismember(&old, SIGIO);
-    return ret;
+    return OsBlockSIGIO();
 }
 
 void
 xf86UnblockSIGIO(int wasset)
 {
-    sigset_t set;
-
-    if (!wasset) {
-        sigemptyset(&set);
-        sigaddset(&set, SIGIO);
-        sigprocmask(SIG_UNBLOCK, &set, NULL);
-    }
+    OsReleaseSIGIO();
 }
 
 void
