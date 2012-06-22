@@ -546,7 +546,8 @@ ProcRRSetOutputPrimary(ClientPtr client)
     }
 
     pScrPriv = rrGetScrPriv(pWin->drawable.pScreen);
-    RRSetPrimaryOutput(pWin->drawable.pScreen, pScrPriv, output);
+    if (pScrPriv)
+        RRSetPrimaryOutput(pWin->drawable.pScreen, pScrPriv, output);
 
     return Success;
 }
