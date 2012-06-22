@@ -215,9 +215,20 @@ static Bool probe_hw_pci(char *dev, struct pci_device *pdev)
 {
     int fd = open_hw(dev);
     char *id, *devid;
+    drmSetVersion sv;
 
     if (fd == -1)
 	return FALSE;
+
+    sv.drm_di_major = 1;
+    sv.drm_di_minor = 4;
+    sv.drm_dd_major = -1;
+    sv.drm_dd_minor = -1;
+    if (drmSetInterfaceVersion(fd, &sv)) {
+        close(fd);
+        return FALSE;
+    }
+
 
     id = drmGetBusid(fd);
     devid = ms_DRICreatePCIBusID(pdev);
