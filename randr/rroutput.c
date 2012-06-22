@@ -528,13 +528,13 @@ ProcRRSetOutputPrimary(ClientPtr client)
     RROutputPtr output = NULL;
     WindowPtr pWin;
     rrScrPrivPtr pScrPriv;
-    int rc;
+    int ret;
 
     REQUEST_SIZE_MATCH(xRRSetOutputPrimaryReq);
 
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
-    if (rc != Success)
-        return rc;
+    ret = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
+    if (ret != Success)
+        return ret;
 
     if (stuff->output) {
         VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
