@@ -463,13 +463,16 @@ TouchEventHistoryPush(TouchPointInfoPtr ti, const DeviceEvent *ev)
 void
 TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID resource)
 {
-    InternalEvent *tel = InitEventList(GetMaximumEventsNum());
-    ValuatorMask *mask = valuator_mask_new(0);
+    InternalEvent *tel;
+    ValuatorMask *mask;
     int i, nev;
     int flags;
 
     if (!ti->history)
         return;
+
+    tel = InitEventList(GetMaximumEventsNum());
+    mask = valuator_mask_new(0);
 
     valuator_mask_set_double(mask, 0, ti->history[0].valuators.data[0]);
     valuator_mask_set_double(mask, 1, ti->history[0].valuators.data[1]);
