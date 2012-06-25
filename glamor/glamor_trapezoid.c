@@ -701,12 +701,13 @@ _glamor_trapezoids_with_shader(CARD8 op,
 
 	ret = glamor_composite_choose_shader(op, temp_src, NULL, dst,
 					     temp_src_priv, NULL, dest_pixmap_priv,
-					     &key, &saved_source_format);
+					     &key, &shader, &op_info, &saved_source_format);
 	if (ret == FALSE) {
 		DEBUGF("can not set the shader program for composite\n");
 		goto TRAPEZOID_RESET_GL;
 	}
-
+	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
+	glamor_composite_set_shader_blend(dest_pixmap_priv, &key, shader, op_info);
 	glamor_priv->has_source_coords = key.source != SHADER_SOURCE_SOLID;
 	glamor_priv->has_mask_coords = (key.mask != SHADER_MASK_NONE &&
 	        key.mask != SHADER_MASK_SOLID);

@@ -72,6 +72,7 @@
 #define xorg_list_init list_init
 #endif
 
+struct glamor_pixmap_private;
 
 typedef struct glamor_composite_shader {
 	GLuint prog;
@@ -84,25 +85,22 @@ typedef struct glamor_composite_shader {
 	GLint mask_wh;
 	GLint source_repeat_mode;
 	GLint mask_repeat_mode;
+	union {
+		float source_solid_color[4];
+		struct {
+			struct glamor_pixmap_private *source_priv;
+			PicturePtr source;
+		};
+	};
+
+	union {
+		float mask_solid_color[4];
+		struct {
+			struct glamor_pixmap_private *mask_priv;
+			PicturePtr mask;
+		};
+	};
 } glamor_composite_shader;
-
-typedef struct {
-	INT16 x_src;
-	INT16 y_src;
-	INT16 x_mask;
-	INT16 y_mask;
-	INT16 x_dst;
-	INT16 y_dst;
-	INT16 width;
-	INT16 height;
-} glamor_composite_rect_t;
-
-
-enum glamor_vertex_type {
-	GLAMOR_VERTEX_POS,
-	GLAMOR_VERTEX_SOURCE,
-	GLAMOR_VERTEX_MASK
-};
 
 enum shader_source {
 	SHADER_SOURCE_SOLID,
@@ -132,6 +130,32 @@ struct shader_key {
 	enum shader_mask mask;
 	enum shader_in in;
 };
+
+struct blendinfo {
+	Bool dest_alpha;
+	Bool source_alpha;
+	GLenum source_blend;
+	GLenum dest_blend;
+};
+
+typedef struct {
+	INT16 x_src;
+	INT16 y_src;
+	INT16 x_mask;
+	INT16 y_mask;
+	INT16 x_dst;
+	INT16 y_dst;
+	INT16 width;
+	INT16 height;
+} glamor_composite_rect_t;
+
+
+enum glamor_vertex_type {
+	GLAMOR_VERTEX_POS,
+	GLAMOR_VERTEX_SOURCE,
+	GLAMOR_VERTEX_MASK
+};
+
 
 enum gradient_shader {
 	SHADER_GRADIENT_LINEAR,
@@ -463,7 +487,6 @@ typedef enum glamor_pixmap_status {
 	GLAMOR_UPLOAD_FAILED
 } glamor_pixmap_status_t;
 
-
 extern DevPrivateKey glamor_screen_private_key;
 extern DevPrivateKey glamor_pixmap_private_key;
 static inline glamor_screen_private *
@@ -716,6 +739,7 @@ PicturePtr glamor_convert_gradient_picture(ScreenPtr screen,
                                            PicturePtr source,
                                            int x_source,
                                            int y_source, int width, int height);
+
 Bool glamor_composite_choose_shader(CARD8 op,
                                     PicturePtr source,
                                     PicturePtr mask,
@@ -724,7 +748,16 @@ Bool glamor_composite_choose_shader(CARD8 op,
 			     	    glamor_pixmap_private *mask_pixmap_priv,
 			     	    glamor_pixmap_private *dest_pixmap_priv,
                                     struct shader_key *s_key,
+				    glamor_composite_shader **shader, 
+				    struct blendinfo *op_info,
                                     PictFormatShort *psaved_source_format);
+
+void
+glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
+				  struct shader_key *key,
+				  glamor_composite_shader *shader,
+				  struct blendinfo *op_info);
+
 void glamor_setup_composite_vbo(ScreenPtr screen, int n_verts);
 void glamor_emit_composite_vert(ScreenPtr screen,
                                 const float *src_coords,
