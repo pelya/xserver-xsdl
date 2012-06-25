@@ -167,6 +167,7 @@ ScrnInfoPtr
 xf86AllocateScreen(DriverPtr drv, int flags)
 {
     int i;
+    ScrnInfoPtr pScrn;
 
     if (xf86Screens == NULL)
         xf86NumScreens = 0;
@@ -174,22 +175,22 @@ xf86AllocateScreen(DriverPtr drv, int flags)
     i = xf86NumScreens++;
     xf86Screens = xnfrealloc(xf86Screens, xf86NumScreens * sizeof(ScrnInfoPtr));
     xf86Screens[i] = xnfcalloc(sizeof(ScrnInfoRec), 1);
-    xf86Screens[i]->scrnIndex = i;      /* Changes when a screen is removed */
-    xf86Screens[i]->origIndex = i;      /* This never changes */
-    xf86Screens[i]->privates = xnfcalloc(sizeof(DevUnion),
-                                         xf86ScrnInfoPrivateCount);
+    pScrn = xf86Screens[i];
+    pScrn->scrnIndex = i;      /* Changes when a screen is removed */
+    pScrn->origIndex = i;      /* This never changes */
+    pScrn->privates = xnfcalloc(sizeof(DevUnion), xf86ScrnInfoPrivateCount);
     /*
      * EnableDisableFBAccess now gets initialized in InitOutput()
-     * xf86Screens[i]->EnableDisableFBAccess = xf86EnableDisableFBAccess;
+     * pScrn->EnableDisableFBAccess = xf86EnableDisableFBAccess;
      */
 
-    xf86Screens[i]->drv = drv;
+    pScrn->drv = drv;
     drv->refCount++;
-    xf86Screens[i]->module = DuplicateModule(drv->module, NULL);
+    pScrn->module = DuplicateModule(drv->module, NULL);
 
-    xf86Screens[i]->DriverFunc = drv->driverFunc;
+    pScrn->DriverFunc = drv->driverFunc;
 
-    return xf86Screens[i];
+    return pScrn;
 }
 
 /*
