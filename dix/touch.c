@@ -160,10 +160,12 @@ TouchBeginDDXTouch(DeviceIntPtr dev, uint32_t ddx_id)
     int i;
     TouchClassPtr t = dev->touch;
     DDXTouchPointInfoPtr ti = NULL;
-    Bool emulate_pointer = (t->mode == XIDirectTouch);
+    Bool emulate_pointer;
 
     if (!t)
         return NULL;
+
+    emulate_pointer = (t->mode == XIDirectTouch);
 
     /* Look for another active touchpoint with the same DDX ID. DDX
      * touchpoints must be unique. */
