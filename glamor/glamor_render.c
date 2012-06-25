@@ -1916,12 +1916,48 @@ glamor_composite_nf(CARD8 op,
 				 FALSE);
 }
 
+static void
+glamor_get_src_rect_extent(int nrect,
+			   glamor_composite_rect_t *rects,
+			   BoxPtr extent)
+{
+	extent->x1 = MAXSHORT;
+	extent->y1 = MAXSHORT;
+	extent->x2 = MINSHORT;
+	extent->y2 = MINSHORT;
+
+	while(nrect--) {
+		if (extent->x1 > rects->x_src)
+			extent->x1 = rects->x_src;
+		if (extent->y1 > rects->y_src)
+			extent->y1 = rects->y_src;
+		if (extent->x2 < rects->x_src + rects->width)
+			extent->x2 = rects->x_src + rects->width;
+		if (extent->y2 < rects->y_src + rects->height)
+			extent->y2 = rects->y_src + rects->height;
+		rects++;
+	}
+}
+
+static void
+glamor_composite_src_rect_translate(int nrect,
+				    glamor_composite_rect_t *rects,
+				    int x, int y)
+{
+	while(nrect--) {
+		rects->x_src += x;
+		rects->y_src += y;
+		rects++;
+	}
+}
+
 void
 glamor_composite_glyph_rects(CARD8 op,
 			     PicturePtr src, PicturePtr mask, PicturePtr dst,
 			     int nrect, glamor_composite_rect_t * rects)
 {
 	int n;
+	PicturePtr temp_src = NULL;
 	glamor_composite_rect_t *r;
 	Bool ok;
 
@@ -1933,33 +1969,61 @@ glamor_composite_glyph_rects(CARD8 op,
 		glamor_pixmap_private *src_pixmap_priv = NULL;
 		glamor_pixmap_private *mask_pixmap_priv = NULL;
 		glamor_pixmap_private *dst_pixmap_priv;
+		glamor_pixmap_private *temp_src_priv = NULL;
+		BoxRec src_extent;
 
-		dst_pixmap_priv = glamor_get_pixmap_private(glamor_get_drawable_pixmap(dst->pDrawable));
+		dst_pixmap_priv = glamor_get_pixmap_private
+					(glamor_get_drawable_pixmap(dst->pDrawable));
+
 		if (mask && mask->pDrawable)
-			mask_pixmap_priv = glamor_get_pixmap_private(glamor_get_drawable_pixmap(mask->pDrawable));
+			mask_pixmap_priv = glamor_get_pixmap_private
+						(glamor_get_drawable_pixmap(mask->pDrawable));
 		if (src->pDrawable)
-			src_pixmap_priv = glamor_get_pixmap_private(glamor_get_drawable_pixmap(src->pDrawable));
+			src_pixmap_priv = glamor_get_pixmap_private
+						(glamor_get_drawable_pixmap(src->pDrawable));
+
+		if (!src->pDrawable
+		    && (src->pSourcePict->type != SourcePictTypeSolidFill)) {
+			glamor_get_src_rect_extent(nrect, rects, &src_extent);
+			temp_src = glamor_convert_gradient_picture(dst->pDrawable->pScreen,
+						    src,
+						    src_extent.x1, src_extent.y1,
+						    src_extent.x2 - src_extent.x1,
+						    src_extent.y2 - src_extent.y1);
+			if (!temp_src)
+				goto fallback;
+
+			temp_src_priv = glamor_get_pixmap_private
+						((PixmapPtr)(temp_src->pDrawable));
+			glamor_composite_src_rect_translate(nrect, rects,
+							-src_extent.x1, -src_extent.y1);
+		} else {
+			temp_src = src;
+			temp_src_priv = src_pixmap_priv;
+		}
 
 		if (mask && mask->componentAlpha) {
 			if (op == PictOpOver) {
 				ok = glamor_composite_with_shader(PictOpOutReverse,
-						 src, mask, dst, src_pixmap_priv,
+						 temp_src, mask, dst, temp_src_priv,
 						 mask_pixmap_priv, dst_pixmap_priv, nrect, rects);
-				if (!ok)
+				if (!ok) {
 					goto fallback;
+				}
 				ok |= glamor_composite_with_shader(PictOpAdd,
-						 src, mask, dst, src_pixmap_priv,
+						 temp_src, mask, dst, temp_src_priv,
 						 mask_pixmap_priv, dst_pixmap_priv, nrect, rects);
 				if (ok)
-					return;
+					goto done;
 				assert(0);
 			}
 		} else {
-				if (glamor_composite_with_shader(op, src, mask, dst, src_pixmap_priv,
+				if (glamor_composite_with_shader(op, temp_src, mask, dst, temp_src_priv,
 						 mask_pixmap_priv, dst_pixmap_priv, nrect, rects))
-			return;
+					goto done;
 		}
 	}
+
 
 fallback:
 	n = nrect;
@@ -1967,7 +2031,7 @@ fallback:
 
 	while (n--) {
 		CompositePicture(op,
-				 src,
+				 temp_src ? temp_src : src,
 				 mask,
 				 dst,
 				 r->x_src, r->y_src,
@@ -1975,6 +2039,10 @@ fallback:
 				 r->x_dst, r->y_dst, r->width, r->height);
 		r++;
 	}
+
+done:
+	if (temp_src && temp_src != src)
+		FreePicture(temp_src, 0);
 }
 
 static Bool
