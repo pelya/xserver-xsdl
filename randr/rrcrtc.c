@@ -1641,3 +1641,61 @@ RRConstrainCursorHarder(DeviceIntPtr pDev, ScreenPtr pScreen, int mode, int *x,
             return;
     }
 }
+
+Bool
+RRReplaceScanoutPixmap(DrawablePtr pDrawable, PixmapPtr pPixmap, Bool enable)
+{
+    rrScrPriv(pDrawable->pScreen);
+    int i;
+    Bool size_fits = FALSE;
+    Bool changed = FALSE;
+    Bool ret = TRUE;
+
+    for (i = 0; i < pScrPriv->numCrtcs; i++) {
+        RRCrtcPtr crtc = pScrPriv->crtcs[i];
+
+        if (!crtc->mode && enable)
+            continue;
+
+        changed = FALSE;
+        if (crtc->mode && crtc->x == pDrawable->x &&
+            crtc->y == pDrawable->y &&
+            crtc->mode->mode.width == pDrawable->width &&
+            crtc->mode->mode.height == pDrawable->height)
+            size_fits = TRUE;
+
+        /* is the pixmap already set? */
+        if (crtc->scanout_pixmap == pPixmap) {
+            /* if its a disable then don't care about size */
+            if (enable == FALSE) {
+                /* set scanout to NULL */
+                crtc->scanout_pixmap = NULL;
+                changed = TRUE;
+            } else {
+                /* if the size fits then we are already setup */
+                if (size_fits)
+                    return TRUE;
+                /* if the size no longer fits then drop off */
+                crtc->scanout_pixmap = NULL;
+                changed = TRUE;
+                ret = FALSE;
+            }
+        } else {
+            if (!size_fits)
+                return FALSE;
+            if (enable) {
+                crtc->scanout_pixmap = pPixmap;
+                pScrPriv->rrCrtcSetScanoutPixmap(crtc, pPixmap);
+                changed = TRUE;
+            }
+        }
+
+        if (changed && pScrPriv->rrCrtcSet) {
+            pScrPriv->rrCrtcSetScanoutPixmap(crtc, crtc->scanout_pixmap);
+
+            (*pScrPriv->rrCrtcSet) (pDrawable->pScreen, crtc, crtc->mode, crtc->x, crtc->y,
+                                    crtc->rotation, crtc->numOutputs, crtc->outputs);
+        }
+    }
+    return ret;
+}

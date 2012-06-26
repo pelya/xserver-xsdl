@@ -673,6 +673,9 @@ extern _X_EXPORT void
 extern _X_EXPORT void
  RRCrtcDetachScanoutPixmap(RRCrtcPtr crtc);
 
+extern _X_EXPORT Bool
+ RRReplaceScanoutPixmap(DrawablePtr pDrawable, PixmapPtr pPixmap, Bool enable);
+
 /*
  * Crtc dispatch
  */

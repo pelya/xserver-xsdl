@@ -324,7 +324,7 @@ RRScreenInit(ScreenPtr pScreen)
     wrap(pScrPriv, pScreen, CloseScreen, RRCloseScreen);
 
     pScreen->ConstrainCursorHarder = RRConstrainCursorHarder;
-
+    pScreen->ReplaceScanoutPixmap = RRReplaceScanoutPixmap;
     pScrPriv->numOutputs = 0;
     pScrPriv->outputs = NULL;
     pScrPriv->numCrtcs = 0;

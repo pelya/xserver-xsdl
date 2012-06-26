@@ -351,6 +351,8 @@ typedef Bool (*StartPixmapTrackingProcPtr)(PixmapPtr, PixmapPtr,
 
 typedef Bool (*StopPixmapTrackingProcPtr)(PixmapPtr, PixmapPtr);
 
+typedef Bool (*ReplaceScanoutPixmapProcPtr)(DrawablePtr, PixmapPtr, Bool);
+
 typedef struct _Screen {
     int myNum;                  /* index of this instance in Screens[] */
     ATOM id;
@@ -510,6 +512,7 @@ typedef struct _Screen {
     struct xorg_list offload_slave_list;
     struct xorg_list offload_head;
 
+    ReplaceScanoutPixmapProcPtr ReplaceScanoutPixmap;
 } ScreenRec;
 
 static inline RegionPtr
