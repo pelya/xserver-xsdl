@@ -497,7 +497,11 @@ ready_to_upload:
 	if (no_alpha == 0
 	    && revert == REVERT_NONE
 	    && swap_rb == SWAP_NONE_UPLOADING
-	    && !need_flip) {
+	    && !need_flip
+#ifdef WALKAROUND_LARGE_TEXTURE_MAP
+	    && pixmap_priv->type != GLAMOR_TEXTURE_LARGE
+#endif
+		) {
 		int fbo_x_off, fbo_y_off;
 		assert(pixmap_priv->base.fbo->tex);
 		pixmap_priv_get_fbo_off(pixmap_priv, &fbo_x_off, &fbo_y_off);

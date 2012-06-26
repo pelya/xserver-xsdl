@@ -1001,6 +1001,7 @@ glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 //#define GLAMOR_TRAPEZOID_SHADER
 #endif
 #define GLAMOR_TEXTURED_LARGE_PIXMAP 1
+#define WALKAROUND_LARGE_TEXTURE_MAP
 #if 0
 #define MAX_FBO_SIZE 32 /* For test purpose only. */
 #endif
