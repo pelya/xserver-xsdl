@@ -398,7 +398,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	RegionRec region;
 	ScreenPtr screen;
 	int src_x_off, src_y_off, dst_x_off, dst_y_off;
-	Bool ok = TRUE;
+	Bool ok = FALSE;
 	int force_clip = 0;
 
 	if (nbox == 0)
@@ -426,7 +426,6 @@ _glamor_copy_n_to_n(DrawablePtr src,
 		dispatch = glamor_get_dispatch(glamor_priv);
 		if (!glamor_set_alu(dispatch, gc->alu)) {
 			glamor_put_dispatch(glamor_priv);
-			ok = FALSE;
 			goto fail;
 		}
 		glamor_put_dispatch(glamor_priv);
@@ -549,6 +548,9 @@ _glamor_copy_n_to_n(DrawablePtr src,
 							goto fail;
 						}
 					}
+
+					if (n_src_region == 0)
+						ok = TRUE;
 					free(clipped_src_regions);
 				} else {
 					RegionTranslate(clipped_dst_regions[i].region,
@@ -571,6 +573,8 @@ _glamor_copy_n_to_n(DrawablePtr src,
 				}
 				RegionDestroy(clipped_dst_regions[i].region);
 			}
+		if (n_dst_region == 0)
+			ok = TRUE;
 		free(clipped_dst_regions);
 		RegionUninit(&region);
 	} else {
