@@ -59,7 +59,7 @@
 
 #define PIXMAP_PRIV_GET_ACTUAL_SIZE(priv, w, h)			\
   do {								\
-	if (priv->type == GLAMOR_TEXTURE_LARGE) {		\
+	if (unlikely(priv->type == GLAMOR_TEXTURE_LARGE)) {		\
 		w = priv->large.box.x2 - priv->large.box.x1;	\
 		h = priv->large.box.y2 - priv->large.box.y1;	\
 	} else {						\
@@ -80,8 +80,8 @@
 
 #define pixmap_priv_get_fbo_off(_priv_, _xoff_, _yoff_)		\
    do {								\
-	if (_priv_ && (_priv_)->type				\
-		== GLAMOR_TEXTURE_LARGE) {			\
+	if (unlikely(_priv_ && (_priv_)->type				\
+		== GLAMOR_TEXTURE_LARGE)) {			\
 		*(_xoff_) = - (_priv_)->large.box.x1;	\
 		*(_yoff_) = - (_priv_)->large.box.y1;	\
 	} else {						\
@@ -316,7 +316,7 @@
 				     texcoord, yInverted)		\
   do {									\
 	(texcoord)[0] = t_from_x_coord_x(xscale, _tx_);			\
-	if (yInverted)							\
+	if (likely(yInverted))						\
 		(texcoord)[1] = t_from_x_coord_y_inverted(yscale, _ty_);\
 	else								\
 		(texcoord)[1] = t_from_x_coord_y(yscale, _ty_);		\
@@ -339,7 +339,7 @@
     tx += fbo_x_off;							\
     ty += fbo_y_off;							\
     (texcoord)[0] = t_from_x_coord_x(xscale, tx);			\
-    if (yInverted)							\
+    if (likely(yInverted))							\
       (texcoord)[1] = t_from_x_coord_y_inverted(yscale, ty);		\
     else								\
       (texcoord)[1] = t_from_x_coord_y(yscale, ty);			\
@@ -436,14 +436,12 @@
 							 texcoords,	\
 							 stride)	\
   do {									\
-    if (priv->type != GLAMOR_TEXTURE_LARGE) {				\
+    if (likely(priv->type != GLAMOR_TEXTURE_LARGE)) {			\
 	glamor_set_transformed_normalize_tcoords_ext(priv, matrix, xscale,	\
 						 yscale, _x1_, _y1_,	\
 						 _x2_, _y2_, yInverted,	\
 						 texcoords, stride);	\
     } else {								\
-	/* For a large pixmap, if both transform and repeat are set,
-	 * the transform must only has x and y scale factor.*/		\
     float tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4;			\
     float ttx1, tty1, ttx2, tty2, ttx3, tty3, ttx4, tty4;		\
     DEBUGF("original coords %d %d %d %d\n", _x1_, _y1_, _x2_, _y2_);	\
@@ -512,7 +510,7 @@
     (vertices)[1 * stride] = _t2_ = t_from_x_coord_x(xscale, tx2);	\
     (vertices)[2 * stride] = _t2_;					\
     (vertices)[3 * stride] = _t0_;					\
-    if (yInverted) {							\
+    if (likely(yInverted)) {							\
       (vertices)[1] = _t1_ = t_from_x_coord_y_inverted(yscale, ty1);	\
       (vertices)[2 * stride + 1] = _t5_ = t_from_x_coord_y_inverted(yscale, ty2);\
     }									\
@@ -528,7 +526,7 @@
 				     x1, y1, x2, y2,			\
                                      yInverted, vertices, stride)	\
   do {									\
-     if (priv->type == GLAMOR_TEXTURE_LARGE) {				\
+     if (unlikely(priv->type == GLAMOR_TEXTURE_LARGE)) {				\
 	float tx1, tx2, ty1, ty2;					\
 	int fbo_x_off, fbo_y_off;					\
 	pixmap_priv_get_fbo_off(priv, &fbo_x_off, &fbo_y_off);		\
@@ -559,7 +557,7 @@
 					    _x1_, _y1_, _x2_, _y2_,	\
 	                                    yInverted, vertices, stride)\
   do {									\
-     if (priv->type == GLAMOR_TEXTURE_LARGE) {				\
+     if (unlikely(priv->type == GLAMOR_TEXTURE_LARGE)) {				\
 	float tx1, tx2, ty1, ty2;					\
 	if (repeat_type == RepeatPad) {					\
 		tx1 = _x1_ - priv->large.box.x1;			\
@@ -600,7 +598,7 @@
 	(vertices)[2] = t_from_x_coord_x(xscale, x2);			\
 	(vertices)[6] = (vertices)[2];					\
 	(vertices)[4] = (vertices)[0];					\
-	if (yInverted) {						\
+	if (likely(yInverted)) {						\
 	    (vertices)[1] = t_from_x_coord_y_inverted(yscale, y1);	\
 	    (vertices)[7] = t_from_x_coord_y_inverted(yscale, y2);	\
 	}								\
@@ -619,7 +617,7 @@
 	(vertices)[2] = (x2);					\
 	(vertices)[4] = (vertices)[2];				\
 	(vertices)[6] = (vertices)[0];				\
-	if (yInverted) {					\
+	if (likely(yInverted)) {					\
 	    (vertices)[1] = (y1);				\
 	    (vertices)[5] = (y2);				\
 	}							\
@@ -635,7 +633,7 @@
 					yInverted, vertices)		\
     do {								\
 	(vertices)[0] = v_from_x_coord_x(xscale, x);			\
-	if (yInverted) {						\
+	if (likely(yInverted)) {						\
 	    (vertices)[1] = v_from_x_coord_y_inverted(yscale, y);	\
 	} else {							\
 	    (vertices)[1] = v_from_x_coord_y(yscale, y);		\
@@ -663,7 +661,7 @@
 	(vertices)[2] = (x2);						\
 	(vertices)[6] = (vertices)[2];					\
 	(vertices)[4] = (vertices)[0];					\
-	if (yInverted) {						\
+	if (likely(yInverted)) {						\
 	    (vertices)[1] = (y1);					\
 	    (vertices)[7] = (y2);					\
 	}								\
@@ -689,7 +687,7 @@
 					x2 + fbo_x_off);		\
     (vertices)[2 * stride] = _t2_;					\
     (vertices)[3 * stride] = _t0_;					\
-    if (yInverted) {							\
+    if (likely(yInverted)) {							\
       (vertices)[1] = _t1_ = v_from_x_coord_y_inverted(yscale,		\
 				y1 + fbo_y_off);			\
       (vertices)[2 * stride + 1] = _t5_ =				\
@@ -723,7 +721,7 @@
 	(vertices)[2] = v_from_x_coord_x(xscale, x2);			\
 	(vertices)[6] = (vertices)[2];					\
 	(vertices)[4] = (vertices)[0];					\
-	if (yInverted) {						\
+	if (likely(yInverted)) {						\
 	    (vertices)[1] = v_from_x_coord_y_inverted(yscale, y1);	\
 	    (vertices)[7] = v_from_x_coord_y_inverted(yscale, y2);	\
 	}								\
@@ -739,7 +737,7 @@
                                 yInverted, pt)			\
     do {							\
         (pt)[0] = t_from_x_coord_x(xscale, x);			\
-        if (yInverted) {					\
+        if (likely(yInverted)) {					\
             (pt)[1] = t_from_x_coord_y_inverted(yscale, y);	\
         } else {						\
             (pt)[1] = t_from_x_coord_y(yscale, y);		\
@@ -750,7 +748,7 @@
 				 yInverted, c)		\
     do {						\
         (c)[0] = (float)x;				\
-        if (yInverted) {				\
+        if (likely(yInverted)) {				\
             (c)[1] = (float)y;				\
         } else {					\
             (c)[1] = (float)height - (float)y;		\
