@@ -386,8 +386,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 		glamor_priv->saved_procs.trapezoids = ps->Trapezoids;
 		ps->Trapezoids = glamor_trapezoids;
 
-		glamor_priv->saved_procs.glyphs = ps->Glyphs;
-		ps->Glyphs = glamor_glyphs;
 
 		glamor_priv->saved_procs.triangles = ps->Triangles;
 		ps->Triangles = glamor_triangles;
@@ -395,9 +393,14 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 		glamor_priv->saved_procs.addtraps = ps->AddTraps;
 		ps->AddTraps = glamor_add_traps;
 
-		glamor_priv->saved_procs.unrealize_glyph = ps->UnrealizeGlyph;
-		ps->UnrealizeGlyph = glamor_glyph_unrealize;
 	}
+
+	glamor_priv->saved_procs.glyphs = ps->Glyphs;
+	ps->Glyphs = glamor_glyphs;
+
+	glamor_priv->saved_procs.unrealize_glyph = ps->UnrealizeGlyph;
+	ps->UnrealizeGlyph = glamor_glyph_unrealize;
+
 	glamor_priv->saved_procs.create_picture = ps->CreatePicture;
 	ps->CreatePicture = glamor_create_picture;
 

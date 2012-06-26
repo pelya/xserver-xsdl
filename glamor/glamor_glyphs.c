@@ -97,15 +97,8 @@ static DevPrivateKeyRec glamor_glyph_key;
 static inline struct glamor_glyph *
 glamor_glyph_get_private(GlyphPtr glyph)
 {
-	return dixGetPrivate(&glyph->devPrivates, &glamor_glyph_key);
+	return (struct glamor_glyph*)glyph->devPrivates;
 }
-
-static inline void
-glamor_glyph_set_private(GlyphPtr glyph, struct glamor_glyph *priv)
-{
-	dixSetPrivate(&glyph->devPrivates, &glamor_glyph_key, priv);
-}
-
 
 static void
 glamor_unrealize_glyph_caches(ScreenPtr pScreen)
@@ -210,7 +203,8 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
 Bool
 glamor_glyphs_init(ScreenPtr pScreen)
 {
-	if (!dixRegisterPrivateKey(&glamor_glyph_key, PRIVATE_GLYPH, 0))
+	if (!dixRegisterPrivateKey(&glamor_glyph_key,
+		PRIVATE_GLYPH, sizeof(struct glamor_glyph)))
 		return FALSE;
 
 	/* Skip pixmap creation if we don't intend to use it. */
@@ -299,15 +293,10 @@ glamor_glyph_unrealize(ScreenPtr screen, GlyphPtr glyph)
 	struct glamor_glyph *priv;
 
 	/* Use Lookup in case we have not attached to this glyph. */
-	priv = dixLookupPrivate(&glyph->devPrivates, &glamor_glyph_key);
-	if (priv == NULL)
-		return;
+	priv = glamor_glyph_get_private(glyph);
 
 	if (priv->cached)
 		priv->cache->glyphs[priv->pos] = NULL;
-
-	glamor_glyph_set_private(glyph, NULL);
-	free(priv);
 }
 
 /* Cut and paste from render/glyph.c - probably should export it instead */
@@ -632,10 +621,10 @@ glamor_glyph_size_to_mask(int size)
 }
 
 static PicturePtr
-glamor_glyph_cache(ScreenPtr screen, GlyphPtr glyph, int *out_x,
+glamor_glyph_cache(glamor_screen_private *glamor, GlyphPtr glyph, int *out_x,
 		   int *out_y)
 {
-	glamor_screen_private *glamor = glamor_get_screen_private(screen);
+	ScreenPtr screen = glamor->screen;
 	PicturePtr glyph_picture = GlyphPicture(glyph)[screen->myNum];
 	glamor_glyph_cache_t *cache =
 	    &glamor->glyphCaches[PICT_FORMAT_RGB(glyph_picture->format) !=
@@ -701,14 +690,6 @@ glamor_glyph_cache(ScreenPtr screen, GlyphPtr glyph, int *out_x,
 		cache->evict = rand() % GLYPH_CACHE_SIZE;
 	}
 
-	if (priv == NULL) {
-		priv = malloc(sizeof(struct glamor_glyph));
-		if (priv == NULL)
-			return NULL;
-		glamor_glyph_set_private(glyph, priv);
-		priv->has_edge_map = FALSE;
-	}
-
 	cache->glyphs[pos] = glyph;
 
 	priv->cache = cache;
@@ -743,14 +724,13 @@ glamor_glyph_cache(ScreenPtr screen, GlyphPtr glyph, int *out_x,
 typedef void (*glyphs_flush)(void * arg);
 
 static glamor_glyph_cache_result_t
-glamor_buffer_glyph(ScreenPtr screen,
+glamor_buffer_glyph(glamor_screen_private *glamor_priv,
 		    glamor_glyph_buffer_t * buffer,
 		    GlyphPtr glyph, int x_glyph, int y_glyph,
 		    int dx, int dy, int w, int h,
 		    glyphs_flush glyphs_flush, void *flush_arg)
 {
-	glamor_screen_private *glamor_screen =
-	    glamor_get_screen_private(screen);
+	ScreenPtr screen = glamor_priv->screen;
 	unsigned int format = (GlyphPicture(glyph)[screen->myNum])->format;
 	glamor_composite_rect_t *rect;
 	PicturePtr source;
@@ -763,7 +743,7 @@ glamor_buffer_glyph(ScreenPtr screen,
 		format = PICT_a8;
 
 	cache =
-	    &glamor_screen->glyphCaches[PICT_FORMAT_RGB
+	    &glamor_priv->glyphCaches[PICT_FORMAT_RGB
 					(glyph_picture->format) != 0];
 
 	if (buffer->source
@@ -791,7 +771,7 @@ glamor_buffer_glyph(ScreenPtr screen,
 	} else {
 		if (glyphs_flush)
 			(*glyphs_flush)(flush_arg);
-		source = glamor_glyph_cache(screen, glyph, &x, &y);
+		source = glamor_glyph_cache(glamor_priv, glyph, &x, &y);
 		if (source != NULL) {
 			rect = &buffer->rects[buffer->count++];
 			rect->x_src = x + dx;
@@ -863,11 +843,13 @@ glamor_glyphs_via_mask(CARD8 op,
 	xRectangle fill_rect;
 	struct glyphs_flush_mask_arg arg;
 	GCPtr gc;
+	glamor_screen_private *glamor_priv;
 
 	glamor_glyph_extents(nlist, list, glyphs, &extents);
 
 	if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
 		return;
+	glamor_priv = glamor_get_screen_private(screen);
 	width = extents.x2 - extents.x1;
 	height = extents.y2 - extents.y1;
 
@@ -924,7 +906,7 @@ glamor_glyphs_via_mask(CARD8 op,
 				else
 					flush_func = NULL;
 
-				glamor_buffer_glyph(screen, &buffer,
+				glamor_buffer_glyph(glamor_priv, &buffer,
 						    glyph, x, y,
 						    0, 0,
 						    glyph->info.width, glyph->info.height,
@@ -1006,12 +988,25 @@ glamor_glyphs_to_dst(CARD8 op,
 	struct glyphs_flush_dst_arg arg;
 	BoxPtr rects;
 	int nrect;
+	glamor_screen_private *glamor_priv;
 
 	buffer.count = 0;
 	buffer.source = NULL;
 
 	rects = REGION_RECTS(dst->pCompositeClip);
 	nrect = REGION_NUM_RECTS(dst->pCompositeClip);
+
+	glamor_priv = glamor_get_screen_private(screen);
+
+	arg.op = op;
+	arg.src = src;
+	arg.dst = dst;
+	arg.buffer = &buffer;
+	arg.x_src = x_src;
+	arg.y_src = y_src;
+	arg.x_dst = x_dst;
+	arg.y_dst = y_dst;
+
 
 	while (nlist--) {
 		x += list->xOff;
@@ -1025,17 +1020,9 @@ glamor_glyphs_to_dst(CARD8 op,
 			    && glyph->info.height > 0) {
 				glyphs_flush flush_func;
 
-				if (buffer.count) {
-					arg.op = op;
-					arg.src = src;
-					arg.dst = dst;
-					arg.buffer = &buffer;
-					arg.x_src = x_src;
-					arg.y_src = y_src;
-					arg.x_dst = x_dst;
-					arg.y_dst = y_dst;
+				if (buffer.count)
 					flush_func = (glyphs_flush)glamor_glyphs_flush_dst;
-				} else
+				else
 					flush_func = NULL;
 
 				for (i = 0; i < nrect; i++) {
@@ -1062,7 +1049,7 @@ glamor_glyphs_to_dst(CARD8 op,
 
 					if (dst_x < x2 && dst_y < y2) {
 
-						glamor_buffer_glyph(screen,
+						glamor_buffer_glyph(glamor_priv,
 								    &buffer,
 								    glyph,
 								    dst_x + glyph->info.x,
@@ -1081,17 +1068,8 @@ glamor_glyphs_to_dst(CARD8 op,
 		list++;
 	}
 
-	if (buffer.count) {
-		arg.op = op;
-		arg.src = src;
-		arg.dst = dst;
-		arg.buffer = &buffer;
-		arg.x_src = x_src;
-		arg.y_src = y_src;
-		arg.x_dst = x_dst;
-		arg.y_dst = y_dst;
+	if (buffer.count)
 		glamor_glyphs_flush_dst(&arg);
-	}
 }
 
 static Bool
