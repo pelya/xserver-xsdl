@@ -116,7 +116,7 @@ ProcDRI2Connect(ClientPtr client)
     rep.driverNameLength = 0;
     rep.deviceNameLength = 0;
 
-    if (!DRI2Connect(pDraw->pScreen,
+    if (!DRI2Connect(client, pDraw->pScreen,
                      stuff->driverType, &fd, &driverName, &deviceName))
         goto fail;
 
@@ -149,7 +149,7 @@ ProcDRI2Authenticate(ClientPtr client)
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
-    rep.authenticated = DRI2Authenticate(pDraw->pScreen, stuff->magic);
+    rep.authenticated = DRI2Authenticate(client, pDraw->pScreen, stuff->magic);
     WriteToClient(client, sizeof(xDRI2AuthenticateReply), &rep);
 
     return Success;

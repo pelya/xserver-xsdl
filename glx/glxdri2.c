@@ -929,7 +929,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
         return NULL;
 
     if (!xf86LoaderCheckSymbol("DRI2Connect") ||
-        !DRI2Connect(pScreen, DRI2DriverDRI,
+        !DRI2Connect(serverClient, pScreen, DRI2DriverDRI,
                      &screen->fd, &driverName, &deviceName)) {
         LogMessage(X_INFO,
                    "AIGLX: Screen %d is not DRI2 capable\n", pScreen->myNum);
