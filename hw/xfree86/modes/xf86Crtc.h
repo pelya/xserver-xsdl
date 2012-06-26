@@ -225,7 +225,7 @@ typedef struct _xf86CrtcFuncs {
 
 } xf86CrtcFuncsRec, *xf86CrtcFuncsPtr;
 
-#define XF86_CRTC_VERSION 4
+#define XF86_CRTC_VERSION 5
 
 struct _xf86Crtc {
     /**
@@ -376,6 +376,10 @@ struct _xf86Crtc {
      * Added in ABI version 4
      */
     Bool driverIsPerformingTransform;
+
+    /* Added in ABI version 5
+     */
+    PixmapPtr current_scanout;
 };
 
 typedef struct _xf86OutputFuncs {
