@@ -510,11 +510,8 @@ static Bool
 hwEnableIO(void)
 {
     if (ioperm(0, 1024, 1) || iopl(3)) {
-        if (errno == ENODEV)
-            ErrorF("xf86EnableIOPorts: no I/O ports found\n");
-        else
-            FatalError("xf86EnableIOPorts: failed to set IOPL"
-                       " for I/O (%s)\n", strerror(errno));
+        ErrorF("xf86EnableIOPorts: failed to set IOPL for I/O (%s)\n",
+               strerror(errno));
         return FALSE;
     }
 #if !defined(__alpha__)
