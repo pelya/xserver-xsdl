@@ -792,6 +792,12 @@ glamor_translate_boxes(BoxPtr boxes, int nbox, int dx, int dy)
 	}
 }
 
+static inline Bool
+region_is_empty(pixman_region16_t *region)
+{
+	return region->data && region->data->numRects == 0;
+}
+
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #define ALIGN(i,m)	(((i) + (m) - 1) & ~((m) - 1))
 #define MIN(a,b)	((a) < (b) ? (a) : (b))

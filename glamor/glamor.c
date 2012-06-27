@@ -383,6 +383,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 		glamor_priv->saved_procs.composite = ps->Composite;
 		ps->Composite = glamor_composite;
 
+
 		glamor_priv->saved_procs.trapezoids = ps->Trapezoids;
 		ps->Trapezoids = glamor_trapezoids;
 
@@ -394,6 +395,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 		ps->AddTraps = glamor_add_traps;
 
 	}
+
+	glamor_priv->saved_procs.composite_rects = ps->CompositeRects;
+	ps->CompositeRects = glamor_composite_rectangles;
 
 	glamor_priv->saved_procs.glyphs = ps->Glyphs;
 	ps->Glyphs = glamor_glyphs;
@@ -510,10 +514,12 @@ glamor_close_screen(int idx, ScreenPtr screen)
 
 		ps->Composite = glamor_priv->saved_procs.composite;
 		ps->Trapezoids = glamor_priv->saved_procs.trapezoids;
-		ps->Glyphs = glamor_priv->saved_procs.glyphs;
 		ps->Triangles = glamor_priv->saved_procs.triangles;
 		ps->CreatePicture = glamor_priv->saved_procs.create_picture;
 	}
+	ps->CompositeRects = glamor_priv->saved_procs.composite_rects;
+	ps->Glyphs = glamor_priv->saved_procs.glyphs;
+	ps->UnrealizeGlyph = glamor_priv->saved_procs.unrealize_glyph;
 #endif
 	screen_pixmap = screen->GetScreenPixmap(screen);
 	glamor_set_pixmap_private(screen_pixmap, NULL);

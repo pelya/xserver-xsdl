@@ -210,6 +210,7 @@ struct glamor_saved_procs {
 	GetSpansProcPtr get_spans;
 	GetImageProcPtr get_image;
 	CompositeProcPtr composite;
+	CompositeRectsProcPtr composite_rects;
 	TrapezoidsProcPtr trapezoids;
 	GlyphsProcPtr glyphs;
 	ChangeWindowAttributesProcPtr change_window_attributes;
@@ -644,8 +645,10 @@ Bool glamor_fill(DrawablePtr drawable,
 Bool glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 		  unsigned char alu, unsigned long planemask,
 		  unsigned long fg_pixel);
-void glamor_solid_fail_region(PixmapPtr pixmap,
-			      int x, int y, int width, int height);
+Bool
+glamor_solid_boxes(PixmapPtr pixmap,
+		   BoxPtr box, int nbox,
+		   unsigned long fg_pixel);
 
 /* glamor_fillspans.c */
 void glamor_fill_spans(DrawablePtr drawable,
@@ -987,6 +990,13 @@ glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
 void
 glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 		 DDXPointPtr ppt);
+
+void
+glamor_composite_rectangles(CARD8	 op,
+			 PicturePtr	 dst,
+			 xRenderColor	*color,
+			 int		 num_rects,
+			 xRectangle	*rects);
 
 #include"glamor_utils.h"
 

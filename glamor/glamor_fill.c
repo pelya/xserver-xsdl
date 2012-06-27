@@ -181,6 +181,87 @@ glamor_fini_solid_shader(ScreenPtr screen)
 }
 
 static void
+_glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
+{
+	ScreenPtr screen = pixmap->drawable.pScreen;
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(screen);
+	glamor_pixmap_private *pixmap_priv =
+	    glamor_get_pixmap_private(pixmap);
+	glamor_gl_dispatch *dispatch;
+	GLfloat xscale, yscale;
+	float vertices[32];
+	float *pvertices = vertices;
+	int valid_nbox = ARRAY_SIZE(vertices);
+
+	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+
+	dispatch = glamor_get_dispatch(glamor_priv);
+	dispatch->glUseProgram(glamor_priv->solid_prog);
+
+	dispatch->glUniform4fv(glamor_priv->solid_color_uniform_location,
+			       1, color);
+
+	pixmap_priv_get_dest_scale(pixmap_priv, &xscale, &yscale);
+
+	if (unlikely(nbox*4*2 > ARRAY_SIZE(vertices))) {
+		int allocated_box;
+
+		if (nbox * 6 > GLAMOR_COMPOSITE_VBO_VERT_CNT) {
+			allocated_box = GLAMOR_COMPOSITE_VBO_VERT_CNT / 6;
+		} else
+			allocated_box = nbox;
+		pvertices = malloc(allocated_box * 4 * 2 * sizeof(float));
+		if (pvertices)
+			valid_nbox = allocated_box;
+		else {
+			pvertices = vertices;
+			valid_nbox = ARRAY_SIZE(vertices) / (4*2);
+		}
+	}
+
+#define GLAMOR_COMPOSITE_VBO_VERT_CNT 1024
+	if (unlikely(nbox > 1))
+		dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
+
+	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
+					GL_FALSE, 2 * sizeof(float),
+					pvertices);
+	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+
+	while(nbox) {
+		int box_cnt, i;
+		float *valid_vertices;
+		valid_vertices = pvertices;
+		box_cnt = nbox > valid_nbox ? valid_nbox : nbox;
+		for (i = 0; i < box_cnt; i++) {
+			glamor_set_normalize_vcoords(pixmap_priv, xscale, yscale,
+						     box[i].x1, box[i].y1,
+						     box[i].x2, box[i].y2,
+						     glamor_priv->yInverted,
+						     valid_vertices);
+			valid_vertices += 4*2;
+		}
+		if (box_cnt == 1)
+			dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, box_cnt * 4);
+		else
+			dispatch->glDrawElements(GL_TRIANGLES,
+						 box_cnt * 6,
+						 GL_UNSIGNED_SHORT,
+						 NULL);
+		nbox -= box_cnt;
+		box += box_cnt;
+	}
+
+	if (pvertices != vertices)
+		free(pvertices);
+
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+	dispatch->glUseProgram(0);
+	glamor_put_dispatch(glamor_priv);
+}
+
+static void
 _glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	      float *color)
 {
@@ -222,6 +303,52 @@ _glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 }
 
 Bool
+glamor_solid_boxes(PixmapPtr pixmap,
+		   BoxPtr box, int nbox,
+		   unsigned long fg_pixel)
+{
+	glamor_pixmap_private *pixmap_priv;
+	GLfloat color[4];
+
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
+		return FALSE;
+
+	glamor_get_rgba_from_pixel(fg_pixel,
+				   &color[0],
+				   &color[1],
+				   &color[2],
+				   &color[3], format_for_pixmap(pixmap));
+
+	if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+		RegionRec region;
+		int n_region;
+		glamor_pixmap_clipped_regions *clipped_regions;
+		int i;
+
+		RegionInitBoxes(&region, box, nbox);
+		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0, 0, 0);
+		for(i = 0; i < n_region; i++)
+		{
+			BoxPtr inner_box;
+			int inner_nbox;
+			SET_PIXMAP_FBO_CURRENT(pixmap_priv, clipped_regions[i].block_idx);
+
+			inner_box = RegionRects(clipped_regions[i].region);
+			inner_nbox = RegionNumRects(clipped_regions[i].region);
+			_glamor_solid_boxes(pixmap, inner_box, inner_nbox, color);
+			RegionDestroy(clipped_regions[i].region);
+		}
+		free(clipped_regions);
+		RegionUninit(&region);
+	} else
+		_glamor_solid_boxes(pixmap, box, nbox, color);
+
+	return TRUE;
+}
+
+Bool
 glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	     unsigned char alu, unsigned long planemask,
 	     unsigned long fg_pixel)
@@ -231,7 +358,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 	    glamor_get_screen_private(screen);
 	glamor_pixmap_private *pixmap_priv;
 	glamor_gl_dispatch *dispatch;
-	GLfloat color[4];
+	BoxRec box;
 
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
@@ -244,63 +371,25 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 		return FALSE;
 	}
 
-	glamor_get_rgba_from_pixel(fg_pixel,
-				   &color[0],
-				   &color[1],
-				   &color[2],
-				   &color[3], format_for_pixmap(pixmap));
-
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (!glamor_set_alu(dispatch, alu)) {
 		if (alu == GXclear)
-			color[0] = color[1] = color[2] = color[3] = 0.0;
+			fg_pixel = 0;
 		else {
 			glamor_fallback("unsupported alu %x\n", alu);
 			glamor_put_dispatch(glamor_priv);
 			return FALSE;
 		}
 	}
-
-	if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
-		RegionRec region;
-		BoxRec box;
-		int n_region;
-		glamor_pixmap_clipped_regions *clipped_regions;
-		int i,j;
-
-		box.x1 = x;
-		box.y1 = y;
-		box.x2 = x + width;
-		box.y2 = y + height;
-		RegionInitBoxes(&region, &box, 1);
-		clipped_regions = glamor_compute_clipped_regions(pixmap_priv, &region, &n_region, 0, 0, 0);
-		for(i = 0; i < n_region; i++)
-		{
-			BoxPtr boxes;
-			int nbox;
-			SET_PIXMAP_FBO_CURRENT(pixmap_priv, clipped_regions[i].block_idx);
-
-			boxes = RegionRects(clipped_regions[i].region);
-			nbox = RegionNumRects(clipped_regions[i].region);
-			for(j = 0; j < nbox; j++)
-			{
-				_glamor_solid(pixmap, boxes[j].x1, boxes[j].y1,
-					      boxes[j].x2 - boxes[j].x1,
-					      boxes[j].y2 - boxes[j].y1, color);
-			}
-			RegionDestroy(clipped_regions[i].region);
-		}
-		free(clipped_regions);
-		RegionUninit(&region);
-	} else
-		_glamor_solid(pixmap,
-			      x,
-			      y,
-			      width, height,
-			      color);
+	box.x1 = x;
+	box.y1 = y;
+	box.x2 = x + width;
+	box.y2 = y + height;
+	glamor_solid_boxes(pixmap, &box, 1, fg_pixel);
 
 	glamor_set_alu(dispatch, GXcopy);
 	glamor_put_dispatch(glamor_priv);
 
 	return TRUE;
 }
+
