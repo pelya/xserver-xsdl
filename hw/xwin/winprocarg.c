@@ -31,6 +31,10 @@ from The Open Group.
 #include <xwin-config.h>
 #endif
 
+#ifdef HAVE_SYS_UTSNAME_H
+#include <sys/utsname.h>
+#endif
+
 #include <../xfree86/common/xorgVersion.h>
 #include "win.h"
 #include "winconfig.h"
@@ -1181,6 +1185,16 @@ winLogVersionInfo(void)
     ErrorF("Vendor: %s\n", XVENDORNAME);
     ErrorF("Release: %d.%d.%d.%d\n", XORG_VERSION_MAJOR,
            XORG_VERSION_MINOR, XORG_VERSION_PATCH, XORG_VERSION_SNAP);
+#ifdef HAVE_SYS_UTSNAME_H
+    {
+        struct utsname name;
+
+        if (uname(&name) >= 0) {
+            ErrorF("OS: %s %s %s %s %s\n", name.sysname, name.nodename,
+                   name.release, name.version, name.machine);
+        }
+    }
+#endif
     if (strlen(BUILDERSTRING))
         ErrorF("%s\n", BUILDERSTRING);
     ErrorF("Contact: %s\n", BUILDERADDR);
