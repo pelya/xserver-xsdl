@@ -64,8 +64,11 @@
 
 #define CACHE_PICTURE_SIZE 1024
 #define GLYPH_MIN_SIZE 8
-#define GLYPH_MAX_SIZE 64
-#define GLYPH_CACHE_SIZE (CACHE_PICTURE_SIZE * CACHE_PICTURE_SIZE / (GLYPH_MIN_SIZE * GLYPH_MIN_SIZE))
+#define GLYPH_MAX_SIZE	64
+#define GLYPH_CACHE_SIZE ((CACHE_PICTURE_SIZE) * CACHE_PICTURE_SIZE / (GLYPH_MIN_SIZE * GLYPH_MIN_SIZE))
+#define MASK_CACHE_MAX_SIZE 32
+#define MASK_CACHE_WIDTH (CACHE_PICTURE_SIZE / MASK_CACHE_MAX_SIZE)
+#define MASK_CACHE_MASK ((1LL << (MASK_CACHE_WIDTH)) - 1)
 
 typedef struct {
 	PicturePtr source;
@@ -78,7 +81,7 @@ struct glamor_glyph {
 	uint16_t x, y;
 	uint16_t size, pos;
 	unsigned long long left_x1_map, left_x2_map;
-	unsigned long long right_x1_map, right_x2_map;  /* Use to check real pixel overlap or not. */
+	unsigned long long right_x1_map, right_x2_map;  /* Use to check real intersect or not. */
 	Bool has_edge_map;
 	Bool cached;
 };
@@ -89,8 +92,6 @@ typedef enum {
 	GLAMOR_GLYPH_NEED_FLUSH,	/* would evict a glyph already in the buffer */
 } glamor_glyph_cache_result_t;
 
-
-
 #define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
 static DevPrivateKeyRec glamor_glyph_key;
 
@@ -98,6 +99,163 @@ static inline struct glamor_glyph *
 glamor_glyph_get_private(GlyphPtr glyph)
 {
 	return (struct glamor_glyph*)glyph->devPrivates;
+}
+
+/*
+ * Mask cache is located at the corresponding cache picture's last row.
+ * and is deadicated for the mask picture when do the glyphs_via_mask.
+ *
+ * As we split the glyphs list according to its overlapped or non-overlapped,
+ * we can reduce the length of glyphs to do the glyphs_via_mask to 2 or 3
+ * glyphs one time for most cases. Thus it give us a case to allocate a
+ * small portion of the corresponding cache directly as the mask picture.
+ * Then we can rendering the glyphs to this mask picture, and latter we
+ * can accumulate the second steps, composite the mask to the dest with
+ * the other non-overlapped glyphs's rendering process.
+ * Another major benefit is we now only need to clear a relatively small mask
+ * region then before. It also make us implement a bunch mask picture clearing
+ * algorithm to avoid too frequently small region clearing.
+ *
+ * If there is no any overlapping, this method will not get performance gain.
+ * If there is some overlapping, then this algorithm can get about 15% performance
+ * gain.
+ */
+
+struct glamor_glyph_mask_cache_entry {
+	int idx;
+	int width;
+	int height;
+	int x;
+	int y;
+};
+
+static struct glamor_glyph_mask_cache {
+	PixmapPtr pixmap;
+	struct glamor_glyph_mask_cache_entry mcache[MASK_CACHE_WIDTH];
+	unsigned int free_bitmap;
+	unsigned int cleared_bitmap;
+}*mask_cache[GLAMOR_NUM_GLYPH_CACHE_FORMATS] = {NULL};
+
+static void
+clear_mask_cache_bitmap(struct glamor_glyph_mask_cache *maskcache,
+		     unsigned int clear_mask_bits)
+{
+	unsigned int i = 0;
+	BoxRec box[MASK_CACHE_WIDTH];
+	int box_cnt = 0;
+
+	assert((clear_mask_bits & ~MASK_CACHE_MASK) == 0);
+	for(i = 0; i < MASK_CACHE_WIDTH;i++)
+	{
+		if (clear_mask_bits & (1 << i)) {
+			box[box_cnt].x1 = maskcache->mcache[i].x;
+			box[box_cnt].x2 = maskcache->mcache[i].x + MASK_CACHE_MAX_SIZE;
+			box[box_cnt].y1 = maskcache->mcache[i].y;
+			box[box_cnt].y2 = maskcache->mcache[i].y + MASK_CACHE_MAX_SIZE;
+			box_cnt++;
+		}
+	}
+	glamor_solid_boxes(maskcache->pixmap, box, box_cnt, 0);
+	maskcache->cleared_bitmap |= clear_mask_bits;
+}
+
+static void
+clear_mask_cache(struct glamor_glyph_mask_cache *maskcache)
+{
+	int x = 0;
+	int cnt = MASK_CACHE_WIDTH;
+	unsigned int i = 0;
+	struct glamor_glyph_mask_cache_entry *mce;
+	glamor_solid(maskcache->pixmap, 0, CACHE_PICTURE_SIZE, CACHE_PICTURE_SIZE,
+		     MASK_CACHE_MAX_SIZE, GXcopy, 0xFFFFFFFF, 0);
+	mce = &maskcache->mcache[0];
+	while(cnt--) {
+		mce->width = 0;
+		mce->height = 0;
+		mce->x = x;
+		mce->y = CACHE_PICTURE_SIZE;
+		mce->idx = i++;
+		x += MASK_CACHE_MAX_SIZE;
+		mce++;
+	}
+	maskcache->free_bitmap = MASK_CACHE_MASK;
+	maskcache->cleared_bitmap = MASK_CACHE_MASK;
+}
+
+static int
+find_continuous_bits(unsigned int bits, int bits_cnt, unsigned int *pbits_mask)
+{
+	int idx = 0;
+	unsigned int bits_mask;
+	bits_mask = ((1LL << bits_cnt) - 1);
+
+	if (unlikely(bits_cnt > 56)) {
+		while(bits) {
+			if ((bits & bits_mask) == bits_mask) {
+				*pbits_mask = bits_mask << idx;
+				return idx;
+			}
+			bits >>= 1;
+			idx++;
+		}
+	} else {
+		idx = __fls(bits);
+		while(bits) {
+			unsigned int temp_bits;
+			temp_bits = bits_mask << (idx - bits_cnt + 1);
+			if ((bits & temp_bits) == temp_bits) {
+				*pbits_mask = temp_bits;
+				return (idx - bits_cnt + 1);
+			}
+			/* Find first zero. And clear the tested bit.*/
+			bits &= ~(1LL<<idx);
+			idx = __fls(~bits);
+			bits &= ~((1LL << idx) - 1);
+			idx--;
+		}
+	}
+	return -1;
+}
+
+static struct glamor_glyph_mask_cache_entry *
+get_mask_cache(struct glamor_glyph_mask_cache *maskcache, int blocks)
+{
+	int free_cleared_bit, idx = -1;
+	int retry_cnt = 0;
+	unsigned int bits_mask;
+
+	if (maskcache->free_bitmap == 0)
+		return NULL;
+retry:
+	free_cleared_bit = maskcache->free_bitmap & maskcache->cleared_bitmap;
+	if (free_cleared_bit && blocks == 1) {
+		idx = __fls(free_cleared_bit);
+		bits_mask = 1 << idx;
+	} else if (free_cleared_bit && blocks > 1) {
+		idx = find_continuous_bits(free_cleared_bit, blocks, &bits_mask);
+	}
+
+	if (idx < 0) {
+		clear_mask_cache_bitmap(maskcache, maskcache->free_bitmap);
+		if (retry_cnt++ > 2)
+			return NULL;
+		goto retry;
+	}
+
+	maskcache->cleared_bitmap &= ~bits_mask;
+	maskcache->free_bitmap &= ~bits_mask;
+	DEBUGF("get idx %d free %x clear %x \n",
+		idx, maskcache->free_bitmap, maskcache->cleared_bitmap);
+	return &maskcache->mcache[idx];
+}
+
+static void
+put_mask_cache_bitmap(struct glamor_glyph_mask_cache *maskcache,
+		       unsigned int bitmap)
+{
+	maskcache->free_bitmap |= bitmap;
+	DEBUGF("put bitmap %x free %x clear %x \n",
+		bitmap, maskcache->free_bitmap, maskcache->cleared_bitmap);
 }
 
 static void
@@ -117,6 +275,9 @@ glamor_unrealize_glyph_caches(ScreenPtr pScreen)
 
 		if (cache->glyphs)
 			free(cache->glyphs);
+
+		if (mask_cache[i])
+			free(mask_cache[i]);
 	}
 	glamor->glyph_cache_initialized = FALSE;
 }
@@ -136,6 +297,7 @@ glamor_glyphs_fini(ScreenPtr pScreen)
  * This function allocates the storage pixmap, and then fills in the
  * rest of the allocated structures for all caches with the given format.
  */
+
 static Bool
 glamor_realize_glyph_caches(ScreenPtr pScreen)
 {
@@ -167,7 +329,7 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
 		/* Now allocate the pixmap and picture */
 		pixmap = pScreen->CreatePixmap(pScreen,
 					      CACHE_PICTURE_SIZE,
-					      CACHE_PICTURE_SIZE, depth,
+					      CACHE_PICTURE_SIZE + MASK_CACHE_MAX_SIZE, depth,
 					      0);
 		if (!pixmap)
 			goto bail;
@@ -189,6 +351,9 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
 			goto bail;
 
 		cache->evict = rand() % GLYPH_CACHE_SIZE;
+		mask_cache[i] = calloc(1, sizeof(*mask_cache[i]));
+		mask_cache[i]->pixmap = pixmap;
+		clear_mask_cache(mask_cache[i]);
 	}
 	assert(i == GLAMOR_NUM_GLYPH_CACHE_FORMATS);
 
@@ -422,43 +587,166 @@ glamor_glyph_priv_get_edge_map(GlyphPtr glyph, struct glamor_glyph *priv,
 	return;
 }
 
-
-
 /**
  * Returns TRUE if the glyphs in the lists intersect.  Only checks based on
  * bounding box, which appears to be good enough to catch most cases at least.
  */
+
+#define INTERSECTED_TYPE_MASK 1
+#define NON_INTERSECTED 0
+#define INTERSECTED 1
+
+struct glamor_glyph_list {
+	int nlist;
+	GlyphListPtr list;
+	GlyphPtr *glyphs;
+	int type;
+};
+
 static Bool
+glyph_new_fixed_list(struct glamor_glyph_list *fixed_list,
+		     GlyphPtr *cur_glyphs,
+		     GlyphPtr **head_glyphs,
+		     GlyphListPtr cur_list,
+		     int cur_pos, int cur_x, int cur_y,
+		     int x1, int y1, int x2, int y2,
+		     GlyphListPtr *head_list,
+		     int *head_pos,
+		     int *head_x,
+		     int *head_y,
+		     int *fixed_cnt,
+		     int type,
+		     GlyphListPtr prev_list,
+		     BoxPtr prev_extents
+		     )
+{
+	int x_off = 0;
+	int y_off = 0;
+	int n_off = 0;
+	int list_cnt;
+	if (type == NON_INTERSECTED) {
+		if (x1 < prev_extents->x2 && x2 > prev_extents->x1
+		    && y1 < prev_extents->y2 && y2 > prev_extents->y1)
+			return FALSE;
+		x_off = (*(cur_glyphs-1))->info.xOff;
+		y_off = (*(cur_glyphs-1))->info.yOff;
+		n_off = 1;
+	}
+
+	list_cnt = cur_list - *head_list + 1;
+	if (cur_pos <= n_off) {
+		DEBUGF("break at %d n_off %d\n", cur_pos, n_off);
+		list_cnt--;
+		if (cur_pos < n_off) {
+		/* we overlap with previous list's last glyph. */
+			x_off += cur_list->xOff;
+			y_off += cur_list->yOff;
+			cur_list--;
+			cur_pos = cur_list->len;
+			if (cur_pos <= n_off) {
+				list_cnt--;
+			}
+		}
+	}
+	DEBUGF("got %d lists\n", list_cnt);
+	if (list_cnt != 0) {
+		fixed_list->list = malloc(list_cnt * sizeof(*cur_list));
+		memcpy(fixed_list->list, *head_list, list_cnt * sizeof(*cur_list));
+		fixed_list->list[0].xOff = *head_x;
+		fixed_list->list[0].yOff = *head_y;
+		fixed_list->glyphs = *head_glyphs;
+		fixed_list->type = type & INTERSECTED_TYPE_MASK;
+		fixed_list->nlist = list_cnt;
+		if (cur_list != *head_list) {
+			fixed_list->list[0].len = (*head_list)->len - *head_pos;
+			if (cur_pos != n_off)
+			fixed_list->list[list_cnt - 1].len = cur_pos - n_off;
+		} else
+			fixed_list->list[0].len = cur_pos - *head_pos - n_off;
+		while(list_cnt--) {
+			DEBUGF("new fixed list type %d entry len %d x %d y %d"
+				"head_pos %d pos %d list %d has %d glyphs.\n",
+				fixed_list->type, fixed_list->nlist,
+				cur_x, cur_y, *head_pos, cur_pos, i, fixed_list->list[i++].len);
+		}
+		(*fixed_cnt)++;
+	}
+
+	if (type <= INTERSECTED) {
+		*head_list = cur_list;
+		*head_pos = cur_pos - n_off;
+		*head_x = cur_x - x_off;
+		*head_y = cur_y - y_off;
+		*head_glyphs = cur_glyphs - n_off;
+	}
+	return TRUE;
+}
+
+/*
+ * This function detects glyph lists's overlapping.
+ *
+ * If check_fake_overlap is set, then it will check the glyph's left
+ * and right small boxes's real overlapping pixels. And if there is
+ * no real pixel overlapping, then it will not be treated as overlapped
+ * case. And we also can configured it to ignore less than 2 pixels
+ * overlappig.
+ *
+ * This function analyzes all the lists and split the list to multiple
+ * lists which are pure overlapped glyph lists or pure non-overlapped
+ * list if the overlapping only ocurr on the two adjacent glyphs.
+ * Otherwise, it return -1.
+ *
+ **/
+
+static int
 glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 			PictFormatShort mask_format,
-			ScreenPtr screen, Bool check_fake_overlap)
+			ScreenPtr screen, Bool check_fake_overlap,
+			struct glamor_glyph_list * fixed_list,
+			int fixed_size)
 {
 	int x1, x2, y1, y2;
 	int n;
 	int x, y;
-	BoxRec extents;
+	BoxRec extents, prev_extents;
 	Bool first = TRUE;
+	Bool need_free_fixed_list = FALSE;
 	struct glamor_glyph *priv;
+	Bool in_non_intersected_list = -1;
+	GlyphListPtr head_list, prev_list, saved_list;
+	int head_x, head_y, head_pos;
+	int fixed_cnt = 0;
+	GlyphPtr *head_glyphs;
+	GlyphListPtr cur_list = list;
 
+	saved_list = list;
 	x = 0;
 	y = 0;
 	extents.x1 = 0;
 	extents.y1 = 0;
 	extents.x2 = 0;
 	extents.y2 = 0;
+	prev_extents = extents;
+	prev_list = list;
+	head_list = list;
+	DEBUGF("has %d lists.\n", nlist);
 	while (nlist--) {
 		BoxRec left_box, right_box;
 		Bool has_left_edge_box = FALSE, has_right_edge_box = FALSE;
-		Bool left_to_right = TRUE;
+		Bool left_to_right;
 		struct glamor_glyph *left_priv, *right_priv;
 
 		x += list->xOff;
 		y += list->yOff;
 		n = list->len;
-		list++;
+		left_to_right = TRUE;
+		cur_list = list++;
+
+		DEBUGF("current list %p has %d glyphs\n", cur_list, n);
 		while (n--) {
 			GlyphPtr glyph = *glyphs++;
 
+			DEBUGF("the %dth glyph\n", cur_list->len - n - 1);
 			if (glyph->info.width == 0
 			    || glyph->info.height == 0) {
 				x += glyph->info.xOff;
@@ -466,8 +754,11 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 				continue;
 			}
 			if (mask_format
-			    && mask_format != GlyphPicture(glyph)[screen->myNum]->format)
-				return TRUE;
+			    && mask_format != GlyphPicture(glyph)[screen->myNum]->format) {
+				need_free_fixed_list = TRUE;
+				goto done;
+			}
+
 			x1 = x - glyph->info.x;
 			if (x1 < MINSHORT)
 				x1 = MINSHORT;
@@ -476,6 +767,7 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 				y1 = MINSHORT;
 			if (check_fake_overlap)
 				priv = glamor_glyph_get_private(glyph);
+
 			x2 = x1 + glyph->info.width;
 			y2 = y1 + glyph->info.height;
 
@@ -490,6 +782,12 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 				extents.x2 = x2;
 				extents.y2 = y2;
 
+				first = FALSE;
+				head_list = cur_list;
+				head_pos = cur_list->len - n - 1;
+				head_x = x;
+				head_y = y;
+				head_glyphs = glyphs - 1;
 				if (check_fake_overlap && priv
 				    && priv->has_edge_map && glyph->info.yOff == 0) {
 					left_box.x1 = x1;
@@ -503,30 +801,28 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 					has_left_edge_box = TRUE;
 					has_right_edge_box = TRUE;
 				}
-
-				first = FALSE;
 			} else {
 
 				if (x1 < extents.x2 && x2 > extents.x1
 				    && y1 < extents.y2
 				    && y2 > extents.y1) {
-					if (check_fake_overlap && priv
+
+					if (check_fake_overlap && (has_left_edge_box || has_right_edge_box)
 					    && priv->has_edge_map && glyph->info.yOff == 0) {
 						int left_dx, right_dx;
 						unsigned long long intersected;
 
 						left_dx = has_left_edge_box ? 1 : 0;
 						right_dx = has_right_edge_box ? 1 : 0;
-
 						if (x1 + 1 < extents.x2 - right_dx && x2 - 1 > extents.x1 + left_dx)
-							return TRUE;
+							goto real_intersected;
 
 						if (left_to_right && has_right_edge_box) {
 							if (x1 == right_box.x1) {
 								intersected = ((priv->left_x1_map & right_priv->right_x1_map)
 										| (priv->left_x2_map & right_priv->right_x2_map));
 								if (intersected)
-									return TRUE;
+									goto real_intersected;
 							} else if (x1 == right_box.x2) {
 								intersected = (priv->left_x1_map & right_priv->right_x2_map);
 								if (intersected) {
@@ -535,7 +831,7 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 									intersected &= ~(1<<__fls(intersected));
 									if ((intersected & (intersected - 1)))
 								#endif
-										return TRUE;
+										goto real_intersected;
 								}
 							}
 						} else if (!left_to_right && has_left_edge_box) {
@@ -547,20 +843,77 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 									intersected &= ~(1<<__fls(intersected));
 									if ((intersected & (intersected - 1)))
 								#endif
-										return TRUE;
+										goto real_intersected;
 								}
 							} else if (x2 - 1 == right_box.x2) {
 								if ((priv->right_x1_map & left_priv->left_x1_map)
 								   || (priv->right_x2_map & left_priv->left_x2_map))
-										return TRUE;
+									goto real_intersected;
 							}
 						} else {
 							if (x1 < extents.x2 && x1 + 2 > extents.x1)
-								return TRUE;
+								goto real_intersected;
 						}
-					} else
-						return TRUE;
+						goto non_intersected;
+					} else {
+real_intersected:
+						DEBUGF("overlap with previous glyph.\n");
+						if (in_non_intersected_list == 1) {
+							if (fixed_cnt >= fixed_size) {
+								need_free_fixed_list = TRUE;
+								goto done;
+							}
+							if (!glyph_new_fixed_list(&fixed_list[fixed_cnt],
+									     glyphs - 1,
+									     &head_glyphs,
+									     cur_list,
+									     cur_list->len - (n + 1), x, y,
+									     x1, y1, x2, y2,
+									     &head_list,
+									     &head_pos,
+									     &head_x,
+									     &head_y, &fixed_cnt,
+									     NON_INTERSECTED,
+									     prev_list,
+									     &prev_extents
+									     )){
+								need_free_fixed_list = TRUE;
+								goto done;
+							}
+						}
+
+						in_non_intersected_list = 0;
+
+					}
+				} else {
+non_intersected:
+					DEBUGF("doesn't overlap with previous glyph.\n");
+					if (in_non_intersected_list == 0) {
+						if (fixed_cnt >= fixed_size) {
+							need_free_fixed_list = TRUE;
+							goto done;
+						}
+						if (!glyph_new_fixed_list(&fixed_list[fixed_cnt],
+								     glyphs - 1,
+								     &head_glyphs,
+								     cur_list,
+								     cur_list->len - (n + 1), x, y,
+								     x1, y1, x2, y2,
+								     &head_list,
+								     &head_pos,
+								     &head_x,
+								     &head_y, &fixed_cnt,
+								     INTERSECTED,
+								     prev_list,
+								     &prev_extents
+								     )) {
+							need_free_fixed_list = TRUE;
+							goto done;
+						}
+					}
+					in_non_intersected_list = 1;
 				}
+				prev_extents = extents;
 			}
 
 			if (check_fake_overlap && priv
@@ -571,11 +924,11 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 					left_box.y1 = y1;
 					has_left_edge_box = TRUE;
 					left_priv = priv;
-			}
+				}
 
-			if (!has_right_edge_box || x2 > extents.x2) {
-				right_box.x1 = x2 - 2;
-				right_box.x2 = x2 - 1;
+				if (!has_right_edge_box || x2 > extents.x2) {
+					right_box.x1 = x2 - 2;
+					right_box.x2 = x2 - 1;
 					right_box.y1 = y1;
 					has_right_edge_box = TRUE;
 					right_priv = priv;
@@ -594,10 +947,49 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 
 			x += glyph->info.xOff;
 			y += glyph->info.yOff;
+			prev_list = cur_list;
 		}
 	}
 
-	return FALSE;
+	if (in_non_intersected_list == 0 && fixed_cnt == 0) {
+		fixed_cnt = -1;
+		goto done;
+	}
+
+	if ((in_non_intersected_list != -1
+		|| head_pos != n) && (fixed_cnt > 0)) {
+		if (fixed_cnt >= fixed_size) {
+			need_free_fixed_list = TRUE;
+			goto done;
+		}
+		if (!glyph_new_fixed_list(&fixed_list[fixed_cnt],
+				     glyphs - 1,
+				     &head_glyphs,
+				     cur_list,
+				     cur_list->len - (n + 1), x, y,
+				     x1, y1, x2, y2,
+				     &head_list,
+				     &head_pos,
+				     &head_x,
+				     &head_y, &fixed_cnt,
+				     (!in_non_intersected_list) | 0x80,
+				     prev_list,
+				     &prev_extents
+				     )) {
+			need_free_fixed_list = TRUE;
+			goto done;
+		}
+	}
+
+done:
+	if (need_free_fixed_list && fixed_cnt >= 0) {
+		while(fixed_cnt--) {
+			free(fixed_list[fixed_cnt].list);
+		}
+	}
+
+	DEBUGF("Got %d fixed list \n", fixed_cnt);
+	return fixed_cnt;
 }
 
 static inline unsigned int
@@ -690,6 +1082,7 @@ glamor_glyph_cache(glamor_screen_private *glamor, GlyphPtr glyph, int *out_x,
 		cache->evict = rand() % GLYPH_CACHE_SIZE;
 	}
 
+
 	cache->glyphs[pos] = glyph;
 
 	priv->cache = cache;
@@ -722,29 +1115,95 @@ glamor_glyph_cache(glamor_screen_private *glamor, GlyphPtr glyph, int *out_x,
 	return cache->picture;
 }
 typedef void (*glyphs_flush)(void * arg);
+struct glyphs_flush_dst_arg {
+	CARD8 op;
+	PicturePtr src;
+	PicturePtr dst;
+	glamor_glyph_buffer_t * buffer;
+	int x_src,y_src;
+	int x_dst, y_dst;
+};
+
+static struct glyphs_flush_dst_arg dst_arg;
+static struct glyphs_flush_mask_arg mask_arg;
+static glamor_glyph_buffer_t dst_buffer;
+static glamor_glyph_buffer_t mask_buffer;
+unsigned long long mask_glyphs_cnt = 0;
+unsigned long long dst_glyphs_cnt = 0;
+#define GLYPHS_DST_MODE_VIA_MASK		0
+#define GLYPHS_DST_MODE_VIA_MASK_CACHE		1
+#define GLYPHS_DST_MODE_TO_DST			2
+#define GLYPHS_DST_MODE_MASK_TO_DST		3
+
+struct glyphs_flush_mask_arg {
+	PicturePtr mask;
+	glamor_glyph_buffer_t *buffer;
+	struct glamor_glyph_mask_cache *maskcache;
+	unsigned int used_bitmap;
+};
+
+static void
+glamor_glyphs_flush_mask(struct glyphs_flush_mask_arg *arg)
+{
+	if (arg->buffer->count>0) {
+#ifdef RENDER
+	glamor_composite_glyph_rects(PictOpAdd, arg->buffer->source,
+				     NULL, arg->mask,
+				     arg->buffer->count,
+				     arg->buffer->rects);
+#endif
+	}
+	arg->buffer->count = 0;
+	arg->buffer->source = NULL;
+
+}
+
+static void
+glamor_glyphs_flush_dst(struct glyphs_flush_dst_arg * arg)
+{
+	if (mask_buffer.count > 0) {
+		glamor_glyphs_flush_mask(&mask_arg);
+	}
+	if (mask_arg.used_bitmap) {
+		put_mask_cache_bitmap(mask_arg.maskcache, mask_arg.used_bitmap);
+		mask_arg.used_bitmap = 0;
+	}
+
+	if (arg->buffer->count > 0) {
+		glamor_composite_glyph_rects(arg->op, arg->src,
+					arg->buffer->source, arg->dst,
+					arg->buffer->count,
+					&arg->buffer->rects[0]);
+		arg->buffer->count = 0;
+		arg->buffer->source = NULL;
+	}
+}
+
 
 static glamor_glyph_cache_result_t
 glamor_buffer_glyph(glamor_screen_private *glamor_priv,
 		    glamor_glyph_buffer_t * buffer,
-		    GlyphPtr glyph, int x_glyph, int y_glyph,
+		    PictFormatShort format,
+		    GlyphPtr glyph, struct glamor_glyph *priv,
+		    int x_glyph, int y_glyph,
 		    int dx, int dy, int w, int h,
+		    int glyphs_dst_mode,
 		    glyphs_flush glyphs_flush, void *flush_arg)
 {
 	ScreenPtr screen = glamor_priv->screen;
-	unsigned int format = (GlyphPicture(glyph)[screen->myNum])->format;
 	glamor_composite_rect_t *rect;
 	PicturePtr source;
-	struct glamor_glyph *priv;
 	int x, y;
-	PicturePtr glyph_picture = GlyphPicture(glyph)[screen->myNum];
 	glamor_glyph_cache_t *cache;
+
+	if (glyphs_dst_mode != GLYPHS_DST_MODE_MASK_TO_DST)
+		priv = glamor_glyph_get_private(glyph);
 
 	if (PICT_FORMAT_BPP(format) == 1)
 		format = PICT_a8;
 
 	cache =
-	    &glamor_priv->glyphCaches[PICT_FORMAT_RGB
-					(glyph_picture->format) != 0];
+	    &glamor_priv->glyphCaches[PICT_FORMAT_RGB(format) != 0];
 
 	if (buffer->source
 	    && buffer->source != cache->picture
@@ -759,25 +1218,36 @@ glamor_buffer_glyph(glamor_screen_private *glamor_priv,
 		glyphs_flush = NULL;
 	}
 
-	priv = glamor_glyph_get_private(glyph);
-
 	if (priv && priv->cached) {
 		rect = &buffer->rects[buffer->count++];
 		rect->x_src = priv->x + dx;
 		rect->y_src = priv->y + dy;
 		if (buffer->source == NULL)
 			buffer->source = priv->cache->picture;
-		assert(priv->cache->glyphs[priv->pos] == glyph);
+		if (glyphs_dst_mode <= GLYPHS_DST_MODE_VIA_MASK_CACHE)
+			assert(priv->cache->glyphs[priv->pos] == glyph);
 	} else {
+		assert(glyphs_dst_mode != GLYPHS_DST_MODE_MASK_TO_DST);
 		if (glyphs_flush)
 			(*glyphs_flush)(flush_arg);
 		source = glamor_glyph_cache(glamor_priv, glyph, &x, &y);
+
 		if (source != NULL) {
 			rect = &buffer->rects[buffer->count++];
 			rect->x_src = x + dx;
 			rect->y_src = y + dy;
 			if (buffer->source == NULL)
 				buffer->source = source;
+			if (glyphs_dst_mode == GLYPHS_DST_MODE_VIA_MASK_CACHE) {
+				glamor_gl_dispatch *dispatch;
+				/* mode 1 means we are using global mask cache,
+				 * thus we have to composite from the cache picture
+				 * to the cache picture, we need a flush here to make
+				 * sure latter we get the corret glyphs data.*/
+				dispatch = glamor_get_dispatch(glamor_priv);
+				dispatch->glFlush();
+				glamor_put_dispatch(glamor_priv);
+			}
 		} else {
 	/* Couldn't find the glyph in the cache, use the glyph picture directly */
 			source = GlyphPicture(glyph)[screen->myNum];
@@ -794,30 +1264,77 @@ glamor_buffer_glyph(glamor_screen_private *glamor_priv,
 		priv = glamor_glyph_get_private(glyph);
 	}
 
-	rect->x_dst = x_glyph - glyph->info.x;
-	rect->y_dst = y_glyph - glyph->info.y;
+	rect->x_dst = x_glyph;
+	rect->y_dst = y_glyph;
+	if (glyphs_dst_mode != GLYPHS_DST_MODE_MASK_TO_DST) {
+		rect->x_dst -= glyph->info.x;
+		rect->y_dst -= glyph->info.y;
+	}
 	rect->width = w;
 	rect->height = h;
+	if (glyphs_dst_mode > GLYPHS_DST_MODE_VIA_MASK_CACHE) {
+		rect->x_mask = rect->x_src;
+		rect->y_mask = rect->y_src;
+		rect->x_src = dst_arg.x_src + rect->x_dst - dst_arg.x_dst;
+		rect->y_src = dst_arg.y_src + rect->y_dst - dst_arg.y_dst;
+	}
+
 	return GLAMOR_GLYPH_SUCCESS;
 }
 
-struct glyphs_flush_mask_arg {
-	PicturePtr mask;
-	glamor_glyph_buffer_t *buffer;
-};
 
 static void
-glamor_glyphs_flush_mask(struct glyphs_flush_mask_arg *arg)
+glamor_buffer_glyph_clip(glamor_screen_private *glamor_priv,
+			 BoxPtr rects,
+			 int nrect, PictFormatShort format,
+			 GlyphPtr glyph, struct glamor_glyph *priv,
+			 int glyph_x, int glyph_y,
+			 int glyph_dx, int glyph_dy,
+			 int width, int height,
+			 int glyphs_mode,
+			 glyphs_flush flush_func,
+			 void *arg
+			 )
 {
-#ifdef RENDER
-	glamor_composite_glyph_rects(PictOpAdd, arg->buffer->source,
-				     NULL, arg->mask,
-				     arg->buffer->count,
-				     arg->buffer->rects);
-#endif
-	arg->buffer->count = 0;
-	arg->buffer->source = NULL;
+	int i;
+	for (i = 0; i < nrect; i++) {
+		int dst_x, dst_y;
+		int dx, dy;
+		int x2, y2;
+
+		dst_x = glyph_x - glyph_dx;
+		dst_y = glyph_y - glyph_dy;
+		x2 = dst_x + width;
+		y2 = dst_y + height;
+		dx = dy = 0;
+		if (rects[i].y1 >= y2)
+			break;
+
+		if (dst_x < rects[i].x1)
+			dx = rects[i].x1 - dst_x, dst_x = rects[i].x1;
+		if (x2 > rects[i].x2)
+			x2 = rects[i].x2;
+		if (dst_y < rects[i].y1)
+			dy = rects[i].y1 - dst_y, dst_y = rects[i].y1;
+		if (y2 > rects[i].y2)
+			y2 = rects[i].y2;
+		if (dst_x < x2 && dst_y < y2) {
+
+			glamor_buffer_glyph(glamor_priv,
+					    &dst_buffer,
+					    format,
+					    glyph, priv,
+					    dst_x + glyph_dx,
+					    dst_y + glyph_dy,
+					    dx, dy,
+					    x2 - dst_x, y2 - dst_y,
+			    		    glyphs_mode,
+					    flush_func,
+					    arg);
+		}
+	}
 }
+
 
 static void
 glamor_glyphs_via_mask(CARD8 op,
@@ -826,7 +1343,8 @@ glamor_glyphs_via_mask(CARD8 op,
 		       PictFormatPtr mask_format,
 		       INT16 x_src,
 		       INT16 y_src,
-		       int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+		       int nlist, GlyphListPtr list, GlyphPtr * glyphs,
+		       Bool use_mask_cache)
 {
 	PixmapPtr mask_pixmap = 0;
 	PicturePtr mask;
@@ -839,11 +1357,16 @@ glamor_glyphs_via_mask(CARD8 op,
 	int error;
 	BoxRec extents = { 0, 0, 0, 0 };
 	XID component_alpha;
-	glamor_glyph_buffer_t buffer;
-	xRectangle fill_rect;
-	struct glyphs_flush_mask_arg arg;
-	GCPtr gc;
 	glamor_screen_private *glamor_priv;
+	int need_free_mask = FALSE;
+	glamor_glyph_buffer_t buffer;
+	struct glyphs_flush_mask_arg arg;
+	glamor_glyph_buffer_t *pmask_buffer;
+	struct glyphs_flush_mask_arg *pmask_arg;
+	struct glamor_glyph_mask_cache_entry *mce = NULL;
+	struct glamor_glyph_mask_cache *maskcache;
+	glamor_glyph_cache_t *cache;
+	int glyphs_dst_mode;
 
 	glamor_glyph_extents(nlist, list, glyphs, &extents);
 
@@ -861,113 +1384,173 @@ glamor_glyphs_via_mask(CARD8 op,
 			mask_format = a8Format;
 	}
 
-	mask_pixmap = screen->CreatePixmap(screen, width, height,
-					   mask_format->depth,
-					   CREATE_PIXMAP_USAGE_SCRATCH);
-	if (!mask_pixmap)
-		return;
-	component_alpha = NeedsComponent(mask_format->format);
-	mask = CreatePicture(0, &mask_pixmap->drawable,
-			     mask_format, CPComponentAlpha,
-			     &component_alpha, serverClient, &error);
-	if (!mask) {
-		screen->DestroyPixmap(mask_pixmap);
-		return;
-	}
-	gc = GetScratchGC(mask_pixmap->drawable.depth, screen);
-	ValidateGC(&mask_pixmap->drawable, gc);
-	gc->fillStyle = FillSolid;
-	//glamor_fill(&mask_pixmap->drawable, gc, 0, 0, width, height, TRUE);
-	fill_rect.x = 0;
-	fill_rect.y = 0;
-	fill_rect.width = width;
-	fill_rect.height = height;
-	gc->ops->PolyFillRect(&mask_pixmap->drawable, gc, 1, &fill_rect);
-	FreeScratchGC(gc);
+	cache = &glamor_priv->glyphCaches
+			[PICT_FORMAT_RGB(mask_format->format) != 0];
+	maskcache = mask_cache[PICT_FORMAT_RGB(mask_format->format) != 0];
+
 	x = -extents.x1;
 	y = -extents.y1;
+	if (!use_mask_cache
+	    || width > (CACHE_PICTURE_SIZE/4)
+	    || height > MASK_CACHE_MAX_SIZE) {
+new_mask_pixmap:
+		mask_pixmap = glamor_create_pixmap(screen, width, height,
+						   mask_format->depth,
+						   CREATE_PIXMAP_USAGE_SCRATCH);
+		if (!mask_pixmap) {
+			glamor_destroy_pixmap(mask_pixmap);
+			return;
+		}
+		glamor_solid(mask_pixmap, 0, 0, width, height, GXcopy, 0xFFFFFFFF, 0);
+		component_alpha = NeedsComponent(mask_format->format);
+		mask = CreatePicture(0, &mask_pixmap->drawable,
+				     mask_format, CPComponentAlpha,
+				     &component_alpha, serverClient, &error);
+		if (!mask)
+			return;
+		need_free_mask = TRUE;
+		pmask_arg = &arg;
+		pmask_buffer = &buffer;
+		pmask_buffer->count = 0;
+		pmask_buffer->source = NULL;
+		pmask_arg->used_bitmap = 0;
+		glyphs_dst_mode = GLYPHS_DST_MODE_VIA_MASK;
+	} else {
+		int retry_cnt = 0;
+retry:
+	   	mce = get_mask_cache(maskcache,
+				     (width + MASK_CACHE_MAX_SIZE - 1) / MASK_CACHE_MAX_SIZE);
 
-	buffer.count = 0;
-	buffer.source = NULL;
+		if (mce == NULL) {
+			glamor_glyphs_flush_dst(&dst_arg);
+			retry_cnt++;
+			if (retry_cnt > 2) {
+				assert(0);
+				goto new_mask_pixmap;
+			}
+			goto retry;
+		}
+
+		mask = cache->picture;
+		x += mce->x;
+		y += mce->y;
+		mce->width = (width + MASK_CACHE_MAX_SIZE - 1) / MASK_CACHE_MAX_SIZE;
+		mce->height = 1;
+		if (mask_arg.mask && mask_arg.mask != mask
+			&& mask_buffer.count != 0)
+			glamor_glyphs_flush_dst(&dst_arg);
+		pmask_arg = &mask_arg;
+		pmask_buffer = &mask_buffer;
+		pmask_arg->maskcache = maskcache;
+		glyphs_dst_mode = GLYPHS_DST_MODE_VIA_MASK_CACHE;
+	}
+	pmask_arg->mask = mask;
+	pmask_arg->buffer = pmask_buffer;
 	while (nlist--) {
 		x += list->xOff;
 		y += list->yOff;
 		n = list->len;
+		mask_glyphs_cnt += n;
 		while (n--) {
 			glyph = *glyphs++;
 			if (glyph->info.width > 0
 			    && glyph->info.height > 0) {
 				glyphs_flush flush_func;
-				if (buffer.count) {
-					arg.mask = mask;
-					arg.buffer = &buffer;
-					flush_func = (glyphs_flush)glamor_glyphs_flush_mask;
+				void *arg;
+				if (need_free_mask) {
+					if (pmask_buffer->count)
+						flush_func = (glyphs_flush)glamor_glyphs_flush_mask;
+					else
+						flush_func = NULL;
+					arg = pmask_arg;
+				} else {
+					/* If we are using global mask cache, then we need to
+					 * flush dst instead of mask. As some dst depends on the
+					 * previous mask result. Just flush mask can't get all previous's
+					 * overlapped glyphs.*/
+					if (dst_buffer.count || mask_buffer.count)
+						flush_func = (glyphs_flush)glamor_glyphs_flush_dst;
+					else
+						flush_func = NULL;
+					arg = &dst_arg;
 				}
-				else
-					flush_func = NULL;
-
-				glamor_buffer_glyph(glamor_priv, &buffer,
-						    glyph, x, y,
+				glamor_buffer_glyph(glamor_priv, pmask_buffer,
+						    mask_format->format,
+						    glyph, NULL, x, y,
 						    0, 0,
 						    glyph->info.width, glyph->info.height,
+						    glyphs_dst_mode,
 						    flush_func,
-						    (void*)&arg);
+						    (void*)arg);
 			}
-
 			x += glyph->info.xOff;
 			y += glyph->info.yOff;
 		}
 		list++;
 	}
 
-	if (buffer.count) {
-		arg.mask = mask;
-		arg.buffer = &buffer;
-		glamor_glyphs_flush_mask(&arg);
-	}
-
 	x = extents.x1;
 	y = extents.y1;
-	CompositePicture(op,
-			 src,
-			 mask,
-			 dst,
-			 x_src + x - x_dst,
-			 y_src + y - y_dst, 0, 0, x, y, width, height);
-	FreePicture(mask, 0);
-	screen->DestroyPixmap(mask_pixmap);
-}
+	if (need_free_mask) {
+		glamor_glyphs_flush_mask(pmask_arg);
+		CompositePicture(op,
+				 src,
+				 mask,
+				 dst,
+				 x_src + x - x_dst,
+				 y_src + y - y_dst, 0, 0, x, y, width, height);
+		FreePicture(mask, 0);
+		glamor_destroy_pixmap(mask_pixmap);
+	} else {
+		struct glamor_glyph priv;
+		glyphs_flush flush_func;
+		BoxPtr rects;
+		int nrect;
 
-struct glyphs_flush_dst_arg {
-	CARD8 op;
-	PicturePtr src;
-	PicturePtr dst;
-	glamor_glyph_buffer_t * buffer;
-	INT16 x_src;
-	INT16 y_src;
-	INT16 x_dst;
-	INT16 y_dst;
-};
+		priv.cache = cache;
+		priv.x = mce->x;
+		priv.y = mce->y;
+		priv.cached = TRUE;
+		rects = REGION_RECTS(dst->pCompositeClip);
+		nrect = REGION_NUM_RECTS(dst->pCompositeClip);
 
-static void
-glamor_glyphs_flush_dst(struct glyphs_flush_dst_arg * arg)
-{
-	int i;
-	glamor_composite_rect_t *rect = &arg->buffer->rects[0];
-	for (i = 0; i < arg->buffer->count; i++, rect++) {
-		rect->x_mask = rect->x_src;
-		rect->y_mask = rect->y_src;
-		rect->x_src = arg->x_src + rect->x_dst - arg->x_dst;
-		rect->y_src = arg->y_src + rect->y_dst - arg->y_dst;
+		pmask_arg->used_bitmap |= ((1 << mce->width) - 1) << mce->idx;
+		dst_arg.op = op;
+		dst_arg.src = src;
+		dst_arg.dst = dst;
+		dst_arg.buffer = &dst_buffer;
+		dst_arg.x_src = x_src;
+		dst_arg.y_src = y_src;
+		dst_arg.x_dst = x_dst;
+		dst_arg.y_dst = y_dst;
+
+		if (dst_buffer.source == NULL) {
+			dst_buffer.source = cache->picture;
+		} else if (dst_buffer.source != cache->picture) {
+			glamor_glyphs_flush_dst(&dst_arg);
+			dst_buffer.source = cache->picture;
+		}
+
+		x += dst->pDrawable->x;
+		y += dst->pDrawable->y;
+
+		if (dst_buffer.count || mask_buffer.count)
+			flush_func = (glyphs_flush)glamor_glyphs_flush_dst;
+		else
+			flush_func = NULL;
+
+		glamor_buffer_glyph_clip(glamor_priv,
+					 rects, nrect,
+					 mask_format->format,
+					 NULL, &priv,
+					 x, y,
+					 0, 0,
+					 width, height,
+					 GLYPHS_DST_MODE_MASK_TO_DST,
+					 flush_func,
+					 (void *)&dst_arg
+					 );
 	}
-
-	glamor_composite_glyph_rects(arg->op, arg->src,
-				arg->buffer->source, arg->dst,
-				arg->buffer->count,
-				&arg->buffer->rects[0]);
-
-	arg->buffer->count = 0;
-	arg->buffer->source = NULL;
 }
 
 static void
@@ -984,82 +1567,54 @@ glamor_glyphs_to_dst(CARD8 op,
 	int x_dst = list->xOff, y_dst = list->yOff;
 	int n;
 	GlyphPtr glyph;
-	glamor_glyph_buffer_t buffer;
-	struct glyphs_flush_dst_arg arg;
 	BoxPtr rects;
 	int nrect;
 	glamor_screen_private *glamor_priv;
-
-	buffer.count = 0;
-	buffer.source = NULL;
 
 	rects = REGION_RECTS(dst->pCompositeClip);
 	nrect = REGION_NUM_RECTS(dst->pCompositeClip);
 
 	glamor_priv = glamor_get_screen_private(screen);
 
-	arg.op = op;
-	arg.src = src;
-	arg.dst = dst;
-	arg.buffer = &buffer;
-	arg.x_src = x_src;
-	arg.y_src = y_src;
-	arg.x_dst = x_dst;
-	arg.y_dst = y_dst;
+	dst_arg.op = op;
+	dst_arg.src = src;
+	dst_arg.dst = dst;
+	dst_arg.buffer = &dst_buffer;
+	dst_arg.x_src = x_src;
+	dst_arg.y_src = y_src;
+	dst_arg.x_dst = x_dst;
+	dst_arg.y_dst = y_dst;
 
+	x = dst->pDrawable->x;
+	y = dst->pDrawable->y;
 
 	while (nlist--) {
 		x += list->xOff;
 		y += list->yOff;
 		n = list->len;
+		dst_glyphs_cnt += n;
 		while (n--) {
-			int i;
 			glyph = *glyphs++;
 
 			if (glyph->info.width > 0
 			    && glyph->info.height > 0) {
 				glyphs_flush flush_func;
 
-				if (buffer.count)
+				if (dst_buffer.count || mask_buffer.count)
 					flush_func = (glyphs_flush)glamor_glyphs_flush_dst;
 				else
 					flush_func = NULL;
-
-				for (i = 0; i < nrect; i++) {
-					int dst_x, dst_y;
-					int dx, dy;
-					int x2, y2;
-
-					dst_x = x - glyph->info.x;
-					dst_y = y - glyph->info.y;
-					x2 = dst_x + glyph->info.width;
-					y2 = dst_y + glyph->info.height;
-					dx = dy = 0;
-					if (rects[i].y1 >= y2)
-						break;
-
-					if (dst_x < rects[i].x1)
-						dx = rects[i].x1 - dst_x, dst_x = rects[i].x1;
-					if (x2 > rects[i].x2)
-						x2 = rects[i].x2;
-					if (dst_y < rects[i].y1)
-						dy = rects[i].y1 - dst_y, dst_y = rects[i].y1;
-					if (y2 > rects[i].y2)
-						y2 = rects[i].y2;
-
-					if (dst_x < x2 && dst_y < y2) {
-
-						glamor_buffer_glyph(glamor_priv,
-								    &buffer,
-								    glyph,
-								    dst_x + glyph->info.x,
-								    dst_y + glyph->info.y,
-								    dx, dy,
-								    x2 - dst_x, y2 - dst_y,
-								    flush_func,
-								    (void*)&arg);
-					}
-				}
+				glamor_buffer_glyph_clip(glamor_priv,
+							 rects, nrect,
+							 (GlyphPicture(glyph)[screen->myNum])->format,
+							 glyph, NULL,
+							 x, y,
+							 glyph->info.x, glyph->info.y,
+							 glyph->info.width, glyph->info.height,
+							 GLYPHS_DST_MODE_TO_DST,
+							 flush_func,
+							 (void *)&dst_arg
+							 );
 			}
 
 			x += glyph->info.xOff;
@@ -1067,9 +1622,13 @@ glamor_glyphs_to_dst(CARD8 op,
 		}
 		list++;
 	}
-
-	if (buffer.count)
-		glamor_glyphs_flush_dst(&arg);
+}
+#define MAX_FIXED_SIZE
+static void
+glamor_glyphs_reset_buffer(glamor_glyph_buffer_t *buffer)
+{
+	buffer->count = 0;
+	buffer->source = NULL;
 }
 
 static Bool
@@ -1081,8 +1640,10 @@ _glamor_glyphs(CARD8 op,
 	       INT16 y_src, int nlist, GlyphListPtr list,
 	       GlyphPtr * glyphs, Bool fallback)
 {
-	Bool intersected = FALSE;
 	PictFormatShort format;
+	int fixed_size, fixed_cnt = 0;
+	struct glamor_glyph_list *fixed_list = NULL;
+	Bool need_free_list = FALSE;
 #ifndef GLYPHS_NO_EDEGEMAP_OVERLAP_CHECK
 	Bool check_fake_overlap = TRUE;
 	if (!(op == PictOpOver
@@ -1098,39 +1659,93 @@ _glamor_glyphs(CARD8 op,
 #else
 	Bool check_fake_overlap = FALSE;
 #endif
-
-	if (!mask_format || (((nlist == 1 && list->len == 1) || op == PictOpAdd)
-	    && (dst->format == ((mask_format->depth << 24) | mask_format->format)))) {
-		glamor_glyphs_to_dst(op, src, dst, x_src, y_src, nlist,
-				     list, glyphs);
-		return TRUE;
-	}
-
 	if (mask_format)
 		format = mask_format->depth << 24 | mask_format->format;
 	else
 		format = 0;
 
-	intersected = glamor_glyphs_intersect(nlist, list, glyphs,
-				format, dst->pDrawable->pScreen,
-				check_fake_overlap);
+	fixed_size = 32;
+	glamor_glyphs_reset_buffer(&dst_buffer);
 
-	if (!intersected) {
+	if (!mask_format || (((nlist == 1 && list->len == 1) || op == PictOpAdd)
+	    && (dst->format == ((mask_format->depth << 24) | mask_format->format)))) {
 		glamor_glyphs_to_dst(op, src, dst, x_src, y_src, nlist,
 				     list, glyphs);
-		return TRUE;
+		goto last_flush;
 	}
 
-	if (mask_format)
-		glamor_glyphs_via_mask(op, src, dst, mask_format,
-				       x_src, y_src, nlist, list, glyphs);
-	else {
-		/* No mask_format and has intersect and glyphs have different format.
-		 * XXX do we need to implement a new glyphs rendering function for
-		 * this case?*/
-		glamor_glyphs_to_dst(op, src, dst, x_src, y_src, nlist, list, glyphs);
+	glamor_glyphs_reset_buffer(&mask_buffer);
+
+	/* We have mask_format. Need to check the real overlap or not.*/
+	format = mask_format->depth << 24 | mask_format->format;
+
+	fixed_list = calloc(fixed_size, sizeof(*fixed_list));
+	if (unlikely(fixed_list == NULL))
+		fixed_size = 0;
+	fixed_cnt = glamor_glyphs_intersect(nlist, list, glyphs,
+				format, dst->pDrawable->pScreen,
+				check_fake_overlap,
+				fixed_list, fixed_size);
+	if (fixed_cnt == 0)
+		mask_format = NULL;
+	need_free_list = TRUE;
+
+	if (fixed_cnt <= 0) {
+		if (mask_format == NULL) {
+			glamor_glyphs_to_dst(op, src, dst, x_src, y_src, nlist,
+					     list, glyphs);
+			goto last_flush;
+		} else {
+			glamor_glyphs_via_mask(op, src, dst, mask_format,
+					       x_src, y_src, nlist, list, glyphs,
+					       FALSE);
+			goto free_fixed_list;
+		}
+	} else {
+
+		/* We have splitted the original list to serval list, some are overlapped
+		 * and some are non-overlapped. For the non-overlapped, we render it to
+		 * dst directly. For the overlapped, we render it to mask picture firstly,
+		 * then render the mask to dst. If we can use mask cache which is in the
+		 * glyphs cache's last row, we can accumulate the rendering of mask to dst
+		 * with the other dst_buffer's rendering operations thus can reduce the call
+		 * of glDrawElements.
+		 *
+		 * */
+		struct glamor_glyph_list *saved_list;
+
+		saved_list = fixed_list;
+		mask_arg.used_bitmap = 0;
+		while(fixed_cnt--) {
+			if (fixed_list->type == NON_INTERSECTED) {
+				glamor_glyphs_to_dst(op, src, dst,
+						     x_src, y_src,
+						     fixed_list->nlist,
+						     fixed_list->list,
+						     fixed_list->glyphs);
+			}
+			else
+				glamor_glyphs_via_mask(op, src, dst,
+						       mask_format, x_src, y_src,
+						       fixed_list->nlist,
+						       fixed_list->list,
+						       fixed_list->glyphs, TRUE);
+
+			free(fixed_list->list);
+			fixed_list++;
+		}
+		free(saved_list);
+		need_free_list = FALSE;
 	}
 
+last_flush:
+	if (dst_buffer.count || mask_buffer.count)
+		glamor_glyphs_flush_dst(&dst_arg);
+free_fixed_list:
+	if(need_free_list) {
+		assert(fixed_cnt <= 0);
+		free(fixed_list);
+	}
 	return TRUE;
 }
 
