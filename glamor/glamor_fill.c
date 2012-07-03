@@ -259,47 +259,8 @@ _glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glUseProgram(0);
 	glamor_put_dispatch(glamor_priv);
-}
-
-static void
-_glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
-	      float *color)
-{
-	ScreenPtr screen = pixmap->drawable.pScreen;
-	glamor_screen_private *glamor_priv =
-	    glamor_get_screen_private(screen);
-	glamor_pixmap_private *pixmap_priv =
-	    glamor_get_pixmap_private(pixmap);
-	glamor_gl_dispatch *dispatch;
-	int x1 = x;
-	int x2 = x + width;
-	int y1 = y;
-	int y2 = y + height;
-	float vertices[8];
-	GLfloat xscale, yscale;
-
-	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
-
-	dispatch = glamor_get_dispatch(glamor_priv);
-	dispatch->glUseProgram(glamor_priv->solid_prog);
-
-	dispatch->glUniform4fv(glamor_priv->solid_color_uniform_location,
-			       1, color);
-
-	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
-					GL_FALSE, 2 * sizeof(float),
-					vertices);
-	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-	pixmap_priv_get_dest_scale(pixmap_priv, &xscale, &yscale);
-
-	glamor_set_normalize_vcoords(pixmap_priv, xscale, yscale,
-				     x1, y1,
-				     x2, y2,
-				     glamor_priv->yInverted, vertices);
-	dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-	dispatch->glUseProgram(0);
-	glamor_put_dispatch(glamor_priv);
+	glamor_priv->state = RENDER_STATE;
+	glamor_priv->render_idle_cnt = 0;
 }
 
 Bool

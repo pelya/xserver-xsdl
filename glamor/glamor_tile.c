@@ -185,6 +185,9 @@ _glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glUseProgram(0);
 	glamor_put_dispatch(glamor_priv);
+
+	glamor_priv->state = RENDER_STATE;
+	glamor_priv->render_idle_cnt = 0;
 }
 
 Bool

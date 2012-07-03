@@ -137,6 +137,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
 		}
 	}
 	glamor_put_dispatch(glamor_priv);
+	glamor_priv->state = BLIT_STATE;
 	return TRUE;
 }
 #endif
@@ -257,6 +258,8 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	dispatch->glUseProgram(0);
 	/* The source texture is bound to a fbo, we have to flush it here. */
 	glamor_put_dispatch(glamor_priv);
+	glamor_priv->state = RENDER_STATE;
+	glamor_priv->render_idle_cnt = 0;
 	return TRUE;
 }
 
@@ -315,7 +318,7 @@ __glamor_copy_n_to_n(DrawablePtr src,
 		dx, dy,
 		src_pixmap, dst_pixmap);
 #ifndef GLAMOR_GLES2
-	if ((overlaped
+	if ((overlaped || glamor_priv->state != RENDER_STATE
 	     || !src_pixmap_priv->base.gl_tex || !dst_pixmap_priv->base.gl_tex)
 	    && glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx,
 					   dy)) {

@@ -1444,6 +1444,8 @@ glamor_composite_with_shader(CARD8 op,
 #endif
 	DEBUGF("finish rendering.\n");
 	dispatch->glUseProgram(0);
+	glamor_priv->state = RENDER_STATE;
+	glamor_priv->render_idle_cnt = 0;
 	if (saved_source_format)
 		source->format = saved_source_format;
 	glamor_put_dispatch(glamor_priv);
@@ -1665,6 +1667,7 @@ glamor_composite_clipped_region(CARD8 op,
 			prect[i].y_dst = box[i].y1;
 			prect[i].width = box[i].x2 - box[i].x1;
 			prect[i].height = box[i].y2 - box[i].y1;
+			DEBUGF("dest %d %d \n", prect[i].x_dst, prect[i].y_dst);
 		}
 		ok = glamor_composite_with_shader(op, temp_src, temp_mask, dest,
 						  temp_src_priv, temp_mask_priv,
@@ -1722,7 +1725,6 @@ _glamor_composite(CARD8 op,
 	DrawablePtr saved_source_drawable;
 	DrawablePtr saved_mask_drawable;
 	int force_clip = 0;
-
 	dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
 
 	if (source->pDrawable) {

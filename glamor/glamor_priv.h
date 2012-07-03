@@ -199,7 +199,6 @@ typedef struct {
 	uint16_t evict;
 } glamor_glyph_cache_t;
 
-
 #include "glamor_gl_dispatch.h"
 
 struct glamor_saved_procs { 
@@ -234,6 +233,11 @@ struct glamor_saved_procs {
 
 #define GLAMOR_TICK_AFTER(t0, t1) 	\
 	(((int)(t1) - (int)(t0)) < 0)
+
+#define IDLE_STATE 0
+#define RENDER_STATE 1
+#define BLIT_STATE 2
+#define RENDER_IDEL_MAX 32
 
 typedef struct glamor_screen_private {
 	struct glamor_gl_dispatch _dispatch;
@@ -296,6 +300,8 @@ typedef struct glamor_screen_private {
 	char delayed_fallback_string[GLAMOR_DELAYED_STRING_MAX + 1];
 	int delayed_fallback_pending;
 	int flags;
+	int state;
+	unsigned int render_idle_cnt;
 	ScreenPtr screen;
 } glamor_screen_private;
 
