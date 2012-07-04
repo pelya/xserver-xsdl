@@ -381,7 +381,7 @@ __glXDRIscreenDestroy(__GLXscreen * baseScreen)
 static Bool
 dri2_convert_glx_attribs(unsigned num_attribs, const uint32_t *attribs,
                          unsigned *major_ver, unsigned *minor_ver,
-                         uint32_t *flags, unsigned *error)
+                         uint32_t *flags, int *api, unsigned *error)
 {
     unsigned i;
 
@@ -409,6 +409,19 @@ dri2_convert_glx_attribs(unsigned num_attribs, const uint32_t *attribs,
             break;
         case GLX_RENDER_TYPE:
             break;
+        case GLX_CONTEXT_PROFILE_MASK_ARB:
+            switch (attribs[i * 2 + 1]) {
+            case GLX_CONTEXT_CORE_PROFILE_BIT_ARB:
+                *api = __DRI_API_OPENGL_CORE;
+                break;
+            case GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB:
+                *api = __DRI_API_OPENGL;
+                break;
+            default:
+                *error = __glXError(GLXBadProfileARB);
+                return False;
+            }
+            break;
         default:
             /* If an unknown attribute is received, fail.
              */
@@ -422,6 +435,16 @@ dri2_convert_glx_attribs(unsigned num_attribs, const uint32_t *attribs,
     if (*flags & ~(__DRI_CTX_FLAG_DEBUG | __DRI_CTX_FLAG_FORWARD_COMPATIBLE)) {
         *error = BadValue;
         return False;
+    }
+
+    /* If the core profile is requested for a GL version is less than 3.2,
+     * request the non-core profile from the DRI driver.  The core profile
+     * only makes sense for GL versions >= 3.2, and many DRI drivers that
+     * don't support OpenGL 3.2 may fail the request for a core profile.
+     */
+    if (*api == __DRI_API_OPENGL_CORE
+        && (*major_ver < 3 || (*major_ver < 3 && *minor_ver < 2))) {
+        *api == __DRI_API_OPENGL;
     }
 
     *error = Success;
@@ -447,11 +470,12 @@ create_driver_context(__GLXDRIcontext * context,
         unsigned major_ver;
         unsigned minor_ver;
         uint32_t flags;
+        int api;
 
         if (num_attribs != 0) {
             if (!dri2_convert_glx_attribs(num_attribs, attribs,
                                           &major_ver, &minor_ver,
-                                          &flags, (unsigned *) error))
+                                          &flags, &api, (unsigned *) error))
                 return NULL;
 
             ctx_attribs[num_ctx_attribs++] = __DRI_CTX_ATTRIB_MAJOR_VERSION;
@@ -471,7 +495,7 @@ create_driver_context(__GLXDRIcontext * context,
 
         context->driContext =
             (*screen->dri2->createContextAttribs)(screen->driScreen,
-                                                  __DRI_API_OPENGL,
+                                                  api,
                                                   config->driConfig,
                                                   driShare,
                                                   num_ctx_attribs / 2,
@@ -786,7 +810,10 @@ initializeExtensions(__GLXDRIscreen * screen)
     if (screen->dri2->base.version >= 3) {
         __glXEnableExtension(screen->glx_enable_bits,
                              "GLX_ARB_create_context");
+        __glXEnableExtension(screen->glx_enable_bits,
+                             "GLX_ARB_create_context_profile");
         LogMessage(X_INFO, "AIGLX: enabled GLX_ARB_create_context\n");
+        LogMessage(X_INFO, "AIGLX: enabled GLX_ARB_create_context_profile\n");
     }
 #endif
 

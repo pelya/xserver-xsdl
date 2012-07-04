@@ -90,6 +90,17 @@ __glXDisp_CreateContextAttribsARB(__GLXclientState * cl, GLbyte * pc)
     __GLXconfig *config;
     int err;
 
+    /* The GLX_ARB_create_context_profile spec says:
+     *
+     *     "The default value for GLX_CONTEXT_PROFILE_MASK_ARB is
+     *     GLX_CONTEXT_CORE_PROFILE_BIT_ARB."
+     *
+     * The core profile only makes sense for OpenGL versions 3.2 and later.
+     * If the version ultimately specified is less than 3.2, the core profile
+     * bit is cleared (see below).
+     */
+    int profile = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+
     /* Verify that the size of the packet matches the size inferred from the
      * sizes specified for the various fields.
      */
@@ -161,6 +172,10 @@ __glXDisp_CreateContextAttribsARB(__GLXclientState * cl, GLbyte * pc)
             render_type = attribs[2 * i + 1];
             break;
 
+        case GLX_CONTEXT_PROFILE_MASK_ARB:
+            profile = attribs[2 * i + 1];
+            break;
+
         default:
             return BadValue;
         }
@@ -201,6 +216,22 @@ __glXDisp_CreateContextAttribsARB(__GLXclientState * cl, GLbyte * pc)
 
     if ((flags & ~ALL_VALID_FLAGS) != 0)
         return BadValue;
+
+    /* The GLX_ARB_create_context_profile spec says:
+     *
+     *     "* If attribute GLX_CONTEXT_PROFILE_MASK_ARB has no bits set; has
+     *        any bits set other than GLX_CONTEXT_CORE_PROFILE_BIT_ARB and
+     *        GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; has more than one of
+     *        these bits set; or if the implementation does not support the
+     *        requested profile, then GLXBadProfileARB is generated."
+     */
+    switch (profile) {
+    case GLX_CONTEXT_CORE_PROFILE_BIT_ARB:
+    case GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB:
+        break;
+    default:
+        return __glXError(GLXBadProfileARB);
+    }
 
     /* Allocate memory for the new context
      */
