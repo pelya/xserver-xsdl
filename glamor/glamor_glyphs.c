@@ -616,7 +616,6 @@ glyph_new_fixed_list(struct glamor_glyph_list *fixed_list,
 		     int *head_y,
 		     int *fixed_cnt,
 		     int type,
-		     GlyphListPtr prev_list,
 		     BoxPtr prev_extents
 		     )
 {
@@ -708,26 +707,39 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 	int x1, x2, y1, y2;
 	int n;
 	int x, y;
-	BoxRec extents, prev_extents;
-	Bool first = TRUE;
+	BoxPtr extents;
+	BoxRec prev_extents;
+	Bool first = TRUE, first_list = TRUE;
+	Bool need_free_list_region = FALSE;
 	Bool need_free_fixed_list = FALSE;
 	struct glamor_glyph *priv;
 	Bool in_non_intersected_list = -1;
-	GlyphListPtr head_list, prev_list, saved_list;
+	GlyphListPtr head_list, saved_list;
 	int head_x, head_y, head_pos;
 	int fixed_cnt = 0;
 	GlyphPtr *head_glyphs;
 	GlyphListPtr cur_list = list;
+	RegionRec list_region;
+	RegionRec current_region;
+	BoxRec current_box;
+
+	if (nlist > 1) {
+		pixman_region_init(&list_region);
+		need_free_list_region = TRUE;
+	}
+
+	pixman_region_init(&current_region);
+
+	extents = pixman_region_extents(&current_region);
 
 	saved_list = list;
 	x = 0;
 	y = 0;
-	extents.x1 = 0;
-	extents.y1 = 0;
-	extents.x2 = 0;
-	extents.y2 = 0;
-	prev_extents = extents;
-	prev_list = list;
+	extents->x1 = 0;
+	extents->y1 = 0;
+	extents->x2 = 0;
+	extents->y2 = 0;
+
 	head_list = list;
 	DEBUGF("has %d lists.\n", nlist);
 	while (nlist--) {
@@ -741,6 +753,18 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 		n = list->len;
 		left_to_right = TRUE;
 		cur_list = list++;
+
+		if (unlikely(!first_list)) {
+			pixman_region_init_with_extents(&current_region, extents);
+			pixman_region_union(&list_region, &list_region, &current_region);
+			first = TRUE;
+		} else {
+			head_list = cur_list;
+			head_pos = cur_list->len - n;
+			head_x = x;
+			head_y = y;
+			head_glyphs = glyphs;
+		}
 
 		DEBUGF("current list %p has %d glyphs\n", cur_list, n);
 		while (n--) {
@@ -777,17 +801,14 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 				y2 = MAXSHORT;
 
 			if (first) {
-				extents.x1 = x1;
-				extents.y1 = y1;
-				extents.x2 = x2;
-				extents.y2 = y2;
+				extents->x1 = x1;
+				extents->y1 = y1;
+				extents->x2 = x2;
+				extents->y2 = y2;
+
+				prev_extents = *extents;
 
 				first = FALSE;
-				head_list = cur_list;
-				head_pos = cur_list->len - n - 1;
-				head_x = x;
-				head_y = y;
-				head_glyphs = glyphs - 1;
 				if (check_fake_overlap && priv
 				    && priv->has_edge_map && glyph->info.yOff == 0) {
 					left_box.x1 = x1;
@@ -802,10 +823,20 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 					has_right_edge_box = TRUE;
 				}
 			} else {
+				if (unlikely(!first_list)) {
+					current_box.x1 = x1;
+					current_box.y1 = y1;
+					current_box.x2 = x2;
+					current_box.y2 = y2;
+					if (pixman_region_contains_rectangle(&list_region, &current_box) != PIXMAN_REGION_OUT) {
+						need_free_fixed_list = TRUE;
+						goto done;
+					}
+				}
 
-				if (x1 < extents.x2 && x2 > extents.x1
-				    && y1 < extents.y2
-				    && y2 > extents.y1) {
+				if (x1 < extents->x2 && x2 > extents->x1
+				    && y1 < extents->y2
+				    && y2 > extents->y1) {
 
 					if (check_fake_overlap && (has_left_edge_box || has_right_edge_box)
 					    && priv->has_edge_map && glyph->info.yOff == 0) {
@@ -814,7 +845,7 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 
 						left_dx = has_left_edge_box ? 1 : 0;
 						right_dx = has_right_edge_box ? 1 : 0;
-						if (x1 + 1 < extents.x2 - right_dx && x2 - 1 > extents.x1 + left_dx)
+						if (x1 + 1 < extents->x2 - right_dx && x2 - 1 > extents->x1 + left_dx)
 							goto real_intersected;
 
 						if (left_to_right && has_right_edge_box) {
@@ -851,7 +882,7 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 									goto real_intersected;
 							}
 						} else {
-							if (x1 < extents.x2 && x1 + 2 > extents.x1)
+							if (x1 < extents->x2 && x1 + 2 > extents->x1)
 								goto real_intersected;
 						}
 						goto non_intersected;
@@ -874,7 +905,6 @@ real_intersected:
 									     &head_x,
 									     &head_y, &fixed_cnt,
 									     NON_INTERSECTED,
-									     prev_list,
 									     &prev_extents
 									     )){
 								need_free_fixed_list = TRUE;
@@ -904,7 +934,6 @@ non_intersected:
 								     &head_x,
 								     &head_y, &fixed_cnt,
 								     INTERSECTED,
-								     prev_list,
 								     &prev_extents
 								     )) {
 							need_free_fixed_list = TRUE;
@@ -913,12 +942,12 @@ non_intersected:
 					}
 					in_non_intersected_list = 1;
 				}
-				prev_extents = extents;
+				prev_extents = *extents;
 			}
 
 			if (check_fake_overlap && priv
 			    && priv->has_edge_map && glyph->info.yOff == 0) {
-				if (!has_left_edge_box || x1 < extents.x1) {
+				if (!has_left_edge_box || x1 < extents->x1) {
 					left_box.x1 = x1;
 					left_box.x2 = x1 + 1;
 					left_box.y1 = y1;
@@ -926,7 +955,7 @@ non_intersected:
 					left_priv = priv;
 				}
 
-				if (!has_right_edge_box || x2 > extents.x2) {
+				if (!has_right_edge_box || x2 > extents->x2) {
 					right_box.x1 = x2 - 2;
 					right_box.x2 = x2 - 1;
 					right_box.y1 = y1;
@@ -935,20 +964,20 @@ non_intersected:
 				}
 			}
 
-			if (x1 < extents.x1)
-				extents.x1 = x1;
-			if (x2 > extents.x2)
-				extents.x2 = x2;
+			if (x1 < extents->x1)
+				extents->x1 = x1;
+			if (x2 > extents->x2)
+				extents->x2 = x2;
 
-			if (y1 < extents.y1)
-				extents.y1 = y1;
-			if (y2 > extents.y2)
-				extents.y2 = y2;
+			if (y1 < extents->y1)
+				extents->y1 = y1;
+			if (y2 > extents->y2)
+				extents->y2 = y2;
 
 			x += glyph->info.xOff;
 			y += glyph->info.yOff;
-			prev_list = cur_list;
 		}
+		first_list = FALSE;
 	}
 
 	if (in_non_intersected_list == 0 && fixed_cnt == 0) {
@@ -973,7 +1002,6 @@ non_intersected:
 				     &head_x,
 				     &head_y, &fixed_cnt,
 				     (!in_non_intersected_list) | 0x80,
-				     prev_list,
 				     &prev_extents
 				     )) {
 			need_free_fixed_list = TRUE;
@@ -982,6 +1010,10 @@ non_intersected:
 	}
 
 done:
+	if (need_free_list_region)
+		pixman_region_fini(&list_region);
+	pixman_region_fini(&current_region);
+
 	if (need_free_fixed_list && fixed_cnt >= 0) {
 		while(fixed_cnt--) {
 			free(fixed_list[fixed_cnt].list);
