@@ -417,6 +417,9 @@ dri2_convert_glx_attribs(unsigned num_attribs, const uint32_t *attribs,
             case GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB:
                 *api = __DRI_API_OPENGL;
                 break;
+            case GLX_CONTEXT_ES2_PROFILE_BIT_EXT:
+                *api = __DRI_API_GLES2;
+                break;
             default:
                 *error = __glXError(GLXBadProfileARB);
                 return False;
@@ -812,8 +815,12 @@ initializeExtensions(__GLXDRIscreen * screen)
                              "GLX_ARB_create_context");
         __glXEnableExtension(screen->glx_enable_bits,
                              "GLX_ARB_create_context_profile");
+        __glXEnableExtension(screen->glx_enable_bits,
+                             "GLX_EXT_create_context_es2_profile");
         LogMessage(X_INFO, "AIGLX: enabled GLX_ARB_create_context\n");
         LogMessage(X_INFO, "AIGLX: enabled GLX_ARB_create_context_profile\n");
+        LogMessage(X_INFO,
+                   "AIGLX: enabled GLX_EXT_create_context_es2_profile\n");
     }
 #endif
 
