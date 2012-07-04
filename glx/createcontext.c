@@ -90,6 +90,13 @@ __glXDisp_CreateContextAttribsARB(__GLXclientState * cl, GLbyte * pc)
     __GLXconfig *config;
     int err;
 
+    /* The GLX_ARB_create_context_robustness spec says:
+     *
+     *     "The default value for GLX_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB
+     *     is GLX_NO_RESET_NOTIFICATION_ARB."
+     */
+    int reset = GLX_NO_RESET_NOTIFICATION_ARB;
+
     /* The GLX_ARB_create_context_profile spec says:
      *
      *     "The default value for GLX_CONTEXT_PROFILE_MASK_ARB is
@@ -259,6 +266,14 @@ __glXDisp_CreateContextAttribsARB(__GLXclientState * cl, GLbyte * pc)
         return __glXError(GLXBadProfileARB);
     }
 
+    /* The GLX_ARB_create_context_robustness spec says:
+     *
+     *     "* If the reset notification behavior of <share_context> and the
+     *        newly created context are different, BadMatch is generated."
+     */
+    if (shareCtx != NULL && shareCtx->resetNotificationStrategy != reset)
+        return BadMatch;
+
     /* There is no GLX protocol for desktop OpenGL versions after 1.4.  There
      * is no GLX protocol for any version of OpenGL ES.  If the application is
      * requested an indirect rendering context for a version that cannot be
@@ -306,6 +321,7 @@ __glXDisp_CreateContextAttribsARB(__GLXclientState * cl, GLbyte * pc)
     ctx->selectBufSize = 0;
     ctx->drawPriv = NULL;
     ctx->readPriv = NULL;
+    ctx->resetNotificationStrategy = reset;
 
     /* Add the new context to the various global tables of GLX contexts.
      */
