@@ -30,7 +30,8 @@
 #include "indirect_dispatch.h"
 
 #define ALL_VALID_FLAGS \
-    (GLX_CONTEXT_DEBUG_BIT_ARB | GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB)
+    (GLX_CONTEXT_DEBUG_BIT_ARB | GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB \
+     | GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB)
 
 static Bool
 validate_GL_version(int major_version, int minor_version)
@@ -181,6 +182,14 @@ __glXDisp_CreateContextAttribsARB(__GLXclientState * cl, GLbyte * pc)
 
         case GLX_CONTEXT_PROFILE_MASK_ARB:
             profile = attribs[2 * i + 1];
+            break;
+
+        case GLX_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB:
+            reset = attribs[2 * i + 1];
+            if (reset != GLX_NO_RESET_NOTIFICATION_ARB
+                && reset != GLX_LOSE_CONTEXT_ON_RESET_ARB)
+                return BadValue;
+
             break;
 
         default:
