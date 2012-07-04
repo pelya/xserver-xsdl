@@ -259,6 +259,23 @@ __glXDisp_CreateContextAttribsARB(__GLXclientState * cl, GLbyte * pc)
         return __glXError(GLXBadProfileARB);
     }
 
+    /* There is no GLX protocol for desktop OpenGL versions after 1.4.  There
+     * is no GLX protocol for any version of OpenGL ES.  If the application is
+     * requested an indirect rendering context for a version that cannot be
+     * satisfied, reject it.
+     *
+     * The GLX_ARB_create_context spec says:
+     *
+     *     "* If <config> does not support compatible OpenGL contexts
+     *        providing the requested API major and minor version,
+     *        forward-compatible flag, and debug context flag, GLXBadFBConfig
+     *        is generated."
+     */
+    if (!req->isDirect && (major_version > 1 || minor_version > 4
+                           || profile == GLX_CONTEXT_ES2_PROFILE_BIT_EXT)) {
+        return __glXError(GLXBadFBConfig);
+    }
+
     /* Allocate memory for the new context
      */
     if (req->isDirect) {
