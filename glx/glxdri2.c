@@ -59,6 +59,16 @@ typedef struct __GLXDRIscreen __GLXDRIscreen;
 typedef struct __GLXDRIcontext __GLXDRIcontext;
 typedef struct __GLXDRIdrawable __GLXDRIdrawable;
 
+
+#ifdef __DRI2_ROBUSTNESS
+#define ALL_DRI_CTX_FLAGS (__DRI_CTX_FLAG_DEBUG                         \
+                           | __DRI_CTX_FLAG_FORWARD_COMPATIBLE          \
+                           | __DRI_CTX_FLAG_ROBUST_BUFFER_ACCESS)
+#else
+#define ALL_DRI_CTX_FLAGS (__DRI_CTX_FLAG_DEBUG                         \
+                           | __DRI_CTX_FLAG_FORWARD_COMPATIBLE)
+#endif
+
 struct __GLXDRIscreen {
     __GLXscreen base;
     __DRIscreen *driScreen;
@@ -381,7 +391,7 @@ __glXDRIscreenDestroy(__GLXscreen * baseScreen)
 static Bool
 dri2_convert_glx_attribs(unsigned num_attribs, const uint32_t *attribs,
                          unsigned *major_ver, unsigned *minor_ver,
-                         uint32_t *flags, int *api, unsigned *error)
+                         uint32_t *flags, int *api, int *reset, unsigned *error)
 {
     unsigned i;
 
@@ -395,6 +405,11 @@ dri2_convert_glx_attribs(unsigned num_attribs, const uint32_t *attribs,
 
     *major_ver = 1;
     *minor_ver = 0;
+#ifdef __DRI2_ROBUSTNESS
+    *reset = __DRI_CTX_RESET_NO_NOTIFICATION;
+#else
+    (void) reset;
+#endif
 
     for (i = 0; i < num_attribs; i++) {
         switch (attribs[i * 2]) {
@@ -425,6 +440,26 @@ dri2_convert_glx_attribs(unsigned num_attribs, const uint32_t *attribs,
                 return False;
             }
             break;
+#ifdef __DRI2_ROBUSTNESS
+        case GLX_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB:
+            if (screen->dri2->base.version >= 4) {
+                *error = BadValue;
+                return False;
+            }
+
+            switch (attribs[i * 2 + 1]) {
+            case GLX_NO_RESET_NOTIFICATION_ARB:
+                *reset = __DRI_CTX_RESET_NO_NOTIFICATION;
+                break;
+            case GLX_LOSE_CONTEXT_ON_RESET_ARB:
+                *reset = __DRI_CTX_RESET_LOSE_CONTEXT;
+                break;
+            default:
+                *error = BadValue;
+                return False;
+            }
+            break;
+#endif
         default:
             /* If an unknown attribute is received, fail.
              */
@@ -435,7 +470,7 @@ dri2_convert_glx_attribs(unsigned num_attribs, const uint32_t *attribs,
 
     /* Unknown flag value.
      */
-    if (*flags & ~(__DRI_CTX_FLAG_DEBUG | __DRI_CTX_FLAG_FORWARD_COMPATIBLE)) {
+    if ((*flags & ~ALL_DRI_CTX_FLAGS) != 0) {
         *error = BadValue;
         return False;
     }
@@ -473,12 +508,14 @@ create_driver_context(__GLXDRIcontext * context,
         unsigned major_ver;
         unsigned minor_ver;
         uint32_t flags;
+        int reset;
         int api;
 
         if (num_attribs != 0) {
             if (!dri2_convert_glx_attribs(num_attribs, attribs,
                                           &major_ver, &minor_ver,
-                                          &flags, &api, (unsigned *) error))
+                                          &flags, &api, &reset,
+                                          (unsigned *) error))
                 return NULL;
 
             ctx_attribs[num_ctx_attribs++] = __DRI_CTX_ATTRIB_MAJOR_VERSION;
@@ -494,6 +531,14 @@ create_driver_context(__GLXDRIcontext * context,
                  */
                 ctx_attribs[num_ctx_attribs++] = flags;
             }
+
+#ifdef __DRI2_ROBUSTNESS
+            if (reset != __DRI_CTX_NO_RESET_NOTIFICATION) {
+                ctx_attribs[num_ctx_attribs++] =
+                    __DRI_CTX_ATTRIB_RESET_NOTIFICATION;
+                ctx_attribs[num_ctx_attribs++] = reset;
+            }
+#endif
         }
 
         context->driContext =
@@ -854,6 +899,16 @@ initializeExtensions(__GLXDRIscreen * screen)
         if (strcmp(extensions[i]->name, __DRI2_FLUSH) == 0 &&
             extensions[i]->version >= 3) {
             screen->flush = (__DRI2flushExtension *) extensions[i];
+        }
+#endif
+
+#ifdef __DRI2_ROBUSTNESS
+        if (strcmp(extensions[i]->name, __DRI2_ROBUSTNESS) == 0 &&
+            screen->dri2->base.version >= 3) {
+            __glXEnableExtension(screen->glx_enable_bits,
+                                 "GLX_ARB_create_context_robustness");
+            LogMessage(X_INFO,
+                       "AIGLX: enabled GLX_ARB_create_context_robustness\n");
         }
 #endif
 
