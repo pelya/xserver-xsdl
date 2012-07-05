@@ -380,21 +380,21 @@ InitQueue(WMMsgQueuePtr pQueue)
     pQueue->nQueueSize = 0;
 
 #if CYGMULTIWINDOW_DEBUG
-    ErrorF("InitQueue - Queue Size %d %d\n", pQueue->nQueueSize,
-           QueueSize(pQueue));
+    winDebug("InitQueue - Queue Size %d %d\n", pQueue->nQueueSize,
+             QueueSize(pQueue));
 #endif
 
-    ErrorF("InitQueue - Calling pthread_mutex_init\n");
+    winDebug("InitQueue - Calling pthread_mutex_init\n");
 
     /* Create synchronization objects */
     pthread_mutex_init(&pQueue->pmMutex, NULL);
 
-    ErrorF("InitQueue - pthread_mutex_init returned\n");
-    ErrorF("InitQueue - Calling pthread_cond_init\n");
+    winDebug("InitQueue - pthread_mutex_init returned\n");
+    winDebug("InitQueue - Calling pthread_cond_init\n");
 
     pthread_cond_init(&pQueue->pcNotEmpty, NULL);
 
-    ErrorF("InitQueue - pthread_cond_init returned\n");
+    winDebug("InitQueue - pthread_cond_init returned\n");
 
     return TRUE;
 }
@@ -802,7 +802,7 @@ winMultiWindowXMsgProc(void *pArg)
     int iReturn;
     XIconSize *xis;
 
-    ErrorF("winMultiWindowXMsgProc - Hello\n");
+    winDebug("winMultiWindowXMsgProc - Hello\n");
 
     /* Check that argument pointer is not invalid */
     if (pProcArg == NULL) {
@@ -1172,7 +1172,7 @@ winInitMultiWindowWM(WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
     char pszDisplay[512];
     int iReturn;
 
-    ErrorF("winInitMultiWindowWM - Hello\n");
+    winDebug("winInitMultiWindowWM - Hello\n");
 
     /* Check that argument pointer is not invalid */
     if (pProcArg == NULL) {

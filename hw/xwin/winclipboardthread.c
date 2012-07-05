@@ -103,7 +103,7 @@ winClipboardProc(void *pvNotUsed)
     char szDisplay[512];
     int iSelectError;
 
-    ErrorF("winClipboardProc - Hello\n");
+    winDebug("winClipboardProc - Hello\n");
     ++clipboardRestarts;
 
     /* Do we have Unicode support? */

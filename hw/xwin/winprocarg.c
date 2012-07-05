@@ -159,7 +159,7 @@ winInitializeScreenDefaults(void)
 static void
 winInitializeScreen(int i)
 {
-    winErrorFVerb(2, "winInitializeScreen - %d\n", i);
+    winErrorFVerb(3, "winInitializeScreen - %d\n", i);
 
     /* Initialize default screen values, if needed */
     winInitializeScreenDefaults();
@@ -176,7 +176,7 @@ winInitializeScreens(int maxscreens)
 {
     int i;
 
-    winErrorFVerb(2, "winInitializeScreens - %i\n", maxscreens);
+    winErrorFVerb(3, "winInitializeScreens - %i\n", maxscreens);
 
     if (maxscreens > g_iNumScreens) {
         /* Reallocate the memory for DDX-specific screen info */

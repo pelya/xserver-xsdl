@@ -90,7 +90,7 @@ winProcEstablishConnection(ClientPtr client)
     static unsigned long s_ulServerGeneration = 0;
 
     if (s_iCallCount == 0)
-        ErrorF("winProcEstablishConnection - Hello\n");
+        winDebug("winProcEstablishConnection - Hello\n");
 
     /* Do nothing if clipboard is not enabled */
     if (!g_fClipboard) {
