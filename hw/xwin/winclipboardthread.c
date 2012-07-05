@@ -64,7 +64,6 @@ static int clipboardRestarts = 0;
 static XIOErrorHandler g_winClipboardOldIOErrorHandler;
 static pthread_t g_winClipboardProcThread;
 
-Bool g_fUnicodeSupport = FALSE;
 Bool g_fUseUnicode = FALSE;
 
 /*
@@ -106,11 +105,8 @@ winClipboardProc(void *pvNotUsed)
     winDebug("winClipboardProc - Hello\n");
     ++clipboardRestarts;
 
-    /* Do we have Unicode support? */
-    g_fUnicodeSupport = winClipboardDetectUnicodeSupport();
-
     /* Do we use Unicode clipboard? */
-    fUseUnicode = g_fUnicodeClipboard && g_fUnicodeSupport;
+    fUseUnicode = g_fUnicodeClipboard;
 
     /* Save the Unicode support flag in a global */
     g_fUseUnicode = fUseUnicode;
