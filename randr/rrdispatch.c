@@ -245,7 +245,7 @@ int (*ProcRandrVector[RRNumberRequests]) (ClientPtr) = {
 /* V1.4 additions */
         ProcRRGetProviders,     /* 32 */
         ProcRRGetProviderInfo,  /* 33 */
-        NULL, /* 34 */
+        ProcRRSetProviderOffloadSink, /* 34 */
         ProcRRSetProviderOutputSource, /* 35 */
         ProcRRListProviderProperties,    /* 36 */
         ProcRRQueryProviderProperty,     /* 37 */

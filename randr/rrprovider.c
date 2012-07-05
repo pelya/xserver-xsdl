@@ -175,10 +175,15 @@ ProcRRGetProviderInfo (ClientPtr client)
 
     /* count associated providers */
     rep.nAssociatedProviders = 0;
+    if (provider->offload_sink)
+        rep.nAssociatedProviders++;
     if (provider->output_source)
         rep.nAssociatedProviders++;
     xorg_list_for_each_entry(provscreen, &pScreen->output_slave_list, output_head)
         rep.nAssociatedProviders++;
+    xorg_list_for_each_entry(provscreen, &pScreen->offload_slave_list, offload_head)
+        rep.nAssociatedProviders++;
+
     rep.length = (pScrPriv->numCrtcs + pScrPriv->numOutputs +
                   (rep.nAssociatedProviders * 2) + bytes_to_int32(rep.nameLength));
 
@@ -210,6 +215,15 @@ ProcRRGetProviderInfo (ClientPtr client)
     }
 
     i = 0;
+    if (provider->offload_sink) {
+        providers[i] = provider->offload_sink->id;
+        if (client->swapped)
+            swapl(&providers[i]);
+        prov_cap[i] = RR_Capability_SinkOffload;
+        if (client->swapped)
+            swapl(&prov_cap[i]);
+        i++;
+    }
     if (provider->output_source) {
         providers[i] = provider->output_source->id;
         if (client->swapped)
@@ -228,6 +242,17 @@ ProcRRGetProviderInfo (ClientPtr client)
             swapl(&prov_cap[i]);
         i++;
     }
+    xorg_list_for_each_entry(provscreen, &pScreen->offload_slave_list, offload_head) {
+        pScrProvPriv = rrGetScrPriv(provscreen);
+        providers[i] = pScrProvPriv->provider->id;
+        if (client->swapped)
+            swapl(&providers[i]);
+        prov_cap[i] = RR_Capability_SourceOffload;
+        if (client->swapped)
+            swapl(&prov_cap[i]);
+        i++;
+    }
+
 
     memcpy(name, provider->name, rep.nameLength);
     if (client->swapped) {
@@ -273,6 +298,35 @@ ProcRRSetProviderOutputSource(ClientPtr client)
     pScrPriv = rrGetScrPriv(pScreen);
 
     pScrPriv->rrProviderSetOutputSource(pScreen, provider, source_provider);
+
+    RRTellChanged (pScreen);
+
+    return Success;
+}
+
+int
+ProcRRSetProviderOffloadSink(ClientPtr client)
+{
+    REQUEST(xRRSetProviderOffloadSinkReq);
+    rrScrPrivPtr pScrPriv;
+    RRProviderPtr provider, sink_provider = NULL;
+    ScreenPtr pScreen;
+
+    REQUEST_AT_LEAST_SIZE(xRRSetProviderOffloadSinkReq);
+
+    VERIFY_RR_PROVIDER(stuff->provider, provider, DixReadAccess);
+    if (!(provider->capabilities & RR_Capability_SourceOffload))
+        return BadValue;
+
+    if (stuff->sink_provider) {
+        VERIFY_RR_PROVIDER(stuff->sink_provider, sink_provider, DixReadAccess);
+        if (!(sink_provider->capabilities & RR_Capability_SinkOffload))
+            return BadValue;
+    }
+    pScreen = provider->pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+
+    pScrPriv->rrProviderSetOffloadSink(pScreen, provider, sink_provider);
 
     RRTellChanged (pScreen);
 

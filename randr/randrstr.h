@@ -164,6 +164,7 @@ struct _rrProvider {
     int nameLength;
     RRPropertyPtr properties;
     Bool pendingProperties;
+    struct _rrProvider *offload_sink;
     struct _rrProvider *output_source;
 };
 
@@ -226,6 +227,11 @@ typedef Bool (*RRProviderSetOutputSourceProcPtr)(ScreenPtr pScreen,
                                           RRProviderPtr provider,
                                           RRProviderPtr output_source);
 
+typedef Bool (*RRProviderSetOffloadSinkProcPtr)(ScreenPtr pScreen,
+                                         RRProviderPtr provider,
+                                         RRProviderPtr offload_sink);
+
+
 /* These are for 1.0 compatibility */
 
 typedef struct _rrRefresh {
@@ -278,6 +284,7 @@ typedef struct _rrScrPriv {
     RRCrtcSetScanoutPixmapProcPtr rrCrtcSetScanoutPixmap;
 
     RRProviderSetOutputSourceProcPtr rrProviderSetOutputSource;
+    RRProviderSetOffloadSinkProcPtr rrProviderSetOffloadSink;
     RRProviderGetPropertyProcPtr rrProviderGetProperty;
     RRProviderSetPropertyProcPtr rrProviderSetProperty;
     /*
@@ -887,6 +894,9 @@ ProcRRGetProviderInfo(ClientPtr client);
 
 extern _X_EXPORT int
 ProcRRSetProviderOutputSource(ClientPtr client);
+
+extern _X_EXPORT int
+ProcRRSetProviderOffloadSink(ClientPtr client);
 
 extern _X_EXPORT Bool
 RRProviderInit(void);
