@@ -115,6 +115,7 @@ winInitializeScreenDefaults(void)
     }
 
     defaultScreenInfo.iMonitor = 1;
+    defaultScreenInfo.hMonitor = MonitorFromWindow(NULL, MONITOR_DEFAULTTOPRIMARY);
     defaultScreenInfo.dwWidth = dwWidth;
     defaultScreenInfo.dwHeight = dwHeight;
     defaultScreenInfo.dwUserWidth = dwWidth;
@@ -333,6 +334,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
                 g_ScreenInfo[nScreenNum].fUserGaveHeightAndWidth = FALSE;
                 g_ScreenInfo[nScreenNum].fUserGavePosition = TRUE;
                 g_ScreenInfo[nScreenNum].iMonitor = iMonitor;
+                g_ScreenInfo[nScreenNum].hMonitor = data.monitorHandle;
                 g_ScreenInfo[nScreenNum].dwWidth = data.monitorWidth;
                 g_ScreenInfo[nScreenNum].dwHeight = data.monitorHeight;
                 g_ScreenInfo[nScreenNum].dwUserWidth = data.monitorWidth;
@@ -383,6 +385,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
                     }
                     else if (data.bMonitorSpecifiedExists == TRUE) {
                         g_ScreenInfo[nScreenNum].iMonitor = iMonitor;
+                        g_ScreenInfo[nScreenNum].hMonitor = data.monitorHandle;
                         g_ScreenInfo[nScreenNum].dwInitialX +=
                             data.monitorOffsetX;
                         g_ScreenInfo[nScreenNum].dwInitialY +=
@@ -415,6 +418,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
                                   iMonitor);
                     g_ScreenInfo[nScreenNum].fUserGavePosition = TRUE;
                     g_ScreenInfo[nScreenNum].iMonitor = iMonitor;
+                    g_ScreenInfo[nScreenNum].hMonitor = data.monitorHandle;
                     g_ScreenInfo[nScreenNum].dwInitialX = data.monitorOffsetX;
                     g_ScreenInfo[nScreenNum].dwInitialY = data.monitorOffsetY;
                 }
