@@ -62,6 +62,7 @@ from The Open Group.
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "extnsionst.h"
+#include "inputstr.h"
 
 static DevPrivateSetRec global_keys[PRIVATE_LAST];
 
@@ -91,9 +92,9 @@ static const char *key_names[PRIVATE_LAST] = {
     [PRIVATE_SCREEN] = "SCREEN",
     [PRIVATE_EXTENSION] = "EXTENSION",
     [PRIVATE_COLORMAP] = "COLORMAP",
+    [PRIVATE_DEVICE] = "DEVICE",
 
     /* These cannot have any objects before all relevant keys are registered */
-    [PRIVATE_DEVICE] = "DEVICE",
     [PRIVATE_CLIENT] = "CLIENT",
     [PRIVATE_PROPERTY] = "PROPERTY",
     [PRIVATE_SELECTION] = "SELECTION",
@@ -265,11 +266,30 @@ fixupDefaultColormaps(FixupFunc fixup, unsigned bytes)
     return TRUE;
 }
 
+static Bool
+fixupDeviceList(DeviceIntPtr device, FixupFunc fixup, unsigned bytes)
+{
+    while (device) {
+        if (!fixup(&device->devPrivates, global_keys[PRIVATE_DEVICE].offset, bytes))
+            return FALSE;
+        device = device->next;
+    }
+    return TRUE;
+}
+
+static Bool
+fixupDevices(FixupFunc fixup, unsigned bytes)
+{
+    return (fixupDeviceList(inputInfo.devices, fixup, bytes) &&
+            fixupDeviceList(inputInfo.off_devices, fixup, bytes));
+}
+
 static Bool (*const allocated_early[PRIVATE_LAST]) (FixupFunc, unsigned) = {
     [PRIVATE_SCREEN] = fixupScreens,
     [PRIVATE_CLIENT] = fixupServerClient,
     [PRIVATE_EXTENSION] = fixupExtensions,
     [PRIVATE_COLORMAP] = fixupDefaultColormaps,
+    [PRIVATE_DEVICE] = fixupDevices,
 };
 
 static void

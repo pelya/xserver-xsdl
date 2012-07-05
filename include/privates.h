@@ -33,9 +33,9 @@ typedef enum {
     PRIVATE_SCREEN,
     PRIVATE_EXTENSION,
     PRIVATE_COLORMAP,
+    PRIVATE_DEVICE,
 
     /* These cannot have any objects before all relevant keys are registered */
-    PRIVATE_DEVICE,
     PRIVATE_CLIENT,
     PRIVATE_PROPERTY,
     PRIVATE_SELECTION,
