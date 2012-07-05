@@ -137,7 +137,7 @@ ProcRRGetProviderInfo (ClientPtr client)
 {
     REQUEST(xRRGetProviderInfoReq);
     xRRGetProviderInfoReply rep;
-    rrScrPrivPtr pScrPriv;
+    rrScrPrivPtr pScrPriv, pScrProvPriv;
     RRProviderPtr provider;
     ScreenPtr pScreen;
     CARD8 *extra;
@@ -168,6 +168,10 @@ ProcRRGetProviderInfo (ClientPtr client)
 
     /* count associated providers */
     rep.nAssociatedProviders = 0;
+    if (provider->output_source)
+        rep.nAssociatedProviders++;
+    xorg_list_for_each_entry(provscreen, &pScreen->output_slave_list, output_head)
+        rep.nAssociatedProviders++;
     rep.length = (pScrPriv->numCrtcs + pScrPriv->numOutputs +
                   (rep.nAssociatedProviders * 2) + bytes_to_int32(rep.nameLength));
 
@@ -198,6 +202,26 @@ ProcRRGetProviderInfo (ClientPtr client)
             swapl(&outputs[i]);
     }
 
+    i = 0;
+    if (provider->output_source) {
+        providers[i] = provider->output_source->id;
+        if (client->swapped)
+            swapl(&providers[i]);
+        prov_cap[i] = RR_Capability_SourceOutput;
+            swapl(&prov_cap[i]);
+        i++;
+    }
+    xorg_list_for_each_entry(provscreen, &pScreen->output_slave_list, output_head) {
+        pScrProvPriv = rrGetScrPriv(provscreen);
+        providers[i] = pScrProvPriv->provider->id;
+        if (client->swapped)
+            swapl(&providers[i]);
+        prov_cap[i] = RR_Capability_SinkOutput;
+        if (client->swapped)
+            swapl(&prov_cap[i]);
+        i++;
+    }
+
     memcpy(name, provider->name, rep.nameLength);
     if (client->swapped) {
               swaps(&rep.sequenceNumber);
@@ -213,6 +237,38 @@ ProcRRGetProviderInfo (ClientPtr client)
         WriteToClient (client, extraLen, (char *) extra);
         free(extra);
     }
+    return Success;
+}
+
+int
+ProcRRSetProviderOutputSource(ClientPtr client)
+{
+    REQUEST(xRRSetProviderOutputSourceReq);
+    rrScrPrivPtr pScrPriv;
+    RRProviderPtr provider, source_provider = NULL;
+    ScreenPtr pScreen;
+
+    REQUEST_AT_LEAST_SIZE(xRRSetProviderOutputSourceReq);
+
+    VERIFY_RR_PROVIDER(stuff->provider, provider, DixReadAccess);
+
+    if (!(provider->capabilities & RR_Capability_SinkOutput))
+        return BadValue;
+
+    if (stuff->source_provider) {
+        VERIFY_RR_PROVIDER(stuff->source_provider, source_provider, DixReadAccess);
+
+        if (!(source_provider->capabilities & RR_Capability_SourceOutput))
+            return BadValue;
+    }
+
+    pScreen = provider->pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+
+    pScrPriv->rrProviderSetOutputSource(pScreen, provider, source_provider);
+
+    RRTellChanged (pScreen);
+
     return Success;
 }
 

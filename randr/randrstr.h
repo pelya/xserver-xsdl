@@ -164,6 +164,7 @@ struct _rrProvider {
     int nameLength;
     RRPropertyPtr properties;
     Bool pendingProperties;
+    struct _rrProvider *output_source;
 };
 
 #if RANDR_12_INTERFACE
@@ -221,6 +222,10 @@ typedef Bool (*RRProviderSetPropertyProcPtr) (ScreenPtr pScreen,
 typedef Bool (*RRGetInfoProcPtr) (ScreenPtr pScreen, Rotation * rotations);
 typedef Bool (*RRCloseScreenProcPtr) (ScreenPtr pscreen);
 
+typedef Bool (*RRProviderSetOutputSourceProcPtr)(ScreenPtr pScreen,
+                                          RRProviderPtr provider,
+                                          RRProviderPtr output_source);
+
 /* These are for 1.0 compatibility */
 
 typedef struct _rrRefresh {
@@ -272,6 +277,7 @@ typedef struct _rrScrPriv {
     /* TODO #if RANDR_15_INTERFACE */
     RRCrtcSetScanoutPixmapProcPtr rrCrtcSetScanoutPixmap;
 
+    RRProviderSetOutputSourceProcPtr rrProviderSetOutputSource;
     RRProviderGetPropertyProcPtr rrProviderGetProperty;
     RRProviderSetPropertyProcPtr rrProviderSetProperty;
     /*
@@ -879,6 +885,8 @@ ProcRRGetProviders(ClientPtr client);
 extern _X_EXPORT int
 ProcRRGetProviderInfo(ClientPtr client);
 
+extern _X_EXPORT int
+ProcRRSetProviderOutputSource(ClientPtr client);
 
 extern _X_EXPORT Bool
 RRProviderInit(void);
