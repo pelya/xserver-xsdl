@@ -1754,6 +1754,37 @@ xf86RandR12EnterVT(ScrnInfoPtr pScrn)
 }
 
 static Bool
+xf86RandR14ProviderSetOutputSource(ScreenPtr pScreen,
+                                   RRProviderPtr provider,
+                                   RRProviderPtr source_provider)
+{
+
+
+    if (!source_provider) {
+        if (provider->output_source) {
+            ScreenPtr cmScreen = pScreen->current_master;
+
+            DetachOutputGPU(pScreen);
+            AttachUnboundGPU(cmScreen, pScreen);
+        }
+        provider->output_source = NULL;
+        return TRUE;
+    }
+
+    if (provider->output_source == source_provider)
+        return TRUE;
+
+    SetRootClip(source_provider->pScreen, FALSE);
+
+    DetachUnboundGPU(pScreen);
+    AttachOutputGPU(source_provider->pScreen, pScreen);
+
+    provider->output_source = source_provider;
+    SetRootClip(source_provider->pScreen, TRUE);
+    return TRUE;
+}
+
+static Bool
 xf86RandR14ProviderSetProperty(ScreenPtr pScreen,
                              RRProviderPtr randr_provider,
                              Atom property, RRPropertyValuePtr value)
@@ -1820,6 +1851,8 @@ xf86RandR12Init12(ScreenPtr pScreen)
 #endif
     rp->rrModeDestroy = xf86RandR12ModeDestroy;
     rp->rrSetConfig = NULL;
+
+    rp->rrProviderSetOutputSource = xf86RandR14ProviderSetOutputSource;
 
     rp->rrProviderSetProperty = xf86RandR14ProviderSetProperty;
     rp->rrProviderGetProperty = xf86RandR14ProviderGetProperty;

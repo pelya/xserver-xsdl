@@ -741,7 +741,11 @@ xf86CrtcCloseScreen(ScreenPtr screen)
     }
     /* detach any providers */
     if (config->randr_provider) {
-        if (screen->current_master)
+        if (config->randr_provider->output_source) {
+            DetachOutputGPU(screen);
+            config->randr_provider->output_source = NULL;
+        }
+        else if (screen->current_master)
             DetachUnboundGPU(screen);
     }
     xf86RandR12CloseScreen(screen);
