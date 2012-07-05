@@ -741,7 +741,11 @@ xf86CrtcCloseScreen(ScreenPtr screen)
     }
     /* detach any providers */
     if (config->randr_provider) {
-        if (config->randr_provider->output_source) {
+        if (config->randr_provider->offload_sink) {
+            DetachOffloadGPU(screen);
+            config->randr_provider->offload_sink = NULL;
+        }
+        else if (config->randr_provider->output_source) {
             DetachOutputGPU(screen);
             config->randr_provider->output_source = NULL;
         }

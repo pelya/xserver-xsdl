@@ -1789,6 +1789,32 @@ xf86RandR14ProviderSetOutputSource(ScreenPtr pScreen,
 }
 
 static Bool
+xf86RandR14ProviderSetOffloadSink(ScreenPtr pScreen,
+                                  RRProviderPtr provider,
+                                  RRProviderPtr sink_provider)
+{
+    if (!sink_provider) {
+        if (provider->offload_sink) {
+            ScreenPtr cmScreen = pScreen->current_master;
+            DetachOutputGPU(pScreen);
+            AttachUnboundGPU(cmScreen, pScreen);
+        }
+
+        provider->offload_sink = NULL;
+        return TRUE;
+    }
+
+    if (provider->offload_sink == sink_provider)
+        return TRUE;
+
+    DetachUnboundGPU(pScreen);
+    AttachOffloadGPU(sink_provider->pScreen, pScreen);
+
+    provider->offload_sink = sink_provider;
+    return TRUE;
+}
+
+static Bool
 xf86RandR14ProviderSetProperty(ScreenPtr pScreen,
                              RRProviderPtr randr_provider,
                              Atom property, RRPropertyValuePtr value)
@@ -1857,6 +1883,7 @@ xf86RandR12Init12(ScreenPtr pScreen)
     rp->rrSetConfig = NULL;
 
     rp->rrProviderSetOutputSource = xf86RandR14ProviderSetOutputSource;
+    rp->rrProviderSetOffloadSink = xf86RandR14ProviderSetOffloadSink;
 
     rp->rrProviderSetProperty = xf86RandR14ProviderSetProperty;
     rp->rrProviderGetProperty = xf86RandR14ProviderGetProperty;
