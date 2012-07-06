@@ -738,7 +738,7 @@ DDCModesFromEstIII(unsigned char *est)
     int i, j, m;
 
     for (i = 0; i < 6; i++) {
-        for (j = 7; j > 0; j--) {
+        for (j = 7; j >= 0; j--) {
             if (est[i] & (1 << j)) {
                 m = (i * 8) + (7 - j);
                 if (EstIIIModes[m].w)
