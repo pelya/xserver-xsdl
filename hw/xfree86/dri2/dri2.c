@@ -51,6 +51,8 @@
 CARD8 dri2_major;               /* version of DRI2 supported by DDX */
 CARD8 dri2_minor;
 
+uint32_t prime_id_allocate_bitmask;
+
 static DevPrivateKeyRec dri2ScreenPrivateKeyRec;
 
 #define dri2ScreenPrivateKey (&dri2ScreenPrivateKeyRec)
@@ -111,6 +113,7 @@ typedef struct _DRI2Screen {
     const char *deviceName;
     int fd;
     unsigned int lastSequence;
+    int prime_id;
 
     DRI2CreateBufferProcPtr CreateBuffer;
     DRI2DestroyBufferProcPtr DestroyBuffer;
@@ -145,16 +148,15 @@ static ScreenPtr
 GetScreenPrime(ScreenPtr master, int prime_id)
 {
     ScreenPtr slave;
-    int i;
-
     if (prime_id == 0 || xorg_list_is_empty(&master->offload_slave_list)) {
         return master;
     }
-    i = 0;
     xorg_list_for_each_entry(slave, &master->offload_slave_list, offload_head) {
-        if (i == (prime_id - 1))
+        DRI2ScreenPtr ds;
+
+        ds = DRI2GetScreen(slave);
+        if (ds->prime_id == prime_id)
             break;
-        i++;
     }
     if (!slave)
         return master;
@@ -1372,6 +1374,22 @@ DRI2ConfigNotify(WindowPtr pWin, int x, int y, int w, int h, int bw,
     return Success;
 }
 
+#define MAX_PRIME DRI2DriverPrimeMask
+static int
+get_prime_id(void)
+{
+    int i;
+    /* start at 1, prime id 0 is just normal driver */
+    for (i = 1; i < MAX_PRIME; i++) {
+         if (prime_id_allocate_bitmask & (1 << i))
+             continue;
+
+         prime_id_allocate_bitmask |= (1 << i);
+         return i;
+    }
+    return -1;
+}
+
 Bool
 DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 {
@@ -1447,6 +1465,13 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 
     if (info->version >= 9) {
         ds->CreateBuffer2 = info->CreateBuffer2;
+        if (info->CreateBuffer2 && pScreen->isGPU) {
+            ds->prime_id = get_prime_id();
+            if (ds->prime_id == -1) {
+                free(ds);
+                return FALSE;
+            }
+        }
         ds->DestroyBuffer2 = info->DestroyBuffer2;
         ds->CopyRegion2 = info->CopyRegion2;
     }
@@ -1520,6 +1545,8 @@ DRI2CloseScreen(ScreenPtr pScreen)
 
     pScreen->ConfigNotify = ds->ConfigNotify;
 
+    if (ds->prime_id)
+        prime_id_allocate_bitmask &= ~(1 << ds->prime_id);
     free(ds->driverNames);
     free(ds);
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, NULL);
