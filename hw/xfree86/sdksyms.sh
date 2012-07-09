@@ -174,14 +174,6 @@ cat > sdksyms.c << EOF
 #endif
 
 
-/* hw/xfree86/xaa/Makefile.am -- module */
-/*
-#include "xaa.h"
-#include "xaalocal.h"
-#include "xaarop.h"
- */
-
-
 /* hw/xfree86/dixmods/extmod/Makefile.am -- module */
 #ifdef XFreeXDGA
 #include "dgaproc.h"

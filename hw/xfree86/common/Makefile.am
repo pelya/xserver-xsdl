@@ -62,7 +62,8 @@ sdk_HEADERS = compiler.h fourcc.h xf86.h xf86Module.h xf86Opt.h \
               xf86PciInfo.h xf86Priv.h xf86Privstr.h \
               xf86cmap.h xf86fbman.h xf86str.h xf86Xinput.h xisb.h \
               $(XVSDKINCS) $(XF86VMODE_SDK) $(DGA_SDK) xorgVersion.h \
-              xf86sbusBus.h xf86VGAarbiter.h xf86Optionstr.h xf86platformBus.h
+              xf86sbusBus.h xf86VGAarbiter.h xf86Optionstr.h xf86platformBus.h \
+	      xaarop.h
 
 DISTCLEANFILES = xf86Build.h
 CLEANFILES = $(BUILT_SOURCES)
@@ -94,7 +95,8 @@ EXTRA_DIST = \
 	modeline2c.awk \
 	xf86VGAarbiter.h \
 	xf86VGAarbiterPriv.h \
-        $(DISTKBDSOURCES)
+        $(DISTKBDSOURCES) \
+	xaarop.h
 
 if LNXACPI
 XORG_CFLAGS += -DHAVE_ACPI
