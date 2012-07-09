@@ -1012,7 +1012,6 @@ OsVendorInit(void)
     }
 #endif
 #endif
-    OsReleaseSIGIO();
 
     beenHere = TRUE;
 }

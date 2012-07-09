@@ -1243,6 +1243,19 @@ OsReleaseSignals(void)
 #endif
 }
 
+void
+OsResetSignals(void)
+{
+#ifdef SIG_BLOCK
+    while (BlockedSignalCount > 0)
+        OsReleaseSignals();
+#ifdef SIGIO
+    while (sigio_blocked > 0)
+        OsReleaseSIGIO();
+#endif
+#endif
+}
+
 /*
  * Pending signals may interfere with core dumping. Provide a
  * mechanism to block signals when aborting.
