@@ -101,12 +101,6 @@ static ExtensionModule extensionModules[] = {
      NULL,
      NULL},
 #endif
-    {                           /* DON'T delete this entry ! */
-     NULL,
-     NULL,
-     NULL,
-     NULL,
-     NULL}
 };
 
 static XF86ModuleVersionInfo VersRec = {
@@ -134,7 +128,7 @@ extmodSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 
     /* XXX the option stuff here is largely a sample/test case */
 
-    for (i = 0; extensionModules[i].name != NULL; i++) {
+    for (i = 0; i < ARRAY_SIZE(extensionModules); i++) {
 #ifdef XSELINUX
         if (!strcmp(SELINUX_EXTENSION_NAME, extensionModules[i].name)) {
             pointer o;
