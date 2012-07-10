@@ -87,8 +87,6 @@ typedef struct {
     InitExtension setupFunc;
 } ExtensionModule;
 
-extern ExtensionModule *ExtensionModuleList;
-
 extern _X_EXPORT unsigned short StandardMinorOpcode(ClientPtr /*client */ );
 
 extern _X_EXPORT Bool EnableDisableExtension(const char *name, Bool enable);
@@ -99,5 +97,7 @@ extern _X_EXPORT void EnableDisableExtensionError(const char *name,
 extern _X_EXPORT void InitExtensions(int argc, char **argv);
 
 extern _X_EXPORT void CloseDownExtensions(void);
+
+extern _X_EXPORT void LoadExtension(ExtensionModule *ext, Bool external);
 
 #endif                          /* EXTENSION_H */

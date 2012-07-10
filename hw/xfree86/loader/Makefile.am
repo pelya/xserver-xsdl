@@ -14,7 +14,6 @@ EXTRA_DIST = \
 libloader_la_SOURCES = \
 	loader.c \
 	loaderProcs.h \
-	loadext.c \
         loadmod.c \
 	os.c
 

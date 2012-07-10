@@ -169,11 +169,6 @@ typedef struct {
 
 #define INITARGS void
 
-/* This really shouldn't be here, but gets moved in about three commits'
- * time.  So odds are the only people who ever see this comment are doing
- * patch review, in which case, thanks! */
-extern _X_EXPORT void AddStaticExtensions(void);
-
 /* Prototypes for Loader functions that are exported to modules */
 extern _X_EXPORT pointer LoadSubModule(pointer, const char *, const char **,
                                        const char **, pointer,
@@ -184,7 +179,6 @@ extern _X_EXPORT pointer LoaderSymbol(const char *);
 extern _X_EXPORT char **LoaderListDirs(const char **, const char **);
 extern _X_EXPORT void LoaderFreeDirList(char **);
 extern _X_EXPORT void LoaderErrorMsg(const char *, const char *, int, int);
-extern _X_EXPORT void LoadExtension(ExtensionModule *, Bool);
 extern _X_EXPORT void LoaderGetOS(const char **name, int *major, int *minor,
                                   int *teeny);
 extern _X_EXPORT Bool LoaderShouldIgnoreABI(void);
