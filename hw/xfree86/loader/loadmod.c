@@ -992,10 +992,6 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
         ret->VersionInfo = vers;
     }
     else {
-        /* No initdata is OK for external modules */
-        if (options == EXTERN_MODULE)
-            goto LoadModule_exit;
-
         /* no initdata, fail the load */
         xf86Msg(X_ERROR, "LoadModule: Module %s does not have a %s "
                 "data object.\n", module, p);

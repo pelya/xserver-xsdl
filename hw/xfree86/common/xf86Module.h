@@ -55,9 +55,6 @@ typedef enum {
 
 #define DEFAULT_LIST ((char *)-1)
 
-/* This indicates a special module that doesn't have the usual entry point */
-#define EXTERN_MODULE ((pointer)-1)
-
 /* Built-in ABI classes.  These definitions must not be changed. */
 #define ABI_CLASS_NONE		NULL
 #define ABI_CLASS_ANSIC		"X.Org ANSI C Emulation"

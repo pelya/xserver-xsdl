@@ -5363,15 +5363,6 @@ XFree86 common layer.
 		  way by modules loaded directly by the XFree86 common
 		  layer.  However, it may be used for application-specific
 		  parameter passing in other situations.
-		    </para>
-
-		    <para>
-		  When loading <quote>external</quote> modules (modules that don't
-		  have the standard entry point, for example a
-		  special shared library) the options parameter can be
-		  set to <constant>EXTERN_MODULE</constant> to tell the
-		  loader not to reject the module when it doesn't find
-		  the standard entry point.
 		    </para></listitem></varlistentry>
 
 
