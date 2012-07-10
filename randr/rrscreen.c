@@ -22,8 +22,6 @@
 
 #include "randrstr.h"
 
-static const int padlength[4] = { 0, 3, 2, 1 };
-
 static CARD16
  RR10CurrentSizeID(ScreenPtr pScreen);
 
@@ -46,8 +44,7 @@ RREditConnectionInfo(ScreenPtr pScreen)
     connSetup = (xConnSetup *) ConnectionInfo;
     vendor = (char *) connSetup + sizeof(xConnSetup);
     formats = (xPixmapFormat *) ((char *) vendor +
-                                 connSetup->nbytesVendor +
-                                 padlength[connSetup->nbytesVendor & 3]);
+                                 pad_to_int32(connSetup->nbytesVendor));
     root = (xWindowRoot *) ((char *) formats +
                             sizeof(xPixmapFormat) *
                             screenInfo.numPixmapFormats);

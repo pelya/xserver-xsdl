@@ -578,8 +578,6 @@ ResetCurrentRequest(ClientPtr client)
     }
 }
 
-static const int padlength[4] = { 0, 3, 2, 1 };
-
  /********************
  * FlushAllOutput()
  *    Flush all clients with output.  However, if some client still
@@ -757,7 +755,7 @@ WriteToClient(ClientPtr who, int count, const void *__buf)
         oc->output = oco;
     }
 
-    padBytes = padlength[count & 3];
+    padBytes = padding_for_int32(count);
 
     if (ReplyCallback) {
         ReplyInfoRec replyinfo;
@@ -850,7 +848,7 @@ FlushClient(ClientPtr who, OsCommPtr oc, const void *__extraBuf, int extraCount)
     if (!oco)
         return 0;
     written = 0;
-    padsize = padlength[extraCount & 3];
+    padsize = padding_for_int32(extraCount);
     notWritten = oco->count + extraCount + padsize;
     todo = notWritten;
     while (notWritten) {

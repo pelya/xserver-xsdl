@@ -466,8 +466,6 @@ Dispatch(void)
 static int VendorRelease = VENDOR_RELEASE;
 static char *VendorString = VENDOR_NAME;
 
-static const int padlength[4] = { 0, 3, 2, 1 };
-
 void
 SetVendorRelease(int release)
 {
@@ -528,7 +526,7 @@ CreateConnectionBlock(void)
     memmove(pBuf, VendorString, (int) setup.nbytesVendor);
     sizesofar += setup.nbytesVendor;
     pBuf += setup.nbytesVendor;
-    i = padlength[setup.nbytesVendor & 3];
+    i = padding_for_int32(setup.nbytesVendor);
     sizesofar += i;
     while (--i >= 0)
         *pBuf++ = 0;
