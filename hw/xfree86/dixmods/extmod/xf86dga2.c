@@ -96,13 +96,14 @@ ProcXDGAOpenFramebuffer(ClientPtr client)
     char *deviceName;
     int nameSize;
 
+    REQUEST_SIZE_MATCH(xXDGAOpenFramebufferReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (!DGAAvailable(stuff->screen))
         return DGAErrorBase + XF86DGANoDirectVideoMode;
 
-    REQUEST_SIZE_MATCH(xXDGAOpenFramebufferReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -129,13 +130,13 @@ ProcXDGACloseFramebuffer(ClientPtr client)
 {
     REQUEST(xXDGACloseFramebufferReq);
 
+    REQUEST_SIZE_MATCH(xXDGACloseFramebufferReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (!DGAAvailable(stuff->screen))
         return DGAErrorBase + XF86DGANoDirectVideoMode;
-
-    REQUEST_SIZE_MATCH(xXDGACloseFramebufferReq);
 
     DGACloseFramebuffer(stuff->screen);
 
@@ -152,10 +153,11 @@ ProcXDGAQueryModes(ClientPtr client)
     xXDGAModeInfo info;
     XDGAModePtr mode;
 
+    REQUEST_SIZE_MATCH(xXDGAQueryModesReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
-    REQUEST_SIZE_MATCH(xXDGAQueryModesReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.number = 0;
@@ -267,11 +269,12 @@ ProcXDGASetMode(ClientPtr client)
     ClientPtr owner;
     int size;
 
+    REQUEST_SIZE_MATCH(xXDGASetModeReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
     owner = DGA_GETCLIENT(stuff->screen);
 
-    REQUEST_SIZE_MATCH(xXDGASetModeReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.offset = 0;
@@ -357,13 +360,13 @@ ProcXDGASetViewport(ClientPtr client)
 {
     REQUEST(xXDGASetViewportReq);
 
+    REQUEST_SIZE_MATCH(xXDGASetViewportReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXDGASetViewportReq);
 
     DGASetViewport(stuff->screen, stuff->x, stuff->y, stuff->flags);
 
@@ -378,13 +381,13 @@ ProcXDGAInstallColormap(ClientPtr client)
 
     REQUEST(xXDGAInstallColormapReq);
 
+    REQUEST_SIZE_MATCH(xXDGAInstallColormapReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXDGAInstallColormapReq);
 
     rc = dixLookupResourceByType((pointer *) &cmap, stuff->cmap, RT_COLORMAP,
                                  client, DixInstallAccess);
@@ -399,13 +402,13 @@ ProcXDGASelectInput(ClientPtr client)
 {
     REQUEST(xXDGASelectInputReq);
 
+    REQUEST_SIZE_MATCH(xXDGASelectInputReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXDGASelectInputReq);
 
     if (DGA_GETCLIENT(stuff->screen) == client)
         DGASelectInput(stuff->screen, client, stuff->mask);
@@ -418,13 +421,13 @@ ProcXDGAFillRectangle(ClientPtr client)
 {
     REQUEST(xXDGAFillRectangleReq);
 
+    REQUEST_SIZE_MATCH(xXDGAFillRectangleReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXDGAFillRectangleReq);
 
     if (Success != DGAFillRect(stuff->screen, stuff->x, stuff->y,
                                stuff->width, stuff->height, stuff->color))
@@ -438,13 +441,13 @@ ProcXDGACopyArea(ClientPtr client)
 {
     REQUEST(xXDGACopyAreaReq);
 
+    REQUEST_SIZE_MATCH(xXDGACopyAreaReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXDGACopyAreaReq);
 
     if (Success != DGABlitRect(stuff->screen, stuff->srcx, stuff->srcy,
                                stuff->width, stuff->height, stuff->dstx,
@@ -459,13 +462,13 @@ ProcXDGACopyTransparentArea(ClientPtr client)
 {
     REQUEST(xXDGACopyTransparentAreaReq);
 
+    REQUEST_SIZE_MATCH(xXDGACopyTransparentAreaReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXDGACopyTransparentAreaReq);
 
     if (Success != DGABlitTransRect(stuff->screen, stuff->srcx, stuff->srcy,
                                     stuff->width, stuff->height, stuff->dstx,
@@ -481,13 +484,14 @@ ProcXDGAGetViewportStatus(ClientPtr client)
     REQUEST(xXDGAGetViewportStatusReq);
     xXDGAGetViewportStatusReply rep;
 
+    REQUEST_SIZE_MATCH(xXDGAGetViewportStatusReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
 
-    REQUEST_SIZE_MATCH(xXDGAGetViewportStatusReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -504,13 +508,14 @@ ProcXDGASync(ClientPtr client)
     REQUEST(xXDGASyncReq);
     xXDGASyncReply rep;
 
+    REQUEST_SIZE_MATCH(xXDGASyncReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
 
-    REQUEST_SIZE_MATCH(xXDGASyncReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -549,13 +554,14 @@ ProcXDGAChangePixmapMode(ClientPtr client)
     xXDGAChangePixmapModeReply rep;
     int x, y;
 
+    REQUEST_SIZE_MATCH(xXDGAChangePixmapModeReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
 
-    REQUEST_SIZE_MATCH(xXDGAChangePixmapModeReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -579,13 +585,13 @@ ProcXDGACreateColormap(ClientPtr client)
     REQUEST(xXDGACreateColormapReq);
     int result;
 
+    REQUEST_SIZE_MATCH(xXDGACreateColormapReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXDGACreateColormapReq);
 
     if (!stuff->mode)
         return BadValue;
@@ -615,10 +621,11 @@ ProcXF86DGAGetVideoLL(ClientPtr client)
     int num, offset, flags;
     char *name;
 
+    REQUEST_SIZE_MATCH(xXF86DGAGetVideoLLReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
-    REQUEST_SIZE_MATCH(xXF86DGAGetVideoLLReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -655,9 +662,10 @@ ProcXF86DGADirectVideo(ClientPtr client)
 
     REQUEST(xXF86DGADirectVideoReq);
 
+    REQUEST_SIZE_MATCH(xXF86DGADirectVideoReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
-    REQUEST_SIZE_MATCH(xXF86DGADirectVideoReq);
 
     if (!DGAAvailable(stuff->screen))
         return DGAErrorBase + XF86DGANoDirectVideoMode;
@@ -713,10 +721,11 @@ ProcXF86DGAGetViewPortSize(ClientPtr client)
     REQUEST(xXF86DGAGetViewPortSizeReq);
     xXF86DGAGetViewPortSizeReply rep;
 
+    REQUEST_SIZE_MATCH(xXF86DGAGetViewPortSizeReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
-    REQUEST_SIZE_MATCH(xXF86DGAGetViewPortSizeReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -741,13 +750,13 @@ ProcXF86DGASetViewPort(ClientPtr client)
 {
     REQUEST(xXF86DGASetViewPortReq);
 
+    REQUEST_SIZE_MATCH(xXF86DGASetViewPortReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXF86DGASetViewPortReq);
 
     if (!DGAAvailable(stuff->screen))
         return DGAErrorBase + XF86DGANoDirectVideoMode;
@@ -768,10 +777,11 @@ ProcXF86DGAGetVidPage(ClientPtr client)
     REQUEST(xXF86DGAGetVidPageReq);
     xXF86DGAGetVidPageReply rep;
 
+    REQUEST_SIZE_MATCH(xXF86DGAGetVidPageReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
-    REQUEST_SIZE_MATCH(xXF86DGAGetVidPageReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -786,10 +796,10 @@ ProcXF86DGASetVidPage(ClientPtr client)
 {
     REQUEST(xXF86DGASetVidPageReq);
 
+    REQUEST_SIZE_MATCH(xXF86DGASetVidPageReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
-
-    REQUEST_SIZE_MATCH(xXF86DGASetVidPageReq);
 
     /* silently fail */
 
@@ -804,13 +814,13 @@ ProcXF86DGAInstallColormap(ClientPtr client)
 
     REQUEST(xXF86DGAInstallColormapReq);
 
+    REQUEST_SIZE_MATCH(xXF86DGAInstallColormapReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXF86DGAInstallColormapReq);
 
     if (!DGAActive(stuff->screen))
         return DGAErrorBase + XF86DGADirectNotActivated;
@@ -832,10 +842,11 @@ ProcXF86DGAQueryDirectVideo(ClientPtr client)
     REQUEST(xXF86DGAQueryDirectVideoReq);
     xXF86DGAQueryDirectVideoReply rep;
 
+    REQUEST_SIZE_MATCH(xXF86DGAQueryDirectVideoReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
-    REQUEST_SIZE_MATCH(xXF86DGAQueryDirectVideoReq);
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -854,13 +865,13 @@ ProcXF86DGAViewPortChanged(ClientPtr client)
     REQUEST(xXF86DGAViewPortChangedReq);
     xXF86DGAViewPortChangedReply rep;
 
+    REQUEST_SIZE_MATCH(xXF86DGAViewPortChangedReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (DGA_GETCLIENT(stuff->screen) != client)
         return DGAErrorBase + XF86DGADirectNotActivated;
-
-    REQUEST_SIZE_MATCH(xXF86DGAViewPortChangedReq);
 
     if (!DGAActive(stuff->screen))
         return DGAErrorBase + XF86DGADirectNotActivated;

@@ -1481,13 +1481,13 @@ ProcXF86VidModeGetGammaRamp(ClientPtr client)
 
     REQUEST(xXF86VidModeGetGammaRampReq);
 
+    REQUEST_SIZE_MATCH(xXF86VidModeGetGammaRampReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
 
     if (stuff->size != VidModeGetGammaRampSize(stuff->screen))
         return BadValue;
-
-    REQUEST_SIZE_MATCH(xXF86VidModeGetGammaRampReq);
 
     length = (stuff->size + 1) & ~1;
 
@@ -1529,10 +1529,10 @@ ProcXF86VidModeGetGammaRampSize(ClientPtr client)
 
     REQUEST(xXF86VidModeGetGammaRampSizeReq);
 
+    REQUEST_SIZE_MATCH(xXF86VidModeGetGammaRampSizeReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
-
-    REQUEST_SIZE_MATCH(xXF86VidModeGetGammaRampSizeReq);
 
     rep.type = X_Reply;
     rep.length = 0;
@@ -1555,10 +1555,10 @@ ProcXF86VidModeGetPermissions(ClientPtr client)
 
     REQUEST(xXF86VidModeGetPermissionsReq);
 
+    REQUEST_SIZE_MATCH(xXF86VidModeGetPermissionsReq);
+
     if (stuff->screen >= screenInfo.numScreens)
         return BadValue;
-
-    REQUEST_SIZE_MATCH(xXF86VidModeGetPermissionsReq);
 
     rep.type = X_Reply;
     rep.length = 0;
