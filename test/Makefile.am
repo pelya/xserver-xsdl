@@ -18,7 +18,7 @@ if XORG
 INCLUDES += -I$(top_srcdir)/hw/xfree86/parser \
 	-I$(top_srcdir)/hw/xfree86/ddc \
 	-I$(top_srcdir)/hw/xfree86/i2c -I$(top_srcdir)/hw/xfree86/modes \
-	-I$(top_srcdir)/hw/xfree86/ramdac
+	-I$(top_srcdir)/hw/xfree86/ramdac -I$(top_srcdir)/hw/xfree86/dri
 endif
 TEST_LDADD=libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
 
@@ -42,6 +42,7 @@ os_LDADD=$(TEST_LDADD)
 
 libxservertest_la_LIBADD = $(XSERVER_LIBS)
 if XORG
+
 nodist_libxservertest_la_SOURCES = $(top_builddir)/hw/xfree86/sdksyms.c
 libxservertest_la_LIBADD += \
             $(top_builddir)/hw/xfree86/loader/libloader.la \
@@ -55,6 +56,10 @@ libxservertest_la_LIBADD += \
             $(top_builddir)/hw/xfree86/i2c/libi2c.la \
             $(top_builddir)/hw/xfree86/dixmods/libxorgxkb.la \
             @XORG_LIBS@
+
+if DRI
+libxservertest_la_LIBADD += $(top_builddir)/hw/xfree86/dri/libdri.la
+endif
 
 else
 nodist_libxservertest_la_SOURCES = \

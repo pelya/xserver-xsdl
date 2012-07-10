@@ -1,6 +1,7 @@
 
 if DRI
 DRI_SUBDIR = dri
+DRI_LIB = dri/libdri.la
 endif
 
 if DRI2
@@ -26,8 +27,8 @@ INT10_SUBDIR = int10
 endif
 
 SUBDIRS = common ddc x86emu $(INT10_SUBDIR) os-support parser \
-	  ramdac $(VGAHW_SUBDIR) loader modes . $(VBE_SUBDIR) \
-	  $(XAA_SUBDIR) $(DRI_SUBDIR) $(DRI2_SUBDIR) i2c dixmods \
+	  ramdac $(VGAHW_SUBDIR) loader modes $(DRI_SUBDIR) . \
+	  $(VBE_SUBDIR) $(XAA_SUBDIR) $(DRI2_SUBDIR) i2c dixmods \
 	  fbdevhw shadowfb exa $(XF86UTILS_SUBDIR) doc man
 
 DIST_SUBDIRS = common ddc i2c x86emu int10 fbdevhw os-support \
@@ -40,7 +41,8 @@ nodist_Xorg_SOURCES = sdksyms.c
 
 AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
 INCLUDES = $(XORG_INCS) -I$(srcdir)/parser -I$(top_srcdir)/miext/cw \
-	-I$(srcdir)/ddc -I$(srcdir)/i2c -I$(srcdir)/modes -I$(srcdir)/ramdac
+	-I$(srcdir)/ddc -I$(srcdir)/i2c -I$(srcdir)/modes -I$(srcdir)/ramdac \
+	-I$(srcdir)/dri
 
 LOCAL_LIBS = \
             $(MAIN_LIB) \
@@ -56,6 +58,7 @@ LOCAL_LIBS = \
             i2c/libi2c.la \
             $(XORG_LIBS) \
             dixmods/libxorgxkb.la \
+            $(DRI_LIB) \
             $(top_builddir)/mi/libmi.la \
             $(top_builddir)/os/libos.la
 Xorg_LDADD = \

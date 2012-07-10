@@ -72,6 +72,15 @@ static ExtensionModule extensionModules[] = {
 	NULL
     },
 #endif
+#ifdef XF86DRI
+    {
+        XFree86DRIExtensionInit,
+        "XFree86-DRI",
+        &noXFree86DRIExtension,
+        NULL,
+        NULL
+    },
+#endif
 };
 
 static void

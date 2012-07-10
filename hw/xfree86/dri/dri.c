@@ -791,6 +791,8 @@ DRIExtensionInit(void)
 
     RegisterBlockAndWakeupHandlers(DRIBlockHandler, DRIWakeupHandler, NULL);
 
+    drmSetServerInfo(&DRIDRMServerInfo);
+
     return TRUE;
 }
 

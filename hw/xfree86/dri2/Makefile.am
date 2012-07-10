@@ -1,7 +1,6 @@
 libdri2_la_LTLIBRARIES = libdri2.la
 libdri2_la_CFLAGS = \
 	-DHAVE_XORG_CONFIG_H \
-	@DRI_CFLAGS@ \
 	@DIX_CFLAGS@ @XORG_CFLAGS@ @DRI2PROTO_CFLAGS@ @LIBDRM_CFLAGS@ \
 	-I$(top_srcdir)/hw/xfree86/common \
 	-I$(top_srcdir)/hw/xfree86/os-support/bus

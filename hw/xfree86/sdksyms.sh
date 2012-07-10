@@ -203,13 +203,11 @@ cat > sdksyms.c << EOF
 
 
 /* hw/xfree86/dri/Makefile.am -- module */
-/*
 #if XF86DRI
 # include "dri.h"
 # include "sarea.h"
 # include "dristruct.h"
 #endif
- */
 
 
 /* mi/Makefile.am */

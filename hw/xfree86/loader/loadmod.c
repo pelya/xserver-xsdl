@@ -836,6 +836,7 @@ static const char *compiled_in_modules[] = {
     "dbe",
     "record",
     "extmod",
+    "dri",
     NULL
 };
 
