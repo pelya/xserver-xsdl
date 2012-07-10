@@ -238,10 +238,11 @@ ProcGetSelectionOwner(ClientPtr client)
         return BadAtom;
     }
 
-    memset(&reply, 0, sizeof(xGetSelectionOwnerReply));
-    reply.type = X_Reply;
-    reply.length = 0;
-    reply.sequenceNumber = client->sequence;
+    reply = (xGetSelectionOwnerReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+    };
 
     rc = dixLookupSelection(&pSel, stuff->id, client, DixGetAttrAccess);
     if (rc == Success)

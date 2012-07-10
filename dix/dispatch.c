@@ -926,10 +926,9 @@ GetGeometry(ClientPtr client, xGetGeometryReply * rep)
 int
 ProcGetGeometry(ClientPtr client)
 {
-    xGetGeometryReply rep;
+    xGetGeometryReply rep = { .type = X_Reply };
     int status;
 
-    memset(&rep, 0, sizeof(xGetGeometryReply));
     if ((status = GetGeometry(client, &rep)) != Success)
         return status;
 
@@ -951,14 +950,13 @@ ProcQueryTree(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->id, client, DixListAccess);
     if (rc != Success)
         return rc;
-    memset(&reply, 0, sizeof(xQueryTreeReply));
-    reply.type = X_Reply;
-    reply.root = pWin->drawable.pScreen->root->drawable.id;
-    reply.sequenceNumber = client->sequence;
-    if (pWin->parent)
-        reply.parent = pWin->parent->drawable.id;
-    else
-        reply.parent = (Window) None;
+
+    reply = (xQueryTreeReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .root = pWin->drawable.pScreen->root->drawable.id,
+        .parent = (pWin->parent) ? pWin->parent->drawable.id : (Window) None
+    };
     pHead = RealChildHead(pWin);
     for (pChild = pWin->lastChild; pChild != pHead; pChild = pChild->prevSib)
         numChildren++;
@@ -1003,13 +1001,12 @@ ProcInternAtom(ClientPtr client)
     tchar = (char *) &stuff[1];
     atom = MakeAtom(tchar, stuff->nbytes, !stuff->onlyIfExists);
     if (atom != BAD_RESOURCE) {
-        xInternAtomReply reply;
-
-        memset(&reply, 0, sizeof(xInternAtomReply));
-        reply.type = X_Reply;
-        reply.length = 0;
-        reply.sequenceNumber = client->sequence;
-        reply.atom = atom;
+        xInternAtomReply reply = {
+            .type = X_Reply,
+            .sequenceNumber = client->sequence,
+            .length = 0,
+            .atom = atom
+        };
         WriteReplyToClient(client, sizeof(xInternAtomReply), &reply);
         return Success;
     }
@@ -1021,19 +1018,19 @@ int
 ProcGetAtomName(ClientPtr client)
 {
     const char *str;
-    xGetAtomNameReply reply;
-    int len;
 
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
     if ((str = NameForAtom(stuff->id))) {
-        len = strlen(str);
-        memset(&reply, 0, sizeof(xGetAtomNameReply));
-        reply.type = X_Reply;
-        reply.length = bytes_to_int32(len);
-        reply.sequenceNumber = client->sequence;
-        reply.nameLength = len;
+        int len = strlen(str);
+        xGetAtomNameReply reply = {
+            .type = X_Reply,
+            .sequenceNumber = client->sequence,
+            .length = bytes_to_int32(len),
+            .nameLength = len
+        };
+
         WriteReplyToClient(client, sizeof(xGetAtomNameReply), &reply);
         WriteToClient(client, len, str);
         return Success;
@@ -1123,10 +1120,12 @@ ProcTranslateCoords(ClientPtr client)
     rc = dixLookupWindow(&pDst, stuff->dstWid, client, DixGetAttrAccess);
     if (rc != Success)
         return rc;
-    memset(&rep, 0, sizeof(xTranslateCoordsReply));
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
+
+    rep = (xTranslateCoordsReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
     if (!SAME_SCREENS(pWin->drawable, pDst->drawable)) {
         rep.sameScreen = xFalse;
         rep.child = None;
@@ -1288,17 +1287,19 @@ ProcQueryTextExtents(ClientPtr client)
     }
     if (!QueryTextExtents(pFont, length, (unsigned char *) &stuff[1], &info))
         return BadAlloc;
-    reply.type = X_Reply;
-    reply.length = 0;
-    reply.sequenceNumber = client->sequence;
-    reply.drawDirection = info.drawDirection;
-    reply.fontAscent = info.fontAscent;
-    reply.fontDescent = info.fontDescent;
-    reply.overallAscent = info.overallAscent;
-    reply.overallDescent = info.overallDescent;
-    reply.overallWidth = info.overallWidth;
-    reply.overallLeft = info.overallLeft;
-    reply.overallRight = info.overallRight;
+    reply = (xQueryTextExtentsReply) {
+        .type = X_Reply,
+        .drawDirection = info.drawDirection,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .fontAscent = info.fontAscent,
+        .fontDescent = info.fontDescent,
+        .overallAscent = info.overallAscent,
+        .overallDescent = info.overallDescent,
+        .overallWidth = info.overallWidth,
+        .overallLeft = info.overallLeft,
+        .overallRight = info.overallRight
+    };
     WriteReplyToClient(client, sizeof(xQueryTextExtentsReply), &reply);
     return Success;
 }
@@ -2466,7 +2467,6 @@ ProcAllocColor(ClientPtr client)
 {
     ColormapPtr pmap;
     int rc;
-    xAllocColorReply acr;
 
     REQUEST(xAllocColorReq);
 
@@ -2474,13 +2474,15 @@ ProcAllocColor(ClientPtr client)
     rc = dixLookupResourceByType((pointer *) &pmap, stuff->cmap, RT_COLORMAP,
                                  client, DixAddAccess);
     if (rc == Success) {
-        acr.type = X_Reply;
-        acr.length = 0;
-        acr.sequenceNumber = client->sequence;
-        acr.red = stuff->red;
-        acr.green = stuff->green;
-        acr.blue = stuff->blue;
-        acr.pixel = 0;
+        xAllocColorReply acr = {
+            .type = X_Reply,
+            .sequenceNumber = client->sequence,
+            .length = 0,
+            .red = stuff->red,
+            .green = stuff->green,
+            .blue = stuff->blue,
+            .pixel = 0
+        };
         if ((rc = AllocColor(pmap, &acr.red, &acr.green, &acr.blue,
                              &acr.pixel, client->index)))
             return rc;
@@ -2509,12 +2511,11 @@ ProcAllocNamedColor(ClientPtr client)
     rc = dixLookupResourceByType((pointer *) &pcmp, stuff->cmap, RT_COLORMAP,
                                  client, DixAddAccess);
     if (rc == Success) {
-        xAllocNamedColorReply ancr;
-
-        ancr.type = X_Reply;
-        ancr.length = 0;
-        ancr.sequenceNumber = client->sequence;
-
+        xAllocNamedColorReply ancr = {
+            .type = X_Reply,
+            .sequenceNumber = client->sequence,
+            .length = 0
+        };
         if (OsLookupColor
             (pcmp->pScreen->myNum, (char *) &stuff[1], stuff->nbytes,
              &ancr.exactRed, &ancr.exactGreen, &ancr.exactBlue)) {
@@ -2555,7 +2556,6 @@ ProcAllocColorCells(ClientPtr client)
     rc = dixLookupResourceByType((pointer *) &pcmp, stuff->cmap, RT_COLORMAP,
                                  client, DixAddAccess);
     if (rc == Success) {
-        xAllocColorCellsReply accr;
         int npixels, nmasks;
         long length;
         Pixel *ppixels, *pmasks;
@@ -2585,11 +2585,13 @@ ProcAllocColorCells(ClientPtr client)
         if (noPanoramiXExtension || !pcmp->pScreen->myNum)
 #endif
         {
-            accr.type = X_Reply;
-            accr.length = bytes_to_int32(length);
-            accr.sequenceNumber = client->sequence;
-            accr.nPixels = npixels;
-            accr.nMasks = nmasks;
+            xAllocColorCellsReply accr = {
+                .type = X_Reply,
+                .sequenceNumber = client->sequence,
+                .length = bytes_to_int32(length),
+                .nPixels = npixels,
+                .nMasks = nmasks
+            };
             WriteReplyToClient(client, sizeof(xAllocColorCellsReply), &accr);
             client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
             WriteSwappedDataToClient(client, length, ppixels);
@@ -2629,9 +2631,11 @@ ProcAllocColorPlanes(ClientPtr client)
             client->errorValue = stuff->contiguous;
             return BadValue;
         }
-        acpr.type = X_Reply;
-        acpr.sequenceNumber = client->sequence;
-        acpr.nPixels = npixels;
+        acpr = (xAllocColorPlanesReply) {
+            .type = X_Reply,
+            .sequenceNumber = client->sequence,
+            .nPixels = npixels
+        };
         length = (long) npixels *sizeof(Pixel);
 
         ppixels = malloc(length);
@@ -2769,11 +2773,12 @@ ProcQueryColors(ClientPtr client)
             free(prgbs);
             return rc;
         }
-        memset(&qcr, 0, sizeof(xQueryColorsReply));
-        qcr.type = X_Reply;
-        qcr.length = bytes_to_int32(count * sizeof(xrgb));
-        qcr.sequenceNumber = client->sequence;
-        qcr.nColors = count;
+        qcr = (xQueryColorsReply) {
+            .type = X_Reply,
+            .sequenceNumber = client->sequence,
+            .length = bytes_to_int32(count * sizeof(xrgb)),
+            .nColors = count
+        };
         WriteReplyToClient(client, sizeof(xQueryColorsReply), &qcr);
         if (count) {
             client->pSwapReplyFunc = (ReplySwapPtr) SQColorsExtend;
@@ -2806,16 +2811,17 @@ ProcLookupColor(ClientPtr client)
         if (OsLookupColor
             (pcmp->pScreen->myNum, (char *) &stuff[1], stuff->nbytes,
              &exactRed, &exactGreen, &exactBlue)) {
-            xLookupColorReply lcr;
-            lcr.type = X_Reply;
-            lcr.length = 0;
-            lcr.sequenceNumber = client->sequence;
-            lcr.exactRed = exactRed;
-            lcr.exactGreen = exactGreen;
-            lcr.exactBlue = exactBlue;
-            lcr.screenRed = exactRed;
-            lcr.screenGreen = exactGreen;
-            lcr.screenBlue = exactBlue;
+            xLookupColorReply lcr = {
+                .type = X_Reply,
+                .sequenceNumber = client->sequence,
+                .length = 0,
+                .exactRed = exactRed,
+                .exactGreen = exactGreen,
+                .exactBlue = exactBlue,
+                .screenRed = exactRed,
+                .screenGreen = exactGreen,
+                .screenBlue = exactBlue
+            };
             (*pcmp->pScreen->ResolveColor) (&lcr.screenRed,
                                             &lcr.screenGreen,
                                             &lcr.screenBlue, pcmp->pVisual);
@@ -2995,12 +3001,13 @@ ProcQueryBestSize(ClientPtr client)
         return rc;
     (*pScreen->QueryBestSize) (stuff->class, &stuff->width,
                                &stuff->height, pScreen);
-    memset(&reply, 0, sizeof(xQueryBestSizeReply));
-    reply.type = X_Reply;
-    reply.length = 0;
-    reply.sequenceNumber = client->sequence;
-    reply.width = stuff->width;
-    reply.height = stuff->height;
+    reply = (xQueryBestSizeReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .width = stuff->width,
+        .height = stuff->height
+    };
     WriteReplyToClient(client, sizeof(xQueryBestSizeReply), &reply);
     return Success;
 }
@@ -3080,13 +3087,15 @@ ProcGetScreenSaver(ClientPtr client)
             return rc;
     }
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.timeout = ScreenSaverTime / MILLI_PER_SECOND;
-    rep.interval = ScreenSaverInterval / MILLI_PER_SECOND;
-    rep.preferBlanking = ScreenSaverBlanking;
-    rep.allowExposures = ScreenSaverAllowExposures;
+    rep = (xGetScreenSaverReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .timeout = ScreenSaverTime / MILLI_PER_SECOND,
+        .interval = ScreenSaverInterval / MILLI_PER_SECOND,
+        .preferBlanking = ScreenSaverBlanking,
+        .allowExposures = ScreenSaverAllowExposures
+    };
     WriteReplyToClient(client, sizeof(xGetScreenSaverReply), &rep);
     return Success;
 }
@@ -3128,11 +3137,14 @@ ProcListHosts(ClientPtr client)
     result = GetHosts(&pdata, &nHosts, &len, &enabled);
     if (result != Success)
         return result;
-    reply.type = X_Reply;
-    reply.enabled = enabled;
-    reply.sequenceNumber = client->sequence;
-    reply.nHosts = nHosts;
-    reply.length = bytes_to_int32(len);
+
+    reply = (xListHostsReply) {
+        .type = X_Reply,
+        .enabled = enabled,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(len),
+        .nHosts = nHosts
+    };
     WriteReplyToClient(client, sizeof(xListHostsReply), &reply);
     if (nHosts) {
         client->pSwapReplyFunc = (ReplySwapPtr) SLHostsExtend;
@@ -3247,10 +3259,12 @@ ProcGetFontPath(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-    reply.length = bytes_to_int32(stringLens + numpaths);
-    reply.nPaths = numpaths;
+    reply = (xGetFontPathReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(stringLens + numpaths),
+        .nPaths = numpaths
+    };
 
     WriteReplyToClient(client, sizeof(xGetFontPathReply), &reply);
     if (stringLens || numpaths)

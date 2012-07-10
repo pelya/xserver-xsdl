@@ -4767,17 +4767,20 @@ ProcGetInputFocus(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    memset(&rep, 0, sizeof(xGetInputFocusReply));
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
+    rep = (xGetInputFocusReply) {
+        .type = X_Reply,
+        .length = 0,
+        .sequenceNumber = client->sequence,
+        .revertTo = focus->revert
+    };
+
     if (focus->win == NoneWin)
         rep.focus = None;
     else if (focus->win == PointerRootWin)
         rep.focus = PointerRoot;
     else
         rep.focus = focus->win->drawable.id;
-    rep.revertTo = focus->revert;
+
     WriteReplyToClient(client, sizeof(xGetInputFocusReply), &rep);
     return Success;
 }
@@ -4840,11 +4843,12 @@ ProcGrabPointer(ClientPtr client)
     if (oldCursor && status == GrabSuccess)
         FreeCursor(oldCursor, (Cursor) 0);
 
-    memset(&rep, 0, sizeof(xGrabPointerReply));
-    rep.type = X_Reply;
-    rep.status = status;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
+    rep = (xGrabPointerReply) {
+        .type = X_Reply,
+        .status = status,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
     WriteReplyToClient(client, sizeof(xGrabPointerReply), &rep);
     return Success;
 }
@@ -5080,11 +5084,12 @@ ProcGrabKeyboard(ClientPtr client)
     if (result != Success)
         return result;
 
-    memset(&rep, 0, sizeof(xGrabKeyboardReply));
-    rep.type = X_Reply;
-    rep.status = status;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
+    rep = (xGrabKeyboardReply) {
+        .type = X_Reply,
+        .status = status,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
     WriteReplyToClient(client, sizeof(xGrabKeyboardReply), &rep);
     return Success;
 }
@@ -5147,15 +5152,16 @@ ProcQueryPointer(ClientPtr client)
     pSprite = mouse->spriteInfo->sprite;
     if (mouse->valuator->motionHintWindow)
         MaybeStopHint(mouse, client);
-    memset(&rep, 0, sizeof(xQueryPointerReply));
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.mask = event_get_corestate(mouse, keyboard);
-    rep.length = 0;
-    rep.root = (GetCurrentRootWindow(mouse))->drawable.id;
-    rep.rootX = pSprite->hot.x;
-    rep.rootY = pSprite->hot.y;
-    rep.child = None;
+    rep = (xQueryPointerReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .mask = event_get_corestate(mouse, keyboard),
+        .root = (GetCurrentRootWindow(mouse))->drawable.id,
+        .rootX = pSprite->hot.x,
+        .rootY = pSprite->hot.y,
+        .child = None
+    };
     if (pSprite->hot.pScreen == pWin->drawable.pScreen) {
         rep.sameScreen = xTrue;
         rep.winX = pSprite->hot.x - pWin->drawable.x;

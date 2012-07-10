@@ -753,11 +753,12 @@ doListFontsAndAliases(ClientPtr client, LFclosurePtr c)
     for (i = 0; i < nnames; i++)
         stringLens += (names->length[i] <= 255) ? names->length[i] : 0;
 
-    memset(&reply, 0, sizeof(xListFontsReply));
-    reply.type = X_Reply;
-    reply.length = bytes_to_int32(stringLens + nnames);
-    reply.nFonts = nnames;
-    reply.sequenceNumber = client->sequence;
+    reply = (xListFontsReply) {
+        .type = X_Reply,
+        .length = bytes_to_int32(stringLens + nnames),
+        .nFonts = nnames,
+        .sequenceNumber = client->sequence
+    };
 
     bufptr = bufferStart = malloc(reply.length << 2);
 
@@ -1030,11 +1031,12 @@ doListFontsWithInfo(ClientPtr client, LFWIclosurePtr c)
     }
  finish:
     length = sizeof(xListFontsWithInfoReply);
-    memset((char *) &finalReply, 0, sizeof(xListFontsWithInfoReply));
-    finalReply.type = X_Reply;
-    finalReply.sequenceNumber = client->sequence;
-    finalReply.length = bytes_to_int32(sizeof(xListFontsWithInfoReply)
-                                       - sizeof(xGenericReply));
+    finalReply = (xListFontsWithInfoReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(sizeof(xListFontsWithInfoReply)
+                                 - sizeof(xGenericReply))
+    };
     WriteSwappedDataToClient(client, length, &finalReply);
  bail:
     ClientWakeup(client);
