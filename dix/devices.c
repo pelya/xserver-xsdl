@@ -2388,16 +2388,18 @@ ProcQueryKeymap(ClientPtr client)
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.length = 2;
+    memset(rep.map, 0, 32);
 
     rc = XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixReadAccess);
-    if (rc != Success && rc != BadAccess)
+    /* If rc is Success, we're allowed to copy out the keymap.
+     * If it's BadAccess, we leave it empty & lie to the client.
+     */
+    if (rc == Success) {
+        for (i = 0; i < 32; i++)
+            rep.map[i] = down[i];
+    }
+    else if (rc != BadAccess)
         return rc;
-
-    for (i = 0; i < 32; i++)
-        rep.map[i] = down[i];
-
-    if (rc == BadAccess)
-        memset(rep.map, 0, 32);
 
     WriteReplyToClient(client, sizeof(xQueryKeymapReply), &rep);
 
