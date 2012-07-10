@@ -37,8 +37,6 @@ static DevPrivateKeyRec XvMCScreenKeyRec;
 #define XvMCScreenKey (&XvMCScreenKeyRec)
 static Bool XvMCInUse;
 
-unsigned long XvMCGeneration = 0;
-
 int XvMCReqCode;
 int XvMCEventBase;
 
