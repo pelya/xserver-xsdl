@@ -413,15 +413,18 @@ DeleteAllWindowProperties(WindowPtr pWin)
 }
 
 static int
-NullPropertyReply(ClientPtr client,
-                  ATOM propertyType, int format, xGetPropertyReply * reply)
+NullPropertyReply(ClientPtr client, ATOM propertyType, int format)
 {
-    reply->nItems = 0;
-    reply->length = 0;
-    reply->bytesAfter = 0;
-    reply->propertyType = propertyType;
-    reply->format = format;
-    WriteReplyToClient(client, sizeof(xGenericReply), reply);
+    xGetPropertyReply reply;
+    memset(&reply, 0, sizeof(xGetPropertyReply));
+    reply.type = X_Reply;
+    reply.sequenceNumber = client->sequence;
+    reply.nItems = 0;
+    reply.length = 0;
+    reply.bytesAfter = 0;
+    reply.propertyType = propertyType;
+    reply.format = format;
+    WriteReplyToClient(client, sizeof(xGenericReply), &reply);
     return Success;
 }
 
@@ -470,13 +473,9 @@ ProcGetProperty(ClientPtr client)
         return BadAtom;
     }
 
-    memset(&reply, 0, sizeof(xGetPropertyReply));
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-
     rc = dixLookupProperty(&pProp, pWin, stuff->property, client, prop_mode);
     if (rc == BadMatch)
-        return NullPropertyReply(client, None, 0, &reply);
+        return NullPropertyReply(client, None, 0);
     else if (rc != Success)
         return rc;
 
@@ -485,6 +484,9 @@ ProcGetProperty(ClientPtr client)
 
     if (((stuff->type != pProp->type) && (stuff->type != AnyPropertyType))
         ) {
+        memset(&reply, 0, sizeof(xGetPropertyReply));
+        reply.type = X_Reply;
+        reply.sequenceNumber = client->sequence;
         reply.bytesAfter = pProp->size;
         reply.format = pProp->format;
         reply.length = 0;
@@ -510,6 +512,9 @@ ProcGetProperty(ClientPtr client)
 
     len = min(n - ind, 4 * stuff->longLength);
 
+    memset(&reply, 0, sizeof(xGetPropertyReply));
+    reply.type = X_Reply;
+    reply.sequenceNumber = client->sequence;
     reply.bytesAfter = n - (ind + len);
     reply.format = pProp->format;
     reply.length = bytes_to_int32(len);
