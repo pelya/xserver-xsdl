@@ -3625,14 +3625,13 @@ void
 SendErrorToClient(ClientPtr client, unsigned majorCode, unsigned minorCode,
                   XID resId, int errorCode)
 {
-    xError rep;
-
-    memset(&rep, 0, sizeof(xError));
-    rep.type = X_Error;
-    rep.errorCode = errorCode;
-    rep.majorCode = majorCode;
-    rep.minorCode = minorCode;
-    rep.resourceID = resId;
+    xError rep = {
+        .type = X_Error,
+        .errorCode = errorCode,
+        .resourceID = resId,
+        .minorCode = minorCode,
+        .majorCode = majorCode
+    };
 
     WriteEventsToClient(client, 1, (xEvent *) &rep);
 }
