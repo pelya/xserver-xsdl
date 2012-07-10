@@ -83,9 +83,6 @@ SOFTWARE.
 #include <dmx-config.h>
 #undef XV
 #undef DBE
-#undef XF86VIDMODE
-#undef XFreeXDGA
-#undef XF86DRI
 #undef SCREENSAVER
 #undef RANDR
 #undef XFIXES
@@ -102,17 +99,10 @@ SOFTWARE.
 
 #ifdef HAVE_KDRIVE_CONFIG_H
 #include <kdrive-config.h>
-/* there must be a better way... */
-#undef XFreeXDGA
-#undef XF86DRI
-#undef XF86VIDMODE
 #endif
 
 #ifdef HAVE_XGL_CONFIG_H
 #include <xgl-config.h>
-#undef XFreeXDGA
-#undef XF86DRI
-#undef XF86VIDMODE
 #endif
 
 #include "misc.h"
@@ -323,19 +313,9 @@ InitExtensions(int argc, char *argv[])
         ScreenSaverExtensionInit();
 #endif
 
-#if !defined(NO_HW_ONLY_EXTS)
-#if defined(XF86VIDMODE)
-    if (!noXFree86VidModeExtension)
-        XFree86VidModeExtensionInit();
-#endif
-#if defined(XFreeXDGA)
-    if (!noXFree86DGAExtension)
-        XFree86DGAExtensionInit();
-#endif
-#ifdef DPMSExtension
+#if !defined(NO_HW_ONLY_EXTS) && defined(DPMSExtension)
     if (!noDPMSExtension)
         DPMSExtensionInit();
-#endif
 #endif
 
 #ifdef XV
@@ -358,11 +338,6 @@ InitExtensions(int argc, char *argv[])
 #ifdef DBE
     if (!noDbeExtension)
         DbeExtensionInit();
-#endif
-
-#if !defined(NO_HW_ONLY_EXTS) && defined(XF86DRI)
-    if (!noXFree86DRIExtension)
-        XFree86DRIExtensionInit();
 #endif
 
 #ifdef DMXEXT
