@@ -54,8 +54,8 @@ LOCAL_LIBS = \
             ramdac/libramdac.la \
             ddc/libddc.la \
             i2c/libi2c.la \
-            dixmods/libxorgxkb.la \
             $(XORG_LIBS) \
+            dixmods/libxorgxkb.la \
             $(top_builddir)/mi/libmi.la \
             $(top_builddir)/os/libos.la
 Xorg_LDADD = \
