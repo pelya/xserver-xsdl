@@ -1,14 +1,4 @@
-# libXext.la:        includes all extensions and should be linked into Xvfb,
-#                    Xnest, Xdmx and Xprt
-# libXextbuiltin.la: includes those extensions that are built directly into
-#                    Xorg by default
-# libXextmodule.la:  includes those extensions that are built into a module
-#                    that Xorg loads
-if XORG
-noinst_LTLIBRARIES = libXext.la libXextbuiltin.la libXextmodule.la
-else
 noinst_LTLIBRARIES = libXext.la
-endif
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
@@ -29,10 +19,6 @@ BUILTIN_SRCS =			\
 	xcmisc.c		\
 	xtest.c
 BUILTIN_LIBS =
-
-# Sources always included in libXextmodule.la & libXext.la. That's right, zero.
-MODULE_SRCS =
-MODULE_LIBS =
 
 # Optional sources included if extension enabled by configure.ac rules
 
@@ -107,16 +93,8 @@ endif
 
 # Now take all of the above, mix well, bake for 10 minutes and get libXext*.la
 
-libXext_la_SOURCES =		$(BUILTIN_SRCS) $(MODULE_SRCS)
-libXext_la_LIBADD =		$(BUILTIN_LIBS) $(MODULE_LIBS)
-
-if XORG
-libXextbuiltin_la_SOURCES =	$(BUILTIN_SRCS)
-libXextbuiltin_la_LIBADD = 	$(BUILTIN_LIBS)
-
-libXextmodule_la_SOURCES =	$(MODULE_SRCS)
-libXextmodule_la_LIBADD =	$(MODULE_LIBS)
-endif
+libXext_la_SOURCES =		$(BUILTIN_SRCS)
+libXext_la_LIBADD =		$(BUILTIN_LIBS)
 
 EXTRA_DIST = \
 	$(MITSHM_SRCS) \
