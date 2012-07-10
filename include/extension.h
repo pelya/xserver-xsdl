@@ -47,7 +47,9 @@ SOFTWARE.
 #ifndef EXTENSION_H
 #define EXTENSION_H
 
-_XFUNCPROTOBEGIN
+#include <X11/Xfuncproto.h>
+
+#include "dixstruct.h"
 
 extern _X_EXPORT unsigned short StandardMinorOpcode(ClientPtr /*client */ );
 
@@ -60,5 +62,4 @@ extern _X_EXPORT void InitExtensions(int argc, char **argv);
 
 extern _X_EXPORT void CloseDownExtensions(void);
 
-_XFUNCPROTOEND
 #endif                          /* EXTENSION_H */
