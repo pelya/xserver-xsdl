@@ -58,32 +58,28 @@ static ExtensionModule extensionModules[] = {
     {
 	XFree86VidModeExtensionInit,
 	XF86VIDMODENAME,
-	&noXFree86VidModeExtension,
-	NULL
+	&noXFree86VidModeExtension
     },
 #endif
 #ifdef XFreeXDGA
     {
 	XFree86DGAExtensionInit,
 	XF86DGANAME,
-	&noXFree86DGAExtension,
-	NULL
+	&noXFree86DGAExtension
     },
 #endif
 #ifdef XF86DRI
     {
         XFree86DRIExtensionInit,
         "XFree86-DRI",
-        &noXFree86DRIExtension,
-        NULL
+        &noXFree86DRIExtension
     },
 #endif
 #ifdef DRI2
     {
         DRI2ExtensionInit,
         DRI2_NAME,
-        &noDRI2Extension,
-        NULL
+        &noDRI2Extension
     }
 #endif
 };

@@ -49,8 +49,7 @@ static MODULESETUPPROTO(glxSetup);
 static ExtensionModule GLXExt = {
     GlxExtensionInit,
     "GLX",
-    &noGlxExtension,
-    NULL
+    &noGlxExtension
 };
 
 static XF86ModuleVersionInfo VersRec = {

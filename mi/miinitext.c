@@ -235,65 +235,63 @@ EnableDisableExtensionError(const char *name, Bool enable)
 
 /* List of built-in (statically linked) extensions */
 static ExtensionModule staticExtensions[] = {
-    {GEExtensionInit, "Generic Event Extension", &noGEExtension, NULL},
-    {ShapeExtensionInit, "SHAPE", NULL, NULL},
+    {GEExtensionInit, "Generic Event Extension", &noGEExtension},
+    {ShapeExtensionInit, "SHAPE", NULL},
 #ifdef MITSHM
-    {ShmExtensionInit, SHMNAME, &noMITShmExtension, NULL},
+    {ShmExtensionInit, SHMNAME, &noMITShmExtension},
 #endif
-    {XInputExtensionInit, "XInputExtension", NULL, NULL},
+    {XInputExtensionInit, "XInputExtension", NULL},
 #ifdef XTEST
-    {XTestExtensionInit, XTestExtensionName, &noTestExtensions, NULL},
+    {XTestExtensionInit, XTestExtensionName, &noTestExtensions},
 #endif
-    {BigReqExtensionInit, "BIG-REQUESTS", NULL, NULL},
-    {SyncExtensionInit, "SYNC", NULL, NULL},
-    {XkbExtensionInit, XkbName, NULL, NULL},
-    {XCMiscExtensionInit, "XC-MISC", NULL, NULL},
+    {BigReqExtensionInit, "BIG-REQUESTS", NULL},
+    {SyncExtensionInit, "SYNC", NULL},
+    {XkbExtensionInit, XkbName, NULL},
+    {XCMiscExtensionInit, "XC-MISC", NULL},
 #ifdef XCSECURITY
-    {SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL},
+    {SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension},
 #endif
 #ifdef PANORAMIX
-    {PanoramiXExtensionInit, PANORAMIX_PROTOCOL_NAME, &noPanoramiXExtension,
-     NULL},
+    {PanoramiXExtensionInit, PANORAMIX_PROTOCOL_NAME, &noPanoramiXExtension},
 #endif
 #ifdef XFIXES
     /* must be before Render to layer DisplayCursor correctly */
-    {XFixesExtensionInit, "XFIXES", &noXFixesExtension, NULL},
+    {XFixesExtensionInit, "XFIXES", &noXFixesExtension},
 #endif
 #ifdef XF86BIGFONT
-    {XFree86BigfontExtensionInit, XF86BIGFONTNAME, &noXFree86BigfontExtension,
-     NULL},
+    {XFree86BigfontExtensionInit, XF86BIGFONTNAME, &noXFree86BigfontExtension},
 #endif
-    {RenderExtensionInit, "RENDER", &noRenderExtension, NULL},
+    {RenderExtensionInit, "RENDER", &noRenderExtension},
 #ifdef RANDR
-    {RRExtensionInit, "RANDR", &noRRExtension, NULL},
+    {RRExtensionInit, "RANDR", &noRRExtension},
 #endif
 #ifdef COMPOSITE
-    {CompositeExtensionInit, "COMPOSITE", &noCompositeExtension, NULL},
+    {CompositeExtensionInit, "COMPOSITE", &noCompositeExtension},
 #endif
 #ifdef DAMAGE
-    {DamageExtensionInit, "DAMAGE", &noDamageExtension, NULL},
+    {DamageExtensionInit, "DAMAGE", &noDamageExtension},
 #endif
 #ifdef SCREENSAVER
-    {ScreenSaverExtensionInit, ScreenSaverName, &noScreenSaverExtension, NULL},
+    {ScreenSaverExtensionInit, ScreenSaverName, &noScreenSaverExtension},
 #endif
 #ifdef DBE
-    {DbeExtensionInit, "DOUBLE-BUFFER", &noDbeExtension, NULL},
+    {DbeExtensionInit, "DOUBLE-BUFFER", &noDbeExtension},
 #endif
 #ifdef XRECORD
-    {RecordExtensionInit, "RECORD", &noTestExtensions, NULL},
+    {RecordExtensionInit, "RECORD", &noTestExtensions},
 #endif
 #ifdef DPMSExtension
-    {DPMSExtensionInit, DPMSExtensionName, &noDPMSExtension, NULL},
+    {DPMSExtensionInit, DPMSExtensionName, &noDPMSExtension},
 #endif
 #ifdef RES
-    {ResExtensionInit, XRES_NAME, &noResExtension, NULL},
+    {ResExtensionInit, XRES_NAME, &noResExtension},
 #endif
 #ifdef XV
-    {XvExtensionInit, XvName, &noXvExtension, NULL},
-    {XvMCExtensionInit, XvMCName, &noXvExtension, NULL},
+    {XvExtensionInit, XvName, &noXvExtension},
+    {XvMCExtensionInit, XvMCName, &noXvExtension},
 #endif
 #ifdef XSELINUX
-    {SELinuxExtensionInit, SELINUX_EXTENSION_NAME, &noSELinuxExtension, NULL},
+    {SELinuxExtensionInit, SELINUX_EXTENSION_NAME, &noSELinuxExtension},
 #endif
 };
 
@@ -379,8 +377,4 @@ LoadExtension(ExtensionModule * e, Bool builtin)
     newext->name = e->name;
     newext->initFunc = e->initFunc;
     newext->disablePtr = e->disablePtr;
-    newext->setupFunc = e->setupFunc;
-
-    if (e->setupFunc != NULL)
-        e->setupFunc();
 }

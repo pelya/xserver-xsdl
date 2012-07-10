@@ -84,7 +84,6 @@ typedef struct {
     InitExtension initFunc;
     const char *name;
     Bool *disablePtr;
-    InitExtension setupFunc;
 } ExtensionModule;
 
 extern _X_EXPORT unsigned short StandardMinorOpcode(ClientPtr /*client */ );
