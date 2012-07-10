@@ -349,13 +349,12 @@ miSendGraphicsExpose(ClientPtr client, RegionPtr pRgn, XID drawable,
         free(pEvent);
     }
     else {
-        xEvent event;
-
-        memset(&event, 0, sizeof(xEvent));
+        xEvent event = {
+            .u.noExposure.drawable = drawable,
+            .u.noExposure.majorEvent = major,
+            .u.noExposure.minorEvent = minor
+        };
         event.u.u.type = NoExpose;
-        event.u.noExposure.drawable = drawable;
-        event.u.noExposure.majorEvent = major;
-        event.u.noExposure.minorEvent = minor;
         WriteEventsToClient(client, 1, &event);
     }
 }

@@ -450,15 +450,15 @@ FreeColormap(pointer value, XID mid)
 static int
 TellNoMap(WindowPtr pwin, Colormap * pmid)
 {
-    xEvent xE;
-
     if (wColormap(pwin) == *pmid) {
         /* This should be call to DeliverEvent */
+        xEvent xE = {
+            .u.colormap.window = pwin->drawable.id,
+            .u.colormap.colormap = None,
+            .u.colormap.new = TRUE,
+            .u.colormap.state = ColormapUninstalled
+        };
         xE.u.u.type = ColormapNotify;
-        xE.u.colormap.window = pwin->drawable.id;
-        xE.u.colormap.colormap = None;
-        xE.u.colormap.new = TRUE;
-        xE.u.colormap.state = ColormapUninstalled;
 #ifdef PANORAMIX
         if (noPanoramiXExtension || !pwin->drawable.pScreen->myNum)
 #endif
@@ -477,7 +477,6 @@ int
 TellLostMap(WindowPtr pwin, pointer value)
 {
     Colormap *pmid = (Colormap *) value;
-    xEvent xE;
 
 #ifdef PANORAMIX
     if (!noPanoramiXExtension && pwin->drawable.pScreen->myNum)
@@ -485,11 +484,13 @@ TellLostMap(WindowPtr pwin, pointer value)
 #endif
     if (wColormap(pwin) == *pmid) {
         /* This should be call to DeliverEvent */
+        xEvent xE = {
+            .u.colormap.window = pwin->drawable.id,
+            .u.colormap.colormap = *pmid,
+            .u.colormap.new = FALSE,
+            .u.colormap.state = ColormapUninstalled
+        };
         xE.u.u.type = ColormapNotify;
-        xE.u.colormap.window = pwin->drawable.id;
-        xE.u.colormap.colormap = *pmid;
-        xE.u.colormap.new = FALSE;
-        xE.u.colormap.state = ColormapUninstalled;
         DeliverEvents(pwin, &xE, 1, (WindowPtr) NULL);
     }
 
@@ -501,7 +502,6 @@ int
 TellGainedMap(WindowPtr pwin, pointer value)
 {
     Colormap *pmid = (Colormap *) value;
-    xEvent xE;
 
 #ifdef PANORAMIX
     if (!noPanoramiXExtension && pwin->drawable.pScreen->myNum)
@@ -509,11 +509,13 @@ TellGainedMap(WindowPtr pwin, pointer value)
 #endif
     if (wColormap(pwin) == *pmid) {
         /* This should be call to DeliverEvent */
+        xEvent xE = {
+            .u.colormap.window = pwin->drawable.id,
+            .u.colormap.colormap = *pmid,
+            .u.colormap.new = FALSE,
+            .u.colormap.state = ColormapInstalled
+        };
         xE.u.u.type = ColormapNotify;
-        xE.u.colormap.window = pwin->drawable.id;
-        xE.u.colormap.colormap = *pmid;
-        xE.u.colormap.new = FALSE;
-        xE.u.colormap.state = ColormapInstalled;
         DeliverEvents(pwin, &xE, 1, (WindowPtr) NULL);
     }
 

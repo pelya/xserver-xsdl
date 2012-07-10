@@ -321,15 +321,14 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 void
 SendDevicePresenceEvent(int deviceid, int type)
 {
-    DeviceIntRec dummyDev;
-    devicePresenceNotify ev;
+    DeviceIntRec dummyDev = { .id =  XIAllDevices };
+    devicePresenceNotify ev = {
+        .type = DevicePresenceNotify,
+        .time = currentTime.milliseconds,
+        .devchange = type,
+        .deviceid = deviceid
+    };
 
-    memset(&dummyDev, 0, sizeof(DeviceIntRec));
-    ev.type = DevicePresenceNotify;
-    ev.time = currentTime.milliseconds;
-    ev.devchange = type;
-    ev.deviceid = deviceid;
-    dummyDev.id = XIAllDevices;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
 }
@@ -2450,18 +2449,17 @@ RecalculateMasterButtons(DeviceIntPtr slave)
 
     if (master->button && master->button->numButtons != maxbuttons) {
         int i;
-        DeviceChangedEvent event;
-
-        memset(&event, 0, sizeof(event));
+        DeviceChangedEvent event = {
+            .header = ET_Internal,
+            .type = ET_DeviceChanged,
+            .time = GetTimeInMillis(),
+            .deviceid = master->id,
+            .flags = DEVCHANGE_POINTER_EVENT | DEVCHANGE_DEVICE_CHANGE,
+            .buttons.num_buttons = maxbuttons
+        };
 
         master->button->numButtons = maxbuttons;
 
-        event.header = ET_Internal;
-        event.type = ET_DeviceChanged;
-        event.time = GetTimeInMillis();
-        event.deviceid = master->id;
-        event.flags = DEVCHANGE_POINTER_EVENT | DEVCHANGE_DEVICE_CHANGE;
-        event.buttons.num_buttons = maxbuttons;
         memcpy(&event.buttons.names, master->button->labels, maxbuttons *
                sizeof(Atom));
 

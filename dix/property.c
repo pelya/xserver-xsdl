@@ -108,14 +108,13 @@ dixLookupProperty(PropertyPtr *result, WindowPtr pWin, Atom propertyName,
 static void
 deliverPropertyNotifyEvent(WindowPtr pWin, int state, Atom atom)
 {
-    xEvent event;
-
-    memset(&event, 0, sizeof(xEvent));
+    xEvent event = {
+        .u.property.window = pWin->drawable.id,
+        .u.property.state = state,
+        .u.property.atom = atom,
+        .u.property.time = currentTime.milliseconds
+    };
     event.u.u.type = PropertyNotify;
-    event.u.property.window = pWin->drawable.id;
-    event.u.property.state = state;
-    event.u.property.atom = atom;
-    event.u.property.time = currentTime.milliseconds;
     DeliverEvents(pWin, &event, 1, (WindowPtr) NULL);
 }
 
