@@ -135,21 +135,6 @@ extmodSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     /* XXX the option stuff here is largely a sample/test case */
 
     for (i = 0; extensionModules[i].name != NULL; i++) {
-        if (opts) {
-            char *s;
-
-            if (asprintf(&s, "omit%s", extensionModules[i].name) != -1) {
-                pointer o;
-
-                o = xf86FindOption(opts, s);
-                free(s);
-                if (o) {
-                    xf86MarkOptionUsed(o);
-                    continue;
-                }
-            }
-        }
-
 #ifdef XSELINUX
         if (!strcmp(SELINUX_EXTENSION_NAME, extensionModules[i].name)) {
             pointer o;

@@ -471,6 +471,8 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
         xf86OSPMClose = xf86OSPMOpen();
 #endif
 
+        xf86ExtensionInit();
+
         /* Load all modules specified explicitly in the config file */
         if ((modulelist = xf86ModulelistFromConfig(&optionlist))) {
             xf86LoadModules(modulelist, optionlist);
