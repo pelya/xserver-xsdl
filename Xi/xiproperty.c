@@ -182,30 +182,27 @@ static long XIPropHandlerID = 1;
 static void
 send_property_event(DeviceIntPtr dev, Atom property, int what)
 {
-    devicePropertyNotify event;
-    xXIPropertyEvent xi2;
-    int state;
+    int state = (what == XIPropertyDeleted) ? PropertyDelete : PropertyNewValue;
+    devicePropertyNotify event = {
+        .type = DevicePropertyNotify,
+        .deviceid = dev->id,
+        .state = state,
+        .atom = property,
+        .time = currentTime.milliseconds
+    };
+    xXIPropertyEvent xi2 = {
+        .type = GenericEvent,
+        .extension = IReqCode,
+        .length = 0,
+        .evtype = XI_PropertyEvent,
+        .deviceid = dev->id,
+        .time = currentTime.milliseconds,
+        .property = property,
+        .what = what
+    };
 
-    if (what == XIPropertyDeleted)
-        state = PropertyDelete;
-    else
-        state = PropertyNewValue;
-
-    event.type = DevicePropertyNotify;
-    event.deviceid = dev->id;
-    event.state = state;
-    event.atom = property;
-    event.time = currentTime.milliseconds;
     SendEventToAllWindows(dev, DevicePropertyNotifyMask, (xEvent *) &event, 1);
 
-    xi2.type = GenericEvent;
-    xi2.extension = IReqCode;
-    xi2.length = 0;
-    xi2.evtype = XI_PropertyEvent;
-    xi2.deviceid = dev->id;
-    xi2.time = currentTime.milliseconds;
-    xi2.property = property;
-    xi2.what = what;
     SendEventToAllWindows(dev, GetEventFilter(dev, (xEvent *) &xi2),
                           (xEvent *) &xi2, 1);
 }

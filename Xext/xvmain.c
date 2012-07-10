@@ -507,19 +507,20 @@ XvdiDestroyEncoding(pointer value, XID id)
 static int
 XvdiSendVideoNotify(XvPortPtr pPort, DrawablePtr pDraw, int reason)
 {
-    xvEvent event;
     XvVideoNotifyPtr pn;
 
     dixLookupResourceByType((pointer *) &pn, pDraw->id, XvRTVideoNotifyList,
                             serverClient, DixReadAccess);
 
     while (pn) {
+        xvEvent event = {
+            .u.videoNotify.reason = reason,
+            .u.videoNotify.time = currentTime.milliseconds,
+            .u.videoNotify.drawable = pDraw->id,
+            .u.videoNotify.port = pPort->id
+        };
         event.u.u.type = XvEventBase + XvVideoNotify;
-        event.u.videoNotify.time = currentTime.milliseconds;
-        event.u.videoNotify.drawable = pDraw->id;
-        event.u.videoNotify.port = pPort->id;
-        event.u.videoNotify.reason = reason;
-        WriteEventsToClient(pn->client, 1, (xEventPtr) & event);
+        WriteEventsToClient(pn->client, 1, (xEventPtr) &event);
         pn = pn->next;
     }
 
@@ -530,18 +531,19 @@ XvdiSendVideoNotify(XvPortPtr pPort, DrawablePtr pDraw, int reason)
 int
 XvdiSendPortNotify(XvPortPtr pPort, Atom attribute, INT32 value)
 {
-    xvEvent event;
     XvPortNotifyPtr pn;
 
     pn = pPort->pNotify;
 
     while (pn) {
+        xvEvent event = {
+            .u.portNotify.time = currentTime.milliseconds,
+            .u.portNotify.port = pPort->id,
+            .u.portNotify.attribute = attribute,
+            .u.portNotify.value = value
+        };
         event.u.u.type = XvEventBase + XvPortNotify;
-        event.u.portNotify.time = currentTime.milliseconds;
-        event.u.portNotify.port = pPort->id;
-        event.u.portNotify.attribute = attribute;
-        event.u.portNotify.value = value;
-        WriteEventsToClient(pn->client, 1, (xEventPtr) & event);
+        WriteEventsToClient(pn->client, 1, (xEventPtr) &event);
         pn = pn->next;
     }
 

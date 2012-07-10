@@ -172,14 +172,14 @@ CursorDisplayCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
         CursorCurrent[pDev->id] = pCursor;
         for (e = cursorEvents; e; e = e->next) {
             if ((e->eventMask & XFixesDisplayCursorNotifyMask)) {
-                xXFixesCursorNotifyEvent ev;
-
-                ev.type = XFixesEventBase + XFixesCursorNotify;
-                ev.subtype = XFixesDisplayCursorNotify;
-                ev.window = e->pWindow->drawable.id;
-                ev.cursorSerial = pCursor ? pCursor->serialNumber : 0;
-                ev.timestamp = currentTime.milliseconds;
-                ev.name = pCursor ? pCursor->name : None;
+                xXFixesCursorNotifyEvent ev = {
+                    .type = XFixesEventBase + XFixesCursorNotify,
+                    .subtype = XFixesDisplayCursorNotify,
+                    .window = e->pWindow->drawable.id,
+                    .cursorSerial = pCursor ? pCursor->serialNumber : 0,
+                    .timestamp = currentTime.milliseconds,
+                    .name = pCursor ? pCursor->name : None
+                };
                 WriteEventsToClient(e->pClient, 1, (xEvent *) &ev);
             }
         }

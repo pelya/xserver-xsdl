@@ -178,12 +178,13 @@ __glXdriSwapEvent(ClientPtr client, void *data, int type, CARD64 ust,
                   CARD64 msc, CARD32 sbc)
 {
     __GLXdrawable *drawable = data;
-    xGLXBufferSwapComplete2 wire;
+    xGLXBufferSwapComplete2 wire =  {
+        .type = __glXEventBase + GLX_BufferSwapComplete
+    };
 
     if (!(drawable->eventMask & GLX_BUFFER_SWAP_COMPLETE_INTEL_MASK))
         return;
 
-    wire.type = __glXEventBase + GLX_BufferSwapComplete;
     switch (type) {
     case DRI2_EXCHANGE_COMPLETE:
         wire.event_type = GLX_EXCHANGE_COMPLETE_INTEL;

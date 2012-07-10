@@ -900,15 +900,16 @@ DGAStealKeyEvent(DeviceIntPtr dev, int index, int key_code, int is_down)
     if (!pScreenPriv || !pScreenPriv->grabKeyboard)     /* no direct mode */
         return FALSE;
 
-    memset(&event, 0, sizeof(event));
-    event.header = ET_Internal;
-    event.type = ET_DGAEvent;
-    event.length = sizeof(event);
-    event.time = GetTimeInMillis();
-    event.subtype = (is_down ? ET_KeyPress : ET_KeyRelease);
-    event.detail = key_code;
-    event.dx = 0;
-    event.dy = 0;
+    event = (DGAEvent) {
+        .header = ET_Internal,
+        .type = ET_DGAEvent,
+        .length = sizeof(event),
+        .time = GetTimeInMillis(),
+        .subtype = (is_down ? ET_KeyPress : ET_KeyRelease),
+        .detail = key_code,
+        .dx = 0,
+        .dy = 0
+    };
     mieqEnqueue(dev, (InternalEvent *) &event);
 
     return TRUE;
@@ -928,15 +929,16 @@ DGAStealMotionEvent(DeviceIntPtr dev, int index, int dx, int dy)
     if (!pScreenPriv || !pScreenPriv->grabMouse)        /* no direct mode */
         return FALSE;
 
-    memset(&event, 0, sizeof(event));
-    event.header = ET_Internal;
-    event.type = ET_DGAEvent;
-    event.length = sizeof(event);
-    event.time = GetTimeInMillis();
-    event.subtype = ET_Motion;
-    event.detail = 0;
-    event.dx = dx;
-    event.dy = dy;
+    event = (DGAEvent) {
+        .header = ET_Internal,
+        .type = ET_DGAEvent,
+        .length = sizeof(event),
+        .time = GetTimeInMillis(),
+        .subtype = ET_Motion,
+        .detail = 0,
+        .dx = dx,
+        .dy = dy
+    };
     mieqEnqueue(dev, (InternalEvent *) &event);
     return TRUE;
 }
@@ -955,15 +957,16 @@ DGAStealButtonEvent(DeviceIntPtr dev, int index, int button, int is_down)
     if (!pScreenPriv || !pScreenPriv->grabMouse)
         return FALSE;
 
-    memset(&event, 0, sizeof(event));
-    event.header = ET_Internal;
-    event.type = ET_DGAEvent;
-    event.length = sizeof(event);
-    event.time = GetTimeInMillis();
-    event.subtype = (is_down ? ET_ButtonPress : ET_ButtonRelease);
-    event.detail = button;
-    event.dx = 0;
-    event.dy = 0;
+    event = (DGAEvent) {
+        .header = ET_Internal,
+        .type = ET_DGAEvent,
+        .length = sizeof(event),
+        .time = GetTimeInMillis(),
+        .subtype = (is_down ? ET_ButtonPress : ET_ButtonRelease),
+        .detail = button,
+        .dx = 0,
+        .dy = 0
+    };
     mieqEnqueue(dev, (InternalEvent *) &event);
 
     return TRUE;
@@ -988,16 +991,15 @@ DGAProcessKeyboardEvent(ScreenPtr pScreen, DGAEvent * event, DeviceIntPtr keybd)
     KeyClassPtr keyc = keybd->key;
     DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
     DeviceIntPtr pointer = GetMaster(keybd, POINTER_OR_FLOAT);
-    DeviceEvent ev;
-
-    memset(&ev, 0, sizeof(ev));
-    ev.header = ET_Internal;
-    ev.length = sizeof(ev);
-    ev.detail.key = event->detail;
-    ev.type = event->subtype;
-    ev.root_x = 0;
-    ev.root_y = 0;
-    ev.corestate = XkbStateFieldFromRec(&keyc->xkbInfo->state);
+    DeviceEvent ev = {
+        .header = ET_Internal,
+        .length = sizeof(ev),
+        .detail.key = event->detail,
+        .type = event->subtype,
+        .root_x = 0,
+        .root_y = 0,
+        .corestate = XkbStateFieldFromRec(&keyc->xkbInfo->state)
+    };
     ev.corestate |= pointer->button->state;
 
     UpdateDeviceState(keybd, &ev);
@@ -1006,15 +1008,15 @@ DGAProcessKeyboardEvent(ScreenPtr pScreen, DGAEvent * event, DeviceIntPtr keybd)
      * Deliver the DGA event
      */
     if (pScreenPriv->client) {
-        dgaEvent de;
-
+        dgaEvent de = {
+            .u.event.time = event->time,
+            .u.event.dx = event->dx,
+            .u.event.dy = event->dy,
+            .u.event.screen = pScreen->myNum,
+            .u.event.state = ev.corestate
+        };
         de.u.u.type = *XDGAEventBase + GetCoreType(ev.type);
         de.u.u.detail = event->detail;
-        de.u.event.time = event->time;
-        de.u.event.dx = event->dx;
-        de.u.event.dy = event->dy;
-        de.u.event.screen = pScreen->myNum;
-        de.u.event.state = ev.corestate;
 
         /* If the DGA client has selected input, then deliver based on the usual filter */
         TryClientEvents(pScreenPriv->client, keybd, (xEvent *) &de, 1,
@@ -1039,14 +1041,14 @@ DGAProcessPointerEvent(ScreenPtr pScreen, DGAEvent * event, DeviceIntPtr mouse)
 {
     ButtonClassPtr butc = mouse->button;
     DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
-    DeviceEvent ev;
     DeviceIntPtr master = GetMaster(mouse, MASTER_KEYBOARD);
+    DeviceEvent ev = {
+        .header = ET_Internal,
+        .length = sizeof(ev),
+        .type = event->subtype,
+        .corestate = butc ? butc->state : 0
+    };
 
-    memset(&ev, 0, sizeof(ev));
-    ev.header = ET_Internal;
-    ev.length = sizeof(ev);
-    ev.type = event->subtype;
-    ev.corestate = butc ? butc->state : 0;
     if (master && master->key)
         ev.corestate |= XkbStateFieldFromRec(&master->key->xkbInfo->state);
 
@@ -1056,18 +1058,16 @@ DGAProcessPointerEvent(ScreenPtr pScreen, DGAEvent * event, DeviceIntPtr mouse)
      * Deliver the DGA event
      */
     if (pScreenPriv->client) {
-        dgaEvent de;
-        int coreEquiv;
-
-        coreEquiv = GetCoreType(ev.type);
-
+        int coreEquiv = GetCoreType(ev.type);
+        dgaEvent de = {
+            .u.event.time = event->time,
+            .u.event.dx = event->dx,
+            .u.event.dy = event->dy,
+            .u.event.screen = pScreen->myNum,
+            .u.event.state = ev.corestate
+        };
         de.u.u.type = *XDGAEventBase + coreEquiv;
         de.u.u.detail = event->detail;
-        de.u.event.time = event->time;
-        de.u.event.dx = event->dx;
-        de.u.event.dy = event->dy;
-        de.u.event.screen = pScreen->myNum;
-        de.u.event.state = ev.corestate;
 
         /* If the DGA client has selected input, then deliver based on the usual filter */
         TryClientEvents(pScreenPriv->client, mouse, (xEvent *) &de, 1,

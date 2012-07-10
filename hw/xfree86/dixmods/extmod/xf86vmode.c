@@ -240,7 +240,6 @@ static void
 SendXF86VidModeNotify(ScreenPtr pScreen, int state, Bool forced)
 {
     XF86VidModeScreenPrivatePtr pPriv;
-    XF86VidModeEventPtr pEv;
     unsigned long mask;
     xXF86VidModeNotifyEvent ev;
     int kind;
@@ -253,15 +252,17 @@ SendXF86VidModeNotify(ScreenPtr pScreen, int state, Bool forced)
         return;
     kind = XF86VidModeModeChange;
     for (pEv = pPriv->events; pEv; pEv = pEv->next) {
-        if (!(pEv->mask & mask))
-            continue;
-        ev.type = XF86VidModeNotify + XF86VidModeEventBase;
-        ev.state = state;
-        ev.timestamp = currentTime.milliseconds;
-        ev.root = pScreen->root->drawable.id;
-        ev.kind = kind;
-        ev.forced = forced;
-        WriteEventsToClient(pEv->client, 1, (xEvent *) &ev);
+        if (pEv->mask & mask) {
+            XF86VidModeEventPtr pEv = {
+                .type = XF86VidModeNotify + XF86VidModeEventBase,
+                .state = state,
+                .timestamp = currentTime.milliseconds,
+                .root = pScreen->root->drawable.id,
+                .kind = kind,
+                .forced = forced
+            };
+            WriteEventsToClient(pEv->client, 1, (xEvent *) &ev);
+        }
     }
 }
 

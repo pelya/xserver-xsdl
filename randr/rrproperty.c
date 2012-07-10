@@ -65,14 +65,14 @@ RRDestroyOutputProperty(RRPropertyPtr prop)
 static void
 RRDeleteProperty(RROutputRec * output, RRPropertyRec * prop)
 {
-    xRROutputPropertyNotifyEvent event;
-
-    event.type = RREventBase + RRNotify;
-    event.subCode = RRNotify_OutputProperty;
-    event.output = output->id;
-    event.state = PropertyDelete;
-    event.atom = prop->propertyName;
-    event.timestamp = currentTime.milliseconds;
+    xRROutputPropertyNotifyEvent event = {
+        .type = RREventBase + RRNotify,
+        .subCode = RRNotify_OutputProperty,
+        .output = output->id,
+        .state = PropertyDelete,
+        .atom = prop->propertyName,
+        .timestamp = currentTime.milliseconds
+    };
 
     RRDeliverPropertyEvent(output->pScreen, (xEvent *) &event);
 
@@ -138,7 +138,6 @@ RRChangeOutputProperty(RROutputPtr output, Atom property, Atom type,
                        pointer value, Bool sendevent, Bool pending)
 {
     RRPropertyPtr prop;
-    xRROutputPropertyNotifyEvent event;
     rrScrPrivPtr pScrPriv = rrGetScrPriv(output->pScreen);
     int size_in_bytes;
     int total_size;
@@ -237,12 +236,14 @@ RRChangeOutputProperty(RROutputPtr output, Atom property, Atom type,
         output->pendingProperties = TRUE;
 
     if (sendevent) {
-        event.type = RREventBase + RRNotify;
-        event.subCode = RRNotify_OutputProperty;
-        event.output = output->id;
-        event.state = PropertyNewValue;
-        event.atom = prop->propertyName;
-        event.timestamp = currentTime.milliseconds;
+        xRROutputPropertyNotifyEvent event = {
+            .type = RREventBase + RRNotify,
+            .subCode = RRNotify_OutputProperty,
+            .output = output->id,
+            .state = PropertyNewValue,
+            .atom = prop->propertyName,
+            .timestamp = currentTime.milliseconds
+        };
         RRDeliverPropertyEvent(output->pScreen, (xEvent *) &event);
     }
     return Success;
@@ -682,14 +683,14 @@ ProcRRGetOutputProperty(ClientPtr client)
     reply.propertyType = prop_value->type;
 
     if (stuff->delete && (reply.bytesAfter == 0)) {
-        xRROutputPropertyNotifyEvent event;
-
-        event.type = RREventBase + RRNotify;
-        event.subCode = RRNotify_OutputProperty;
-        event.output = output->id;
-        event.state = PropertyDelete;
-        event.atom = prop->propertyName;
-        event.timestamp = currentTime.milliseconds;
+        xRROutputPropertyNotifyEvent event = {
+            .type = RREventBase + RRNotify,
+            .subCode = RRNotify_OutputProperty,
+            .output = output->id,
+            .state = PropertyDelete,
+            .atom = prop->propertyName,
+            .timestamp = currentTime.milliseconds
+        };
         RRDeliverPropertyEvent(output->pScreen, (xEvent *) &event);
     }
 

@@ -113,7 +113,6 @@ ProcXChangeDeviceControl(ClientPtr client)
     AxisInfoPtr a;
     CARD32 *resolution;
     xDeviceEnableCtl *e;
-    devicePresenceNotify dpn;
 
     REQUEST(xChangeDeviceControlReq);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceControlReq);
@@ -211,11 +210,13 @@ ProcXChangeDeviceControl(ClientPtr client)
 
  out:
     if (ret == Success) {
-        dpn.type = DevicePresenceNotify;
-        dpn.time = currentTime.milliseconds;
-        dpn.devchange = DeviceControlChanged;
-        dpn.deviceid = dev->id;
-        dpn.control = stuff->control;
+        devicePresenceNotify dpn = {
+            .type = DevicePresenceNotify,
+            .time = currentTime.milliseconds,
+            .devchange = DeviceControlChanged,
+            .deviceid = dev->id,
+            .control = stuff->control
+        };
         SendEventToAllWindows(dev, DevicePresenceNotifyMask,
                               (xEvent *) &dpn, 1);
 

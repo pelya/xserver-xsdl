@@ -46,15 +46,17 @@ DamageExtNotify(DamageExtPtr pDamageExt, BoxPtr pBoxes, int nBoxes)
     int i;
 
     UpdateCurrentTimeIf();
-    ev.type = DamageEventBase + XDamageNotify;
-    ev.level = pDamageExt->level;
-    ev.drawable = pDamageExt->drawable;
-    ev.damage = pDamageExt->id;
-    ev.timestamp = currentTime.milliseconds;
-    ev.geometry.x = pDrawable->x;
-    ev.geometry.y = pDrawable->y;
-    ev.geometry.width = pDrawable->width;
-    ev.geometry.height = pDrawable->height;
+    ev = (xDamageNotifyEvent) {
+        .type = DamageEventBase + XDamageNotify,
+        .level = pDamageExt->level,
+        .drawable = pDamageExt->drawable,
+        .damage = pDamageExt->id,
+        .timestamp = currentTime.milliseconds,
+        .geometry.x = pDrawable->x,
+        .geometry.y = pDrawable->y,
+        .geometry.width = pDrawable->width,
+        .geometry.height = pDrawable->height
+    };
     if (pBoxes) {
         for (i = 0; i < nBoxes; i++) {
             ev.level = pDamageExt->level;

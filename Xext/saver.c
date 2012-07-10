@@ -406,7 +406,6 @@ SendScreenSaverNotify(ScreenPtr pScreen, int state, Bool forced)
     ScreenSaverScreenPrivatePtr pPriv;
     ScreenSaverEventPtr pEv;
     unsigned long mask;
-    xScreenSaverNotifyEvent ev;
     int kind;
 
     UpdateCurrentTimeIf();
@@ -424,16 +423,18 @@ SendScreenSaverNotify(ScreenPtr pScreen, int state, Bool forced)
     else
         kind = ScreenSaverInternal;
     for (pEv = pPriv->events; pEv; pEv = pEv->next) {
-        if (!(pEv->mask & mask))
-            continue;
-        ev.type = ScreenSaverNotify + ScreenSaverEventBase;
-        ev.state = state;
-        ev.timestamp = currentTime.milliseconds;
-        ev.root = pScreen->root->drawable.id;
-        ev.window = pScreen->screensaver.wid;
-        ev.kind = kind;
-        ev.forced = forced;
-        WriteEventsToClient(pEv->client, 1, (xEvent *) &ev);
+        if (pEv->mask & mask) {
+            xScreenSaverNotifyEvent ev = {
+                .type = ScreenSaverNotify + ScreenSaverEventBase,
+                .state = state,
+                .timestamp = currentTime.milliseconds,
+                .root = pScreen->root->drawable.id,
+                .window = pScreen->screensaver.wid,
+                .kind = kind,
+                .forced = forced
+            };
+            WriteEventsToClient(pEv->client, 1, (xEvent *) &ev);
+        }
     }
 }
 

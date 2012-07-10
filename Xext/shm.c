@@ -595,14 +595,14 @@ ProcShmPutImage(ClientPtr client)
                       stuff->dstX, stuff->dstY, shmdesc->addr + stuff->offset);
 
     if (stuff->sendEvent) {
-        xShmCompletionEvent ev;
-
-        ev.type = ShmCompletionCode;
-        ev.drawable = stuff->drawable;
-        ev.minorEvent = X_ShmPutImage;
-        ev.majorEvent = ShmReqCode;
-        ev.shmseg = stuff->shmseg;
-        ev.offset = stuff->offset;
+        xShmCompletionEvent ev = {
+            .type = ShmCompletionCode,
+            .drawable = stuff->drawable,
+            .minorEvent = X_ShmPutImage,
+            .majorEvent = ShmReqCode,
+            .shmseg = stuff->shmseg,
+            .offset = stuff->offset
+        };
         WriteEventsToClient(client, 1, (xEvent *) &ev);
     }
 

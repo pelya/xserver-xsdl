@@ -437,9 +437,16 @@ SyncSendAlarmNotifyEvents(SyncAlarm * pAlarm)
 
     UpdateCurrentTime();
 
-    ane.type = SyncEventBase + XSyncAlarmNotify;
-    ane.kind = XSyncAlarmNotify;
-    ane.alarm = pAlarm->alarm_id;
+    ane = (xSyncAlarmNotifyEvent) {
+        .type = SyncEventBase + XSyncAlarmNotify,
+        .kind = XSyncAlarmNotify,
+        .alarm = pAlarm->alarm_id,
+        .alarm_value_hi = XSyncValueHigh32(pTrigger->test_value),
+        .alarm_value_lo = XSyncValueLow32(pTrigger->test_value),
+        .time = currentTime.milliseconds,
+        .state = pAlarm->state
+    };
+
     if (pTrigger->pSync && SYNC_COUNTER == pTrigger->pSync->type) {
         ane.counter_value_hi = XSyncValueHigh32(pCounter->value);
         ane.counter_value_lo = XSyncValueLow32(pCounter->value);
@@ -448,11 +455,6 @@ SyncSendAlarmNotifyEvents(SyncAlarm * pAlarm)
         /* XXX what else can we do if there's no counter? */
         ane.counter_value_hi = ane.counter_value_lo = 0;
     }
-
-    ane.alarm_value_hi = XSyncValueHigh32(pTrigger->test_value);
-    ane.alarm_value_lo = XSyncValueLow32(pTrigger->test_value);
-    ane.time = currentTime.milliseconds;
-    ane.state = pAlarm->state;
 
     /* send to owner */
     if (pAlarm->events)

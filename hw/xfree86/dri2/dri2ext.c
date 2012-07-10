@@ -161,11 +161,11 @@ ProcDRI2Authenticate(ClientPtr client)
 static void
 DRI2InvalidateBuffersEvent(DrawablePtr pDraw, void *priv, XID id)
 {
-    xDRI2InvalidateBuffers event;
     ClientPtr client = priv;
-
-    event.type = DRI2EventBase + DRI2_InvalidateBuffers;
-    event.drawable = id;
+    xDRI2InvalidateBuffers event = {
+        .type = DRI2EventBase + DRI2_InvalidateBuffers,
+        .drawable = id
+    };
 
     WriteEventsToClient(client, 1, (xEvent *) &event);
 }
@@ -363,17 +363,17 @@ static void
 DRI2SwapEvent(ClientPtr client, void *data, int type, CARD64 ust, CARD64 msc,
               CARD32 sbc)
 {
-    xDRI2BufferSwapComplete2 event;
     DrawablePtr pDrawable = data;
-
-    event.type = DRI2EventBase + DRI2_BufferSwapComplete;
-    event.event_type = type;
-    event.drawable = pDrawable->id;
-    event.ust_hi = (CARD64) ust >> 32;
-    event.ust_lo = ust & 0xffffffff;
-    event.msc_hi = (CARD64) msc >> 32;
-    event.msc_lo = msc & 0xffffffff;
-    event.sbc = sbc;
+    xDRI2BufferSwapComplete2 event = {
+        .type = DRI2EventBase + DRI2_BufferSwapComplete,
+        .event_type = type,
+        .drawable = pDrawable->id,
+        .ust_hi = (CARD64) ust >> 32,
+        .ust_lo = ust & 0xffffffff,
+        .msc_hi = (CARD64) msc >> 32,
+        .msc_lo = msc & 0xffffffff,
+        .sbc = sbc
+    };
 
     WriteEventsToClient(client, 1, (xEvent *) &event);
 }

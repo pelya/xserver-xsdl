@@ -1029,14 +1029,14 @@ ProcXvShmPutImage(ClientPtr client)
                           stuff->send_event, stuff->width, stuff->height);
 
     if ((status == Success) && stuff->send_event) {
-        xShmCompletionEvent ev;
-
-        ev.type = ShmCompletionCode;
-        ev.drawable = stuff->drawable;
-        ev.minorEvent = xv_ShmPutImage;
-        ev.majorEvent = XvReqCode;
-        ev.shmseg = stuff->shmseg;
-        ev.offset = stuff->offset;
+        xShmCompletionEvent ev = {
+            .type = ShmCompletionCode,
+            .drawable = stuff->drawable,
+            .minorEvent = xv_ShmPutImage,
+            .majorEvent = XvReqCode,
+            .shmseg = stuff->shmseg,
+            .offset = stuff->offset
+        };
         WriteEventsToClient(client, 1, (xEvent *) &ev);
     }
 

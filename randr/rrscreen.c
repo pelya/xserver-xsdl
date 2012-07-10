@@ -71,20 +71,20 @@ void
 RRSendConfigNotify(ScreenPtr pScreen)
 {
     WindowPtr pWin = pScreen->root;
-    xEvent event;
-
-    event.u.u.type = ConfigureNotify;
-    event.u.configureNotify.window = pWin->drawable.id;
-    event.u.configureNotify.aboveSibling = None;
-    event.u.configureNotify.x = 0;
-    event.u.configureNotify.y = 0;
+    xEvent event = {
+        .u.configureNotify.window = pWin->drawable.id,
+        .u.configureNotify.aboveSibling = None,
+        .u.configureNotify.x = 0,
+        .u.configureNotify.y = 0,
 
     /* XXX xinerama stuff ? */
 
-    event.u.configureNotify.width = pWin->drawable.width;
-    event.u.configureNotify.height = pWin->drawable.height;
-    event.u.configureNotify.borderWidth = wBorderWidth(pWin);
-    event.u.configureNotify.override = pWin->overrideRedirect;
+        .u.configureNotify.width = pWin->drawable.width,
+        .u.configureNotify.height = pWin->drawable.height,
+        .u.configureNotify.borderWidth = wBorderWidth(pWin),
+        .u.configureNotify.override = pWin->overrideRedirect
+    };
+    event.u.u.type = ConfigureNotify;
     DeliverEvents(pWin, &event, 1, NullWindow);
 }
 
@@ -92,19 +92,20 @@ void
 RRDeliverScreenEvent(ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
 {
     rrScrPriv(pScreen);
-    xRRScreenChangeNotifyEvent se;
     RRCrtcPtr crtc = pScrPriv->numCrtcs ? pScrPriv->crtcs[0] : NULL;
     WindowPtr pRoot = pScreen->root;
 
-    se.type = RRScreenChangeNotify + RREventBase;
-    se.rotation = (CARD8) (crtc ? crtc->rotation : RR_Rotate_0);
-    se.timestamp = pScrPriv->lastSetTime.milliseconds;
-    se.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
-    se.root = pRoot->drawable.id;
-    se.window = pWin->drawable.id;
-    se.subpixelOrder = PictureGetSubpixelOrder(pScreen);
+    xRRScreenChangeNotifyEvent se = {
+        .type = RRScreenChangeNotify + RREventBase,
+        .rotation = (CARD8) (crtc ? crtc->rotation : RR_Rotate_0),
+        .timestamp = pScrPriv->lastSetTime.milliseconds,
+        .configTimestamp = pScrPriv->lastConfigTime.milliseconds,
+        .root = pRoot->drawable.id,
+        .window = pWin->drawable.id,
+        .subpixelOrder = PictureGetSubpixelOrder(pScreen),
 
-    se.sizeID = RR10CurrentSizeID(pScreen);
+        .sizeID = RR10CurrentSizeID(pScreen)
+    };
 
     if (se.rotation & (RR_Rotate_90 | RR_Rotate_270)) {
         se.widthInPixels = pScreen->height;
