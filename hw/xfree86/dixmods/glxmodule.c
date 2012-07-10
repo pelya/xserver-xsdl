@@ -50,7 +50,6 @@ static ExtensionModule GLXExt = {
     GlxExtensionInit,
     "GLX",
     &noGlxExtension,
-    NULL,
     NULL
 };
 

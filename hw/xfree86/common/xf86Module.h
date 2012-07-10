@@ -175,7 +175,6 @@ typedef struct {
     const char *name;
     Bool *disablePtr;
     InitExtension setupFunc;
-    const char **initDependencies;
 } ExtensionModule;
 
 extern _X_EXPORT ExtensionModule *ExtensionModuleList;

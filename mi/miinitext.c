@@ -358,38 +358,37 @@ InitExtensions(int argc, char *argv[])
 #else                           /* XFree86LOADER */
 /* List of built-in (statically linked) extensions */
 static ExtensionModule staticExtensions[] = {
-    {GEExtensionInit, "Generic Event Extension", &noGEExtension, NULL, NULL},
-    {ShapeExtensionInit, "SHAPE", NULL, NULL, NULL},
+    {GEExtensionInit, "Generic Event Extension", &noGEExtension, NULL},
+    {ShapeExtensionInit, "SHAPE", NULL, NULL},
 #ifdef MITSHM
-    {ShmExtensionInit, SHMNAME, &noMITShmExtension, NULL, NULL},
+    {ShmExtensionInit, SHMNAME, &noMITShmExtension, NULL},
 #endif
-    {XInputExtensionInit, "XInputExtension", NULL, NULL, NULL},
+    {XInputExtensionInit, "XInputExtension", NULL, NULL},
 #ifdef XTEST
-    {XTestExtensionInit, XTestExtensionName, &noTestExtensions, NULL, NULL},
+    {XTestExtensionInit, XTestExtensionName, &noTestExtensions, NULL},
 #endif
-    {BigReqExtensionInit, "BIG-REQUESTS", NULL, NULL, NULL},
-    {SyncExtensionInit, "SYNC", NULL, NULL, NULL},
-    {XkbExtensionInit, XkbName, NULL, NULL, NULL},
-    {XCMiscExtensionInit, "XC-MISC", NULL, NULL, NULL},
+    {BigReqExtensionInit, "BIG-REQUESTS", NULL, NULL},
+    {SyncExtensionInit, "SYNC", NULL, NULL},
+    {XkbExtensionInit, XkbName, NULL, NULL},
+    {XCMiscExtensionInit, "XC-MISC", NULL, NULL},
 #ifdef XCSECURITY
-    {SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL,
-     NULL},
+    {SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL},
 #endif
 #ifdef PANORAMIX
     {PanoramiXExtensionInit, PANORAMIX_PROTOCOL_NAME, &noPanoramiXExtension,
-     NULL, NULL},
+     NULL},
 #endif
 #ifdef XFIXES
     /* must be before Render to layer DisplayCursor correctly */
-    {XFixesExtensionInit, "XFIXES", &noXFixesExtension, NULL, NULL},
+    {XFixesExtensionInit, "XFIXES", &noXFixesExtension, NULL},
 #endif
 #ifdef XF86BIGFONT
     {XFree86BigfontExtensionInit, XF86BIGFONTNAME, &noXFree86BigfontExtension,
-     NULL, NULL},
+     NULL},
 #endif
-    {RenderExtensionInit, "RENDER", &noRenderExtension, NULL, NULL},
+    {RenderExtensionInit, "RENDER", &noRenderExtension, NULL},
 #ifdef RANDR
-    {RRExtensionInit, "RANDR", &noRRExtension, NULL, NULL},
+    {RRExtensionInit, "RANDR", &noRRExtension, NULL},
 #endif
 #ifdef COMPOSITE
     {CompositeExtensionInit, "COMPOSITE", &noCompositeExtension, NULL},
@@ -442,10 +441,7 @@ InitExtensions(int argc, char *argv[])
     int i;
     ExtensionModule *ext;
 
-    /* Make sure all static extensions have been added, then sort the
-     * extensions according to their init dependencies. */
     AddStaticExtensions();
-    LoaderSortExtensions();
 
     for (i = 0; ExtensionModuleList[i].name != NULL; i++) {
         ext = &ExtensionModuleList[i];
