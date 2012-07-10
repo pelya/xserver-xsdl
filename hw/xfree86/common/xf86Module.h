@@ -180,6 +180,11 @@ typedef struct {
 
 extern _X_EXPORT ExtensionModule *ExtensionModuleList;
 
+/* This really shouldn't be here, but gets moved in about three commits'
+ * time.  So odds are the only people who ever see this comment are doing
+ * patch review, in which case, thanks! */
+extern _X_EXPORT void AddStaticExtensions(void);
+
 /* Prototypes for Loader functions that are exported to modules */
 extern _X_EXPORT pointer LoadSubModule(pointer, const char *, const char **,
                                        const char **, pointer,

@@ -49,6 +49,10 @@ NewExtensionModule(void)
     ExtensionModule *save = ExtensionModuleList;
     int n;
 
+    /* Make sure built-in extensions get added to the list before those
+     * in modules. */
+    AddStaticExtensions();
+
     /* Sanity check */
     if (!ExtensionModuleList)
         numExtensionModules = 0;

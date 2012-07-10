@@ -421,22 +421,31 @@ static ExtensionModule staticExtensions[] = {
 #endif
 };
 
- /*ARGSUSED*/ void
+void
+AddStaticExtensions(void)
+{
+    static Bool listInitialised = FALSE;
+    int i;
+
+    if (listInitialised)
+        return;
+    listInitialised = TRUE;
+
+    /* Add built-in extensions to the list. */
+    for (i = 0; i < ARRAY_SIZE(staticExtensions); i++)
+        LoadExtension(&staticExtensions[i], TRUE);
+}
+
+void
 InitExtensions(int argc, char *argv[])
 {
     int i;
     ExtensionModule *ext;
-    static Bool listInitialised = FALSE;
 
-    if (!listInitialised) {
-        /* Add built-in extensions to the list. */
-        for (i = 0; i < ARRAY_SIZE(staticExtensions); i++)
-            LoadExtension(&staticExtensions[i], TRUE);
-
-        /* Sort the extensions according the init dependencies. */
-        LoaderSortExtensions();
-        listInitialised = TRUE;
-    }
+    /* Make sure all static extensions have been added, then sort the
+     * extensions according to their init dependencies. */
+    AddStaticExtensions();
+    LoaderSortExtensions();
 
     for (i = 0; ExtensionModuleList[i].name != NULL; i++) {
         ext = &ExtensionModuleList[i];
