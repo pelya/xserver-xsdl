@@ -1816,14 +1816,15 @@ static int
 ProcRecordQueryVersion(ClientPtr client)
 {
     /* REQUEST(xRecordQueryVersionReq); */
-    xRecordQueryVersionReply rep;
+    xRecordQueryVersionReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .majorVersion = SERVER_RECORD_MAJOR_VERSION,
+        .minorVersion = SERVER_RECORD_MINOR_VERSION
+    };
 
     REQUEST_SIZE_MATCH(xRecordQueryVersionReq);
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.majorVersion = SERVER_RECORD_MAJOR_VERSION;
-    rep.minorVersion = SERVER_RECORD_MINOR_VERSION;
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swaps(&rep.majorVersion);
@@ -2231,12 +2232,14 @@ ProcRecordGetContext(ClientPtr client)
 
     /* write the reply header */
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = length;
-    rep.enabled = pContext->pRecordingClient != NULL;
-    rep.elementHeader = pContext->elemHeaders;
-    rep.nClients = nClients;
+    rep = (xRecordGetContextReply) {
+        .type = X_Reply,
+        .enabled = pContext->pRecordingClient != NULL,
+        .sequenceNumber = client->sequence,
+        .length = length,
+        .elementHeader = pContext->elemHeaders,
+        .nClients = nClients
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
