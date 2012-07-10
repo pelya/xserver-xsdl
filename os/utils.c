@@ -138,7 +138,6 @@ Bool noDPMSExtension = FALSE;
 #endif
 #ifdef GLXEXT
 Bool noGlxExtension = FALSE;
-Bool noGlxVisualInit = FALSE;
 #endif
 #ifdef SCREENSAVER
 Bool noScreenSaverExtension = FALSE;
