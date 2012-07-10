@@ -100,11 +100,13 @@ ProcXSetDeviceButtonMapping(ClientPtr client)
     if (ret != Success)
         return ret;
 
-    rep.repType = X_Reply;
-    rep.RepType = X_SetDeviceButtonMapping;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.status = MappingSuccess;
+    rep = (xSetDeviceButtonMappingReply) {
+        .repType = X_Reply,
+        .RepType = X_SetDeviceButtonMapping,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = MappingSuccess
+    };
 
     ret =
         ApplyPointerMapping(dev, (CARD8 *) &stuff[1], stuff->map_length,

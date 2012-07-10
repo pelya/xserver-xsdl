@@ -101,11 +101,13 @@ ProcXGetDeviceDontPropagateList(ClientPtr client)
     REQUEST(xGetDeviceDontPropagateListReq);
     REQUEST_SIZE_MATCH(xGetDeviceDontPropagateListReq);
 
-    rep.repType = X_Reply;
-    rep.RepType = X_GetDeviceDontPropagateList;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.count = 0;
+    rep = (xGetDeviceDontPropagateListReply) {
+        .repType = X_Reply,
+        .RepType = X_GetDeviceDontPropagateList,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .count = 0
+    };
 
     rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)

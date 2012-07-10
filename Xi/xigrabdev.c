@@ -104,11 +104,13 @@ ProcXIGrabDevice(ClientPtr client)
     if (ret != Success)
         return ret;
 
-    rep.repType = X_Reply;
-    rep.RepType = X_XIGrabDevice;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.status = status;
+    rep = (xXIGrabDeviceReply) {
+        .repType = X_Reply,
+        .RepType = X_XIGrabDevice,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = status
+    };
 
     WriteReplyToClient(client, sizeof(rep), &rep);
     return ret;

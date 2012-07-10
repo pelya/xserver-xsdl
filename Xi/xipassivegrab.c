@@ -78,7 +78,13 @@ int
 ProcXIPassiveGrabDevice(ClientPtr client)
 {
     DeviceIntPtr dev, mod_dev;
-    xXIPassiveGrabDeviceReply rep;
+    xXIPassiveGrabDeviceReply rep = {
+        .repType = X_Reply,
+        .RepType = X_XIPassiveGrabDevice,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .num_modifiers = 0
+    };
     int i, ret = Success;
     uint32_t *modifiers;
     xXIGrabModifierInfo *modifiers_failed;
@@ -136,12 +142,6 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     mask_len = min(xi2mask_mask_size(mask.xi2mask), stuff->mask_len * 4);
     xi2mask_set_one_mask(mask.xi2mask, stuff->deviceid,
                          (unsigned char *) &stuff[1], mask_len * 4);
-
-    rep.repType = X_Reply;
-    rep.RepType = X_XIPassiveGrabDevice;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.num_modifiers = 0;
 
     memset(&param, 0, sizeof(param));
     param.grabtype = XI2;

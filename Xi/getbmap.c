@@ -92,11 +92,13 @@ ProcXGetDeviceButtonMapping(ClientPtr client)
     REQUEST(xGetDeviceButtonMappingReq);
     REQUEST_SIZE_MATCH(xGetDeviceButtonMappingReq);
 
-    rep.repType = X_Reply;
-    rep.RepType = X_GetDeviceButtonMapping;
-    rep.nElts = 0;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
+    rep = (xGetDeviceButtonMappingReply) {
+        .repType = X_Reply,
+        .RepType = X_GetDeviceButtonMapping,
+        .sequenceNumber = client->sequence,
+        .nElts = 0,
+        .length = 0
+    };
 
     rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
     if (rc != Success)

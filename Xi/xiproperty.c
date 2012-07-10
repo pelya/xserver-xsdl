@@ -864,11 +864,13 @@ ProcXListDeviceProperties(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    rep.repType = X_Reply;
-    rep.RepType = X_ListDeviceProperties;
-    rep.length = natoms;
-    rep.sequenceNumber = client->sequence;
-    rep.nAtoms = natoms;
+    rep = (xListDevicePropertiesReply) {
+        .repType = X_Reply,
+        .RepType = X_ListDeviceProperties,
+        .sequenceNumber = client->sequence,
+        .length = natoms,
+        .nAtoms = natoms
+    };
 
     WriteReplyToClient(client, sizeof(xListDevicePropertiesReply), &rep);
     if (natoms) {
@@ -958,15 +960,17 @@ ProcXGetDeviceProperty(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    reply.repType = X_Reply;
-    reply.RepType = X_GetDeviceProperty;
-    reply.sequenceNumber = client->sequence;
-    reply.deviceid = dev->id;
-    reply.nItems = nitems;
-    reply.format = format;
-    reply.bytesAfter = bytes_after;
-    reply.propertyType = type;
-    reply.length = bytes_to_int32(length);
+    reply = (xGetDevicePropertyReply) {
+        .repType = X_Reply,
+        .RepType = X_GetDeviceProperty,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(length),
+        .propertyType = type,
+        .bytesAfter = bytes_after,
+        .nItems = nitems,
+        .format = format,
+        .deviceid = dev->id
+    };
 
     if (stuff->delete && (reply.bytesAfter == 0))
         send_property_event(dev, stuff->property, XIPropertyDeleted);
@@ -1100,11 +1104,13 @@ ProcXIListProperties(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    rep.repType = X_Reply;
-    rep.RepType = X_XIListProperties;
-    rep.length = natoms;
-    rep.sequenceNumber = client->sequence;
-    rep.num_properties = natoms;
+    rep = (xXIListPropertiesReply) {
+        .repType = X_Reply,
+        .RepType = X_XIListProperties,
+        .sequenceNumber = client->sequence,
+        .length = natoms,
+        .num_properties = natoms
+    };
 
     WriteReplyToClient(client, sizeof(xXIListPropertiesReply), &rep);
     if (natoms) {
@@ -1194,14 +1200,16 @@ ProcXIGetProperty(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    reply.repType = X_Reply;
-    reply.RepType = X_XIGetProperty;
-    reply.sequenceNumber = client->sequence;
-    reply.num_items = nitems;
-    reply.format = format;
-    reply.bytes_after = bytes_after;
-    reply.type = type;
-    reply.length = bytes_to_int32(length);
+    reply = (xXIGetPropertyReply) {
+        .repType = X_Reply,
+        .RepType = X_XIGetProperty,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(length),
+        .type = type,
+        .bytes_after = bytes_after,
+        .num_items = nitems,
+        .format = format
+    };
 
     if (length && stuff->delete && (reply.bytes_after == 0))
         send_property_event(dev, stuff->property, XIPropertyDeleted);

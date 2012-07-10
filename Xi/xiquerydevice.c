@@ -107,12 +107,13 @@ ProcXIQueryDevice(ClientPtr client)
         return BadAlloc;
     }
 
-    memset(&rep, 0, sizeof(xXIQueryDeviceReply));
-    rep.repType = X_Reply;
-    rep.RepType = X_XIQueryDevice;
-    rep.sequenceNumber = client->sequence;
-    rep.length = len / 4;
-    rep.num_devices = 0;
+    rep = (xXIQueryDeviceReply) {
+        .repType = X_Reply,
+        .RepType = X_XIQueryDevice,
+        .sequenceNumber = client->sequence,
+        .length = len / 4,
+        .num_devices = 0
+    };
 
     ptr = info;
     if (dev) {

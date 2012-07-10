@@ -121,15 +121,16 @@ ProcXIQueryPointer(ClientPtr client)
 
     pSprite = pDev->spriteInfo->sprite;
 
-    memset(&rep, 0, sizeof(rep));
-    rep.repType = X_Reply;
-    rep.RepType = X_XIQueryPointer;
-    rep.length = 6;
-    rep.sequenceNumber = client->sequence;
-    rep.root = (GetCurrentRootWindow(pDev))->drawable.id;
-    rep.root_x = FP1616(pSprite->hot.x, 0);
-    rep.root_y = FP1616(pSprite->hot.y, 0);
-    rep.child = None;
+    rep = (xXIQueryPointerReply) {
+        .repType = X_Reply,
+        .RepType = X_XIQueryPointer,
+        .sequenceNumber = client->sequence,
+        .length = 6,
+        .root = (GetCurrentRootWindow(pDev))->drawable.id,
+        .root_x = FP1616(pSprite->hot.x, 0),
+        .root_y = FP1616(pSprite->hot.y, 0),
+        .child = None
+    };
 
     if (kbd) {
         state = &kbd->key->xkbInfo->state;

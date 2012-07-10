@@ -123,10 +123,12 @@ ProcXChangeDeviceControl(ClientPtr client)
     if (ret != Success)
         goto out;
 
-    rep.repType = X_Reply;
-    rep.RepType = X_ChangeDeviceControl;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
+    rep = (xChangeDeviceControlReply) {
+        .repType = X_Reply,
+        .RepType = X_ChangeDeviceControl,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
 
     switch (stuff->control) {
     case DEVICE_RESOLUTION:

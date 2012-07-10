@@ -97,10 +97,12 @@ ProcXIGetFocus(ClientPtr client)
     if (!dev->focus)
         return BadDevice;
 
-    rep.repType = X_Reply;
-    rep.RepType = X_XIGetFocus;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
+    rep = (xXIGetFocusReply) {
+        .repType = X_Reply,
+        .RepType = X_XIGetFocus,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
 
     if (dev->focus->win == NoneWin)
         rep.focus = None;

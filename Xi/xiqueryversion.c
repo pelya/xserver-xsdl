@@ -93,13 +93,14 @@ ProcXIQueryVersion(ClientPtr client)
         pXIClient->minor_version = minor;
     }
 
-    memset(&rep, 0, sizeof(xXIQueryVersionReply));
-    rep.repType = X_Reply;
-    rep.RepType = X_XIQueryVersion;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.major_version = major;
-    rep.minor_version = minor;
+    rep = (xXIQueryVersionReply) {
+        .repType = X_Reply,
+        .RepType = X_XIQueryVersion,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .major_version = major,
+        .minor_version = minor
+    };
 
     WriteReplyToClient(client, sizeof(xXIQueryVersionReply), &rep);
 
