@@ -46,6 +46,8 @@ static RESTYPE XvMCRTContext;
 static RESTYPE XvMCRTSurface;
 static RESTYPE XvMCRTSubpicture;
 
+int (*XvMCScreenInitProc)(ScreenPtr, int, XvMCAdaptorPtr) = NULL;
+
 typedef struct {
     int num_adaptors;
     XvMCAdaptorPtr adaptors;
@@ -760,6 +762,12 @@ XvMCScreenInit(ScreenPtr pScreen, int num, XvMCAdaptorPtr pAdapt)
     XvMCInUse = TRUE;
 
     return Success;
+}
+
+void
+XvMCRegister(void)
+{
+    XvMCScreenInitProc = XvMCScreenInit;
 }
 
 XvImagePtr

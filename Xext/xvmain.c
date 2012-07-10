@@ -194,6 +194,18 @@ XvExtensionInit(void)
     }
 }
 
+DevPrivateKey (*XvGetScreenKeyProc)(void) = NULL;
+unsigned long (*XvGetRTPortProc)(void) = NULL;
+int (*XvScreenInitProc)(ScreenPtr) = NULL;
+
+void
+XvRegister(void)
+{
+    XvScreenInitProc = XvScreenInit;
+    XvGetScreenKeyProc = XvGetScreenKey;
+    XvGetRTPortProc = XvGetRTPort;
+}
+
 static Bool
 CreateResourceTypes(void)
 {

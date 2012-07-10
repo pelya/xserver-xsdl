@@ -43,8 +43,6 @@
 #include "xf86xvpriv.h"
 #include "xf86xvmc.h"
 
-XvMCScreenInitProcPtr XvMCScreenInitProc = NULL;
-
 typedef struct {
     CloseScreenProcPtr CloseScreen;
     int num_adaptors;

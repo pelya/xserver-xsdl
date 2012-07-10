@@ -55,7 +55,6 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include <X11/extensions/Xvproto.h>
 
-#ifndef XorgLoader
 extern _X_EXPORT unsigned long XvExtensionGeneration;
 extern _X_EXPORT unsigned long XvScreenGeneration;
 extern _X_EXPORT unsigned long XvResourceGeneration;
@@ -70,7 +69,10 @@ extern _X_EXPORT RESTYPE XvRTGrab;
 extern _X_EXPORT RESTYPE XvRTVideoNotify;
 extern _X_EXPORT RESTYPE XvRTVideoNotifyList;
 extern _X_EXPORT RESTYPE XvRTPortNotify;
-#endif
+
+extern DevPrivateKey (*XvGetScreenKeyProc)(void);
+extern unsigned long (*XvGetRTPortProc)(void);
+extern int (*XvScreenInitProc)(ScreenPtr);
 
 typedef struct {
     int numerator;
@@ -231,7 +233,6 @@ typedef struct {
 #define _XvBadPort (XvBadPort+XvErrorBase)
 #define _XvBadEncoding (XvBadEncoding+XvErrorBase)
 
-#ifndef XorgLoader
 extern _X_EXPORT int ProcXvDispatch(ClientPtr);
 extern _X_EXPORT int SProcXvDispatch(ClientPtr);
 
@@ -267,6 +268,4 @@ extern _X_EXPORT int XvdiPreemptVideo(ClientPtr, XvPortPtr, DrawablePtr);
 extern _X_EXPORT int XvdiMatchPort(XvPortPtr, DrawablePtr);
 extern _X_EXPORT int XvdiGrabPort(ClientPtr, XvPortPtr, Time, int *);
 extern _X_EXPORT int XvdiUngrabPort(ClientPtr, XvPortPtr, Time);
-#endif                          /* XorgLoader */
-
 #endif                          /* XVDIX_H */

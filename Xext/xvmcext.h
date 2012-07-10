@@ -84,7 +84,8 @@ typedef struct {
     XvMCDestroySubpictureProcPtr DestroySubpicture;
 } XvMCAdaptorRec, *XvMCAdaptorPtr;
 
-#ifndef XorgLoader
+extern int (*XvMCScreenInitProc)(ScreenPtr, int, XvMCAdaptorPtr);
+
 extern _X_EXPORT int XvMCScreenInit(ScreenPtr pScreen,
                                     int num, XvMCAdaptorPtr adapt);
 
@@ -93,6 +94,5 @@ extern _X_EXPORT XvImagePtr XvMCFindXvImage(XvPortPtr pPort, CARD32 id);
 extern _X_EXPORT int xf86XvMCRegisterDRInfo(ScreenPtr pScreen, char *name,
                                             char *busID, int major, int minor,
                                             int patchLevel);
-#endif
 
 #endif                          /* _XVMC_H */

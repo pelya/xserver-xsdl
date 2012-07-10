@@ -107,10 +107,6 @@ static DevPrivateKey KdXvScreenKey;
 static unsigned long KdXVGeneration = 0;
 static unsigned long PortResource = 0;
 
-DevPrivateKey (*XvGetScreenKeyProc) (void) = XvGetScreenKey;
-unsigned long (*XvGetRTPortProc) (void) = XvGetRTPort;
-int (*XvScreenInitProc) (ScreenPtr) = XvScreenInit;
-
 #define GET_XV_SCREEN(pScreen) ((XvScreenPtr) \
     dixLookupPrivate(&(pScreen)->devPrivates, KdXvScreenKey))
 

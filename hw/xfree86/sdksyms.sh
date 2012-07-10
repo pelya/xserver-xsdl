@@ -46,10 +46,8 @@ cat > sdksyms.c << EOF
 #include "misyncstr.h"
 
 /* Xext/Makefile.am -- half is module, half is builtin */
-/*
 #include "xvdix.h"
 #include "xvmcext.h"
- */
 #include "geext.h"
 #include "geint.h"
 #ifdef MITSHM

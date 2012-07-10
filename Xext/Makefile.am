@@ -46,7 +46,7 @@ endif
 # XVideo extension
 XV_SRCS = xvmain.c xvdisp.c xvmc.c xvdix.h xvmcext.h xvdisp.h
 if XV
-MODULE_SRCS  += $(XV_SRCS)
+BUILTIN_SRCS  += $(XV_SRCS)
 endif
 
 # XResource extension: lets clients get data about per-client resource usage

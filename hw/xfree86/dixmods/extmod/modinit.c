@@ -63,20 +63,6 @@ static ExtensionModule extensionModules[] = {
      XFree86DGARegister,
      NULL},
 #endif
-#ifdef XV
-    {
-     XvExtensionInit,
-     XvName,
-     &noXvExtension,
-     XvRegister,
-     NULL},
-    {
-     XvMCExtensionInit,
-     XvMCName,
-     &noXvExtension,
-     NULL,
-     NULL},
-#endif
 };
 
 static XF86ModuleVersionInfo VersRec = {

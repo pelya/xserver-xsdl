@@ -175,13 +175,14 @@ extern Bool noPseudoramiXExtension;
 extern void PseudoramiXExtensionInit(void);
 #endif
 
-#if defined(XV) && !defined(XorgLoader)
+#if defined(XV)
 #include <X11/extensions/Xv.h>
 #include <X11/extensions/XvMC.h>
 extern Bool noXvExtension;
 extern void XvExtensionInit(void);
 extern void XvMCExtensionInit(void);
 extern void XvRegister(void);
+extern void XvMCRegister(void);
 #endif
 
 #endif
