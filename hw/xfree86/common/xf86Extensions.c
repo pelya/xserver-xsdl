@@ -81,6 +81,15 @@ static ExtensionModule extensionModules[] = {
         NULL
     },
 #endif
+#ifdef DRI2
+    {
+        DRI2ExtensionInit,
+        DRI2_NAME,
+        &noDRI2Extension,
+        NULL,
+        NULL
+    }
+#endif
 };
 
 static void

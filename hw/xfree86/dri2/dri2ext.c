@@ -44,13 +44,15 @@
 #include "extnsionst.h"
 #include "xfixes.h"
 #include "dri2.h"
+#include "dri2int.h"
 #include "protocol-versions.h"
 
-/* The only xf86 include */
+/* The only xf86 includes */
 #include "xf86Module.h"
+#include "xf86Extensions.h"
 
-static ExtensionEntry *dri2Extension;
-extern Bool DRI2ModuleSetup(void);
+static int DRI2EventBase;
+
 
 static Bool
 validDrawable(ClientPtr client, XID drawable, Mask access_mode,
@@ -664,11 +666,11 @@ SProcDRI2Dispatch(ClientPtr client)
     }
 }
 
-int DRI2EventBase;
-
-static void
+void
 DRI2ExtensionInit(void)
 {
+    ExtensionEntry *dri2Extension;
+
     dri2Extension = AddExtension(DRI2_NAME,
                                  DRI2NumberEvents,
                                  DRI2NumberErrors,
@@ -679,13 +681,3 @@ DRI2ExtensionInit(void)
 
     DRI2ModuleSetup();
 }
-
-extern Bool noDRI2Extension;
-
-_X_HIDDEN ExtensionModule dri2ExtensionModule = {
-    DRI2ExtensionInit,
-    DRI2_NAME,
-    &noDRI2Extension,
-    NULL,
-    NULL
-};

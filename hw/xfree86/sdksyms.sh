@@ -93,11 +93,9 @@ cat > sdksyms.c << EOF
 
 
 /* hw/xfree86/dri2/Makefile.am -- module */
-/*
 #if DRI2
 # include "dri2.h"
 #endif
- */
 
 
 /* hw/xfree86/vgahw/Makefile.am -- module */

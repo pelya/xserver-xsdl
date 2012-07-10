@@ -44,6 +44,7 @@
 #include "windowstr.h"
 #include "dixstruct.h"
 #include "dri2.h"
+#include "dri2int.h"
 #include "xf86VGAarbiter.h"
 #include "damage.h"
 #include "xf86.h"
@@ -1552,7 +1553,6 @@ DRI2CloseScreen(ScreenPtr pScreen)
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, NULL);
 }
 
-extern ExtensionModule dri2ExtensionModule;
 extern Bool DRI2ModuleSetup(void);
 
 /* Called by InitExtensions() */
@@ -1566,46 +1566,14 @@ DRI2ModuleSetup(void)
     return TRUE;
 }
 
-static pointer
-DRI2Setup(pointer module, pointer opts, int *errmaj, int *errmin)
-{
-    static Bool setupDone = FALSE;
-
-    if (!setupDone) {
-        setupDone = TRUE;
-        LoadExtension(&dri2ExtensionModule, FALSE);
-    }
-    else {
-        if (errmaj)
-            *errmaj = LDR_ONCEONLY;
-    }
-
-    return (pointer) 1;
-}
-
-static XF86ModuleVersionInfo DRI2VersRec = {
-    "dri2",
-    MODULEVENDORSTRING,
-    MODINFOSTRING1,
-    MODINFOSTRING2,
-    XORG_VERSION_CURRENT,
-    1, 2, 0,
-    ABI_CLASS_EXTENSION,
-    ABI_EXTENSION_VERSION,
-    MOD_CLASS_NONE,
-    {0, 0, 0, 0}
-};
-
-_X_EXPORT XF86ModuleData dri2ModuleData = { &DRI2VersRec, DRI2Setup, NULL };
-
 void
 DRI2Version(int *major, int *minor)
 {
     if (major != NULL)
-        *major = DRI2VersRec.majorversion;
+        *major = 1;
 
     if (minor != NULL)
-        *minor = DRI2VersRec.minorversion;
+        *minor = 2;
 }
 
 int

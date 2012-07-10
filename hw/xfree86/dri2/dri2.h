@@ -254,8 +254,6 @@ typedef struct {
     DRI2CopyRegion2ProcPtr CopyRegion2;
 } DRI2InfoRec, *DRI2InfoPtr;
 
-extern _X_EXPORT int DRI2EventBase;
-
 extern _X_EXPORT Bool DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info);
 
 extern _X_EXPORT void DRI2CloseScreen(ScreenPtr pScreen);
