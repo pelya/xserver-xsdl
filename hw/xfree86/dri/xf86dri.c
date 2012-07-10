@@ -141,6 +141,7 @@ ProcXF86DRIOpenConnection(register ClientPtr client)
     xXF86DRIOpenConnectionReply rep;
     drm_handle_t hSAREA;
     char *busIdString;
+    CARD32 busIdStringLength = 0;
 
     REQUEST(xXF86DRIOpenConnectionReq);
     REQUEST_SIZE_MATCH(xXF86DRIOpenConnectionReq);
@@ -154,11 +155,12 @@ ProcXF86DRIOpenConnection(register ClientPtr client)
         return BadValue;
     }
 
+    if (busIdString)
+        busIdStringLength = strlen(busIdString);
+
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.busIdStringLength = 0;
-    if (busIdString)
-        rep.busIdStringLength = strlen(busIdString);
+    rep.busIdStringLength = busIdStringLength;
     rep.length =
         bytes_to_int32(SIZEOF(xXF86DRIOpenConnectionReply) -
                        SIZEOF(xGenericReply) +
@@ -172,8 +174,8 @@ ProcXF86DRIOpenConnection(register ClientPtr client)
 #endif
 
     WriteToClient(client, sizeof(xXF86DRIOpenConnectionReply), &rep);
-    if (rep.busIdStringLength)
-        WriteToClient(client, rep.busIdStringLength, busIdString);
+    if (busIdStringLength)
+        WriteToClient(client, busIdStringLength, busIdString);
     return Success;
 }
 

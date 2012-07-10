@@ -882,6 +882,7 @@ ProcRRSetScreenConfig(ClientPtr client)
     Rotation rotation;
     int rate;
     Bool has_rate;
+    CARD8 status;
     RROutputPtr output;
     RRCrtcPtr crtc;
     RRModePtr mode;
@@ -912,7 +913,7 @@ ProcRRSetScreenConfig(ClientPtr client)
 
     if (!pScrPriv) {
         time = currentTime;
-        rep.status = RRSetConfigFailed;
+        status = RRSetConfigFailed;
         goto sendReply;
     }
     if (!RRGetInfo(pScreen, FALSE))
@@ -921,7 +922,7 @@ ProcRRSetScreenConfig(ClientPtr client)
     output = RRFirstOutput(pScreen);
     if (!output) {
         time = currentTime;
-        rep.status = RRSetConfigFailed;
+        status = RRSetConfigFailed;
         goto sendReply;
     }
 
@@ -937,7 +938,7 @@ ProcRRSetScreenConfig(ClientPtr client)
      * stop working after several hours have passed (freedesktop bug #6502).
      */
     if (stuff->configTimestamp != pScrPriv->lastConfigTime.milliseconds) {
-        rep.status = RRSetConfigInvalidConfigTime;
+        status = RRSetConfigInvalidConfigTime;
         goto sendReply;
     }
 
@@ -1016,7 +1017,7 @@ ProcRRSetScreenConfig(ClientPtr client)
      * the last set-time
      */
     if (CompareTimeStamps(time, pScrPriv->lastSetTime) < 0) {
-        rep.status = RRSetConfigInvalidTime;
+        status = RRSetConfigInvalidTime;
         goto sendReply;
     }
 
@@ -1048,24 +1049,24 @@ ProcRRSetScreenConfig(ClientPtr client)
         for (c = 0; c < pScrPriv->numCrtcs; c++) {
             if (!RRCrtcSet(pScrPriv->crtcs[c], NULL, 0, 0, RR_Rotate_0,
                            0, NULL)) {
-                rep.status = RRSetConfigFailed;
+                status = RRSetConfigFailed;
                 /* XXX recover from failure */
                 goto sendReply;
             }
         }
         if (!RRScreenSizeSet(pScreen, width, height,
                              pScreen->mmWidth, pScreen->mmHeight)) {
-            rep.status = RRSetConfigFailed;
+            status = RRSetConfigFailed;
             /* XXX recover from failure */
             goto sendReply;
         }
     }
 
     if (!RRCrtcSet(crtc, mode, 0, 0, stuff->rotation, 1, &output))
-        rep.status = RRSetConfigFailed;
+        status = RRSetConfigFailed;
     else {
         pScrPriv->lastSetTime = time;
-        rep.status = RRSetConfigSuccess;
+        status = RRSetConfigSuccess;
     }
 
     /*
@@ -1077,7 +1078,7 @@ ProcRRSetScreenConfig(ClientPtr client)
     free(pData);
 
     rep.type = X_Reply;
-    /* rep.status has already been filled in */
+    rep.status = status;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 

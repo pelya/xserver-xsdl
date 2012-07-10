@@ -4797,6 +4797,7 @@ ProcGrabPointer(ClientPtr client)
     GrabMask mask;
     WindowPtr confineTo;
     CursorPtr oldCursor;
+    BYTE status;
 
     REQUEST(xGrabPointerReq);
     int rc;
@@ -4818,7 +4819,6 @@ ProcGrabPointer(ClientPtr client)
             return rc;
     }
 
-    memset(&rep, 0, sizeof(xGrabPointerReply));
     oldCursor = NullCursor;
     grab = device->deviceGrab.grab;
 
@@ -4833,14 +4833,16 @@ ProcGrabPointer(ClientPtr client)
 
     rc = GrabDevice(client, device, stuff->pointerMode, stuff->keyboardMode,
                     stuff->grabWindow, stuff->ownerEvents, stuff->time,
-                    &mask, CORE, stuff->cursor, stuff->confineTo, &rep.status);
+                    &mask, CORE, stuff->cursor, stuff->confineTo, &status);
     if (rc != Success)
         return rc;
 
-    if (oldCursor && rep.status == GrabSuccess)
+    if (oldCursor && status == GrabSuccess)
         FreeCursor(oldCursor, (Cursor) 0);
 
+    memset(&rep, 0, sizeof(xGrabPointerReply));
     rep.type = X_Reply;
+    rep.status = status;
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
     WriteReplyToClient(client, sizeof(xGrabPointerReply), &rep);
@@ -5059,6 +5061,7 @@ int
 ProcGrabKeyboard(ClientPtr client)
 {
     xGrabKeyboardReply rep;
+    BYTE status;
 
     REQUEST(xGrabKeyboardReq);
     int result;
@@ -5067,17 +5070,19 @@ ProcGrabKeyboard(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
 
-    memset(&rep, 0, sizeof(xGrabKeyboardReply));
     mask.core = KeyPressMask | KeyReleaseMask;
 
     result = GrabDevice(client, keyboard, stuff->pointerMode,
                         stuff->keyboardMode, stuff->grabWindow,
                         stuff->ownerEvents, stuff->time, &mask, CORE, None,
-                        None, &rep.status);
+                        None, &status);
 
     if (result != Success)
         return result;
+
+    memset(&rep, 0, sizeof(xGrabKeyboardReply));
     rep.type = X_Reply;
+    rep.status = status;
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
     WriteReplyToClient(client, sizeof(xGrabKeyboardReply), &rep);

@@ -999,6 +999,7 @@ ProcRRSetCrtcConfig(ClientPtr client)
     TimeStamp time;
     Rotation rotation;
     int ret, i, j;
+    CARD8 status;
 
     REQUEST_AT_LEAST_SIZE(xRRSetCrtcConfigReq);
     numOutputs = (stuff->length - bytes_to_int32(SIZEOF(xRRSetCrtcConfigReq)));
@@ -1077,7 +1078,7 @@ ProcRRSetCrtcConfig(ClientPtr client)
 
     if (!pScrPriv) {
         time = currentTime;
-        rep.status = RRSetConfigFailed;
+        status = RRSetConfigFailed;
         goto sendReply;
     }
 
@@ -1161,17 +1162,17 @@ ProcRRSetCrtcConfig(ClientPtr client)
 
     if (!RRCrtcSet(crtc, mode, stuff->x, stuff->y,
                    rotation, numOutputs, outputs)) {
-        rep.status = RRSetConfigFailed;
+        status = RRSetConfigFailed;
         goto sendReply;
     }
-    rep.status = RRSetConfigSuccess;
+    status = RRSetConfigSuccess;
     pScrPriv->lastSetTime = time;
 
  sendReply:
     free(outputs);
 
     rep.type = X_Reply;
-    /* rep.status has already been filled in */
+    rep.status = status;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
     rep.newTimestamp = pScrPriv->lastSetTime.milliseconds;
@@ -1266,6 +1267,7 @@ ProcRRSetPanning(ClientPtr client)
     BoxRec total;
     BoxRec tracking;
     INT16 border[4];
+    CARD8 status;
 
     REQUEST_SIZE_MATCH(xRRSetPanningReq);
     VERIFY_RR_CRTC(stuff->crtc, crtc, DixReadAccess);
@@ -1278,7 +1280,7 @@ ProcRRSetPanning(ClientPtr client)
 
     if (!pScrPriv) {
         time = currentTime;
-        rep.status = RRSetConfigFailed;
+        status = RRSetConfigFailed;
         goto sendReply;
     }
 
@@ -1305,10 +1307,11 @@ ProcRRSetPanning(ClientPtr client)
 
     pScrPriv->lastSetTime = time;
 
-    rep.status = RRSetConfigSuccess;
+    status = RRSetConfigSuccess;
 
  sendReply:
     rep.type = X_Reply;
+    rep.status = status;
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
     rep.newTimestamp = pScrPriv->lastSetTime.milliseconds;

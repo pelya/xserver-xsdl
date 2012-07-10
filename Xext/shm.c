@@ -616,6 +616,7 @@ ProcShmGetImage(ClientPtr client)
     Mask plane = 0;
     xShmGetImageReply xgi;
     ShmDescPtr shmdesc;
+    VisualID visual = None;
     int rc;
 
     REQUEST(xShmGetImageReq);
@@ -646,18 +647,19 @@ ProcShmGetImage(ClientPtr client)
                stuff->y + (int) stuff->height >
                wBorderWidth((WindowPtr) pDraw) + (int) pDraw->height)
             return BadMatch;
-        xgi.visual = wVisual(((WindowPtr) pDraw));
+        visual = wVisual(((WindowPtr) pDraw));
     }
     else {
         if (stuff->x < 0 ||
             stuff->x + (int) stuff->width > pDraw->width ||
             stuff->y < 0 || stuff->y + (int) stuff->height > pDraw->height)
             return BadMatch;
-        xgi.visual = None;
+        visual = None;
     }
     xgi.type = X_Reply;
     xgi.length = 0;
     xgi.sequenceNumber = client->sequence;
+    xgi.visual = visual;
     xgi.depth = pDraw->depth;
     if (stuff->format == ZPixmap) {
         length = PixmapBytePad(stuff->width, pDraw->depth) * stuff->height;

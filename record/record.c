@@ -2135,6 +2135,7 @@ ProcRecordGetContext(ClientPtr client)
     GetContextRangeInfoPtr pri;
     int i;
     int err;
+    CARD32 nClients, length;
 
     REQUEST_SIZE_MATCH(xRecordGetContextReq);
     VERIFY_CONTEXT(pContext, stuff->context, client);
@@ -2218,12 +2219,12 @@ ProcRecordGetContext(ClientPtr client)
 
     /* calculate number of clients and reply length */
 
-    rep.nClients = 0;
-    rep.length = 0;
+    nClients = 0;
+    length = 0;
     for (pRCAP = pContext->pListOfRCAP, pri = pRangeInfo;
          pRCAP; pRCAP = pRCAP->pNextRCAP, pri++) {
-        rep.nClients += pRCAP->numClients;
-        rep.length += pRCAP->numClients *
+        nClients += pRCAP->numClients;
+        length += pRCAP->numClients *
             (bytes_to_int32(sizeof(xRecordClientInfo)) +
              pri->nRanges * bytes_to_int32(sizeof(xRecordRange)));
     }
@@ -2232,8 +2233,10 @@ ProcRecordGetContext(ClientPtr client)
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
+    rep.length = length;
     rep.enabled = pContext->pRecordingClient != NULL;
     rep.elementHeader = pContext->elemHeaders;
+    rep.nClients = nClients;
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);

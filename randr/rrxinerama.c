@@ -299,16 +299,19 @@ ProcRRXineramaQueryScreens(ClientPtr client)
 {
     xXineramaQueryScreensReply rep;
     ScreenPtr pScreen = screenInfo.screens[RR_XINERAMA_SCREEN];
+    int n = 0;
 
     REQUEST_SIZE_MATCH(xXineramaQueryScreensReq);
 
-    if (RRXineramaScreenActive(pScreen))
+    if (RRXineramaScreenActive(pScreen)) {
         RRGetInfo(pScreen, FALSE);
+        n = RRXineramaScreenCount(pScreen);
+    }
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.number = RRXineramaScreenCount(pScreen);
-    rep.length = bytes_to_int32(rep.number * sz_XineramaScreenInfo);
+    rep.number = n;
+    rep.length = bytes_to_int32(n * sz_XineramaScreenInfo);
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -316,7 +319,7 @@ ProcRRXineramaQueryScreens(ClientPtr client)
     }
     WriteToClient(client, sizeof(xXineramaQueryScreensReply), &rep);
 
-    if (rep.number) {
+    if (n) {
         rrScrPriv(pScreen);
         int i;
         int has_primary = 0;

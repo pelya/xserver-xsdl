@@ -2801,17 +2801,21 @@ ProcLookupColor(ClientPtr client)
     rc = dixLookupResourceByType((pointer *) &pcmp, stuff->cmap, RT_COLORMAP,
                                  client, DixReadAccess);
     if (rc == Success) {
-        xLookupColorReply lcr;
+        CARD16 exactRed, exactGreen, exactBlue;
 
         if (OsLookupColor
             (pcmp->pScreen->myNum, (char *) &stuff[1], stuff->nbytes,
-             &lcr.exactRed, &lcr.exactGreen, &lcr.exactBlue)) {
+             &exactRed, &exactGreen, &exactBlue)) {
+            xLookupColorReply lcr;
             lcr.type = X_Reply;
             lcr.length = 0;
             lcr.sequenceNumber = client->sequence;
-            lcr.screenRed = lcr.exactRed;
-            lcr.screenGreen = lcr.exactGreen;
-            lcr.screenBlue = lcr.exactBlue;
+            lcr.exactRed = exactRed;
+            lcr.exactGreen = exactGreen;
+            lcr.exactBlue = exactBlue;
+            lcr.screenRed = exactRed;
+            lcr.screenGreen = exactGreen;
+            lcr.screenBlue = exactBlue;
             (*pcmp->pScreen->ResolveColor) (&lcr.screenRed,
                                             &lcr.screenGreen,
                                             &lcr.screenBlue, pcmp->pVisual);
@@ -3109,6 +3113,7 @@ ProcListHosts(ClientPtr client)
 {
     xListHostsReply reply;
     int len, nHosts, result;
+    BOOL enabled;
     pointer pdata;
 
     /* REQUEST(xListHostsReq); */
@@ -3120,10 +3125,11 @@ ProcListHosts(ClientPtr client)
     if (result != Success)
         return result;
 
-    result = GetHosts(&pdata, &nHosts, &len, &reply.enabled);
+    result = GetHosts(&pdata, &nHosts, &len, &enabled);
     if (result != Success)
         return result;
     reply.type = X_Reply;
+    reply.enabled = enabled;
     reply.sequenceNumber = client->sequence;
     reply.nHosts = nHosts;
     reply.length = bytes_to_int32(len);

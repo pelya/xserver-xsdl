@@ -512,6 +512,7 @@ ephyrGLXMakeCurrentReal(__GLXclientState * a_cl, GLbyte * a_pc, Bool a_do_swap)
     xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) a_pc;
     xGLXMakeCurrentReply reply;
     DrawablePtr drawable = NULL;
+    GLXContextTag contextTag = 0;
     int rc = 0;
 
     EPHYR_LOG("enter\n");
@@ -525,13 +526,14 @@ ephyrGLXMakeCurrentReal(__GLXclientState * a_cl, GLbyte * a_pc, Bool a_do_swap)
     if (!ephyrHostGLXMakeCurrent(hostx_get_window(drawable->pScreen->myNum),
                                  req->context,
                                  req->oldContextTag,
-                                 (int *) &reply.contextTag)) {
+                                 (int *) &contextTag)) {
         EPHYR_LOG_ERROR("ephyrHostGLXMakeCurrent() failed\n");
         goto out;
     }
     reply.length = 0;
     reply.type = X_Reply;
     reply.sequenceNumber = a_cl->client->sequence;
+    reply.contextTag = contextTag;
     if (a_do_swap) {
         __GLX_DECLARE_SWAP_VARIABLES;
         __GLX_SWAP_SHORT(&reply.sequenceNumber);
