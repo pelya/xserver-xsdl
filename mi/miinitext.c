@@ -413,8 +413,8 @@ static ExtensionModule staticExtensions[] = {
     {ResExtensionInit, XRES_NAME, &noResExtension, NULL},
 #endif
 #ifdef XV
-    {XvExtensionInit, XvName, &noXvExtension, XvRegister},
-    {XvMCExtensionInit, XvMCName, &noXvExtension, XvMCRegister},
+    {XvExtensionInit, XvName, &noXvExtension, NULL},
+    {XvMCExtensionInit, XvMCName, &noXvExtension, NULL},
 #endif
 };
 

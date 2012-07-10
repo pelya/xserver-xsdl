@@ -764,12 +764,6 @@ XvMCScreenInit(ScreenPtr pScreen, int num, XvMCAdaptorPtr pAdapt)
     return Success;
 }
 
-void
-XvMCRegister(void)
-{
-    XvMCScreenInitProc = XvMCScreenInit;
-}
-
 XvImagePtr
 XvMCFindXvImage(XvPortPtr pPort, CARD32 id)
 {

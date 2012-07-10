@@ -70,10 +70,6 @@ extern _X_EXPORT RESTYPE XvRTVideoNotify;
 extern _X_EXPORT RESTYPE XvRTVideoNotifyList;
 extern _X_EXPORT RESTYPE XvRTPortNotify;
 
-extern DevPrivateKey (*XvGetScreenKeyProc)(void);
-extern unsigned long (*XvGetRTPortProc)(void);
-extern int (*XvScreenInitProc)(ScreenPtr);
-
 typedef struct {
     int numerator;
     int denominator;

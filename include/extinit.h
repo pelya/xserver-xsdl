@@ -181,8 +181,6 @@ extern void PseudoramiXExtensionInit(void);
 extern Bool noXvExtension;
 extern void XvExtensionInit(void);
 extern void XvMCExtensionInit(void);
-extern void XvRegister(void);
-extern void XvMCRegister(void);
 #endif
 
 #endif

@@ -182,17 +182,17 @@ KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr * adaptors, int num)
     if (KdXVGeneration != serverGeneration)
         KdXVGeneration = serverGeneration;
 
-    if (!XvGetScreenKeyProc || !XvGetRTPortProc || !XvScreenInitProc)
+    if (noXvExtension)
         return FALSE;
 
     if (!dixRegisterPrivateKey(&KdXVWindowKeyRec, PRIVATE_WINDOW, 0))
         return FALSE;
 
-    if (Success != (*XvScreenInitProc) (pScreen))
+    if (Success != XvScreenInit(pScreen))
         return FALSE;
 
-    KdXvScreenKey = (*XvGetScreenKeyProc) ();
-    PortResource = (*XvGetRTPortProc) ();
+    KdXvScreenKey = XvGetScreenKey();
+    PortResource = XvGetRTPort();
 
     pxvs = GET_XV_SCREEN(pScreen);
 
