@@ -205,12 +205,14 @@ __glXDispSwap_RenderMode(__GLXclientState * cl, GLbyte * pc)
      */
  noChangeAllowed:;
     client = cl->client;
-    reply.length = nitems;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-    reply.retval = retval;
-    reply.size = nitems;
-    reply.newMode = newMode;
+    reply = (xGLXRenderModeReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = nitems,
+        .retval = retval,
+        .size = nitems,
+        .newMode = newMode
+    };
     __GLX_SWAP_SHORT(&reply.sequenceNumber);
     __GLX_SWAP_INT(&reply.length);
     __GLX_SWAP_INT(&reply.retval);
