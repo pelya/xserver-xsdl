@@ -425,22 +425,23 @@ ProcRRGetOutputInfo(ClientPtr client)
     pScreen = output->pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
 
-    rep.type = X_Reply;
-    rep.status = RRSetConfigSuccess;
-    rep.sequenceNumber = client->sequence;
-    rep.length = bytes_to_int32(OutputInfoExtra);
-    rep.timestamp = pScrPriv->lastSetTime.milliseconds;
-    rep.crtc = output->crtc ? output->crtc->id : None;
-    rep.mmWidth = output->mmWidth;
-    rep.mmHeight = output->mmHeight;
-    rep.connection = output->connection;
-    rep.subpixelOrder = output->subpixelOrder;
-    rep.nCrtcs = output->numCrtcs;
-    rep.nModes = output->numModes + output->numUserModes;
-    rep.nPreferred = output->numPreferred;
-    rep.nClones = output->numClones;
-    rep.nameLength = output->nameLength;
-
+    rep = (xRRGetOutputInfoReply) {
+        .type = X_Reply,
+        .status = RRSetConfigSuccess,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(OutputInfoExtra),
+        .timestamp = pScrPriv->lastSetTime.milliseconds,
+        .crtc = output->crtc ? output->crtc->id : None,
+        .mmWidth = output->mmWidth,
+        .mmHeight = output->mmHeight,
+        .connection = output->connection,
+        .subpixelOrder = output->subpixelOrder,
+        .nCrtcs = output->numCrtcs,
+        .nModes = output->numModes + output->numUserModes,
+        .nPreferred = output->numPreferred,
+        .nClones = output->numClones,
+        .nameLength = output->nameLength
+    };
     extraLen = ((output->numCrtcs +
                  output->numModes + output->numUserModes +
                  output->numClones + bytes_to_int32(rep.nameLength)) << 2);
@@ -573,10 +574,11 @@ ProcRRGetOutputPrimary(ClientPtr client)
     if (pScrPriv)
         primary = pScrPriv->primaryOutput;
 
-    memset(&rep, 0, sizeof(rep));
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.output = primary ? primary->id : None;
+    rep = (xRRGetOutputPrimaryReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .output = primary ? primary->id : None
+    };
 
     if (client->swapped) {
         swaps(&rep.sequenceNumber);

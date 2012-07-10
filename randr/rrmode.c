@@ -282,7 +282,7 @@ int
 ProcRRCreateMode(ClientPtr client)
 {
     REQUEST(xRRCreateModeReq);
-    xRRCreateModeReply rep = { 0 };
+    xRRCreateModeReply rep;
     WindowPtr pWin;
     ScreenPtr pScreen;
     xRRModeInfo *modeInfo;
@@ -310,11 +310,12 @@ ProcRRCreateMode(ClientPtr client)
     if (!mode)
         return error;
 
-    rep.type = X_Reply;
-    rep.pad0 = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.mode = mode->mode.id;
+    rep = (xRRCreateModeReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .mode = mode->mode.id
+	};
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
