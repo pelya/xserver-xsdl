@@ -42,6 +42,7 @@
 #define _XF86MODULE_H
 
 #include "misc.h"
+#include "extension.h"
 #ifndef NULL
 #define NULL ((void *)0)
 #endif
@@ -167,17 +168,6 @@ typedef struct {
 #define GET_MODULE_PATCHLEVEL(vers)	((vers) & 0xFFFF)
 
 #define INITARGS void
-
-typedef void (*InitExtension) (void);
-
-typedef struct {
-    InitExtension initFunc;
-    const char *name;
-    Bool *disablePtr;
-    InitExtension setupFunc;
-} ExtensionModule;
-
-extern _X_EXPORT ExtensionModule *ExtensionModuleList;
 
 /* This really shouldn't be here, but gets moved in about three commits'
  * time.  So odds are the only people who ever see this comment are doing

@@ -94,9 +94,7 @@ SOFTWARE.
 #include "micmap.h"
 #include "globals.h"
 
-#ifndef XFree86LOADER
-typedef void (*InitExtension) (void);
-#else                           /* XFree86Loader */
+#ifdef XFree86LOADER
 #include "loaderProcs.h"
 #include "xf86Extensions.h"
 #endif
