@@ -77,6 +77,7 @@ SOFTWARE.
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
+#include "xf86Extensions.h"
 #endif
 
 #ifdef HAVE_DMX_CONFIG_H
@@ -110,11 +111,6 @@ SOFTWARE.
 #include "extinit.h"
 #include "micmap.h"
 #include "globals.h"
-
-#ifdef XFree86LOADER
-#include "loaderProcs.h"
-#include "xf86Extensions.h"
-#endif
 
 /* The following is only a small first step towards run-time
  * configurable extensions.
@@ -237,120 +233,6 @@ EnableDisableExtensionError(const char *name, Bool enable)
     }
 }
 
-#ifndef XFree86LOADER
-
- /*ARGSUSED*/ void
-InitExtensions(int argc, char *argv[])
-{
-    if (!noGEExtension)
-        GEExtensionInit();
-
-    ShapeExtensionInit();
-
-#ifdef MITSHM
-    if (!noMITShmExtension)
-        ShmExtensionInit();
-#endif
-
-    XInputExtensionInit();
-
-#ifdef XTEST
-    if (!noTestExtensions)
-        XTestExtensionInit();
-#endif
-
-    BigReqExtensionInit();
-    SyncExtensionInit();
-    XkbExtensionInit();
-    XCMiscExtensionInit();
-
-#ifdef XCSECURITY
-    if (!noSecurityExtension)
-        SecurityExtensionInit();
-#endif
-
-#ifdef PANORAMIX
-    if (!noPanoramiXExtension)
-        PanoramiXExtensionInit();
-#endif
-
-#ifdef XFIXES
-    /* must be before Render to layer DisplayCursor correctly */
-    if (!noXFixesExtension)
-        XFixesExtensionInit();
-#endif
-
-#ifdef XF86BIGFONT
-    if (!noXFree86BigfontExtension)
-        XFree86BigfontExtensionInit();
-#endif
-
-    if (!noRenderExtension)
-        RenderExtensionInit();
-
-#ifdef RANDR
-    if (!noRRExtension)
-        RRExtensionInit();
-#endif
-
-#ifdef COMPOSITE
-    if (!noCompositeExtension)
-        CompositeExtensionInit();
-#endif
-
-#ifdef DAMAGE
-    if (!noDamageExtension)
-        DamageExtensionInit();
-#endif
-
-#ifdef XSELINUX
-    if (!noSELinuxExtension)
-        SELinuxExtensionInit();
-#endif
-
-#if defined(SCREENSAVER)
-    if (!noScreenSaverExtension)
-        ScreenSaverExtensionInit();
-#endif
-
-#if !defined(NO_HW_ONLY_EXTS) && defined(DPMSExtension)
-    if (!noDPMSExtension)
-        DPMSExtensionInit();
-#endif
-
-#ifdef XV
-    if (!noXvExtension) {
-        XvExtensionInit();
-        XvMCExtensionInit();
-    }
-#endif
-
-#ifdef RES
-    if (!noResExtension)
-        ResExtensionInit();
-#endif
-
-#ifdef XRECORD
-    if (!noTestExtensions)
-        RecordExtensionInit();
-#endif
-
-#ifdef DBE
-    if (!noDbeExtension)
-        DbeExtensionInit();
-#endif
-
-#ifdef DMXEXT
-    DMXExtensionInit();         /* server-specific extension, cannot be disabled */
-#endif
-
-#ifdef GLXEXT
-    if (!noGlxExtension)
-        GlxExtensionInit();
-#endif
-}
-
-#else                           /* XFree86LOADER */
 /* List of built-in (statically linked) extensions */
 static ExtensionModule staticExtensions[] = {
     {GEExtensionInit, "Generic Event Extension", &noGEExtension, NULL},
@@ -502,5 +384,3 @@ LoadExtension(ExtensionModule * e, Bool builtin)
     if (e->setupFunc != NULL)
         e->setupFunc();
 }
-
-#endif                          /* XFree86LOADER */

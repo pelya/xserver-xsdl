@@ -45,6 +45,6 @@ endif
 libshadow_la_SOURCES = shmodule.c
 
 libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
-libdixmods_la_CFLAGS = -DXFree86LOADER $(AM_CFLAGS)
+libdixmods_la_CFLAGS = $(AM_CFLAGS)
 
 libxorgxkb_la_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
