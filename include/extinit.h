@@ -97,7 +97,7 @@ extern Bool noRRExtension;
 extern void RRExtensionInit(void);
 #endif
 
-#if defined(XRECORD) && !defined(XorgLoader)
+#if defined(XRECORD)
 extern void RecordExtensionInit(void);
 #endif
 

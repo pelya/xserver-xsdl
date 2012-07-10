@@ -834,6 +834,7 @@ static const char *compiled_in_modules[] = {
     "i2c",
     "ramdac",
     "dbe",
+    "record",
     NULL
 };
 

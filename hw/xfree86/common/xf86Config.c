@@ -113,9 +113,6 @@ static ModuleDefault ModuleDefaults[] = {
 #ifdef GLXEXT
     {.name = "glx",.toLoad = TRUE,.load_opt = NULL},
 #endif
-#ifdef XRECORD
-    {.name = "record",.toLoad = TRUE,.load_opt = NULL},
-#endif
 #ifdef XF86DRI
     {.name = "dri",.toLoad = TRUE,.load_opt = NULL},
 #endif

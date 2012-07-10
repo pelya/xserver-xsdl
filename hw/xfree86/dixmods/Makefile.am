@@ -6,17 +6,12 @@ if GLX
 GLXMODS = libglx.la
 endif
 
-if RECORD
-RECORDMOD = librecord.la
-endif
-
 module_LTLIBRARIES = libfb.la \
                      libwfb.la \
                      libshadow.la
 
 extsmoduledir = $(moduledir)/extensions
-extsmodule_LTLIBRARIES = $(RECORDMOD) \
-                         $(GLXMODS)
+extsmodule_LTLIBRARIES = $(GLXMODS)
 
 AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
 INCLUDES = @XORG_INCS@ \
@@ -43,10 +38,6 @@ libglx_la_LIBADD += ../dri/libdri.la ../dri2/libdri2.la
 endif
 endif
 libglx_la_SOURCES = glxmodule.c
-
-librecord_la_LDFLAGS = -module -avoid-version $(LD_NO_UNDEFINED_FLAG)
-librecord_la_LIBADD = $(top_builddir)/record/librecord.la
-librecord_la_SOURCES = recordmod.c
 
 libshadow_la_LDFLAGS = -module -avoid-version $(LD_NO_UNDEFINED_FLAG)
 libshadow_la_LIBADD = $(top_builddir)/miext/shadow/libshadow.la

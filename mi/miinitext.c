@@ -400,6 +400,9 @@ static ExtensionModule staticExtensions[] = {
 #ifdef DBE
     {DbeExtensionInit, "DOUBLE-BUFFER", &noDbeExtension, NULL},
 #endif
+#ifdef XRECORD
+    {RecordExtensionInit, "RECORD", &noTestExtensions, NULL},
+#endif
 };
 
  /*ARGSUSED*/ void
