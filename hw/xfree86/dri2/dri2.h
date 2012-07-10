@@ -276,8 +276,6 @@ extern _X_EXPORT int DRI2CreateDrawable(ClientPtr client,
                                         DRI2InvalidateProcPtr invalidate,
                                         void *priv);
 
-extern _X_EXPORT void DRI2DestroyDrawable(DrawablePtr pDraw);
-
 extern _X_EXPORT DRI2BufferPtr *DRI2GetBuffers(DrawablePtr pDraw,
                                                int *width,
                                                int *height,
