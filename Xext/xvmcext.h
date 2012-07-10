@@ -85,8 +85,6 @@ typedef struct {
 } XvMCAdaptorRec, *XvMCAdaptorPtr;
 
 #ifndef XorgLoader
-extern _X_EXPORT void XvMCExtensionInit(void);
-
 extern _X_EXPORT int XvMCScreenInit(ScreenPtr pScreen,
                                     int num, XvMCAdaptorPtr adapt);
 

@@ -26,6 +26,7 @@
 
 #include "damageextint.h"
 #include "protocol-versions.h"
+#include "extinit.h"
 
 static unsigned char DamageReqCode;
 static int DamageEventBase;

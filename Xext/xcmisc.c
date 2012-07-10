@@ -38,7 +38,7 @@ from The Open Group.
 #include "extnsionst.h"
 #include "swaprep.h"
 #include <X11/extensions/xcmiscproto.h>
-#include "modinit.h"
+#include "extinit.h"
 
 #include <stdint.h>
 

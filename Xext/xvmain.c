@@ -88,6 +88,7 @@ SOFTWARE.
 #include "pixmapstr.h"
 #include "gc.h"
 #include "extnsionst.h"
+#include "extinit.h"
 #include "dixstruct.h"
 #include "resource.h"
 #include "opaque.h"

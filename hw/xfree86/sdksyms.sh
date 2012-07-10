@@ -279,7 +279,6 @@ cat > sdksyms.c << EOF
 #include "dixstruct.h"
 #include "exevents.h"
 #include "extension.h"
-#include "extinit.h"
 #include "extnsionst.h"
 #include "gc.h"
 #include "gcstruct.h"

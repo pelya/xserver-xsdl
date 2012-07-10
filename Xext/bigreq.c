@@ -38,9 +38,7 @@ from The Open Group.
 #include "extnsionst.h"
 #include <X11/extensions/bigreqsproto.h>
 #include "opaque.h"
-#include "modinit.h"
-
-void BigReqExtensionInit(void);
+#include "extinit.h"
 
 static int
 ProcBigReqDispatch(ClientPtr client)

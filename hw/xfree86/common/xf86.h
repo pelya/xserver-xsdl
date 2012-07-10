@@ -449,11 +449,6 @@ xf86RandRSetNewVirtualAndDimensions(ScreenPtr pScreen,
                                     Bool resetMode);
 #endif
 
-/* xf86VidModeExtentionInit.c */
-
-extern _X_EXPORT Bool
-VidModeExtensionInit(ScreenPtr pScreen);
-
 /* convert ScreenPtr to ScrnInfoPtr */
 extern _X_EXPORT ScrnInfoPtr xf86ScreenToScrn(ScreenPtr pScreen);
 /* convert ScrnInfoPtr to ScreenPtr */

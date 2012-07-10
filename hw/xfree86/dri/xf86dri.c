@@ -47,6 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
+#include "extinit.h"
 #include "colormapst.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
@@ -60,17 +61,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "dristruct.h"
 #include "xf86drm.h"
 #include "protocol-versions.h"
+#include "xf86Extensions.h"
 
 static int DRIErrorBase;
 
-static void XF86DRIResetProc(ExtensionEntry * extEntry);
+static void XF86DRIResetProc(ExtensionEntry *extEntry);
 
 static unsigned char DRIReqCode = 0;
 
-extern void XFree86DRIExtensionInit(void);
-
- /*ARGSUSED*/ static void
-XF86DRIResetProc(ExtensionEntry * extEntry)
+/*ARGSUSED*/
+static void
+XF86DRIResetProc(ExtensionEntry *extEntry)
 {
     DRIReset();
 }

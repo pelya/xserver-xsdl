@@ -58,7 +58,7 @@ in this Software without prior written authorization from the X Consortium.
 
 #include <stdio.h>
 
-#include "modinit.h"
+#include "extinit.h"
 
 static int ScreenSaverEventBase = 0;
 

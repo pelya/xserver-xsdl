@@ -38,6 +38,7 @@ and Jim Haggerty of Metheus.
 
 #include "dixstruct.h"
 #include "extnsionst.h"
+#include "extinit.h"
 #include <X11/extensions/recordproto.h>
 #include "set.h"
 #include "swaprep.h"
@@ -138,8 +139,6 @@ static int numEnabledRCAPs;
 static int RecordDeleteContext(pointer /*value */ ,
                                XID      /*id */
     );
-
-void RecordExtensionInit(void);
 
 /***************************************************************************/
 

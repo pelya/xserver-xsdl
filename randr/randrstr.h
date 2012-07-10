@@ -418,10 +418,6 @@ extern _X_EXPORT RESTYPE RRCrtcType, RRModeType, RROutputType, RRProviderType;
 #define GetRRClient(pClient)    ((RRClientPtr)dixLookupPrivate(&(pClient)->devPrivates, RRClientPrivateKey))
 #define rrClientPriv(pClient)	RRClientPtr pRRClient = GetRRClient(pClient)
 
-/* Initialize the extension */
-extern _X_EXPORT void
- RRExtensionInit(void);
-
 #ifdef RANDR_12_INTERFACE
 /*
  * Set the range of sizes for the screen

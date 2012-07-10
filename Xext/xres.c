@@ -21,7 +21,7 @@
 #include "pixmapstr.h"
 #include "windowstr.h"
 #include "gcstruct.h"
-#include "modinit.h"
+#include "extinit.h"
 #include "protocol-versions.h"
 #include "client.h"
 #include "list.h"

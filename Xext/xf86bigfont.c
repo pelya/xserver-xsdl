@@ -71,6 +71,7 @@
 #include "gcstruct.h"
 #include "dixfontstr.h"
 #include "extnsionst.h"
+#include "extinit.h"
 #include "protocol-versions.h"
 
 #include <X11/extensions/xf86bigfproto.h>

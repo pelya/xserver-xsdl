@@ -42,6 +42,7 @@
 #include <X11/Xproto.h>
 #include "scrnintstr.h"
 #include "extnsionst.h"
+#include "extinit.h"
 #include "gcstruct.h"
 #include "dixstruct.h"
 #define NEED_DBE_PROTOCOL

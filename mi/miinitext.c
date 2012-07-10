@@ -90,114 +90,15 @@ SOFTWARE.
 
 #include "misc.h"
 #include "extension.h"
+#include "extinit.h"
 #include "micmap.h"
 #include "globals.h"
-
-extern Bool noGEExtension;
 
 #ifndef XFree86LOADER
 typedef void (*InitExtension) (void);
 #else                           /* XFree86Loader */
 #include "loaderProcs.h"
-#endif
-
-#ifdef MITSHM
-#include <X11/extensions/shm.h>
-#endif
-#ifdef XTEST
-#include <X11/extensions/xtestconst.h>
-#endif
-#include <X11/extensions/XKB.h>
-#ifdef XCSECURITY
-#include "securitysrv.h"
-#include <X11/extensions/secur.h>
-#endif
-#ifdef XSELINUX
-#include "xselinux.h"
-#endif
-#ifdef PANORAMIX
-#include <X11/extensions/panoramiXproto.h>
-#endif
-#ifdef XF86BIGFONT
-#include <X11/extensions/xf86bigfproto.h>
-#endif
-#ifdef RES
-#include <X11/extensions/XResproto.h>
-#endif
-
-/* FIXME: this whole block of externs should be from the appropriate headers */
-#ifdef MITSHM
-extern void ShmExtensionInit(void);
-#endif
-#ifdef PANORAMIX
-extern void PanoramiXExtensionInit(void);
-#endif
-#ifdef INXQUARTZ
-extern void PseudoramiXExtensionInit(void);
-#endif
-extern void XInputExtensionInit(void);
-#ifdef XTEST
-extern void XTestExtensionInit(void);
-#endif
-extern void BigReqExtensionInit(void);
-#ifdef SCREENSAVER
-extern void ScreenSaverExtensionInit(void);
-#endif
-#ifdef XV
-extern void XvExtensionInit(void);
-extern void XvMCExtensionInit(void);
-#endif
-extern void SyncExtensionInit(void);
-extern void XkbExtensionInit(void);
-extern void XCMiscExtensionInit(void);
-#ifdef XRECORD
-extern void RecordExtensionInit(void);
-#endif
-#ifdef DBE
-extern void DbeExtensionInit(void);
-#endif
-#ifdef XCSECURITY
-extern void SecurityExtensionInit(void);
-#endif
-#ifdef XSELINUX
-extern void SELinuxExtensionInit(void);
-#endif
-#ifdef XF86BIGFONT
-extern void XFree86BigfontExtensionInit(void);
-#endif
-#ifdef XF86VIDMODE
-extern void XFree86VidModeExtensionInit(void);
-#endif
-#ifdef XFreeXDGA
-extern void XFree86DGAExtensionInit(void);
-#endif
-#ifdef GLXEXT
-extern void GlxExtensionInit(void);
-#endif
-#ifdef XF86DRI
-extern void XFree86DRIExtensionInit(void);
-#endif
-#ifdef DPMSExtension
-extern void DPMSExtensionInit(void);
-#endif
-extern void RenderExtensionInit(void);
-#ifdef RANDR
-extern void RRExtensionInit(void);
-#endif
-#ifdef RES
-extern void ResExtensionInit(void);
-#endif
-#ifdef DMXEXT
-extern void DMXExtensionInit(void);
-#endif
-#ifdef XFIXES
-extern void XFixesExtensionInit(void);
-#endif
-#ifdef DAMAGE
-extern void DamageExtensionInit(void);
-#endif
-#ifdef COMPOSITE
-extern void CompositeExtensionInit(void);
+#include "xf86Extensions.h"
 #endif
 
 /* The following is only a small first step towards run-time
@@ -245,6 +146,7 @@ static ExtensionToggle ExtensionToggleList[] = {
 #ifdef XF86BIGFONT
     {"XFree86-Bigfont", &noXFree86BigfontExtension},
 #endif
+#ifndef NO_HW_ONLY_EXTS
 #ifdef XFreeXDGA
     {"XFree86-DGA", &noXFree86DGAExtension},
 #endif
@@ -253,6 +155,7 @@ static ExtensionToggle ExtensionToggleList[] = {
 #endif
 #ifdef XF86VIDMODE
     {"XFree86-VidModeExtension", &noXFree86VidModeExtension},
+#endif
 #endif
 #ifdef XFIXES
     {"XFIXES", &noXFixesExtension},

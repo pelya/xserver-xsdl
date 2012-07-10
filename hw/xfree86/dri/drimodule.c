@@ -37,6 +37,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 #include "xf86Module.h"
+#include "xf86Extensions.h"
 #include "globals.h"
 
 #include "xf86drm.h"
@@ -57,7 +58,6 @@ static XF86ModuleVersionInfo VersRec = {
     {0, 0, 0, 0}
 };
 
-extern void XFree86DRIExtensionInit(void);
 #define _XF86DRI_SERVER_
 #include <X11/dri/xf86driproto.h>
 

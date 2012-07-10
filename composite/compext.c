@@ -48,6 +48,7 @@
 #include "compint.h"
 #include "xace.h"
 #include "protocol-versions.h"
+#include "extinit.h"
 
 static CARD8 CompositeReqCode;
 static DevPrivateKeyRec CompositeClientPrivateKeyRec;

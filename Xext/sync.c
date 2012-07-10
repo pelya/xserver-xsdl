@@ -76,7 +76,7 @@ PERFORMANCE OF THIS SOFTWARE.
 #include <sys/time.h>
 #endif
 
-#include "modinit.h"
+#include "extinit.h"
 
 /*
  * Local Global Variables

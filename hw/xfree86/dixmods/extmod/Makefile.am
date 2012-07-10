@@ -23,7 +23,6 @@ INCLUDES = @XORG_INCS@ \
 
 libextmod_la_LDFLAGS = -module -avoid-version $(LD_NO_UNDEFINED_FLAG)
 libextmod_la_SOURCES = modinit.c \
-                       modinit.h \
                        $(DGA_SRCS) \
                        $(XF86VMODE_SRCS) \
                        $(XV_SRCS)

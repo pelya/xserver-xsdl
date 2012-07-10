@@ -29,7 +29,8 @@
 
 #include <X11/Xproto.h>
 
-#include "modinit.h"
+#include "extinit.h"
+#include "xf86Extensions.h"
 #include "globals.h"
 
 static MODULESETUPPROTO(extmodSetup);

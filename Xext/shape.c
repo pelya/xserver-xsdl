@@ -44,7 +44,7 @@ in this Software without prior written authorization from The Open Group.
 #include <X11/extensions/shapeproto.h>
 #include "regionstr.h"
 #include "gcstruct.h"
-#include "modinit.h"
+#include "extinit.h"
 #include "protocol-versions.h"
 
 typedef RegionPtr (*CreateDftPtr) (WindowPtr    /* pWin */

@@ -44,6 +44,7 @@
 #include "glxvisuals.h"
 #include "micmap.h"
 #include "glxswap.h"
+#include "extinit.h"
 
 /*
 ** Forward declarations.

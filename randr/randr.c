@@ -30,6 +30,7 @@
 #endif
 
 #include "randrstr.h"
+#include "extinit.h"
 
 /* From render.h */
 #ifndef SubPixelUnknown

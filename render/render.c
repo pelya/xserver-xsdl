@@ -37,6 +37,7 @@
 #include "pixmapstr.h"
 #include "colormapst.h"
 #include "extnsionst.h"
+#include "extinit.h"
 #include "servermd.h"
 #include <X11/extensions/render.h>
 #include <X11/extensions/renderproto.h>

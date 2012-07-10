@@ -4,10 +4,9 @@
 
 #include "xf86Module.h"
 #include "globals.h"
+#include "extinit.h"
 
 static MODULESETUPPROTO(dbeSetup);
-
-extern void DbeExtensionInit(void);
 
 static ExtensionModule dbeExt = {
     DbeExtensionInit,

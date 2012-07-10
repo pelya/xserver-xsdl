@@ -52,6 +52,7 @@
 #include "os.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
+#include "extinit.h"
 #include "opaque.h"
 
 #include "dmxextension.h"
@@ -64,8 +65,6 @@
 extern unsigned long XRT_WINDOW;
 extern int PanoramiXNumScreens;
 #endif
-
-extern void DMXExtensionInit(void);
 
 static unsigned char DMXCode;
 

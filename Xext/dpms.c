@@ -39,7 +39,7 @@ Equipment Corporation.
 #include "opaque.h"
 #include <X11/extensions/dpmsproto.h>
 #include "dpmsproc.h"
-#include "modinit.h"
+#include "extinit.h"
 
 static int
 ProcDPMSGetVersion(ClientPtr client)

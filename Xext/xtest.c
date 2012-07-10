@@ -55,7 +55,7 @@
 #include "eventstr.h"
 #include "inpututils.h"
 
-#include "modinit.h"
+#include "extinit.h"
 
 extern int DeviceValuator;
 

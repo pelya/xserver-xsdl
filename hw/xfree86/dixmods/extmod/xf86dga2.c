@@ -17,6 +17,7 @@
 #include "dixevents.h"
 #include "pixmapstr.h"
 #include "extnsionst.h"
+#include "xf86Extensions.h"
 #include "colormapst.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
@@ -28,7 +29,7 @@
 
 #include <string.h>
 
-#include "modinit.h"
+#include "extinit.h"
 
 #define DGA_PROTOCOL_OLD_SUPPORT 1
 

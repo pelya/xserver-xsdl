@@ -59,7 +59,7 @@ Equipment Corporation.
 #ifdef COMPOSITE
 #include "compint.h"
 #endif
-#include "modinit.h"
+#include "extinit.h"
 #include "protocol-versions.h"
 
 #ifdef GLXPROXY

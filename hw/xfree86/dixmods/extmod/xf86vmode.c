@@ -39,6 +39,7 @@ from Kaleb S. KEITHLEY
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
+#include "xf86Extensions.h"
 #include "scrnintstr.h"
 #include "servermd.h"
 #include <X11/extensions/xf86vmproto.h>

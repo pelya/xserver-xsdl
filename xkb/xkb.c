@@ -36,6 +36,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	XKBSRV_NEED_FILE_FUNCS
 #include <xkbsrv.h>
 #include "extnsionst.h"
+#include "extinit.h"
 #include "xace.h"
 #include "xkb.h"
 #include "protocol-versions.h"

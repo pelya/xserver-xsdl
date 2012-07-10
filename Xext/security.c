@@ -38,7 +38,7 @@ in this Software without prior written authorization from The Open Group.
 #include "xacestr.h"
 #include "securitysrv.h"
 #include <X11/extensions/securproto.h>
-#include "modinit.h"
+#include "extinit.h"
 #include "protocol-versions.h"
 
 /* Extension stuff */

@@ -3,12 +3,11 @@
 #endif
 
 #include "xf86Module.h"
+#include "extinit.h"
 
 extern Bool noTestExtensions;
 
 static MODULESETUPPROTO(recordSetup);
-
-extern void RecordExtensionInit(void);
 
 static ExtensionModule recordExt = {
     RecordExtensionInit,
