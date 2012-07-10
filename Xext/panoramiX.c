@@ -434,7 +434,7 @@ XineramaReinitData(void)
  */
 
 void
-PanoramiXExtensionInit(int argc, char *argv[])
+PanoramiXExtensionInit(void)
 {
     int i;
     Bool success = FALSE;
