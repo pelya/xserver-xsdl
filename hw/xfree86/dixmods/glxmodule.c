@@ -46,14 +46,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 static MODULESETUPPROTO(glxSetup);
 
-static const char *initdeps[] = { "DOUBLE-BUFFER", "COMPOSITE", NULL };
-
 static ExtensionModule GLXExt = {
     GlxExtensionInit,
     "GLX",
     &noGlxExtension,
     NULL,
-    initdeps
+    NULL
 };
 
 static XF86ModuleVersionInfo VersRec = {
