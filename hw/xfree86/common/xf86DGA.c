@@ -93,7 +93,9 @@ static void DGAHandleEvent(int screen_num, InternalEvent *event,
 static void
  DGACopyModeInfo(DGAModePtr mode, XDGAModePtr xmode);
 
-int *XDGAEventBase = NULL;
+static unsigned char DGAReqCode = 0;
+static int DGAErrorBase;
+static int DGAEventBase;
 
 #define DGA_GET_SCREEN_PRIV(pScreen) ((DGAScreenPtr) \
     dixLookupPrivate(&(pScreen)->devPrivates, &DGAScreenKeyRec))
@@ -1042,7 +1044,7 @@ DGAProcessKeyboardEvent(ScreenPtr pScreen, DGAEvent * event, DeviceIntPtr keybd)
             .u.event.screen = pScreen->myNum,
             .u.event.state = ev.corestate
         };
-        de.u.u.type = *XDGAEventBase + GetCoreType(ev.type);
+        de.u.u.type = DGAEventBase + GetCoreType(ev.type);
         de.u.u.detail = event->detail;
 
         /* If the DGA client has selected input, then deliver based on the usual filter */
@@ -1093,7 +1095,7 @@ DGAProcessPointerEvent(ScreenPtr pScreen, DGAEvent * event, DeviceIntPtr mouse)
             .u.event.screen = pScreen->myNum,
             .u.event.state = ev.corestate
         };
-        de.u.u.type = *XDGAEventBase + coreEquiv;
+        de.u.u.type = DGAEventBase + coreEquiv;
         de.u.u.detail = event->detail;
 
         /* If the DGA client has selected input, then deliver based on the usual filter */
@@ -1180,8 +1182,8 @@ DGAHandleEvent(int screen_num, InternalEvent *ev, DeviceIntPtr device)
     DGAScreenPtr pScreenPriv;
 
     /* no DGA */
-    if (!DGAScreenKeyRegistered || XDGAEventBase == 0)
-        return;
+    if (!DGAScreenKeyRegistered || noXFree86DGAExtension)
+	return;
     pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
 
     /* DGA not initialized on this screen */
@@ -1209,10 +1211,6 @@ DGAHandleEvent(int screen_num, InternalEvent *ev, DeviceIntPtr device)
 static void XDGAResetProc(ExtensionEntry * extEntry);
 
 static void DGAClientStateChange(CallbackListPtr *, pointer, pointer);
-
-unsigned char DGAReqCode = 0;
-int DGAErrorBase;
-int DGAEventBase;
 
 static DevPrivateKeyRec DGAScreenPrivateKeyRec;
 
@@ -2167,12 +2165,6 @@ ProcXDGADispatch(ClientPtr client)
     default:
         return BadRequest;
     }
-}
-
-void
-XFree86DGARegister(void)
-{
-    XDGAEventBase = &DGAEventBase;
 }
 
 void

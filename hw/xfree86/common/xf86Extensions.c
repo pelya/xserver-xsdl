@@ -54,7 +54,7 @@ static ExtensionModule extensionModules[] = {
 	XFree86DGAExtensionInit,
 	XF86DGANAME,
 	&noXFree86DGAExtension,
-	XFree86DGARegister,
+	NULL,
 	NULL
     },
 #endif

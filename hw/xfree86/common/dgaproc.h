@@ -107,9 +107,4 @@ extern _X_EXPORT Bool DGAChangePixmapMode(int Index, int *x, int *y, int mode);
 extern _X_EXPORT int DGACreateColormap(int Index, ClientPtr client, int id,
                                        int mode, int alloc);
 
-extern _X_EXPORT unsigned char DGAReqCode;
-extern _X_EXPORT int DGAErrorBase;
-extern _X_EXPORT int DGAEventBase;
-extern _X_EXPORT int *XDGAEventBase;
-
 #endif                          /* __DGAPROC_H */
