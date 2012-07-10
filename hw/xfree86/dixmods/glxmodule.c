@@ -84,11 +84,6 @@ glxSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 
     setupDone = TRUE;
 
-    provider = LoaderSymbol("__glXDRISWRastProvider");
-    if (provider == NULL)
-        return NULL;
-    GlxPushProvider(provider);
-
     xf86Msg(xf86Info.aiglxFrom, "AIGLX %s\n",
             xf86Info.aiglx ? "enabled" : "disabled");
     if (xf86Info.aiglx) {

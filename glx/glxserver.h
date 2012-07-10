@@ -99,6 +99,7 @@ struct __GLXprovider {
     const char *name;
     __GLXprovider *next;
 };
+__GLXprovider __glXDRISWRastProvider;
 
 void GlxPushProvider(__GLXprovider * provider);
 

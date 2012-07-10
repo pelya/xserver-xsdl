@@ -172,9 +172,6 @@ extern void XFree86VidModeExtensionInit(void);
 extern void XFree86DGAExtensionInit(void);
 #endif
 #ifdef GLXEXT
-typedef struct __GLXprovider __GLXprovider;
-extern __GLXprovider __glXDRISWRastProvider;
-extern void GlxPushProvider(__GLXprovider *impl);
 extern void GlxExtensionInit(void);
 #endif
 #ifdef XF86DRI
@@ -449,8 +446,6 @@ InitExtensions(int argc, char *argv[])
 #endif
 
 #ifdef GLXEXT
-    if (serverGeneration == 1)
-        GlxPushProvider(&__glXDRISWRastProvider);
     if (!noGlxExtension)
         GlxExtensionInit();
 #endif
