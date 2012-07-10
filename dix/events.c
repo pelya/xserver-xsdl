@@ -4512,11 +4512,12 @@ CoreEnterLeaveEvent(DeviceIntPtr mouse,
     if ((type == EnterNotify) && (mask & KeymapStateMask)) {
         xKeymapEvent ke;
         ClientPtr client = grab ? rClient(grab) : wClient(pWin);
+        int rc;
 
-        if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixReadAccess))
-            memset((char *) &ke.map[0], 0, 31);
-        else
-            memmove((char *) &ke.map[0], (char *) &keybd->key->down[1], 31);
+        memset((char *) &ke.map[0], 0, 31);
+        rc = XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixReadAccess);
+        if (rc == Success)
+            memcpy((char *) &ke.map[0], (char *) &keybd->key->down[1], 31);
 
         ke.type = KeymapNotify;
         if (grab)
@@ -4617,11 +4618,12 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
         ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask)) {
         xKeymapEvent ke;
         ClientPtr client = wClient(pWin);
+        int rc;
 
-        if (XaceHook(XACE_DEVICE_ACCESS, client, dev, DixReadAccess))
-            memset((char *) &ke.map[0], 0, 31);
-        else
-            memmove((char *) &ke.map[0], (char *) &dev->key->down[1], 31);
+        memset((char *) &ke.map[0], 0, 31);
+        rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixReadAccess);
+        if (rc == Success)
+            memcpy((char *) &ke.map[0], (char *) &dev->key->down[1], 31);
 
         ke.type = KeymapNotify;
         DeliverEventsToWindow(dev, pWin, (xEvent *) &ke, 1,
