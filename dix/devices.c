@@ -2674,6 +2674,8 @@ AllocDevicePair(ClientPtr client, const char *name,
 
     *ptr = *keybd = NULL;
 
+    XkbInitPrivates();
+
     pointer = AddInputDevice(client, ptr_proc, TRUE);
 
     if (!pointer)
