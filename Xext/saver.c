@@ -634,14 +634,16 @@ ScreenSaverHandle(ScreenPtr pScreen, int xstate, Bool force)
 static int
 ProcScreenSaverQueryVersion(ClientPtr client)
 {
-    xScreenSaverQueryVersionReply rep;
+    xScreenSaverQueryVersionReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .majorVersion = SERVER_SAVER_MAJOR_VERSION,
+        .minorVersion = SERVER_SAVER_MINOR_VERSION
+    };
 
     REQUEST_SIZE_MATCH(xScreenSaverQueryVersionReq);
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.majorVersion = SERVER_SAVER_MAJOR_VERSION;
-    rep.minorVersion = SERVER_SAVER_MINOR_VERSION;
+
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -677,10 +679,12 @@ ProcScreenSaverQueryInfo(ClientPtr client)
     UpdateCurrentTime();
     lastInput = GetTimeInMillis() - lastDeviceEventTime[XIAllDevices].milliseconds;
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.window = pSaver->wid;
+    rep = (xScreenSaverQueryInfoReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .window = pSaver->wid
+    };
     if (screenIsSaved != SCREEN_SAVER_OFF) {
         rep.state = ScreenSaverOn;
         if (ScreenSaverTime)

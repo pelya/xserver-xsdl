@@ -194,15 +194,16 @@ static int
 ProcXResQueryVersion(ClientPtr client)
 {
     REQUEST(xXResQueryVersionReq);
-    xXResQueryVersionReply rep;
+    xXResQueryVersionReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .server_major = SERVER_XRES_MAJOR_VERSION,
+        .server_minor = SERVER_XRES_MINOR_VERSION
+    };
 
     REQUEST_SIZE_MATCH(xXResQueryVersionReq);
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.server_major = SERVER_XRES_MAJOR_VERSION;
-    rep.server_minor = SERVER_XRES_MINOR_VERSION;
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -233,10 +234,12 @@ ProcXResQueryClients(ClientPtr client)
         }
     }
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.num_clients = num_clients;
-    rep.length = bytes_to_int32(rep.num_clients * sz_xXResClient);
+    rep = (xXResQueryClientsReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(num_clients * sz_xXResClient),
+        .num_clients = num_clients
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -300,10 +303,12 @@ ProcXResQueryClientResources(ClientPtr client)
             num_types++;
     }
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.num_types = num_types;
-    rep.length = bytes_to_int32(rep.num_types * sz_xXResType);
+    rep = (xXResQueryClientResourcesReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(num_types * sz_xXResType),
+        .num_types = num_types
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -470,15 +475,17 @@ ProcXResQueryClientPixmapBytes(ClientPtr client)
                               (pointer)(&bytes));
 #endif
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.bytes = bytes;
+    rep = (xXResQueryClientPixmapBytesReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .bytes = bytes,
 #ifdef _XSERVER64
-    rep.bytes_overflow = bytes >> 32;
+        .bytes_overflow = bytes >> 32
 #else
-    rep.bytes_overflow = 0;
+        .bytes_overflow = 0
 #endif
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -650,7 +657,6 @@ ProcXResQueryClientIds (ClientPtr client)
 {
     REQUEST(xXResQueryClientIdsReq);
 
-    xXResQueryClientIdsReply  rep;
     xXResClientIdSpec        *specs = (void*) ((char*) stuff + sizeof(*stuff));
     int                       rc;
     ConstructClientIdCtx      ctx;
@@ -664,12 +670,14 @@ ProcXResQueryClientIds (ClientPtr client)
     rc = ConstructClientIds(client, stuff->numSpecs, specs, &ctx);
 
     if (rc == Success) {
-        rep.type = X_Reply;
-        rep.sequenceNumber = client->sequence;
+        xXResQueryClientIdsReply  rep = {
+            .type = X_Reply,
+            .sequenceNumber = client->sequence,
+            .length = bytes_to_int32(ctx.resultBytes),
+            .numIds = ctx.numIds
+        };
 
         assert((ctx.resultBytes & 3) == 0);
-        rep.length = bytes_to_int32(ctx.resultBytes);
-        rep.numIds = ctx.numIds;
 
         if (client->swapped) {
             swaps (&rep.sequenceNumber);
@@ -1028,7 +1036,6 @@ ProcXResQueryResourceBytes (ClientPtr client)
 {
     REQUEST(xXResQueryResourceBytesReq);
 
-    xXResQueryResourceBytesReply rep;
     int                          rc;
     ConstructResourceBytesCtx    ctx;
 
@@ -1046,10 +1053,12 @@ ProcXResQueryResourceBytes (ClientPtr client)
     rc = ConstructResourceBytes(stuff->client, &ctx);
 
     if (rc == Success) {
-        rep.type = X_Reply;
-        rep.sequenceNumber = client->sequence;
-        rep.numSizes = ctx.numSizes;
-        rep.length = bytes_to_int32(ctx.resultBytes);
+        xXResQueryResourceBytesReply rep = {
+            .type = X_Reply,
+            .sequenceNumber = client->sequence,
+            .length = bytes_to_int32(ctx.resultBytes),
+            .numSizes = ctx.numSizes
+        };
 
         if (client->swapped) {
             swaps (&rep.sequenceNumber);

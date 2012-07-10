@@ -285,19 +285,20 @@ ShmRegisterFbFuncs(ScreenPtr pScreen)
 static int
 ProcShmQueryVersion(ClientPtr client)
 {
-    xShmQueryVersionReply rep;
+    xShmQueryVersionReply rep = {
+        .type = X_Reply,
+        .sharedPixmaps = sharedPixmaps,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .majorVersion = SERVER_SHM_MAJOR_VERSION,
+        .minorVersion = SERVER_SHM_MINOR_VERSION,
+        .uid = geteuid(),
+        .gid = getegid(),
+        .pixmapFormat = sharedPixmaps ? ZPixmap : 0
+    };
 
     REQUEST_SIZE_MATCH(xShmQueryVersionReq);
-    memset(&rep, 0, sizeof(xShmQueryVersionReply));
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.sharedPixmaps = sharedPixmaps;
-    rep.pixmapFormat = sharedPixmaps ? ZPixmap : 0;
-    rep.majorVersion = SERVER_SHM_MAJOR_VERSION;
-    rep.minorVersion = SERVER_SHM_MINOR_VERSION;
-    rep.uid = geteuid();
-    rep.gid = getegid();
+
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -656,11 +657,13 @@ ProcShmGetImage(ClientPtr client)
             return BadMatch;
         visual = None;
     }
-    xgi.type = X_Reply;
-    xgi.length = 0;
-    xgi.sequenceNumber = client->sequence;
-    xgi.visual = visual;
-    xgi.depth = pDraw->depth;
+    xgi = (xShmGetImageReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .visual = visual,
+        .depth = pDraw->depth
+    };
     if (stuff->format == ZPixmap) {
         length = PixmapBytePad(stuff->width, pDraw->depth) * stuff->height;
     }
@@ -832,11 +835,13 @@ ProcPanoramiXShmGetImage(ClientPtr client)
         }
     }
 
-    xgi.visual = wVisual(((WindowPtr) pDraw));
-    xgi.type = X_Reply;
-    xgi.length = 0;
-    xgi.sequenceNumber = client->sequence;
-    xgi.depth = pDraw->depth;
+    xgi = (xShmGetImageReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .visual = wVisual(((WindowPtr) pDraw)),
+        .depth = pDraw->depth
+    };
 
     if (format == ZPixmap) {
         widthBytesLine = PixmapBytePad(w, pDraw->depth);

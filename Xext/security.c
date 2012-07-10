@@ -338,14 +338,16 @@ static int
 ProcSecurityQueryVersion(ClientPtr client)
 {
     /* REQUEST(xSecurityQueryVersionReq); */
-    xSecurityQueryVersionReply rep;
+    xSecurityQueryVersionReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .majorVersion = SERVER_SECURITY_MAJOR_VERSION,
+        .minorVersion = SERVER_SECURITY_MINOR_VERSION
+    };
 
     REQUEST_SIZE_MATCH(xSecurityQueryVersionReq);
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.majorVersion = SERVER_SECURITY_MAJOR_VERSION;
-    rep.minorVersion = SERVER_SECURITY_MINOR_VERSION;
+
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swaps(&rep.majorVersion);
@@ -527,11 +529,13 @@ ProcSecurityGenerateAuthorization(ClientPtr client)
 
     /* tell client the auth id and data */
 
-    rep.type = X_Reply;
-    rep.length = bytes_to_int32(authdata_len);
-    rep.sequenceNumber = client->sequence;
-    rep.authId = authId;
-    rep.dataLength = authdata_len;
+    rep = (xSecurityGenerateAuthorizationReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(authdata_len),
+        .authId = authId,
+        .dataLength = authdata_len
+    };
 
     if (client->swapped) {
         swapl(&rep.length);

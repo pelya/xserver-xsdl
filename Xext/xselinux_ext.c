@@ -63,13 +63,13 @@ SELinuxCopyContext(char *ptr, unsigned len)
 static int
 ProcSELinuxQueryVersion(ClientPtr client)
 {
-    SELinuxQueryVersionReply rep;
-
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.server_major = SELINUX_MAJOR_VERSION;
-    rep.server_minor = SELINUX_MINOR_VERSION;
+    SELinuxQueryVersionReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .server_major = SELINUX_MAJOR_VERSION,
+        .server_minor = SELINUX_MINOR_VERSION
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -93,10 +93,12 @@ SELinuxSendContextReply(ClientPtr client, security_id_t sid)
         len = strlen(ctx) + 1;
     }
 
-    rep.type = X_Reply;
-    rep.length = bytes_to_int32(len);
-    rep.sequenceNumber = client->sequence;
-    rep.context_len = len;
+    rep = (SELinuxGetContextReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(len),
+        .context_len = len
+    };
 
     if (client->swapped) {
         swapl(&rep.length);
@@ -372,10 +374,12 @@ SELinuxSendItemsToClient(ClientPtr client, SELinuxListItemRec * items,
     }
 
     /* Send reply to client */
-    rep.type = X_Reply;
-    rep.length = size;
-    rep.sequenceNumber = client->sequence;
-    rep.count = count;
+    rep = (SELinuxListItemsReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = size,
+        .count = count
+    };
 
     if (client->swapped) {
         swapl(&rep.length);

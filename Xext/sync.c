@@ -1185,16 +1185,15 @@ FreeAlarmClient(void *value, XID id)
 static int
 ProcSyncInitialize(ClientPtr client)
 {
-    xSyncInitializeReply rep;
+    xSyncInitializeReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .majorVersion = SERVER_SYNC_MAJOR_VERSION,
+        .minorVersion = SERVER_SYNC_MINOR_VERSION,
+    };
 
     REQUEST_SIZE_MATCH(xSyncInitializeReq);
-
-    memset(&rep, 0, sizeof(xSyncInitializeReply));
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.majorVersion = SERVER_SYNC_MAJOR_VERSION;
-    rep.minorVersion = SERVER_SYNC_MINOR_VERSION;
-    rep.length = 0;
 
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
@@ -1209,16 +1208,16 @@ ProcSyncInitialize(ClientPtr client)
 static int
 ProcSyncListSystemCounters(ClientPtr client)
 {
-    xSyncListSystemCountersReply rep;
+    xSyncListSystemCountersReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .nCounters = 0,
+    };
     SysCounterInfo *psci;
     int len = 0;
     xSyncSystemCounter *list = NULL, *walklist = NULL;
 
     REQUEST_SIZE_MATCH(xSyncListSystemCountersReq);
-
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.nCounters = 0;
 
     xorg_list_for_each_entry(psci, &SysCounterList, entry) {
         /* pad to 4 byte boundary */
@@ -1329,10 +1328,12 @@ ProcSyncGetPriority(ClientPtr client)
             return rc;
     }
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.priority = priorityclient->priority;
+    rep = (xSyncGetPriorityReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .priority = priorityclient->priority
+    };
 
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
@@ -1606,19 +1607,20 @@ ProcSyncQueryCounter(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-
     /* if system counter, ask it what the current value is */
-
     if (IsSystemCounter(pCounter)) {
         (*pCounter->pSysCounterInfo->QueryValue) ((pointer) pCounter,
                                                   &pCounter->value);
     }
 
-    rep.value_hi = XSyncValueHigh32(pCounter->value);
-    rep.value_lo = XSyncValueLow32(pCounter->value);
+    rep = (xSyncQueryCounterReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .value_hi = XSyncValueHigh32(pCounter->value),
+        .value_lo = XSyncValueLow32(pCounter->value)
+    };
+
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -1772,32 +1774,33 @@ ProcSyncQueryAlarm(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    rep.type = X_Reply;
-    rep.length =
-        bytes_to_int32(sizeof(xSyncQueryAlarmReply) - sizeof(xGenericReply));
-    rep.sequenceNumber = client->sequence;
-
     pTrigger = &pAlarm->trigger;
-    rep.counter = (pTrigger->pSync) ? pTrigger->pSync->id : None;
+    rep = (xSyncQueryAlarmReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length =
+          bytes_to_int32(sizeof(xSyncQueryAlarmReply) - sizeof(xGenericReply)),
+        .counter = (pTrigger->pSync) ? pTrigger->pSync->id : None,
 
 #if 0  /* XXX unclear what to do, depends on whether relative value-types
         * are "consumed" immediately and are considered absolute from then
         * on.
         */
-    rep.value_type = pTrigger->value_type;
-    rep.wait_value_hi = XSyncValueHigh32(pTrigger->wait_value);
-    rep.wait_value_lo = XSyncValueLow32(pTrigger->wait_value);
+        .value_type = pTrigger->value_type,
+        .wait_value_hi = XSyncValueHigh32(pTrigger->wait_value),
+        .wait_value_lo = XSyncValueLow32(pTrigger->wait_value),
 #else
-    rep.value_type = XSyncAbsolute;
-    rep.wait_value_hi = XSyncValueHigh32(pTrigger->test_value);
-    rep.wait_value_lo = XSyncValueLow32(pTrigger->test_value);
+        .value_type = XSyncAbsolute,
+        .wait_value_hi = XSyncValueHigh32(pTrigger->test_value),
+        .wait_value_lo = XSyncValueLow32(pTrigger->test_value),
 #endif
 
-    rep.test_type = pTrigger->test_type;
-    rep.delta_hi = XSyncValueHigh32(pAlarm->delta);
-    rep.delta_lo = XSyncValueLow32(pAlarm->delta);
-    rep.events = pAlarm->events;
-    rep.state = pAlarm->state;
+        .test_type = pTrigger->test_type,
+        .delta_hi = XSyncValueHigh32(pAlarm->delta),
+        .delta_lo = XSyncValueLow32(pAlarm->delta),
+        .events = pAlarm->events,
+        .state = pAlarm->state
+    };
 
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
@@ -1956,11 +1959,13 @@ ProcSyncQueryFence(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
+    rep = (xSyncQueryFenceReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
 
-    rep.triggered = pFence->funcs.CheckTriggered(pFence);
+        .triggered = pFence->funcs.CheckTriggered(pFence)
+    };
 
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
