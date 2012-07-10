@@ -895,6 +895,9 @@ PanoramiXResetProc(ExtensionEntry * extEntry)
 #ifdef XFIXES
     PanoramiXFixesReset();
 #endif
+#ifdef COMPOSITE
+    PanoramiXCompositeReset ();
+#endif
     screenInfo.numScreens = PanoramiXNumScreens;
     for (i = 256; i--;)
         ProcVector[i] = SavedProcVector[i];
