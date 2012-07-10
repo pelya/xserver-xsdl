@@ -157,7 +157,7 @@ static ExtensionToggle ExtensionToggleList[] = {
 #ifdef XF86BIGFONT
     {"XFree86-Bigfont", &noXFree86BigfontExtension},
 #endif
-#ifndef NO_HW_ONLY_EXTS
+#ifdef XorgLoader
 #ifdef XFreeXDGA
     {"XFree86-DGA", &noXFree86DGAExtension},
 #endif
