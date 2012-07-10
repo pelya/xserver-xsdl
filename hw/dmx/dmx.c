@@ -208,16 +208,17 @@ dmxFetchInputAttributes(unsigned int mask,
 static int
 ProcDMXQueryVersion(ClientPtr client)
 {
-    xDMXQueryVersionReply rep;
+    xDMXQueryVersionReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .majorVersion = SERVER_DMX_MAJOR_VERSION,
+        .minorVersion = SERVER_DMX_MINOR_VERSION,
+        .patchVersion = SERVER_DMX_PATCH_VERSION
+    };
 
     REQUEST_SIZE_MATCH(xDMXQueryVersionReq);
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.majorVersion = SERVER_DMX_MAJOR_VERSION;
-    rep.minorVersion = SERVER_DMX_MINOR_VERSION;
-    rep.patchVersion = SERVER_DMX_PATCH_VERSION;
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -238,10 +239,12 @@ ProcDMXSync(ClientPtr client)
 
     dmxFlushPendingSyncs();
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.status = 0;
+    rep = (xDMXSyncReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = 0
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -288,10 +291,12 @@ ProcDMXForceWindowCreation(ClientPtr client)
     dmxForceWindowCreation(pWin);
  doreply:
     dmxFlushPendingSyncs();
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.status = 0;
+    rep = (xDMXForceWindowCreationReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = 0
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -308,10 +313,12 @@ ProcDMXGetScreenCount(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xDMXGetScreenCountReq);
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.screenCount = dmxGetNumScreens();
+    rep = (xDMXGetScreenCountReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .screenCount = dmxGetNumScreens()
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -339,27 +346,29 @@ ProcDMXGetScreenAttributes(ClientPtr client)
     if (!dmxGetScreenAttributes(stuff->physicalScreen, &attr))
         return BadValue;
 
-    rep.logicalScreen = attr.logicalScreen;
-    rep.screenWindowWidth = attr.screenWindowWidth;
-    rep.screenWindowHeight = attr.screenWindowHeight;
-    rep.screenWindowXoffset = attr.screenWindowXoffset;
-    rep.screenWindowYoffset = attr.screenWindowYoffset;
-    rep.rootWindowWidth = attr.rootWindowWidth;
-    rep.rootWindowHeight = attr.rootWindowHeight;
-    rep.rootWindowXoffset = attr.rootWindowXoffset;
-    rep.rootWindowYoffset = attr.rootWindowYoffset;
-    rep.rootWindowXorigin = attr.rootWindowXorigin;
-    rep.rootWindowYorigin = attr.rootWindowYorigin;
-
     length = attr.displayName ? strlen(attr.displayName) : 0;
     paddedLength = pad_to_int32(length);
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length =
-        bytes_to_int32((sizeof(xDMXGetScreenAttributesReply) -
-                        sizeof(xGenericReply))
-                       + paddedLength);
-    rep.displayNameLength = length;
+
+    rep = (xDMXGetScreenAttributesReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length =
+            bytes_to_int32((sizeof(xDMXGetScreenAttributesReply) -
+                            sizeof(xGenericReply))
+                           + paddedLength),
+        .displayNameLength = length,
+        .logicalScreen = attr.logicalScreen,
+        .screenWindowWidth = attr.screenWindowWidth,
+        .screenWindowHeight = attr.screenWindowHeight,
+        .screenWindowXoffset = attr.screenWindowXoffset,
+        .screenWindowYoffset = attr.screenWindowYoffset,
+        .rootWindowWidth = attr.rootWindowWidth,
+        .rootWindowHeight = attr.rootWindowHeight,
+        .rootWindowXoffset = attr.rootWindowXoffset,
+        .rootWindowYoffset = attr.rootWindowYoffset,
+        .rootWindowXorigin = attr.rootWindowXorigin,
+        .rootWindowYorigin = attr.rootWindowYorigin
+    };
 
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
@@ -442,11 +451,13 @@ ProcDMXChangeScreensAttributes(ClientPtr client)
         return status;
 
  noxinerama:
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.status = status;
-    rep.errorScreen = errorScreen;
+    rep = (xDMXChangeScreensAttributesReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = status,
+        .errorScreen = errorScreen
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -491,11 +502,13 @@ ProcDMXAddScreen(ClientPtr client)
 
     free(name);
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.status = status;
-    rep.physicalScreen = stuff->physicalScreen;
+    rep = (xDMXAddScreenReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = status,
+        .physicalScreen = stuff->physicalScreen
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -517,10 +530,12 @@ ProcDMXRemoveScreen(ClientPtr client)
 
     status = dmxDetachScreen(stuff->physicalScreen);
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.status = status;
+    rep = (xDMXRemoveScreenReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = status
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -636,10 +651,12 @@ ProcDMXGetWindowAttributes(ClientPtr client)
         return BadWindow;
     }
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = count * 6;
-    rep.screenCount = count;
+    rep = (xDMXGetWindowAttributesReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = count * 6,
+        .screenCount = count
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -688,14 +705,15 @@ ProcDMXGetDesktopAttributes(ClientPtr client)
 
     dmxGetDesktopAttributes(&attr);
 
-    rep.width = attr.width;
-    rep.height = attr.height;
-    rep.shiftX = attr.shiftX;
-    rep.shiftY = attr.shiftY;
-
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
+    rep = (xDMXGetDesktopAttributesReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .width = attr.width,
+        .height = attr.height,
+        .shiftX = attr.shiftX,
+        .shiftY = attr.shiftY
+    };
 
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
@@ -739,10 +757,12 @@ ProcDMXChangeDesktopAttributes(ClientPtr client)
         return status;
 
  noxinerama:
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.status = status;
+    rep = (xDMXChangeDesktopAttributesReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = status
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -759,10 +779,12 @@ ProcDMXGetInputCount(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xDMXGetInputCountReq);
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.inputCount = dmxGetInputCount();
+    rep = (xDMXGetInputCountReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .inputCount = dmxGetInputCount()
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -785,19 +807,24 @@ ProcDMXGetInputAttributes(ClientPtr client)
 
     if (dmxGetInputAttributes(stuff->deviceId, &attr))
         return BadValue;
-    rep.inputType = attr.inputType;
-    rep.physicalScreen = attr.physicalScreen;
-    rep.physicalId = attr.physicalId;
-    rep.isCore = attr.isCore;
-    rep.sendsCore = attr.sendsCore;
-    rep.detached = attr.detached;
 
     length = attr.name ? strlen(attr.name) : 0;
     paddedLength = pad_to_int32(length);
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = bytes_to_int32(paddedLength);
-    rep.nameLength = length;
+
+    rep = (xDMXGetInputAttributesReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(paddedLength),
+
+        .inputType = attr.inputType,
+        .physicalScreen = attr.physicalScreen,
+        .physicalId = attr.physicalId,
+        .nameLength = length,
+        .isCore = attr.isCore,
+        .sendsCore = attr.sendsCore,
+        .detached = attr.detached
+    };
+
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -849,11 +876,13 @@ ProcDMXAddInput(ClientPtr client)
     if (status)
         return status;
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.status = status;
-    rep.physicalId = id;
+    rep = (xDMXAddInputReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = status,
+        .physicalId = id
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -878,10 +907,12 @@ ProcDMXRemoveInput(ClientPtr client)
     if (status)
         return status;
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.status = status;
+    rep = (xDMXRemoveInputReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .status = status
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);

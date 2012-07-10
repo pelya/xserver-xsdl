@@ -454,12 +454,12 @@ __glXQueryMaxSwapBarriersSGIX(__GLXclientState * cl, GLbyte * pc)
     ClientPtr client = cl->client;
     xGLXQueryMaxSwapBarriersSGIXReq *req =
         (xGLXQueryMaxSwapBarriersSGIXReq *) pc;
-    xGLXQueryMaxSwapBarriersSGIXReply reply;
-
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-    reply.length = 0;
-    reply.max = QueryMaxSwapBarriersSGIX(req->screen);
+    xGLXQueryMaxSwapBarriersSGIXReply reply = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .max = QueryMaxSwapBarriersSGIX(req->screen)
+    };
 
     if (client->swapped) {
         __glXSwapQueryMaxSwapBarriersSGIXReply(client, &reply);
@@ -793,7 +793,11 @@ MakeCurrent(__GLXclientState * cl,
     ClientPtr client = cl->client;
     DrawablePtr pDraw = NULL;
     DrawablePtr pReadDraw = NULL;
-    xGLXMakeCurrentReadSGIReply new_reply;
+    xGLXMakeCurrentReadSGIReply new_reply = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
     xGLXMakeCurrentReq *be_req;
     xGLXMakeCurrentReply be_reply;
     xGLXMakeContextCurrentReq *be_new_req;
@@ -1197,9 +1201,6 @@ MakeCurrent(__GLXclientState * cl,
     else {
         new_reply.contextTag = 0;
     }
-    new_reply.length = 0;
-    new_reply.type = X_Reply;
-    new_reply.sequenceNumber = client->sequence;
 
 #ifdef PANORAMIX
     if (!noPanoramiXExtension) {
@@ -1438,10 +1439,12 @@ __glXIsDirect(__GLXclientState * cl, GLbyte * pc)
         return __glXBadContext;
     }
 
-    reply.isDirect = 0;
-    reply.length = 0;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
+    reply = (xGLXIsDirectReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .isDirect = 0
+    };
 
     if (client->swapped) {
         __glXSwapIsDirectReply(client, &reply);
@@ -1459,18 +1462,19 @@ __glXQueryVersion(__GLXclientState * cl, GLbyte * pc)
     ClientPtr client = cl->client;
 
 /*    xGLXQueryVersionReq *req = (xGLXQueryVersionReq *) pc; */
-    xGLXQueryVersionReply reply;
 
+    xGLXQueryVersionReply reply = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
     /*
      ** Server should take into consideration the version numbers sent by the
      ** client if it wants to work with older clients; however, in this
      ** implementation the server just returns its version number.
      */
-    reply.majorVersion = __glXVersionMajor;
-    reply.minorVersion = __glXVersionMinor;
-    reply.length = 0;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
+        .majorVersion = __glXVersionMajor,
+        .minorVersion = __glXVersionMinor
+    };
 
     if (client->swapped) {
         __glXSwapQueryVersionReply(client, &reply);
@@ -1680,12 +1684,14 @@ __glXGetVisualConfigs(__GLXclientState * cl, GLbyte * pc)
     }
     pGlxScreen = &__glXActiveScreens[screen];
 
-    reply.numVisuals = pGlxScreen->numGLXVisuals;
-    reply.numProps = __GLX_TOTAL_CONFIG;
-    reply.length = (pGlxScreen->numGLXVisuals * __GLX_SIZE_CARD32 *
-                    __GLX_TOTAL_CONFIG) >> 2;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
+    reply = (xGLXGetVisualConfigsReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .numVisuals = pGlxScreen->numGLXVisuals,
+        .numProps = __GLX_TOTAL_CONFIG,
+        .length = (pGlxScreen->numGLXVisuals * __GLX_SIZE_CARD32 *
+                    __GLX_TOTAL_CONFIG) >> 2
+    };
 
     WriteToClient(client, sz_xGLXGetVisualConfigsReply, &reply);
 
@@ -2625,10 +2631,12 @@ __glXQueryExtensionsString(__GLXclientState * cl, GLbyte * pc)
 #endif
 
     length = len;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-    reply.length = len;
-    reply.n = numbytes;
+    reply = (xGLXQueryExtensionsStringReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = len,
+        .n = numbytes
+    };
 
     if (client->swapped) {
         glxSwapQueryExtensionsStringReply(client, &reply, be_buf);
@@ -2706,10 +2714,12 @@ __glXQueryServerString(__GLXclientState * cl, GLbyte * pc)
 #endif
 
     length = len;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-    reply.length = length;
-    reply.n = numbytes;
+    reply = (xGLXQueryServerStringReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = length,
+        .n = numbytes
+    };
 
     if (client->swapped) {
         glxSwapQueryServerStringReply(client, &reply, be_buf);
@@ -2863,11 +2873,13 @@ __glXGetFBConfigs(__GLXclientState * cl, GLbyte * pc)
     pGlxScreen = &__glXActiveScreens[screen];
     numFBConfigs = __glXNumFBConfigs;
 
-    reply.numFBConfigs = numFBConfigs;
-    reply.numAttribs = numAttribs;
-    reply.length = (numFBConfigs * 2 * numAttribs * __GLX_SIZE_CARD32) >> 2;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
+    reply = (xGLXGetFBConfigsReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = (numFBConfigs * 2 * numAttribs * __GLX_SIZE_CARD32) >> 2,
+        .numFBConfigs = numFBConfigs,
+        .numAttribs = numAttribs
+    };
 
     if (client->swapped) {
         __GLX_DECLARE_SWAP_VARIABLES;
@@ -3195,10 +3207,12 @@ __glXQueryContext(__GLXclientState * cl, GLbyte * pc)
 
     nProps = 3;
 
-    reply.length = nProps << 1;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-    reply.n = nProps;
+    reply = (xGLXQueryContextReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = nProps << 1,
+        .n = nProps
+    };
 
     nReplyBytes = reply.length << 2;
     sendBuf = (int *) malloc(nReplyBytes);
@@ -3245,10 +3259,12 @@ __glXQueryContextInfoEXT(__GLXclientState * cl, GLbyte * pc)
 
     nProps = 4;
 
-    reply.length = nProps << 1;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-    reply.n = nProps;
+    reply = (xGLXQueryContextInfoEXTReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = nProps << 1,
+        .n = nProps
+    };
 
     nReplyBytes = reply.length << 2;
     sendBuf = (int *) malloc(nReplyBytes);

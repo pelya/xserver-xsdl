@@ -293,12 +293,14 @@ __glXSwapGetVisualConfigs(__GLXclientState * cl, GLbyte * pc)
     }
     pGlxScreen = &__glXActiveScreens[screen];
 
-    reply.numVisuals = pGlxScreen->numGLXVisuals;
-    reply.numProps = __GLX_TOTAL_CONFIG;
-    reply.length = (pGlxScreen->numGLXVisuals * __GLX_SIZE_CARD32 *
-                    __GLX_TOTAL_CONFIG) >> 2;
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
+    reply = (xGLXGetVisualConfigsReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = (pGlxScreen->numGLXVisuals * __GLX_SIZE_CARD32 *
+                   __GLX_TOTAL_CONFIG) >> 2,
+        .numVisuals = pGlxScreen->numGLXVisuals,
+        .numProps = __GLX_TOTAL_CONFIG
+    };
 
     __GLX_SWAP_SHORT(&reply.sequenceNumber);
     __GLX_SWAP_INT(&reply.length);
