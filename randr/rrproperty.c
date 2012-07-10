@@ -378,7 +378,7 @@ int
 ProcRRListOutputProperties(ClientPtr client)
 {
     REQUEST(xRRListOutputPropertiesReq);
-    Atom *pAtoms = NULL, *temppAtoms;
+    Atom *pAtoms = NULL;
     xRRListOutputPropertiesReply rep;
     int numProps = 0;
     RROutputPtr output;
@@ -403,12 +403,14 @@ ProcRRListOutputProperties(ClientPtr client)
         swapl(&rep.length);
         swaps(&rep.nAtoms);
     }
-    temppAtoms = pAtoms;
-    for (prop = output->properties; prop; prop = prop->next)
-        *temppAtoms++ = prop->propertyName;
-
     WriteToClient(client, sizeof(xRRListOutputPropertiesReply), &rep);
+
     if (numProps) {
+        /* Copy property name atoms to reply buffer */
+        Atom *temppAtoms = pAtoms;
+        for (prop = output->properties; prop; prop = prop->next)
+            *temppAtoms++ = prop->propertyName;
+
         client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
         WriteSwappedDataToClient(client, numProps * sizeof(Atom), pAtoms);
         free(pAtoms);
