@@ -49,8 +49,6 @@ SOFTWARE.
  *  Dispatch routines and initialization routines for the X input extension.
  *
  */
-#define ARRAY_SIZE(_a)        (sizeof((_a)) / sizeof((_a)[0]))
-
 #define	 NUMTYPES 15
 
 #ifdef HAVE_DIX_CONFIG_H
