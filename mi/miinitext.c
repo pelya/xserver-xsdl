@@ -406,6 +406,9 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XRECORD
     {RecordExtensionInit, "RECORD", &noTestExtensions, NULL},
 #endif
+#ifdef DPMSExtension
+    {DPMSExtensionInit, DPMSExtensionName, &noDPMSExtension, NULL},
+#endif
 };
 
  /*ARGSUSED*/ void

@@ -63,14 +63,6 @@ static ExtensionModule extensionModules[] = {
      XFree86DGARegister,
      NULL},
 #endif
-#ifdef DPMSExtension
-    {
-     DPMSExtensionInit,
-     DPMSExtensionName,
-     &noDPMSExtension,
-     NULL,
-     NULL},
-#endif
 #ifdef XV
     {
      XvExtensionInit,

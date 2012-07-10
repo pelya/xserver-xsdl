@@ -72,7 +72,7 @@ extern void DbeExtensionInit(void);
 extern void DMXExtensionInit(void);
 #endif
 
-#if defined(DPMSExtension) && !defined(XorgLoader)
+#if defined(DPMSExtension)
 #include <X11/extensions/dpmsconst.h>
 extern Bool noDPMSExtension;
 extern void DPMSExtensionInit(void);
