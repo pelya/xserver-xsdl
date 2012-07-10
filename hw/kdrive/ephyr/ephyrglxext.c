@@ -357,7 +357,7 @@ ephyrGLXQueryServerString(__GLXclientState * a_cl, GLbyte * a_pc)
     ClientPtr client = a_cl->client;
     xGLXQueryServerStringReq *req = (xGLXQueryServerStringReq *) a_pc;
     xGLXQueryServerStringReply reply;
-    char *server_string = NULL, *buf = NULL;
+    char *server_string = NULL;
     int length = 0;
 
     EPHYR_LOG("enter\n");
@@ -377,13 +377,6 @@ ephyrGLXQueryServerString(__GLXclientState * a_cl, GLbyte * a_pc)
         .n = length
     };
 
-    buf = calloc(reply.length << 2, 1);
-    if (!buf) {
-        EPHYR_LOG_ERROR("failed to allocate string\n;");
-        return BadAlloc;
-    }
-    memcpy(buf, server_string, length);
-
     WriteToClient(client, sz_xGLXQueryServerStringReply, &reply);
     WriteToClient(client, (int) (reply.length << 2), server_string);
 
@@ -393,9 +386,6 @@ ephyrGLXQueryServerString(__GLXclientState * a_cl, GLbyte * a_pc)
     EPHYR_LOG("leave\n");
     free(server_string);
     server_string = NULL;
-
-    free(buf);
-    buf = NULL;
 
     return res;
 }
