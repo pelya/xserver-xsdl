@@ -47,14 +47,6 @@ static ExtensionModule extensionModules[] = {
      NULL,
      NULL},
 #endif
-#ifdef SCREENSAVER
-    {
-     ScreenSaverExtensionInit,
-     ScreenSaverName,
-     &noScreenSaverExtension,
-     NULL,
-     NULL},
-#endif
 #ifdef XF86VIDMODE
     {
      XFree86VidModeExtensionInit,

@@ -110,7 +110,7 @@ extern Bool noResExtension;
 extern void ResExtensionInit(void);
 #endif
 
-#if defined(SCREENSAVER) && !defined(XorgLoader)
+#if defined(SCREENSAVER)
 #include <X11/extensions/saver.h>
 extern Bool noScreenSaverExtension;
 extern void ScreenSaverExtensionInit(void);
