@@ -71,17 +71,18 @@ static int
 ProcDRI2QueryVersion(ClientPtr client)
 {
     REQUEST(xDRI2QueryVersionReq);
-    xDRI2QueryVersionReply rep;
+    xDRI2QueryVersionReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .majorVersion = dri2_major,
+        .minorVersion = dri2_minor
+    };
 
     if (client->swapped)
         swaps(&stuff->length);
 
     REQUEST_SIZE_MATCH(xDRI2QueryVersionReq);
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.majorVersion = dri2_major;
-    rep.minorVersion = dri2_minor;
 
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
@@ -99,7 +100,13 @@ static int
 ProcDRI2Connect(ClientPtr client)
 {
     REQUEST(xDRI2ConnectReq);
-    xDRI2ConnectReply rep;
+    xDRI2ConnectReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .driverNameLength = 0,
+        .deviceNameLength = 0
+    };
     DrawablePtr pDraw;
     int fd, status;
     const char *driverName;
@@ -109,12 +116,6 @@ ProcDRI2Connect(ClientPtr client)
     if (!validDrawable(client, stuff->window, DixGetAttrAccess,
                        &pDraw, &status))
         return status;
-
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.driverNameLength = 0;
-    rep.deviceNameLength = 0;
 
     if (!DRI2Connect(client, pDraw->pScreen,
                      stuff->driverType, &fd, &driverName, &deviceName))
@@ -146,10 +147,12 @@ ProcDRI2Authenticate(ClientPtr client)
                        &pDraw, &status))
         return status;
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
-    rep.length = 0;
-    rep.authenticated = DRI2Authenticate(client, pDraw->pScreen, stuff->magic);
+    rep = (xDRI2AuthenticateReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .authenticated = DRI2Authenticate(client, pDraw->pScreen, stuff->magic)
+    };
     WriteToClient(client, sizeof(xDRI2AuthenticateReply), &rep);
 
     return Success;
@@ -225,12 +228,14 @@ send_buffers_reply(ClientPtr client, DrawablePtr pDrawable,
         }
     }
 
-    rep.type = X_Reply;
-    rep.length = (count - skip) * sizeof(xDRI2Buffer) / 4;
-    rep.sequenceNumber = client->sequence;
-    rep.width = width;
-    rep.height = height;
-    rep.count = count - skip;
+    rep = (xDRI2GetBuffersReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = (count - skip) * sizeof(xDRI2Buffer) / 4,
+        .width = width,
+        .height = height,
+        .count = count - skip
+    };
     WriteToClient(client, sizeof(xDRI2GetBuffersReply), &rep);
 
     for (i = 0; i < count; i++) {
@@ -330,9 +335,11 @@ ProcDRI2CopyRegion(ClientPtr client)
      * that yet.
      */
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
+    rep = (xDRI2CopyRegionReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
 
     WriteToClient(client, sizeof(xDRI2CopyRegionReply), &rep);
 
@@ -375,7 +382,11 @@ static int
 ProcDRI2SwapBuffers(ClientPtr client)
 {
     REQUEST(xDRI2SwapBuffersReq);
-    xDRI2SwapBuffersReply rep;
+    xDRI2SwapBuffersReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
     DrawablePtr pDrawable;
     CARD64 target_msc, divisor, remainder, swap_target;
     int status;
@@ -402,9 +413,6 @@ ProcDRI2SwapBuffers(ClientPtr client)
     if (status != Success)
         return BadDrawable;
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
     load_swap_reply(&rep, swap_target);
 
     WriteToClient(client, sizeof(xDRI2SwapBuffersReply), &rep);
@@ -427,7 +435,11 @@ static int
 ProcDRI2GetMSC(ClientPtr client)
 {
     REQUEST(xDRI2GetMSCReq);
-    xDRI2MSCReply rep;
+    xDRI2MSCReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
     DrawablePtr pDrawable;
     CARD64 ust, msc, sbc;
     int status;
@@ -442,9 +454,6 @@ ProcDRI2GetMSC(ClientPtr client)
     if (status != Success)
         return status;
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
     load_msc_reply(&rep, ust, msc, sbc);
 
     WriteToClient(client, sizeof(xDRI2MSCReply), &rep);
@@ -482,11 +491,12 @@ ProcDRI2WaitMSC(ClientPtr client)
 int
 ProcDRI2WaitMSCReply(ClientPtr client, CARD64 ust, CARD64 msc, CARD64 sbc)
 {
-    xDRI2MSCReply rep;
+    xDRI2MSCReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0
+    };
 
-    rep.type = X_Reply;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
     load_msc_reply(&rep, ust, msc, sbc);
 
     WriteToClient(client, sizeof(xDRI2MSCReply), &rep);
@@ -614,7 +624,13 @@ static int
 SProcDRI2Connect(ClientPtr client)
 {
     REQUEST(xDRI2ConnectReq);
-    xDRI2ConnectReply rep;
+    xDRI2ConnectReply rep = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = 0,
+        .driverNameLength = 0,
+        .deviceNameLength = 0
+    };
 
     /* If the client is swapped, it's not local.  Talk to the hand. */
 
@@ -622,12 +638,7 @@ SProcDRI2Connect(ClientPtr client)
     if (sizeof(*stuff) / 4 != client->req_len)
         return BadLength;
 
-    rep.type = X_Reply;
-    rep.sequenceNumber = client->sequence;
     swaps(&rep.sequenceNumber);
-    rep.length = 0;
-    rep.driverNameLength = 0;
-    rep.deviceNameLength = 0;
 
     WriteToClient(client, sizeof(xDRI2ConnectReply), &rep);
 
