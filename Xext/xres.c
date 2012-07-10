@@ -1184,7 +1184,7 @@ SProcResDispatch (ClientPtr client)
 }
 
 void
-ResExtensionInit(INITARGS)
+ResExtensionInit(void)
 {
     (void) AddExtension(XRES_NAME, 0, 0,
                         ProcResDispatch, SProcResDispatch,

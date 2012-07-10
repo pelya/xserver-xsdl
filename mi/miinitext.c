@@ -96,8 +96,7 @@ SOFTWARE.
 extern Bool noGEExtension;
 
 #ifndef XFree86LOADER
-#define INITARGS void
-typedef void (*InitExtension) (INITARGS);
+typedef void (*InitExtension) (void);
 #else                           /* XFree86Loader */
 #include "loaderProcs.h"
 #endif
@@ -128,84 +127,80 @@ typedef void (*InitExtension) (INITARGS);
 
 /* FIXME: this whole block of externs should be from the appropriate headers */
 #ifdef MITSHM
-extern void ShmExtensionInit(INITARGS);
+extern void ShmExtensionInit(void);
 #endif
 #ifdef PANORAMIX
-extern void PanoramiXExtensionInit(INITARGS);
+extern void PanoramiXExtensionInit(void);
 #endif
 #ifdef INXQUARTZ
-extern void PseudoramiXExtensionInit(INITARGS);
+extern void PseudoramiXExtensionInit(void);
 #endif
-extern void XInputExtensionInit(INITARGS);
-
+extern void XInputExtensionInit(void);
 #ifdef XTEST
-extern void XTestExtensionInit(INITARGS);
+extern void XTestExtensionInit(void);
 #endif
-extern void BigReqExtensionInit(INITARGS);
-
+extern void BigReqExtensionInit(void);
 #ifdef SCREENSAVER
-extern void ScreenSaverExtensionInit(INITARGS);
+extern void ScreenSaverExtensionInit(void);
 #endif
 #ifdef XV
-extern void XvExtensionInit(INITARGS);
-extern void XvMCExtensionInit(INITARGS);
+extern void XvExtensionInit(void);
+extern void XvMCExtensionInit(void);
 #endif
-extern void SyncExtensionInit(INITARGS);
-extern void XkbExtensionInit(INITARGS);
-extern void XCMiscExtensionInit(INITARGS);
-
+extern void SyncExtensionInit(void);
+extern void XkbExtensionInit(void);
+extern void XCMiscExtensionInit(void);
 #ifdef XRECORD
-extern void RecordExtensionInit(INITARGS);
+extern void RecordExtensionInit(void);
 #endif
 #ifdef DBE
-extern void DbeExtensionInit(INITARGS);
+extern void DbeExtensionInit(void);
 #endif
 #ifdef XCSECURITY
-extern void SecurityExtensionInit(INITARGS);
+extern void SecurityExtensionInit(void);
 #endif
 #ifdef XSELINUX
-extern void SELinuxExtensionInit(INITARGS);
+extern void SELinuxExtensionInit(void);
 #endif
 #ifdef XF86BIGFONT
-extern void XFree86BigfontExtensionInit(INITARGS);
+extern void XFree86BigfontExtensionInit(void);
 #endif
 #ifdef XF86VIDMODE
-extern void XFree86VidModeExtensionInit(INITARGS);
+extern void XFree86VidModeExtensionInit(void);
 #endif
 #ifdef XFreeXDGA
-extern void XFree86DGAExtensionInit(INITARGS);
+extern void XFree86DGAExtensionInit(void);
 #endif
 #ifdef GLXEXT
 typedef struct __GLXprovider __GLXprovider;
 extern __GLXprovider __glXDRISWRastProvider;
-extern void GlxPushProvider(__GLXprovider * impl);
-extern void GlxExtensionInit(INITARGS);
+extern void GlxPushProvider(__GLXprovider *impl);
+extern void GlxExtensionInit(void);
 #endif
 #ifdef XF86DRI
-extern void XFree86DRIExtensionInit(INITARGS);
+extern void XFree86DRIExtensionInit(void);
 #endif
 #ifdef DPMSExtension
-extern void DPMSExtensionInit(INITARGS);
+extern void DPMSExtensionInit(void);
 #endif
-extern void RenderExtensionInit(INITARGS);
-
+extern void RenderExtensionInit(void);
 #ifdef RANDR
-extern void RRExtensionInit(INITARGS);
+extern void RRExtensionInit(void);
 #endif
 #ifdef RES
-extern void ResExtensionInit(INITARGS);
+extern void ResExtensionInit(void);
 #endif
 #ifdef DMXEXT
-extern void DMXExtensionInit(INITARGS);
+extern void DMXExtensionInit(void);
 #endif
 #ifdef XFIXES
-extern void XFixesExtensionInit(INITARGS);
+extern void XFixesExtensionInit(void);
 #endif
 #ifdef DAMAGE
-extern void DamageExtensionInit(INITARGS);
+extern void DamageExtensionInit(void);
 #endif
 #ifdef COMPOSITE
-extern void CompositeExtensionInit(INITARGS);
+extern void CompositeExtensionInit(void);
 #endif
 
 /* The following is only a small first step towards run-time

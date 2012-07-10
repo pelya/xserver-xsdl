@@ -1010,13 +1010,13 @@ ProcXDGADispatch(ClientPtr client)
 }
 
 void
-XFree86DGARegister(INITARGS)
+XFree86DGARegister(void)
 {
     XDGAEventBase = &DGAEventBase;
 }
 
 void
-XFree86DGAExtensionInit(INITARGS)
+XFree86DGAExtensionInit(void)
 {
     ExtensionEntry *extEntry;
 

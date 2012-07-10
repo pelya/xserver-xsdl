@@ -355,7 +355,7 @@ SProcDPMSDispatch(ClientPtr client)
 }
 
 void
-DPMSExtensionInit(INITARGS)
+DPMSExtensionInit(void)
 {
     AddExtension(DPMSExtensionName, 0, 0,
                  ProcDPMSDispatch, SProcDPMSDispatch,

@@ -1389,7 +1389,7 @@ SProcScreenSaverDispatch(ClientPtr client)
 }
 
 void
-ScreenSaverExtensionInit(INITARGS)
+ScreenSaverExtensionInit(void)
 {
     ExtensionEntry *extEntry;
     int i;

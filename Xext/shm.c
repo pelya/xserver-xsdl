@@ -1248,7 +1248,7 @@ SProcShmDispatch(ClientPtr client)
 }
 
 void
-ShmExtensionInit(INITARGS)
+ShmExtensionInit(void)
 {
     ExtensionEntry *extEntry;
     int i;

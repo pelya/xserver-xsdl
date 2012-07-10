@@ -40,7 +40,7 @@ from The Open Group.
 #include "opaque.h"
 #include "modinit.h"
 
-void BigReqExtensionInit(INITARGS);
+void BigReqExtensionInit(void);
 
 static int
 ProcBigReqDispatch(ClientPtr client)
@@ -70,7 +70,7 @@ ProcBigReqDispatch(ClientPtr client)
 }
 
 void
-BigReqExtensionInit(INITARGS)
+BigReqExtensionInit(void)
 {
     AddExtension(XBigReqExtensionName, 0, 0,
                  ProcBigReqDispatch, ProcBigReqDispatch,

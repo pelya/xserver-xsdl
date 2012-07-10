@@ -171,7 +171,7 @@ typedef struct {
 
 #define INITARGS void
 
-typedef void (*InitExtension) (INITARGS);
+typedef void (*InitExtension) (void);
 
 typedef struct {
     InitExtension initFunc;

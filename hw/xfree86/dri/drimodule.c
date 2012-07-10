@@ -57,8 +57,7 @@ static XF86ModuleVersionInfo VersRec = {
     {0, 0, 0, 0}
 };
 
-extern void XFree86DRIExtensionInit(INITARGS);
-
+extern void XFree86DRIExtensionInit(void);
 #define _XF86DRI_SERVER_
 #include <X11/dri/xf86driproto.h>
 

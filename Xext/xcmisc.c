@@ -190,7 +190,7 @@ SProcXCMiscDispatch(ClientPtr client)
 }
 
 void
-XCMiscExtensionInit(INITARGS)
+XCMiscExtensionInit(void)
 {
     AddExtension(XCMiscExtensionName, 0, 0,
                  ProcXCMiscDispatch, SProcXCMiscDispatch,

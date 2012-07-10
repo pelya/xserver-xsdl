@@ -679,7 +679,7 @@ XTestExtensionTearDown(ExtensionEntry * e)
 }
 
 void
-XTestExtensionInit(INITARGS)
+XTestExtensionInit(void)
 {
     AddExtension(XTestExtensionName, 0, 0,
                  ProcXTestDispatch, SProcXTestDispatch,

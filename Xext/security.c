@@ -1027,7 +1027,7 @@ SecurityResetProc(ExtensionEntry * extEntry)
  */
 
 void
-SecurityExtensionInit(INITARGS)
+SecurityExtensionInit(void)
 {
     ExtensionEntry *extEntry;
     int ret = TRUE;

@@ -687,7 +687,7 @@ SELinuxResetProc(ExtensionEntry * extEntry)
 }
 
 void
-SELinuxExtensionInit(INITARGS)
+SELinuxExtensionInit(void)
 {
     ExtensionEntry *extEntry;
 
