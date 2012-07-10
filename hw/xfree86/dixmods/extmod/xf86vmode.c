@@ -1354,7 +1354,7 @@ ProcXF86VidModeGetDotClocks(ClientPtr client)
     rep.flags = 0;
 
     if (!ClockProg) {
-        Clocks = malloc(numClocks * sizeof(int));
+        Clocks = calloc(numClocks, sizeof(int));
         if (!Clocks)
             return BadValue;
         if (!VidModeGetClocks(stuff->screen, Clocks)) {
