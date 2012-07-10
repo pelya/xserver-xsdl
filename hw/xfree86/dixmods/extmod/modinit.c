@@ -77,14 +77,6 @@ static ExtensionModule extensionModules[] = {
      NULL,
      NULL},
 #endif
-#ifdef RES
-    {
-     ResExtensionInit,
-     XRES_NAME,
-     &noResExtension,
-     NULL,
-     NULL},
-#endif
 };
 
 static XF86ModuleVersionInfo VersRec = {

@@ -409,6 +409,9 @@ static ExtensionModule staticExtensions[] = {
 #ifdef DPMSExtension
     {DPMSExtensionInit, DPMSExtensionName, &noDPMSExtension, NULL},
 #endif
+#ifdef RES
+    {ResExtensionInit, XRES_NAME, &noResExtension, NULL},
+#endif
 };
 
  /*ARGSUSED*/ void

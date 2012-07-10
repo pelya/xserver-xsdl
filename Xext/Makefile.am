@@ -52,7 +52,7 @@ endif
 # XResource extension: lets clients get data about per-client resource usage
 RES_SRCS = hashtable.c hashtable.h xres.c
 if RES
-MODULE_SRCS  += $(RES_SRCS)
+BUILTIN_SRCS  += $(RES_SRCS)
 endif
 
 # MIT ScreenSaver extension

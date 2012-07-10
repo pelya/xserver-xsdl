@@ -104,7 +104,7 @@ extern void RecordExtensionInit(void);
 extern Bool noRenderExtension;
 extern void RenderExtensionInit(void);
 
-#if defined(RES) && !defined(XorgLoader)
+#if defined(RES)
 #include <X11/extensions/XResproto.h>
 extern Bool noResExtension;
 extern void ResExtensionInit(void);
