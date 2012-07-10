@@ -50,7 +50,7 @@ MODULE_SRCS  += $(XV_SRCS)
 endif
 
 # XResource extension: lets clients get data about per-client resource usage
-RES_SRCS = hashtable.c xres.c
+RES_SRCS = hashtable.c hashtable.h xres.c
 if RES
 MODULE_SRCS  += $(RES_SRCS)
 endif
