@@ -2244,7 +2244,6 @@ hw/xfree86/common/Makefile
 hw/xfree86/common/xf86Build.h
 hw/xfree86/ddc/Makefile
 hw/xfree86/dixmods/Makefile
-hw/xfree86/dixmods/extmod/Makefile
 hw/xfree86/doc/Makefile
 hw/xfree86/dri/Makefile
 hw/xfree86/dri2/Makefile

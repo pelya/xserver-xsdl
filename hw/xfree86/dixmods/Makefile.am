@@ -1,7 +1,5 @@
 noinst_LTLIBRARIES = libdixmods.la libxorgxkb.la
 
-SUBDIRS = extmod
-
 if GLX
 GLXMODS = libglx.la
 endif

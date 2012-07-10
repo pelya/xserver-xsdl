@@ -10,8 +10,6 @@ else
 noinst_LTLIBRARIES = libXext.la
 endif
 
-INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
-
 AM_CFLAGS = $(DIX_CFLAGS)
 
 if XORG
