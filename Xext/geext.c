@@ -36,8 +36,6 @@
 
 DevPrivateKeyRec GEClientPrivateKeyRec;
 
-int RT_GECLIENT = 0;
-
 GEExtension GEExtensions[MAXEXTENSIONS];
 
 /* Major available requests */
