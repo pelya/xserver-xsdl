@@ -110,9 +110,6 @@
 
 static ModuleDefault ModuleDefaults[] = {
     {.name = "extmod",.toLoad = TRUE,.load_opt = NULL},
-#ifdef DBE
-    {.name = "dbe",.toLoad = TRUE,.load_opt = NULL},
-#endif
 #ifdef GLXEXT
     {.name = "glx",.toLoad = TRUE,.load_opt = NULL},
 #endif

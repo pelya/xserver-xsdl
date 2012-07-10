@@ -6,10 +6,6 @@ if GLX
 GLXMODS = libglx.la
 endif
 
-if DBE
-DBEMOD = libdbe.la
-endif
-
 if RECORD
 RECORDMOD = librecord.la
 endif
@@ -20,19 +16,13 @@ module_LTLIBRARIES = libfb.la \
 
 extsmoduledir = $(moduledir)/extensions
 extsmodule_LTLIBRARIES = $(RECORDMOD) \
-			 $(DBEMOD) \
                          $(GLXMODS)
 
 AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
 INCLUDES = @XORG_INCS@ \
-           -I$(top_srcdir)/dbe \
            -I$(top_srcdir)/hw/xfree86/loader \
            -I$(top_srcdir)/miext/shadow \
            -I$(top_srcdir)/glx
-
-libdbe_la_LDFLAGS = -module -avoid-version $(LD_NO_UNDEFINED_FLAG)
-libdbe_la_LIBADD = $(top_builddir)/dbe/libdbe.la
-libdbe_la_SOURCES = dbemodule.c
 
 libfb_la_LDFLAGS = -module -avoid-version $(LD_NO_UNDEFINED_FLAG)
 libfb_la_LIBADD = $(top_builddir)/fb/libfb.la

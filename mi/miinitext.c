@@ -397,6 +397,9 @@ static ExtensionModule staticExtensions[] = {
 #ifdef DAMAGE
     {DamageExtensionInit, "DAMAGE", &noDamageExtension, NULL},
 #endif
+#ifdef DBE
+    {DbeExtensionInit, "DOUBLE-BUFFER", &noDbeExtension, NULL},
+#endif
 };
 
  /*ARGSUSED*/ void

@@ -63,7 +63,7 @@ extern Bool noDamageExtension;
 extern void DamageExtensionInit(void);
 #endif
 
-#if defined(DBE) && !defined(XorgLoader)
+#if defined(DBE)
 extern Bool noDbeExtension;
 extern void DbeExtensionInit(void);
 #endif

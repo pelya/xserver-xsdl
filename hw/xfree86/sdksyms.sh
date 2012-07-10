@@ -241,9 +241,9 @@ cat > sdksyms.c << EOF
 
 
 /* dbe/Makefile.am -- module */
-/*
+#ifdef DBE
 #include "dbestruct.h"
- */
+#endif
 
 
 /* exa/Makefile.am -- module */
