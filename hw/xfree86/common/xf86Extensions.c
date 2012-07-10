@@ -37,6 +37,10 @@
 #include "xf86Opt.h"
 #include "optionstr.h"
 
+#ifdef XSELINUX
+#include "xselinux.h"
+#endif
+
 /*
  * DDX-specific extensions.
  */
@@ -67,6 +71,24 @@ load_extension_config(void)
             if (EnableDisableExtension(key + 4, FALSE))
                 xf86MarkOptionUsed(opt);
         }
+
+#ifdef XSELINUX
+        if ((opt = xf86FindOption(modp->load_opt,
+                                  "SELinux mode disabled"))) {
+            xf86MarkOptionUsed(opt);
+            selinuxEnforcingState = SELINUX_MODE_DISABLED;
+        }
+        if ((opt = xf86FindOption(modp->load_opt,
+                                  "SELinux mode permissive"))) {
+            xf86MarkOptionUsed(opt);
+            selinuxEnforcingState = SELINUX_MODE_PERMISSIVE;
+        }
+        if ((opt = xf86FindOption(modp->load_opt,
+                                  "SELinux mode enforcing"))) {
+            xf86MarkOptionUsed(opt);
+            selinuxEnforcingState = SELINUX_MODE_ENFORCING;
+        }
+#endif
     }
 }
 

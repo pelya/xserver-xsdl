@@ -158,7 +158,7 @@ extern _X_EXPORT void AssignTypeAndName(DeviceIntPtr dev,
 #include <X11/extensions/XKB.h>
 extern void XkbExtensionInit(void);
 
-#if defined(XSELINUX) && !defined(XorgLoader)
+#if defined(XSELINUX)
 #include "xselinux.h"
 extern Bool noSELinuxExtension;
 extern void SELinuxExtensionInit(void);

@@ -416,6 +416,9 @@ static ExtensionModule staticExtensions[] = {
     {XvExtensionInit, XvName, &noXvExtension, NULL},
     {XvMCExtensionInit, XvMCName, &noXvExtension, NULL},
 #endif
+#ifdef XSELINUX
+    {SELinuxExtensionInit, SELINUX_EXTENSION_NAME, &noSELinuxExtension, NULL},
+#endif
 };
 
  /*ARGSUSED*/ void

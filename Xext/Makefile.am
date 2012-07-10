@@ -30,6 +30,7 @@ BUILTIN_SRCS =			\
 	syncsrv.h		\
 	xcmisc.c		\
 	xtest.c
+BUILTIN_LIBS =
 
 # Sources always included in libXextmodule.la & libXext.la. That's right, zero.
 MODULE_SRCS =
@@ -84,8 +85,8 @@ endif
 # requires X-ACE extension
 XSELINUX_SRCS = xselinux_ext.c xselinux_hooks.c xselinux_label.c xselinux.h xselinuxint.h
 if XSELINUX
-MODULE_SRCS += $(XSELINUX_SRCS)
-MODULE_LIBS += $(SELINUX_LIBS)
+BUILTIN_SRCS += $(XSELINUX_SRCS)
+BUILTIN_LIBS += $(SELINUX_LIBS)
 endif
 
 # Security extension: multi-level security to protect clients from each other
@@ -109,10 +110,11 @@ endif
 # Now take all of the above, mix well, bake for 10 minutes and get libXext*.la
 
 libXext_la_SOURCES =		$(BUILTIN_SRCS) $(MODULE_SRCS)
-libXext_la_LIBADD =		$(MODULE_LIBS)
+libXext_la_LIBADD =		$(BUILTIN_LIBS) $(MODULE_LIBS)
 
 if XORG
 libXextbuiltin_la_SOURCES =	$(BUILTIN_SRCS)
+libXextbuiltin_la_LIBADD = 	$(BUILTIN_LIBS)
 
 libXextmodule_la_SOURCES =	$(MODULE_SRCS)
 libXextmodule_la_LIBADD =	$(MODULE_LIBS)
