@@ -172,15 +172,16 @@ static ExtensionToggle ExtensionToggleList[] = {
 #ifdef XV
     {"XVideo", &noXvExtension},
 #endif
-    {NULL, NULL}
 };
 
 Bool
 EnableDisableExtension(const char *name, Bool enable)
 {
-    ExtensionToggle *ext = &ExtensionToggleList[0];
+    ExtensionToggle *ext;
+    int i;
 
-    for (ext = &ExtensionToggleList[0]; ext->name != NULL; ext++) {
+    for (i = 0; i < ARRAY_SIZE(ExtensionToggleList); i++) {
+        ext = &ExtensionToggleList[i];
         if (strcmp(name, ext->name) == 0) {
             if (ext->disablePtr != NULL) {
                 *ext->disablePtr = !enable;
@@ -396,7 +397,6 @@ static ExtensionModule staticExtensions[] = {
 #ifdef DAMAGE
     {DamageExtensionInit, "DAMAGE", &noDamageExtension, NULL},
 #endif
-    {NULL, NULL, NULL, NULL, NULL}
 };
 
  /*ARGSUSED*/ void
@@ -408,7 +408,7 @@ InitExtensions(int argc, char *argv[])
 
     if (!listInitialised) {
         /* Add built-in extensions to the list. */
-        for (i = 0; staticExtensions[i].name; i++)
+        for (i = 0; i < ARRAY_SIZE(staticExtensions); i++)
             LoadExtension(&staticExtensions[i], TRUE);
 
         /* Sort the extensions according the init dependencies. */
