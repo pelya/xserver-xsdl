@@ -284,11 +284,6 @@ InitExtensions(int argc, char *argv[])
         PanoramiXExtensionInit();
 #endif
 
-#ifdef INXQUARTZ
-    if (!noPseudoramiXExtension)
-        PseudoramiXExtensionInit();
-#endif
-
 #ifdef XFIXES
     /* must be before Render to layer DisplayCursor correctly */
     if (!noXFixesExtension)
