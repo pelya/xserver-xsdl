@@ -438,8 +438,9 @@ SProcIDispatch(ClientPtr client)
 
 static void
 SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
-                                        /* All we look at is the type field */
-{                               /* This is common to all replies    */
+{
+    /* All we look at is the type field */
+    /* This is common to all replies    */
     if (rep->RepType == X_GetExtensionVersion)
         SRepXGetExtensionVersion(client, len,
                                  (xGetExtensionVersionReply *) rep);

@@ -630,7 +630,7 @@ ProcShmGetImage(ClientPtr client)
         return rc;
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
     if (pDraw->type == DRAWABLE_WINDOW) {
-        if (                    /* check for being viewable */
+        if (   /* check for being viewable */
                !((WindowPtr) pDraw)->realized ||
                /* check for being on screen */
                pDraw->x + stuff->x < 0 ||

@@ -262,8 +262,10 @@ SendXF86VidModeNotify(ScreenPtr pScreen, int state, Bool forced)
         ev.kind = kind;
         ev.forced = forced;
         WriteEventsToClient(pEv->client, 1, (xEvent *) &ev);
-}} static void
+    }
+}
 
+static void
 SXF86VidModeNotifyEvent(xXF86VidModeNotifyEvent * from,
                         xXF86VidModeNotifyEvent * to)
 {

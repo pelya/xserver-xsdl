@@ -698,9 +698,10 @@ ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
 }
 
 static void
-CheckPhysLimits(DeviceIntPtr pDev, CursorPtr cursor, Bool generateEvents, Bool confineToScreen, /* unused if PanoramiX on */
-                ScreenPtr pScreen)
-{                               /* unused if PanoramiX on */
+CheckPhysLimits(DeviceIntPtr pDev, CursorPtr cursor, Bool generateEvents,
+                Bool confineToScreen, /* unused if PanoramiX on */
+                ScreenPtr pScreen)    /* unused if PanoramiX on */
+{
     HotSpot new;
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 

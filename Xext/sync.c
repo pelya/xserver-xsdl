@@ -444,7 +444,8 @@ SyncSendAlarmNotifyEvents(SyncAlarm * pAlarm)
         ane.counter_value_hi = XSyncValueHigh32(pCounter->value);
         ane.counter_value_lo = XSyncValueLow32(pCounter->value);
     }
-    else {                      /* XXX what else can we do if there's no counter? */
+    else {
+        /* XXX what else can we do if there's no counter? */
         ane.counter_value_hi = ane.counter_value_lo = 0;
     }
 
@@ -1779,10 +1780,10 @@ ProcSyncQueryAlarm(ClientPtr client)
     pTrigger = &pAlarm->trigger;
     rep.counter = (pTrigger->pSync) ? pTrigger->pSync->id : None;
 
-#if 0                           /* XXX unclear what to do, depends on whether relative value-types
-                                 * are "consumed" immediately and are considered absolute from then
-                                 * on.
-                                 */
+#if 0  /* XXX unclear what to do, depends on whether relative value-types
+        * are "consumed" immediately and are considered absolute from then
+        * on.
+        */
     rep.value_type = pTrigger->value_type;
     rep.wait_value_hi = XSyncValueHigh32(pTrigger->wait_value);
     rep.wait_value_lo = XSyncValueLow32(pTrigger->wait_value);
