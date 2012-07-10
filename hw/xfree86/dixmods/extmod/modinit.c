@@ -47,14 +47,6 @@ static ExtensionModule extensionModules[] = {
      NULL,
      NULL},
 #endif
-#ifdef XFreeXDGA
-    {
-     XFree86DGAExtensionInit,
-     XF86DGANAME,
-     &noXFree86DGAExtension,
-     XFree86DGARegister,
-     NULL},
-#endif
 };
 
 static XF86ModuleVersionInfo VersRec = {

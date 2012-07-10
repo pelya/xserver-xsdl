@@ -41,10 +41,23 @@
 #include "xselinux.h"
 #endif
 
+#ifdef XFreeXDGA
+#include <X11/extensions/xf86dgaproto.h>
+#endif
+
 /*
  * DDX-specific extensions.
  */
 static ExtensionModule extensionModules[] = {
+#ifdef XFreeXDGA
+    {
+	XFree86DGAExtensionInit,
+	XF86DGANAME,
+	&noXFree86DGAExtension,
+	XFree86DGARegister,
+	NULL
+    },
+#endif
 };
 
 static void
@@ -52,6 +65,7 @@ load_extension_config(void)
 {
     XF86ConfModulePtr mod_con = xf86configptr->conf_modules;
     XF86LoadPtr modp;
+    int i;
 
     /* Only the best. */
     if (!mod_con)
