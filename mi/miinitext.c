@@ -329,62 +329,79 @@ InitExtensions(int argc, char *argv[])
     if (!noGEExtension)
         GEExtensionInit();
 
-#ifdef PANORAMIX
-    if (!noPanoramiXExtension)
-        PanoramiXExtensionInit();
-#endif
-#ifdef INXQUARTZ
-    if (!noPseudoramiXExtension)
-        PseudoramiXExtensionInit();
-#endif
     ShapeExtensionInit();
+
 #ifdef MITSHM
     if (!noMITShmExtension)
         ShmExtensionInit();
 #endif
+
     XInputExtensionInit();
+
 #ifdef XTEST
     if (!noTestExtensions)
         XTestExtensionInit();
 #endif
+
     BigReqExtensionInit();
-#if defined(SCREENSAVER)
-    if (!noScreenSaverExtension)
-        ScreenSaverExtensionInit();
-#endif
-#ifdef XV
-    if (!noXvExtension) {
-        XvExtensionInit();
-        XvMCExtensionInit();
-    }
-#endif
     SyncExtensionInit();
     XkbExtensionInit();
     XCMiscExtensionInit();
-#ifdef XRECORD
-    if (!noTestExtensions)
-        RecordExtensionInit();
-#endif
-#ifdef DBE
-    if (!noDbeExtension)
-        DbeExtensionInit();
-#endif
+
 #ifdef XCSECURITY
     if (!noSecurityExtension)
         SecurityExtensionInit();
 #endif
-#ifdef XSELINUX
-    if (!noSELinuxExtension)
-        SELinuxExtensionInit();
+
+#ifdef PANORAMIX
+    if (!noPanoramiXExtension)
+        PanoramiXExtensionInit();
 #endif
-#if defined(DPMSExtension) && !defined(NO_HW_ONLY_EXTS)
-    if (!noDPMSExtension)
-        DPMSExtensionInit();
+
+#ifdef INXQUARTZ
+    if (!noPseudoramiXExtension)
+        PseudoramiXExtensionInit();
 #endif
+
+#ifdef XFIXES
+    /* must be before Render to layer DisplayCursor correctly */
+    if (!noXFixesExtension)
+        XFixesExtensionInit();
+#endif
+
 #ifdef XF86BIGFONT
     if (!noXFree86BigfontExtension)
         XFree86BigfontExtensionInit();
 #endif
+
+    if (!noRenderExtension)
+        RenderExtensionInit();
+
+#ifdef RANDR
+    if (!noRRExtension)
+        RRExtensionInit();
+#endif
+
+#ifdef COMPOSITE
+    if (!noCompositeExtension)
+        CompositeExtensionInit();
+#endif
+
+#ifdef DAMAGE
+    if (!noDamageExtension)
+        DamageExtensionInit();
+#endif
+
+#ifdef XSELINUX
+    if (!noSELinuxExtension)
+        SELinuxExtensionInit();
+#endif
+
+#if defined(SCREENSAVER)
+    if (!noScreenSaverExtension)
+        ScreenSaverExtensionInit();
+#endif
+
 #if !defined(NO_HW_ONLY_EXTS)
 #if defined(XF86VIDMODE)
     if (!noXFree86VidModeExtension)
@@ -394,36 +411,41 @@ InitExtensions(int argc, char *argv[])
     if (!noXFree86DGAExtension)
         XFree86DGAExtensionInit();
 #endif
-#ifdef XF86DRI
-    if (!noXFree86DRIExtension)
-        XFree86DRIExtensionInit();
+#ifdef DPMSExtension
+    if (!noDPMSExtension)
+        DPMSExtensionInit();
 #endif
 #endif
-#ifdef XFIXES
-    /* must be before Render to layer DisplayCursor correctly */
-    if (!noXFixesExtension)
-        XFixesExtensionInit();
+
+#ifdef XV
+    if (!noXvExtension) {
+        XvExtensionInit();
+        XvMCExtensionInit();
+    }
 #endif
-    if (!noRenderExtension)
-        RenderExtensionInit();
-#ifdef RANDR
-    if (!noRRExtension)
-        RRExtensionInit();
-#endif
+
 #ifdef RES
     if (!noResExtension)
         ResExtensionInit();
 #endif
+
+#ifdef XRECORD
+    if (!noTestExtensions)
+        RecordExtensionInit();
+#endif
+
+#ifdef DBE
+    if (!noDbeExtension)
+        DbeExtensionInit();
+#endif
+
+#if !defined(NO_HW_ONLY_EXTS) && defined(XF86DRI)
+    if (!noXFree86DRIExtension)
+        XFree86DRIExtensionInit();
+#endif
+
 #ifdef DMXEXT
     DMXExtensionInit();         /* server-specific extension, cannot be disabled */
-#endif
-#ifdef COMPOSITE
-    if (!noCompositeExtension)
-        CompositeExtensionInit();
-#endif
-#ifdef DAMAGE
-    if (!noDamageExtension)
-        DamageExtensionInit();
 #endif
 
 #ifdef GLXEXT
