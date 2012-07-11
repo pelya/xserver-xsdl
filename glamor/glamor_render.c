@@ -1869,13 +1869,13 @@ fail:
 					      width, height, access);			\
 	if (sub_ ##p ##_pixmap != NULL) {						\
 		saved_ ##p ##_drawable = p->pDrawable;					\
-		p->pDrawable = &sub_ ##p ##_pixmap->drawable;				\
 		saved_ ##p ##_x = x_ ##p;						\
 		saved_ ##p ##_y = y_ ##p;						\
 		if (p->pCompositeClip)							\
 			pixman_region_translate (p->pCompositeClip,			\
 						 -p->pDrawable->x - x_ ##p,		\
 						 -p->pDrawable->y - y_ ##p);		\
+		p->pDrawable = &sub_ ##p ##_pixmap->drawable;				\
 		x_ ##p = 0;								\
 		y_ ##p = 0;								\
 	} } while(0)
@@ -1910,11 +1910,11 @@ full_fallback:
 	if (sub_ ##p ##_pixmap != NULL) {					\
 		x_ ##p = saved_ ##p ##_x;					\
 		y_ ##p = saved_ ##p ##_y;					\
+		p->pDrawable = saved_ ##p ##_drawable;				\
 		if (p->pCompositeClip)						\
 			pixman_region_translate (p->pCompositeClip,		\
 						 p->pDrawable->x + x_ ##p,	\
 						 p->pDrawable->y + y_ ##p);	\
-		p->pDrawable = saved_ ##p ##_drawable;				\
 		glamor_put_sub_pixmap(sub_ ##p ##_pixmap, p ##_pixmap,		\
 				      x_ ##p + p ##_x_off + p->pDrawable->x,	\
 				      y_ ##p + p ##_y_off + p->pDrawable->y,	\
