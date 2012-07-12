@@ -487,7 +487,7 @@ dri2_convert_glx_attribs(__GLXDRIscreen *screen, unsigned num_attribs,
      */
     if (*api == __DRI_API_OPENGL_CORE
         && (*major_ver < 3 || (*major_ver < 3 && *minor_ver < 2))) {
-        *api == __DRI_API_OPENGL;
+        *api = __DRI_API_OPENGL;
     }
 
     *error = Success;
