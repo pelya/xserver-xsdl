@@ -106,6 +106,7 @@ struct __GLXDRIdrawable {
     int height;
     __DRIbuffer buffers[MAX_DRAWABLE_BUFFERS];
     int count;
+    XID dri2_id;
 };
 
 static void
@@ -113,6 +114,8 @@ __glXDRIdrawableDestroy(__GLXdrawable * drawable)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
     const __DRIcoreExtension *core = private->screen->core;
+
+    FreeResource(private->dri2_id, FALSE);
 
     (*core->destroyDrawable) (private->driDrawable);
 
@@ -670,8 +673,9 @@ __glXDRIscreenCreateDrawable(ClientPtr client,
     private->base.waitGL = __glXDRIdrawableWaitGL;
     private->base.waitX = __glXDRIdrawableWaitX;
 
-    if (DRI2CreateDrawable(client, pDraw, drawId,
-                           __glXDRIinvalidateBuffers, private)) {
+    if (DRI2CreateDrawable2(client, pDraw, drawId,
+                            __glXDRIinvalidateBuffers, private,
+                            &private->dri2_id)) {
         free(private);
         return NULL;
     }
