@@ -393,7 +393,8 @@ __glXDRIscreenDestroy(__GLXscreen * baseScreen)
 }
 
 static Bool
-dri2_convert_glx_attribs(unsigned num_attribs, const uint32_t *attribs,
+dri2_convert_glx_attribs(__GLXDRIscreen *screen, unsigned num_attribs,
+                         const uint32_t *attribs,
                          unsigned *major_ver, unsigned *minor_ver,
                          uint32_t *flags, int *api, int *reset, unsigned *error)
 {
@@ -516,7 +517,7 @@ create_driver_context(__GLXDRIcontext * context,
         int api;
 
         if (num_attribs != 0) {
-            if (!dri2_convert_glx_attribs(num_attribs, attribs,
+            if (!dri2_convert_glx_attribs(screen, num_attribs, attribs,
                                           &major_ver, &minor_ver,
                                           &flags, &api, &reset,
                                           (unsigned *) error))
