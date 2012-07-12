@@ -84,6 +84,8 @@ static int ProcRRXineramaIsActive(ClientPtr client);
 static int ProcRRXineramaQueryScreens(ClientPtr client);
 static int SProcRRXineramaDispatch(ClientPtr client);
 
+Bool noRRXineramaExtension = FALSE;
+
 /* Proc */
 
 int
@@ -487,6 +489,9 @@ RRXineramaExtensionInit(void)
     if (!noPanoramiXExtension)
         return;
 #endif
+
+    if (noRRXineramaExtension)
+      return;
 
     /*
      * Xinerama isn't capable enough to have multiple protocol screens each
