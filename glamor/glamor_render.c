@@ -725,34 +725,34 @@ glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch;
 	int vert_size;
-	Bool need_new_buffer = FALSE;
 
-	glamor_priv->vbo_offset = 0;
 	glamor_priv->render_nr_verts = 0;
-	vert_size = n_verts * sizeof(float) * 2;
-
-	if (glamor_priv->vbo_size < vert_size) {
-		glamor_priv->vbo_size = vert_size;
-		need_new_buffer = TRUE;
-	}
-
 	glamor_priv->vb_stride = 2 * sizeof(float);
 	if (glamor_priv->has_source_coords)
 		glamor_priv->vb_stride += 2 * sizeof(float);
 	if (glamor_priv->has_mask_coords)
 		glamor_priv->vb_stride += 2 * sizeof(float);
 
+	vert_size = n_verts * glamor_priv->vb_stride;
+
 	dispatch = glamor_get_dispatch(glamor_priv);
 	dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-		if (need_new_buffer)
+		if (glamor_priv->vbo_size < (glamor_priv->vbo_offset + vert_size)) {
+			glamor_priv->vbo_size = GLAMOR_COMPOSITE_VBO_VERT_CNT *
+				glamor_priv->vb_stride;
+			glamor_priv->vbo_offset = 0;
 			dispatch->glBufferData(GL_ARRAY_BUFFER,
-					       vert_size,
-					       NULL, GL_DYNAMIC_DRAW);
-		glamor_priv->vb = dispatch->glMapBufferRange(GL_ARRAY_BUFFER, 0,
-						vert_size,
-						GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+					       glamor_priv->vbo_size,
+					       NULL, GL_STREAM_DRAW);
+		}
+
+		glamor_priv->vb = dispatch->glMapBufferRange(GL_ARRAY_BUFFER,
+							     glamor_priv->vbo_offset,
+							     vert_size,
+							     GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 		assert(glamor_priv->vb != NULL);
+		glamor_priv->vb -= glamor_priv->vbo_offset;
 	}
 	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
 
