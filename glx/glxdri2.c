@@ -538,7 +538,7 @@ create_driver_context(__GLXDRIcontext * context,
             }
 
 #ifdef __DRI2_ROBUSTNESS
-            if (reset != __DRI_CTX_NO_RESET_NOTIFICATION) {
+            if (reset != __DRI_CTX_RESET_NO_NOTIFICATION) {
                 ctx_attribs[num_ctx_attribs++] =
                     __DRI_CTX_ATTRIB_RESET_NOTIFICATION;
                 ctx_attribs[num_ctx_attribs++] = reset;
