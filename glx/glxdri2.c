@@ -521,7 +521,7 @@ create_driver_context(__GLXDRIcontext * context,
                                           &major_ver, &minor_ver,
                                           &flags, &api, &reset,
                                           (unsigned *) error))
-                return NULL;
+                return;
 
             ctx_attribs[num_ctx_attribs++] = __DRI_CTX_ATTRIB_MAJOR_VERSION;
             ctx_attribs[num_ctx_attribs++] = major_ver;
