@@ -612,7 +612,7 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha, int 
 		return 0;
 
 	if (!(no_alpha
-	      || (revert != REVERT_NONE)
+	      || (revert == REVERT_NORMAL)
 	      || (swap_rb != SWAP_NONE_UPLOADING)
 	      || !glamor_priv->yInverted)) {
 		/* We don't need a fbo, a simple texture uploading should work. */

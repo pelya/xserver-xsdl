@@ -57,5 +57,8 @@
 #define GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE 0x8D56
 
 #define GL_PACK_INVERT_MESA               0x8758
+#define GL_MAP_UNSYNCHRONIZED_BIT         0x0020
+#define GL_MAP_READ_BIT                   0x0001
+#define GL_MAP_WRITE_BIT                  0x0002
 
 #endif

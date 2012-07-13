@@ -1014,10 +1014,8 @@ glamor_composite_rectangles(CARD8	 op,
  * this will increase performance obviously. */
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
-#ifndef GLAMOR_GLES2
 #define GLAMOR_GRADIENT_SHADER
 //#define GLAMOR_TRAPEZOID_SHADER
-#endif
 #define GLAMOR_TEXTURED_LARGE_PIXMAP 1
 #define WALKAROUND_LARGE_TEXTURE_MAP
 #if 0

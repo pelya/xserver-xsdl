@@ -753,7 +753,9 @@ glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
 							     GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 		assert(glamor_priv->vb != NULL);
 		glamor_priv->vb -= glamor_priv->vbo_offset;
-	}
+	} else
+		glamor_priv->vbo_offset = 0;
+
 	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
 
 	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
