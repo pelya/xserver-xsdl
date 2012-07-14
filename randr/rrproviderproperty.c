@@ -394,10 +394,12 @@ ProcRRListProviderProperties(ClientPtr client)
         if (!(pAtoms = (Atom *) malloc(numProps * sizeof(Atom))))
             return BadAlloc;
 
-    rep.type = X_Reply;
-    rep.length = bytes_to_int32(numProps * sizeof(Atom));
-    rep.sequenceNumber = client->sequence;
-    rep.nAtoms = numProps;
+    rep = (xRRListProviderPropertiesReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = bytes_to_int32(numProps * sizeof(Atom)),
+        .nAtoms = numProps
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -438,12 +440,14 @@ ProcRRQueryProviderProperty(ClientPtr client)
         if (!extra)
             return BadAlloc;
     }
-    rep.type = X_Reply;
-    rep.length = prop->num_valid;
-    rep.sequenceNumber = client->sequence;
-    rep.pending = prop->is_pending;
-    rep.range = prop->range;
-    rep.immutable = prop->immutable;
+    rep = (xRRQueryProviderPropertyReply) {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence,
+        .length = prop->num_valid,
+        .pending = prop->is_pending,
+        .range = prop->range,
+        .immutable = prop->immutable
+    };
     if (client->swapped) {
         swaps(&rep.sequenceNumber);
         swapl(&rep.length);
@@ -568,7 +572,10 @@ ProcRRGetProviderProperty(ClientPtr client)
     RRPropertyValuePtr prop_value;
     unsigned long n, len, ind;
     RRProviderPtr provider;
-    xRRGetProviderPropertyReply reply;
+    xRRGetProviderPropertyReply reply = {
+        .type = X_Reply,
+        .sequenceNumber = client->sequence
+    };
     char *extra = NULL;
 
     REQUEST_SIZE_MATCH(xRRGetProviderPropertyReq);
@@ -594,8 +601,6 @@ ProcRRGetProviderProperty(ClientPtr client)
         if (prop->propertyName == stuff->property)
             break;
 
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
     if (!prop) {
         reply.nItems = 0;
         reply.length = 0;
