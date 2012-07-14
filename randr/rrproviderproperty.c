@@ -65,14 +65,14 @@ RRDestroyProviderProperty(RRPropertyPtr prop)
 static void
 RRDeleteProperty(RRProviderRec * provider, RRPropertyRec * prop)
 {
-    xRRProviderPropertyNotifyEvent event;
-
-    event.type = RREventBase + RRNotify;
-    event.subCode = RRNotify_ProviderProperty;
-    event.provider = provider->id;
-    event.state = PropertyDelete;
-    event.atom = prop->propertyName;
-    event.timestamp = currentTime.milliseconds;
+    xRRProviderPropertyNotifyEvent event = {
+        .type = RREventBase + RRNotify,
+        .subCode = RRNotify_ProviderProperty,
+        .provider = provider->id,
+        .state = PropertyDelete,
+        .atom = prop->propertyName,
+        .timestamp = currentTime.milliseconds
+    };
 
     RRDeliverPropertyEvent(provider->pScreen, (xEvent *) &event);
 
@@ -138,7 +138,6 @@ RRChangeProviderProperty(RRProviderPtr provider, Atom property, Atom type,
                        pointer value, Bool sendevent, Bool pending)
 {
     RRPropertyPtr prop;
-    xRRProviderPropertyNotifyEvent event;
     rrScrPrivPtr pScrPriv = rrGetScrPriv(provider->pScreen);
     int size_in_bytes;
     int total_size;
@@ -237,12 +236,14 @@ RRChangeProviderProperty(RRProviderPtr provider, Atom property, Atom type,
         provider->pendingProperties = TRUE;
 
     if (sendevent) {
-        event.type = RREventBase + RRNotify;
-        event.subCode = RRNotify_ProviderProperty;
-        event.provider = provider->id;
-        event.state = PropertyNewValue;
-        event.atom = prop->propertyName;
-        event.timestamp = currentTime.milliseconds;
+        xRRProviderPropertyNotifyEvent event = {
+            .type = RREventBase + RRNotify,
+            .subCode = RRNotify_ProviderProperty,
+            .provider = provider->id,
+            .state = PropertyNewValue,
+            .atom = prop->propertyName,
+            .timestamp = currentTime.milliseconds
+        };
         RRDeliverPropertyEvent(provider->pScreen, (xEvent *) &event);
     }
     return Success;
@@ -677,14 +678,14 @@ ProcRRGetProviderProperty(ClientPtr client)
     reply.propertyType = prop_value->type;
 
     if (stuff->delete && (reply.bytesAfter == 0)) {
-        xRRProviderPropertyNotifyEvent event;
-
-        event.type = RREventBase + RRNotify;
-        event.subCode = RRNotify_ProviderProperty;
-        event.provider = provider->id;
-        event.state = PropertyDelete;
-        event.atom = prop->propertyName;
-        event.timestamp = currentTime.milliseconds;
+        xRRProviderPropertyNotifyEvent event = {
+            .type = RREventBase + RRNotify,
+            .subCode = RRNotify_ProviderProperty,
+            .provider = provider->id,
+            .state = PropertyDelete,
+            .atom = prop->propertyName,
+            .timestamp = currentTime.milliseconds
+        };
         RRDeliverPropertyEvent(provider->pScreen, (xEvent *) &event);
     }
 
