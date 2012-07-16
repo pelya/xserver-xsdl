@@ -59,6 +59,7 @@
 #include <EGL/eglext.h>
 
 #include "glamor.h"
+#include "compat-api.h"
 #include "glamor_gl_dispatch.h"
 #ifdef GLX_USE_SHARED_DISPATCH
 #include "glapi.h"
@@ -365,7 +366,7 @@ glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap)
 }
 
 static Bool
-glamor_egl_close_screen(int idx, ScreenPtr screen)
+glamor_egl_close_screen(CLOSE_SCREEN_ARGS_DECL)
 {
 	ScrnInfoPtr scrn;
 	struct glamor_egl_screen_private *glamor_egl;
@@ -391,7 +392,7 @@ glamor_egl_close_screen(int idx, ScreenPtr screen)
 
 	screen->CloseScreen = glamor_egl->saved_close_screen;
 
-	return screen->CloseScreen(idx, screen);
+	return screen->CloseScreen(CLOSE_SCREEN_ARGS);
 }
 
 static Bool
@@ -430,10 +431,15 @@ glamor_egl_screen_init(ScreenPtr screen)
 }
 
 static void
-glamor_egl_free_screen(int scrnIndex, int flags)
+glamor_egl_free_screen(FREE_SCREEN_ARGS_DECL)
 {
-	ScrnInfoPtr scrn = xf86Screens[scrnIndex];
+	ScrnInfoPtr scrn;
 	struct glamor_egl_screen_private *glamor_egl;
+#ifndef XF86_SCRN_INTERFACE
+	scrn = xf86Screens[arg];
+#else
+	scrn = arg;
+#endif
 
 	glamor_egl = glamor_egl_get_screen_private(scrn);
 	if (glamor_egl != NULL) {
@@ -447,7 +453,7 @@ glamor_egl_free_screen(int scrnIndex, int flags)
 #endif
 		scrn->FreeScreen = glamor_egl->saved_free_screen;
 		free(glamor_egl);
-		scrn->FreeScreen(scrnIndex, flags);
+		scrn->FreeScreen(FREE_SCREEN_ARGS);
 	}
 }
 
