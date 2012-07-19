@@ -629,6 +629,25 @@
 	(vertices)[7] = (vertices)[5];				\
     } while(0)
 
+#define glamor_set_tcoords_ext(width, height, x1, y1, x2, y2,	\
+			       yInverted, vertices, stride)	\
+    do {							\
+	(vertices)[0] = (x1);					\
+	(vertices)[1*stride] = (x2);				\
+	(vertices)[2*stride] = (vertices)[1*stride];		\
+	(vertices)[3*stride] = (vertices)[0];			\
+	if (likely(yInverted)) {				\
+	    (vertices)[1] = (y1);				\
+	    (vertices)[2*stride + 1] = (y2);			\
+	}							\
+	else {							\
+	    (vertices)[1] = height - (y2);			\
+	    (vertices)[2*stride + 1] = height - (y1);		\
+	}							\
+	(vertices)[1*stride + 1] = (vertices)[1];		\
+	(vertices)[3*stride + 1] = (vertices)[2*stride + 1];	\
+    } while(0)
+
 #define glamor_set_normalize_one_vcoord(xscale, yscale, x, y,		\
 					yInverted, vertices)		\
     do {								\
@@ -712,6 +731,16 @@
 				     x1, y1, x2, y2,			\
                                      yInverted, vertices, 2);		\
   } while(0)
+
+#define glamor_set_const_ext(params, nparam, vertices, nverts, stride)	\
+    do {								\
+	int i = 0, j = 0;						\
+	for(; i < nverts; i++) {					\
+	    for(j = 0; j < nparam; j++) {				\
+		vertices[stride*i + j] = params[j];			\
+	    }								\
+	}								\
+    } while(0)
 
 #define glamor_set_normalize_vcoords_tri_strip(xscale, yscale,		\
 					       x1, y1, x2, y2,		\

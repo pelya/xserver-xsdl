@@ -38,6 +38,10 @@
 
 #ifdef GLAMOR_TRAPEZOID_SHADER
 
+#define GLAMOR_VERTEX_TOP_BOTTOM  (GLAMOR_VERTEX_SOURCE + 1)
+#define GLAMOR_VERTEX_LEFT_PARAM  (GLAMOR_VERTEX_SOURCE + 2)
+#define GLAMOR_VERTEX_RIGHT_PARAM (GLAMOR_VERTEX_SOURCE + 3)
+
 #define DEBUG_CLIP_VTX 0
 
 #define POINT_INSIDE_CLIP_RECT(point, rect)	\
@@ -112,10 +116,10 @@ point_inside_trapezoid(int point[2], xTrapezoid * trap, xFixed cut_y)
 		ret = FALSE;
 		if (DEBUG_CLIP_VTX) {
 			ErrorF("Out of Trap top, point[1] = %d(0x%x)), "
-			     "top = %d(0x%x)\n",
-			     (unsigned int)xFixedToInt(point[1]), point[1],
-			     (unsigned int)xFixedToInt(trap->top),
-			     (unsigned int)trap->top);
+			       "top = %d(0x%x)\n",
+			       (unsigned int)xFixedToInt(point[1]), point[1],
+			       (unsigned int)xFixedToInt(trap->top),
+			       (unsigned int)trap->top);
 		}
 
 		return ret;
@@ -556,6 +560,99 @@ _glamor_clip_trapezoid_vertex(xTrapezoid * trap, BoxPtr pbox,
 	return TRUE;
 }
 
+static void
+glamor_setup_composite_vbo_for_trapezoid(ScreenPtr screen, int n_verts)
+{
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(screen);
+	glamor_gl_dispatch *dispatch;
+	int stride;
+	int vert_size;
+
+	glamor_priv->render_nr_verts = 0;
+
+	/* For GLAMOR_VERTEX_POS */
+	glamor_priv->vb_stride = 2 * sizeof(float);
+
+	/* For GLAMOR_GLAMOR_VERTEX_SOURCE */
+	glamor_priv->vb_stride += 2 * sizeof(float);
+
+	/* For GLAMOR_VERTEX_TOP_BOTTOM */
+	glamor_priv->vb_stride += 2 * sizeof(float);
+
+	/* For GLAMOR_VERTEX_LEFT_PARAM */
+	glamor_priv->vb_stride += 4 * sizeof(float);
+
+	/* For GLAMOR_VERTEX_RIGHT_PARAM */
+	glamor_priv->vb_stride += 4 * sizeof(float);
+
+	vert_size = n_verts * glamor_priv->vb_stride;
+
+	dispatch = glamor_get_dispatch(glamor_priv);
+
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_TOP_BOTTOM);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_LEFT_PARAM);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_RIGHT_PARAM);
+
+	dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
+	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+		if (glamor_priv->vbo_size < (glamor_priv->vbo_offset + vert_size)) {
+			glamor_priv->vbo_size = GLAMOR_COMPOSITE_VBO_VERT_CNT *
+				glamor_priv->vb_stride;
+			glamor_priv->vbo_offset = 0;
+			dispatch->glBufferData(GL_ARRAY_BUFFER,
+					       glamor_priv->vbo_size,
+					       NULL, GL_STREAM_DRAW);
+		}
+
+		glamor_priv->vb = dispatch->glMapBufferRange(GL_ARRAY_BUFFER,
+		                                             glamor_priv->vbo_offset,
+		                                             vert_size,
+		                                             GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+
+		assert(glamor_priv->vb != NULL);
+		glamor_priv->vb -= glamor_priv->vbo_offset;
+	} else {
+		glamor_priv->vbo_offset = 0;
+	}
+
+	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
+
+	/* Set the vertex pointer. */
+	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
+	        GL_FALSE, glamor_priv->vb_stride,
+	        (void *) ((long)glamor_priv->vbo_offset));
+	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+	stride = 2;
+
+	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT,
+	        GL_FALSE, glamor_priv->vb_stride,
+	        (void *) ((long)glamor_priv->vbo_offset + stride * sizeof(float)));
+	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+	stride += 2;
+
+	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_TOP_BOTTOM, 2, GL_FLOAT,
+	        GL_FALSE, glamor_priv->vb_stride,
+	        (void *) ((long)glamor_priv->vbo_offset + stride * sizeof(float)));
+	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_TOP_BOTTOM);
+	stride += 2;
+
+	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_LEFT_PARAM, 4, GL_FLOAT,
+	        GL_FALSE, glamor_priv->vb_stride,
+	        (void *) ((long)glamor_priv->vbo_offset + stride * sizeof(float)));
+	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_LEFT_PARAM);
+	stride += 4;
+
+	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_RIGHT_PARAM, 4, GL_FLOAT,
+	        GL_FALSE, glamor_priv->vb_stride,
+	        (void *) ((long)glamor_priv->vbo_offset + stride * sizeof(float)));
+	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_RIGHT_PARAM);
+
+	glamor_put_dispatch(glamor_priv);
+}
+
 static Bool
 _glamor_trapezoids_with_shader(CARD8 op,
         PicturePtr src, PicturePtr dst,
@@ -565,6 +662,8 @@ _glamor_trapezoids_with_shader(CARD8 op,
 	ScreenPtr screen = dst->pDrawable->pScreen;
 	glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 	struct shader_key key;
+	glamor_composite_shader *shader = NULL;
+	struct blendinfo op_info;
 	PictFormatShort saved_source_format = 0;
 	PixmapPtr source_pixmap = NULL;
 	PixmapPtr dest_pixmap = NULL;
@@ -707,7 +806,7 @@ _glamor_trapezoids_with_shader(CARD8 op,
 		goto TRAPEZOID_RESET_GL;
 	}
 	glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
-	glamor_composite_set_shader_blend(dest_pixmap_priv, &key, shader, op_info);
+	glamor_composite_set_shader_blend(dest_pixmap_priv, &key, shader, &op_info);
 	glamor_priv->has_source_coords = key.source != SHADER_SOURCE_SOLID;
 	glamor_priv->has_mask_coords = (key.mask != SHADER_MASK_NONE &&
 	        key.mask != SHADER_MASK_SOLID);
@@ -888,13 +987,45 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
 	const char *trapezoid_vs =
 	    GLAMOR_DEFAULT_PRECISION
 	    "attribute vec4 v_position;\n"
-	    "attribute vec4 v_texcoord;\n"
+	    "attribute vec2 v_texcoord;\n"
+	    /* v_top_bottom, v_left_param and v_right_param contain the
+	       constant value for all the vertex of one rect. Using uniform
+	       is more suitable but we need to reset the uniform variables
+	       for every rect rendering and can not use the vbo, which causes
+	       performance loss. So we set these attributes to same value
+	       for every vertex of one rect and so it is also a constant in FS */
+	    "attribute vec2 v_top_bottom;\n"
+	    "attribute vec4 v_left_param;\n"
+	    "attribute vec4 v_right_param;\n"
+	    "\n"
 	    "varying vec2 source_texture;\n"
+	    "varying float trap_top;\n"
+	    "varying float trap_bottom;\n"
+	    "varying float trap_left_x;\n"
+	    "varying float trap_left_y;\n"
+	    "varying float trap_left_slope;\n"
+	    "varying float trap_left_vertical_f;\n"
+	    "varying float trap_right_x;\n"
+	    "varying float trap_right_y;\n"
+	    "varying float trap_right_slope;\n"
+	    "varying float trap_right_vertical_f;\n"
 	    "\n"
 	    "void main()\n"
 	    "{\n"
 	    "    gl_Position = v_position;\n"
 	    "    source_texture = v_texcoord.xy;\n"
+	    "    trap_top = v_top_bottom.x;\n"
+	    "    trap_bottom = v_top_bottom.y;\n"
+	    "    \n"
+	    "    trap_left_x = v_left_param.x;\n"
+	    "    trap_left_y = v_left_param.y;\n"
+	    "    trap_left_slope = v_left_param.z;\n"
+	    "    trap_left_vertical_f = v_left_param.w;\n"
+	    "    \n"
+	    "    trap_right_x = v_right_param.x;\n"
+	    "    trap_right_y = v_right_param.y;\n"
+	    "    trap_right_slope = v_right_param.z;\n"
+	    "    trap_right_vertical_f = v_right_param.w;\n"
 	    "}\n";
 
 	/*
@@ -925,18 +1056,20 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
 	const char *trapezoid_fs =
 	    GLAMOR_DEFAULT_PRECISION
 	    "varying vec2 source_texture;  \n"
-	    "uniform float x_per_pix;  \n"
-	    "uniform float y_per_pix;  \n"
-	    "uniform float trap_top;  \n"
-	    "uniform float trap_bottom;  \n"
-	    "uniform float trap_left_x;  \n"
-	    "uniform float trap_left_y;  \n"
-	    "uniform float trap_left_slope;  \n"
-	    "uniform int trap_left_vertical;  \n"
-	    "uniform float trap_right_x;  \n"
-	    "uniform float trap_right_y;  \n"
-	    "uniform float trap_right_slope;  \n"
-	    "uniform int trap_right_vertical;  \n"
+	    "varying float trap_top;  \n"
+	    "varying float trap_bottom;  \n"
+	    "varying float trap_left_x;  \n"
+	    "varying float trap_left_y;  \n"
+	    "varying float trap_left_slope;  \n"
+	    "varying float trap_left_vertical_f;  \n"
+	    "varying float trap_right_x;  \n"
+	    "varying float trap_right_y;  \n"
+	    "varying float trap_right_slope;  \n"
+	    "varying float trap_right_vertical_f;  \n"
+	    "float x_per_pix = 1.0;"
+	    "float y_per_pix = 1.0;"
+	    "bool trap_left_vertical = (abs(trap_left_vertical_f - 1.0) <= 0.0001);\n"
+	    "bool trap_right_vertical = (abs(trap_right_vertical_f - 1.0) <= 0.0001);\n"
 	    "\n"
 	    "float get_alpha_val() \n"
 	    "{  \n"
@@ -945,7 +1078,7 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
 	    "    float x_up_cut_right;  \n"
 	    "    float x_bottom_cut_right;  \n"
 	    "    \n"
-	    "    if(trap_left_vertical == 1) {  \n"
+	    "    if(trap_left_vertical == true) {  \n"
 	    "        x_up_cut_left = trap_left_x;  \n"
 	    "        x_bottom_cut_left = trap_left_x;  \n"
 	    "    } else {  \n"
@@ -957,7 +1090,7 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
 	    "              / trap_left_slope;  \n"
 	    "    }  \n"
 	    "    \n"
-	    "    if(trap_right_vertical == 1) {  \n"
+	    "    if(trap_right_vertical == true) {  \n"
 	    "        x_up_cut_right = trap_right_x;  \n"
 	    "        x_bottom_cut_right = trap_right_x;  \n"
 	    "    } else {  \n"
@@ -1002,12 +1135,12 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
 	    "        \n"
 	    "        percent = (bottom - up) / y_per_pix;  \n"
 	    "        \n"
-	    "	     if(trap_left_vertical == 1) {  \n"
+	    "	     if(trap_left_vertical == true) {  \n"
 	    "            if(trap_left_x > source_texture.x - x_per_pix/2.0 &&  \n"
 	    "                     trap_left_x < source_texture.x + x_per_pix/2.0)  \n"
 	    "                left = trap_left_x;  \n"
 	    "        }  \n"
-	    "	     if(trap_right_vertical == 1) {  \n"
+	    "	     if(trap_right_vertical == true) {  \n"
 	    "            if(trap_right_x > source_texture.x - x_per_pix/2.0 &&  \n"
 	    "                     trap_right_x < source_texture.x + x_per_pix/2.0)  \n"
 	    "                right = trap_right_x;  \n"
@@ -1016,10 +1149,10 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
 	    "            return 0.0;  \n"
 	    "        \n"
 	    "        percent = percent * ((right - left)/x_per_pix);  \n"
-	    "        if(trap_left_vertical == 1 && trap_right_vertical == 1)  \n"
+	    "        if(trap_left_vertical == true && trap_right_vertical == true)  \n"
 	    "            return percent;  \n"
 	    "        \n"
-	    "        if(trap_left_vertical != 1) {  \n"
+	    "        if(trap_left_vertical != true) {  \n"
 	    "            float area;  \n"
 	    //           the slope should never be 0.0 here
 	    "            float up_x = trap_left_x + (up - trap_left_y)/trap_left_slope;  \n"
@@ -1090,7 +1223,7 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
 	    "            }  \n"
 	    "        }  \n"
 	    "        \n"
-	    "        if(trap_right_vertical != 1) {  \n"
+	    "        if(trap_right_vertical != true) {  \n"
 	    "            float area;  \n"
 	    //           the slope should never be 0.0 here
 	    "            float up_x = trap_right_x + (up - trap_right_y)/trap_right_slope;  \n"
@@ -1184,9 +1317,15 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
 	dispatch->glAttachShader(glamor_priv->trapezoid_prog, fs_prog);
 
 	dispatch->glBindAttribLocation(glamor_priv->trapezoid_prog,
-	                               GLAMOR_VERTEX_POS, "v_positionsition");
+	        GLAMOR_VERTEX_POS, "v_positionsition");
 	dispatch->glBindAttribLocation(glamor_priv->trapezoid_prog,
-	                               GLAMOR_VERTEX_SOURCE, "v_texcoord");
+	        GLAMOR_VERTEX_SOURCE, "v_texcoord");
+	dispatch->glBindAttribLocation(glamor_priv->trapezoid_prog,
+	        GLAMOR_VERTEX_TOP_BOTTOM, "v_top_bottom");
+	dispatch->glBindAttribLocation(glamor_priv->trapezoid_prog,
+	        GLAMOR_VERTEX_LEFT_PARAM, "v_left_param");
+	dispatch->glBindAttribLocation(glamor_priv->trapezoid_prog,
+	        GLAMOR_VERTEX_RIGHT_PARAM, "v_right_param");
 
 	glamor_link_glsl_prog(dispatch, glamor_priv->trapezoid_prog);
 
@@ -1215,28 +1354,16 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 	glamor_gl_dispatch *dispatch;
 	glamor_pixmap_private *pixmap_priv;
 	PixmapPtr pixmap = NULL;
-	GLint x_per_pix_uniform_location;
-	GLint y_per_pix_uniform_location;
-	GLint trap_top_uniform_location;
-	GLint trap_bottom_uniform_location;
-	GLint trap_left_x_uniform_location;
-	GLint trap_left_y_uniform_location;
-	GLint trap_left_slope_uniform_location;
-	GLint trap_right_x_uniform_location;
-	GLint trap_right_y_uniform_location;
-	GLint trap_right_slope_uniform_location;
-	GLint trap_left_vertical_uniform_location;
-	GLint trap_right_vertical_uniform_location;
 	GLint trapezoid_prog;
 	float width, height;
-	xFixed width_fix, height_fix;
 	GLfloat xscale, yscale;
 	float left_slope, right_slope;
 	xTrapezoid *ptrap;
 	BoxRec one_trap_bound;
-	float vertices[8];
-	float tex_vertices[8];
-	int i;
+	int nrect_max;
+	int i, j;
+	float *vertices;
+	float params[4];
 
 	glamor_priv = glamor_get_screen_private(screen);
 	trapezoid_prog = glamor_priv->trapezoid_prog;
@@ -1245,7 +1372,7 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)
-	   || pixmap_priv->type == GLAMOR_TEXTURE_LARGE) { /* should always have here. */
+	     || pixmap_priv->type == GLAMOR_TEXTURE_LARGE) { /* should always have here. */
 		DEBUGF("GLAMOR_PIXMAP_PRIV_HAS_FBO check failed, fallback\n");
 		return FALSE;
 	}
@@ -1260,155 +1387,153 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 
 	dispatch = glamor_get_dispatch(glamor_priv);
 
-	/* Bind all the uniform vars .*/
-	x_per_pix_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "x_per_pix");
-	y_per_pix_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "y_per_pix");
-	trap_top_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_top");
-	trap_bottom_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_bottom");
-	trap_left_x_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_left_x");
-	trap_left_y_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_left_y");
-	trap_left_slope_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_left_slope");
-	trap_left_vertical_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_left_vertical");
-	trap_right_x_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_right_x");
-	trap_right_y_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_right_y");
-	trap_right_slope_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_right_slope");
-	trap_right_vertical_uniform_location =
-	    dispatch->glGetUniformLocation(trapezoid_prog, "trap_right_vertical");
-
 	glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 
 	pixmap_priv_get_dest_scale(pixmap_priv, (&xscale), (&yscale));
 
 	width = (float)(bounds->x2 - bounds->x1);
 	height = (float)(bounds->y2 - bounds->y1);
-	width_fix = IntToxFixed((bounds->x2 - bounds->x1));
-	height_fix = IntToxFixed((bounds->y2 - bounds->y1));
 
 	dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
 	dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-
 	/* Now draw the Trapezoid mask. */
 	dispatch->glUseProgram(trapezoid_prog);
-	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
-	        GL_FALSE, 0, vertices);
-	dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT,
-	        GL_FALSE, 0, tex_vertices);
-	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-	dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
 	dispatch->glEnable(GL_BLEND);
 	dispatch->glBlendFunc(GL_ONE, GL_ONE);
 
-	for (i = 0; i < ntrap; i++) {
-		ptrap = traps + i;
+	nrect_max = GLAMOR_COMPOSITE_VBO_VERT_CNT / (4 * GLAMOR_VERTEX_RIGHT_PARAM);
 
-		DEBUGF("--- The parameter of xTrapezoid is:\ntop: %d  0x%x\tbottom: %d  0x%x\n"
-		       "left:  p1 (%d   0x%x, %d   0x%x)\tp2 (%d   0x%x, %d   0x%x)\n"
-		       "right: p1 (%d   0x%x, %d   0x%x)\tp2 (%d   0x%x, %d   0x%x)\n",
-		       xFixedToInt(ptrap->top), ptrap->top,
-		       xFixedToInt(ptrap->bottom), ptrap->bottom,
-		       xFixedToInt(ptrap->left.p1.x), ptrap->left.p1.x,
-		       xFixedToInt(ptrap->left.p1.y), ptrap->left.p1.y,
-		       xFixedToInt(ptrap->left.p2.x), ptrap->left.p2.x,
-		       xFixedToInt(ptrap->left.p2.y), ptrap->left.p2.y,
-		       xFixedToInt(ptrap->right.p1.x), ptrap->right.p1.x,
-		       xFixedToInt(ptrap->right.p1.y), ptrap->right.p1.y,
-		       xFixedToInt(ptrap->right.p2.x), ptrap->right.p2.x,
-		       xFixedToInt(ptrap->right.p2.y), ptrap->right.p2.y);
+	for (i = 0; i < ntrap;) {
+		int mrect;
+		int stride;
 
-		miTrapezoidBounds(1, ptrap, &one_trap_bound);
-		glamor_set_tcoords_tri_strip((pixmap_priv->base.pixmap->drawable.width),
-		                             (pixmap_priv->base.pixmap->drawable.height),
-		                             (one_trap_bound.x1),
-		                             (one_trap_bound.y1),
-		                             (one_trap_bound.x2),
-		                             (one_trap_bound.y2),
-		                             glamor_priv->yInverted, tex_vertices);
+		mrect = (ntrap - i) > nrect_max ? nrect_max : (ntrap - i);
+		glamor_setup_composite_vbo_for_trapezoid(screen, 4 * mrect);
+		stride = glamor_priv->vb_stride / sizeof(float);
 
-		/* Need to rebase. */
-		one_trap_bound.x1 -= bounds->x1;
-		one_trap_bound.x2 -= bounds->x1;
-		one_trap_bound.y1 -= bounds->y1;
-		one_trap_bound.y2 -= bounds->y1;
-		glamor_set_normalize_vcoords_tri_strip(xscale, yscale,
-		        one_trap_bound.x1, one_trap_bound.y1,
-		        one_trap_bound.x2, one_trap_bound.y2,
-		        glamor_priv->yInverted, vertices);
+		for (j = 0; j < mrect; j++) {
+			ptrap = traps + i + j;
 
-		DEBUGF("vertices --> leftup : %f X %f, rightup: %f X %f,"
-		       "rightbottom: %f X %f, leftbottom : %f X %f\n",
-		       vertices[0], vertices[1], vertices[2], vertices[3],
-		       vertices[4], vertices[5], vertices[6], vertices[7]);
-		DEBUGF("tex_vertices --> leftup : %f X %f, rightup: %f X %f,"
-		       "rightbottom: %f X %f, leftbottom : %f X %f\n",
-		       tex_vertices[0], tex_vertices[1], tex_vertices[2], tex_vertices[3],
-		       tex_vertices[4], tex_vertices[5], tex_vertices[6], tex_vertices[7]);
+			DEBUGF("--- The parameter of xTrapezoid is:\ntop: %d  0x%x\tbottom: %d  0x%x\n"
+			       "left:  p1 (%d   0x%x, %d   0x%x)\tp2 (%d   0x%x, %d   0x%x)\n"
+			       "right: p1 (%d   0x%x, %d   0x%x)\tp2 (%d   0x%x, %d   0x%x)\n",
+			       xFixedToInt(ptrap->top), ptrap->top,
+			       xFixedToInt(ptrap->bottom), ptrap->bottom,
+			       xFixedToInt(ptrap->left.p1.x), ptrap->left.p1.x,
+			       xFixedToInt(ptrap->left.p1.y), ptrap->left.p1.y,
+			       xFixedToInt(ptrap->left.p2.x), ptrap->left.p2.x,
+			       xFixedToInt(ptrap->left.p2.y), ptrap->left.p2.y,
+			       xFixedToInt(ptrap->right.p1.x), ptrap->right.p1.x,
+			       xFixedToInt(ptrap->right.p1.y), ptrap->right.p1.y,
+			       xFixedToInt(ptrap->right.p2.x), ptrap->right.p2.x,
+			       xFixedToInt(ptrap->right.p2.y), ptrap->right.p2.y);
 
-		if (ptrap->left.p1.x == ptrap->left.p2.x) {
-			left_slope = 0.0;
-			dispatch->glUniform1i(trap_left_vertical_uniform_location, 1);
-		} else {
-			left_slope = ((float)(ptrap->left.p1.y - ptrap->left.p2.y))
-			             / ((float)(ptrap->left.p1.x - ptrap->left.p2.x));
-			dispatch->glUniform1i(trap_left_vertical_uniform_location, 0);
+			miTrapezoidBounds(1, ptrap, &one_trap_bound);
+
+			vertices = (float*)(glamor_priv->vb + glamor_priv->vbo_offset) + 2;
+			glamor_set_tcoords_ext((pixmap_priv->base.pixmap->drawable.width),
+			        (pixmap_priv->base.pixmap->drawable.height),
+			        (one_trap_bound.x1),
+			        (one_trap_bound.y1),
+			        (one_trap_bound.x2),
+			        (one_trap_bound.y2),
+			        glamor_priv->yInverted, vertices, stride);
+			DEBUGF("tex_vertices --> leftup : %f X %f, rightup: %f X %f,"
+			       "rightbottom: %f X %f, leftbottom : %f X %f\n",
+			       vertices[0], vertices[1],
+			       vertices[1*stride], vertices[1*stride + 1],
+			       vertices[2*stride], vertices[2*stride + 1],
+			       vertices[3*stride], vertices[3*stride + 1]);
+
+			/* Need to rebase. */
+			one_trap_bound.x1 -= bounds->x1;
+			one_trap_bound.x2 -= bounds->x1;
+			one_trap_bound.y1 -= bounds->y1;
+			one_trap_bound.y2 -= bounds->y1;
+
+			vertices -= 2;
+
+			glamor_set_normalize_vcoords_ext(pixmap_priv, xscale, yscale,
+			        one_trap_bound.x1, one_trap_bound.y1,
+			        one_trap_bound.x2, one_trap_bound.y2,
+			        glamor_priv->yInverted, vertices, stride);
+			DEBUGF("vertices --> leftup : %f X %f, rightup: %f X %f,"
+			       "rightbottom: %f X %f, leftbottom : %f X %f\n",
+			       vertices[0], vertices[1],
+			       vertices[1*stride], vertices[1*stride + 1],
+			       vertices[2*stride], vertices[2*stride + 1],
+			       vertices[3*stride], vertices[3*stride + 1]);
+			vertices += 4;
+
+			/* Set the top and bottom. */
+			params[0] = ((float)ptrap->top) / 65536;
+			params[1] = ((float)ptrap->bottom) / 65536;
+			glamor_set_const_ext(params, 2, vertices, 4, stride);
+			vertices += 2;
+
+			/* Set the left params. */
+			params[0] = ((float)ptrap->left.p1.x) / 65536;
+			params[1] = ((float)ptrap->left.p1.y) / 65536;
+
+			if (ptrap->left.p1.x == ptrap->left.p2.x) {
+				left_slope = 0.0;
+				params[3] = 1.0;
+			} else {
+				left_slope = ((float)(ptrap->left.p1.y - ptrap->left.p2.y))
+				             / ((float)(ptrap->left.p1.x - ptrap->left.p2.x));
+				params[3] = 0.0;
+			}
+			params[2] = left_slope;
+			glamor_set_const_ext(params, 4, vertices, 4, stride);
+			vertices += 4;
+
+			/* Set the left params. */
+			params[0] = ((float)ptrap->right.p1.x) / 65536;
+			params[1] = ((float)ptrap->right.p1.y) / 65536;
+
+			if (ptrap->right.p1.x == ptrap->right.p2.x) {
+				right_slope = 0.0;
+				params[3] = 1.0;
+			} else {
+				right_slope = ((float)(ptrap->right.p1.y - ptrap->right.p2.y))
+				              / ((float)(ptrap->right.p1.x - ptrap->right.p2.x));
+				params[3] = 0.0;
+			}
+			params[2] = right_slope;
+			glamor_set_const_ext(params, 4, vertices, 4, stride);
+
+			DEBUGF("trap_top = %f, trap_bottom = %f, "
+			       "trap_left_x = %f, trap_left_y = %f, left_slope = %f, "
+			       "trap_right_x = %f, trap_right_y = %f, right_slope = %f\n",
+			       ((float)ptrap->top) / 65536, ((float)ptrap->bottom) / 65536,
+			       ((float)ptrap->left.p1.x) / 65536, ((float)ptrap->left.p1.y) / 65536,
+			       left_slope,
+			       ((float)ptrap->right.p1.x) / 65536, ((float)ptrap->right.p1.y) / 65536,
+			       right_slope);
+
+			glamor_priv->render_nr_verts += 4;
+			glamor_priv->vbo_offset += glamor_priv->vb_stride * 4;
 		}
-		dispatch->glUniform1f(trap_left_slope_uniform_location, left_slope);
 
-		if (ptrap->right.p1.x == ptrap->right.p2.x) {
-			right_slope = 0.0;
-			dispatch->glUniform1i(trap_right_vertical_uniform_location, 1);
-		} else {
-			right_slope = ((float)(ptrap->right.p1.y - ptrap->right.p2.y))
-			              / ((float)(ptrap->right.p1.x - ptrap->right.p2.x));
-			dispatch->glUniform1i(trap_right_vertical_uniform_location, 0);
-		}
-		dispatch->glUniform1f(trap_right_slope_uniform_location, right_slope);
-
-		dispatch->glUniform1f(x_per_pix_uniform_location,
-		        ((float)width_fix) / (65536 * width));
-		dispatch->glUniform1f(y_per_pix_uniform_location,
-		        ((float)height_fix) / (65536 * height));
-
-		dispatch->glUniform1f(trap_top_uniform_location,
-		        ((float)ptrap->top) / 65536);
-		dispatch->glUniform1f(trap_bottom_uniform_location,
-		        ((float)ptrap->bottom) / 65536);
-
-		dispatch->glUniform1f(trap_left_x_uniform_location,
-		        ((float)ptrap->left.p1.x) / 65536);
-		dispatch->glUniform1f(trap_left_y_uniform_location,
-		        ((float)ptrap->left.p1.y) / 65536);
-		dispatch->glUniform1f(trap_right_x_uniform_location,
-		        ((float)ptrap->right.p1.x) / 65536);
-		dispatch->glUniform1f(trap_right_y_uniform_location,
-		        ((float)ptrap->right.p1.y) / 65536);
-
-		DEBUGF("x_per_pix = %f, y_per_pix = %f, trap_top = %f, trap_bottom = %f, "
-		       "trap_left_x = %f, trap_left_y = %f, left_slope = %f, "
-		       "trap_right_x = %f, trap_right_y = %f, right_slope = %f\n",
-		       ((float)width_fix) / (65536*width), ((float)height_fix) / (65536*height),
-		       ((float)ptrap->top) / 65536, ((float)ptrap->bottom) / 65536,
-		       ((float)ptrap->left.p1.x) / 65536, ((float)ptrap->left.p1.y) / 65536,
-		       left_slope,
-		       ((float)ptrap->right.p1.x) / 65536, ((float)ptrap->right.p1.y) / 65536,
-		       right_slope);
+		i += mrect;
 
 		/* Now rendering. */
-		dispatch->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		if (!glamor_priv->render_nr_verts)
+			continue;
+
+		if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
+			dispatch->glUnmapBuffer(GL_ARRAY_BUFFER);
+		else {
+			dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
+			dispatch->glBufferData(GL_ARRAY_BUFFER,
+			        glamor_priv->vbo_offset,
+			        glamor_priv->vb, GL_DYNAMIC_DRAW);
+		}
+
+		dispatch->glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
+		        GL_UNSIGNED_SHORT, NULL);
 	}
 
 	dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1417,6 +1542,9 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 	dispatch->glDisable(GL_BLEND);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_TOP_BOTTOM);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_LEFT_PARAM);
+	dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_RIGHT_PARAM);
 	dispatch->glUseProgram(0);
 	glamor_put_dispatch(glamor_priv);
 	return TRUE;
