@@ -79,6 +79,8 @@ static Bool Probe(DriverPtr drv, int flags);
 static Bool ms_pci_probe(DriverPtr driver,
 			 int entity_num, struct pci_device *device,
 			 intptr_t match_data);
+static Bool ms_driver_func(ScrnInfoPtr scrn, xorgDriverFuncOp op,
+			   void *data);
 
 #ifdef XSERVER_LIBPCIACCESS
 static const struct pci_id_match ms_device_match[] = {
@@ -105,7 +107,7 @@ _X_EXPORT DriverRec modesetting = {
     AvailableOptions,
     NULL,
     0,
-    NULL,
+    ms_driver_func,
     ms_device_match,
     ms_pci_probe,
 #ifdef XSERVER_PLATFORM_BUS
@@ -257,6 +259,21 @@ static const OptionInfoRec *
 AvailableOptions(int chipid, int busid)
 {
     return Options;
+}
+
+static Bool
+ms_driver_func(ScrnInfoPtr scrn, xorgDriverFuncOp op, void *data)
+{
+    xorgHWFlags *flag;
+    
+    switch (op) {
+	case GET_REQUIRED_HW_INTERFACES:
+	    flag = (CARD32 *)data;
+	    (*flag) = 0;
+	    return TRUE;
+	default:
+	    return FALSE;
+    }
 }
 
 #if XSERVER_LIBPCIACCESS
