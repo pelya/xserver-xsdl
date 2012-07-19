@@ -401,21 +401,20 @@ GetRec(ScrnInfoPtr pScrn)
     return TRUE;
 }
 
-static void dispatch_dirty(ScreenPtr pScreen)
+static int dispatch_dirty_region(ScrnInfoPtr scrn,
+				 PixmapPtr pixmap,
+				 DamagePtr damage,
+				 int fb_id)
 {
-    ScrnInfoPtr scrn = xf86ScreenToScrn(pScreen);
     modesettingPtr ms = modesettingPTR(scrn);
-    RegionPtr dirty = DamageRegion(ms->damage);
+    RegionPtr dirty = DamageRegion(damage);
     unsigned num_cliprects = REGION_NUM_RECTS(dirty);
 
     if (num_cliprects) {
-	drmModeClip *clip = malloc(num_cliprects * sizeof(drmModeClip));
+	drmModeClip *clip = alloca(num_cliprects * sizeof(drmModeClip));
 	BoxPtr rect = REGION_RECTS(dirty);
 	int i, ret;
-	
-	if (!clip)
-		return;
-
+	    
 	/* XXX no need for copy? */
 	for (i = 0; i < num_cliprects; i++, rect++) {
 	    clip[i].x1 = rect->x1;
@@ -425,24 +424,70 @@ static void dispatch_dirty(ScreenPtr pScreen)
 	}
 
 	/* TODO query connector property to see if this is needed */
-	ret = drmModeDirtyFB(ms->fd, ms->drmmode.fb_id, clip, num_cliprects);
-	free(clip);
+	ret = drmModeDirtyFB(ms->fd, fb_id, clip, num_cliprects);
+	DamageEmpty(damage);
 	if (ret) {
-	    if (ret == -EINVAL || ret == -ENOSYS) {
-		ms->dirty_enabled = FALSE;
-		DamageUnregister(&pScreen->GetScreenPixmap(pScreen)->drawable, ms->damage);
-		DamageDestroy(ms->damage);
-		ms->damage = NULL;
-		xf86DrvMsg(scrn->scrnIndex, X_INFO, "Disabling kernel dirty updates, not required.\n");
-		return;
-	    } else
-		ErrorF("%s: failed to send dirty (%i, %s)\n",
-		       __func__, ret, strerror(-ret));
+	    if (ret == -EINVAL)
+		return ret;
 	}
-	
-	DamageEmpty(ms->damage);
+    }
+    return 0;
+}
+
+static void dispatch_dirty(ScreenPtr pScreen)
+{
+    ScrnInfoPtr scrn = xf86ScreenToScrn(pScreen);
+    modesettingPtr ms = modesettingPTR(scrn);
+    PixmapPtr pixmap = pScreen->GetScreenPixmap(pScreen);
+    int fb_id = ms->drmmode.fb_id;
+    int ret;
+
+    ret = dispatch_dirty_region(scrn, pixmap, ms->damage, fb_id);
+    if (ret == -EINVAL || ret == -ENOSYS) {
+	ms->dirty_enabled = FALSE;
+	DamageUnregister(&pScreen->GetScreenPixmap(pScreen)->drawable, ms->damage);
+	DamageDestroy(ms->damage);
+	ms->damage = NULL;
+	xf86DrvMsg(scrn->scrnIndex, X_INFO, "Disabling kernel dirty updates, not required.\n");
+	return;
     }
 }
+
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+static void dispatch_dirty_crtc(ScrnInfoPtr scrn, xf86CrtcPtr crtc)
+{
+    modesettingPtr ms = modesettingPTR(scrn);
+    PixmapPtr pixmap = crtc->randr_crtc->scanout_pixmap;
+    msPixmapPrivPtr ppriv = msGetPixmapPriv(&ms->drmmode, pixmap);
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    DamagePtr damage = drmmode_crtc->slave_damage;
+    int fb_id = ppriv->fb_id;
+    int ret;
+
+    ret = dispatch_dirty_region(scrn, pixmap, damage, fb_id);
+    if (ret) {
+
+    }
+}
+
+static void dispatch_slave_dirty(ScreenPtr pScreen)
+{
+    ScrnInfoPtr scrn = xf86ScreenToScrn(pScreen);
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+    int c;
+
+    for (c = 0; c < xf86_config->num_crtc; c++) {
+	xf86CrtcPtr crtc = xf86_config->crtc[c];
+
+	if (!crtc->randr_crtc)
+	    continue;
+	if (!crtc->randr_crtc->scanout_pixmap)
+	    continue;
+
+	dispatch_dirty_crtc(scrn, crtc);
+    }
+}
+#endif
 
 static void msBlockHandler(BLOCKHANDLER_ARGS_DECL)
 {
@@ -452,8 +497,13 @@ static void msBlockHandler(BLOCKHANDLER_ARGS_DECL)
     pScreen->BlockHandler = ms->BlockHandler;
     pScreen->BlockHandler(BLOCKHANDLER_ARGS);
     pScreen->BlockHandler = msBlockHandler;
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+    if (pScreen->isGPU)
+        dispatch_slave_dirty(pScreen);
+    else
+#endif
     if (ms->dirty_enabled)
-	dispatch_dirty(pScreen);
+        dispatch_dirty(pScreen);
 }
 
 static void
@@ -555,6 +605,16 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
     ms->drmmode.fd = ms->fd;
 
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+    pScrn->capabilities = 0;
+#ifdef DRM_CAP_PRIME
+    ret = drmGetCap(ms->fd, DRM_CAP_PRIME, &value);
+    if (ret == 0) {
+        if (value & DRM_PRIME_CAP_IMPORT)
+            pScrn->capabilities |= RR_Capability_SinkOutput;
+    }
+#endif
+#endif
     drmmode_get_default_bpp(pScrn, &ms->drmmode, &defaultdepth, &defaultbpp);
     if (defaultdepth == 24 && defaultbpp == 24)
 	    bppflags = Support24bppFb;
@@ -719,6 +779,25 @@ msShadowInit(ScreenPtr pScreen)
     return TRUE;
 }
 
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+static Bool
+msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
+{
+    ScreenPtr screen = ppix->drawable.pScreen;
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    modesettingPtr ms = modesettingPTR(scrn);
+    Bool ret;
+    int size = ppix->devKind * ppix->drawable.height;
+    int ihandle = (int)(long)fd_handle;
+
+    ret = drmmode_SetSlaveBO(ppix, &ms->drmmode, ihandle, ppix->devKind, size);
+    if (ret == FALSE)
+	    return ret;
+
+    return TRUE;
+}
+#endif
+
 static Bool
 ScreenInit(SCREEN_INIT_ARGS_DECL)
 {
@@ -756,6 +835,13 @@ ScreenInit(SCREEN_INIT_ARGS_DECL)
 
     if (!miSetPixmapDepths())
 	return FALSE;
+
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+    if (!dixRegisterScreenSpecificPrivateKey(pScreen, &ms->drmmode.pixmapPrivateKeyRec,
+        PRIVATE_PIXMAP, sizeof(msPixmapPrivRec))) { 
+	return FALSE;
+    }
+#endif
 
     pScrn->memPhysBase = 0;
     pScrn->fbOffset = 0;
@@ -815,6 +901,10 @@ ScreenInit(SCREEN_INIT_ARGS_DECL)
 
     ms->BlockHandler = pScreen->BlockHandler;
     pScreen->BlockHandler = msBlockHandler;
+
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+    pScreen->SetSharedPixmapBacking = msSetSharedPixmapBacking;
+#endif
 
     if (!xf86CrtcScreenInit(pScreen))
 	return FALSE;

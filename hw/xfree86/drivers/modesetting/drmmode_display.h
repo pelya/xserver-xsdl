@@ -32,6 +32,11 @@
 #include "libudev.h"
 #endif
 
+/* the perfect storm */
+#if XF86_CRTC_VERSION >= 5 && defined(HAVE_DRMPRIMEFDTOHANDLE) && HAVE_SCREEN_SPECIFIC_PRIVATE_KEYS
+#define MODESETTING_OUTPUT_SLAVE_SUPPORT 1
+#endif
+
 struct dumb_bo {
     uint32_t handle;
     uint32_t size;
@@ -58,6 +63,9 @@ typedef struct {
     Bool shadow_enable;
     void *shadow_fb;
 
+#ifdef HAVE_SCREEN_SPECIFIC_PRIVATE_KEYS
+    DevPrivateKeyRec pixmapPrivateKeyRec;
+#endif
 } drmmode_rec, *drmmode_ptr;
 
 typedef struct {
@@ -67,6 +75,7 @@ typedef struct {
     struct dumb_bo *cursor_bo;
     unsigned rotate_fb_id;
     uint16_t lut_r[256], lut_g[256], lut_b[256];
+    DamagePtr slave_damage;
 } drmmode_crtc_private_rec, *drmmode_crtc_private_ptr;
 
 typedef struct {
@@ -90,6 +99,23 @@ typedef struct {
     int enc_clone_mask;
 } drmmode_output_private_rec, *drmmode_output_private_ptr;
 
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+typedef struct _msPixmapPriv {
+    uint32_t fb_id;
+    struct dumb_bo *backing_bo; /* if this pixmap is backed by a dumb bo */
+} msPixmapPrivRec, *msPixmapPrivPtr;
+
+
+extern DevPrivateKeyRec msPixmapPrivateKeyRec;
+#define msPixmapPrivateKey (&msPixmapPrivateKeyRec)
+
+#define msGetPixmapPriv(drmmode, p) ((msPixmapPrivPtr)dixGetPrivateAddr(&(p)->devPrivates, &(drmmode)->pixmapPrivateKeyRec))
+
+void *drmmode_map_slave_bo(drmmode_ptr drmmode, msPixmapPrivPtr ppriv);
+Bool drmmode_SetSlaveBO(PixmapPtr ppix,
+			drmmode_ptr drmmode,
+			int fd_handle, int pitch, int size);
+#endif
 
 extern Bool drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp);
 void drmmode_adjust_frame(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int x, int y, int flags);
@@ -104,6 +130,7 @@ void *drmmode_map_front_bo(drmmode_ptr drmmode);
 Bool drmmode_map_cursor_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 void drmmode_free_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 void drmmode_get_default_bpp(ScrnInfoPtr pScrn, drmmode_ptr drmmmode, int *depth, int *bpp);
+
 
 #ifndef DRM_CAP_DUMB_PREFERRED_DEPTH
 #define DRM_CAP_DUMB_PREFERRED_DEPTH 3

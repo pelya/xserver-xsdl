@@ -138,6 +138,43 @@ static int dumb_bo_destroy(int fd, struct dumb_bo *bo)
 	return 0;
 }
 
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+static struct dumb_bo *dumb_get_bo_from_handle(int fd, int handle, int pitch, int size)
+{
+  	struct dumb_bo *bo;
+	int ret;
+
+	bo = calloc(1, sizeof(*bo));
+	if (!bo)
+		return NULL;
+
+	ret = drmPrimeFDToHandle(fd, handle, &bo->handle);
+	if (ret) {
+		free(bo);
+		return NULL;
+	}
+	bo->pitch = pitch;
+	bo->size = size;
+	return bo;
+}
+#endif
+
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+Bool drmmode_SetSlaveBO(PixmapPtr ppix,
+			drmmode_ptr drmmode, 
+			int fd_handle, int pitch, int size)
+{
+    	msPixmapPrivPtr ppriv = msGetPixmapPriv(drmmode, ppix);
+
+	ppriv->backing_bo = dumb_get_bo_from_handle(drmmode->fd, fd_handle, pitch, size);
+	if (!ppriv->backing_bo)
+		return FALSE;
+
+	close(fd_handle);
+	return TRUE;
+}
+#endif
+
 static void
 drmmode_ConvertFromKMode(ScrnInfoPtr	scrn,
 		     drmModeModeInfo *kmode,
@@ -274,7 +311,7 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
 	int output_count = 0;
 	Bool ret = TRUE;
 	int i;
-	int fb_id;
+	uint32_t fb_id;
 	drmModeModeInfo kmode;
 	int height;
 
@@ -338,6 +375,13 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
 		drmmode_ConvertToKMode(crtc->scrn, &kmode, mode);
 
 		fb_id = drmmode->fb_id;
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+		if (crtc->randr_crtc->scanout_pixmap) {
+    			msPixmapPrivPtr ppriv = msGetPixmapPriv(drmmode, crtc->randr_crtc->scanout_pixmap);
+			fb_id = ppriv->fb_id;
+			x = y = 0;
+		} else 
+#endif
 		if (drmmode_crtc->rotate_fb_id) {
 			fb_id = drmmode_crtc->rotate_fb_id;
 			x = y = 0;
@@ -455,6 +499,54 @@ drmmode_crtc_gamma_set(xf86CrtcPtr crtc, uint16_t *red, uint16_t *green,
 			    size, red, green, blue);
 }
 
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+static Bool
+drmmode_set_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix)
+{
+	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+	drmmode_ptr drmmode = drmmode_crtc->drmmode;
+	msPixmapPrivPtr ppriv;
+	void *ptr;
+
+	if (!ppix) {
+		if (crtc->randr_crtc->scanout_pixmap) {
+    			ppriv = msGetPixmapPriv(drmmode, crtc->randr_crtc->scanout_pixmap);
+			drmModeRmFB(drmmode->fd, ppriv->fb_id);
+		}
+		if (drmmode_crtc->slave_damage) {
+			DamageUnregister(&crtc->randr_crtc->scanout_pixmap->drawable,
+					 drmmode_crtc->slave_damage);
+			drmmode_crtc->slave_damage = NULL;
+		}
+		return TRUE;
+	}
+
+	ppriv = msGetPixmapPriv(drmmode, ppix);
+	if (!drmmode_crtc->slave_damage) {
+		drmmode_crtc->slave_damage = DamageCreate(NULL, NULL,
+							  DamageReportNone,
+							  TRUE,
+							  crtc->randr_crtc->pScreen,
+							  NULL);
+	}
+	ptr = drmmode_map_slave_bo(drmmode, ppriv);
+	ppix->devPrivate.ptr = ptr;
+	DamageRegister(&ppix->drawable, drmmode_crtc->slave_damage);
+
+	if (ppriv->fb_id == 0) {
+		int r;
+		r = drmModeAddFB(drmmode->fd, ppix->drawable.width,
+				 ppix->drawable.height,
+				 ppix->drawable.depth,
+				 ppix->drawable.bitsPerPixel,
+				 ppix->devKind,
+				 ppriv->backing_bo->handle,
+				 &ppriv->fb_id);
+	}
+	return TRUE;
+}
+#endif
+
 static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
     .dpms = drmmode_crtc_dpms,
     .set_mode_major = drmmode_set_mode_major,
@@ -466,6 +558,9 @@ static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
 
     .gamma_set = drmmode_crtc_gamma_set,
     .destroy = NULL, /* XXX */
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+    .set_scanout_pixmap = drmmode_set_scanout_pixmap,
+#endif
 };
 
 static void
@@ -1065,6 +1160,10 @@ Bool drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp)
 	/* workout clones */
 	drmmode_clones_init(pScrn, drmmode);
 
+#if XF86_CRTC_VERSION >= 5
+	xf86ProviderSetup(pScrn, NULL, "modesetting");
+#endif
+
 	xf86InitialConfiguration(pScrn, TRUE);
 
 	return TRUE;
@@ -1323,6 +1422,22 @@ void *drmmode_map_front_bo(drmmode_ptr drmmode)
 	return drmmode->front_bo->ptr;
 	
 }
+
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+void *drmmode_map_slave_bo(drmmode_ptr drmmode, msPixmapPrivPtr ppriv)
+{
+        int ret;
+
+        if (ppriv->backing_bo->ptr)
+                return ppriv->backing_bo->ptr;
+
+        ret = dumb_bo_map(drmmode->fd, ppriv->backing_bo);
+        if (ret)
+                return NULL;
+
+        return ppriv->backing_bo->ptr;  
+}
+#endif
 
 Bool drmmode_map_cursor_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 {
