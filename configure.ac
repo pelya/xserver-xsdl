@@ -2222,7 +2222,6 @@ miext/Makefile
 miext/sync/Makefile
 miext/damage/Makefile
 miext/shadow/Makefile
-miext/cw/Makefile
 miext/rootless/Makefile
 os/Makefile
 randr/Makefile
