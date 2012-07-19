@@ -1664,15 +1664,20 @@ _glamor_trapezoids(CARD8 op,
 		if(ret)
 			return TRUE;
 	} else {
-		picture = glamor_create_mask_picture(screen, dst, mask_format,
-		          width, height, 1);
-		if (!picture)
-			return TRUE;
+		/*  The precise mode is that we sample the trapezoid on the centre points of
+		    an (2*n+1)x(2*n-1) subpixel grid. It is computationally expensive in shader
+		    and we use inside area ratio to replace it if the polymode == Imprecise. */
+		if(dst->polyMode == PolyModeImprecise) {
+			picture = glamor_create_mask_picture(screen, dst, mask_format,
+			          width, height, 1);
+			if (!picture)
+				return TRUE;
 
-		ret = _glamor_generate_trapezoid_with_shader(screen, picture, traps, ntrap, &bounds);
+			ret = _glamor_generate_trapezoid_with_shader(screen, picture, traps, ntrap, &bounds);
 
-		if (!ret)
-			FreePicture(picture, 0);
+			if (!ret)
+				FreePicture(picture, 0);
+		}
 	}
 #endif
 
