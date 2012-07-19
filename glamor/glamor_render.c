@@ -826,9 +826,6 @@ glamor_flush_composite_rects(ScreenPtr screen)
 	    glamor_get_screen_private(screen);
 	glamor_gl_dispatch *dispatch;
 
-	if (!glamor_priv->render_nr_verts)
-		return;
-
 	dispatch = glamor_get_dispatch(glamor_priv);
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
 		dispatch->glUnmapBuffer(GL_ARRAY_BUFFER);
@@ -839,6 +836,9 @@ glamor_flush_composite_rects(ScreenPtr screen)
 				       glamor_priv->vbo_offset,
 				       glamor_priv->vb, GL_DYNAMIC_DRAW);
 	}
+
+	if (!glamor_priv->render_nr_verts)
+		return;
 
 	dispatch->glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
 				 GL_UNSIGNED_SHORT, NULL);
