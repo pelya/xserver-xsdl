@@ -151,7 +151,7 @@ static Bool
  InitQueue(WMMsgQueuePtr pQueue);
 
 static void
- GetWindowName(Display * pDpy, Window iWin, wchar_t ** ppName);
+ GetWindowName(Display * pDpy, Window iWin, char **ppWindowName);
 
 static int
  SendXMessage(Display * pDisplay, Window iWin, Atom atmType, long nData);
@@ -399,38 +399,19 @@ InitQueue(WMMsgQueuePtr pQueue)
     return TRUE;
 }
 
-/*
- * GetWindowName - Retrieve the title of an X Window
- */
-
-static void
-GetWindowName(Display * pDisplay, Window iWin, wchar_t ** ppName)
+static
+char *
+Xutf8TextPropertyToString(Display * pDisplay, XTextProperty * xtp)
 {
-    int nResult, nNum;
+    int nNum;
     char **ppList;
     char *pszReturnData;
-    int iLen, i;
-    XTextProperty xtpName;
 
-#if CYGMULTIWINDOW_DEBUG
-    ErrorF("GetWindowName\n");
-#endif
+    if (Xutf8TextPropertyToTextList(pDisplay, xtp, &ppList, &nNum) >= Success &&
+        nNum > 0 && *ppList) {
+        int i;
+        int iLen = 0;
 
-    /* Intialize ppName to NULL */
-    *ppName = NULL;
-
-    /* Try to get --- */
-    nResult = XGetWMName(pDisplay, iWin, &xtpName);
-    if (!nResult || !xtpName.value || !xtpName.nitems) {
-#if CYGMULTIWINDOW_DEBUG
-        ErrorF("GetWindowName - XGetWMName failed.  No name.\n");
-#endif
-        return;
-    }
-
-    if (Xutf8TextPropertyToTextList(pDisplay, &xtpName, &ppList, &nNum) >=
-        Success && nNum > 0 && *ppList) {
-        iLen = 0;
         for (i = 0; i < nNum; i++)
             iLen += strlen(ppList[i]);
         pszReturnData = (char *) malloc(iLen + 1);
@@ -444,15 +425,40 @@ GetWindowName(Display * pDisplay, Window iWin, wchar_t ** ppName)
         pszReturnData = (char *) malloc(1);
         pszReturnData[0] = '\0';
     }
-    iLen = MultiByteToWideChar(CP_UTF8, 0, pszReturnData, -1, NULL, 0);
-    *ppName = (wchar_t *) malloc(sizeof(wchar_t) * (iLen + 1));
-    MultiByteToWideChar(CP_UTF8, 0, pszReturnData, -1, *ppName, iLen);
-    XFree(xtpName.value);
-    free(pszReturnData);
+
+    return pszReturnData;
+}
+
+/*
+ * GetWindowName - Retrieve the title of an X Window
+ */
+
+static void
+GetWindowName(Display * pDisplay, Window iWin, char **ppWindowName)
+{
+    int nResult;
+    XTextProperty xtpWindowName;
+    char *pszWindowName;
 
 #if CYGMULTIWINDOW_DEBUG
-    ErrorF("GetWindowName - Returning\n");
+    ErrorF("GetWindowName\n");
 #endif
+
+    /* Intialize ppWindowName to NULL */
+    *ppWindowName = NULL;
+
+    /* Try to get window name */
+    nResult = XGetWMName(pDisplay, iWin, &xtpWindowName);
+    if (!nResult || !xtpWindowName.value || !xtpWindowName.nitems) {
+#if CYGMULTIWINDOW_DEBUG
+        ErrorF("GetWindowName - XGetWMName failed.  No name.\n");
+#endif
+        return;
+    }
+
+    pszWindowName = Xutf8TextPropertyToString(pDisplay, &xtpWindowName);
+    XFree(xtpWindowName.value);
+    *ppWindowName = pszWindowName;
 }
 
 /*
@@ -528,17 +534,30 @@ UpdateName(WMInfoPtr pWMInfo, Window iWindow)
     if (!hWnd)
         return;
 
-    /* Set the Windows window name */
-    GetWindowName(pWMInfo->pDisplay, iWindow, &pszName);
-    if (pszName) {
-        /* Get the window attributes */
-        XGetWindowAttributes(pWMInfo->pDisplay, iWindow, &attr);
-        if (!attr.override_redirect) {
-            SetWindowTextW(hWnd, pszName);
-            winUpdateIcon(iWindow);
-        }
+    /* If window isn't override-redirect */
+    XGetWindowAttributes(pWMInfo->pDisplay, iWindow, &attr);
+    if (!attr.override_redirect) {
+        char *pszWindowName;
 
-        free(pszName);
+        /* Get the X windows window name */
+        GetWindowName(pWMInfo->pDisplay, iWindow, &pszWindowName);
+
+        if (pszWindowName) {
+            /* Convert from UTF-8 to wide char */
+            int iLen =
+                MultiByteToWideChar(CP_UTF8, 0, pszWindowName, -1, NULL, 0);
+            wchar_t *pwszWideWindowName =
+                (wchar_t *) malloc(sizeof(wchar_t) * (iLen + 1));
+            MultiByteToWideChar(CP_UTF8, 0, pszWindowName, -1,
+                                pwszWideWindowName, iLen);
+
+            /* Set the Windows window name */
+            SetWindowTextW(hWnd, pwszWideWindowName);
+            winUpdateIcon(iWindow);
+
+            free(pwszWideWindowName);
+            free(pszWindowName);
+        }
     }
 }
 
