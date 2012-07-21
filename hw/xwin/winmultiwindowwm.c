@@ -1743,13 +1743,11 @@ winUpdateWindowPosition(HWND hWnd, Bool reshape, HWND * zstyle)
     /* Setup a rectangle with the X window position and size */
     SetRect(&rcNew, iX, iY, iX + iWidth, iY + iHeight);
 
-#if 0
-    ErrorF("winUpdateWindowPosition - (%d, %d)-(%d, %d)\n",
-           rcNew.left, rcNew.top, rcNew.right, rcNew.bottom);
-#endif
+    winDebug("winUpdateWindowPosition - drawable extent (%d, %d)-(%d, %d)\n",
+             rcNew.left, rcNew.top, rcNew.right, rcNew.bottom);
 
     AdjustWindowRectEx(&rcNew, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE,
-                       WS_EX_APPWINDOW);
+                       GetWindowLongPtr(hWnd, GWL_EXSTYLE));
 
     /* Don't allow window decoration to disappear off to top-left as a result of this adjustment */
     if (rcNew.left < GetSystemMetrics(SM_XVIRTUALSCREEN)) {
@@ -1764,10 +1762,8 @@ winUpdateWindowPosition(HWND hWnd, Bool reshape, HWND * zstyle)
         rcNew.bottom += iDy;
     }
 
-#if 0
-    ErrorF("winUpdateWindowPosition - (%d, %d)-(%d, %d)\n",
-           rcNew.left, rcNew.top, rcNew.right, rcNew.bottom);
-#endif
+    winDebug("winUpdateWindowPosition - Window extent (%d, %d)-(%d, %d)\n",
+             rcNew.left, rcNew.top, rcNew.right, rcNew.bottom);
 
     /* Position the Windows window */
     SetWindowPos(hWnd, *zstyle, rcNew.left, rcNew.top,
