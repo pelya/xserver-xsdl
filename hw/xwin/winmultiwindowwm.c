@@ -821,6 +821,7 @@ winMultiWindowXMsgProc(void *pArg)
     Atom atmWmName;
     Atom atmWmHints;
     Atom atmWmChange;
+    Atom atmNetWmIcon;
     int iReturn;
     XIconSize *xis;
 
@@ -946,6 +947,7 @@ winMultiWindowXMsgProc(void *pArg)
     atmWmName = XInternAtom(pProcArg->pDisplay, "WM_NAME", False);
     atmWmHints = XInternAtom(pProcArg->pDisplay, "WM_HINTS", False);
     atmWmChange = XInternAtom(pProcArg->pDisplay, "WM_CHANGE_STATE", False);
+    atmNetWmIcon = XInternAtom(pProcArg->pDisplay, "_NET_WM_ICON", False);
 
     /*
        iiimxcf had a bug until 2009-04-27, assuming that the
@@ -1073,25 +1075,25 @@ winMultiWindowXMsgProc(void *pArg)
                            True, StructureNotifyMask, &event_send);
             }
         }
-        else if (event.type == PropertyNotify
-                 && event.xproperty.atom == atmWmName) {
-            memset(&msg, 0, sizeof(msg));
+        else if (event.type == PropertyNotify) {
+            if (event.xproperty.atom == atmWmName) {
+                memset(&msg, 0, sizeof(msg));
 
-            msg.msg = WM_WM_NAME_EVENT;
-            msg.iWindow = event.xproperty.window;
+                msg.msg = WM_WM_NAME_EVENT;
+                msg.iWindow = event.xproperty.window;
 
-            /* Other fields ignored */
-            winSendMessageToWM(pProcArg->pWMInfo, &msg);
-        }
-        else if (event.type == PropertyNotify
-                 && event.xproperty.atom == atmWmHints) {
-            memset(&msg, 0, sizeof(msg));
+                /* Other fields ignored */
+                winSendMessageToWM(pProcArg->pWMInfo, &msg);
+            }
+            else if ((event.xproperty.atom == atmWmHints) ||
+                     (event.xproperty.atom == atmNetWmIcon)) {
+                memset(&msg, 0, sizeof(msg));
+                msg.msg = WM_WM_ICON_EVENT;
+                msg.iWindow = event.xproperty.window;
 
-            msg.msg = WM_WM_ICON_EVENT;
-            msg.iWindow = event.xproperty.window;
-
-            /* Other fields ignored */
-            winSendMessageToWM(pProcArg->pWMInfo, &msg);
+                /* Other fields ignored */
+                winSendMessageToWM(pProcArg->pWMInfo, &msg);
+            }
         }
         else if (event.type == ClientMessage
                  && event.xclient.message_type == atmWmChange
