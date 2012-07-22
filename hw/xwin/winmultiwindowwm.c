@@ -769,7 +769,7 @@ winMultiWindowWMProc(void *pArg)
             UpdateName(pWMInfo, pNode->msg.iWindow);
             break;
 
-        case WM_WM_HINTS_EVENT:
+        case WM_WM_ICON_EVENT:
             winUpdateIcon(pNode->msg.iWindow);
             break;
 
@@ -1087,7 +1087,7 @@ winMultiWindowXMsgProc(void *pArg)
                  && event.xproperty.atom == atmWmHints) {
             memset(&msg, 0, sizeof(msg));
 
-            msg.msg = WM_WM_HINTS_EVENT;
+            msg.msg = WM_WM_ICON_EVENT;
             msg.iWindow = event.xproperty.window;
 
             /* Other fields ignored */
