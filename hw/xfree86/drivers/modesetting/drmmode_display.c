@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include "xf86str.h"
 #include "X11/Xatom.h"
 #include "micmap.h"
