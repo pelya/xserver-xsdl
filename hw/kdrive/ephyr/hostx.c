@@ -345,7 +345,10 @@ hostx_init(void)
     attr.event_mask =
         ButtonPressMask
         | ButtonReleaseMask
-        | PointerMotionMask | KeyPressMask | KeyReleaseMask | ExposureMask;
+        | PointerMotionMask
+        | KeyPressMask
+        | KeyReleaseMask
+        | ExposureMask;
 
     EPHYR_DBG("mark");
 
