@@ -558,6 +558,8 @@ ephyrRandRSetConfig(ScreenPtr pScreen,
     if (wasEnabled)
         KdEnableScreen(pScreen);
 
+    RRScreenSizeNotify(pScreen);
+
     return TRUE;
 
  bail4:
@@ -589,6 +591,43 @@ ephyrRandRInit(ScreenPtr pScreen)
     pScrPriv->rrGetInfo = ephyrRandRGetInfo;
     pScrPriv->rrSetConfig = ephyrRandRSetConfig;
     return TRUE;
+}
+
+static Bool
+ephyrResizeScreen (ScreenPtr           pScreen,
+                  int                  newwidth,
+                  int                  newheight)
+{
+    KdScreenPriv(pScreen);
+    KdScreenInfo *screen = pScreenPriv->screen;
+    RRScreenSize size = {0};
+    Bool ret;
+    int t;
+
+    if (screen->randr & (RR_Rotate_90|RR_Rotate_270)) {
+        t = newwidth;
+        newwidth = newheight;
+        newheight = t;
+    }
+
+    if (newwidth == screen->width && newheight == screen->height) {
+        return FALSE;
+    }
+
+    size.width = newwidth;
+    size.height = newheight;
+
+    ret = ephyrRandRSetConfig (pScreen, screen->randr, 0, &size);
+    if (ret) {
+        RROutputPtr output;
+
+        output = RRFirstOutput(pScreen);
+        if (!output)
+            return FALSE;
+        RROutputSetModes(output, NULL, 0, 0);
+    }
+
+    return ret;
 }
 #endif
 
@@ -929,6 +968,14 @@ ephyrPoll(void)
             ephyrExposePairedWindow(ev.data.expose.window);
             break;
 #endif                          /* XF86DRI */
+
+#ifdef RANDR
+        case EPHYR_EV_CONFIGURE:
+            ephyrResizeScreen(screenInfo.screens[ev.data.configure.screen],
+                              ev.data.configure.width,
+                              ev.data.configure.height);
+            break;
+#endif /* RANDR */
 
         default:
             break;
