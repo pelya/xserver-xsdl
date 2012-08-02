@@ -1193,6 +1193,9 @@ glamor_glyphs_flush_mask(struct glyphs_flush_mask_arg *arg)
 static void
 glamor_glyphs_flush_dst(struct glyphs_flush_dst_arg * arg)
 {
+	if (!arg->buffer)
+		return;
+
 	if (mask_buffer.count > 0) {
 		glamor_glyphs_flush_mask(&mask_arg);
 	}
