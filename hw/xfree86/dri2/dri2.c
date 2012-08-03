@@ -816,8 +816,9 @@ DrawablePtr DRI2UpdatePrime(DrawablePtr pDraw, DRI2BufferPtr pDest)
         if (pPriv->prime_slave_pixmap->master_pixmap == mpix)
             return &pPriv->prime_slave_pixmap->drawable;
         else {
-            (*master->DestroyPixmap)(pPriv->prime_slave_pixmap->master_pixmap);
+            (*pPriv->prime_slave_pixmap->master_pixmap->drawable.pScreen->DestroyPixmap)(pPriv->prime_slave_pixmap->master_pixmap);
             (*slave->DestroyPixmap)(pPriv->prime_slave_pixmap);
+            pPriv->prime_slave_pixmap = NULL;
         }
     }
 
