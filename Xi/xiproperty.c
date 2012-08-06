@@ -771,6 +771,8 @@ XIChangeDeviceProperty(DeviceIntPtr dev, Atom property, Atom type,
                                                   &new_value, checkonly);
                         if (checkonly && rc != Success) {
                             free(new_value.data);
+                            if (add)
+                                XIDestroyDeviceProperty(prop);
                             return rc;
                         }
                     }
