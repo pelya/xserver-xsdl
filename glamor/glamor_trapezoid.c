@@ -36,6 +36,28 @@
 #include "mipict.h"
 #include "fbpict.h"
 
+static xFixed
+_glamor_linefixedX (xLineFixed *l, xFixed y, Bool ceil)
+{
+	xFixed dx = l->p2.x - l->p1.x;
+	xFixed_32_32 ex = (xFixed_32_32) (y - l->p1.y) * dx;
+	xFixed dy = l->p2.y - l->p1.y;
+	if (ceil)
+		ex += (dy - 1);
+	return l->p1.x + (xFixed) (ex / dy);
+}
+
+static xFixed
+_glamor_linefixedY (xLineFixed *l, xFixed x, Bool ceil)
+{
+	xFixed dy = l->p2.y - l->p1.y;
+	xFixed_32_32 ey = (xFixed_32_32) (x - l->p1.x) * dy;
+	xFixed dx = l->p2.x - l->p1.x;
+	if (ceil)
+		ey += (dx - 1);
+	return l->p1.y + (xFixed) (ey / dx);
+}
+
 #ifdef GLAMOR_TRAPEZOID_SHADER
 
 #define GLAMOR_VERTEX_TOP_BOTTOM  (GLAMOR_VERTEX_SOURCE + 1)
@@ -70,28 +92,6 @@ _glamor_lines_crossfixedY (xLineFixed *l, xLineFixed *r)
 		return (xFixed)((dividend2 - dividend1 - dividend3) / divisor);
 
 	return 0xFFFFFFFF;
-}
-
-static xFixed
-_glamor_linefixedX (xLineFixed *l, xFixed y, Bool ceil)
-{
-	xFixed dx = l->p2.x - l->p1.x;
-	xFixed_32_32 ex = (xFixed_32_32) (y - l->p1.y) * dx;
-	xFixed dy = l->p2.y - l->p1.y;
-	if (ceil)
-		ex += (dy - 1);
-	return l->p1.x + (xFixed) (ex / dy);
-}
-
-static xFixed
-_glamor_linefixedY (xLineFixed *l, xFixed x, Bool ceil)
-{
-	xFixed dy = l->p2.y - l->p1.y;
-	xFixed_32_32 ey = (xFixed_32_32) (x - l->p1.x) * dy;
-	xFixed dx = l->p2.x - l->p1.x;
-	if (ceil)
-		ey += (dx - 1);
-	return l->p1.y + (xFixed) (ey / dx);
 }
 
 static Bool
@@ -1601,6 +1601,45 @@ glamor_create_mask_picture(ScreenPtr screen,
 	return picture;
 }
 
+static int
+_glamor_trapezoid_bounds (int ntrap, xTrapezoid *traps, BoxPtr box)
+{
+	box->y1 = MAXSHORT;
+	box->y2 = MINSHORT;
+	box->x1 = MAXSHORT;
+	box->x2 = MINSHORT;
+	int has_large_trapezoid = 0;
+
+	for (; ntrap; ntrap--, traps++) {
+		INT16 x1, y1, x2, y2;
+
+		if (!xTrapezoidValid(traps))
+			continue;
+		y1 = xFixedToInt (traps->top);
+		if (y1 < box->y1)
+			box->y1 = y1;
+
+		y2 = xFixedToInt (xFixedCeil (traps->bottom));
+		if (y2 > box->y2)
+			box->y2 = y2;
+
+		x1 = xFixedToInt (min (_glamor_linefixedX (&traps->left, traps->top, FALSE),
+		                  _glamor_linefixedX (&traps->left, traps->bottom, FALSE)));
+		if (x1 < box->x1)
+			box->x1 = x1;
+
+		x2 = xFixedToInt (xFixedCeil (max (_glamor_linefixedX (&traps->right, traps->top, TRUE),
+		                  _glamor_linefixedX (&traps->right, traps->bottom, TRUE))));
+		if (x2 > box->x2)
+			box->x2 = x2;
+
+		if (!has_large_trapezoid && (x2 - x1) > 256 && (y2 - y1) > 32)
+			has_large_trapezoid = 1;
+	}
+
+	return has_large_trapezoid;
+}
+
 /**
  * glamor_trapezoids will first try to create a trapezoid mask using shader,
  * if failed, miTrapezoids will generate trapezoid mask accumulating in
@@ -1621,6 +1660,7 @@ _glamor_trapezoids(CARD8 op,
 	PixmapPtr pixmap;
 	pixman_image_t *image = NULL;
 	int ret = 0;
+	int has_large_trapezoid;
 
 	/* If a mask format wasn't provided, we get to choose, but behavior should
 	 * be as if there was no temporary mask the traps were accumulated into.
@@ -1638,10 +1678,10 @@ _glamor_trapezoids(CARD8 op,
 		return TRUE;
 	}
 
-	miTrapezoidBounds(ntrap, traps, &bounds);
+	has_large_trapezoid = _glamor_trapezoid_bounds(ntrap, traps, &bounds);
 	DEBUGF("The bounds for all traps is: bounds.x1 = %d, bounds.x2 = %d, "
-	       "bounds.y1 = %d, bounds.y2 = %d\n", bounds.x1, bounds.x2,
-	       bounds.y1, bounds.y2);
+	       "bounds.y1 = %d, bounds.y2 = %d, ---- ntrap = %d\n", bounds.x1,
+	       bounds.x2, bounds.y1, bounds.y2, ntrap);
 
 	if (bounds.y1 >= bounds.y2 || bounds.x1 >= bounds.x2)
 		return TRUE;
@@ -1666,16 +1706,20 @@ _glamor_trapezoids(CARD8 op,
 	   When the depth is not 1, AA is needed and we use a shader to generate
 	   a temp mask pixmap.
 	 */
-	if(mask_format->depth == 1) {
+	if (mask_format->depth == 1) {
 		ret = _glamor_trapezoids_with_shader(op, src, dst, mask_format,
 		                                     x_src, y_src, ntrap, traps);
 		if(ret)
 			return TRUE;
 	} else {
-		/*  The precise mode is that we sample the trapezoid on the centre points of
-		    an (2*n+1)x(2*n-1) subpixel grid. It is computationally expensive in shader
-		    and we use inside area ratio to replace it if the polymode == Imprecise. */
-		if(dst->polyMode == PolyModeImprecise) {
+		if (has_large_trapezoid || ntrap > 256) {
+			/* The shader speed is relative slower than pixman when generating big chunk
+			   trapezoid mask. We fallback to pixman to improve the performance. */
+			;
+		} else if (dst->polyMode == PolyModeImprecise) {
+			/*  The precise mode is that we sample the trapezoid on the centre points of
+			    an (2*n+1)x(2*n-1) subpixel grid. It is computationally expensive in shader
+			    and we use inside area ratio to replace it if the polymode == Imprecise. */
 			picture = glamor_create_mask_picture(screen, dst, mask_format,
 			          width, height, 1);
 			if (!picture)
