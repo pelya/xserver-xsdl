@@ -508,7 +508,7 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 
 #define GLAMOR_CHECK_EGL_EXTENSION(EXT)  \
 	if (!glamor_egl_has_extension(glamor_egl, "EGL_" #EXT)) {  \
-		ErrorF("EGL_" #EXT "required.\n");  \
+		ErrorF("EGL_" #EXT " required.\n");  \
 		return FALSE;  \
 	}
 
