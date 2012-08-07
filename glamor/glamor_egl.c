@@ -397,7 +397,7 @@ glamor_egl_close_screen(CLOSE_SCREEN_ARGS_DECL)
 
 static Bool
 glamor_egl_has_extension(struct glamor_egl_screen_private *glamor_egl,
-			 char *extension)
+			 const char *extension)
 {
 	const char *egl_extensions;
 	char *pext;
@@ -512,12 +512,19 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 		return FALSE;  \
 	}
 
+#define GLAMOR_CHECK_EGL_EXTENSIONS(EXT1, EXT2)	 \
+	if (!glamor_egl_has_extension(glamor_egl, "EGL_" #EXT1) &&  \
+	    !glamor_egl_has_extension(glamor_egl, "EGL_" #EXT2)) {  \
+		ErrorF("EGL_" #EXT1 " or EGL_" #EXT2 " required.\n");  \
+		return FALSE;  \
+	}
+
 	GLAMOR_CHECK_EGL_EXTENSION(MESA_drm_image);
 	GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_renderbuffer_image);
 #ifdef GLAMOR_GLES2
-	GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_gles2);
+	GLAMOR_CHECK_EGL_EXTENSIONS(KHR_surfaceless_context, KHR_surfaceless_gles2);
 #else
-	GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_opengl);
+	GLAMOR_CHECK_EGL_EXTENSIONS(KHR_surfaceless_context, KHR_surfaceless_opengl);
 #endif
 
 	glamor_egl->egl_create_image_khr = (PFNEGLCREATEIMAGEKHRPROC)
