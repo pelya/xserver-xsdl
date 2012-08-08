@@ -222,7 +222,7 @@ get_mask_cache(struct glamor_glyph_mask_cache *maskcache, int blocks)
 {
 	int free_cleared_bit, idx = -1;
 	int retry_cnt = 0;
-	unsigned int bits_mask;
+	unsigned int bits_mask = 0;
 
 	if (maskcache->free_bitmap == 0)
 		return NULL;
@@ -514,20 +514,20 @@ glamor_glyph_priv_get_edge_map(GlyphPtr glyph, struct glamor_glyph *priv,
 			     PicturePtr glyph_picture)
 {
 	PixmapPtr glyph_pixmap = (PixmapPtr) glyph_picture->pDrawable;
-	struct glamor_pixmap_private *pixmap_priv;
 	int j;
-	unsigned long long left_x1_map, left_x2_map, right_x1_map, right_x2_map;
+	unsigned long long left_x1_map = 0, left_x2_map = 0;
+	unsigned long long right_x1_map = 0, right_x2_map = 0;
 	int bitsPerPixel;
 	int stride;
 	void *bits;
 	int width;
-	unsigned int left_x1_data, left_x2_data, right_x1_data, right_x2_data;
+	unsigned int left_x1_data = 0, left_x2_data = 0;
+	unsigned int right_x1_data = 0, right_x2_data = 0;
 
 	bitsPerPixel = glyph_pixmap->drawable.bitsPerPixel;
 	stride = glyph_pixmap->devKind;
 	bits = glyph_pixmap->devPrivate.ptr;
 	width = glyph->info.width;
-	pixmap_priv = glamor_get_pixmap_private(glyph_pixmap);
 
 	if (glyph_pixmap->drawable.width < 2
 	    || !(glyph_pixmap->drawable.depth == 8
@@ -662,12 +662,6 @@ glyph_new_fixed_list(struct glamor_glyph_list *fixed_list,
 			fixed_list->list[list_cnt - 1].len = cur_pos - n_off;
 		} else
 			fixed_list->list[0].len = cur_pos - *head_pos - n_off;
-		while(list_cnt--) {
-			DEBUGF("new fixed list type %d entry len %d x %d y %d"
-				"head_pos %d pos %d list %d has %d glyphs.\n",
-				fixed_list->type, fixed_list->nlist,
-				cur_x, cur_y, *head_pos, cur_pos, i, fixed_list->list[i++].len);
-		}
 		(*fixed_cnt)++;
 	}
 
@@ -712,9 +706,9 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 	Bool first = TRUE, first_list = TRUE;
 	Bool need_free_list_region = FALSE;
 	Bool need_free_fixed_list = FALSE;
-	struct glamor_glyph *priv;
+	struct glamor_glyph *priv = NULL;
 	Bool in_non_intersected_list = -1;
-	GlyphListPtr head_list, saved_list;
+	GlyphListPtr head_list;
 	int head_x, head_y, head_pos;
 	int fixed_cnt = 0;
 	GlyphPtr *head_glyphs;
@@ -732,9 +726,10 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 
 	extents = pixman_region_extents(&current_region);
 
-	saved_list = list;
 	x = 0;
 	y = 0;
+	x1 = x2 = y1 = y2 = 0;
+	n = 0;
 	extents->x1 = 0;
 	extents->y1 = 0;
 	extents->x2 = 0;
@@ -743,10 +738,10 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
 	head_list = list;
 	DEBUGF("has %d lists.\n", nlist);
 	while (nlist--) {
-		BoxRec left_box, right_box;
+		BoxRec left_box, right_box = {0};
 		Bool has_left_edge_box = FALSE, has_right_edge_box = FALSE;
 		Bool left_to_right;
-		struct glamor_glyph *left_priv, *right_priv;
+		struct glamor_glyph *left_priv = NULL, *right_priv = NULL;
 
 		x += list->xOff;
 		y += list->yOff;
@@ -1146,7 +1141,7 @@ glamor_glyph_cache(glamor_screen_private *glamor, GlyphPtr glyph, int *out_x,
 	*out_y = priv->y;
 	return cache->picture;
 }
-typedef void (*glyphs_flush)(void * arg);
+typedef void (*glyphs_flush_func)(void * arg);
 struct glyphs_flush_dst_arg {
 	CARD8 op;
 	PicturePtr src;
@@ -1223,7 +1218,7 @@ glamor_buffer_glyph(glamor_screen_private *glamor_priv,
 		    int x_glyph, int y_glyph,
 		    int dx, int dy, int w, int h,
 		    int glyphs_dst_mode,
-		    glyphs_flush glyphs_flush, void *flush_arg)
+		    glyphs_flush_func glyphs_flush, void *flush_arg)
 {
 	ScreenPtr screen = glamor_priv->screen;
 	glamor_composite_rect_t *rect;
@@ -1327,7 +1322,7 @@ glamor_buffer_glyph_clip(glamor_screen_private *glamor_priv,
 			 int glyph_dx, int glyph_dy,
 			 int width, int height,
 			 int glyphs_mode,
-			 glyphs_flush flush_func,
+			 glyphs_flush_func flush_func,
 			 void *arg
 			 )
 {
@@ -1490,24 +1485,24 @@ retry:
 			glyph = *glyphs++;
 			if (glyph->info.width > 0
 			    && glyph->info.height > 0) {
-				glyphs_flush flush_func;
-				void *arg;
+				glyphs_flush_func flush_func;
+				void *temp_arg;
 				if (need_free_mask) {
 					if (pmask_buffer->count)
-						flush_func = (glyphs_flush)glamor_glyphs_flush_mask;
+						flush_func = (glyphs_flush_func)glamor_glyphs_flush_mask;
 					else
 						flush_func = NULL;
-					arg = pmask_arg;
+					temp_arg = pmask_arg;
 				} else {
 					/* If we are using global mask cache, then we need to
 					 * flush dst instead of mask. As some dst depends on the
 					 * previous mask result. Just flush mask can't get all previous's
 					 * overlapped glyphs.*/
 					if (dst_buffer.count || mask_buffer.count)
-						flush_func = (glyphs_flush)glamor_glyphs_flush_dst;
+						flush_func = (glyphs_flush_func)glamor_glyphs_flush_dst;
 					else
 						flush_func = NULL;
-					arg = &dst_arg;
+					temp_arg = &dst_arg;
 				}
 				glamor_buffer_glyph(glamor_priv, pmask_buffer,
 						    mask_format->format,
@@ -1516,7 +1511,7 @@ retry:
 						    glyph->info.width, glyph->info.height,
 						    glyphs_dst_mode,
 						    flush_func,
-						    (void*)arg);
+						    (void*)temp_arg);
 			}
 			x += glyph->info.xOff;
 			y += glyph->info.yOff;
@@ -1538,7 +1533,7 @@ retry:
 		glamor_destroy_pixmap(mask_pixmap);
 	} else {
 		struct glamor_glyph priv;
-		glyphs_flush flush_func;
+		glyphs_flush_func flush_func;
 		BoxPtr rects;
 		int nrect;
 
@@ -1570,7 +1565,7 @@ retry:
 		y += dst->pDrawable->y;
 
 		if (dst_buffer.count || mask_buffer.count)
-			flush_func = (glyphs_flush)glamor_glyphs_flush_dst;
+			flush_func = (glyphs_flush_func)glamor_glyphs_flush_dst;
 		else
 			flush_func = NULL;
 
@@ -1633,10 +1628,10 @@ glamor_glyphs_to_dst(CARD8 op,
 
 			if (glyph->info.width > 0
 			    && glyph->info.height > 0) {
-				glyphs_flush flush_func;
+				glyphs_flush_func flush_func;
 
 				if (dst_buffer.count || mask_buffer.count)
-					flush_func = (glyphs_flush)glamor_glyphs_flush_dst;
+					flush_func = (glyphs_flush_func)glamor_glyphs_flush_dst;
 				else
 					flush_func = NULL;
 				glamor_buffer_glyph_clip(glamor_priv,

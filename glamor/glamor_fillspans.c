@@ -36,10 +36,7 @@ _glamor_fill_spans(DrawablePtr drawable,
 	BoxPtr pbox;
 	int x1, x2, y;
 	RegionPtr pClip = fbGetCompositeClip(gc);
-	glamor_screen_private *glamor_priv;
 	Bool ret = FALSE;
-
-	glamor_priv = glamor_get_screen_private(drawable->pScreen);
 
 	if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
 		goto fail;

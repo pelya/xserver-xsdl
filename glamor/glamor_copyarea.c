@@ -392,14 +392,12 @@ _glamor_copy_n_to_n(DrawablePtr src,
 		    Bool upsidedown, Pixel bitplane,
 		    void *closure, Bool fallback)
 {
-	glamor_access_t dst_access;
 	PixmapPtr dst_pixmap, src_pixmap;
 	glamor_pixmap_private *dst_pixmap_priv, *src_pixmap_priv;
 	glamor_screen_private *glamor_priv;
 	glamor_gl_dispatch *dispatch;
 	BoxPtr extent;
 	RegionRec region;
-	ScreenPtr screen;
 	int src_x_off, src_y_off, dst_x_off, dst_y_off;
 	Bool ok = FALSE;
 	int force_clip = 0;
@@ -410,7 +408,6 @@ _glamor_copy_n_to_n(DrawablePtr src,
 	dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
 	src_pixmap = glamor_get_drawable_pixmap(src);
 	src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
-	screen = dst_pixmap->drawable.pScreen;
 
 	glamor_priv = glamor_get_screen_private(dst->pScreen);
 
@@ -611,11 +608,6 @@ fall_back:
 	glamor_fallback("from %p to %p (%c,%c)\n", src, dst,
 			glamor_get_drawable_location(src),
 			glamor_get_drawable_location(dst));
-
-	if (gc && gc->alu != GXcopy)
-		dst_access = GLAMOR_ACCESS_RW;
-	else
-		dst_access = GLAMOR_ACCESS_WO;
 
 	if (glamor_prepare_access(dst, GLAMOR_ACCESS_RW)) {
 		if (dst == src

@@ -33,15 +33,12 @@ _glamor_copy_plane(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		   int srcx, int srcy, int w, int h, int dstx, int dsty,
 		   unsigned long bitPlane, RegionPtr *pRegion, Bool fallback)
 {
-	glamor_screen_private *glamor_priv;
-
 	if (!fallback 
 	    && glamor_ddx_fallback_check_gc(pGC)
 	    && glamor_ddx_fallback_check_pixmap(pSrc)
 	    && glamor_ddx_fallback_check_pixmap(pDst))
 		goto fail;
 
-	glamor_priv = glamor_get_screen_private(pDst->pScreen);
 	glamor_prepare_access(pDst, GLAMOR_ACCESS_RW);
 	glamor_prepare_access(pSrc, GLAMOR_ACCESS_RO);
 	*pRegion = fbCopyPlane(pSrc, pDst, pGC, srcx, srcy, w, h,

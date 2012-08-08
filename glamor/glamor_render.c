@@ -43,6 +43,7 @@
 //#define DEBUGRegionPrint(x) do {} while (0)
 #define DEBUGRegionPrint RegionPrint
 #endif
+
 static struct blendinfo composite_op_info[] = {
 	[PictOpClear] = {0, 0, GL_ZERO, GL_ZERO},
 	[PictOpSrc] = {0, 0, GL_ONE, GL_ZERO},
@@ -1715,7 +1716,7 @@ _glamor_composite(CARD8 op,
 	    glamor_get_screen_private(screen);
 	Bool ret = TRUE;
 	RegionRec region;
-	BoxPtr box, extent;
+	BoxPtr extent;
 	int nbox, ok = FALSE;
 	PixmapPtr sub_dest_pixmap = NULL;
 	PixmapPtr sub_source_pixmap = NULL;
@@ -1778,7 +1779,6 @@ _glamor_composite(CARD8 op,
 		goto done;
 	}
 
-	box = REGION_RECTS(&region);
 	nbox = REGION_NUM_RECTS(&region);
 	DEBUGF("first clipped when compositing.\n");
 	DEBUGRegionPrint(&region);
@@ -1833,6 +1833,7 @@ _glamor_composite(CARD8 op,
 						     x_dest, y_dest);
 
 	REGION_UNINIT(dest->pDrawable->pScreen, &region);
+
 	if (ok)
 		goto done;
 fail:
@@ -1886,7 +1887,7 @@ fail:
 		GET_SUB_PICTURE(source, GLAMOR_ACCESS_RO);
 	if (mask && mask->pDrawable && !mask->transform)
 		GET_SUB_PICTURE(mask, GLAMOR_ACCESS_RO);
-full_fallback:
+
 	if (glamor_prepare_access_picture(dest, GLAMOR_ACCESS_RW)) {
 		if (source_pixmap == dest_pixmap || glamor_prepare_access_picture
 		    (source, GLAMOR_ACCESS_RO)) {

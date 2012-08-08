@@ -39,12 +39,12 @@
 #define t_from_x_coord_y(_yscale_, _y_)          (1.0 - (_y_) * (_yscale_))
 #define t_from_x_coord_y_inverted(_yscale_, _y_) ((_y_) * (_yscale_))
 
-#define pixmap_priv_get_dest_scale(_pixmap_priv_, _pxscale_, _pyscale_)\
-  do {                                                                 \
-    int w,h;                                                           \
-    PIXMAP_PRIV_GET_ACTUAL_SIZE(_pixmap_priv_, w, h);                  \
-    *(_pxscale_) = 1.0 / w;                                            \
-    *(_pyscale_) = 1.0 / h;                                            \
+#define pixmap_priv_get_dest_scale(_pixmap_priv_, _pxscale_, _pyscale_)  \
+  do {                                                                   \
+    int _w_,_h_;                                                         \
+    PIXMAP_PRIV_GET_ACTUAL_SIZE(_pixmap_priv_, _w_, _h_);                \
+    *(_pxscale_) = 1.0 / _w_;                                            \
+    *(_pyscale_) = 1.0 / _h_;                                            \
    } while(0)
 
 #define pixmap_priv_get_scale(_pixmap_priv_, _pxscale_, _pyscale_)	\
@@ -302,14 +302,14 @@
 
 #define glamor_transform_point(matrix, tx, ty, x, y)			\
   do {									\
-    int i;								\
-    float result[4];							\
-    for (i = 0; i < 3; i++) {						\
-      result[i] = (matrix)[i * 3] * (x) + (matrix)[i * 3 + 1] * (y)	\
-	+ (matrix)[i * 3 + 2];						\
+    int _i_;								\
+    float _result_[4];							\
+    for (_i_ = 0; _i_ < 3; _i_++) {					\
+      _result_[_i_] = (matrix)[_i_ * 3] * (x) + (matrix)[_i_ * 3 + 1] * (y)	\
+	+ (matrix)[_i_ * 3 + 2];					\
     }									\
-    tx = result[0] / result[2];						\
-    ty = result[1] / result[2];						\
+    tx = _result_[0] / _result_[2];					\
+    ty = _result_[1] / _result_[2];					\
   } while(0)
 
 #define _glamor_set_normalize_tpoint(xscale, yscale, _tx_, _ty_,	\
@@ -734,10 +734,10 @@
 
 #define glamor_set_const_ext(params, nparam, vertices, nverts, stride)	\
     do {								\
-	int i = 0, j = 0;						\
-	for(; i < nverts; i++) {					\
-	    for(j = 0; j < nparam; j++) {				\
-		vertices[stride*i + j] = params[j];			\
+	int _i_ = 0, _j_ = 0;						\
+	for(; _i_ < nverts; _i_++) {					\
+	    for(_j_ = 0; _j_ < nparam; _j_++) {				\
+		vertices[stride*_i_ + _j_] = params[_j_];		\
 	    }								\
 	}								\
     } while(0)

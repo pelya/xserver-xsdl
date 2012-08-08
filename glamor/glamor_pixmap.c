@@ -926,7 +926,6 @@ _glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, GLenum format,
 	glamor_pixmap_private *pixmap_priv;
 	GLenum gl_access = 0, gl_usage = 0;
 	void *data, *read;
-	ScreenPtr screen;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
 	glamor_gl_dispatch *dispatch;
@@ -936,7 +935,6 @@ _glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, GLenum format,
 	int fbo_x_off, fbo_y_off;
 
 	data = bits;
-	screen = pixmap->drawable.pScreen;
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return NULL;
@@ -1193,13 +1191,11 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 	    glamor_get_pixmap_private(pixmap);
 	unsigned int stride;
 	void *data = NULL, *dst;
-	ScreenPtr screen;
 	glamor_screen_private *glamor_priv =
 	    glamor_get_screen_private(pixmap->drawable.pScreen);
 	glamor_gl_dispatch *dispatch;
 	int pbo = 0;
 
-	screen = pixmap->drawable.pScreen;
 	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
 		return TRUE;
 
@@ -1259,7 +1255,6 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 Bool
 glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv)
 {
-	glamor_screen_private *glamor_priv;
 	glamor_pixmap_fbo *old_fbo;
 	glamor_pixmap_fbo *new_fbo = NULL;
 	PixmapPtr scratch = NULL;
@@ -1274,7 +1269,6 @@ glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv)
 		return	TRUE;
 
 	old_fbo = pixmap_priv->base.fbo;
-	glamor_priv = pixmap_priv->base.glamor_priv;
 
 	if (!old_fbo)
 		return FALSE;

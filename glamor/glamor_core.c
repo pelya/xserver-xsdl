@@ -566,15 +566,13 @@ glamor_bitmap_to_region(PixmapPtr pixmap)
 
 /* Borrow from cairo. */
 Bool
-glamor_gl_has_extension(char *extension)
+glamor_gl_has_extension(const char *extension)
 {
-	const char *gl_extensions;
-	char *pext;
+	const char *pext;
 	int ext_len;
 	ext_len = strlen(extension);
 
-	gl_extensions = (const char *) glGetString(GL_EXTENSIONS);
-	pext = (char *) gl_extensions;
+	pext = (const char*)glGetString(GL_EXTENSIONS);
 
 	if (pext == NULL || extension == NULL)
 		return FALSE;

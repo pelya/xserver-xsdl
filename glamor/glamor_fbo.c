@@ -258,7 +258,6 @@ glamor_fbo_expire(glamor_screen_private *glamor_priv)
 	struct xorg_list *cache;
 	glamor_pixmap_fbo *fbo_entry, *tmp;
 	int i,j,k;
-	int empty_cache = TRUE;
 
 	for(i = 0; i < CACHE_FORMAT_COUNT; i++)
 		for(j = 0; j < CACHE_BUCKET_WCOUNT; j++)
@@ -266,7 +265,6 @@ glamor_fbo_expire(glamor_screen_private *glamor_priv)
 				cache = &glamor_priv->fbo_cache[i][j][k];
 				xorg_list_for_each_entry_safe_reverse(fbo_entry, tmp, cache, list) {
 					if (GLAMOR_TICK_AFTER(fbo_entry->expire, glamor_priv->tick)) {
-						empty_cache = FALSE;
 						break;
 					}
 

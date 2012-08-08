@@ -43,9 +43,6 @@ _glamor_poly_fill_rect(DrawablePtr drawable,
 	register BoxPtr pbox;
 	RegionPtr pClip = fbGetCompositeClip(gc);
 	Bool ret = FALSE;
-	glamor_screen_private *glamor_priv;
-
-	glamor_priv = glamor_get_screen_private(drawable->pScreen);
 
 	xorg = drawable->x;
 	yorg = drawable->y;

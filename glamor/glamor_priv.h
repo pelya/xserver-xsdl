@@ -549,9 +549,6 @@ extern int glamor_debug_level;
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
-PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
-			       unsigned int usage);
-
 Bool glamor_destroy_pixmap(PixmapPtr pixmap);
 
 glamor_pixmap_fbo* glamor_pixmap_detach_fbo(glamor_pixmap_private *pixmap_priv);
@@ -568,15 +565,11 @@ void glamor_init_pixmap_fbo(ScreenPtr screen);
 void glamor_fini_pixmap_fbo(ScreenPtr screen);
 Bool glamor_pixmap_fbo_fixup(ScreenPtr screen, PixmapPtr pixmap);
 void glamor_fbo_expire(glamor_screen_private *glamor_priv);
-void glamor_init_pixmap_fbo(ScreenPtr screen);
-void glamor_fini_pixmap_fbo(ScreenPtr screen);
 
 glamor_pixmap_fbo *
 glamor_create_fbo_array(glamor_screen_private *glamor_priv,
 			int w, int h, GLenum format, int flag,
 			int block_w, int block_h, glamor_pixmap_private *);
-
-Bool glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv);
 
 /* glamor_copyarea.c */
 RegionPtr
@@ -603,7 +596,6 @@ void glamor_fini_finish_access_shaders(ScreenPtr screen);
 const Bool glamor_get_drawable_location(const DrawablePtr drawable);
 void glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
 				int *x, int *y);
-Bool glamor_create_gc(GCPtr gc);
 Bool glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 		    int x, int y, int width, int height,
 		    unsigned char alu, unsigned long planemask,
@@ -636,7 +628,7 @@ Bool glamor_set_alu(struct glamor_gl_dispatch *dispatch,
 Bool glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask);
 Bool glamor_change_window_attributes(WindowPtr pWin, unsigned long mask);
 RegionPtr glamor_bitmap_to_region(PixmapPtr pixmap);
-Bool glamor_gl_has_extension(char *extension);
+Bool glamor_gl_has_extension(const char *extension);
 int glamor_gl_get_version(void);
 
 #define GLAMOR_GL_VERSION_ENCODE(major, minor) ( \
@@ -683,7 +675,6 @@ void glamor_glyphs(CARD8 op,
 		   INT16 ySrc, int nlist, GlyphListPtr list,
 		   GlyphPtr * glyphs);
 
-void glamor_glyph_unrealize(ScreenPtr screen, GlyphPtr glyph);
 /* glamor_setspans.c */
 void glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		      DDXPointPtr points, int *widths, int n, int sorted);
@@ -946,9 +937,6 @@ glamor_prepare_access_picture(PicturePtr picture, glamor_access_t access);
 void glamor_finish_access_picture(PicturePtr picture, glamor_access_t access);
 
 void glamor_destroy_picture(PicturePtr picture);
-
-enum glamor_pixmap_status
- glamor_upload_picture_to_texture(PicturePtr picture);
 
 /* fixup a fbo to the exact size as the pixmap. */
 Bool

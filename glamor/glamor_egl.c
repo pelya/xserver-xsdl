@@ -335,8 +335,6 @@ _glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
 	}
 }
 
-extern void glamor_pixmap_exchange_fbos(PixmapPtr front, PixmapPtr back);
-
 _X_EXPORT void
 glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back)
 {
@@ -399,16 +397,13 @@ static Bool
 glamor_egl_has_extension(struct glamor_egl_screen_private *glamor_egl,
 			 const char *extension)
 {
-	const char *egl_extensions;
-	char *pext;
+	const char *pext;
 	int ext_len;
-	ext_len = strlen(extension);
 
-	egl_extensions =
+	ext_len = strlen(extension);
+	pext =
 	    (const char *) eglQueryString(glamor_egl->display,
 					  EGL_EXTENSIONS);
-	pext = (char *) egl_extensions;
-
 	if (pext == NULL || extension == NULL)
 		return FALSE;
 	while ((pext = strstr(pext, extension)) != NULL) {

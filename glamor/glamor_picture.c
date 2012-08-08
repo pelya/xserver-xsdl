@@ -73,13 +73,10 @@ glamor_create_picture(PicturePtr picture)
 {
 	PixmapPtr pixmap;
 	glamor_pixmap_private *pixmap_priv;
-	glamor_screen_private *glamor_priv;
 
 	if (!picture || !picture->pDrawable)
 		return 0;
 
-	glamor_priv =
-	    glamor_get_screen_private(picture->pDrawable->pScreen);
 	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 	if (!pixmap_priv) {
@@ -112,13 +109,10 @@ glamor_destroy_picture(PicturePtr picture)
 {
 	PixmapPtr pixmap;
 	glamor_pixmap_private *pixmap_priv;
-	glamor_screen_private *glamor_priv;
 
 	if (!picture || !picture->pDrawable)
 		return;
 
-	glamor_priv =
-	    glamor_get_screen_private(picture->pDrawable->pScreen);
 	pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
 	pixmap_priv = glamor_get_pixmap_private(pixmap);
 
