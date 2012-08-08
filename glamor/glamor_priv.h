@@ -191,7 +191,7 @@ enum glamor_gl_flavor {
 
 #define GLAMOR_NUM_GLYPH_CACHE_FORMATS 2
 
-#define GLAMOR_COMPOSITE_VBO_VERT_CNT 1024
+#define GLAMOR_COMPOSITE_VBO_VERT_CNT (64*1024)
 
 typedef struct {
 	PicturePtr picture;	/* Where the glyphs of the cache are stored */

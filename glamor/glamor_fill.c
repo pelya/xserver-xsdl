@@ -220,7 +220,6 @@ _glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
 		}
 	}
 
-#define GLAMOR_COMPOSITE_VBO_VERT_CNT 1024
 	if (unlikely(nbox > 1))
 		dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
 
