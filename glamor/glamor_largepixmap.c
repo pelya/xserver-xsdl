@@ -35,7 +35,6 @@ __glamor_compute_clipped_regions(int block_w,
 	int loop_end_block_x, loop_end_block_y;
 	int loop_block_stride;
 	int i, j, delta_i, delta_j;
-	int width, height;
 	RegionRec temp_region;
 	RegionPtr current_region;
 	int block_idx;
@@ -60,8 +59,6 @@ __glamor_compute_clipped_regions(int block_w,
 		return NULL;
 	}
 
-	width = end_x - start_x;
-	height = end_y - start_y;
 	start_block_x = (start_x  - x)/ block_w;
 	start_block_y = (start_y - y)/ block_h;
 	end_block_x = (end_x - x)/ block_w;
@@ -327,7 +324,6 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 	glamor_pixmap_clipped_regions * clipped_regions;
 	BoxPtr extent;
 	int i, j;
-	int width, height;
 	RegionPtr current_region;
 	int pixmap_width, pixmap_height;
 	int m;
@@ -400,8 +396,6 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 	}
 
 	extent = RegionExtents(region);
-	width = extent->x2 - extent->x1;
-	height = extent->y2 - extent->y1;
 	/* Tile a large pixmap to another large pixmap.
 	 * We can't use the target large pixmap as the
 	 * loop variable, instead we need to loop for all
@@ -462,13 +456,15 @@ _glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
 			/* Construct a rect to clip the target region. */
 			repeat_box.x1 = shift_x + priv->box_array[idx].x1;
 			repeat_box.y1 = shift_y + priv->box_array[idx].y1;
-			if (priv->block_wcnt == 1)
+			if (priv->block_wcnt == 1) {
 				repeat_box.x2 = extent->x2;
-			else
+				dx = extent->x2 - repeat_box.x1;
+			} else
 				repeat_box.x2 = shift_x + priv->box_array[idx].x2;
-			if (priv->block_hcnt == 1)
+			if (priv->block_hcnt == 1) {
 				repeat_box.y2 = extent->y2;
-			else
+				dy = extent->y2 - repeat_box.y1;
+			} else
 				repeat_box.y2 = shift_y + priv->box_array[idx].y2;
 
 			current_region = RegionCreate(NULL, 4);
@@ -980,15 +976,7 @@ glamor_composite_largepixmap_region(CARD8 op,
 	glamor_pixmap_private * need_free_source_pixmap_priv = NULL;
 	glamor_pixmap_private * need_free_mask_pixmap_priv = NULL;
 	int source_repeat_type = 0, mask_repeat_type = 0;
-	PixmapPtr source_pixmap = NULL;
-	PixmapPtr mask_pixmap = NULL;
 	int ok = TRUE;
-
-	if (source_pixmap_priv)
-		source_pixmap = source_pixmap_priv->base.pixmap;
-
-	if (mask_pixmap_priv)
-		mask_pixmap = mask_pixmap_priv->base.pixmap;
 
 	if (source->repeat)
 		source_repeat_type = source->repeatType;
