@@ -36,6 +36,26 @@ struct number_format_test {
     char hex_string[17];
 };
 
+struct signed_number_format_test {
+    int64_t number;
+    char string[21];
+};
+
+static Bool
+check_signed_number_format_test(const struct signed_number_format_test *test)
+{
+    char string[21];
+
+    FormatInt64(test->number, string);
+    if(strncmp(string, test->string, 21) != 0) {
+        fprintf(stderr, "Failed to convert %jd to decimal string (%s vs %s)\n",
+                test->number, test->string, string);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 static Bool
 check_number_format_test(const struct number_format_test *test)
 {
@@ -62,7 +82,7 @@ static void
 number_formatting(void)
 {
     int i;
-    struct number_format_test tests[] = {
+    struct number_format_test unsigned_tests[] = {
         { /* Zero */
             0,
             "0",
@@ -100,8 +120,62 @@ number_formatting(void)
         },
     };
 
-    for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++)
-        assert(check_number_format_test(tests + i));
+    struct signed_number_format_test signed_tests[] = {
+        { /* Zero */
+            0,
+            "0",
+        },
+        { /* Single digit number */
+            5,
+            "5",
+        },
+        { /* Two digit decimal number */
+            12,
+            "12",
+        },
+        { /* Two digit hex number */
+            37,
+            "37",
+        },
+        { /* Large < 32 bit number */
+            0xC90B2,
+            "823474",
+        },
+        { /* Large > 32 bit number */
+            0x15D027BF211B37A,
+            "98237498237498234",
+        },
+        { /* Maximum 64-bit signed number */
+            0x7FFFFFFFFFFFFFFF,
+            "9223372036854775807",
+        },
+        { /* Single digit number */
+            -1,
+            "-1",
+        },
+        { /* Two digit decimal number */
+            -12,
+            "-12",
+        },
+        { /* Large < 32 bit number */
+            -0xC90B2,
+            "-823474",
+        },
+        { /* Large > 32 bit number */
+            -0x15D027BF211B37A,
+            "-98237498237498234",
+        },
+        { /* Maximum 64-bit number */
+            -0x7FFFFFFFFFFFFFFF,
+            "-9223372036854775807",
+        },
+    };
+
+    for (i = 0; i < sizeof(unsigned_tests) / sizeof(unsigned_tests[0]); i++)
+        assert(check_number_format_test(unsigned_tests + i));
+
+    for (i = 0; i < sizeof(unsigned_tests) / sizeof(signed_tests[0]); i++)
+        assert(check_signed_number_format_test(signed_tests + i));
 }
 
 static void logging_format(void)
