@@ -57,7 +57,7 @@ check_number_format_test(const struct number_format_test *test)
     return TRUE;
 }
 
-static Bool
+static void
 number_formatting(void)
 {
     int i;
@@ -100,16 +100,14 @@ number_formatting(void)
     };
 
     for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++)
-        if (!check_number_format_test(tests + i))
-            return FALSE;
+        assert(check_number_format_test(tests + i));
 
-    return TRUE;
 }
 
 int
 main(int argc, char **argv)
 {
-    int ok = number_formatting();
+    number_formatting();
 
-    return ok ? 0 : 1;
+    return 0;
 }
