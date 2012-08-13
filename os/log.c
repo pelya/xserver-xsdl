@@ -290,6 +290,7 @@ pnprintf(char *string, size_t size, const char *f, va_list args)
     int p_len;
     int i;
     uint64_t ui;
+    int64_t si;
 
     for (; f_idx < f_len && s_idx < size - 1; f_idx++) {
         if (f[f_idx] != '%') {
@@ -309,6 +310,15 @@ pnprintf(char *string, size_t size, const char *f, va_list args)
         case 'u':
             ui = va_arg(args, unsigned);
             FormatUInt64(ui, number);
+            p_len = strlen_sigsafe(number);
+
+            for (i = 0; i < p_len && s_idx < size - 1; i++)
+                string[s_idx++] = number[i];
+            break;
+        case 'i':
+        case 'd':
+            si = va_arg(args, int);
+            FormatInt64(si, number);
             p_len = strlen_sigsafe(number);
 
             for (i = 0; i < p_len && s_idx < size - 1; i++)

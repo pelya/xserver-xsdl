@@ -242,6 +242,27 @@ static void logging_format(void)
             ui <<= 1;
     } while(ui);
 
+    /* signed number substitution */
+    i = 0;
+    do {
+        char expected[30];
+        sprintf(expected, "(EE) %d\n", i);
+        LogMessageVerbSigSafe(X_ERROR, -1, "%d\n", i);
+        read_log_msg(logmsg);
+        assert(strcmp(logmsg, expected) == 0);
+
+
+        sprintf(expected, "(EE) %d\n", i | INT_MIN);
+        LogMessageVerbSigSafe(X_ERROR, -1, "%d\n", i | INT_MIN);
+        read_log_msg(logmsg);
+        assert(strcmp(logmsg, expected) == 0);
+
+        if (i == 0)
+            i = 1;
+        else
+            i <<= 1;
+    } while(i > INT_MIN);
+
     /* hex number substitution */
     ui = 0;
     do {
