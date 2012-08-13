@@ -26,6 +26,7 @@
 #endif
 
 #include <stdint.h>
+#include <unistd.h>
 #include "assert.h"
 #include "misc.h"
 
@@ -101,13 +102,113 @@ number_formatting(void)
 
     for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++)
         assert(check_number_format_test(tests + i));
+}
 
+static void logging_format(void)
+{
+    const char *log_file_path = "/tmp/Xorg-logging-test.log";
+    const char *str = "%s %d %u %% %p %i";
+    char buf[1024];
+    int i;
+    unsigned int ui;
+    FILE *f;
+    char read_buf[2048];
+    char *logmsg;
+    uintptr_t ptr;
+
+    /* set up buf to contain ".....end" */
+    memset(buf, '.', sizeof(buf));
+    strcpy(&buf[sizeof(buf) - 4], "end");
+
+    LogInit(log_file_path, NULL);
+    assert(f = fopen(log_file_path, "r"));
+
+#define read_log_msg(msg) \
+    fgets(read_buf, sizeof(read_buf), f); \
+    msg = strchr(read_buf, ']') + 2; /* advance past [time.stamp] */
+
+    /* boring test message */
+    LogMessageVerbSigSafe(X_ERROR, -1, "test message\n");
+    read_log_msg(logmsg);
+    assert(strcmp(logmsg, "(EE) test message\n") == 0);
+
+    /* long buf is truncated to "....en\n" */
+#pragma GCC diagnostic ignored "-Wformat-security"
+    LogMessageVerbSigSafe(X_ERROR, -1, buf);
+#pragma GCC diagnostic pop "-Wformat-security"
+    read_log_msg(logmsg);
+    assert(strcmp(&logmsg[strlen(logmsg) - 3], "en\n") == 0);
+
+    /* same thing, this time as string substitution */
+    LogMessageVerbSigSafe(X_ERROR, -1, "%s", buf);
+    read_log_msg(logmsg);
+    assert(strcmp(&logmsg[strlen(logmsg) - 3], "en\n") == 0);
+
+    /* strings containing placeholders should just work */
+    LogMessageVerbSigSafe(X_ERROR, -1, "%s\n", str);
+    read_log_msg(logmsg);
+    assert(strcmp(logmsg, "(EE) %s %d %u %% %p %i\n") == 0);
+
+    /* string substitution */
+    LogMessageVerbSigSafe(X_ERROR, -1, "%s\n", "substituted string");
+    read_log_msg(logmsg);
+    assert(strcmp(logmsg, "(EE) substituted string\n") == 0);
+
+    /* number substitution */
+    ui = 0;
+    do {
+        char expected[30];
+        sprintf(expected, "(EE) %u\n", ui);
+        LogMessageVerbSigSafe(X_ERROR, -1, "%u\n", ui);
+        read_log_msg(logmsg);
+        assert(strcmp(logmsg, expected) == 0);
+        if (ui == 0)
+            ui = 1;
+        else
+            ui <<= 1;
+    } while(ui);
+
+    /* hex number substitution */
+    ui = 0;
+    do {
+        char expected[30];
+        sprintf(expected, "(EE) %x\n", ui);
+        LogMessageVerbSigSafe(X_ERROR, -1, "%x\n", ui);
+        read_log_msg(logmsg);
+        assert(strcmp(logmsg, expected) == 0);
+        if (ui == 0)
+            ui = 1;
+        else
+            ui <<= 1;
+    } while(ui);
+
+    /* pointer substitution */
+    /* we print a null-pointer differently to printf */
+    LogMessageVerbSigSafe(X_ERROR, -1, "%p\n", NULL);
+    read_log_msg(logmsg);
+    assert(strcmp(logmsg, "(EE) 0x0\n") == 0);
+
+    ptr = 1;
+    do {
+        char expected[30];
+        sprintf(expected, "(EE) %p\n", (void*)ptr);
+        LogMessageVerbSigSafe(X_ERROR, -1, "%p\n", (void*)ptr);
+        read_log_msg(logmsg);
+        assert(strcmp(logmsg, expected) == 0);
+        ptr <<= 1;
+    } while(ptr);
+
+    LogClose(EXIT_NO_ERROR);
+    unlink(log_file_path);
+
+#undef read_log_msg
 }
 
 int
 main(int argc, char **argv)
 {
     number_formatting();
+    logging_format();
 
     return 0;
 }
