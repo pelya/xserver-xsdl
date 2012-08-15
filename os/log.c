@@ -467,6 +467,7 @@ LogMessageTypeVerbString(MessageType type, int verb)
 void
 LogVMessageVerb(MessageType type, int verb, const char *format, va_list args)
 {
+    static unsigned int warned;
     const char *type_str;
     char buf[1024];
     const size_t size = sizeof(buf);
@@ -474,13 +475,17 @@ LogVMessageVerb(MessageType type, int verb, const char *format, va_list args)
     size_t len = 0;
 
     if (inSignalContext) {
-        BUG_WARN_MSG(inSignalContext,
-                     "Warning: attempting to log data in a signal unsafe "
-                     "manner while in signal context. Please update to check "
-                     "inSignalContext and/or use LogMessageVerbSigSafe() or "
-                     "ErrorFSigSafe(). The offending log format message is:\n"
-                     "%s\n", format);
-        return;
+        if (warned < 3) {
+            BUG_WARN_MSG(inSignalContext,
+                         "Warning: attempting to log data in a signal unsafe "
+                         "manner while in signal context.\nPlease update to check "
+                         "inSignalContext and/or use LogMessageVerbSigSafe() or "
+                         "ErrorFSigSafe().\nThe offending log format message is:\n"
+                         "%s\n", format);
+            warned++;
+            if (warned == 3)
+                LogMessageVerbSigSafe(X_WARNING, -1, "Warned %u times about sigsafe logging. Will be quiet now.\n", warned);
+        }
     }
 
     type_str = LogMessageTypeVerbString(type, verb);
@@ -566,6 +571,7 @@ void
 LogVHdrMessageVerb(MessageType type, int verb, const char *msg_format,
                    va_list msg_args, const char *hdr_format, va_list hdr_args)
 {
+    static unsigned int warned;
     const char *type_str;
     char buf[1024];
     const size_t size = sizeof(buf);
@@ -573,13 +579,17 @@ LogVHdrMessageVerb(MessageType type, int verb, const char *msg_format,
     size_t len = 0;
 
     if (inSignalContext) {
-        BUG_WARN_MSG(inSignalContext,
-                     "Warning: attempting to log data in a signal unsafe "
-                     "manner while in signal context. Please update to check "
-                     "inSignalContext and/or use LogMessageVerbSigSafe(). The "
-                     "offending header and log message formats are:\n%s %s\n",
-                     hdr_format, msg_format);
-        return;
+        if (warned < 3) {
+            BUG_WARN_MSG(inSignalContext,
+                         "Warning: attempting to log data in a signal unsafe "
+                         "manner while in signal context.\nPlease update to check "
+                         "inSignalContext and/or use LogMessageVerbSigSafe().\nThe "
+                         "offending header and log message formats are:\n%s %s\n",
+                         hdr_format, msg_format);
+            warned++;
+            if (warned == 3)
+                LogMessageVerbSigSafe(X_WARNING, -1, "Warned %u times about sigsafe logging. Will be quiet now.\n", warned);
+        }
     }
 
     type_str = LogMessageTypeVerbString(type, verb);
