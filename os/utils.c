@@ -1231,10 +1231,10 @@ OsBlockSIGIO(void)
         sigprocmask(SIG_BLOCK, &set, &PreviousSigIOMask);
         ret = sigismember(&PreviousSigIOMask, SIGIO);
         return ret;
-    } else
-        return 1;
+    }
 #endif
 #endif
+    return 1;
 }
 
 void
