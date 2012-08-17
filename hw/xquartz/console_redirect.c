@@ -365,8 +365,8 @@ xq_asl_log_fd(aslclient asl, aslmsg msg, int level, int fd)
                               BLOCK_DONE;
                           }
                           redirect_fds = new_array;
-                          memset(redirect_fds + n_redirect_fds, 0, new_n -
-                                 n_redirect_fds);
+                          memset(redirect_fds + n_redirect_fds, 0, (new_n -
+                                 n_redirect_fds) * sizeof(*redirect_fds));
                           n_redirect_fds = new_n;
                       }
 
