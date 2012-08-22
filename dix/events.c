@@ -2246,7 +2246,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
  * @return TRUE if the event should be discarded, FALSE otherwise.
  */
 static BOOL
-FilterRawEvents(const ClientPtr client, const GrabPtr grab)
+FilterRawEvents(const ClientPtr client, const GrabPtr grab, WindowPtr root)
 {
     XIClientPtr client_xi_version;
     int cmp;
@@ -2262,7 +2262,10 @@ FilterRawEvents(const ClientPtr client, const GrabPtr grab)
                           client_xi_version->minor_version, 2, 0);
     /* XI 2.0: if device is grabbed, skip
        XI 2.1: if device is grabbed by us, skip, we've already delivered */
-    return (cmp == 0) ? TRUE : SameClient(grab, client);
+    if (cmp == 0)
+        return TRUE;
+
+    return (grab->window != root) ? FALSE : SameClient(grab, client);
 }
 
 /**
@@ -2315,7 +2318,7 @@ DeliverRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
              */
             ic.next = NULL;
 
-            if (!FilterRawEvents(rClient(&ic), grab))
+            if (!FilterRawEvents(rClient(&ic), grab, root))
                 DeliverEventToInputClients(device, &ic, root, xi, 1,
                                            filter, NULL, &c, &m);
         }
