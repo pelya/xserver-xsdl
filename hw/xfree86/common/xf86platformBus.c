@@ -359,6 +359,9 @@ xf86platformProbeDev(DriverPtr drvp)
                     break;
             }
             else {
+                /* for non-seat0 servers assume first device is the master */
+                if (ServerIsNotSeat0())
+                    break;
                 if (xf86_platform_devices[j].pdev) {
                     if (xf86IsPrimaryPlatform(&xf86_platform_devices[j]))
                         break;
