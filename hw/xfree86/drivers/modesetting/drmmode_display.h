@@ -139,5 +139,7 @@ void drmmode_get_default_bpp(ScrnInfoPtr pScrn, drmmode_ptr drmmmode, int *depth
 #define DRM_CAP_DUMB_PREFER_SHADOW 4
 #endif
 
+#define MS_ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
+
 
 #endif

@@ -882,7 +882,8 @@ const char *output_names[] = { "None",
 			       "HDMI",
 			       "HDMI",
 			       "TV",
-			       "eDP"
+			       "eDP",
+			       "Virtual"
 };
 
 static void
@@ -913,7 +914,10 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num, int *num_dv
 	}
 
 	/* need to do smart conversion here for compat with non-kms ATI driver */
-	snprintf(name, 32, "%s-%d", output_names[koutput->connector_type], koutput->connector_type_id - 1);
+	if (koutput->connector_type >= MS_ARRAY_SIZE(output_names))
+		snprintf(name, 32, "Unknown-%d", koutput->connector_type_id - 1);
+	else
+		snprintf(name, 32, "%s-%d", output_names[koutput->connector_type], koutput->connector_type_id - 1);
 
 	output = xf86OutputCreate (pScrn, &drmmode_output_funcs, name);
 	if (!output) {
