@@ -137,6 +137,7 @@ AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h dlfcn.h stropts.h fnmatch.h
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
+AC_C_TYPEOF
 AC_C_BIGENDIAN([ENDIAN="X_BIG_ENDIAN"], [ENDIAN="X_LITTLE_ENDIAN"])
 
 AC_CHECK_SIZEOF([unsigned long])
