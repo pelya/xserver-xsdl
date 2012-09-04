@@ -36,24 +36,6 @@
 #endif
 #include "win.h"
 
-/*
- * FIXME: Headers are broken, DEFINE_GUID doesn't work correctly,
- * so we have to redefine it here.
- */
-#ifdef DEFINE_GUID
-#undef DEFINE_GUID
-#define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
-#endif                          /* DEFINE_GUID */
-
-/*
- * FIXME: Headers are broken, IID_IDirectDraw4 has to be defined
- * here manually.  Should be handled by ddraw.h
- */
-#ifndef IID_IDirectDraw4
-DEFINE_GUID(IID_IDirectDraw4, 0x9c59509a, 0x39bd, 0x11d1, 0x8c, 0x4a, 0x00,
-            0xc0, 0x4f, 0xd9, 0x30, 0xc5);
-#endif                          /* IID_IDirectDraw4 */
-
 #define FAIL_MSG_MAX_BLT	10
 
 /*
