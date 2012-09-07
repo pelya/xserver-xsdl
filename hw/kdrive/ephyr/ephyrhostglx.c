@@ -52,6 +52,8 @@
 #include "ephyrlog.h"
 #include "hostx.h"
 
+static int glx_major, glx_minor;
+
 enum VisualConfRequestType {
     EPHYR_GET_FB_CONFIG,
     EPHYR_VENDOR_PRIV_GET_FB_CONFIG_SGIX,
@@ -99,6 +101,12 @@ ephyrHostGLXQueryVersion(int *a_major, int *a_minor)
     EPHYR_RETURN_VAL_IF_FAIL(a_major && a_minor, FALSE);
     EPHYR_LOG("enter\n");
 
+    if (glx_major) {
+        *a_major = glx_major;
+        *a_minor = glx_minor;
+        return TRUE;
+    }
+
     if (!ephyrHostGLXGetMajorOpcode(&major_opcode)) {
         EPHYR_LOG_ERROR("failed to get major opcode\n");
         goto out;
@@ -117,8 +125,8 @@ ephyrHostGLXQueryVersion(int *a_major, int *a_minor)
     UnlockDisplay(dpy);
     SyncHandle();
 
-    *a_major = reply.majorVersion;
-    *a_minor = reply.minorVersion;
+    *a_major = glx_major = reply.majorVersion;
+    *a_minor = glx_minor = reply.minorVersion;
 
     EPHYR_LOG("major:%d, minor:%d\n", *a_major, *a_minor);
 
@@ -512,20 +520,19 @@ ephyrHostDestroyContext(int a_ctxt_id)
 }
 
 Bool
-ephyrHostGLXMakeCurrent(int a_drawable,
+ephyrHostGLXMakeCurrent(int a_drawable, int a_readable,
                         int a_glx_ctxt_id, int a_old_ctxt_tag, int *a_ctxt_tag)
 {
     Bool is_ok = FALSE;
     Display *dpy = hostx_get_display();
     int32_t major_opcode = 0;
     int remote_glx_ctxt_id = 0;
-    xGLXMakeCurrentReq *req;
     xGLXMakeCurrentReply reply;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_ctxt_tag, FALSE);
 
-    EPHYR_LOG("enter. drawable:%d, context:%d, oldtag:%d\n",
-              a_drawable, a_glx_ctxt_id, a_old_ctxt_tag);
+    EPHYR_LOG("enter. drawable:%d, read:%d, context:%d, oldtag:%d\n",
+              a_drawable, a_readable, a_glx_ctxt_id, a_old_ctxt_tag);
 
     if (!ephyrHostGLXGetMajorOpcode(&major_opcode)) {
         EPHYR_LOG_ERROR("failed to get major opcode\n");
@@ -538,12 +545,48 @@ ephyrHostGLXMakeCurrent(int a_drawable,
 
     LockDisplay(dpy);
 
-    GetReq(GLXMakeCurrent, req);
-    req->reqType = major_opcode;
-    req->glxCode = X_GLXMakeCurrent;
-    req->drawable = a_drawable;
-    req->context = remote_glx_ctxt_id;
-    req->oldContextTag = a_old_ctxt_tag;
+    /* If both drawables are the same, use the old MakeCurrent request.
+     * Otherwise, if we have GLX 1.3 or higher, use the MakeContextCurrent
+     * request which supports separate read and draw targets.  Failing that,
+     * try the SGI MakeCurrentRead extension.  Logic cribbed from Mesa. */
+    if (a_drawable == a_readable) {
+        xGLXMakeCurrentReq *req;
+
+        GetReq(GLXMakeCurrent, req);
+        req->reqType = major_opcode;
+        req->glxCode = X_GLXMakeCurrent;
+        req->drawable = a_drawable;
+        req->context = remote_glx_ctxt_id;
+        req->oldContextTag = a_old_ctxt_tag;
+    }
+    else if (glx_major > 1 || glx_minor >= 3) {
+        xGLXMakeContextCurrentReq *req;
+
+        GetReq(GLXMakeContextCurrent, req);
+        req->reqType = major_opcode;
+        req->glxCode = X_GLXMakeContextCurrent;
+        req->drawable = a_drawable;
+        req->readdrawable = a_readable;
+        req->context = remote_glx_ctxt_id;
+        req->oldContextTag = a_old_ctxt_tag;
+    }
+    else {
+        xGLXVendorPrivateWithReplyReq *vpreq;
+        xGLXMakeCurrentReadSGIReq *req;
+
+        GetReqExtra(GLXVendorPrivateWithReply,
+                    (sz_xGLXMakeCurrentReadSGIReq -
+                     sz_xGLXVendorPrivateWithReplyReq),
+                    vpreq);
+        req = (xGLXMakeCurrentReadSGIReq *) vpreq;
+        req->reqType = major_opcode;
+        req->glxCode = X_GLXVendorPrivateWithReply;
+        req->vendorCode = X_GLXvop_MakeCurrentReadSGI;
+        req->drawable = a_drawable;
+        req->readable = a_readable;
+        req->context = remote_glx_ctxt_id;
+        req->oldContextTag = a_old_ctxt_tag;
+    }
 
     memset(&reply, 0, sizeof(reply));
     if (!_XReply(dpy, (xReply *) & reply, 0, False)) {

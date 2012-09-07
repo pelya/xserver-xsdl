@@ -65,6 +65,10 @@ int ephyrGLXDestroyContext(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXDestroyContextSwap(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXMakeCurrent(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXMakeCurrentSwap(__GLXclientState * a_cl, GLbyte * a_pc);
+int ephyrGLXMakeCurrentReadSGI(__GLXclientState * a_cl, GLbyte * a_pc);
+int ephyrGLXMakeCurrentReadSGISwap(__GLXclientState * a_cl, GLbyte * a_pc);
+int ephyrGLXMakeContextCurrent(__GLXclientState * a_cl, GLbyte * a_pc);
+int ephyrGLXMakeContextCurrentSwap(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXGetString(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXGetStringSwap(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXGetIntegerv(__GLXclientState * a_cl, GLbyte * a_pc);
@@ -123,13 +127,23 @@ ephyrHijackGLXExtension(void)
     dispatch_functions[61][0] = ephyrGLXGetIntegerv;
     dispatch_functions[61][1] = ephyrGLXGetIntegervSwap;
 
+    dispatch_functions[X_GLXMakeContextCurrent][0] =
+        ephyrGLXMakeContextCurrent;
+    dispatch_functions[X_GLXMakeContextCurrent][1] =
+        ephyrGLXMakeContextCurrentSwap;
+
     /*
      * hijack some vendor priv entry point dispatch functions
      */
     dispatch_functions = VendorPriv_dispatch_info.dispatch_functions;
     dispatch_functions[92][0] = ephyrGLXGetFBConfigsSGIX;
     dispatch_functions[92][1] = ephyrGLXGetFBConfigsSGIXSwap;
+
+    dispatch_functions[89][0] = ephyrGLXMakeCurrentReadSGI;
+    dispatch_functions[89][1] = ephyrGLXMakeCurrentReadSGISwap;
+
     EPHYR_LOG("hijacked glx entry points to forward requests to host X\n");
+
 
     return TRUE;
 }
@@ -505,26 +519,34 @@ ephyrGLXDestroyContextSwap(__GLXclientState * a_cl, GLbyte * a_pc)
 }
 
 static int
-ephyrGLXMakeCurrentReal(__GLXclientState * a_cl, GLbyte * a_pc, Bool a_do_swap)
+ephyrGLXMakeCurrentReal(__GLXclientState * a_cl, GLXDrawable write,
+                        GLXDrawable read, GLXContextTag ctx,
+                        GLXContextTag old_ctx, Bool a_do_swap)
 {
     int res = BadImplementation;
-    xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) a_pc;
     xGLXMakeCurrentReply reply;
-    DrawablePtr drawable = NULL;
-    GLXContextTag contextTag = 0;
-    int rc = 0;
+    DrawablePtr drawableR = NULL, drawableW = NULL;
+    GLXContextTag new_ctx = 0;
 
     EPHYR_LOG("enter\n");
-    rc = dixLookupDrawable(&drawable,
-                           req->drawable, a_cl->client, 0, DixReadAccess);
-    EPHYR_RETURN_VAL_IF_FAIL(drawable, BadValue);
-    EPHYR_RETURN_VAL_IF_FAIL(drawable->pScreen, BadValue);
-    EPHYR_LOG("screen nummber requested:%d\n", drawable->pScreen->myNum);
+    res = dixLookupDrawable(&drawableW, write, a_cl->client, 0, DixReadAccess);
+    EPHYR_RETURN_VAL_IF_FAIL(drawableW, BadValue);
+    EPHYR_RETURN_VAL_IF_FAIL(drawableW->pScreen, BadValue);
+    EPHYR_LOG("screen nummber requested:%d\n", drawableW->pScreen->myNum);
 
-    if (!ephyrHostGLXMakeCurrent(hostx_get_window(drawable->pScreen->myNum),
-                                 req->context,
-                                 req->oldContextTag,
-                                 (int *) &contextTag)) {
+    if (read != write) {
+        res = dixLookupDrawable(&drawableR, read, a_cl->client, 0,
+                                DixReadAccess);
+        EPHYR_RETURN_VAL_IF_FAIL(drawableR, BadValue);
+        EPHYR_RETURN_VAL_IF_FAIL(drawableR->pScreen, BadValue);
+    }
+    else {
+        drawableR = drawableW;
+    }
+
+    if (!ephyrHostGLXMakeCurrent(hostx_get_window(drawableW->pScreen->myNum),
+                                 hostx_get_window(drawableR->pScreen->myNum),
+                                 ctx, old_ctx, (int *) &new_ctx)) {
         EPHYR_LOG_ERROR("ephyrHostGLXMakeCurrent() failed\n");
         goto out;
     }
@@ -532,7 +554,7 @@ ephyrGLXMakeCurrentReal(__GLXclientState * a_cl, GLbyte * a_pc, Bool a_do_swap)
         .type = X_Reply,
         .sequenceNumber = a_cl->client->sequence,
         .length = 0,
-        .contextTag = contextTag
+        .contextTag = new_ctx
     };
     if (a_do_swap) {
         __GLX_DECLARE_SWAP_VARIABLES;
@@ -551,13 +573,71 @@ ephyrGLXMakeCurrentReal(__GLXclientState * a_cl, GLbyte * a_pc, Bool a_do_swap)
 int
 ephyrGLXMakeCurrent(__GLXclientState * a_cl, GLbyte * a_pc)
 {
-    return ephyrGLXMakeCurrentReal(a_cl, a_pc, FALSE);
+    xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) a_pc;
+    return ephyrGLXMakeCurrentReal(a_cl, req->drawable, req->drawable,
+                                   req->context, req->oldContextTag, FALSE);
 }
 
 int
 ephyrGLXMakeCurrentSwap(__GLXclientState * a_cl, GLbyte * a_pc)
 {
-    return ephyrGLXMakeCurrentReal(a_cl, a_pc, TRUE);
+    xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) a_pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_INT(&req->drawable);
+    __GLX_SWAP_INT(&req->context);
+    __GLX_SWAP_INT(&req->oldContextTag);
+
+    return ephyrGLXMakeCurrentReal(a_cl, req->drawable, req->drawable,
+                                   req->context, req->oldContextTag, TRUE);
+}
+
+int
+ephyrGLXMakeCurrentReadSGI(__GLXclientState * a_cl, GLbyte * a_pc)
+{
+    xGLXMakeCurrentReadSGIReq *req = (xGLXMakeCurrentReadSGIReq *) a_pc;
+
+    return ephyrGLXMakeCurrentReal(a_cl, req->drawable, req->readable,
+                                   req->context, req->oldContextTag, FALSE);
+}
+
+int
+ephyrGLXMakeCurrentReadSGISwap(__GLXclientState * a_cl, GLbyte * a_pc)
+{
+    xGLXMakeCurrentReadSGIReq *req = (xGLXMakeCurrentReadSGIReq *) a_pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_INT(&req->drawable);
+    __GLX_SWAP_INT(&req->readable);
+    __GLX_SWAP_INT(&req->context);
+    __GLX_SWAP_INT(&req->oldContextTag);
+
+    return ephyrGLXMakeCurrentReal(a_cl, req->drawable, req->readable,
+                                   req->context, req->oldContextTag, TRUE);
+}
+
+int
+ephyrGLXMakeContextCurrent(__GLXclientState * a_cl, GLbyte * a_pc)
+{
+    xGLXMakeContextCurrentReq *req = (xGLXMakeContextCurrentReq *) a_pc;
+
+    return ephyrGLXMakeCurrentReal(a_cl, req->drawable, req->readdrawable,
+                                   req->context, req->oldContextTag, FALSE);
+}
+
+int
+ephyrGLXMakeContextCurrentSwap(__GLXclientState * a_cl, GLbyte * a_pc)
+{
+    xGLXMakeContextCurrentReq *req = (xGLXMakeContextCurrentReq *) a_pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_INT(&req->drawable);
+    __GLX_SWAP_INT(&req->readdrawable);
+    __GLX_SWAP_INT(&req->context);
+    __GLX_SWAP_INT(&req->oldContextTag);
+
+    return ephyrGLXMakeCurrentReal(a_cl, req->drawable, req->readdrawable,
+                                   req->context, req->oldContextTag, TRUE);
 }
 
 static int

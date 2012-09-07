@@ -61,7 +61,7 @@ Bool ephyrHostGLXCreateContext(int a_screen,
 
 Bool ephyrHostDestroyContext(int a_ctxt_id);
 
-Bool ephyrHostGLXMakeCurrent(int a_drawable, int a_glx_ctxt_id,
+Bool ephyrHostGLXMakeCurrent(int a_drawable, int a_readable, int a_glx_ctxt_id,
                              int a_olg_ctxt_tag, int *a_ctxt_tag);
 
 Bool ephyrHostGetIntegerValue(int a_current_context_tag, int a_int, int *a_val);
