@@ -439,17 +439,20 @@ ephyrHostGLXSendClientInfo(int32_t a_major, int32_t a_minor,
 
 Bool
 ephyrHostGLXCreateContext(int a_screen,
-                          int a_visual_id,
+                          int a_generic_id,
                           int a_context_id,
-                          int a_share_list_ctxt_id, Bool a_direct)
+                          int a_share_list_ctxt_id,
+                          int a_render_type,
+                          Bool a_direct,
+                          int code)
 {
     Bool is_ok = FALSE;
     Display *dpy = hostx_get_display();
     int major_opcode = 0, remote_context_id = 0;
-    xGLXCreateContextReq *req;
 
-    EPHYR_LOG("enter. screen:%d, visual:%d, contextid:%d, direct:%d\n",
-              a_screen, a_visual_id, a_context_id, a_direct);
+    EPHYR_LOG("enter. screen:%d, generic_id:%d, contextid:%d, rendertype:%d, "
+                 "direct:%d\n", a_screen, a_generic_id, a_context_id,
+                 a_render_type, a_direct);
 
     if (!hostx_allocate_resource_id_peer(a_context_id, &remote_context_id)) {
         EPHYR_LOG_ERROR("failed to peer the context id %d host X",
@@ -464,15 +467,38 @@ ephyrHostGLXCreateContext(int a_screen,
 
     LockDisplay(dpy);
 
-    /* Send the glXCreateContext request */
-    GetReq(GLXCreateContext, req);
-    req->reqType = major_opcode;
-    req->glxCode = X_GLXCreateContext;
-    req->context = remote_context_id;
-    req->visual = a_visual_id;
-    req->screen = DefaultScreen(dpy);
-    req->shareList = a_share_list_ctxt_id;
-    req->isDirect = a_direct;
+    switch (code) {
+    case X_GLXCreateContext: {
+        /* Send the glXCreateContext request */
+        xGLXCreateContextReq *req;
+        GetReq(GLXCreateContext, req);
+        req->reqType = major_opcode;
+        req->glxCode = X_GLXCreateContext;
+        req->context = remote_context_id;
+        req->visual = a_generic_id;
+        req->screen = DefaultScreen(dpy);
+        req->shareList = a_share_list_ctxt_id;
+        req->isDirect = a_direct;
+    }
+
+    case X_GLXCreateNewContext: {
+        /* Send the glXCreateNewContext request */
+        xGLXCreateNewContextReq *req;
+        GetReq(GLXCreateNewContext, req);
+        req->reqType = major_opcode;
+        req->glxCode = X_GLXCreateNewContext;
+        req->context = remote_context_id;
+        req->fbconfig = a_generic_id;
+        req->screen = DefaultScreen(dpy);
+        req->renderType = a_render_type;
+        req->shareList = a_share_list_ctxt_id;
+        req->isDirect = a_direct;
+    }
+
+    default:
+        /* This should never be reached !*/
+        EPHYR_LOG("Internal error! Invalid CreateContext code!\n");
+    }
 
     UnlockDisplay(dpy);
     SyncHandle();

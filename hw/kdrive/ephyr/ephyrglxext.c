@@ -61,6 +61,8 @@ int ephyrGLXGetFBConfigsSGIX(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXGetFBConfigsSGIXSwap(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXCreateContext(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXCreateContextSwap(__GLXclientState * a_cl, GLbyte * a_pc);
+int ephyrGLXCreateNewContext(__GLXclientState * a_cl, GLbyte * a_pc);
+int ephyrGLXCreateNewContextSwap(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXDestroyContext(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXDestroyContextSwap(__GLXclientState * a_cl, GLbyte * a_pc);
 int ephyrGLXMakeCurrent(__GLXclientState * a_cl, GLbyte * a_pc);
@@ -111,6 +113,9 @@ ephyrHijackGLXExtension(void)
 
     dispatch_functions[X_GLXCreateContext][0] = ephyrGLXCreateContext;
     dispatch_functions[X_GLXCreateContext][1] = ephyrGLXCreateContextSwap;
+
+    dispatch_functions[X_GLXCreateNewContext][0] = ephyrGLXCreateNewContext;
+    dispatch_functions[X_GLXCreateNewContext][1] = ephyrGLXCreateNewContextSwap;
 
     dispatch_functions[X_GLXDestroyContext][0] = ephyrGLXDestroyContext;
     dispatch_functions[X_GLXDestroyContext][1] = ephyrGLXDestroyContextSwap;
@@ -459,8 +464,48 @@ ephyrGLXCreateContextReal(xGLXCreateContextReq * a_req, Bool a_do_swap)
     if (!ephyrHostGLXCreateContext(a_req->screen,
                                    host_w_attrs.visualid,
                                    a_req->context,
-                                   a_req->shareList, a_req->isDirect)) {
+                                   a_req->shareList, 0,
+                                   a_req->isDirect, X_GLXCreateContext)) {
         EPHYR_LOG_ERROR("ephyrHostGLXCreateContext() failed\n");
+        goto out;
+    }
+    res = Success;
+ out:
+    EPHYR_LOG("leave\n");
+    return res;
+}
+
+static int
+ephyrGLXCreateNewContextReal(xGLXCreateNewContextReq * a_req, Bool a_do_swap)
+{
+    int res = BadImplementation;
+
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    EPHYR_RETURN_VAL_IF_FAIL(a_req, BadValue);
+    EPHYR_LOG("enter\n");
+
+    if (a_do_swap) {
+        __GLX_SWAP_SHORT(&a_req->length);
+        __GLX_SWAP_INT(&a_req->context);
+        __GLX_SWAP_INT(&a_req->fbconfig);
+        __GLX_SWAP_INT(&a_req->screen);
+        __GLX_SWAP_INT(&a_req->renderType);
+        __GLX_SWAP_INT(&a_req->shareList);
+    }
+
+    EPHYR_LOG("context creation requested. localid:%d, "
+              "screen:%d, fbconfig:%d, renderType:%d, direct:%d\n",
+              (int) a_req->context, (int) a_req->screen,
+              (int) a_req->fbconfig, (int) a_req->renderType,
+              (int) a_req->isDirect);
+
+    if (!ephyrHostGLXCreateContext(a_req->screen,
+                                   a_req->fbconfig,
+                                   a_req->context,
+                                   a_req->shareList, a_req->renderType,
+                                   a_req->isDirect, X_GLXCreateNewContext)) {
+        EPHYR_LOG_ERROR("ephyrHostGLXCreateNewContext() failed\n");
         goto out;
     }
     res = Success;
@@ -483,6 +528,22 @@ ephyrGLXCreateContextSwap(__GLXclientState * cl, GLbyte * pc)
     xGLXCreateContextReq *req = (xGLXCreateContextReq *) pc;
 
     return ephyrGLXCreateContextReal(req, TRUE);
+}
+
+int
+ephyrGLXCreateNewContext(__GLXclientState * cl, GLbyte * pc)
+{
+    xGLXCreateNewContextReq *req = (xGLXCreateNewContextReq *) pc;
+
+    return ephyrGLXCreateNewContextReal(req, FALSE);
+}
+
+int
+ephyrGLXCreateNewContextSwap(__GLXclientState * cl, GLbyte * pc)
+{
+    xGLXCreateNewContextReq *req = (xGLXCreateNewContextReq *) pc;
+
+    return ephyrGLXCreateNewContextReal(req, TRUE);
 }
 
 static int
