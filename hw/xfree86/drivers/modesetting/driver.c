@@ -428,10 +428,13 @@ static int dispatch_dirty_region(ScrnInfoPtr scrn,
     unsigned num_cliprects = REGION_NUM_RECTS(dirty);
 
     if (num_cliprects) {
-	drmModeClip *clip = alloca(num_cliprects * sizeof(drmModeClip));
+	drmModeClip *clip = malloc(num_cliprects * sizeof(drmModeClip));
 	BoxPtr rect = REGION_RECTS(dirty);
 	int i, ret;
 	    
+	if (!clip)
+	    return -ENOMEM;
+
 	/* XXX no need for copy? */
 	for (i = 0; i < num_cliprects; i++, rect++) {
 	    clip[i].x1 = rect->x1;
@@ -442,6 +445,7 @@ static int dispatch_dirty_region(ScrnInfoPtr scrn,
 
 	/* TODO query connector property to see if this is needed */
 	ret = drmModeDirtyFB(ms->fd, fb_id, clip, num_cliprects);
+	free(clip);
 	DamageEmpty(damage);
 	if (ret) {
 	    if (ret == -EINVAL)
