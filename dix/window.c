@@ -2505,30 +2505,6 @@ RealizeTree(WindowPtr pWin)
     }
 }
 
-static WindowPtr windowDisableMapUnmapEvents;
-
-void
-DisableMapUnmapEvents(WindowPtr pWin)
-{
-    assert(windowDisableMapUnmapEvents == NULL);
-
-    windowDisableMapUnmapEvents = pWin;
-}
-
-void
-EnableMapUnmapEvents(WindowPtr pWin)
-{
-    assert(windowDisableMapUnmapEvents != NULL);
-
-    windowDisableMapUnmapEvents = NULL;
-}
-
-static Bool
-MapUnmapEventsEnabled(WindowPtr pWin)
-{
-    return pWin != windowDisableMapUnmapEvents;
-}
-
 static Bool
 MaybeDeliverMapRequest(WindowPtr pWin, WindowPtr pParent, ClientPtr client)
 {
@@ -2587,7 +2563,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
                 return Success;
 
         pWin->mapped = TRUE;
-        if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin))
+        if (SubStrSend(pWin, pParent))
             DeliverMapNotify(pWin);
 
         if (!pParent->realized)
@@ -2717,8 +2693,7 @@ UnrealizeTree(WindowPtr pWin, Bool fromConfigure)
             }
 #endif
             (*Unrealize) (pChild);
-            if (MapUnmapEventsEnabled(pWin))
-                DeleteWindowFromAnyEvents(pChild, FALSE);
+            DeleteWindowFromAnyEvents(pChild, FALSE);
             if (pChild->viewable) {
                 pChild->viewable = FALSE;
                 (*MarkUnrealizedWindow) (pChild, pWin, fromConfigure);
@@ -2766,7 +2741,7 @@ UnmapWindow(WindowPtr pWin, Bool fromConfigure)
 
     if ((!pWin->mapped) || (!(pParent = pWin->parent)))
         return Success;
-    if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin))
+    if (SubStrSend(pWin, pParent))
         DeliverUnmapNotify(pWin, fromConfigure);
     if (wasViewable && !fromConfigure) {
         pWin->valdata = UnmapValData;
@@ -2946,8 +2921,6 @@ SendVisibilityNotify(WindowPtr pWin)
     xEvent event;
     unsigned int visibility = pWin->visibility;
 
-    if (!MapUnmapEventsEnabled(pWin))
-        return;
 #ifdef PANORAMIX
     /* This is not quite correct yet, but it's close */
     if (!noPanoramiXExtension) {
