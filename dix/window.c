@@ -2543,6 +2543,17 @@ MaybeDeliverMapRequest(WindowPtr pWin, WindowPtr pParent, ClientPtr client)
                                       client) == 1;
 }
 
+static void
+DeliverMapNotify(WindowPtr pWin)
+{
+    xEvent event = {
+        .u.mapNotify.window = pWin->drawable.id,
+        .u.mapNotify.override = pWin->overrideRedirect,
+    };
+    event.u.u.type = MapNotify;
+    DeliverEvents(pWin, &event, 1, NullWindow);
+}
+
 /*****
  * MapWindow
  *    If some other client has selected SubStructureReDirect on the parent
@@ -2576,14 +2587,8 @@ MapWindow(WindowPtr pWin, ClientPtr client)
                 return Success;
 
         pWin->mapped = TRUE;
-        if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin)) {
-            xEvent event = {
-                .u.mapNotify.window = pWin->drawable.id,
-                .u.mapNotify.override = pWin->overrideRedirect,
-            };
-            event.u.u.type = MapNotify;
-            DeliverEvents(pWin, &event, 1, NullWindow);
-        }
+        if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin))
+            DeliverMapNotify(pWin);
 
         if (!pParent->realized)
             return Success;
@@ -2650,14 +2655,8 @@ MapSubwindows(WindowPtr pParent, ClientPtr client)
                     continue;
 
             pWin->mapped = TRUE;
-            if (parentNotify || StrSend(pWin)) {
-                xEvent event = {
-                    .u.mapNotify.window = pWin->drawable.id,
-                    .u.mapNotify.override = pWin->overrideRedirect
-                };
-                event.u.u.type = MapNotify;
-                DeliverEvents(pWin, &event, 1, NullWindow);
-            }
+            if (parentNotify || StrSend(pWin))
+                DeliverMapNotify(pWin);
 
             if (!pFirstMapped)
                 pFirstMapped = pWin;
