@@ -2529,6 +2529,20 @@ MapUnmapEventsEnabled(WindowPtr pWin)
     return pWin != windowDisableMapUnmapEvents;
 }
 
+static Bool
+MaybeDeliverMapRequest(WindowPtr pWin, WindowPtr pParent, ClientPtr client)
+{
+    xEvent event = {
+        .u.mapRequest.window = pWin->drawable.id,
+        .u.mapRequest.parent = pParent->drawable.id
+    };
+    event.u.u.type = MapRequest;
+
+    return MaybeDeliverEventsToClient(pParent, &event, 1,
+                                      SubstructureRedirectMask,
+                                      client) == 1;
+}
+
 /*****
  * MapWindow
  *    If some other client has selected SubStructureReDirect on the parent
@@ -2557,18 +2571,9 @@ MapWindow(WindowPtr pWin, ClientPtr client)
     if ((pParent = pWin->parent)) {
         Bool anyMarked;
 
-        if ((!pWin->overrideRedirect) && (RedirectSend(pParent))) {
-            xEvent event = {
-                .u.mapRequest.window = pWin->drawable.id,
-                .u.mapRequest.parent = pParent->drawable.id
-            };
-            event.u.u.type = MapRequest;
-
-            if (MaybeDeliverEventsToClient(pParent, &event, 1,
-                                           SubstructureRedirectMask,
-                                           client) == 1)
+        if ((!pWin->overrideRedirect) && (RedirectSend(pParent)))
+            if (MaybeDeliverMapRequest(pWin, pParent, client))
                 return Success;
-        }
 
         pWin->mapped = TRUE;
         if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin)) {
@@ -2640,18 +2645,9 @@ MapSubwindows(WindowPtr pParent, ClientPtr client)
     anyMarked = FALSE;
     for (pWin = pParent->firstChild; pWin; pWin = pWin->nextSib) {
         if (!pWin->mapped) {
-            if (parentRedirect && !pWin->overrideRedirect) {
-                xEvent event = {
-                    .u.mapRequest.window = pWin->drawable.id,
-                    .u.mapRequest.parent = pParent->drawable.id
-                };
-                event.u.u.type = MapRequest;
-
-                if (MaybeDeliverEventsToClient(pParent, &event, 1,
-                                               SubstructureRedirectMask,
-                                               client) == 1)
+            if (parentRedirect && !pWin->overrideRedirect)
+                if (MaybeDeliverMapRequest(pWin, pParent, client))
                     continue;
-            }
 
             pWin->mapped = TRUE;
             if (parentNotify || StrSend(pWin)) {
