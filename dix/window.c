@@ -2737,6 +2737,17 @@ UnrealizeTree(WindowPtr pWin, Bool fromConfigure)
     }
 }
 
+static void
+DeliverUnmapNotify(WindowPtr pWin, Bool fromConfigure)
+{
+    xEvent event = {
+        .u.unmapNotify.window = pWin->drawable.id,
+        .u.unmapNotify.fromConfigure = fromConfigure
+    };
+    event.u.u.type = UnmapNotify;
+    DeliverEvents(pWin, &event, 1, NullWindow);
+}
+
 /*****
  * UnmapWindow
  *    If the window is already unmapped, this request has no effect.
@@ -2755,14 +2766,8 @@ UnmapWindow(WindowPtr pWin, Bool fromConfigure)
 
     if ((!pWin->mapped) || (!(pParent = pWin->parent)))
         return Success;
-    if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin)) {
-        xEvent event = {
-            .u.unmapNotify.window = pWin->drawable.id,
-            .u.unmapNotify.fromConfigure = fromConfigure
-        };
-        event.u.u.type = UnmapNotify;
-        DeliverEvents(pWin, &event, 1, NullWindow);
-    }
+    if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin))
+        DeliverUnmapNotify(pWin, fromConfigure);
     if (wasViewable && !fromConfigure) {
         pWin->valdata = UnmapValData;
         (*pScreen->MarkOverlappedWindows) (pWin, pWin->nextSib, &pLayerWin);
@@ -2813,14 +2818,8 @@ UnmapSubwindows(WindowPtr pWin)
 
     for (pChild = pWin->lastChild; pChild != pHead; pChild = pChild->prevSib) {
         if (pChild->mapped) {
-            if (parentNotify || StrSend(pChild)) {
-                xEvent event = {
-                    .u.unmapNotify.window = pChild->drawable.id,
-                    .u.unmapNotify.fromConfigure = xFalse
-                };
-                event.u.u.type = UnmapNotify;
-                DeliverEvents(pChild, &event, 1, NullWindow);
-            }
+            if (parentNotify || StrSend(pChild))
+                DeliverUnmapNotify(pChild, xFalse);
             if (pChild->viewable) {
                 pChild->valdata = UnmapValData;
                 anyMarked = TRUE;
