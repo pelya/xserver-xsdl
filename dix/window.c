@@ -1886,8 +1886,7 @@ AnyWindowOverlapsMe(WindowPtr pWin, WindowPtr pHead, BoxPtr box)
         if (pSib->mapped) {
             sbox = WindowExtents(pSib, &sboxrec);
             if (BOXES_OVERLAP(sbox, box)
-                && ShapeOverlap(pWin, box, pSib, sbox)
-                )
+                && ShapeOverlap(pWin, box, pSib, sbox))
                 return TRUE;
         }
     }
@@ -1905,8 +1904,7 @@ IOverlapAnyWindow(WindowPtr pWin, BoxPtr box)
         if (pSib->mapped) {
             sbox = WindowExtents(pSib, &sboxrec);
             if (BOXES_OVERLAP(sbox, box)
-                && ShapeOverlap(pWin, box, pSib, sbox)
-                )
+                && ShapeOverlap(pWin, box, pSib, sbox))
                 return TRUE;
         }
     }
@@ -2174,8 +2172,7 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
     else
         pSib = pWin->nextSib;
 
-    if ((!pWin->overrideRedirect) && (RedirectSend(pParent)
-        )) {
+    if ((!pWin->overrideRedirect) && (RedirectSend(pParent))) {
         xEvent event = {
             .u.configureRequest.window = pWin->drawable.id,
             .u.configureRequest.sibling = (mask & CWSibling) ? sibwid : None,
@@ -2551,7 +2548,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
     if (pWin->mapped)
         return Success;
 
-    /*  general check for permission to map window */
+    /* general check for permission to map window */
     if (XaceHook(XACE_RESOURCE_ACCESS, client, pWin->drawable.id, RT_WINDOW,
                  pWin, RT_NONE, NULL, DixShowAccess) != Success)
         return Success;
@@ -2560,8 +2557,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
     if ((pParent = pWin->parent)) {
         Bool anyMarked;
 
-        if ((!pWin->overrideRedirect) && (RedirectSend(pParent)
-            )) {
+        if ((!pWin->overrideRedirect) && (RedirectSend(pParent))) {
             xEvent event = {
                 .u.mapRequest.window = pWin->drawable.id,
                 .u.mapRequest.parent = pParent->drawable.id
