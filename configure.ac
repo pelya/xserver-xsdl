@@ -31,7 +31,6 @@ RELEASE_DATE="2012-10-04"
 RELEASE_NAME="Horchata"
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
-AM_MAINTAINER_MODE
 
 # Require xorg-macros minimum of 1.14 for XORG_COMPILER_BRAND in XORG_DEFAULT_OPTIONS
 m4_ifndef([XORG_MACROS_VERSION],
