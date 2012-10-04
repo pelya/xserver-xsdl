@@ -862,11 +862,14 @@ FlushClient(ClientPtr who, OsCommPtr oc, const void *__extraBuf, int extraCount)
     long notWritten;
     long todo;
 
-    if (!oco || !oco->count)
+    if (!oco)
 	return 0;
     written = 0;
     padsize = padding_for_int32(extraCount);
     notWritten = oco->count + extraCount + padsize;
+    if (!notWritten)
+        return 0;
+
     todo = notWritten;
     while (notWritten) {
         long before = written;  /* amount of whole thing written */
