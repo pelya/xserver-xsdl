@@ -90,14 +90,14 @@ typedef struct _connectionInput {
     int lenLastReq;
     int size;
     unsigned int ignoreBytes;   /* bytes to ignore before the next request */
-} ConnectionInput, *ConnectionInputPtr;
+} ConnectionInput;
 
 typedef struct _connectionOutput {
     struct _connectionOutput *next;
     unsigned char *buf;
     int size;
     int count;
-} ConnectionOutput, *ConnectionOutputPtr;
+} ConnectionOutput;
 
 static ConnectionInputPtr AllocateInputBuffer(void);
 static ConnectionOutputPtr AllocateOutputBuffer(void);
