@@ -412,7 +412,7 @@ winClipboardProc(void *pvNotUsed)
             ("winClipboardProc - the clipboard thread has restarted %d times and seems to be unstable, disabling clipboard integration\n",
              clipboardRestarts);
         g_fClipboard = FALSE;
-        return;
+        return NULL;
     }
 
     if (g_fClipboard) {
@@ -421,7 +421,7 @@ winClipboardProc(void *pvNotUsed)
         /* Create the clipboard client thread */
         if (!winInitClipboard()) {
             ErrorF("winClipboardProc - winClipboardInit failed.\n");
-            return;
+            return NULL;
         }
 
         winDebug("winClipboardProc - winInitClipboard returned.\n");
