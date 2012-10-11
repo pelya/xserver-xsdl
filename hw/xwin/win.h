@@ -857,11 +857,13 @@ void
 
 #ifdef DDXOSVERRORF
 void
- OSVenderVErrorF(const char *pszFormat, va_list va_args);
+OsVendorVErrorF(const char *pszFormat, va_list va_args)
+_X_ATTRIBUTE_PRINTF(1, 0);
 #endif
 
 void
- winMessageBoxF(const char *pszError, UINT uType, ...);
+winMessageBoxF(const char *pszError, UINT uType, ...)
+_X_ATTRIBUTE_PRINTF(1, 3);
 
 #ifdef XWIN_NATIVEGDI
 /*

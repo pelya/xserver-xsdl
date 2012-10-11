@@ -77,11 +77,6 @@ static void
  winClipboardShutdown(void);
 #endif
 
-#if defined(DDXOSVERRORF)
-void
- OsVendorVErrorF(const char *pszFormat, va_list va_args);
-#endif
-
 static Bool
  winCheckDisplayNumber(void);
 
