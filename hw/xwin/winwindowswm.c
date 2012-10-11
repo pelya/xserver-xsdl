@@ -82,7 +82,6 @@ static int
 ProcWindowsWMQueryVersion(ClientPtr client)
 {
     xWindowsWMQueryVersionReply rep;
-    int n;
 
     REQUEST_SIZE_MATCH(xWindowsWMQueryVersionReq);
     rep.type = X_Reply;
@@ -562,8 +561,6 @@ SNotifyEvent(xWindowsWMNotifyEvent * from, xWindowsWMNotifyEvent * to)
 static int
 SProcWindowsWMQueryVersion(ClientPtr client)
 {
-    int n;
-
     REQUEST(xWindowsWMQueryVersionReq);
     swaps(&stuff->length);
     return ProcWindowsWMQueryVersion(client);
