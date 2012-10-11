@@ -519,7 +519,6 @@ getHwnd(WMInfoPtr pWMInfo, Window iWindow)
 static void
 UpdateName(WMInfoPtr pWMInfo, Window iWindow)
 {
-    wchar_t *pszName;
     HWND hWnd;
     XWindowAttributes attr;
 
