@@ -99,7 +99,7 @@ void
  winClipboardDOStoUNIX(char *pszData, int iLength);
 
 void
- winClipboardUNIXtoDOS(unsigned char **ppszData, int iLength);
+ winClipboardUNIXtoDOS(char **ppszData, int iLength);
 
 /*
  * winclipboardthread.c
