@@ -1833,10 +1833,7 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     int i;
     int num_events = 0;
     RawDeviceEvent *raw;
-    union touch {
-        TouchPointInfoPtr dix_ti;
-        DDXTouchPointInfoPtr ti;
-    } touchpoint;
+    DDXTouchPointInfoPtr ti;
     int need_rawevent = TRUE;
     Bool emulate_pointer = FALSE;
     int client_id = 0;
@@ -1855,37 +1852,15 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
 
     /* Find and/or create the DDX touch info */
 
-    if (flags & TOUCH_CLIENT_ID) {      /* A DIX-submitted TouchEnd */
-        touchpoint.dix_ti = TouchFindByClientID(dev, ddx_touchid);
-        BUG_RETURN_VAL(!touchpoint.dix_ti, 0);
-
-        if (!mask_in ||
-            !valuator_mask_isset(mask_in, 0) ||
-            !valuator_mask_isset(mask_in, 1)) {
-            ErrorF
-                ("[dix] dix-submitted events must have x/y valuator information.\n");
-            return 0;
-        }
-
-        need_rawevent = FALSE;
-        client_id = touchpoint.dix_ti->client_id;
+    ti = TouchFindByDDXID(dev, ddx_touchid, (type == XI_TouchBegin));
+    if (!ti) {
+        ErrorFSigSafe("[dix] %s: unable to %s touch point %u\n", dev->name,
+                      type == XI_TouchBegin ? "begin" : "find", ddx_touchid);
+        return 0;
     }
-    else {                      /* a DDX-submitted touch */
+    client_id = ti->client_id;
 
-        touchpoint.ti =
-            TouchFindByDDXID(dev, ddx_touchid, (type == XI_TouchBegin));
-        if (!touchpoint.ti) {
-            ErrorFSigSafe("[dix] %s: unable to %s touch point %u\n", dev->name,
-                          type == XI_TouchBegin ? "begin" : "find", ddx_touchid);
-            return 0;
-        }
-        client_id = touchpoint.ti->client_id;
-    }
-
-    if (!(flags & TOUCH_CLIENT_ID))
-        emulate_pointer = touchpoint.ti->emulate_pointer;
-    else
-        emulate_pointer = ! !(flags & TOUCH_POINTER_EMULATED);
+    emulate_pointer = ti->emulate_pointer;
 
     if (!IsMaster(dev))
         events =
@@ -1905,11 +1880,6 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     num_events++;
 
     init_device_event(event, dev, ms);
-    /* if submitted for master device, get the sourceid from there */
-    if (flags & TOUCH_CLIENT_ID) {
-        event->sourceid = touchpoint.dix_ti->sourceid;
-        /* TOUCH_CLIENT_ID implies norawevent */
-    }
 
     switch (type) {
     case XI_TouchBegin:
@@ -1934,20 +1904,20 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
         event->type = ET_TouchEnd;
         /* We can end the DDX touch here, since we don't use the active
          * field below */
-        if (!(flags & TOUCH_CLIENT_ID))
-            TouchEndDDXTouch(dev, touchpoint.ti);
+        TouchEndDDXTouch(dev, ti);
         break;
     default:
         return 0;
     }
-    if (t->mode == XIDirectTouch && !(flags & TOUCH_CLIENT_ID)) {
+
+    if (t->mode == XIDirectTouch) {
         if (!valuator_mask_isset(&mask, 0))
             valuator_mask_set_double(&mask, 0,
-                                     valuator_mask_get_double(touchpoint.ti->
+                                     valuator_mask_get_double(ti->
                                                               valuators, 0));
         if (!valuator_mask_isset(&mask, 1))
             valuator_mask_set_double(&mask, 1,
-                                     valuator_mask_get_double(touchpoint.ti->
+                                     valuator_mask_get_double(ti->
                                                               valuators, 1));
     }
 
@@ -1957,13 +1927,11 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     if (t->mode == XIDirectTouch) {
         transformAbsolute(dev, &mask);
 
-        if (!(flags & TOUCH_CLIENT_ID)) {
-            for (i = 0; i < valuator_mask_size(&mask); i++) {
-                double val;
+        for (i = 0; i < valuator_mask_size(&mask); i++) {
+            double val;
 
-                if (valuator_mask_fetch_double(&mask, i, &val))
-                    valuator_mask_set_double(touchpoint.ti->valuators, i, val);
-            }
+            if (valuator_mask_fetch_double(&mask, i, &val))
+                valuator_mask_set_double(ti->valuators, i, val);
         }
 
         clipAbsolute(dev, &mask);
