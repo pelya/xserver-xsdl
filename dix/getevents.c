@@ -2022,6 +2022,37 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     return num_events;
 }
 
+void
+GetDixTouchEnd(InternalEvent *ievent, DeviceIntPtr dev, TouchPointInfoPtr ti,
+               uint32_t flags)
+{
+    ScreenPtr scr = dev->spriteInfo->sprite->hotPhys.pScreen;
+    DeviceEvent *event = &ievent->device_event;
+    CARD32 ms = GetTimeInMillis();
+
+    BUG_WARN(!dev->enabled);
+
+    init_device_event(event, dev, ms);
+
+    event->sourceid = ti->sourceid;
+    event->type = ET_TouchEnd;
+
+    event->root = scr->root->drawable.id;
+
+    /* Get screen event coordinates from the sprite.  Is this really the best
+     * we can do? */
+    event_set_root_coordinates(event,
+                               dev->last.valuators[0],
+                               dev->last.valuators[1]);
+    event->touchid = ti->client_id;
+    event->flags = flags;
+
+    if (flags & TOUCH_POINTER_EMULATED) {
+        event->flags |= TOUCH_POINTER_EMULATED;
+        event->detail.button = 1;
+    }
+}
+
 /**
  * Synthesize a single motion event for the core pointer.
  *

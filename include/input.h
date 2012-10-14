@@ -465,6 +465,11 @@ extern int GetTouchOwnershipEvents(InternalEvent *events,
                                    TouchPointInfoPtr ti,
                                    uint8_t mode, XID resource, uint32_t flags);
 
+extern void GetDixTouchEnd(InternalEvent *ievent,
+                           DeviceIntPtr dev,
+                           TouchPointInfoPtr ti,
+                           uint32_t flags);
+
 extern _X_EXPORT int GetProximityEvents(InternalEvent *events,
                                         DeviceIntPtr pDev,
                                         int type, const ValuatorMask *mask);
