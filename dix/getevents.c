@@ -1994,6 +1994,14 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
     if (emulate_pointer)
         storeLastValuators(dev, &mask, 0, 1, devx, devy);
 
+    /* Update the MD's co-ordinates, which are always in desktop space. */
+    if (emulate_pointer && !IsMaster(dev) && !IsFloating(dev)) {
+	    DeviceIntPtr master = GetMaster(dev, MASTER_POINTER);
+
+	    master->last.valuators[0] = screenx;
+	    master->last.valuators[1] = screeny;
+    }
+
     event->root = scr->root->drawable.id;
 
     event_set_root_coordinates(event, screenx, screeny);
