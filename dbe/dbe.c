@@ -229,8 +229,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
          * Allocate a window priv.
          */
 
-        pDbeWindowPriv =
-            dixAllocateObjectWithPrivates(DbeWindowPrivRec, PRIVATE_DBE_WINDOW);
+        pDbeWindowPriv = calloc(1, sizeof(DbeWindowPrivRec));
         if (!pDbeWindowPriv)
             return BadAlloc;
 
@@ -1222,7 +1221,7 @@ DbeWindowPrivDelete(pointer pDbeWinPriv, XID id)
                       NULL);
 
         /* We are done with the window priv. */
-        dixFreeObjectWithPrivates(pDbeWindowPriv, PRIVATE_DBE_WINDOW);
+        free(pDbeWindowPriv);
     }
 
     return Success;
