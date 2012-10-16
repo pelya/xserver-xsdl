@@ -183,9 +183,6 @@ typedef struct _DbeScreenPrivRec {
     void (*WinPrivDelete) (DbeWindowPrivPtr /*pDbeWindowPriv */ ,
                            XID  /*bufId */
         );
-    void (*ResetProc) (ScreenPtr        /*pScreen */
-        );
-
 } DbeScreenPrivRec, *DbeScreenPrivPtr;
 
 #endif                          /* DBE_STRUCT_H */

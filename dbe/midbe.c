@@ -682,30 +682,6 @@ miDbePositionWindow(WindowPtr pWin, int x, int y)
 
 /******************************************************************************
  *
- * DBE MI Procedure: miDbeResetProc
- *
- * Description:
- *
- *     This function is called from DbeResetProc(), which is called at the end
- *     of every server generation.  This function peforms any MI-specific
- *     shutdown tasks.
- *
- *****************************************************************************/
-
-static void
-miDbeResetProc(ScreenPtr pScreen)
-{
-    DbeScreenPrivPtr pDbeScreenPriv;
-
-    pDbeScreenPriv = DBE_SCREEN_PRIV(pScreen);
-
-    /* Unwrap wrappers */
-    pScreen->PositionWindow = pDbeScreenPriv->PositionWindow;
-
-}                               /* miDbeResetProc() */
-
-/******************************************************************************
- *
  * DBE MI Procedure: miDbeInit
  *
  * Description:
@@ -729,7 +705,6 @@ miDbeInit(ScreenPtr pScreen, DbeScreenPrivPtr pDbeScreenPriv)
     pDbeScreenPriv->GetVisualInfo = miDbeGetVisualInfo;
     pDbeScreenPriv->AllocBackBufferName = miDbeAllocBackBufferName;
     pDbeScreenPriv->SwapBuffers = miDbeSwapBuffers;
-    pDbeScreenPriv->ResetProc = miDbeResetProc;
     pDbeScreenPriv->WinPrivDelete = miDbeWinPrivDelete;
 
     return TRUE;

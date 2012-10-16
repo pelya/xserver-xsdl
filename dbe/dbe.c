@@ -91,7 +91,6 @@ DbeStubScreen(DbeScreenPrivPtr pDbeScreenPriv, int *nStubbedScreens)
     pDbeScreenPriv->AllocBackBufferName = NULL;
     pDbeScreenPriv->SwapBuffers = NULL;
     pDbeScreenPriv->WinPrivDelete = NULL;
-    pDbeScreenPriv->ResetProc = NULL;
 
     (*nStubbedScreens)++;
 
@@ -1255,10 +1254,7 @@ DbeResetProc(ExtensionEntry * extEntry)
         if (pDbeScreenPriv) {
             /* Unwrap DestroyWindow, which was wrapped in DbeExtensionInit(). */
             pScreen->DestroyWindow = pDbeScreenPriv->DestroyWindow;
-
-            if (pDbeScreenPriv->ResetProc)
-                (*pDbeScreenPriv->ResetProc) (pScreen);
-
+            pScreen->PositionWindow = pDbeScreenPriv->PositionWindow;
             free(pDbeScreenPriv);
         }
     }
