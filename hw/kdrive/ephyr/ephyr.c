@@ -823,7 +823,6 @@ miPointerScreenFuncRec ephyrPointerScreenFuncs = {
     ephyrCursorOffScreen,
     ephyrCrossScreen,
     ephyrWarpCursor,
-    NULL,
 };
 
 #ifdef XF86DRI

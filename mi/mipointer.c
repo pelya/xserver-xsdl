@@ -118,11 +118,6 @@ miPointerInitialize(ScreenPtr pScreen,
         return FALSE;
     pScreenPriv->spriteFuncs = spriteFuncs;
     pScreenPriv->screenFuncs = screenFuncs;
-    /*
-     * check for uninitialized methods
-     */
-    if (!screenFuncs->EnqueueEvent)
-        screenFuncs->EnqueueEvent = mieqEnqueue;
     pScreenPriv->waitForUpdate = waitForUpdate;
     pScreenPriv->showTransparent = FALSE;
     pScreenPriv->CloseScreen = pScreen->CloseScreen;
