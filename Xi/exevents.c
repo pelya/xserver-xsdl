@@ -1598,7 +1598,7 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
         if (!ti) {
             DebugF("[Xi] %s: Failed to create new dix record for explicitly "
                    "grabbed touchpoint %d\n",
-                   dev->name, type, touchid);
+                   dev->name, touchid);
             return;
         }
 
