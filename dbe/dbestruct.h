@@ -180,10 +180,6 @@ typedef struct _DbeScreenPrivRec {
                         int * /*pNumWindows */ ,
                         DbeSwapInfoPtr  /*swapInfo */
         );
-    void (*BeginIdiom) (ClientPtr       /*client */
-        );
-    void (*EndIdiom) (ClientPtr /*client */
-        );
     void (*WinPrivDelete) (DbeWindowPrivPtr /*pDbeWindowPriv */ ,
                            XID  /*bufId */
         );

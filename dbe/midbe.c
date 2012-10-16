@@ -729,8 +729,6 @@ miDbeInit(ScreenPtr pScreen, DbeScreenPrivPtr pDbeScreenPriv)
     pDbeScreenPriv->GetVisualInfo = miDbeGetVisualInfo;
     pDbeScreenPriv->AllocBackBufferName = miDbeAllocBackBufferName;
     pDbeScreenPriv->SwapBuffers = miDbeSwapBuffers;
-    pDbeScreenPriv->BeginIdiom = 0;
-    pDbeScreenPriv->EndIdiom = 0;
     pDbeScreenPriv->ResetProc = miDbeResetProc;
     pDbeScreenPriv->WinPrivDelete = miDbeWinPrivDelete;
 
