@@ -306,7 +306,6 @@ static miPointerScreenFuncRec quartzScreenFuncsRec = {
     QuartzCrossScreen,
     QuartzWarpCursor,
     NULL,
-    NULL
 };
 
 /*

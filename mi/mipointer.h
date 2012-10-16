@@ -74,10 +74,6 @@ typedef struct _miPointerScreenFuncRec {
     void (*EnqueueEvent) (DeviceIntPtr /* pDev */ ,
                           InternalEvent *       /* event */
         );
-    void (*NewEventScreen) (DeviceIntPtr /* pDev */ ,
-                            ScreenPtr /* pScr */ ,
-                            Bool        /* set_dequeue_screen */
-        );
 } miPointerScreenFuncRec, *miPointerScreenFuncPtr;
 
 extern _X_EXPORT Bool miDCInitialize(ScreenPtr /*pScreen */ ,

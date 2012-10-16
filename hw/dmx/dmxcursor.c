@@ -198,7 +198,6 @@ miPointerScreenFuncRec dmxPointerCursorFuncs = {
     dmxCrossScreen,
     dmxWarpCursor,
     NULL,
-    NULL,
 };
 
 /** Create a list of screens that we'll manipulate. */
