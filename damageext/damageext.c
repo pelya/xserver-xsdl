@@ -31,7 +31,6 @@
 static unsigned char DamageReqCode;
 static int DamageEventBase;
 static RESTYPE DamageExtType;
-static RESTYPE DamageExtWinType;
 
 static DevPrivateKeyRec DamageClientPrivateKeyRec;
 
@@ -429,23 +428,11 @@ FreeDamageExt(pointer value, XID did)
      * Get rid of the resource table entry hanging from the window id
      */
     pDamageExt->id = 0;
-    if (WindowDrawable(pDamageExt->pDrawable->type))
-        FreeResourceByType(pDamageExt->pDrawable->id, DamageExtWinType, TRUE);
     if (pDamageExt->pDamage) {
         DamageUnregister(pDamageExt->pDrawable, pDamageExt->pDamage);
         DamageDestroy(pDamageExt->pDamage);
     }
     free(pDamageExt);
-    return Success;
-}
-
-static int
-FreeDamageExtWin(pointer value, XID wid)
-{
-    DamageExtPtr pDamageExt = (DamageExtPtr) value;
-
-    if (pDamageExt->id)
-        FreeResource(pDamageExt->id, RT_NONE);
     return Success;
 }
 
@@ -477,10 +464,6 @@ DamageExtensionInit(void)
 
     DamageExtType = CreateNewResourceType(FreeDamageExt, "DamageExt");
     if (!DamageExtType)
-        return;
-
-    DamageExtWinType = CreateNewResourceType(FreeDamageExtWin, "DamageExtWin");
-    if (!DamageExtWinType)
         return;
 
     if (!dixRegisterPrivateKey
