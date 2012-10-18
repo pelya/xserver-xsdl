@@ -86,10 +86,6 @@ typedef struct {
     /* os layer procedures */
     ScreenBlockHandlerProcPtr BlockHandler;
 
-    /* device cursor procedures */
-    DeviceCursorInitializeProcPtr DeviceCursorInitialize;
-    DeviceCursorCleanupProcPtr DeviceCursorCleanup;
-
     xColorItem colors[2];
     ColormapPtr pInstalledMap;
     ColormapPtr pColormap;
@@ -328,9 +324,6 @@ miSpriteInitialize(ScreenPtr pScreen, miPointerScreenFuncPtr screenFuncs)
     pScreenPriv->StoreColors = pScreen->StoreColors;
 
     pScreenPriv->BlockHandler = NULL;
-
-    pScreenPriv->DeviceCursorInitialize = pScreen->DeviceCursorInitialize;
-    pScreenPriv->DeviceCursorCleanup = pScreen->DeviceCursorCleanup;
 
     pScreenPriv->pInstalledMap = NULL;
     pScreenPriv->pColormap = NULL;
