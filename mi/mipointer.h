@@ -91,11 +91,6 @@ extern _X_EXPORT void miPointerWarpCursor(DeviceIntPtr /*pDev */ ,
                                           int   /*y */
     );
 
-/* Deprecated in favour of miPointerGetScreen. */
-extern _X_EXPORT ScreenPtr
-miPointerCurrentScreen(void
-) _X_DEPRECATED;
-
 extern _X_EXPORT ScreenPtr
 miPointerGetScreen(DeviceIntPtr pDev);
 extern _X_EXPORT void

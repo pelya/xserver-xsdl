@@ -481,15 +481,6 @@ miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
 }
 
 /**
- * @return The current screen of the VCP
- */
-ScreenPtr
-miPointerCurrentScreen(void)
-{
-    return miPointerGetScreen(inputInfo.pointer);
-}
-
-/**
  * @return The current screen of the given device or NULL.
  */
 ScreenPtr
