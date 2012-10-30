@@ -301,6 +301,7 @@ typedef struct _ValuatorClassRec {
 typedef struct _TouchListener {
     XID listener;           /* grabs/event selection IDs receiving
                              * events for this touch */
+    int resource_type;      /* listener's resource type */
     enum TouchListenerType type;
     enum TouchListenerState state;
     enum InputLevel level;  /* matters only for emulating touches */

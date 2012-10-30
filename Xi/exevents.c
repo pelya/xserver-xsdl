@@ -1305,13 +1305,9 @@ RetrieveTouchDeliveryData(DeviceIntPtr dev, TouchPointInfoPtr ti,
         *mask = (*grab)->xi2mask;
     }
     else {
-        if (listener->level == CORE)
-            rc = dixLookupWindow(win, listener->listener,
-                                 serverClient, DixSendAccess);
-        else
-            rc = dixLookupResourceByType((pointer *) win, listener->listener,
-                                         RT_INPUTCLIENT,
-                                         serverClient, DixSendAccess);
+        rc = dixLookupResourceByType((pointer *) win, listener->listener,
+                                     listener->resource_type,
+                                     serverClient, DixSendAccess);
         if (rc != Success)
             return FALSE;
 
@@ -1452,6 +1448,7 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
             l = &ti->listeners[ti->num_listeners - 1];
             l->listener = devgrab->resource;
             l->grab = devgrab;
+            //l->resource_type = RT_NONE;
 
             if (devgrab->grabtype != XI2 || devgrab->type != XI_TouchBegin)
                 l->type = LISTENER_POINTER_GRAB;
