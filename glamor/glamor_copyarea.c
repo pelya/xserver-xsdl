@@ -318,7 +318,8 @@ __glamor_copy_n_to_n(DrawablePtr src,
 		dx, dy,
 		src_pixmap, dst_pixmap);
 #ifndef GLAMOR_GLES2
-	if ((overlaped || glamor_priv->state != RENDER_STATE
+	if (!overlaped &&
+	    (glamor_priv->state != RENDER_STATE
 	     || !src_pixmap_priv->base.gl_tex || !dst_pixmap_priv->base.gl_tex)
 	    && glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx,
 					   dy)) {
