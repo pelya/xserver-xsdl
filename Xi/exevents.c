@@ -1559,6 +1559,7 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
     uint32_t touchid;
     int type = ev->any.type;
     int emulate_pointer = ! !(ev->device_event.flags & TOUCH_POINTER_EMULATED);
+    DeviceIntPtr kbd;
 
     if (!t)
         return;
@@ -1617,6 +1618,10 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
 
     if (emulate_pointer && IsMaster(dev))
         CheckMotion(&ev->device_event, dev);
+
+    kbd = GetMaster(dev, KEYBOARD_OR_FLOAT);
+    event_set_state(NULL, kbd, &ev->device_event);
+    ev->device_event.corestate = event_get_corestate(NULL, kbd);
 
     /* Make sure we have a valid window trace for event delivery; must be
      * called after event type mutation. Touch end events are always processed
