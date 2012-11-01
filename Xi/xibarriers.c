@@ -56,6 +56,8 @@
 #include "xace.h"
 #include "list.h"
 #include "exglobals.h"
+#include "eventstr.h"
+#include "mi.h"
 
 RESTYPE PointerBarrierType;
 
@@ -66,11 +68,18 @@ static DevPrivateKeyRec BarrierScreenPrivateKeyRec;
 typedef struct PointerBarrierClient *PointerBarrierClientPtr;
 
 struct PointerBarrierClient {
+    XID id;
     ScreenPtr screen;
+    WindowPtr window;
     struct PointerBarrier barrier;
     struct xorg_list entry;
     int num_devices;
     int *device_ids; /* num_devices */
+    Time last_timestamp;
+    int barrier_event_id;
+    int release_event_id;
+    Bool hit;
+    Bool last_hit;
 };
 
 typedef struct _BarrierScreen {
@@ -315,6 +324,18 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
     int i;
     struct PointerBarrier *nearest = NULL;
     PointerBarrierClientPtr c;
+    Time ms = GetTimeInMillis();
+    BarrierEvent ev = {
+        .header = ET_Internal,
+        .type = 0,
+        .length = sizeof (BarrierEvent),
+        .time = ms,
+        .deviceid = dev->id,
+        .sourceid = dev->id,
+        .dx = dest_x - current_x,
+        .dy = dest_y - current_y,
+        .root = screen->root->drawable.id,
+    };
 
     if (xorg_list_is_empty(&cs->barriers) || IsFloating(dev))
         goto out;
@@ -336,6 +357,13 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
 
         nearest = &c->barrier;
 
+        c->seen = TRUE;
+        c->hit = TRUE;
+
+        if (c->barrier_event_id == c->release_event_id)
+            continue;
+
+        ev.type = ET_BarrierHit;
         barrier_clamp_to_barrier(nearest, dir, &x, &y);
 
         if (barrier_is_vertical(nearest)) {
@@ -346,6 +374,21 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
             dir &= ~(BarrierNegativeY | BarrierPositiveY);
             current_y = y;
         }
+
+        ev.flags = 0;
+        ev.event_id = c->barrier_event_id;
+        ev.barrierid = c->id;
+
+        ev.dt = ms - c->last_timestamp;
+        ev.window = c->window->drawable.id;
+        c->last_timestamp = ms;
+
+        mieqEnqueue(dev, (InternalEvent *) &ev);
+    }
+
+    xorg_list_for_each_entry(c, &cs->barriers, entry) {
+        c->last_hit = c->hit;
+        c->hit = FALSE;
     }
 
  out:
@@ -384,6 +427,7 @@ CreatePointerBarrierClient(ClientPtr client,
     cs = GetBarrierScreen(screen);
 
     ret->screen = screen;
+    ret->window = pWin;
     ret->num_devices = stuff->num_devices;
     if (ret->num_devices > 0)
         ret->device_ids = (int*)&ret[1];
@@ -410,6 +454,11 @@ CreatePointerBarrierClient(ClientPtr client,
         ret->device_ids[i] = device_id;
     }
 
+    ret->id = stuff->barrier;
+    ret->barrier_event_id = 0;
+    ret->release_event_id = 0;
+    ret->hit = FALSE;
+    ret->last_hit = FALSE;
     ret->barrier.x1 = min(stuff->x1, stuff->x2);
     ret->barrier.x2 = max(stuff->x1, stuff->x2);
     ret->barrier.y1 = min(stuff->y1, stuff->y2);
@@ -486,6 +535,64 @@ XIDestroyPointerBarrier(ClientPtr client,
     }
 
     FreeResource(stuff->barrier, RT_NONE);
+    return Success;
+}
+
+int
+SProcXIBarrierReleasePointer(ClientPtr client)
+{
+    xXIBarrierReleasePointerInfo *info;
+    REQUEST(xXIBarrierReleasePointerReq);
+    int i;
+
+    info = (xXIBarrierReleasePointerInfo*) &stuff[1];
+
+    swaps(&stuff->length);
+    swapl(&stuff->num_barriers);
+    for (i = 0; i < stuff->num_barriers; i++, info++) {
+        swaps(&info->deviceid);
+        swapl(&info->barrier);
+        swapl(&info->eventid);
+    }
+
+    return (ProcXIBarrierReleasePointer(client));
+}
+
+int
+ProcXIBarrierReleasePointer(ClientPtr client)
+{
+    int i;
+    int err;
+    struct PointerBarrierClient *barrier;
+    struct PointerBarrier *b;
+    xXIBarrierReleasePointerInfo *info;
+
+    REQUEST(xXIBarrierReleasePointerReq);
+    REQUEST_AT_LEAST_SIZE(xXIBarrierReleasePointerReq);
+
+    info = (xXIBarrierReleasePointerInfo*) &stuff[1];
+    for (i = 0; i < stuff->num_barriers; i++, info++) {
+        CARD32 barrier_id, event_id;
+        _X_UNUSED CARD32 device_id;
+
+        barrier_id = info->barrier;
+        event_id = info->eventid;
+
+        /* FIXME: per-device releases */
+        device_id = info->deviceid;
+
+        err = dixLookupResourceByType((void **) &b, barrier_id,
+                                      PointerBarrierType, client, DixReadAccess);
+        if (err != Success) {
+            client->errorValue = barrier_id;
+            return err;
+        }
+
+        barrier = container_of(b, struct PointerBarrierClient, barrier);
+        if (barrier->barrier_event_id == event_id)
+            barrier->release_event_id = event_id;
+    }
+
     return Success;
 }
 

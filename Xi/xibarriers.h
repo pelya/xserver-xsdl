@@ -39,9 +39,7 @@ XIDestroyPointerBarrier(ClientPtr client,
 Bool
 XIBarrierInit(void);
 
+int SProcXIBarrierReleasePointer(ClientPtr client);
+int ProcXIBarrierReleasePointer(ClientPtr client);
+
 #endif /* _XIBARRIERS_H_ */
-
-
-
-
-

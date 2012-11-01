@@ -1639,6 +1639,34 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
         UpdateDeviceState(dev, &ev->device_event);
 }
 
+static void
+ProcessBarrierEvent(InternalEvent *e, DeviceIntPtr dev)
+{
+    Mask filter;
+    WindowPtr pWin;
+    BarrierEvent *be = &e->barrier_event;
+    xEvent *ev;
+    int rc;
+
+    if (!IsMaster(dev))
+        return;
+
+    if (dixLookupWindow(&pWin, be->window, serverClient, DixReadAccess) != Success)
+        return;
+
+    rc = EventToXI2(e, &ev);
+    if (rc != Success) {
+        ErrorF("[Xi] event conversion from %s failed with code %d\n", __func__, rc);
+        return;
+    }
+
+    filter = GetEventFilter(dev, ev);
+
+    DeliverEventsToWindow(dev, pWin, ev, 1,
+                          filter, NullGrab);
+    free(ev);
+}
+
 /**
  * Process DeviceEvents and DeviceChangedEvents.
  */
@@ -1787,6 +1815,10 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     case ET_TouchOwnership:
     case ET_TouchEnd:
         ProcessTouchEvent(ev, device);
+        break;
+    case ET_BarrierHit:
+    case ET_BarrierLeave:
+        ProcessBarrierEvent(ev, device);
         break;
     default:
         ProcessDeviceEvent(ev, device);
