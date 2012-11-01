@@ -122,6 +122,7 @@ SOFTWARE.
 #include "xiqueryversion.h"
 #include "xisetclientpointer.h"
 #include "xiwarppointer.h"
+#include "xibarriers.h"
 
 /* Masks for XI events have to be aligned with core event (partially anyway).
  * If DeviceButtonMotionMask is != ButtonMotionMask, event delivery
@@ -1262,6 +1263,9 @@ XInputExtensionInit(void)
 
     if (!AddCallback(&ClientStateCallback, XIClientCallback, 0))
         FatalError("Failed to add callback to XI.\n");
+
+    if (!XIBarrierInit())
+        FatalError("Could not initialize barriers.\n");
 
     extEntry = AddExtension(INAME, IEVENTS, IERRORS, ProcIDispatch,
                             SProcIDispatch, IResetProc, StandardMinorOpcode);
