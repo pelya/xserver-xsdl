@@ -1245,28 +1245,34 @@ CursorConstrainCursorHarder(DeviceIntPtr dev, ScreenPtr screen, int mode,
     }
 }
 
-static struct PointerBarrierClient *
+static int
 CreatePointerBarrierClient(ScreenPtr screen, ClientPtr client,
-                           xXFixesCreatePointerBarrierReq * stuff)
+                           xXFixesCreatePointerBarrierReq * stuff,
+                           PointerBarrierClientPtr *client_out)
 {
     CursorScreenPtr cs = GetCursorScreen(screen);
     struct PointerBarrierClient *ret = malloc(sizeof(*ret));
 
-    if (ret) {
-        ret->screen = screen;
-        ret->barrier.x1 = min(stuff->x1, stuff->x2);
-        ret->barrier.x2 = max(stuff->x1, stuff->x2);
-        ret->barrier.y1 = min(stuff->y1, stuff->y2);
-        ret->barrier.y2 = max(stuff->y1, stuff->y2);
-        ret->barrier.directions = stuff->directions & 0x0f;
-        if (barrier_is_horizontal(&ret->barrier))
-            ret->barrier.directions &= ~(BarrierPositiveX | BarrierNegativeX);
-        if (barrier_is_vertical(&ret->barrier))
-            ret->barrier.directions &= ~(BarrierPositiveY | BarrierNegativeY);
-        xorg_list_add(&ret->entry, &cs->barriers);
+    *client_out = NULL;
+
+    if (!ret) {
+        return BadAlloc;
     }
 
-    return ret;
+    ret->screen = screen;
+    ret->barrier.x1 = min(stuff->x1, stuff->x2);
+    ret->barrier.x2 = max(stuff->x1, stuff->x2);
+    ret->barrier.y1 = min(stuff->y1, stuff->y2);
+    ret->barrier.y2 = max(stuff->y1, stuff->y2);
+    ret->barrier.directions = stuff->directions & 0x0f;
+    if (barrier_is_horizontal(&ret->barrier))
+        ret->barrier.directions &= ~(BarrierPositiveX | BarrierNegativeX);
+    if (barrier_is_vertical(&ret->barrier))
+        ret->barrier.directions &= ~(BarrierPositiveY | BarrierNegativeY);
+    xorg_list_add(&ret->entry, &cs->barriers);
+
+    *client_out = ret;
+    return Success;
 }
 
 int
@@ -1304,9 +1310,9 @@ ProcXFixesCreatePointerBarrier(ClientPtr client)
     if (barrier_is_horizontal(&b) && barrier_is_vertical(&b))
         return BadValue;
 
-    if (!(barrier = CreatePointerBarrierClient(pWin->drawable.pScreen,
-                                               client, stuff)))
-        return BadAlloc;
+    if ((err = CreatePointerBarrierClient(pWin->drawable.pScreen,
+                                          client, stuff, &barrier)))
+        return err;
 
     if (!AddResource(stuff->barrier, PointerBarrierType, &barrier->barrier))
         return BadAlloc;
