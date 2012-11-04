@@ -196,7 +196,7 @@ CursorCloseScreen(ScreenPtr pScreen)
     Bool ret;
     _X_UNUSED CloseScreenProcPtr close_proc;
     _X_UNUSED DisplayCursorProcPtr display_proc;
-    ConstrainCursorHarderProcPtr constrain_proc;
+    _X_UNUSED ConstrainCursorHarderProcPtr constrain_proc;
 
     Unwrap(cs, pScreen, CloseScreen, close_proc);
     Unwrap(cs, pScreen, DisplayCursor, display_proc);
