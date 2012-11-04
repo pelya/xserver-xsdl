@@ -1204,6 +1204,7 @@ CursorConstrainCursorHarder(DeviceIntPtr dev, ScreenPtr screen, int mode,
         mode == Relative) {
         int ox, oy;
         int dir;
+        int i;
         struct PointerBarrier *nearest = NULL;
 
         /* where are we coming from */
@@ -1218,8 +1219,12 @@ CursorConstrainCursorHarder(DeviceIntPtr dev, ScreenPtr screen, int mode,
          */
         dir = barrier_get_direction(ox, oy, *x, *y);
 
-        nearest = barrier_find_nearest(cs, dir, ox, oy, *x, *y);
-        if (nearest) {
+#define MAX_BARRIERS 2
+        for (i = 0; i < MAX_BARRIERS; i++) {
+            nearest = barrier_find_nearest(cs, dir, ox, oy, *x, *y);
+            if (!nearest)
+                break;
+
             barrier_clamp_to_barrier(nearest, dir, x, y);
 
             if (barrier_is_vertical(nearest)) {
@@ -1229,11 +1234,6 @@ CursorConstrainCursorHarder(DeviceIntPtr dev, ScreenPtr screen, int mode,
             else if (barrier_is_horizontal(nearest)) {
                 dir &= ~(BarrierNegativeY | BarrierPositiveY);
                 oy = *y;
-            }
-
-            nearest = barrier_find_nearest(cs, dir, ox, oy, *x, *y);
-            if (nearest) {
-                barrier_clamp_to_barrier(nearest, dir, x, y);
             }
         }
     }
