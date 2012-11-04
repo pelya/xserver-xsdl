@@ -56,6 +56,7 @@
 #include "windowstr.h"
 #include "xace.h"
 #include "list.h"
+#include "exglobals.h"
 
 static RESTYPE CursorClientType;
 static RESTYPE CursorHideCountType;
@@ -118,6 +119,8 @@ struct PointerBarrierClient {
     ScreenPtr screen;
     struct PointerBarrier barrier;
     struct xorg_list entry;
+    int num_devices;
+    int *device_ids; /* num_devices */
 };
 
 /*
@@ -1132,6 +1135,31 @@ barrier_is_blocking(const struct PointerBarrier * barrier,
     return rc;
 }
 
+static BOOL
+barrier_blocks_device(struct PointerBarrierClient *client,
+                      DeviceIntPtr dev)
+{
+    int i;
+    int master_id;
+
+    /* Clients with no devices are treated as
+     * if they specified XIAllDevices. */
+    if (client->num_devices == 0)
+        return TRUE;
+
+    master_id = GetMaster(dev, POINTER_OR_FLOAT)->id;
+
+    for (i = 0; i < client->num_devices; i++) {
+        int device_id = client->device_ids[i];
+        if (device_id == XIAllDevices ||
+            device_id == XIAllMasterDevices ||
+            device_id == master_id)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 /**
  * Find the nearest barrier that is blocking movement from x1/y1 to x2/y2.
  *
@@ -1143,7 +1171,8 @@ barrier_is_blocking(const struct PointerBarrier * barrier,
  * @return The barrier nearest to the movement origin that blocks this movement.
  */
 static struct PointerBarrier *
-barrier_find_nearest(CursorScreenPtr cs, int dir,
+barrier_find_nearest(CursorScreenPtr cs, DeviceIntPtr dev,
+                     int dir,
                      int x1, int y1, int x2, int y2)
 {
     struct PointerBarrierClient *c;
@@ -1155,6 +1184,9 @@ barrier_find_nearest(CursorScreenPtr cs, int dir,
         double distance;
 
         if (!barrier_is_blocking_direction(b, dir))
+            continue;
+
+        if (!barrier_blocks_device(c, dev))
             continue;
 
         if (barrier_is_blocking(b, x1, y1, x2, y2, &distance)) {
@@ -1221,7 +1253,7 @@ CursorConstrainCursorHarder(DeviceIntPtr dev, ScreenPtr screen, int mode,
 
 #define MAX_BARRIERS 2
         for (i = 0; i < MAX_BARRIERS; i++) {
-            nearest = barrier_find_nearest(cs, dir, ox, oy, *x, *y);
+            nearest = barrier_find_nearest(cs, dev, dir, ox, oy, *x, *y);
             if (!nearest)
                 break;
 
@@ -1251,7 +1283,14 @@ CreatePointerBarrierClient(ScreenPtr screen, ClientPtr client,
                            PointerBarrierClientPtr *client_out)
 {
     CursorScreenPtr cs = GetCursorScreen(screen);
-    struct PointerBarrierClient *ret = malloc(sizeof(*ret));
+    int err;
+    int size;
+    int i;
+    CARD16 *in_devices;
+    struct PointerBarrierClient *ret;
+
+    size = sizeof(*ret) + sizeof(int) * stuff->num_devices;
+    ret = malloc(size);
 
     *client_out = NULL;
 
@@ -1260,6 +1299,28 @@ CreatePointerBarrierClient(ScreenPtr screen, ClientPtr client,
     }
 
     ret->screen = screen;
+    ret->num_devices = stuff->num_devices;
+
+    in_devices = (CARD16 *) &stuff[1];
+    for (i = 0; i < stuff->num_devices; i++) {
+        int device_id = in_devices[i];
+        DeviceIntPtr device;
+
+        if ((err = dixLookupDevice (&device, device_id,
+                                    client, DixReadAccess))) {
+            client->errorValue = device_id;
+            goto error;
+        }
+
+        if (!IsMaster (device)) {
+            client->errorValue = device_id;
+            err = BadDevice;
+            goto error;
+        }
+
+        ret->device_ids[i] = device_id;
+    }
+
     ret->barrier.x1 = min(stuff->x1, stuff->x2);
     ret->barrier.x2 = max(stuff->x1, stuff->x2);
     ret->barrier.y1 = min(stuff->y1, stuff->y2);
@@ -1273,6 +1334,10 @@ CreatePointerBarrierClient(ScreenPtr screen, ClientPtr client,
 
     *client_out = ret;
     return Success;
+
+ error:
+    free(ret);
+    return err;
 }
 
 int
@@ -1293,10 +1358,6 @@ ProcXFixesCreatePointerBarrier(ClientPtr client)
         client->errorValue = stuff->window;
         return err;
     }
-
-    /* This sure does need fixing. */
-    if (stuff->num_devices)
-        return BadImplementation;
 
     b.x1 = stuff->x1;
     b.x2 = stuff->x2;
