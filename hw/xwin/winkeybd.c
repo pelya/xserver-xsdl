@@ -264,25 +264,38 @@ winRestoreModeKeyStates(void)
 
     /* Check if modifier keys are pressed, and if so, fake a press */
     {
-        BOOL ctrl = (GetAsyncKeyState(VK_CONTROL) < 0);
-        BOOL shift = (GetAsyncKeyState(VK_SHIFT) < 0);
+
+        BOOL lctrl = (GetAsyncKeyState(VK_LCONTROL) < 0);
+        BOOL rctrl = (GetAsyncKeyState(VK_RCONTROL) < 0);
+        BOOL lshift = (GetAsyncKeyState(VK_LSHIFT) < 0);
+        BOOL rshift = (GetAsyncKeyState(VK_RSHIFT) < 0);
         BOOL alt = (GetAsyncKeyState(VK_LMENU) < 0);
         BOOL altgr = (GetAsyncKeyState(VK_RMENU) < 0);
 
-        if (ctrl && altgr)
-            ctrl = FALSE;
+        /*
+           If AltGr and CtrlL appear to be pressed, assume the
+           CtrL is a fake one
+         */
+        if (lctrl && altgr)
+            lctrl = FALSE;
 
-        if (LOGICAL_XOR(internalKeyStates & ControlMask, ctrl))
-            winSendKeyEvent(KEY_LCtrl, ctrl);
+        if (lctrl)
+            winSendKeyEvent(KEY_LCtrl, TRUE);
 
-        if (LOGICAL_XOR(internalKeyStates & ShiftMask, shift))
-            winSendKeyEvent(KEY_ShiftL, shift);
+        if (rctrl)
+            winSendKeyEvent(KEY_RCtrl, TRUE);
 
-        if (LOGICAL_XOR(internalKeyStates & Mod1Mask, alt))
-            winSendKeyEvent(KEY_Alt, alt);
+        if (lshift)
+            winSendKeyEvent(KEY_ShiftL, TRUE);
 
-        if (LOGICAL_XOR(internalKeyStates & Mod5Mask, altgr))
-            winSendKeyEvent(KEY_AltLang, altgr);
+        if (rshift)
+            winSendKeyEvent(KEY_ShiftL, TRUE);
+
+        if (alt)
+            winSendKeyEvent(KEY_Alt, TRUE);
+
+        if (altgr)
+            winSendKeyEvent(KEY_AltLang, TRUE);
     }
 
     /*
@@ -313,6 +326,12 @@ winRestoreModeKeyStates(void)
         winSendKeyEvent(KEY_HKTG, TRUE);
         winSendKeyEvent(KEY_HKTG, FALSE);
     }
+
+    /*
+       For strict correctness, we should also press any non-modifier keys
+       which are already down when we gain focus, but nobody has complained
+       yet :-)
+     */
 }
 
 /*
