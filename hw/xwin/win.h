@@ -248,9 +248,6 @@ if (++PROFPT##point % thresh == 0)\
 ErrorF (#point ": PROFILEPOINT hit %u times\n", PROFPT##point);\
 }
 
-/* We use xor this macro for detecting toggle key state changes */
-#define WIN_XOR(a,b) ((!(a) && (b)) || ((a) && !(b)))
-
 #define DEFINE_ATOM_HELPER(func,atom_name)			\
 static Atom func (void) {					\
     static int generation;					\

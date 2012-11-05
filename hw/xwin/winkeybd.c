@@ -41,6 +41,9 @@
 
 #include "xkbsrv.h"
 
+/* C does not have a logical XOR operator, so we use a macro instead */
+#define LOGICAL_XOR(a,b) ((!(a) && (b)) || ((a) && !(b)))
+
 static Bool g_winKeyState[NUM_KEYCODES];
 
 /*
@@ -259,36 +262,32 @@ winRestoreModeKeyStates(void)
         XkbStateFieldFromRec(&inputInfo.keyboard->key->xkbInfo->state);
     winDebug("winRestoreModeKeyStates: state %d\n", internalKeyStates);
 
-    /* 
-     * NOTE: The C XOR operator, ^, will not work here because it is
-     * a bitwise operator, not a logical operator.  C does not
-     * have a logical XOR operator, so we use a macro instead.
-     */
 
-    /* Has the key state changed? */
+    /*
+       Check if latching modifier key states have changed, and if so,
+       fake a press and a release to toggle the modifier to the correct
+       state
+    */
     dwKeyState = GetKeyState(VK_NUMLOCK) & 0x0001;
-    if (WIN_XOR(internalKeyStates & NumLockMask, dwKeyState)) {
+    if (LOGICAL_XOR(internalKeyStates & NumLockMask, dwKeyState)) {
         winSendKeyEvent(KEY_NumLock, TRUE);
         winSendKeyEvent(KEY_NumLock, FALSE);
     }
 
-    /* Has the key state changed? */
     dwKeyState = GetKeyState(VK_CAPITAL) & 0x0001;
-    if (WIN_XOR(internalKeyStates & LockMask, dwKeyState)) {
+    if (LOGICAL_XOR(internalKeyStates & LockMask, dwKeyState)) {
         winSendKeyEvent(KEY_CapsLock, TRUE);
         winSendKeyEvent(KEY_CapsLock, FALSE);
     }
 
-    /* Has the key state changed? */
     dwKeyState = GetKeyState(VK_SCROLL) & 0x0001;
-    if (WIN_XOR(internalKeyStates & ScrollLockMask, dwKeyState)) {
+    if (LOGICAL_XOR(internalKeyStates & ScrollLockMask, dwKeyState)) {
         winSendKeyEvent(KEY_ScrollLock, TRUE);
         winSendKeyEvent(KEY_ScrollLock, FALSE);
     }
 
-    /* Has the key state changed? */
     dwKeyState = GetKeyState(VK_KANA) & 0x0001;
-    if (WIN_XOR(internalKeyStates & KanaMask, dwKeyState)) {
+    if (LOGICAL_XOR(internalKeyStates & KanaMask, dwKeyState)) {
         winSendKeyEvent(KEY_HKTG, TRUE);
         winSendKeyEvent(KEY_HKTG, FALSE);
     }
