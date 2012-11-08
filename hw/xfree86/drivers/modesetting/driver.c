@@ -901,7 +901,6 @@ ScreenInit(SCREEN_INIT_ARGS_DECL)
 
     xf86SetBlackWhitePixels(pScreen);
 
-    miInitializeBackingStore(pScreen);
     xf86SetBackingStore(pScreen);
     xf86SetSilkenMouse(pScreen);
     miDCInitialize(pScreen, xf86GetPointerScreenFuncs());
