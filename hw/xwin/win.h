@@ -133,6 +133,8 @@
 
 #define WIN_MAX_KEYS_PER_KEY	4
 
+#define NONAMELESSUNION
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
