@@ -50,6 +50,8 @@
 #include "indirect_table.h"
 #include "indirect_util.h"
 
+static char GLXServerVendorName[] = "SGI";
+
 _X_HIDDEN int
 validGlxScreen(ClientPtr client, int screen, __GLXscreen ** pGlxScreen,
                int *err)
@@ -2384,7 +2386,7 @@ __glXDisp_QueryServerString(__GLXclientState * cl, GLbyte * pc)
 
     switch (req->name) {
     case GLX_VENDOR:
-        ptr = pGlxScreen->GLXvendor;
+        ptr = GLXServerVendorName;
         break;
     case GLX_VERSION:
         /* Return to the server version rather than the screen version
