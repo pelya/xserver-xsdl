@@ -1416,6 +1416,8 @@ DoCreatePbuffer(ClientPtr client, int screenNum, XID fbconfigId,
                                                     width, height,
                                                     config->rgbBits, 0);
     __glXleaveServer(GL_FALSE);
+    if (!pPixmap)
+        return BadAlloc;
 
     /* Assign the pixmap the same id as the pbuffer and add it as a
      * resource so it and the DRI2 drawable will be reclaimed when the
