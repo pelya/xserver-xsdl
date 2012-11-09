@@ -154,7 +154,9 @@ static const char GLServerExtensions[] =
     "GL_SGIS_texture_edge_clamp "
     "GL_SGIS_texture_lod "
     "GL_SGIX_depth_texture "
-    "GL_SGIX_shadow " "GL_SGIX_shadow_ambient " "GL_SUN_slice_accum ";
+    "GL_SGIX_shadow "
+    "GL_SGIX_shadow_ambient "
+    "GL_SUN_slice_accum ";
 
 /*
 ** We have made the simplifying assuption that the same extensions are 
@@ -168,12 +170,14 @@ static char GLXServerExtensions[] =
     "GLX_EXT_visual_rating "
     "GLX_EXT_import_context "
     "GLX_EXT_texture_from_pixmap "
-    "GLX_OML_swap_method " "GLX_SGI_make_current_read "
+    "GLX_OML_swap_method "
+    "GLX_SGI_make_current_read "
 #ifndef __APPLE__
     "GLX_SGIS_multisample "
 #endif
     "GLX_SGIX_fbconfig "
-    "GLX_SGIX_pbuffer " "GLX_MESA_copy_sub_buffer ";
+    "GLX_SGIX_pbuffer "
+    "GLX_MESA_copy_sub_buffer ";
 
 static Bool
 glxCloseScreen(ScreenPtr pScreen)
