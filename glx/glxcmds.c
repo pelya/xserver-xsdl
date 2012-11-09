@@ -1893,27 +1893,29 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     xGLXGetDrawableAttributesReply reply;
     __GLXdrawable *pGlxDraw;
     CARD32 attributes[6];
-    int numAttribs, error;
+    int numAttribs = 0, error;
 
     if (!validGlxDrawable(client, drawId, GLX_DRAWABLE_ANY,
                           DixGetAttrAccess, &pGlxDraw, &error))
         return error;
 
-    numAttribs = 3;
+    attributes[0] = GLX_TEXTURE_TARGET_EXT;
+    attributes[1] = pGlxDraw->target == GL_TEXTURE_2D ? GLX_TEXTURE_2D_EXT :
+        GLX_TEXTURE_RECTANGLE_EXT;
+    numAttribs++;
+    attributes[2] = GLX_Y_INVERTED_EXT;
+    attributes[3] = GL_FALSE;
+    numAttribs++;
+    attributes[4] = GLX_EVENT_MASK;
+    attributes[5] = pGlxDraw->eventMask;
+    numAttribs++;
+
     reply = (xGLXGetDrawableAttributesReply) {
         .type = X_Reply,
         .sequenceNumber = client->sequence,
         .length = numAttribs << 1,
         .numAttribs = numAttribs
     };
-
-    attributes[0] = GLX_TEXTURE_TARGET_EXT;
-    attributes[1] = pGlxDraw->target == GL_TEXTURE_2D ? GLX_TEXTURE_2D_EXT :
-        GLX_TEXTURE_RECTANGLE_EXT;
-    attributes[2] = GLX_Y_INVERTED_EXT;
-    attributes[3] = GL_FALSE;
-    attributes[4] = GLX_EVENT_MASK;
-    attributes[5] = pGlxDraw->eventMask;
 
     if (client->swapped) {
         __glXSwapGetDrawableAttributesReply(client, &reply, attributes);
