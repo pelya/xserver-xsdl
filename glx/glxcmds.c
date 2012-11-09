@@ -1457,7 +1457,6 @@ __glXDisp_CreatePbuffer(__GLXclientState * cl, GLbyte * pc)
             height = attrs[i * 2 + 1];
             break;
         case GLX_LARGEST_PBUFFER:
-        case GLX_PRESERVED_CONTENTS:
             /* FIXME: huh... */
             break;
         }
@@ -1475,6 +1474,10 @@ __glXDisp_CreateGLXPbufferSGIX(__GLXclientState * cl, GLbyte * pc)
 
     REQUEST_AT_LEAST_SIZE(xGLXCreateGLXPbufferSGIXReq);
 
+    /*
+     * We should really handle attributes correctly, but this extension
+     * is so rare I have difficulty caring.
+     */
     return DoCreatePbuffer(cl->client, req->screen, req->fbconfig,
                            req->width, req->height, req->pbuffer);
 }
@@ -1892,7 +1895,7 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     ClientPtr client = cl->client;
     xGLXGetDrawableAttributesReply reply;
     __GLXdrawable *pGlxDraw;
-    CARD32 attributes[12];
+    CARD32 attributes[14];
     int numAttribs = 0, error;
 
     if (!validGlxDrawable(client, drawId, GLX_DRAWABLE_ANY,
@@ -1918,6 +1921,11 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     attributes[10] = GLX_FBCONFIG_ID;
     attributes[11] = pGlxDraw->config->fbconfigID;
     numAttribs++;
+    if (pGlxDraw->type == GLX_DRAWABLE_PBUFFER) {
+        attributes[12] = GLX_PRESERVED_CONTENTS;
+        attributes[13] = GL_TRUE;
+        numAttribs++;
+    }
 
     reply = (xGLXGetDrawableAttributesReply) {
         .type = X_Reply,
