@@ -1892,7 +1892,7 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     ClientPtr client = cl->client;
     xGLXGetDrawableAttributesReply reply;
     __GLXdrawable *pGlxDraw;
-    CARD32 attributes[6];
+    CARD32 attributes[10];
     int numAttribs = 0, error;
 
     if (!validGlxDrawable(client, drawId, GLX_DRAWABLE_ANY,
@@ -1908,6 +1908,12 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     numAttribs++;
     attributes[4] = GLX_EVENT_MASK;
     attributes[5] = pGlxDraw->eventMask;
+    numAttribs++;
+    attributes[6] = GLX_WIDTH;
+    attributes[7] = pGlxDraw->pDraw->width;
+    numAttribs++;
+    attributes[8] = GLX_HEIGHT;
+    attributes[9] = pGlxDraw->pDraw->height;
     numAttribs++;
 
     reply = (xGLXGetDrawableAttributesReply) {
