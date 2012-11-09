@@ -1892,7 +1892,7 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     ClientPtr client = cl->client;
     xGLXGetDrawableAttributesReply reply;
     __GLXdrawable *pGlxDraw;
-    CARD32 attributes[10];
+    CARD32 attributes[12];
     int numAttribs = 0, error;
 
     if (!validGlxDrawable(client, drawId, GLX_DRAWABLE_ANY,
@@ -1914,6 +1914,9 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     numAttribs++;
     attributes[8] = GLX_HEIGHT;
     attributes[9] = pGlxDraw->pDraw->height;
+    numAttribs++;
+    attributes[10] = GLX_FBCONFIG_ID;
+    attributes[11] = pGlxDraw->config->fbconfigID;
     numAttribs++;
 
     reply = (xGLXGetDrawableAttributesReply) {
