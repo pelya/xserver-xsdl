@@ -131,16 +131,6 @@ glamor_composite_rectangles(CARD8	 op,
 		return;
 	}
 
-	pixmap = glamor_get_drawable_pixmap(dst->pDrawable);
-	priv = glamor_get_pixmap_private(pixmap);
-
-	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(priv))
-		goto fallback;
-	if (dst->alphaMap) {
-		DEBUGF("%s: fallback, dst has an alpha-map\n", __FUNCTION__);
-		goto fallback;
-	}
-
 	if ((color->red|color->green|color->blue|color->alpha) <= 0x00ff) {
 		switch (op) {
 		case PictOpOver:
@@ -202,6 +192,16 @@ glamor_composite_rectangles(CARD8	 op,
 	{
 		DEBUGF("%s: allocation failed for region\n", __FUNCTION__);
 		return;
+	}
+
+	pixmap = glamor_get_drawable_pixmap(dst->pDrawable);
+	priv = glamor_get_pixmap_private(pixmap);
+
+	if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(priv))
+		goto fallback;
+	if (dst->alphaMap) {
+		DEBUGF("%s: fallback, dst has an alpha-map\n", __FUNCTION__);
+		goto fallback;
 	}
 
 	need_free_region = TRUE;
