@@ -1409,7 +1409,7 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
     ptrev->device_event.corestate = event_get_corestate(dev, kbd);
 
     if (grab) {
-        /* this side-steps the usual activation mechansims, but... */
+        /* this side-steps the usual activation mechanisms, but... */
         if (ev->any.type == ET_TouchBegin && !dev->deviceGrab.grab)
             ActivatePassiveGrab(dev, grab, ptrev, ev);  /* also delivers the event */
         else {
