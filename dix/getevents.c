@@ -1910,30 +1910,24 @@ GetTouchEvents(InternalEvent *events, DeviceIntPtr dev, uint32_t ddx_touchid,
         return 0;
     }
 
-    if (t->mode == XIDirectTouch) {
-        if (!valuator_mask_isset(&mask, 0))
-            valuator_mask_set_double(&mask, 0,
-                                     valuator_mask_get_double(ti->
-                                                              valuators, 0));
-        if (!valuator_mask_isset(&mask, 1))
-            valuator_mask_set_double(&mask, 1,
-                                     valuator_mask_get_double(ti->
-                                                              valuators, 1));
-    }
-
     /* Get our screen event co-ordinates (root_x/root_y/event_x/event_y):
      * these come from the touchpoint in Absolute mode, or the sprite in
      * Relative. */
     if (t->mode == XIDirectTouch) {
-        transformAbsolute(dev, &mask);
-
-        for (i = 0; i < valuator_mask_size(&mask); i++) {
+        for (i = 0; i < max(valuator_mask_size(&mask), 2); i++) {
             double val;
 
             if (valuator_mask_fetch_double(&mask, i, &val))
                 valuator_mask_set_double(ti->valuators, i, val);
+            /* If the device doesn't post new X and Y axis values,
+             * use the last values posted.
+             */
+            else if (i < 2 &&
+                valuator_mask_fetch_double(ti->valuators, i, &val))
+                valuator_mask_set_double(&mask, i, val);
         }
 
+        transformAbsolute(dev, &mask);
         clipAbsolute(dev, &mask);
     }
     else {
