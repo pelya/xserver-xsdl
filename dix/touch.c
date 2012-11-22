@@ -987,8 +987,6 @@ TouchListenerAcceptReject(DeviceIntPtr dev, TouchPointInfoPtr ti, int listener,
     for (i = 0; i < nev; i++)
         mieqProcessDeviceEvent(dev, events + i, NULL);
 
-    ProcessInputEvents();
-
     FreeEventList(events, GetMaximumEventsNum());
 
     return nev ? Success : BadMatch;
