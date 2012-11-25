@@ -79,7 +79,7 @@ struct PointerBarrierClient {
     int barrier_event_id;
     int release_event_id;
     Bool hit;
-    Bool last_hit;
+    Bool seen;
 };
 
 typedef struct _BarrierScreen {
@@ -220,6 +220,35 @@ barrier_is_blocking(const struct PointerBarrier * barrier,
     return rc;
 }
 
+#define HIT_EDGE_EXTENTS 2
+static BOOL
+barrier_inside_hit_box(struct PointerBarrier *barrier, int x, int y)
+{
+    int x1, x2, y1, y2;
+    int dir;
+
+    x1 = barrier->x1;
+    x2 = barrier->x2;
+    y1 = barrier->y1;
+    y2 = barrier->y2;
+    dir = ~(barrier->directions);
+
+    if (barrier_is_vertical(barrier)) {
+        if (dir & BarrierPositiveX)
+            x1 -= HIT_EDGE_EXTENTS;
+        if (dir & BarrierNegativeX)
+            x2 += HIT_EDGE_EXTENTS;
+    }
+    if (barrier_is_horizontal(barrier)) {
+        if (dir & BarrierPositiveY)
+            y1 -= HIT_EDGE_EXTENTS;
+        if (dir & BarrierNegativeY)
+            y2 += HIT_EDGE_EXTENTS;
+    }
+
+    return x >= x1 && x <= x2 && y >= y1 && y <= y2;
+}
+
 static BOOL
 barrier_blocks_device(struct PointerBarrierClient *client,
                       DeviceIntPtr dev)
@@ -267,7 +296,7 @@ barrier_find_nearest(BarrierScreenPtr cs, DeviceIntPtr dev,
         struct PointerBarrier *b = &c->barrier;
         double distance;
 
-        if (c->hit)
+        if (c->seen)
             continue;
 
         if (!barrier_is_blocking_direction(b, dir))
@@ -388,8 +417,9 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
     }
 
     xorg_list_for_each_entry(c, &cs->barriers, entry) {
-        c->last_hit = c->hit;
-        c->hit = FALSE;
+        c->seen = FALSE;
+        if (c->hit && !barrier_inside_hit_box(&c->barrier, x, y))
+            c->hit = FALSE;
     }
 
  out:
@@ -459,7 +489,7 @@ CreatePointerBarrierClient(ClientPtr client,
     ret->barrier_event_id = 0;
     ret->release_event_id = 0;
     ret->hit = FALSE;
-    ret->last_hit = FALSE;
+    ret->seen = FALSE;
     ret->barrier.x1 = min(stuff->x1, stuff->x2);
     ret->barrier.x2 = max(stuff->x1, stuff->x2);
     ret->barrier.y1 = min(stuff->y1, stuff->y2);
