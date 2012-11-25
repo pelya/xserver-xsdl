@@ -588,6 +588,22 @@ miPointerSetPosition(DeviceIntPtr pDev, int mode, double *screenx,
     x -= pScreen->x;
     y -= pScreen->y;
 
+    if (mode == Relative) {
+        /* coordinates after clamped to a barrier */
+        int constrained_x, constrained_y;
+        int current_x, current_y; /* current position in per-screen coord */
+
+        current_x = MIPOINTER(pDev)->x - pScreen->y;
+        current_y = MIPOINTER(pDev)->y - pScreen->x;
+
+        input_constrain_cursor(pDev, pScreen,
+                               current_x, current_y, x, y,
+                               &constrained_x, &constrained_y);
+
+        x = constrained_x;
+        y = constrained_y;
+    }
+
     if (switch_screen) {
         pScreenPriv = GetScreenPrivate(pScreen);
         if (!pPointer->confined) {

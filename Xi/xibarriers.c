@@ -74,16 +74,12 @@ struct PointerBarrierClient {
 };
 
 typedef struct _BarrierScreen {
-    CloseScreenProcPtr CloseScreen;
-    ConstrainCursorHarderProcPtr ConstrainCursorHarder;
     struct xorg_list barriers;
 } BarrierScreenRec, *BarrierScreenPtr;
 
 #define GetBarrierScreen(s) ((BarrierScreenPtr)dixLookupPrivate(&(s)->devPrivates, BarrierScreenPrivateKey))
 #define GetBarrierScreenIfSet(s) GetBarrierScreen(s)
 #define SetBarrierScreen(s,p) dixSetPrivate(&(s)->devPrivates, BarrierScreenPrivateKey, p)
-#define Wrap(as,s,elt,func)	(((as)->elt = (s)->elt), (s)->elt = func)
-#define Unwrap(as,s,elt,backup)	(((backup) = (s)->elt), (s)->elt = (as)->elt)
 
 static BOOL
 barrier_is_horizontal(const struct PointerBarrier *barrier)
@@ -306,21 +302,21 @@ barrier_clamp_to_barrier(struct PointerBarrier *barrier, int dir, int *x,
     }
 }
 
-static void
-BarrierConstrainCursorHarder(DeviceIntPtr dev, ScreenPtr screen, int mode,
-                             int *x, int *y)
+void
+input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
+                       int current_x, int current_y,
+                       int dest_x, int dest_y,
+                       int *out_x, int *out_y)
 {
+    /* Clamped coordinates here refer to screen edge clamping. */
     BarrierScreenPtr cs = GetBarrierScreen(screen);
+    int x = dest_x,
+        y = dest_y;
 
-    if (!xorg_list_is_empty(&cs->barriers) && !IsFloating(dev) &&
-        mode == Relative) {
-        int ox, oy;
+    if (!xorg_list_is_empty(&cs->barriers) && !IsFloating(dev)) {
         int dir;
         int i;
         struct PointerBarrier *nearest = NULL;
-
-        /* where are we coming from */
-        miPointerGetPosition(dev, &ox, &oy);
 
         /* How this works:
          * Given the origin and the movement vector, get the nearest barrier
@@ -329,32 +325,29 @@ BarrierConstrainCursorHarder(DeviceIntPtr dev, ScreenPtr screen, int mode,
          * Then, check from the clamped intersection to the original
          * destination, again finding the nearest barrier and clamping.
          */
-        dir = barrier_get_direction(ox, oy, *x, *y);
+        dir = barrier_get_direction(current_x, current_y, x, y);
 
 #define MAX_BARRIERS 2
         for (i = 0; i < MAX_BARRIERS; i++) {
-            nearest = barrier_find_nearest(cs, dev, dir, ox, oy, *x, *y);
+            nearest = barrier_find_nearest(cs, dev, dir, current_x, current_y, x, y);
             if (!nearest)
                 break;
 
-            barrier_clamp_to_barrier(nearest, dir, x, y);
+            barrier_clamp_to_barrier(nearest, dir, &x, &y);
 
             if (barrier_is_vertical(nearest)) {
                 dir &= ~(BarrierNegativeX | BarrierPositiveX);
-                ox = *x;
+                current_x = x;
             }
             else if (barrier_is_horizontal(nearest)) {
                 dir &= ~(BarrierNegativeY | BarrierPositiveY);
-                oy = *y;
+                current_y = y;
             }
         }
     }
 
-    if (cs->ConstrainCursorHarder) {
-        screen->ConstrainCursorHarder = cs->ConstrainCursorHarder;
-        screen->ConstrainCursorHarder(dev, screen, mode, x, y);
-        screen->ConstrainCursorHarder = BarrierConstrainCursorHarder;
-    }
+    *out_x = x;
+    *out_y = y;
 }
 
 static int
@@ -493,21 +486,6 @@ XIDestroyPointerBarrier(ClientPtr client,
     return Success;
 }
 
-static Bool
-BarrierCloseScreen(ScreenPtr pScreen)
-{
-    BarrierScreenPtr cs = GetBarrierScreen(pScreen);
-    Bool ret;
-    _X_UNUSED CloseScreenProcPtr close_proc;
-    _X_UNUSED ConstrainCursorHarderProcPtr constrain_proc;
-
-    Unwrap(cs, pScreen, CloseScreen, close_proc);
-    Unwrap(cs, pScreen, ConstrainCursorHarder, constrain_proc);
-    ret = (*pScreen->CloseScreen) (pScreen);
-    free(cs);
-    return ret;
-}
-
 Bool
 XIBarrierInit(void)
 {
@@ -524,8 +502,6 @@ XIBarrierInit(void)
         if (!cs)
             return FALSE;
         xorg_list_init(&cs->barriers);
-        Wrap(cs, pScreen, CloseScreen, BarrierCloseScreen);
-        Wrap(cs, pScreen, ConstrainCursorHarder, BarrierConstrainCursorHarder);
         SetBarrierScreen(pScreen, cs);
     }
 
