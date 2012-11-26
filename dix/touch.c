@@ -915,6 +915,8 @@ TouchRemovePointerGrab(DeviceIntPtr dev)
     ti = TouchFindByClientID(dev, ev->touchid);
     if (!ti)
         return;
+
+    /* FIXME: missing a bit of code here... */
 }
 
 /* As touch grabs don't turn into active grabs with their own resources, we
