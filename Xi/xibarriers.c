@@ -140,6 +140,9 @@ barrier_is_blocking_direction(const struct PointerBarrier * barrier,
     return (barrier->directions & direction) != direction;
 }
 
+#define T(v, a, b) (((float)v) - (a)) / ((b) - (a))
+#define F(t, a, b) ((t) * ((a) - (b)) + (a))
+
 /**
  * Test if the movement vector x1/y1 → x2/y2 is intersecting with the
  * barrier. A movement vector with the startpoint or endpoint adjacent to
@@ -157,67 +160,40 @@ BOOL
 barrier_is_blocking(const struct PointerBarrier * barrier,
                     int x1, int y1, int x2, int y2, double *distance)
 {
-    BOOL rc = FALSE;
-    float ua, ub, ud;
-    int dir = barrier_get_direction(x1, y1, x2, y2);
-
-    /* Algorithm below doesn't handle edge cases well, hence the extra
-     * checks. */
     if (barrier_is_vertical(barrier)) {
-        /* handle immediate barrier adjacency, moving away */
-        if (dir & BarrierPositiveX && x1 == barrier->x1)
+        float t, y;
+        t = T(barrier->x1, x1, x2);
+        if (t < 0 || t > 1)
             return FALSE;
-        if (dir & BarrierNegativeX && x1 == (barrier->x1 - 1))
+
+        /* Edge case: moving away from barrier. */
+        if (x2 > x1 && t == 0)
             return FALSE;
-        /* startpoint adjacent to barrier, moving towards -> block */
-        if (dir & BarrierPositiveX && x1 == (barrier->x1 - 1) && y1 >= barrier->y1 && y1 <= barrier->y2) {
-            *distance = 0;
-            return TRUE;
-        }
-        if (dir & BarrierNegativeX && x1 == barrier->x1 && y1 >= barrier->y1 && y1 <= barrier->y2) {
-            *distance = 0;
-            return TRUE;
-        }
+
+        y = F(t, y1, y2);
+        if (y < barrier->y1 || y > barrier->y2)
+            return FALSE;
+
+        *distance = sqrt((pow(y - y1, 2) + pow(barrier->x1 - x1, 2)));
+        return TRUE;
     }
     else {
-        /* handle immediate barrier adjacency, moving away */
-        if (dir & BarrierPositiveY && y1 == barrier->y1)
+        float t, x;
+        t = T(barrier->y1, y1, y2);
+        if (t < 0 || t > 1)
             return FALSE;
-        if (dir & BarrierNegativeY && y1 == (barrier->y1 - 1))
+
+        /* Edge case: moving away from barrier. */
+        if (y2 > y1 && t == 0)
             return FALSE;
-        /* startpoint adjacent to barrier, moving towards -> block */
-        if (dir & BarrierPositiveY && y1 == (barrier->y1 - 1) && x1 >= barrier->x1 && x1 <= barrier->x2) {
-            *distance = 0;
-            return TRUE;
-        }
-        if (dir & BarrierNegativeY && y1 == barrier->y1 && x1 >= barrier->x1 && x1 <= barrier->x2) {
-            *distance = 0;
-            return TRUE;
-        }
+
+        x = F(t, x1, x2);
+        if (x < barrier->x1 || x > barrier->x2)
+            return FALSE;
+
+        *distance = sqrt((pow(x - x1, 2) + pow(barrier->y1 - y1, 2)));
+        return TRUE;
     }
-
-    /* not an edge case, compute distance */
-    ua = 0;
-    ud = (barrier->y2 - barrier->y1) * (x2 - x1) - (barrier->x2 -
-                                                    barrier->x1) * (y2 - y1);
-    if (ud != 0) {
-        ua = ((barrier->x2 - barrier->x1) * (y1 - barrier->y1) -
-              (barrier->y2 - barrier->y1) * (x1 - barrier->x1)) / ud;
-        ub = ((x2 - x1) * (y1 - barrier->y1) -
-              (y2 - y1) * (x1 - barrier->x1)) / ud;
-        if (ua < 0 || ua > 1 || ub < 0 || ub > 1)
-            ua = 0;
-    }
-
-    if (ua > 0 && ua <= 1) {
-        double ix = barrier->x1 + ua * (barrier->x2 - barrier->x1);
-        double iy = barrier->y1 + ua * (barrier->y2 - barrier->y1);
-
-        *distance = sqrt(pow(x1 - ix, 2) + pow(y1 - iy, 2));
-        rc = TRUE;
-    }
-
-    return rc;
 }
 
 #define HIT_EDGE_EXTENTS 2
