@@ -140,6 +140,19 @@ barrier_is_blocking_direction(const struct PointerBarrier * barrier,
     return (barrier->directions & direction) != direction;
 }
 
+static BOOL
+inside_segment(int v, int v1, int v2)
+{
+    if (v1 < 0 && v2 < 0) /* line */
+        return TRUE;
+    else if (v1 < 0)      /* ray */
+        return v <= v2;
+    else if (v2 < 0)      /* ray */
+        return v >= v1;
+    else                  /* line segment */
+        return v >= v1 && v <= v2;
+}
+
 #define T(v, a, b) (((float)v) - (a)) / ((b) - (a))
 #define F(t, a, b) ((t) * ((a) - (b)) + (a))
 
@@ -171,7 +184,7 @@ barrier_is_blocking(const struct PointerBarrier * barrier,
             return FALSE;
 
         y = F(t, y1, y2);
-        if (y < barrier->y1 || y > barrier->y2)
+        if (!inside_segment(y, barrier->y1, barrier->y2))
             return FALSE;
 
         *distance = sqrt((pow(y - y1, 2) + pow(barrier->x1 - x1, 2)));
@@ -188,7 +201,7 @@ barrier_is_blocking(const struct PointerBarrier * barrier,
             return FALSE;
 
         x = F(t, x1, x2);
-        if (x < barrier->x1 || x > barrier->x2)
+        if (!inside_segment(x, barrier->x1, barrier->x2))
             return FALSE;
 
         *distance = sqrt((pow(x - x1, 2) + pow(barrier->y1 - y1, 2)));
@@ -428,6 +441,18 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
     *out_y = y;
 }
 
+static void
+sort_min_max(INT16 *a, INT16 *b)
+{
+    INT16 A, B;
+    if (*a < 0 || *b < 0)
+        return;
+    A = *a;
+    B = *b;
+    *a = min(A, B);
+    *b = max(A, B);
+}
+
 static int
 CreatePointerBarrierClient(ClientPtr client,
                            xXFixesCreatePointerBarrierReq * stuff,
@@ -491,10 +516,12 @@ CreatePointerBarrierClient(ClientPtr client,
     ret->release_event_id = 0;
     ret->hit = FALSE;
     ret->seen = FALSE;
-    ret->barrier.x1 = min(stuff->x1, stuff->x2);
-    ret->barrier.x2 = max(stuff->x1, stuff->x2);
-    ret->barrier.y1 = min(stuff->y1, stuff->y2);
-    ret->barrier.y2 = max(stuff->y1, stuff->y2);
+    ret->barrier.x1 = stuff->x1;
+    ret->barrier.x2 = stuff->x2;
+    ret->barrier.y1 = stuff->y1;
+    ret->barrier.y2 = stuff->y2;
+    sort_min_max(&ret->barrier.x1, &ret->barrier.x2);
+    sort_min_max(&ret->barrier.y1, &ret->barrier.y2);
     ret->barrier.directions = stuff->directions & 0x0f;
     if (barrier_is_horizontal(&ret->barrier))
         ret->barrier.directions &= ~(BarrierPositiveX | BarrierNegativeX);
@@ -585,6 +612,13 @@ XICreatePointerBarrier(ClientPtr client,
 
     /* no 0-sized barriers */
     if (barrier_is_horizontal(&b) && barrier_is_vertical(&b))
+        return BadValue;
+
+    /* no infinite barriers on the wrong axis */
+    if (barrier_is_horizontal(&b) && (b.y1 < 0 || b.y2 < 0))
+        return BadValue;
+
+    if (barrier_is_vertical(&b) && (b.x1 < 0 || b.x2 < 0))
         return BadValue;
 
     if ((err = CreatePointerBarrierClient(client, stuff, &barrier)))

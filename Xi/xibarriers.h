@@ -11,7 +11,7 @@
 extern _X_EXPORT RESTYPE PointerBarrierType;
 
 struct PointerBarrier {
-    CARD16 x1, x2, y1, y2;
+    INT16 x1, x2, y1, y2;
     CARD32 directions;
 };
 
