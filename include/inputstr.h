@@ -298,6 +298,15 @@ typedef struct _ValuatorClassRec {
     int v_scroll_axis;          /* vert smooth-scrolling axis */
 } ValuatorClassRec;
 
+typedef struct _TouchListener {
+    XID listener;           /* grabs/event selection IDs receiving
+                             * events for this touch */
+    enum TouchListenerType type;
+    enum TouchListenerState state;
+    enum InputLevel level;  /* matters only for emulating touches */
+    WindowPtr window;
+} TouchListener;
+
 typedef struct _TouchPointInfo {
     uint32_t client_id;         /* touch ID as seen in client events */
     int sourceid;               /* Source device's ID for this touchpoint */
@@ -306,14 +315,7 @@ typedef struct _TouchPointInfo {
                                  * but still owned by a grab */
     SpriteRec sprite;           /* window trace for delivery */
     ValuatorMask *valuators;    /* last recorded axis values */
-    struct _TouchListener {
-        XID listener;           /* grabs/event selection IDs receiving
-                                 * events for this touch */
-        enum TouchListenerType type;
-        enum TouchListenerState state;
-        enum InputLevel level;  /* matters only for emulating touches */
-        WindowPtr window;
-    } *listeners;
+    TouchListener *listeners;   /* set of listeners */
     int num_listeners;
     int num_grabs;              /* number of open grabs on this touch
                                  * which have not accepted or rejected */
