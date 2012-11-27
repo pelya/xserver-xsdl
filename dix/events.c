@@ -1438,6 +1438,7 @@ UpdateTouchesForGrab(DeviceIntPtr mouse)
                 ti->listeners[0].type = LISTENER_POINTER_GRAB;
             else
                 ti->listeners[0].type = LISTENER_GRAB;
+            ti->listeners[0].grab = grab;
         }
     }
 }

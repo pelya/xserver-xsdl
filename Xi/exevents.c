@@ -1187,7 +1187,6 @@ TouchRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti, XID resource,
               TouchOwnershipEvent *ev)
 {
     Bool was_owner = (resource == ti->listeners[0].listener);
-    void *grab;
     int i;
 
     /* Send a TouchEnd event to the resource being removed, but only if they
@@ -1202,11 +1201,7 @@ TouchRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti, XID resource,
 
     /* Remove the resource from the listener list, updating
      * ti->num_listeners, as well as ti->num_grabs if it was a grab. */
-    if (TouchRemoveListener(ti, resource)) {
-        if (dixLookupResourceByType(&grab, resource, RT_PASSIVEGRAB,
-                                    serverClient, DixGetAttrAccess) == Success)
-            ti->num_grabs--;
-    }
+    TouchRemoveListener(ti, resource);
 
     /* If the current owner was removed and there are further listeners, deliver
      * the TouchOwnership or TouchBegin event to the new owner. */
@@ -1300,21 +1295,10 @@ RetrieveTouchDeliveryData(DeviceIntPtr dev, TouchPointInfoPtr ti,
 
     if (listener->type == LISTENER_GRAB ||
         listener->type == LISTENER_POINTER_GRAB) {
-        rc = dixLookupResourceByType((pointer *) grab, listener->listener,
-                                     RT_PASSIVEGRAB,
-                                     serverClient, DixSendAccess);
-        if (rc != Success) {
-            /* the grab doesn't exist but we have a grabbing listener - this
-             * is an implicit/active grab */
-            rc = dixLookupClient(client, listener->listener, serverClient,
-                                 DixSendAccess);
-            if (rc != Success)
-                return FALSE;
 
-            *grab = dev->deviceGrab.grab;
-            if (!*grab)
-                return FALSE;
-        }
+        *grab = listener->grab;
+
+        BUG_RETURN_VAL(!*grab, FALSE);
 
         *client = rClient(*grab);
         *win = (*grab)->window;
@@ -1467,6 +1451,7 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
              */
             l = &ti->listeners[ti->num_listeners - 1];
             l->listener = devgrab->resource;
+            l->grab = devgrab;
 
             if (devgrab->grabtype != XI2 || devgrab->type != XI_TouchBegin)
                 l->type = LISTENER_POINTER_GRAB;

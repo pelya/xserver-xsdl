@@ -567,7 +567,7 @@ extern void TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev,
 extern Bool TouchResourceIsOwner(TouchPointInfoPtr ti, XID resource);
 extern void TouchAddListener(TouchPointInfoPtr ti, XID resource,
                              enum InputLevel level, enum TouchListenerType type,
-                             enum TouchListenerState state, WindowPtr window);
+                             enum TouchListenerState state, WindowPtr window, GrabPtr grab);
 extern Bool TouchRemoveListener(TouchPointInfoPtr ti, XID resource);
 extern void TouchSetupListeners(DeviceIntPtr dev, TouchPointInfoPtr ti,
                                 InternalEvent *ev);

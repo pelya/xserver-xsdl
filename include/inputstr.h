@@ -305,6 +305,7 @@ typedef struct _TouchListener {
     enum TouchListenerState state;
     enum InputLevel level;  /* matters only for emulating touches */
     WindowPtr window;
+    GrabPtr grab;
 } TouchListener;
 
 typedef struct _TouchPointInfo {
