@@ -335,7 +335,8 @@ void
 input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
                        int current_x, int current_y,
                        int dest_x, int dest_y,
-                       int *out_x, int *out_y)
+                       int *out_x, int *out_y,
+                       int *nevents, InternalEvent* events)
 {
     /* Clamped coordinates here refer to screen edge clamping. */
     BarrierScreenPtr cs = GetBarrierScreen(screen);
@@ -356,6 +357,10 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         .dy = dest_y - current_y,
         .root = screen->root->drawable.id,
     };
+    InternalEvent *barrier_events = events;
+
+    if (nevents)
+        *nevents = 0;
 
     if (xorg_list_is_empty(&cs->barriers) || IsFloating(dev))
         goto out;
@@ -402,7 +407,9 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         ev.window = c->window->drawable.id;
         c->last_timestamp = ms;
 
-        mieqEnqueue(dev, (InternalEvent *) &ev);
+        barrier_events->barrier_event = ev;
+        barrier_events++;
+        *nevents += 1;
     }
 
     xorg_list_for_each_entry(c, &cs->barriers, entry) {
@@ -429,7 +436,9 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         ev.window = c->window->drawable.id;
         c->last_timestamp = ms;
 
-        mieqEnqueue(dev, (InternalEvent *) &ev);
+        barrier_events->barrier_event = ev;
+        barrier_events++;
+        *nevents += 1;
 
         /* If we've left the hit box, this is the
          * start of a new event ID. */

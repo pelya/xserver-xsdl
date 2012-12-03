@@ -565,7 +565,8 @@ miPointerMoveNoEvent(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
  */
 ScreenPtr
 miPointerSetPosition(DeviceIntPtr pDev, int mode, double *screenx,
-                     double *screeny)
+                     double *screeny,
+                     int *nevents, InternalEvent* events)
 {
     miPointerScreenPtr pScreenPriv;
     ScreenPtr pScreen;
@@ -598,7 +599,8 @@ miPointerSetPosition(DeviceIntPtr pDev, int mode, double *screenx,
 
         input_constrain_cursor(pDev, pScreen,
                                current_x, current_y, x, y,
-                               &constrained_x, &constrained_y);
+                               &constrained_x, &constrained_y,
+                               nevents, events);
 
         x = constrained_x;
         y = constrained_y;
