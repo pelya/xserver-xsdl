@@ -130,7 +130,7 @@ struct _DeviceEvent {
  */
 struct _TouchOwnershipEvent {
     unsigned char header; /**< Always ET_Internal */
-    enum EventType type;  /**< One of EventType */
+    enum EventType type;  /**< ET_TouchOwnership */
     int length;           /**< Length in bytes */
     Time time;            /**< Time in ms */
     int deviceid;         /**< Device to post this event for */
