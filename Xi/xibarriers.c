@@ -534,6 +534,9 @@ XIDestroyPointerBarrier(ClientPtr client,
         return err;
     }
 
+    if (CLIENT_ID(stuff->barrier) != client->index)
+        return BadAccess;
+
     FreeResource(stuff->barrier, RT_NONE);
     return Success;
 }
