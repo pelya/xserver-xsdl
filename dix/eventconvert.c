@@ -161,6 +161,8 @@ EventToCore(InternalEvent *event, xEvent **core_out, int *count_out)
     case ET_TouchUpdate:
     case ET_TouchEnd:
     case ET_TouchOwnership:
+    case ET_BarrierHit:
+    case ET_BarrierLeave:
         ret = BadMatch;
         break;
     default:
@@ -217,6 +219,8 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
     case ET_TouchUpdate:
     case ET_TouchEnd:
     case ET_TouchOwnership:
+    case ET_BarrierHit:
+    case ET_BarrierLeave:
         *count = 0;
         *xi = NULL;
         return BadMatch;
