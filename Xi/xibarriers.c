@@ -417,6 +417,7 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
     }
 
     xorg_list_for_each_entry(c, &cs->barriers, entry) {
+        int flags = 0;
         c->seen = FALSE;
         if (!c->hit)
             continue;
@@ -425,6 +426,22 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
             continue;
 
         c->hit = FALSE;
+
+        ev.type = ET_BarrierLeave;
+
+        if (c->barrier_event_id == c->release_event_id)
+            flags |= XIBarrierPointerReleased;
+
+        ev.flags = flags;
+        ev.event_id = c->barrier_event_id;
+        ev.barrierid = c->id;
+
+        ev.dt = ms - c->last_timestamp;
+        ev.window = c->window->drawable.id;
+        c->last_timestamp = ms;
+
+        mieqEnqueue(dev, (InternalEvent *) &ev);
+
         /* If we've left the hit box, this is the
          * start of a new event ID. */
         c->barrier_event_id++;
