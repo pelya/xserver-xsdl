@@ -98,7 +98,7 @@ static void miPointerDeviceCleanup(DeviceIntPtr pDev, ScreenPtr pScreen);
 static void miPointerMoveNoEvent(DeviceIntPtr pDev, ScreenPtr pScreen, int x,
                                  int y);
 
-static InternalEvent *events;   /* for WarpPointer MotionNotifies */
+static InternalEvent *mipointermove_events;   /* for WarpPointer MotionNotifies */
 
 Bool
 miPointerInitialize(ScreenPtr pScreen,
@@ -143,7 +143,7 @@ miPointerInitialize(ScreenPtr pScreen,
     pScreen->DeviceCursorInitialize = miPointerDeviceInitialize;
     pScreen->DeviceCursorCleanup = miPointerDeviceCleanup;
 
-    events = NULL;
+    mipointermove_events = NULL;
     return TRUE;
 }
 
@@ -160,8 +160,8 @@ miPointerCloseScreen(ScreenPtr pScreen)
 
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     free((pointer) pScreenPriv);
-    FreeEventList(events, GetMaximumEventsNum());
-    events = NULL;
+    FreeEventList(mipointermove_events, GetMaximumEventsNum());
+    mipointermove_events = NULL;
     return (*pScreen->CloseScreen) (pScreen);
 }
 
@@ -710,17 +710,17 @@ miPointerMove(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     valuators[0] = x;
     valuators[1] = y;
 
-    if (!events) {
-        events = InitEventList(GetMaximumEventsNum());
+    if (!mipointermove_events) {
+        mipointermove_events = InitEventList(GetMaximumEventsNum());
 
-        if (!events) {
+        if (!mipointermove_events) {
             FatalError("Could not allocate event store.\n");
             return;
         }
     }
 
     valuator_mask_set_range(&mask, 0, 2, valuators);
-    nevents = GetPointerEvents(events, pDev, MotionNotify, 0,
+    nevents = GetPointerEvents(mipointermove_events, pDev, MotionNotify, 0,
                                POINTER_SCREEN | POINTER_ABSOLUTE |
                                POINTER_NORAW, &mask);
 
@@ -729,7 +729,7 @@ miPointerMove(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     darwinEvents_lock();
 #endif
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(pDev, &events[i]);
+        mieqEnqueue(pDev, &mipointermove_events[i]);
 #ifdef XQUARTZ
     darwinEvents_unlock();
 #endif
