@@ -1647,6 +1647,7 @@ ProcessBarrierEvent(InternalEvent *e, DeviceIntPtr dev)
     BarrierEvent *be = &e->barrier_event;
     xEvent *ev;
     int rc;
+    GrabPtr grab = dev->deviceGrab.grab;
 
     if (!IsMaster(dev))
         return;
@@ -1660,10 +1661,21 @@ ProcessBarrierEvent(InternalEvent *e, DeviceIntPtr dev)
         return;
     }
 
-    filter = GetEventFilter(dev, ev);
+    /* A client has a grab, deliver to this client if the grab_window is the
+       barrier window.
 
-    DeliverEventsToWindow(dev, pWin, ev, 1,
-                          filter, NullGrab);
+       Otherwise, deliver normally to the client.
+     */
+    if (grab &&
+        CLIENT_ID(be->barrierid) == CLIENT_ID(grab->resource) &&
+        grab->window->drawable.id == be->window) {
+        DeliverGrabbedEvent(e, dev, FALSE);
+    } else {
+        filter = GetEventFilter(dev, ev);
+
+        DeliverEventsToWindow(dev, pWin, ev, 1,
+                              filter, NullGrab);
+    }
     free(ev);
 }
 
