@@ -1655,6 +1655,9 @@ ProcessBarrierEvent(InternalEvent *e, DeviceIntPtr dev)
     if (dixLookupWindow(&pWin, be->window, serverClient, DixReadAccess) != Success)
         return;
 
+    if (grab)
+        be->flags |= XIBarrierDeviceIsGrabbed;
+
     rc = EventToXI2(e, &ev);
     if (rc != Success) {
         ErrorF("[Xi] event conversion from %s failed with code %d\n", __func__, rc);
