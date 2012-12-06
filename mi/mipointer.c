@@ -573,6 +573,8 @@ miPointerSetPosition(DeviceIntPtr pDev, int mode, double *screenx,
     ScreenPtr newScreen;
     int x, y;
     Bool switch_screen = FALSE;
+    Bool should_constrain_barriers = FALSE;
+    int i;
 
     miPointerPtr pPointer;
 
@@ -589,7 +591,9 @@ miPointerSetPosition(DeviceIntPtr pDev, int mode, double *screenx,
     x -= pScreen->x;
     y -= pScreen->y;
 
-    if (mode == Relative) {
+    should_constrain_barriers = (mode == Relative);
+
+    if (should_constrain_barriers) {
         /* coordinates after clamped to a barrier */
         int constrained_x, constrained_y;
         int current_x, current_y; /* current position in per-screen coord */
@@ -636,6 +640,18 @@ miPointerSetPosition(DeviceIntPtr pDev, int mode, double *screenx,
 
     if (pPointer->x != x || pPointer->y != y || pPointer->pScreen != pScreen)
         miPointerMoveNoEvent(pDev, pScreen, x, y);
+
+    /* check if we generated any barrier events and if so, update root x/y
+     * to the fully constrained coords */
+    if (should_constrain_barriers) {
+        for (i = 0; i < *nevents; i++) {
+            if (events[i].any.type == ET_BarrierHit ||
+                events[i].any.type == ET_BarrierLeave) {
+                events[i].barrier_event.root_x = x;
+                events[i].barrier_event.root_y = y;
+            }
+        }
+    }
 
     /* Convert to desktop coordinates again */
     x += pScreen->x;

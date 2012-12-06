@@ -407,6 +407,8 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         ev.window = c->window->drawable.id;
         c->last_timestamp = ms;
 
+        /* root x/y is filled in later */
+
         barrier_events->barrier_event = ev;
         barrier_events++;
         *nevents += 1;
@@ -435,6 +437,8 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         ev.dt = ms - c->last_timestamp;
         ev.window = c->window->drawable.id;
         c->last_timestamp = ms;
+
+        /* root x/y is filled in later */
 
         barrier_events->barrier_event = ev;
         barrier_events++;
