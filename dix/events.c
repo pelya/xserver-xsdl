@@ -2436,6 +2436,8 @@ FixUpEventFromWindow(SpritePtr pSprite,
         case XI_DeviceChanged:
         case XI_HierarchyChanged:
         case XI_PropertyEvent:
+        case XI_BarrierHit:
+        case XI_BarrierLeave:
             return;
         default:
             break;
