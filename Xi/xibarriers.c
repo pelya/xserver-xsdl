@@ -437,22 +437,10 @@ CreatePointerBarrierClient(ClientPtr client,
 static int
 BarrierFreeBarrier(void *data, XID id)
 {
-    struct PointerBarrierClient *b = NULL, *barrier;
-    ScreenPtr screen;
-    BarrierScreenPtr cs;
+    struct PointerBarrierClient *barrier;
 
     barrier = container_of(data, struct PointerBarrierClient, barrier);
-
-    screen = barrier->screen;
-    cs = GetBarrierScreen(screen);
-
-    /* find and unlink from the screen private */
-    xorg_list_for_each_entry(b, &cs->barriers, entry) {
-        if (b == barrier) {
-            xorg_list_del(&b->entry);
-            break;
-        }
-    }
+    xorg_list_del(&barrier->entry);
 
     free(barrier);
     return Success;
