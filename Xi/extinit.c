@@ -845,30 +845,27 @@ STouchOwnershipEvent(xXITouchOwnershipEvent * from, xXITouchOwnershipEvent * to)
 static void
 SBarrierEvent(xXIBarrierEvent * from,
               xXIBarrierEvent * to) {
-    to->type = from->type;
 
-    cpswaps(from->sequenceNumber, to->sequenceNumber);
-    cpswapl(from->length, to->length);
-    cpswaps(from->evtype, to->evtype);
-    cpswapl(from->time, to->time);
-    cpswaps(from->deviceid, to->deviceid);
-    cpswaps(from->sourceid, to->sourceid);
-    cpswapl(from->event, to->event);
-    cpswapl(from->root, to->root);
-    cpswapl(from->root_x, to->root_x);
-    cpswapl(from->root_y, to->root_y);
+    *to = *from;
 
-#define SWAP_FP3232(x, y)                       \
-    do {                                        \
-        cpswapl((x).integral, (y).integral);    \
-        cpswapl((x).frac, (y).frac);            \
-    } while(0)
+    swaps(&from->sequenceNumber);
+    swapl(&from->length);
+    swaps(&from->evtype);
+    swapl(&from->time);
+    swaps(&from->deviceid);
+    swaps(&from->sourceid);
+    swapl(&from->event);
+    swapl(&from->root);
+    swapl(&from->root_x);
+    swapl(&from->root_y);
 
-    SWAP_FP3232(from->dx, to->dx);
-    SWAP_FP3232(from->dy, to->dy);
-    cpswapl(from->dtime, to->dtime);
-    cpswapl(from->barrier, to->barrier);
-    cpswapl(from->eventid, to->eventid);
+    swapl(&from->dx.integral);
+    swapl(&from->dx.frac);
+    swapl(&from->dy.integral);
+    swapl(&from->dy.frac);
+    swapl(&from->dtime);
+    swapl(&from->barrier);
+    swapl(&from->eventid);
 }
 
 /** Event swapping function for XI2 events. */
