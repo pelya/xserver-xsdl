@@ -538,12 +538,12 @@ CreatePointerBarrierClient(ClientPtr client,
 static int
 BarrierFreeBarrier(void *data, XID id)
 {
-    struct PointerBarrierClient *barrier;
+    struct PointerBarrierClient *c;
 
-    barrier = container_of(data, struct PointerBarrierClient, barrier);
-    xorg_list_del(&barrier->entry);
+    c = container_of(data, struct PointerBarrierClient, barrier);
+    xorg_list_del(&c->entry);
 
-    free(barrier);
+    free(c);
     return Success;
 }
 
