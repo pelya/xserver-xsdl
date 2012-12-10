@@ -539,8 +539,52 @@ static int
 BarrierFreeBarrier(void *data, XID id)
 {
     struct PointerBarrierClient *c;
+    Time ms = GetTimeInMillis();
 
     c = container_of(data, struct PointerBarrierClient, barrier);
+
+    /* FIXME: this is really broken for multidevice */
+    if (c->hit) {
+        DeviceIntPtr dev = NULL;
+        ScreenPtr screen = c->screen;
+        BarrierEvent ev = {
+            .header = ET_Internal,
+            .type = ET_BarrierLeave,
+            .length = sizeof (BarrierEvent),
+            .time = ms,
+            /* .deviceid */
+            .sourceid = 0,
+            .barrierid = c->id,
+            .window = c->window->drawable.id,
+            .root = screen->root->drawable.id,
+            .dx = 0,
+            .dy = 0,
+            /* .root_x */
+            /* .root_y */
+            .dt = ms - c->last_timestamp,
+            .event_id = c->barrier_event_id,
+            .flags = XIBarrierPointerReleased,
+        };
+
+        for (dev = inputInfo.devices; dev; dev = dev->next) {
+            int root_x, root_y;
+
+            if (dev->type != MASTER_POINTER)
+                continue;
+
+            if (!barrier_blocks_device(c, dev))
+                continue;
+
+            ev.deviceid = dev->id;
+
+            GetSpritePosition(dev, &root_x, &root_y);
+            ev.root_x = root_x;
+            ev.root_y = root_y;
+
+            mieqEnqueue(dev, (InternalEvent *) &ev);
+        }
+    }
+
     xorg_list_del(&c->entry);
 
     free(c);
