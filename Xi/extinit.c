@@ -847,7 +847,9 @@ SBarrierEvent(xXIBarrierEvent * from,
               xXIBarrierEvent * to) {
     to->type = from->type;
 
+    cpswaps(from->sequenceNumber, to->sequenceNumber);
     cpswapl(from->length, to->length);
+    cpswaps(from->evtype, to->evtype);
     cpswapl(from->time, to->time);
     cpswaps(from->deviceid, to->deviceid);
     cpswaps(from->sourceid, to->sourceid);
