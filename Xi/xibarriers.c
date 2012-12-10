@@ -311,43 +311,44 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
     BarrierScreenPtr cs = GetBarrierScreen(screen);
     int x = dest_x,
         y = dest_y;
+    int dir;
+    int i;
+    struct PointerBarrier *nearest = NULL;
+    PointerBarrierClientPtr c;
 
-    if (!xorg_list_is_empty(&cs->barriers) && !IsFloating(dev)) {
-        int dir;
-        int i;
-        struct PointerBarrier *nearest = NULL;
-        PointerBarrierClientPtr c;
+    if (xorg_list_is_empty(&cs->barriers) || IsFloating(dev))
+        goto out;
 
-        /* How this works:
-         * Given the origin and the movement vector, get the nearest barrier
-         * to the origin that is blocking the movement.
-         * Clamp to that barrier.
-         * Then, check from the clamped intersection to the original
-         * destination, again finding the nearest barrier and clamping.
-         */
-        dir = barrier_get_direction(current_x, current_y, x, y);
+    /* How this works:
+     * Given the origin and the movement vector, get the nearest barrier
+     * to the origin that is blocking the movement.
+     * Clamp to that barrier.
+     * Then, check from the clamped intersection to the original
+     * destination, again finding the nearest barrier and clamping.
+     */
+    dir = barrier_get_direction(current_x, current_y, x, y);
 
 #define MAX_BARRIERS 2
-        for (i = 0; i < MAX_BARRIERS; i++) {
-            c = barrier_find_nearest(cs, dev, dir, current_x, current_y, x, y);
-            if (!c)
-                break;
+    for (i = 0; i < MAX_BARRIERS; i++) {
+        c = barrier_find_nearest(cs, dev, dir, current_x, current_y, x, y);
+        if (!c)
+            break;
 
-            nearest = &c->barrier;
+        nearest = &c->barrier;
 
-            barrier_clamp_to_barrier(nearest, dir, &x, &y);
+        barrier_clamp_to_barrier(nearest, dir, &x, &y);
 
-            if (barrier_is_vertical(nearest)) {
-                dir &= ~(BarrierNegativeX | BarrierPositiveX);
-                current_x = x;
-            }
-            else if (barrier_is_horizontal(nearest)) {
-                dir &= ~(BarrierNegativeY | BarrierPositiveY);
-                current_y = y;
-            }
+        if (barrier_is_vertical(nearest)) {
+            dir &= ~(BarrierNegativeX | BarrierPositiveX);
+            current_x = x;
+        }
+        else if (barrier_is_horizontal(nearest)) {
+            dir &= ~(BarrierNegativeY | BarrierPositiveY);
+            current_y = y;
         }
     }
 
+ out:
     *out_x = x;
     *out_y = y;
 }
