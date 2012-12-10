@@ -237,7 +237,7 @@ barrier_blocks_device(struct PointerBarrierClient *client,
 }
 
 /**
- * Find the nearest barrier that is blocking movement from x1/y1 to x2/y2.
+ * Find the nearest barrier client that is blocking movement from x1/y1 to x2/y2.
  *
  * @param dir Only barriers blocking movement in direction dir are checked
  * @param x1 X start coordinate of movement vector
@@ -246,13 +246,12 @@ barrier_blocks_device(struct PointerBarrierClient *client,
  * @param y2 Y end coordinate of movement vector
  * @return The barrier nearest to the movement origin that blocks this movement.
  */
-static struct PointerBarrier *
+static struct PointerBarrierClient *
 barrier_find_nearest(BarrierScreenPtr cs, DeviceIntPtr dev,
                      int dir,
                      int x1, int y1, int x2, int y2)
 {
-    struct PointerBarrierClient *c;
-    struct PointerBarrier *nearest = NULL;
+    struct PointerBarrierClient *c, *nearest = NULL;
     double min_distance = INT_MAX;      /* can't get higher than that in X anyway */
 
     xorg_list_for_each_entry(c, &cs->barriers, entry) {
@@ -268,7 +267,7 @@ barrier_find_nearest(BarrierScreenPtr cs, DeviceIntPtr dev,
         if (barrier_is_blocking(b, x1, y1, x2, y2, &distance)) {
             if (min_distance > distance) {
                 min_distance = distance;
-                nearest = b;
+                nearest = c;
             }
         }
     }
@@ -317,6 +316,7 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         int dir;
         int i;
         struct PointerBarrier *nearest = NULL;
+        PointerBarrierClientPtr c;
 
         /* How this works:
          * Given the origin and the movement vector, get the nearest barrier
@@ -329,9 +329,11 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
 
 #define MAX_BARRIERS 2
         for (i = 0; i < MAX_BARRIERS; i++) {
-            nearest = barrier_find_nearest(cs, dev, dir, current_x, current_y, x, y);
-            if (!nearest)
+            c = barrier_find_nearest(cs, dev, dir, current_x, current_y, x, y);
+            if (!c)
                 break;
+
+            nearest = &c->barrier;
 
             barrier_clamp_to_barrier(nearest, dir, &x, &y);
 
