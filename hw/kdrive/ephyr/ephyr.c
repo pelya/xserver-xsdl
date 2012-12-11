@@ -56,6 +56,7 @@ typedef struct _EphyrInputPrivate {
 } EphyrKbdPrivate, EphyrPointerPrivate;
 
 Bool EphyrWantGrayScale = 0;
+Bool EphyrWantResize = 0;
 
 Bool
 ephyrInitialize(KdCardInfo * card, EphyrPriv * priv)

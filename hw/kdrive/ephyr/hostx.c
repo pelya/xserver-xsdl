@@ -117,6 +117,8 @@ extern EphyrKeySyms ephyrKeySyms;
 
 extern int monitorResolution;
 
+extern Bool EphyrWantResize;
+
 char *ephyrResName = NULL;
 int ephyrResNameFromCmd = 0;
 char *ephyrTitle = NULL;
@@ -697,7 +699,7 @@ hostx_screen_init(EphyrScreenInfo screen,
     XResizeWindow(HostX.dpy, host_screen->win, width, height);
 
     /* Ask the WM to keep our size static */
-    if (host_screen->win_pre_existing == None) {
+    if (host_screen->win_pre_existing == None && !EphyrWantResize) {
         size_hints = XAllocSizeHints();
         size_hints->max_width = size_hints->min_width = width;
         size_hints->max_height = size_hints->min_height = height;
@@ -1012,19 +1014,27 @@ hostx_get_event(EphyrHostXEvent * ev)
 
         case ConfigureNotify:
         {
-            struct EphyrHostScreen *host_screen =
-                host_screen_from_window(xev.xconfigure.window);
+            struct EphyrHostScreen *host_screen;
 
-            if (host_screen && host_screen->win_pre_existing != None) {
-                ev->type = EPHYR_EV_CONFIGURE;
-                ev->data.configure.width = xev.xconfigure.width;
-                ev->data.configure.height = xev.xconfigure.height;
-                ev->data.configure.window = xev.xconfigure.window;
-                ev->data.configure.screen = host_screen->mynum;
-                return 1;
+            /* event compression as for Expose events, cause
+             * we don't want to resize the framebuffer for
+             * every single change */
+            while (XCheckTypedWindowEvent(HostX.dpy, xev.xconfigure.window,
+                                          ConfigureNotify, &xev));
+            host_screen = host_screen_from_window(xev.xconfigure.window);
+
+            if (!host_screen ||
+                (host_screen->win_pre_existing == None && !EphyrWantResize)) {
+                return 0;
             }
 
-            return 0;
+            ev->type = EPHYR_EV_CONFIGURE;
+            ev->data.configure.width = xev.xconfigure.width;
+            ev->data.configure.height = xev.xconfigure.height;
+            ev->data.configure.window = xev.xconfigure.window;
+            ev->data.configure.screen = host_screen->mynum;
+
+            return 1;
         }
         default:
             break;
