@@ -42,4 +42,7 @@ XIBarrierInit(void);
 int SProcXIBarrierReleasePointer(ClientPtr client);
 int ProcXIBarrierReleasePointer(ClientPtr client);
 
+void XIBarrierNewMasterDevice(ClientPtr client, int deviceid);
+void XIBarrierRemoveMasterDevice(ClientPtr client, int deviceid);
+
 #endif /* _XIBARRIERS_H_ */

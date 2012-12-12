@@ -67,19 +67,28 @@ static DevPrivateKeyRec BarrierScreenPrivateKeyRec;
 
 typedef struct PointerBarrierClient *PointerBarrierClientPtr;
 
+struct PointerBarrierDevice {
+    struct xorg_list entry;
+    int deviceid;
+    Time last_timestamp;
+    int barrier_event_id;
+    int release_event_id;
+    Bool hit;
+    Bool seen;
+};
+
 struct PointerBarrierClient {
     XID id;
     ScreenPtr screen;
     WindowPtr window;
     struct PointerBarrier barrier;
     struct xorg_list entry;
+    /* num_devices/device_ids are devices the barrier applies to */
     int num_devices;
     int *device_ids; /* num_devices */
-    Time last_timestamp;
-    int barrier_event_id;
-    int release_event_id;
-    Bool hit;
-    Bool seen;
+
+    /* per_device keeps track of devices actually blocked by barriers */
+    struct xorg_list per_device;
 };
 
 typedef struct _BarrierScreen {
@@ -89,6 +98,47 @@ typedef struct _BarrierScreen {
 #define GetBarrierScreen(s) ((BarrierScreenPtr)dixLookupPrivate(&(s)->devPrivates, BarrierScreenPrivateKey))
 #define GetBarrierScreenIfSet(s) GetBarrierScreen(s)
 #define SetBarrierScreen(s,p) dixSetPrivate(&(s)->devPrivates, BarrierScreenPrivateKey, p)
+
+static struct PointerBarrierDevice *AllocBarrierDevice(void)
+{
+    struct PointerBarrierDevice *pbd = NULL;
+
+    pbd = malloc(sizeof(struct PointerBarrierDevice));
+    if (!pbd)
+        return NULL;
+
+    pbd->deviceid = -1; /* must be set by caller */
+    pbd->barrier_event_id = 1;
+    pbd->release_event_id = 0;
+    pbd->hit = FALSE;
+    pbd->seen = FALSE;
+    xorg_list_init(&pbd->entry);
+
+    return pbd;
+}
+
+static void FreePointerBarrierClient(struct PointerBarrierClient *c)
+{
+    struct PointerBarrierDevice *pbd = NULL, *tmp = NULL;
+
+    xorg_list_for_each_entry_safe(pbd, tmp, &c->per_device, entry) {
+        free(pbd);
+    }
+    free(c);
+}
+
+static struct PointerBarrierDevice *GetBarrierDevice(struct PointerBarrierClient *c, int deviceid)
+{
+    struct PointerBarrierDevice *pbd = NULL;
+
+    xorg_list_for_each_entry(pbd, &c->per_device, entry) {
+        if (pbd->deviceid == deviceid)
+            break;
+    }
+
+    BUG_WARN(!pbd);
+    return pbd;
+}
 
 static BOOL
 barrier_is_horizontal(const struct PointerBarrier *barrier)
@@ -283,9 +333,11 @@ barrier_find_nearest(BarrierScreenPtr cs, DeviceIntPtr dev,
 
     xorg_list_for_each_entry(c, &cs->barriers, entry) {
         struct PointerBarrier *b = &c->barrier;
+        struct PointerBarrierDevice *pbd;
         double distance;
 
-        if (c->seen)
+        pbd = GetBarrierDevice(c, dev->id);
+        if (pbd->seen)
             continue;
 
         if (!barrier_is_blocking_direction(b, dir))
@@ -358,12 +410,20 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         .root = screen->root->drawable.id,
     };
     InternalEvent *barrier_events = events;
+    DeviceIntPtr master;
 
     if (nevents)
         *nevents = 0;
 
     if (xorg_list_is_empty(&cs->barriers) || IsFloating(dev))
         goto out;
+
+    /**
+     * This function is only called for slave devices, but pointer-barriers
+     * are for master-devices only. Flip the device to the master here,
+     * continue with that.
+     */
+    master = GetMaster(dev, MASTER_POINTER);
 
     /* How this works:
      * Given the origin and the movement vector, get the nearest barrier
@@ -375,16 +435,19 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
     dir = barrier_get_direction(current_x, current_y, x, y);
 
     while (dir != 0) {
-        c = barrier_find_nearest(cs, dev, dir, current_x, current_y, x, y);
+        struct PointerBarrierDevice *pbd;
+
+        c = barrier_find_nearest(cs, master, dir, current_x, current_y, x, y);
         if (!c)
             break;
 
         nearest = &c->barrier;
 
-        c->seen = TRUE;
-        c->hit = TRUE;
+        pbd = GetBarrierDevice(c, master->id);
+        pbd->seen = TRUE;
+        pbd->hit = TRUE;
 
-        if (c->barrier_event_id == c->release_event_id)
+        if (pbd->barrier_event_id == pbd->release_event_id)
             continue;
 
         ev.type = ET_BarrierHit;
@@ -400,12 +463,12 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         }
 
         ev.flags = 0;
-        ev.event_id = c->barrier_event_id;
+        ev.event_id = pbd->barrier_event_id;
         ev.barrierid = c->id;
 
-        ev.dt = ms - c->last_timestamp;
+        ev.dt = ms - pbd->last_timestamp;
         ev.window = c->window->drawable.id;
-        c->last_timestamp = ms;
+        pbd->last_timestamp = ms;
 
         /* root x/y is filled in later */
 
@@ -415,28 +478,31 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
     }
 
     xorg_list_for_each_entry(c, &cs->barriers, entry) {
+        struct PointerBarrierDevice *pbd;
         int flags = 0;
-        c->seen = FALSE;
-        if (!c->hit)
+
+        pbd = GetBarrierDevice(c, master->id);
+        pbd->seen = FALSE;
+        if (!pbd->hit)
             continue;
 
         if (barrier_inside_hit_box(&c->barrier, x, y))
             continue;
 
-        c->hit = FALSE;
+        pbd->hit = FALSE;
 
         ev.type = ET_BarrierLeave;
 
-        if (c->barrier_event_id == c->release_event_id)
+        if (pbd->barrier_event_id == pbd->release_event_id)
             flags |= XIBarrierPointerReleased;
 
         ev.flags = flags;
-        ev.event_id = c->barrier_event_id;
+        ev.event_id = pbd->barrier_event_id;
         ev.barrierid = c->id;
 
-        ev.dt = ms - c->last_timestamp;
+        ev.dt = ms - pbd->last_timestamp;
         ev.window = c->window->drawable.id;
-        c->last_timestamp = ms;
+        pbd->last_timestamp = ms;
 
         /* root x/y is filled in later */
 
@@ -446,7 +512,7 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
 
         /* If we've left the hit box, this is the
          * start of a new event ID. */
-        c->barrier_event_id++;
+        pbd->barrier_event_id++;
     }
 
  out:
@@ -479,6 +545,7 @@ CreatePointerBarrierClient(ClientPtr client,
     int i;
     struct PointerBarrierClient *ret;
     CARD16 *in_devices;
+    DeviceIntPtr dev;
 
     size = sizeof(*ret) + sizeof(DeviceIntPtr) * stuff->num_devices;
     ret = malloc(size);
@@ -486,6 +553,8 @@ CreatePointerBarrierClient(ClientPtr client,
     if (!ret) {
         return BadAlloc;
     }
+
+    xorg_list_init(&ret->per_device);
 
     err = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
     if (err != Success) {
@@ -524,11 +593,25 @@ CreatePointerBarrierClient(ClientPtr client,
         ret->device_ids[i] = device_id;
     }
 
+    /* Alloc one per master pointer, they're the ones that can be blocked */
+    xorg_list_init(&ret->per_device);
+    nt_list_for_each_entry(dev, inputInfo.devices, next) {
+        struct PointerBarrierDevice *pbd;
+
+        if (dev->type != MASTER_POINTER)
+            continue;
+
+        pbd = AllocBarrierDevice();
+        if (!pbd) {
+            err = BadAlloc;
+            goto error;
+        }
+        pbd->deviceid = dev->id;
+
+        xorg_list_add(&pbd->entry, &ret->per_device);
+    }
+
     ret->id = stuff->barrier;
-    ret->barrier_event_id = 1;
-    ret->release_event_id = 0;
-    ret->hit = FALSE;
-    ret->seen = FALSE;
     ret->barrier.x1 = stuff->x1;
     ret->barrier.x2 = stuff->x2;
     ret->barrier.y1 = stuff->y1;
@@ -547,7 +630,7 @@ CreatePointerBarrierClient(ClientPtr client,
 
  error:
     *client_out = NULL;
-    free(ret);
+    FreePointerBarrierClient(ret);
     return err;
 }
 
@@ -556,13 +639,15 @@ BarrierFreeBarrier(void *data, XID id)
 {
     struct PointerBarrierClient *c;
     Time ms = GetTimeInMillis();
+    DeviceIntPtr dev = NULL;
+    ScreenPtr screen;
 
     c = container_of(data, struct PointerBarrierClient, barrier);
+    screen = c->screen;
 
-    /* FIXME: this is really broken for multidevice */
-    if (c->hit) {
-        DeviceIntPtr dev = NULL;
-        ScreenPtr screen = c->screen;
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+        struct PointerBarrierDevice *pbd;
+        int root_x, root_y;
         BarrierEvent ev = {
             .header = ET_Internal,
             .type = ET_BarrierLeave,
@@ -577,34 +662,77 @@ BarrierFreeBarrier(void *data, XID id)
             .dy = 0,
             /* .root_x */
             /* .root_y */
-            .dt = ms - c->last_timestamp,
-            .event_id = c->barrier_event_id,
+            /* .dt */
+            /* .event_id */
             .flags = XIBarrierPointerReleased,
         };
 
-        for (dev = inputInfo.devices; dev; dev = dev->next) {
-            int root_x, root_y;
 
-            if (dev->type != MASTER_POINTER)
-                continue;
+        if (dev->type != MASTER_POINTER)
+            continue;
 
-            if (!barrier_blocks_device(c, dev))
-                continue;
+        pbd = GetBarrierDevice(c, dev->id);
+        if (!pbd->hit)
+            continue;
 
-            ev.deviceid = dev->id;
+        ev.deviceid = dev->id;
+        ev.event_id = pbd->barrier_event_id,
+        ev.dt = ms - pbd->last_timestamp,
 
-            GetSpritePosition(dev, &root_x, &root_y);
-            ev.root_x = root_x;
-            ev.root_y = root_y;
+        GetSpritePosition(dev, &root_x, &root_y);
+        ev.root_x = root_x;
+        ev.root_y = root_y;
 
-            mieqEnqueue(dev, (InternalEvent *) &ev);
-        }
+        mieqEnqueue(dev, (InternalEvent *) &ev);
     }
 
     xorg_list_del(&c->entry);
 
-    free(c);
+    FreePointerBarrierClient(c);
     return Success;
+}
+
+static void add_master_func(pointer res, XID id, pointer devid)
+{
+    struct PointerBarrier *b;
+    struct PointerBarrierClient *barrier;
+    struct PointerBarrierDevice *pbd;
+    int *deviceid = devid;
+
+    b = res;
+    barrier = container_of(b, struct PointerBarrierClient, barrier);
+
+
+    pbd = AllocBarrierDevice();
+    pbd->deviceid = *deviceid;
+
+    xorg_list_add(&pbd->entry, &barrier->per_device);
+}
+
+static void remove_master_func(pointer res, XID id, pointer devid)
+{
+    struct PointerBarrierDevice *pbd;
+    struct PointerBarrierClient *barrier;
+    struct PointerBarrier *b;
+    int *deviceid = devid;
+
+    b = res;
+    barrier = container_of(b, struct PointerBarrierClient, barrier);
+
+    pbd = GetBarrierDevice(barrier, *deviceid);
+    xorg_list_del(&pbd->entry);
+    free(pbd);
+}
+
+void XIBarrierNewMasterDevice(ClientPtr client, int deviceid)
+{
+    FindClientResourcesByType(client, PointerBarrierType, add_master_func, &deviceid);
+}
+
+void XIBarrierRemoveMasterDevice(ClientPtr client, int deviceid)
+{
+    /* FIXME: send LeaveNotify */
+    FindClientResourcesByType(client, PointerBarrierType, remove_master_func, &deviceid);
 }
 
 int
@@ -698,14 +826,19 @@ ProcXIBarrierReleasePointer(ClientPtr client)
 
     info = (xXIBarrierReleasePointerInfo*) &stuff[1];
     for (i = 0; i < stuff->num_barriers; i++, info++) {
+        struct PointerBarrierDevice *pbd;
+        DeviceIntPtr dev;
         CARD32 barrier_id, event_id;
         _X_UNUSED CARD32 device_id;
 
         barrier_id = info->barrier;
         event_id = info->eventid;
 
-        /* FIXME: per-device releases */
-        device_id = info->deviceid;
+        err = dixLookupDevice(&dev, info->deviceid, client, DixReadAccess);
+        if (err != Success) {
+            client->errorValue = BadDevice;
+            return err;
+        }
 
         err = dixLookupResourceByType((void **) &b, barrier_id,
                                       PointerBarrierType, client, DixReadAccess);
@@ -717,9 +850,13 @@ ProcXIBarrierReleasePointer(ClientPtr client)
         if (CLIENT_ID(barrier_id) != client->index)
             return BadAccess;
 
+
         barrier = container_of(b, struct PointerBarrierClient, barrier);
-        if (barrier->barrier_event_id == event_id)
-            barrier->release_event_id = event_id;
+
+        pbd = GetBarrierDevice(barrier, dev->id);
+
+        if (pbd->barrier_event_id == event_id)
+            pbd->release_event_id = event_id;
     }
 
     return Success;
