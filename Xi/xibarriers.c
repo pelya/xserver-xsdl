@@ -80,7 +80,7 @@ struct PointerBarrierDevice {
 struct PointerBarrierClient {
     XID id;
     ScreenPtr screen;
-    WindowPtr window;
+    Window window;
     struct PointerBarrier barrier;
     struct xorg_list entry;
     /* num_devices/device_ids are devices the barrier applies to */
@@ -467,7 +467,7 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         ev.barrierid = c->id;
 
         ev.dt = ms - pbd->last_timestamp;
-        ev.window = c->window->drawable.id;
+        ev.window = c->window;
         pbd->last_timestamp = ms;
 
         /* root x/y is filled in later */
@@ -501,7 +501,7 @@ input_constrain_cursor(DeviceIntPtr dev, ScreenPtr screen,
         ev.barrierid = c->id;
 
         ev.dt = ms - pbd->last_timestamp;
-        ev.window = c->window->drawable.id;
+        ev.window = c->window;
         pbd->last_timestamp = ms;
 
         /* root x/y is filled in later */
@@ -566,7 +566,7 @@ CreatePointerBarrierClient(ClientPtr client,
     cs = GetBarrierScreen(screen);
 
     ret->screen = screen;
-    ret->window = pWin;
+    ret->window = stuff->window;
     ret->num_devices = stuff->num_devices;
     if (ret->num_devices > 0)
         ret->device_ids = (int*)&ret[1];
@@ -656,7 +656,7 @@ BarrierFreeBarrier(void *data, XID id)
             /* .deviceid */
             .sourceid = 0,
             .barrierid = c->id,
-            .window = c->window->drawable.id,
+            .window = c->window,
             .root = screen->root->drawable.id,
             .dx = 0,
             .dy = 0,
