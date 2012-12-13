@@ -304,14 +304,15 @@ remove_master(ClientPtr client, xXIRemoveMasterInfo * r, int flags[MAXDEVICES])
     flags[keybd->id] |= XIDeviceDisabled;
     flags[ptr->id] |= XIDeviceDisabled;
 
-    RemoveDevice(XTestptr, FALSE);
-    RemoveDevice(XTestkeybd, FALSE);
-    RemoveDevice(keybd, FALSE);
-    RemoveDevice(ptr, FALSE);
     flags[XTestptr->id] |= XISlaveRemoved;
     flags[XTestkeybd->id] |= XISlaveRemoved;
     flags[keybd->id] |= XIMasterRemoved;
     flags[ptr->id] |= XIMasterRemoved;
+
+    RemoveDevice(XTestptr, FALSE);
+    RemoveDevice(XTestkeybd, FALSE);
+    RemoveDevice(keybd, FALSE);
+    RemoveDevice(ptr, FALSE);
 
  unwind:
     return rc;
