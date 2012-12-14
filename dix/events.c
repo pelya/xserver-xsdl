@@ -5043,7 +5043,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
     grab = grabInfo->grab;
     if (grab && grab->grabtype != grabtype)
         *status = AlreadyGrabbed;
-    if (grab && !SameClient(grab, client))
+    else if (grab && !SameClient(grab, client))
         *status = AlreadyGrabbed;
     else if ((!pWin->realized) ||
              (confineTo &&
