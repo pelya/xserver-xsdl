@@ -921,8 +921,8 @@ void
  * winkeybd.c
  */
 
-void
- winTranslateKey(WPARAM wParam, LPARAM lParam, int *piScanCode);
+int
+ winTranslateKey(WPARAM wParam, LPARAM lParam);
 
 int
  winKeybdProc(DeviceIntPtr pDeviceInt, int iState);

@@ -65,13 +65,14 @@ static void
  * like AltGr on European keyboards.
  */
 
-void
-winTranslateKey(WPARAM wParam, LPARAM lParam, int *piScanCode)
+int
+winTranslateKey(WPARAM wParam, LPARAM lParam)
 {
     int iKeyFixup = g_iKeyMap[wParam * WIN_KEYMAP_COLS + 1];
     int iKeyFixupEx = g_iKeyMap[wParam * WIN_KEYMAP_COLS + 2];
     int iParam = HIWORD(lParam);
     int iParamScanCode = LOBYTE(iParam);
+    int iScanCode;
 
     winDebug("winTranslateKey: wParam %08x lParam %08x\n", wParam, lParam);
 
@@ -96,23 +97,25 @@ winTranslateKey(WPARAM wParam, LPARAM lParam, int *piScanCode)
 
     /* Branch on special extended, special non-extended, or normal key */
     if ((iParam & KF_EXTENDED) && iKeyFixupEx)
-        *piScanCode = iKeyFixupEx;
+        iScanCode = iKeyFixupEx;
     else if (iKeyFixup)
-        *piScanCode = iKeyFixup;
+        iScanCode = iKeyFixup;
     else if (wParam == 0 && iParamScanCode == 0x70)
-        *piScanCode = KEY_HKTG;
+        iScanCode = KEY_HKTG;
     else
         switch (iParamScanCode) {
         case 0x70:
-            *piScanCode = KEY_HKTG;
+            iScanCode = KEY_HKTG;
             break;
         case 0x73:
-            *piScanCode = KEY_BSlash2;
+            iScanCode = KEY_BSlash2;
             break;
         default:
-            *piScanCode = iParamScanCode;
+            iScanCode = iParamScanCode;
             break;
         }
+
+    return iScanCode;
 }
 
 /* Ring the keyboard bell (system speaker on PCs) */
