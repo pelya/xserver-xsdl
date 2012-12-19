@@ -80,7 +80,7 @@ XISendDeviceHierarchyEvent(int flags[MAXDEVICES])
     ev->flags = 0;
     ev->num_info = inputInfo.numDevices;
 
-    info = (xXIHierarchyInfo *) & ev[1];
+    info = (xXIHierarchyInfo *) &ev[1];
     for (dev = inputInfo.devices; dev; dev = dev->next) {
         info->deviceid = dev->id;
         info->enabled = dev->enabled;

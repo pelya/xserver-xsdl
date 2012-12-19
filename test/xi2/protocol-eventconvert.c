@@ -694,7 +694,7 @@ test_values_XIDeviceChangedEvent(DeviceChangedEvent *in,
             assert(k->num_keycodes == in->keys.max_keycode -
                    in->keys.min_keycode + 1);
 
-            kc = (uint32_t *) & k[1];
+            kc = (uint32_t *) &k[1];
             for (j = 0; j < k->num_keycodes; j++) {
                 if (swap) {
                     swapl(&kc[j]);

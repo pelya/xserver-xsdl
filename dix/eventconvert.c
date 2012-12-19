@@ -459,7 +459,7 @@ appendKeyInfo(DeviceChangedEvent *dce, xXIKeyInfo * info)
     info->length = sizeof(xXIKeyInfo) / 4 + info->num_keycodes;
     info->sourceid = dce->sourceid;
 
-    kc = (uint32_t *) & info[1];
+    kc = (uint32_t *) &info[1];
     for (i = 0; i < info->num_keycodes; i++)
         *kc++ = i + dce->keys.min_keycode;
 

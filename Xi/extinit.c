@@ -649,7 +649,7 @@ SDeviceChangedEvent(xXIDeviceChangedEvent * from, xXIDeviceChangedEvent * to)
     *to = *from;
     memcpy(&to[1], &from[1], from->length * 4);
 
-    any = (xXIAnyInfo *) & to[1];
+    any = (xXIAnyInfo *) &to[1];
     for (i = 0; i < to->num_classes; i++) {
         int length = any->length;
 
@@ -657,7 +657,7 @@ SDeviceChangedEvent(xXIDeviceChangedEvent * from, xXIDeviceChangedEvent * to)
         case KeyClass:
         {
             xXIKeyInfo *ki = (xXIKeyInfo *) any;
-            uint32_t *key = (uint32_t *) & ki[1];
+            uint32_t *key = (uint32_t *) &ki[1];
 
             for (j = 0; j < ki->num_keycodes; j++, key++)
                 swapl(key);
@@ -768,7 +768,7 @@ SDeviceHierarchyEvent(xXIHierarchyEvent * from, xXIHierarchyEvent * to)
     swapl(&to->flags);
     swaps(&to->num_info);
 
-    info = (xXIHierarchyInfo *) & to[1];
+    info = (xXIHierarchyInfo *) &to[1];
     for (i = 0; i < from->num_info; i++) {
         swaps(&info->deviceid);
         swaps(&info->attachment);
