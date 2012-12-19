@@ -122,6 +122,7 @@ SOFTWARE.
 #include "xiqueryversion.h"
 #include "xisetclientpointer.h"
 #include "xiwarppointer.h"
+#include "xibarriers.h"
 
 /* Masks for XI events have to be aligned with core event (partially anyway).
  * If DeviceButtonMotionMask is != ButtonMotionMask, event delivery
@@ -251,7 +252,8 @@ static int (*ProcIVector[]) (ClientPtr) = {
         ProcXIChangeProperty,   /* 57 */
         ProcXIDeleteProperty,   /* 58 */
         ProcXIGetProperty,      /* 59 */
-        ProcXIGetSelectedEvents /* 60 */
+        ProcXIGetSelectedEvents, /* 60 */
+        ProcXIBarrierReleasePointer /* 61 */
 };
 
 /* For swapped clients */
@@ -316,7 +318,8 @@ static int (*SProcIVector[]) (ClientPtr) = {
         SProcXIChangeProperty,  /* 57 */
         SProcXIDeleteProperty,  /* 58 */
         SProcXIGetProperty,     /* 59 */
-        SProcXIGetSelectedEvents        /* 60 */
+        SProcXIGetSelectedEvents,       /* 60 */
+        SProcXIBarrierReleasePointer /* 61 */
 };
 
 /*****************************************************************
@@ -839,6 +842,32 @@ STouchOwnershipEvent(xXITouchOwnershipEvent * from, xXITouchOwnershipEvent * to)
     swapl(&to->child);
 }
 
+static void
+SBarrierEvent(xXIBarrierEvent * from,
+              xXIBarrierEvent * to) {
+
+    *to = *from;
+
+    swaps(&from->sequenceNumber);
+    swapl(&from->length);
+    swaps(&from->evtype);
+    swapl(&from->time);
+    swaps(&from->deviceid);
+    swaps(&from->sourceid);
+    swapl(&from->event);
+    swapl(&from->root);
+    swapl(&from->root_x);
+    swapl(&from->root_y);
+
+    swapl(&from->dx.integral);
+    swapl(&from->dx.frac);
+    swapl(&from->dy.integral);
+    swapl(&from->dy.frac);
+    swapl(&from->dtime);
+    swapl(&from->barrier);
+    swapl(&from->eventid);
+}
+
 /** Event swapping function for XI2 events. */
 void
 XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
@@ -884,6 +913,11 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
     case XI_RawTouchUpdate:
     case XI_RawTouchEnd:
         SRawEvent((xXIRawEvent *) from, (xXIRawEvent *) to);
+        break;
+    case XI_BarrierHit:
+    case XI_BarrierLeave:
+        SBarrierEvent((xXIBarrierEvent *) from,
+                      (xXIBarrierEvent *) to);
         break;
     default:
         ErrorF("[Xi] Unknown event type to swap. This is a bug.\n");
@@ -1262,6 +1296,9 @@ XInputExtensionInit(void)
 
     if (!AddCallback(&ClientStateCallback, XIClientCallback, 0))
         FatalError("Failed to add callback to XI.\n");
+
+    if (!XIBarrierInit())
+        FatalError("Could not initialize barriers.\n");
 
     extEntry = AddExtension(INAME, IEVENTS, IERRORS, ProcIDispatch,
                             SProcIDispatch, IResetProc, StandardMinorOpcode);
