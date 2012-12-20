@@ -1522,7 +1522,7 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
                emulate a ButtonRelease here. So pretend the listener
                already has the end event */
             if (grab->grabtype == CORE || grab->grabtype == XI ||
-                    !xi2mask_isset(dev->deviceGrab.grab->xi2mask, dev, XI_TouchBegin))
+                    !xi2mask_isset(mouse->deviceGrab.grab->xi2mask, mouse, XI_TouchBegin))
                 ti->listeners[0].state = LISTENER_HAS_END;
             TouchListenerAcceptReject(mouse, ti, 0, XIRejectTouch);
         }
