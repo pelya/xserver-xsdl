@@ -21,6 +21,7 @@ libglamor_la_LDFLAGS = -avoid-version
 
 libglamor_la_SOURCES = \
 	compat-api.h \
+	compiler.h \
 	glamor.c \
 	glamor_copyarea.c \
 	glamor_copywindow.c \
