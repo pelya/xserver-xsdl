@@ -20,10 +20,13 @@ AM_CFLAGS = $(CWARNFLAGS) $(XORG_CFLAGS) $(DIX_CFLAGS) $(LIBDRM_CFLAGS)
 libglamor_la_LDFLAGS = -avoid-version
 
 libglamor_la_SOURCES = \
+	compat-api.h \
 	glamor.c \
 	glamor_copyarea.c \
 	glamor_copywindow.c \
 	glamor_core.c \
+	glamor_debug.h \
+	glamor_gl_dispatch.h \
 	glamor_fill.c \
 	glamor_fillspans.c \
 	glamor_getspans.c \
@@ -42,6 +45,7 @@ libglamor_la_SOURCES = \
 	glamor_copyplane.c\
 	glamor_glyphblt.c\
 	glamor_polyops.c\
+	glamor_priv.h\
 	glamor_pixmap.c\
 	glamor_largepixmap.c\
 	glamor_picture.c\
@@ -49,7 +53,9 @@ libglamor_la_SOURCES = \
 	glamor_gl_dispatch.c\
 	glamor_fbo.c\
 	glamor_compositerects.c\
-	glamor.h
+	glamor_utils.h\
+	glamor.h\
+	glapi.h
 
 sdk_HEADERS = glamor.h
 
