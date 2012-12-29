@@ -80,8 +80,7 @@
 
 #define pixmap_priv_get_fbo_off(_priv_, _xoff_, _yoff_)		\
    do {								\
-	if (unlikely(_priv_ && (_priv_)->type				\
-		== GLAMOR_TEXTURE_LARGE)) {			\
+	if (unlikely(_priv_ && (_priv_)->type == GLAMOR_TEXTURE_LARGE)) {  \
 		*(_xoff_) = - (_priv_)->large.box.x1;	\
 		*(_yoff_) = - (_priv_)->large.box.y1;	\
 	} else {						\
