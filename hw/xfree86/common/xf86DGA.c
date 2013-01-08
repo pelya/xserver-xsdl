@@ -1074,6 +1074,7 @@ DGAProcessPointerEvent(ScreenPtr pScreen, DGAEvent * event, DeviceIntPtr mouse)
     DeviceEvent ev = {
         .header = ET_Internal,
         .length = sizeof(ev),
+        .detail.key = event->detail,
         .type = event->subtype,
         .corestate = butc ? butc->state : 0
     };
