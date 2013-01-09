@@ -455,6 +455,14 @@ xf86platformAddDevice(int index)
 
    CreateScratchPixmapsForScreen(xf86GPUScreens[i]->pScreen);
 
+   if (xf86GPUScreens[i]->pScreen->CreateScreenResources &&
+       !(*xf86GPUScreens[i]->pScreen->CreateScreenResources) (xf86GPUScreens[i]->pScreen)) {
+       RemoveGPUScreen(xf86GPUScreens[i]->pScreen);
+       xf86DeleteScreen(xf86GPUScreens[i]);
+       xf86UnclaimPlatformSlot(&xf86_platform_devices[index], NULL);
+       xf86NumGPUScreens = old_screens;
+       return -1;
+   }
    /* attach unbound to 0 protocol screen */
    AttachUnboundGPU(xf86Screens[0]->pScreen, xf86GPUScreens[i]->pScreen);
 
