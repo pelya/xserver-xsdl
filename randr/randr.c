@@ -506,7 +506,7 @@ RRTellChanged(ScreenPtr pScreen)
         mastersp = pScrPriv;
     }
 
-    if (pScrPriv->changed) {
+    if (mastersp->changed) {
         UpdateCurrentTimeIf();
         if (mastersp->configChanged) {
             mastersp->lastConfigTime = currentTime;
