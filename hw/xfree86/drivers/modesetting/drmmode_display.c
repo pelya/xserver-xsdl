@@ -589,6 +589,8 @@ drmmode_output_detect(xf86OutputPtr output)
 	drmModeFreeConnector(drmmode_output->mode_output);
 
 	drmmode_output->mode_output = drmModeGetConnector(drmmode->fd, drmmode_output->output_id);
+	if (!drmmode_output->mode_output)
+		return XF86OutputStatusDisconnected;
 
 	switch (drmmode_output->mode_output->connection) {
 	case DRM_MODE_CONNECTED:
@@ -682,6 +684,9 @@ drmmode_output_dpms(xf86OutputPtr output, int mode)
 	drmmode_output_private_ptr drmmode_output = output->driver_private;
 	drmModeConnectorPtr koutput = drmmode_output->mode_output;
 	drmmode_ptr drmmode = drmmode_output->drmmode;
+
+	if (!koutput)
+		return;
 
 	drmModeConnectorSetProperty(drmmode->fd, koutput->connector_id,
 				    drmmode_output->dpms_enum_id, mode);
