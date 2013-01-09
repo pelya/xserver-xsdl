@@ -2449,11 +2449,11 @@ xf86InitialConfiguration(ScrnInfoPtr scrn, Bool canGrow)
     config->debug_modes = xf86ReturnOptValBool(config->options,
                                                OPTION_MODEDEBUG, FALSE);
 
-    if (scrn->display->virtualX)
+    if (scrn->display->virtualX && !scrn->is_gpu)
         width = scrn->display->virtualX;
     else
         width = config->maxWidth;
-    if (scrn->display->virtualY)
+    if (scrn->display->virtualY && !scrn->is_gpu)
         height = scrn->display->virtualY;
     else
         height = config->maxHeight;
@@ -2517,8 +2517,10 @@ xf86InitialConfiguration(ScrnInfoPtr scrn, Bool canGrow)
 
     /* XXX override xf86 common frame computation code */
 
-    scrn->display->frameX0 = 0;
-    scrn->display->frameY0 = 0;
+    if (!scrn->is_gpu) {
+        scrn->display->frameX0 = 0;
+        scrn->display->frameY0 = 0;
+    }
 
     for (c = 0; c < config->num_crtc; c++) {
         xf86CrtcPtr crtc = config->crtc[c];
@@ -2566,7 +2568,7 @@ xf86InitialConfiguration(ScrnInfoPtr scrn, Bool canGrow)
         }
     }
 
-    if (scrn->display->virtualX == 0) {
+    if (scrn->display->virtualX == 0 || scrn->is_gpu) {
         /*
          * Expand virtual size to cover the current config and potential mode
          * switches, if the driver can't enlarge the screen later.
@@ -2581,8 +2583,10 @@ xf86InitialConfiguration(ScrnInfoPtr scrn, Bool canGrow)
             }
         }
 
-        scrn->display->virtualX = width;
-        scrn->display->virtualY = height;
+	if (!scrn->is_gpu) {
+            scrn->display->virtualX = width;
+            scrn->display->virtualY = height;
+	}
     }
 
     if (width > scrn->virtualX)
