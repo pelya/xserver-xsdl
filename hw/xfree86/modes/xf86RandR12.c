@@ -1896,10 +1896,12 @@ xf86RandR14ProviderDestroy(ScreenPtr screen, RRProviderPtr provider)
         if (config->randr_provider->offload_sink) {
             DetachOffloadGPU(screen);
             config->randr_provider->offload_sink = NULL;
+            RRSetChanged(screen);
         }
         else if (config->randr_provider->output_source) {
             DetachOutputGPU(screen);
             config->randr_provider->output_source = NULL;
+            RRSetChanged(screen);
         }
         else if (screen->current_master)
             DetachUnboundGPU(screen);

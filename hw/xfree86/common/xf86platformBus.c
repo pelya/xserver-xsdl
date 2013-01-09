@@ -47,6 +47,7 @@
 #include "Pci.h"
 #include "xf86platformBus.h"
 
+#include "randrstr.h"
 int platformSlotClaimed;
 
 int xf86_num_platform_devices;
@@ -499,7 +500,7 @@ xf86platformRemoveDevice(int index)
     xf86UnclaimPlatformSlot(&xf86_platform_devices[index], NULL);
 
     xf86_remove_platform_device(index);
-
+    RRTellChanged(xf86Screens[0]->pScreen);
  out:
     return;
 }
