@@ -467,9 +467,23 @@ TellChanged(WindowPtr pWin, pointer value)
 void
 RRSetChanged(ScreenPtr pScreen)
 {
+    /* set changed bits on the master screen only */
+    ScreenPtr master;
     rrScrPriv(pScreen);
+    rrScrPrivPtr mastersp;
 
-    pScrPriv->changed = TRUE;
+    if (pScreen->isGPU) {
+        master = pScreen->current_master;
+        if (!master)
+            return;
+        mastersp = rrGetScrPriv(master);
+    }
+    else {
+        master = pScreen;
+        mastersp = pScrPriv;
+    }
+
+    mastersp->changed = TRUE;
 }
 
 /*
