@@ -464,6 +464,14 @@ TellChanged(WindowPtr pWin, pointer value)
     return WT_WALKCHILDREN;
 }
 
+void
+RRSetChanged(ScreenPtr pScreen)
+{
+    rrScrPriv(pScreen);
+
+    pScrPriv->changed = TRUE;
+}
+
 /*
  * Something changed; send events and adjust pointer position
  */
