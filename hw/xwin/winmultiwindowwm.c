@@ -614,6 +614,19 @@ UpdateStyle(WMInfoPtr pWMInfo, Window iWindow)
     if (zstyle == HWND_NOTOPMOST)
         flags |= SWP_NOZORDER | SWP_NOOWNERZORDER;
     SetWindowPos(hWnd, NULL, 0, 0, 0, 0, flags);
+
+    /*
+       Use the WS_EX_TOOLWINDOW style to remove window from Alt-Tab window switcher
+
+       According to MSDN, this is supposed to remove the window from the taskbar as well,
+       if we SW_HIDE before changing the style followed by SW_SHOW afterwards.
+
+       But that doesn't seem to work reliably, and causes the window to flicker, so use
+       the iTaskbarList interface to tell the taskbar to show or hide this window.
+     */
+    winShowWindowOnTaskbar(hWnd,
+                           (GetWindowLongPtr(hWnd, GWL_EXSTYLE) &
+                            WS_EX_APPWINDOW) ? TRUE : FALSE);
 }
 
 #if 0
