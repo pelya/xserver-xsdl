@@ -1051,11 +1051,8 @@ SetDeviceSpecificAccelerationProfile(DeviceVelocityPtr vel,
 DeviceVelocityPtr
 GetDevicePredictableAccelData(DeviceIntPtr dev)
 {
-    /*sanity check */
-    if (!dev) {
-        ErrorF("[dix] accel: DeviceIntPtr was NULL");
-        return NULL;
-    }
+    BUG_RETURN_VAL(!dev, NULL);
+
     if (dev->valuator &&
         dev->valuator->accelScheme.AccelSchemeProc ==
         acceleratePointerPredictable &&
