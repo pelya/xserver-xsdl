@@ -186,7 +186,7 @@ static void
  winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle);
 
 void
- winUpdateWindowPosition(HWND hWnd, Bool reshape, HWND * zstyle);
+ winUpdateWindowPosition(HWND hWnd, HWND * zstyle);
 
 /*
  * Local globals
@@ -742,8 +742,19 @@ winMultiWindowWMProc(void *pArg)
 
                 winApplyHints(pWMInfo->pDisplay, pNode->msg.iWindow,
                               pNode->msg.hwndWindow, &zstyle);
-                winUpdateWindowPosition(pNode->msg.hwndWindow, TRUE, &zstyle);
+                winUpdateWindowPosition(pNode->msg.hwndWindow, &zstyle);
             }
+
+            /* Reshape */
+            {
+                WindowPtr pWin =
+                    GetProp(pNode->msg.hwndWindow, WIN_WINDOW_PROP);
+                if (pWin) {
+                    winReshapeMultiWindow(pWin);
+                    winUpdateRgnMultiWindow(pWin);
+                }
+            }
+
             break;
 
         case WM_WM_UNMAP:
@@ -1749,7 +1760,7 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
 }
 
 void
-winUpdateWindowPosition(HWND hWnd, Bool reshape, HWND * zstyle)
+winUpdateWindowPosition(HWND hWnd, HWND * zstyle)
 {
     int iX, iY, iWidth, iHeight;
     int iDx, iDy;
@@ -1800,8 +1811,4 @@ winUpdateWindowPosition(HWND hWnd, Bool reshape, HWND * zstyle)
     SetWindowPos(hWnd, *zstyle, rcNew.left, rcNew.top,
                  rcNew.right - rcNew.left, rcNew.bottom - rcNew.top, 0);
 
-    if (reshape) {
-        winReshapeMultiWindow(pWin);
-        winUpdateRgnMultiWindow(pWin);
-    }
 }
