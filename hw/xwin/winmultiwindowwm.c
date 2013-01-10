@@ -590,6 +590,32 @@ UpdateIcon(WMInfoPtr pWMInfo, Window iWindow)
     winUpdateIcon(hWnd, pWMInfo->pDisplay, iWindow, hIconNew);
 }
 
+/*
+ * Updates the style of a HWND according to its X style properties
+ */
+
+static void
+UpdateStyle(WMInfoPtr pWMInfo, Window iWindow)
+{
+    HWND hWnd;
+    HWND zstyle = HWND_NOTOPMOST;
+    UINT flags;
+
+    hWnd = getHwnd(pWMInfo, iWindow);
+    if (!hWnd)
+        return;
+
+    /* Determine the Window style, which determines borders and clipping region... */
+    winApplyHints(pWMInfo->pDisplay, iWindow, hWnd, &zstyle);
+    winUpdateWindowPosition(hWnd, &zstyle);
+
+    /* Apply the updated window style, without changing it's show or activation state */
+    flags = SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE;
+    if (zstyle == HWND_NOTOPMOST)
+        flags |= SWP_NOZORDER | SWP_NOOWNERZORDER;
+    SetWindowPos(hWnd, NULL, 0, 0, 0, 0, flags);
+}
+
 #if 0
 /*
  * Fix up any differences between the X11 and Win32 window stacks
@@ -737,13 +763,8 @@ winMultiWindowWMProc(void *pArg)
                             (unsigned char *) &(pNode->msg.hwndWindow), 1);
             UpdateName(pWMInfo, pNode->msg.iWindow);
             UpdateIcon(pWMInfo, pNode->msg.iWindow);
-            {
-                HWND zstyle = HWND_NOTOPMOST;
+            UpdateStyle(pWMInfo, pNode->msg.iWindow);
 
-                winApplyHints(pWMInfo->pDisplay, pNode->msg.iWindow,
-                              pNode->msg.hwndWindow, &zstyle);
-                winUpdateWindowPosition(pNode->msg.hwndWindow, &zstyle);
-            }
 
             /* Reshape */
             {
@@ -815,8 +836,6 @@ winMultiWindowWMProc(void *pArg)
 
         case WM_WM_HINTS_EVENT:
             {
-            HWND zstyle = HWND_NOTOPMOST;
-            UINT flags;
             XWindowAttributes attr;
 
             /* Don't do anything if this is an override-redirect window */
@@ -824,18 +843,7 @@ winMultiWindowWMProc(void *pArg)
             if (attr.override_redirect)
               break;
 
-            pNode->msg.hwndWindow = getHwnd(pWMInfo, pNode->msg.iWindow);
-
-            /* Determine the Window style, which determines borders and clipping region... */
-            winApplyHints(pWMInfo->pDisplay, pNode->msg.iWindow,
-                          pNode->msg.hwndWindow, &zstyle);
-            winUpdateWindowPosition(pNode->msg.hwndWindow, &zstyle);
-
-            /* Apply the updated window style, without changing it's show or activation state */
-            flags = SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE;
-            if (zstyle == HWND_NOTOPMOST)
-                flags |= SWP_NOZORDER | SWP_NOOWNERZORDER;
-            SetWindowPos(pNode->msg.hwndWindow, NULL, 0, 0, 0, 0, flags);
+            UpdateStyle(pWMInfo, pNode->msg.iWindow);
             }
             break;
 
