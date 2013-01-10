@@ -2687,8 +2687,8 @@ xf86SetDesiredModes(ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(scrn);
     xf86CrtcPtr crtc = config->crtc[0];
+    int enabled = 0, failed = 0;
     int c;
-    int enabled = 0;
 
     /* A driver with this hook will take care of this */
     if (!crtc->funcs->set_mode_major) {
@@ -2748,11 +2748,12 @@ xf86SetDesiredModes(ScrnInfoPtr scrn)
                 if (config->output[o]->crtc == crtc)
                     config->output[o]->crtc = NULL;
             crtc->enabled = FALSE;
+            ++failed;
 	}
     }
 
     xf86DisableUnusedFunctions(scrn);
-    return enabled != 0;
+    return enabled != 0 || failed == 0;
 }
 
 /**
