@@ -614,7 +614,8 @@ QueryTrackers(DeviceVelocityPtr vel, int cur_t)
 
         /* bail out if data is too old and protect from overrun */
         if (age_ms >= vel->reset_time || age_ms < 0) {
-            DebugAccelF("(dix prtacc) query: tracker too old\n");
+            DebugAccelF("(dix prtacc) query: tracker too old (reset after %d, age is %d)\n",
+                        vel->reset_time, age_ms);
             break;
         }
 
