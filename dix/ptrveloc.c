@@ -77,7 +77,7 @@ DeletePredictableAccelerationProperties(DeviceIntPtr,
 /*#define PTRACCEL_DEBUGGING*/
 
 #ifdef PTRACCEL_DEBUGGING
-#define DebugAccelF ErrorF
+#define DebugAccelF ErrorFSigSafe
 #else
 #define DebugAccelF(...)        /* */
 #endif
@@ -566,7 +566,7 @@ FeedTrackers(DeviceVelocityPtr vel, double dx, double dy, int cur_t)
     vel->tracker[n].dy = 0.0;
     vel->tracker[n].time = cur_t;
     vel->tracker[n].dir = GetDirection(dx, dy);
-    DebugAccelF("(dix prtacc) motion [dx: %i dy: %i dir:%i diff: %i]\n",
+    DebugAccelF("(dix prtacc) motion [dx: %f dy: %f dir:%d diff: %d]\n",
                 dx, dy, vel->tracker[n].dir,
                 cur_t - vel->tracker[vel->cur_tracker].time);
     vel->cur_tracker = n;
@@ -667,7 +667,7 @@ QueryTrackers(DeviceVelocityPtr vel, int cur_t)
 #ifdef PTRACCEL_DEBUGGING
         MotionTracker *tracker = TRACKER(vel, used_offset);
 
-        DebugAccelF("(dix prtacc) result: offset %i [dx: %i dy: %i diff: %i]\n",
+        DebugAccelF("(dix prtacc) result: offset %i [dx: %f dy: %f diff: %i]\n",
                     used_offset, tracker->dx, tracker->dy,
                     cur_t - tracker->time);
 #endif
@@ -799,7 +799,7 @@ ComputeAcceleration(DeviceIntPtr dev,
         result = BasicComputeAcceleration(dev, vel,
                                           vel->velocity, threshold, acc);
         DebugAccelF("(dix ptracc) profile sample [%.2f] is %.3f\n",
-                    vel->velocity, res);
+                    vel->velocity, result);
     }
 
     return result;
@@ -1122,8 +1122,7 @@ acceleratePointerPredictable(DeviceIntPtr dev, ValuatorMask *val, CARD32 evtime)
                     valuator_mask_set_double(val, 0, mult * dx);
                 if (dy != 0.0)
                     valuator_mask_set_double(val, 1, mult * dy);
-                DebugAccelF("pos (%i | %i) delta x:%.3f y:%.3f\n", mult * dx,
-                            mult * dy);
+                DebugAccelF("delta x:%.3f y:%.3f\n", mult * dx, mult * dy);
             }
         }
     }
