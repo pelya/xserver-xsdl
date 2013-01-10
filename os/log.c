@@ -298,7 +298,13 @@ pnprintf(char *string, size_t size, const char *f, va_list args)
             continue;
         }
 
-        switch (f[++f_idx]) {
+        f_idx++;
+
+        /* silently swallow length modifiers */
+        while (f_idx < f_len && ((f[f_idx] >= '0' && f[f_idx] <= '9') || f[f_idx] == '.'))
+            f_idx++;
+
+        switch (f[f_idx]) {
         case 's':
             string_arg = va_arg(args, char*);
             p_len = strlen_sigsafe(string_arg);
