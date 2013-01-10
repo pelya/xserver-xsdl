@@ -41,6 +41,11 @@ struct signed_number_format_test {
     char string[21];
 };
 
+struct float_number_format_test {
+    double number;
+    char string[21];
+};
+
 static Bool
 check_signed_number_format_test(long int number)
 {
@@ -51,6 +56,25 @@ check_signed_number_format_test(long int number)
     FormatInt64(number, string);
     if(strncmp(string, expected, 21) != 0) {
         fprintf(stderr, "Failed to convert %jd to decimal string (expected %s but got %s)\n",
+                number, expected, string);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static Bool
+check_float_format_test(double number)
+{
+    char string[21];
+    char expected[21];
+
+    /* we currently always print float as .2f */
+    sprintf(expected, "%.2f", number);
+
+    FormatDouble(number, string);
+    if(strncmp(string, expected, 21) != 0) {
+        fprintf(stderr, "Failed to convert %f to string (%s vs %s)\n",
                 number, expected, string);
         return FALSE;
     }
@@ -84,6 +108,11 @@ check_number_format_test(long unsigned int number)
     return TRUE;
 }
 
+/* FIXME: max range stuff */
+double float_tests[] = { 0, 5, 0.1, 0.01, 5.2342, 10.2301,
+                         -1, -2.00, -0.6023, -1203.30
+                        };
+
 static void
 number_formatting(void)
 {
@@ -116,6 +145,9 @@ number_formatting(void)
 
     for (i = 0; i < sizeof(unsigned_tests) / sizeof(signed_tests[0]); i++)
         assert(check_signed_number_format_test(signed_tests[i]));
+
+    for (i = 0; i < sizeof(float_tests) / sizeof(float_tests[0]); i++)
+        assert(check_float_format_test(float_tests[i]));
 }
 
 #pragma GCC diagnostic ignored "-Wformat-security"
@@ -231,6 +263,30 @@ static void logging_format(void)
         assert(strcmp(logmsg, expected) == 0);
         ptr <<= 1;
     } while(ptr);
+
+
+    for (i = 0; i < sizeof(float_tests)/sizeof(float_tests[0]); i++) {
+        double d = float_tests[i];
+        char expected[30];
+        sprintf(expected, "(EE) %.2f\n", d);
+        LogMessageVerbSigSafe(X_ERROR, -1, "%f\n", d);
+        read_log_msg(logmsg);
+        assert(strcmp(logmsg, expected) == 0);
+
+        /* test for length modifiers, we just ignore them atm */
+        LogMessageVerbSigSafe(X_ERROR, -1, "%.3f\n", d);
+        read_log_msg(logmsg);
+        assert(strcmp(logmsg, expected) == 0);
+
+        LogMessageVerbSigSafe(X_ERROR, -1, "%3f\n", d);
+        read_log_msg(logmsg);
+        assert(strcmp(logmsg, expected) == 0);
+
+        LogMessageVerbSigSafe(X_ERROR, -1, "%.0f\n", d);
+        read_log_msg(logmsg);
+        assert(strcmp(logmsg, expected) == 0);
+    }
+
 
     LogClose(EXIT_NO_ERROR);
     unlink(log_file_path);

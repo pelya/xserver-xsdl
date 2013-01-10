@@ -351,7 +351,16 @@ pnprintf(char *string, size_t size, const char *f, va_list args)
             for (i = 0; i < p_len && s_idx < size - 1; i++)
                 string[s_idx++] = number[i];
             break;
+        case 'f':
+            {
+                double d = va_arg(args, double);
+                FormatDouble(d, number);
+                p_len = strlen_sigsafe(number);
 
+                for (i = 0; i < p_len && s_idx < size - 1; i++)
+                    string[s_idx++] = number[i];
+            }
+            break;
         default:
             va_arg(args, char*);
             string[s_idx++] = '%';
