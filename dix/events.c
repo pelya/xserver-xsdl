@@ -1438,6 +1438,7 @@ UpdateTouchesForGrab(DeviceIntPtr mouse)
                 ti->listeners[0].type = LISTENER_POINTER_GRAB;
             else
                 ti->listeners[0].type = LISTENER_GRAB;
+            ti->listeners[0].grab = grab;
         }
     }
 }
@@ -1521,7 +1522,7 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
                emulate a ButtonRelease here. So pretend the listener
                already has the end event */
             if (grab->grabtype == CORE || grab->grabtype == XI ||
-                    !xi2mask_isset(dev->deviceGrab.grab->xi2mask, dev, XI_TouchBegin))
+                    !xi2mask_isset(mouse->deviceGrab.grab->xi2mask, mouse, XI_TouchBegin))
                 ti->listeners[0].state = LISTENER_HAS_END;
             TouchListenerAcceptReject(mouse, ti, 0, XIRejectTouch);
         }
@@ -1550,15 +1551,6 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
         ReattachToOldMaster(mouse);
 
     ComputeFreezes();
-
-    /* If an explicit grab was deactivated, we must remove it from the head of
-     * all the touches' listener lists. */
-    for (i = 0; mouse->touch && i < mouse->touch->num_touches; i++) {
-        TouchPointInfoPtr ti = mouse->touch->touches + i;
-
-        if (ti->active && TouchResourceIsOwner(ti, grab_resource))
-            TouchListenerAcceptReject(mouse, ti, 0, XIRejectTouch);
-    }
 }
 
 /**
