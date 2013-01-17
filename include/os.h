@@ -98,6 +98,8 @@ extern _X_EXPORT int WaitForSomething(int *     /*pClientsReady */
 
 extern _X_EXPORT int ReadRequestFromClient(ClientPtr /*client */ );
 
+extern _X_EXPORT int ReadFdFromClient(ClientPtr client);
+
 extern _X_EXPORT Bool InsertFakeRequest(ClientPtr /*client */ ,
                                         char * /*data */ ,
                                         int /*count */ );

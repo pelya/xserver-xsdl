@@ -259,6 +259,12 @@ ReadRequestFromClient(ClientPtr client)
         oc->input = oci;
     }
 
+    /* Discard any unused file descriptors */
+    while (client->req_fds > 0) {
+        int req_fd = ReadFdFromClient(client);
+        if (req_fd >= 0)
+            close(req_fd);
+    }
     /* advance to start of next request */
 
     oci->bufptr += oci->lenLastReq;
@@ -483,6 +489,21 @@ ReadRequestFromClient(ClientPtr client)
     }
 #endif
     return needed;
+}
+
+int
+ReadFdFromClient(ClientPtr client)
+{
+    int fd = -1;
+
+    if (client->req_fds > 0) {
+        OsCommPtr oc = (OsCommPtr) client->osPrivate;
+
+        --client->req_fds;
+        fd = _XSERVTransRecvFd(oc->trans_conn);
+    } else
+        LogMessage(X_ERROR, "Request asks for FD without setting req_fds\n");
+    return fd;
 }
 
 /*****************************************************************
