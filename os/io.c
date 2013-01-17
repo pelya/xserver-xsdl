@@ -506,6 +506,14 @@ ReadFdFromClient(ClientPtr client)
     return fd;
 }
 
+int
+WriteFdToClient(ClientPtr client, int fd, Bool do_close)
+{
+    OsCommPtr oc = (OsCommPtr) client->osPrivate;
+
+    return _XSERVTransSendFd(oc->trans_conn, fd, do_close);
+}
+
 /*****************************************************************
  * InsertFakeRequest
  *    Splice a consed up (possibly partial) request in as the next request.

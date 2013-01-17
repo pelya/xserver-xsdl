@@ -61,6 +61,7 @@ typedef struct _ShmDesc {
     int shmid;
     int refcnt;
     char *addr;
+    Bool is_fd;
     Bool writable;
     unsigned long size;
 } ShmDescRec, *ShmDescPtr;
