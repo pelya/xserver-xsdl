@@ -89,15 +89,6 @@ in this Software without prior written authorization from The Open Group.
 
 #include "extinit.h"
 
-typedef struct _ShmDesc {
-    struct _ShmDesc *next;
-    int shmid;
-    int refcnt;
-    char *addr;
-    Bool writable;
-    unsigned long size;
-} ShmDescRec, *ShmDescPtr;
-
 typedef struct _ShmScrPrivateRec {
     CloseScreenProcPtr CloseScreen;
     ShmFuncsPtr shmFuncs;
