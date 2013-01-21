@@ -327,8 +327,6 @@ typedef struct _TouchPointInfo {
     size_t history_size;        /* Size of history in elements */
 } TouchPointInfoRec;
 
-typedef struct _TouchListener TouchListener;
-
 typedef struct _DDXTouchPointInfo {
     uint32_t client_id;         /* touch ID as seen in client events */
     Bool active;                /* whether or not the touch is active */
