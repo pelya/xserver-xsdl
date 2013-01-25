@@ -516,6 +516,12 @@ DisableAllDevices(void)
 {
     DeviceIntPtr dev, tmp;
 
+    /* Disable slave devices first, excluding XTest devices */
+    nt_list_for_each_entry_safe(dev, tmp, inputInfo.devices, next) {
+        if (!IsXTestDevice(dev, NULL) && !IsMaster(dev))
+            DisableDevice(dev, FALSE);
+    }
+    /* Disable XTest devices */
     nt_list_for_each_entry_safe(dev, tmp, inputInfo.devices, next) {
         if (!IsMaster(dev))
             DisableDevice(dev, FALSE);
