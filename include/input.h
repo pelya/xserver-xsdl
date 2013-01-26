@@ -69,6 +69,7 @@ SOFTWARE.
 #define POINTER_SCREEN		(1 << 4)        /* Data in screen coordinates */
 #define POINTER_NORAW		(1 << 5)        /* Don't generate RawEvents */
 #define POINTER_EMULATED	(1 << 6)        /* Event was emulated from another event */
+#define POINTER_DESKTOP		(1 << 7)        /* Data in desktop coordinates */
 
 /* GetTouchEvent flags */
 #define TOUCH_ACCEPT            (1 << 0)

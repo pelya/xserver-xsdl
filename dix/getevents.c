@@ -820,24 +820,30 @@ accelPointer(DeviceIntPtr dev, ValuatorMask *valuators, CARD32 ms)
  * device's coordinate range.
  *
  * @param dev The device to scale for.
- * @param[in, out] mask The mask in desktop coordinates, modified in place
+ * @param[in, out] mask The mask in desktop/screen coordinates, modified in place
  * to contain device coordinate range.
+ * @param flags If POINTER_SCREEN is set, mask is in per-screen coordinates.
+ *              Otherwise, mask is in desktop coords.
  */
 static void
-scale_from_screen(DeviceIntPtr dev, ValuatorMask *mask)
+scale_from_screen(DeviceIntPtr dev, ValuatorMask *mask, int flags)
 {
     double scaled;
     ScreenPtr scr = miPointerGetScreen(dev);
 
     if (valuator_mask_isset(mask, 0)) {
-        scaled = valuator_mask_get_double(mask, 0) + scr->x;
+        scaled = valuator_mask_get_double(mask, 0);
+        if (flags & POINTER_SCREEN)
+            scaled += scr->x;
         scaled = rescaleValuatorAxis(scaled,
                                      NULL, dev->valuator->axes + 0,
                                      screenInfo.x, screenInfo.width);
         valuator_mask_set_double(mask, 0, scaled);
     }
     if (valuator_mask_isset(mask, 1)) {
-        scaled = valuator_mask_get_double(mask, 1) + scr->y;
+        scaled = valuator_mask_get_double(mask, 1);
+        if (flags & POINTER_SCREEN)
+            scaled += scr->y;
         scaled = rescaleValuatorAxis(scaled,
                                      NULL, dev->valuator->axes + 1,
                                      screenInfo.y, screenInfo.height);
@@ -1363,10 +1369,10 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
     /* valuators are in driver-native format (rel or abs) */
 
     if (flags & POINTER_ABSOLUTE) {
-        if (flags & POINTER_SCREEN) {    /* valuators are in screen coords */
+        if (flags & (POINTER_SCREEN | POINTER_DESKTOP)) {    /* valuators are in screen/desktop coords */
             sx = valuator_mask_get(&mask, 0);
             sy = valuator_mask_get(&mask, 1);
-            scale_from_screen(pDev, &mask);
+            scale_from_screen(pDev, &mask, flags);
         }
 
         transformAbsolute(pDev, &mask);
