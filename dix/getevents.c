@@ -833,14 +833,14 @@ scale_from_screen(DeviceIntPtr dev, ValuatorMask *mask)
         scaled = valuator_mask_get_double(mask, 0) + scr->x;
         scaled = rescaleValuatorAxis(scaled,
                                      NULL, dev->valuator->axes + 0,
-                                     0, scr->width);
+                                     screenInfo.x, screenInfo.width);
         valuator_mask_set_double(mask, 0, scaled);
     }
     if (valuator_mask_isset(mask, 1)) {
         scaled = valuator_mask_get_double(mask, 1) + scr->y;
         scaled = rescaleValuatorAxis(scaled,
                                      NULL, dev->valuator->axes + 1,
-                                     0, scr->height);
+                                     screenInfo.y, screenInfo.height);
         valuator_mask_set_double(mask, 1, scaled);
     }
 }
