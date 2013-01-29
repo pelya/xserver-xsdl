@@ -156,7 +156,6 @@ ProcXTestFakeInput(ClientPtr client)
     DeviceIntPtr dev = NULL;
     WindowPtr root;
     Bool extension = FALSE;
-    deviceValuator *dv = NULL;
     ValuatorMask mask;
     int valuators[MAX_VALUATORS] = { 0 };
     int numValuators = 0;
@@ -241,14 +240,14 @@ ProcXTestFakeInput(ClientPtr client)
         }
 
         if (nev > 1 && !dev->valuator) {
-            client->errorValue = dv->first_valuator;
+            client->errorValue = firstValuator;
             return BadValue;
         }
 
         /* check validity of valuator events */
         base = firstValuator;
         for (n = 1; n < nev; n++) {
-            dv = (deviceValuator *) (ev + n);
+            deviceValuator *dv = (deviceValuator *) (ev + n);
             if (dv->type != DeviceValuator) {
                 client->errorValue = dv->type;
                 return BadValue;
