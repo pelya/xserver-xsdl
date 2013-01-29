@@ -418,7 +418,7 @@ ProcXTestFakeInput(ClientPtr client)
     }
 
     for (i = 0; i < nevents; i++)
-        mieqProcessDeviceEvent(dev, &xtest_evlist[i], NULL);
+        mieqProcessDeviceEvent(dev, &xtest_evlist[i], miPointerGetScreen(inputInfo.pointer));
 
     if (need_ptr_update)
         miPointerUpdateSprite(dev);
