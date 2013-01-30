@@ -1056,6 +1056,25 @@ CloseDownDevices(void)
 }
 
 /**
+ * Signal all devices that we're in the process of aborting.
+ * This function is called from a signal handler.
+ */
+void
+AbortDevices(void)
+{
+    DeviceIntPtr dev;
+    nt_list_for_each_entry(dev, inputInfo.devices, next) {
+        if (!IsMaster(dev))
+            (*dev->deviceProc) (dev, DEVICE_ABORT);
+    }
+
+    nt_list_for_each_entry(dev, inputInfo.off_devices, next) {
+        if (!IsMaster(dev))
+            (*dev->deviceProc) (dev, DEVICE_ABORT);
+    }
+}
+
+/**
  * Remove the cursor sprite for all devices. This needs to be done before any
  * resources are freed or any device is deleted.
  */

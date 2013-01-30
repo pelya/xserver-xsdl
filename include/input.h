@@ -62,6 +62,7 @@ SOFTWARE.
 #define DEVICE_ON	1
 #define DEVICE_OFF	2
 #define DEVICE_CLOSE	3
+#define DEVICE_ABORT	4
 
 #define POINTER_RELATIVE	(1 << 1)
 #define POINTER_ABSOLUTE	(1 << 2)
@@ -269,6 +270,7 @@ extern void DisableAllDevices(void);
 extern int InitAndStartDevices(void);
 
 extern void CloseDownDevices(void);
+extern void AbortDevices(void);
 
 extern void UndisplayDevices(void);
 

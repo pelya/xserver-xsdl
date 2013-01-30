@@ -663,7 +663,7 @@ AbortServer(void)
 #endif
     CloseWellKnownConnections();
     OsCleanup(TRUE);
-    CloseDownDevices();
+    AbortDevices();
     AbortDDX(EXIT_ERR_ABORT);
     fflush(stderr);
     if (CoreDump)
