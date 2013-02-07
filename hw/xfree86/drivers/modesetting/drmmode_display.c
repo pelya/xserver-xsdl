@@ -547,6 +547,17 @@ drmmode_set_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix)
 }
 #endif
 
+static void *drmmode_shadow_allocate(xf86CrtcPtr crtc, int width, int height)
+{
+	return NULL;
+}
+
+static PixmapPtr drmmode_shadow_create(xf86CrtcPtr crtc, void *data, int width,
+				       int height)
+{
+	return NULL;
+}
+
 static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
     .dpms = drmmode_crtc_dpms,
     .set_mode_major = drmmode_set_mode_major,
@@ -561,6 +572,8 @@ static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
 #ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
     .set_scanout_pixmap = drmmode_set_scanout_pixmap,
 #endif
+    .shadow_allocate = drmmode_shadow_allocate,
+    .shadow_create = drmmode_shadow_create,
 };
 
 static void
