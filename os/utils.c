@@ -1999,7 +1999,7 @@ FormatDouble(double dbl, char *string)
     int slen = 0;
     uint64_t frac;
 
-    frac = (dbl > 0 ? dbl : -dbl) * 100.0;
+    frac = (dbl > 0 ? dbl : -dbl) * 100.0 + 0.5;
     frac %= 100;
 
     /* write decimal part to string */
