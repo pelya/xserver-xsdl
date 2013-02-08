@@ -1202,6 +1202,27 @@ transform(struct pixman_f_transform *m, double *x, double *y)
     *y = p.v[1];
 }
 
+static void
+transformRelative(DeviceIntPtr dev, ValuatorMask *mask)
+{
+    double x = 0, y = 0;
+
+    valuator_mask_fetch_double(mask, 0, &x);
+    valuator_mask_fetch_double(mask, 1, &y);
+
+    transform(&dev->relative_transform, &x, &y);
+
+    if (x)
+        valuator_mask_set_double(mask, 0, x);
+    else
+        valuator_mask_unset(mask, 0);
+
+    if (y)
+        valuator_mask_set_double(mask, 1, y);
+    else
+        valuator_mask_unset(mask, 1);
+}
+
 /**
  * Apply the device's transformation matrix to the valuator mask and replace
  * the scaled values in mask. This transformation only applies to valuators
@@ -1229,7 +1250,7 @@ transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
         ox = dev->last.valuators[0];
         oy = dev->last.valuators[1];
 
-        pixman_f_transform_invert(&invert, &dev->transform);
+        pixman_f_transform_invert(&invert, &dev->scale_and_transform);
         transform(&invert, &ox, &oy);
 
         x = ox;
@@ -1242,7 +1263,7 @@ transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
     if (valuator_mask_isset(mask, 1))
         oy = y = valuator_mask_get_double(mask, 1);
 
-    transform(&dev->transform, &x, &y);
+    transform(&dev->scale_and_transform, &x, &y);
 
     if (valuator_mask_isset(mask, 0) || ox != x)
         valuator_mask_set_double(mask, 0, x);
@@ -1403,6 +1424,8 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
             set_raw_valuators(raw, &mask, raw->valuators.data);
     }
     else {
+        transformRelative(pDev, &mask);
+
         if (flags & POINTER_ACCELERATE)
             accelPointer(pDev, &mask, ms);
         if ((flags & POINTER_NORAW) == 0)
