@@ -1867,7 +1867,7 @@ DeliverTouchBeginEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
         if (has_ownershipmask)
             TouchSendOwnershipEvent(dev, ti, 0, listener->listener);
 
-        if (!has_ownershipmask || listener->type == LISTENER_REGULAR)
+        if (listener->type == LISTENER_REGULAR)
             state = LISTENER_HAS_ACCEPTED;
         else
             state = LISTENER_IS_OWNER;
