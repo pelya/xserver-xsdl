@@ -874,7 +874,7 @@ TouchSetupListeners(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev)
     SpritePtr sprite = &ti->sprite;
     WindowPtr win;
 
-    if (dev->deviceGrab.grab)
+    if (dev->deviceGrab.grab && !dev->deviceGrab.fromPassiveGrab)
         TouchAddActiveGrabListener(dev, ti, ev, dev->deviceGrab.grab);
 
     /* We set up an active touch listener for existing touches, but not any
