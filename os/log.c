@@ -461,6 +461,7 @@ pnprintf(char *string, size_t size, const char *f, va_list args)
             string[s_idx++] = '%';
             break;
         default:
+            BUG_WARN_MSG(f[f_idx], "Unsupported printf directive '%c'\n", f[f_idx]);
             va_arg(args, char*);
             string[s_idx++] = '%';
             if (s_idx < size - 1)
