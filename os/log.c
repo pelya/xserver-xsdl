@@ -450,6 +450,9 @@ pnprintf(char *string, size_t size, const char *f, va_list args)
                     string[s_idx++] = number[i];
             }
             break;
+        case '%':
+            string[s_idx++] = '%';
+            break;
         default:
             va_arg(args, char*);
             string[s_idx++] = '%';
