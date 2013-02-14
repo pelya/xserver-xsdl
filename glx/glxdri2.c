@@ -857,8 +857,6 @@ initializeExtensions(__GLXDRIscreen * screen)
     __glXEnableExtension(screen->glx_enable_bits, "GLX_MESA_copy_sub_buffer");
     LogMessage(X_INFO, "AIGLX: enabled GLX_MESA_copy_sub_buffer\n");
 
-    __glXEnableExtension(screen->glx_enable_bits, "GLX_INTEL_swap_event");
-    LogMessage(X_INFO, "AIGLX: enabled GLX_INTEL_swap_event\n");
 
 #if __DRI_DRI2_VERSION >= 3
     if (screen->dri2->base.version >= 3) {
@@ -876,8 +874,10 @@ initializeExtensions(__GLXDRIscreen * screen)
 #endif
 
     if (DRI2HasSwapControl(pScreen)) {
+        __glXEnableExtension(screen->glx_enable_bits, "GLX_INTEL_swap_event");
         __glXEnableExtension(screen->glx_enable_bits, "GLX_SGI_swap_control");
         __glXEnableExtension(screen->glx_enable_bits, "GLX_MESA_swap_control");
+        LogMessage(X_INFO, "AIGLX: enabled GLX_INTEL_swap_event\n");
         LogMessage(X_INFO,
                    "AIGLX: enabled GLX_SGI_swap_control and GLX_MESA_swap_control\n");
     }
