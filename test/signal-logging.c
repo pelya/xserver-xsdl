@@ -201,6 +201,11 @@ static void logging_format(void)
     read_log_msg(logmsg);
     assert(strcmp(logmsg, "(EE) test %\n") == 0);
 
+    /* character */
+    LogMessageVerbSigSafe(X_ERROR, -1, "test %c\n", 'a');
+    read_log_msg(logmsg);
+    assert(strcmp(logmsg, "(EE) test a\n") == 0);
+
     /* string substitution */
     LogMessageVerbSigSafe(X_ERROR, -1, "%s\n", "substituted string");
     read_log_msg(logmsg);
