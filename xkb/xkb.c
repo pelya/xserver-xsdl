@@ -3984,13 +3984,11 @@ _XkbSetNamesCheck(ClientPtr client, DeviceIntPtr dev,
                   xkbSetNamesReq * stuff, CARD32 *data)
 {
     XkbDescRec *xkb;
-    XkbNamesRec *names;
     CARD32 *tmp;
     Atom bad;
 
     tmp = data;
     xkb = dev->key->xkbInfo->desc;
-    names = xkb->names;
 
     if (stuff->which & XkbKeyTypeNamesMask) {
         int i;
