@@ -858,7 +858,7 @@ hostx_load_keymap(void)
                                          (max_keycode - min_keycode + 1) *
                                          width);
     if (!ephyrKeySyms.map)
-        return;
+        goto out;
 
     for (i = 0; i < (max_keycode - min_keycode + 1); i++)
         for (j = 0; j < width; j++)
@@ -871,6 +871,7 @@ hostx_load_keymap(void)
     ephyrKeySyms.maxKeyCode = max_keycode;
     ephyrKeySyms.mapWidth = width;
 
+ out:
     XFree(keymap);
 }
 
