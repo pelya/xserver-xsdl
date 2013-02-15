@@ -2222,8 +2222,7 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
 }
 
 /**
- * Grab the given key. If grabtype is XI, the key is a keycode. If
- * grabtype is XI2, the key is a keysym.
+ * Grab the given key.
  */
 int
 GrabKey(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
