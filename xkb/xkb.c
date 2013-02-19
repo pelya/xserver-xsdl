@@ -3073,6 +3073,7 @@ XkbComputeGetIndicatorMapReplySize(XkbIndicatorPtr indicators,
             nIndicators++;
     }
     rep->length = (nIndicators * SIZEOF(xkbIndicatorMapWireDesc)) / 4;
+    rep->nIndicators = nIndicators;
     return Success;
 }
 
