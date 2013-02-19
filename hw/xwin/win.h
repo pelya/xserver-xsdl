@@ -47,17 +47,6 @@
 #define CYGDEBUG				NO
 #endif
 
-/* WM_XBUTTON Messages. They should go into w32api. */
-#ifndef WM_XBUTTONDOWN
-#define WM_XBUTTONDOWN 523
-#endif
-#ifndef WM_XBUTTONUP
-#define WM_XBUTTONUP 524
-#endif
-#ifndef WM_XBUTTONDBLCLK
-#define WM_XBUTTONDBLCLK 525
-#endif
-
 #define WIN_DEFAULT_BPP				0
 #define WIN_DEFAULT_WHITEPIXEL			255
 #define WIN_DEFAULT_BLACKPIXEL			0
