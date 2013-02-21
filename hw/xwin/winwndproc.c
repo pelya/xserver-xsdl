@@ -894,7 +894,7 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
             )
             SetCapture(hwnd);
-        return winMouseButtonsHandle(s_pScreen, ButtonPress, HIWORD(wParam) + 5,
+        return winMouseButtonsHandle(s_pScreen, ButtonPress, HIWORD(wParam) + 7,
                                      wParam);
     case WM_XBUTTONUP:
         if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
@@ -906,7 +906,7 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             )
             ReleaseCapture();
         return winMouseButtonsHandle(s_pScreen, ButtonRelease,
-                                     HIWORD(wParam) + 5, wParam);
+                                     HIWORD(wParam) + 7, wParam);
 
     case WM_TIMER:
         if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)

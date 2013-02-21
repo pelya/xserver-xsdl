@@ -661,7 +661,7 @@ winTopLevelWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
             break;
         SetCapture(hwnd);
-        return winMouseButtonsHandle(s_pScreen, ButtonPress, HIWORD(wParam) + 5,
+        return winMouseButtonsHandle(s_pScreen, ButtonPress, HIWORD(wParam) + 7,
                                      wParam);
 
     case WM_XBUTTONUP:
@@ -670,7 +670,7 @@ winTopLevelWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         ReleaseCapture();
         winStartMousePolling(s_pScreenPriv);
         return winMouseButtonsHandle(s_pScreen, ButtonRelease,
-                                     HIWORD(wParam) + 5, wParam);
+                                     HIWORD(wParam) + 7, wParam);
 
     case WM_MOUSEWHEEL:
         if (SendMessage
