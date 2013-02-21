@@ -976,7 +976,20 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 #if CYGDEBUG
         winDebug("winWindowProc - WM_MOUSEWHEEL\n");
 #endif
-        winMouseWheel(s_pScreen, GET_WHEEL_DELTA_WPARAM(wParam));
+        /* Button4 = WheelUp */
+        /* Button5 = WheelDown */
+        winMouseWheel(&(s_pScreenPriv->iDeltaZ), GET_WHEEL_DELTA_WPARAM(wParam), Button4, Button5);
+        break;
+
+    case WM_MOUSEHWHEEL:
+        if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
+            break;
+#if CYGDEBUG
+        winDebug("winWindowProc - WM_MOUSEHWHEEL\n");
+#endif
+        /* Button7 = TiltRight */
+        /* Button6 = TiltLeft */
+        winMouseWheel(&(s_pScreenPriv->iDeltaV), GET_WHEEL_DELTA_WPARAM(wParam), 7, 6);
         break;
 
     case WM_SETFOCUS:
@@ -1147,6 +1160,7 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         /* Clear any lingering wheel delta */
         s_pScreenPriv->iDeltaZ = 0;
+        s_pScreenPriv->iDeltaV = 0;
 
         /* Reshow the Windows mouse cursor if we are being deactivated */
         if (g_fSoftwareCursor && LOWORD(wParam) == WA_INACTIVE && !g_fCursor) {

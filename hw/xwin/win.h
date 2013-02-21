@@ -42,6 +42,11 @@
 #define YES					1
 #endif
 
+/* We can handle WM_MOUSEHWHEEL even though _WIN32_WINNT < 0x0600 */
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL 0x020E
+#endif
+
 /* Turn debug messages on or off */
 #ifndef CYGDEBUG
 #define CYGDEBUG				NO
@@ -449,6 +454,7 @@ typedef struct _winPrivScreenRec {
     Bool fBadDepth;
 
     int iDeltaZ;
+    int iDeltaV;
 
     int iConnectedClients;
 
@@ -975,7 +981,7 @@ int
  winMouseProc(DeviceIntPtr pDeviceInt, int iState);
 
 int
- winMouseWheel(ScreenPtr pScreen, int iDeltaZ);
+ winMouseWheel(int *iTotalDeltaZ, int iDeltaZ, int iButtonUp, int iButtonDown);
 
 void
  winMouseButtonsSendEvent(int iEventType, int iButton);

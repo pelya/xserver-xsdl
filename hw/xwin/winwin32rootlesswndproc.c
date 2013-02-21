@@ -667,6 +667,15 @@ winMWExtWMWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         SendMessage(hwndScreen, message, wParam, lParam);
         return 0;
 
+    case WM_MOUSEHWHEEL:
+#if CYGMULTIWINDOW_DEBUG
+        winDebug("winMWExtWMWindowProc - WM_MOUSEHWHEEL\n");
+#endif
+
+        /* Pass the message to the root window */
+        SendMessage(hwndScreen, message, wParam, lParam);
+        return 0;
+
     case WM_MOUSEACTIVATE:
 #if CYGMULTIWINDOW_DEBUG
         winDebug("winMWExtWMWindowProc - WM_MOUSEACTIVATE\n");

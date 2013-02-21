@@ -145,20 +145,16 @@ winMouseProc(DeviceIntPtr pDeviceInt, int iState)
 
 /* Handle the mouse wheel */
 int
-winMouseWheel(ScreenPtr pScreen, int iDeltaZ)
+winMouseWheel(int *iTotalDeltaZ, int iDeltaZ, int iButtonUp, int iButtonDown)
 {
-    winScreenPriv(pScreen);
-    int button;                 /* Button4 or Button5 */
-
-    /* Button4 = WheelUp */
-    /* Button5 = WheelDown */
+    int button;
 
     /* Do we have any previous delta stored? */
-    if ((pScreenPriv->iDeltaZ > 0 && iDeltaZ > 0)
-        || (pScreenPriv->iDeltaZ < 0 && iDeltaZ < 0)) {
+    if ((*iTotalDeltaZ > 0 && iDeltaZ > 0)
+        || (*iTotalDeltaZ < 0 && iDeltaZ < 0)) {
         /* Previous delta and of same sign as current delta */
-        iDeltaZ += pScreenPriv->iDeltaZ;
-        pScreenPriv->iDeltaZ = 0;
+        iDeltaZ += *iTotalDeltaZ;
+        *iTotalDeltaZ = 0;
     }
     else {
         /*
@@ -167,7 +163,7 @@ winMouseWheel(ScreenPtr pScreen, int iDeltaZ)
          * as blindly setting takes just as much time
          * as checking, then setting if necessary :)
          */
-        pScreenPriv->iDeltaZ = 0;
+        *iTotalDeltaZ = 0;
     }
 
     /*
@@ -175,7 +171,7 @@ winMouseWheel(ScreenPtr pScreen, int iDeltaZ)
      * WHEEL_DELTA
      */
     if (iDeltaZ >= WHEEL_DELTA || (-1 * iDeltaZ) >= WHEEL_DELTA) {
-        pScreenPriv->iDeltaZ = 0;
+        *iTotalDeltaZ = 0;
 
         /* Figure out how many whole deltas of the wheel we have */
         iDeltaZ /= WHEEL_DELTA;
@@ -186,16 +182,16 @@ winMouseWheel(ScreenPtr pScreen, int iDeltaZ)
          * we will store the wheel delta until the threshold
          * has been reached.
          */
-        pScreenPriv->iDeltaZ = iDeltaZ;
+        *iTotalDeltaZ = iDeltaZ;
         return 0;
     }
 
     /* Set the button to indicate up or down wheel delta */
     if (iDeltaZ > 0) {
-        button = Button4;
+        button = iButtonUp;
     }
     else {
-        button = Button5;
+        button = iButtonDown;
     }
 
     /*
