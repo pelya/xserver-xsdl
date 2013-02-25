@@ -1417,7 +1417,7 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
             }
 
             if (!deliveries)
-                DeliverOneGrabbedEvent(ptrev, dev, grab->grabtype);
+                deliveries = DeliverOneGrabbedEvent(ptrev, dev, grab->grabtype);
 
             /* We must accept the touch sequence once a pointer listener has
              * received one event past ButtonPress. */
@@ -1425,8 +1425,7 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
                 !(ev->device_event.flags & TOUCH_CLIENT_ID))
                 TouchListenerAcceptReject(dev, ti, 0, XIAcceptTouch);
 
-            if (ev->any.type == ET_TouchEnd &&
-                !(ev->device_event.flags & TOUCH_CLIENT_ID) &&
+            if (deliveries && ev->any.type == ET_TouchEnd &&
                 !dev->button->buttonsDown &&
                 dev->deviceGrab.fromPassiveGrab && GrabIsPointerGrab(grab)) {
                 (*dev->deviceGrab.DeactivateGrab) (dev);
