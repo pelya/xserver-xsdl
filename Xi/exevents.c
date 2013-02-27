@@ -1143,12 +1143,21 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
         TouchEventHistoryReplay(ti, dev, listener->listener);
     }
 
-    /* If we've just removed the last grab and the touch has physically
-     * ended, send a TouchEnd event too and finalise the touch. */
-    if (ti->num_listeners == 1 && ti->num_grabs == 0 && ti->pending_finish) {
+    /* New owner has Begin/Update but not end. If touch is pending_finish,
+     * emulate the TouchEnd now */
+    if (ti->pending_finish) {
         EmitTouchEnd(dev, ti, 0, 0);
-        TouchEndTouch(dev, ti);
-        return;
+
+        /* If the last owner is not a touch grab, finalise the touch, we
+           won't get more correspondence on this.
+         */
+        if (ti->num_listeners == 1 &&
+            (ti->num_grabs == 0 ||
+             listener->grab->grabtype != XI2 ||
+             !xi2mask_isset(listener->grab->xi2mask, dev, XI_TouchBegin))) {
+            TouchEndTouch(dev, ti);
+            return;
+        }
     }
 
     if (accepted_early)
