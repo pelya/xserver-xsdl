@@ -1102,3 +1102,17 @@ TouchEmitTouchEnd(DeviceIntPtr dev, TouchPointInfoPtr ti, int flags, XID resourc
     GetDixTouchEnd(&event, dev, ti, flags);
     DeliverTouchEvents(dev, ti, &event, resource);
 }
+
+void
+TouchAcceptAndEnd(DeviceIntPtr dev, int touchid)
+{
+    TouchPointInfoPtr ti = TouchFindByClientID(dev, touchid);
+    if (!ti)
+        return;
+
+    TouchListenerAcceptReject(dev, ti, 0, XIAcceptTouch);
+    if (ti->pending_finish)
+        TouchEmitTouchEnd(dev, ti, 0, 0);
+    if (ti->num_listeners <= 1)
+        TouchEndTouch(dev, ti);
+}

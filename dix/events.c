@@ -1742,6 +1742,16 @@ AllowSome(ClientPtr client, TimeStamp time, DeviceIntPtr thisDev, int newState)
         }
         break;
     }
+
+    /* We've unfrozen the grab. If the grab was a touch grab, we're now the
+     * owner and expected to accept/reject it. Reject == ReplayPointer which
+     * we've handled in ComputeFreezes() (during DeactivateGrab) above,
+     * anything else is accept.
+     */
+    if (newState != NOT_GRABBED /* Replay */ &&
+        IsTouchEvent((InternalEvent*)grabinfo->sync.event)) {
+        TouchAcceptAndEnd(thisDev, grabinfo->sync.event->touchid);
+    }
 }
 
 /**
