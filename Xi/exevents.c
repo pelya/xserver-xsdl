@@ -1126,10 +1126,10 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
                      TouchOwnershipEvent *ev)
 {
     TouchListener *listener = &ti->listeners[0]; /* new owner */
+    int accepted_early = listener->state == LISTENER_EARLY_ACCEPT;
 
     /* Deliver the ownership */
-    if (listener->state == LISTENER_AWAITING_OWNER ||
-        listener->state == LISTENER_EARLY_ACCEPT)
+    if (listener->state == LISTENER_AWAITING_OWNER || accepted_early)
         DeliverTouchEvents(dev, ti, (InternalEvent *) ev,
                            listener->listener);
     else if (listener->state == LISTENER_AWAITING_BEGIN) {
@@ -1151,7 +1151,7 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
         return;
     }
 
-    if (listener->state == LISTENER_EARLY_ACCEPT)
+    if (accepted_early)
         ActivateEarlyAccept(dev, ti);
 }
 
