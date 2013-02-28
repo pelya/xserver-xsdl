@@ -1126,20 +1126,22 @@ static void
 TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
                      TouchOwnershipEvent *ev)
 {
+    TouchListener *listener = &ti->listeners[0]; /* new owner */
+
     /* Deliver the ownership */
-    if (ti->listeners[0].state == LISTENER_AWAITING_OWNER ||
-        ti->listeners[0].state == LISTENER_EARLY_ACCEPT)
+    if (listener->state == LISTENER_AWAITING_OWNER ||
+        listener->state == LISTENER_EARLY_ACCEPT)
         DeliverTouchEvents(dev, ti, (InternalEvent *) ev,
-                           ti->listeners[0].listener);
-    else if (ti->listeners[0].state == LISTENER_AWAITING_BEGIN) {
+                           listener->listener);
+    else if (listener->state == LISTENER_AWAITING_BEGIN) {
         /* We can't punt to a pointer listener unless all older pointer
          * emulated touches have been seen already. */
-        if ((ti->listeners[0].type == LISTENER_POINTER_GRAB ||
-             ti->listeners[0].type == LISTENER_POINTER_REGULAR) &&
+        if ((listener->type == LISTENER_POINTER_GRAB ||
+             listener->type == LISTENER_POINTER_REGULAR) &&
             ti != FindOldestPointerEmulatedTouch(dev))
             return;
 
-        TouchEventHistoryReplay(ti, dev, ti->listeners[0].listener);
+        TouchEventHistoryReplay(ti, dev, listener->listener);
     }
 
     /* If we've just removed the last grab and the touch has physically
@@ -1150,7 +1152,7 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
         return;
     }
 
-    if (ti->listeners[0].state == LISTENER_EARLY_ACCEPT)
+    if (listener->state == LISTENER_EARLY_ACCEPT)
         ActivateEarlyAccept(dev, ti);
 }
 
