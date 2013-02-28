@@ -1039,17 +1039,16 @@ ActivateEarlyAccept(DeviceIntPtr dev, TouchPointInfoPtr ti)
     int rc;
     ClientPtr client;
     XID error;
+    GrabPtr grab = ti->listeners[0].grab;
 
-    rc = dixLookupClient(&client, ti->listeners[0].listener, serverClient,
-                         DixSendAccess);
-    if (rc != Success) {
-        ErrorF("[Xi] Failed to lookup early accepting client.\n");
-        return;
-    }
+    BUG_RETURN(ti->listeners[0].type != LISTENER_GRAB &&
+               ti->listeners[0].type != LISTENER_POINTER_GRAB);
+    BUG_RETURN(!grab);
+
+    client = rClient(grab);
 
     if (TouchAcceptReject(client, dev, XIAcceptTouch, ti->client_id,
-                          ti->listeners[0].window->drawable.id, &error) !=
-        Success)
+                          ti->listeners[0].window->drawable.id, &error) != Success)
         ErrorF("[Xi] Failed to accept touch grab after early acceptance.\n");
 }
 
