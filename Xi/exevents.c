@@ -1898,6 +1898,7 @@ DeliverTouchEndEvent(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev,
         goto out;
     }
 
+    /* A client is waiting for the begin, don't give it a TouchEnd */
     if (listener->state == LISTENER_AWAITING_BEGIN) {
         listener->state = LISTENER_HAS_END;
         goto out;
