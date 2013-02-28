@@ -1904,7 +1904,9 @@ DeliverTouchEndEvent(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev,
     }
 
     /* Event in response to reject */
-    if (ev->device_event.flags & TOUCH_REJECT) {
+    if (ev->device_event.flags & TOUCH_REJECT ||
+        (ev->device_event.flags & TOUCH_ACCEPT && !TouchResourceIsOwner(ti, listener->listener))) {
+        /* Touch has been rejected, or accepted by its owner which is not this listener */
         if (listener->state != LISTENER_HAS_END)
             rc = DeliverOneTouchEvent(client, dev, ti, grab, win, ev);
         listener->state = LISTENER_HAS_END;
@@ -1926,12 +1928,6 @@ DeliverTouchEndEvent(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev,
 
         if (normal_end)
             listener->state = LISTENER_HAS_END;
-    }
-    else if (ev->device_event.flags & TOUCH_ACCEPT) {
-        /* Touch has been accepted by its owner, which is not this listener */
-        if (listener->state != LISTENER_HAS_END)
-            rc = DeliverOneTouchEvent(client, dev, ti, grab, win, ev);
-        listener->state = LISTENER_HAS_END;
     }
 
  out:
