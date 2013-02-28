@@ -1376,7 +1376,7 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
 
     /* We don't deliver pointer events to non-owners */
     if (!TouchResourceIsOwner(ti, listener->listener))
-        return Success;
+        return !Success;
 
     nevents = TouchConvertToPointerEvent(ev, &motion, &button);
     BUG_RETURN_VAL(nevents == 0, BadValue);
@@ -1398,7 +1398,7 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
             /* 'grab' is the passive grab, but if the grab isn't active,
              * don't deliver */
             if (!dev->deviceGrab.grab)
-                return Success;
+                return !Success;
 
             if (grab->ownerEvents) {
                 WindowPtr focus = NullWindow;
