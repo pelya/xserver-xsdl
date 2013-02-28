@@ -1849,6 +1849,8 @@ DeliverTouchBeginEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
         listener->type == LISTENER_POINTER_GRAB) {
         rc = DeliverTouchEmulatedEvent(dev, ti, ev, listener, client, win,
                                        grab, xi2mask);
+        if (rc == Success)
+            listener->state = LISTENER_IS_OWNER;
         goto out;
     }
 
@@ -1889,13 +1891,13 @@ DeliverTouchEndEvent(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev,
         rc = DeliverTouchEmulatedEvent(dev, ti, ev, listener, client, win,
                                        grab, xi2mask);
 
-        if (ti->num_listeners > 1) {
-            ev->any.type = ET_TouchUpdate;
-            ev->device_event.flags |= TOUCH_PENDING_END;
-            if (!(ev->device_event.flags & TOUCH_CLIENT_ID))
-                ti->pending_finish = TRUE;
-        }
-
+         /* Once we send a TouchEnd to a legacy listener, we're already well
+          * past the accepting/rejecting stage (can only happen on
+          * GrabModeSync + replay. This listener now gets the end event,
+          * and we can continue.
+          */
+        if (rc == Success)
+            listener->state = LISTENER_HAS_END;
         goto out;
     }
 
