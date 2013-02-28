@@ -1554,7 +1554,7 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
 
     touchid = ev->device_event.touchid;
 
-    if (type == ET_TouchBegin) {
+    if (type == ET_TouchBegin && !(ev->device_event.flags & TOUCH_REPLAYING)) {
         ti = TouchBeginTouch(dev, ev->device_event.sourceid, touchid,
                              emulate_pointer);
     }
@@ -1621,7 +1621,9 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
      * called after event type mutation. Touch end events are always processed
      * in order to end touch records. */
     /* FIXME: check this */
-    if ((type == ET_TouchBegin && !TouchBuildSprite(dev, ti, ev)) ||
+    if ((type == ET_TouchBegin &&
+         !(ev->device_event.flags & TOUCH_REPLAYING) &&
+         !TouchBuildSprite(dev, ti, ev)) ||
         (type != ET_TouchEnd && ti->sprite.spriteTraceGood == 0))
         return;
 
@@ -1629,7 +1631,7 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
     /* WARNING: the event type may change to TouchUpdate in
      * DeliverTouchEvents if a TouchEnd was delivered to a grabbing
      * owner */
-    DeliverTouchEvents(dev, ti, (InternalEvent *) ev, 0);
+    DeliverTouchEvents(dev, ti, ev, ev->device_event.resource);
     if (ev->any.type == ET_TouchEnd)
         TouchEndTouch(dev, ti);
 

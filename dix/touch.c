@@ -474,7 +474,21 @@ TouchEventHistoryReplay(TouchPointInfoPtr ti, DeviceIntPtr dev, XID resource)
         DeviceEvent *ev = &ti->history[i];
 
         ev->flags |= TOUCH_REPLAYING;
-        DeliverTouchEvents(dev, ti, (InternalEvent *) ev, resource);
+        ev->resource = resource;
+        /* FIXME:
+           We're replaying ti->history which contains the TouchBegin +
+           all TouchUpdates for ti. This needs to be passed on to the next
+           listener. If that is a touch listener, everything is dandy.
+           If the TouchBegin however triggers a sync passive grab, the
+           TouchUpdate events must be sent to EnqueueEvent so the events end
+           up in syncEvents.pending to be forwarded correctly in a
+           subsequent ComputeFreeze().
+
+           However, if we just send them to EnqueueEvent the sync'ing device
+           prevents handling of touch events for ownership listeners who
+           want the events right here, right now.
+         */
+        dev->public.processInputProc((InternalEvent*)ev, dev);
     }
 }
 
