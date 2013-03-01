@@ -1067,6 +1067,10 @@ EmitTouchEnd(DeviceIntPtr dev, TouchPointInfoPtr ti, int flags, XID resource)
 {
     InternalEvent event;
 
+    /* We're not processing a touch end for a frozen device */
+    if (dev->deviceGrab.sync.frozen)
+        return;
+
     flags |= TOUCH_CLIENT_ID;
     if (ti->emulate_pointer)
         flags |= TOUCH_POINTER_EMULATED;
