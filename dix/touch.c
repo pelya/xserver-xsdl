@@ -1075,3 +1075,30 @@ TouchEndPhysicallyActiveTouches(DeviceIntPtr dev)
 
     FreeEventList(eventlist, GetMaximumEventsNum());
 }
+
+/**
+ * Generate and deliver a TouchEnd event.
+ *
+ * @param dev The device to deliver the event for.
+ * @param ti The touch point record to deliver the event for.
+ * @param flags Internal event flags. The called does not need to provide
+ *        TOUCH_CLIENT_ID and TOUCH_POINTER_EMULATED, this function will ensure
+ *        they are set appropriately.
+ * @param resource The client resource to deliver to, or 0 for all clients.
+ */
+void
+TouchEmitTouchEnd(DeviceIntPtr dev, TouchPointInfoPtr ti, int flags, XID resource)
+{
+    InternalEvent event;
+
+    /* We're not processing a touch end for a frozen device */
+    if (dev->deviceGrab.sync.frozen)
+        return;
+
+    flags |= TOUCH_CLIENT_ID;
+    if (ti->emulate_pointer)
+        flags |= TOUCH_POINTER_EMULATED;
+    TouchDeliverDeviceClassesChangedEvent(ti, GetTimeInMillis(), resource);
+    GetDixTouchEnd(&event, dev, ti, flags);
+    DeliverTouchEvents(dev, ti, &event, resource);
+}

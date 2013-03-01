@@ -1053,33 +1053,6 @@ ActivateEarlyAccept(DeviceIntPtr dev, TouchPointInfoPtr ti)
 }
 
 /**
- * Generate and deliver a TouchEnd event.
- *
- * @param dev The device to deliver the event for.
- * @param ti The touch point record to deliver the event for.
- * @param flags Internal event flags. The called does not need to provide
- *        TOUCH_CLIENT_ID and TOUCH_POINTER_EMULATED, this function will ensure
- *        they are set appropriately.
- * @param resource The client resource to deliver to, or 0 for all clients.
- */
-static void
-EmitTouchEnd(DeviceIntPtr dev, TouchPointInfoPtr ti, int flags, XID resource)
-{
-    InternalEvent event;
-
-    /* We're not processing a touch end for a frozen device */
-    if (dev->deviceGrab.sync.frozen)
-        return;
-
-    flags |= TOUCH_CLIENT_ID;
-    if (ti->emulate_pointer)
-        flags |= TOUCH_POINTER_EMULATED;
-    TouchDeliverDeviceClassesChangedEvent(ti, GetTimeInMillis(), resource);
-    GetDixTouchEnd(&event, dev, ti, flags);
-    DeliverTouchEvents(dev, ti, &event, resource);
-}
-
-/**
  * Find the oldest touch that still has a pointer emulation client.
  *
  * Pointer emulation can only be performed for the oldest touch. Otherwise, the
@@ -1150,7 +1123,7 @@ TouchPuntToNextOwner(DeviceIntPtr dev, TouchPointInfoPtr ti,
     /* New owner has Begin/Update but not end. If touch is pending_finish,
      * emulate the TouchEnd now */
     if (ti->pending_finish) {
-        EmitTouchEnd(dev, ti, 0, 0);
+        TouchEmitTouchEnd(dev, ti, 0, 0);
 
         /* If the last owner is not a touch grab, finalise the touch, we
            won't get more correspondence on this.
@@ -1208,7 +1181,7 @@ TouchRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti, XID resource,
     for (i = 0; i < ti->num_listeners; i++) {
         if (ti->listeners[i].listener == resource) {
             if (ti->listeners[i].state != LISTENER_HAS_END)
-                EmitTouchEnd(sourcedev, ti, TOUCH_REJECT, resource);
+                TouchEmitTouchEnd(sourcedev, ti, TOUCH_REJECT, resource);
             break;
         }
     }
@@ -1255,12 +1228,12 @@ ProcessTouchOwnershipEvent(TouchOwnershipEvent *ev,
          * already seen the end. This ensures that the touch record is ended in
          * the server. */
         if (ti->listeners[0].state == LISTENER_HAS_END)
-            EmitTouchEnd(dev, ti, TOUCH_ACCEPT, ti->listeners[0].listener);
+            TouchEmitTouchEnd(dev, ti, TOUCH_ACCEPT, ti->listeners[0].listener);
 
         /* The touch owner has accepted the touch.  Send TouchEnd events to
          * everyone else, and truncate the list of listeners. */
         for (i = 1; i < ti->num_listeners; i++)
-            EmitTouchEnd(dev, ti, TOUCH_ACCEPT, ti->listeners[i].listener);
+            TouchEmitTouchEnd(dev, ti, TOUCH_ACCEPT, ti->listeners[i].listener);
 
         while (ti->num_listeners > 1)
             TouchRemoveListener(ti, ti->listeners[1].listener);
