@@ -676,8 +676,8 @@ BarrierFreeBarrier(void *data, XID id)
             continue;
 
         ev.deviceid = dev->id;
-        ev.event_id = pbd->barrier_event_id,
-        ev.dt = ms - pbd->last_timestamp,
+        ev.event_id = pbd->barrier_event_id;
+        ev.dt = ms - pbd->last_timestamp;
 
         GetSpritePosition(dev, &root_x, &root_y);
         ev.root_x = root_x;
