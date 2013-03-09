@@ -770,6 +770,29 @@ add_to_scroll_valuator(DeviceIntPtr dev, ValuatorMask *mask, int valuator, doubl
 }
 
 
+static void
+scale_for_device_resolution(DeviceIntPtr dev, ValuatorMask *mask)
+{
+    double x;
+    ValuatorClassPtr v = dev->valuator;
+    int xrange = v->axes[0].max_value - v->axes[0].min_value + 1;
+    int yrange = v->axes[1].max_value - v->axes[1].min_value + 1;
+
+    double screen_ratio = 1.0 * screenInfo.width/screenInfo.height;
+    double device_ratio = 1.0 * xrange/yrange;
+    double resolution_ratio = 1.0;
+    double ratio;
+
+    if (!valuator_mask_fetch_double(mask, 0, &x))
+        return;
+
+    if (v->axes[0].resolution != 0 && v->axes[1].resolution != 0)
+        resolution_ratio = 1.0 * v->axes[0].resolution/v->axes[1].resolution;
+
+    ratio = device_ratio/resolution_ratio/screen_ratio;
+    valuator_mask_set_double(mask, 0, x * ratio);
+}
+
 /**
  * Move the device's pointer by the values given in @valuators.
  *
@@ -781,27 +804,14 @@ moveRelative(DeviceIntPtr dev, int flags, ValuatorMask *mask)
 {
     int i;
     Bool clip_xy = IsMaster(dev) || !IsFloating(dev);
+    ValuatorClassPtr v = dev->valuator;
 
     /* for abs devices in relative mode, we've just scaled wrong, since we
        mapped the device's shape into the screen shape. Undo this. */
-    if ((flags & POINTER_ABSOLUTE) == 0 && dev->valuator &&
-        dev->valuator->axes[0].min_value < dev->valuator->axes[0].max_value) {
-
-        double ratio = 1.0 * screenInfo.width/screenInfo.height;
-
-        if (ratio > 1.0) {
-            double y;
-            if (valuator_mask_fetch_double(mask, 1, &y)) {
-                y *= ratio;
-                valuator_mask_set_double(mask, 1, y);
-            }
-        } else {
-            double x;
-            if (valuator_mask_fetch_double(mask, 0, &x)) {
-                x *= ratio;
-                valuator_mask_set_double(mask, 0, x);
-            }
-        }
+    if ((flags & POINTER_ABSOLUTE) == 0 && v && v->numAxes > 1 &&
+        v->axes[0].min_value < v->axes[0].max_value &&
+        v->axes[1].min_value < v->axes[1].max_value) {
+        scale_for_device_resolution(dev, mask);
     }
 
     /* calc other axes, clip, drop back into valuators */
