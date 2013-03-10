@@ -319,6 +319,21 @@ fbdevWindowLinear(ScreenPtr pScreen,
     return (CARD8 *) priv->fb + row * priv->fix.line_length + offset;
 }
 
+static void *
+fbdevWindowAfb(ScreenPtr pScreen,
+               CARD32 row,
+               CARD32 offset, int mode, CARD32 *size, void *closure)
+{
+    KdScreenPriv(pScreen);
+    FbdevPriv *priv = pScreenPriv->card->driver;
+
+    if (!pScreenPriv->enabled)
+        return 0;
+    /* offset to next plane */
+    *size = priv->var.yres_virtual * priv->fix.line_length;
+    return (CARD8 *) priv->fb + row * priv->fix.line_length + offset;
+}
+
 Bool
 fbdevMapFramebuffer(KdScreenInfo * screen)
 {
@@ -435,7 +450,20 @@ fbdevSetShadow(ScreenPtr pScreen)
         break;
 
     case FB_TYPE_PLANES:
-        FatalError("Bitplanes are not yet supported\n");
+        window = fbdevWindowAfb;
+        switch (priv->var.bits_per_pixel) {
+        case 4:
+            update = shadowUpdateAfb4;
+            break;
+
+        case 8:
+            update = shadowUpdateAfb8;
+            break;
+
+        default:
+            FatalError("Bitplanes with bpp %u are not yet supported\n",
+                       priv->var.bits_per_pixel);
+        }
         break;
 
     case FB_TYPE_INTERLEAVED_PLANES:
