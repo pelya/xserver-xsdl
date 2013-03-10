@@ -402,33 +402,58 @@ fbdevSetShadow(ScreenPtr pScreen)
 
     window = fbdevWindowLinear;
     update = 0;
-    if (scrpriv->randr)
-        if (priv->var.bits_per_pixel == 16) {
-            switch (scrpriv->randr) {
-            case RR_Rotate_90:
-                if (useYX)
-                    update = shadowUpdateRotate16_90YX;
-                else
-                    update = shadowUpdateRotate16_90;
-                break;
-            case RR_Rotate_180:
-                update = shadowUpdateRotate16_180;
-                break;
-            case RR_Rotate_270:
-                if (useYX)
-                    update = shadowUpdateRotate16_270YX;
-                else
-                    update = shadowUpdateRotate16_270;
-                break;
-            default:
-                update = shadowUpdateRotate16;
-                break;
+    switch (priv->fix.type) {
+    case FB_TYPE_PACKED_PIXELS:
+        if (scrpriv->randr)
+            if (priv->var.bits_per_pixel == 16) {
+                switch (scrpriv->randr) {
+                case RR_Rotate_90:
+                    if (useYX)
+                        update = shadowUpdateRotate16_90YX;
+                    else
+                        update = shadowUpdateRotate16_90;
+                    break;
+                case RR_Rotate_180:
+                    update = shadowUpdateRotate16_180;
+                    break;
+                case RR_Rotate_270:
+                    if (useYX)
+                        update = shadowUpdateRotate16_270YX;
+                    else
+                        update = shadowUpdateRotate16_270;
+                    break;
+                default:
+                    update = shadowUpdateRotate16;
+                    break;
+                }
             }
-        }
+            else
+                update = shadowUpdateRotatePacked;
         else
-            update = shadowUpdateRotatePacked;
-    else
-        update = shadowUpdatePacked;
+            update = shadowUpdatePacked;
+        break;
+
+    case FB_TYPE_PLANES:
+        FatalError("Bitplanes are not yet supported\n");
+        break;
+
+    case FB_TYPE_INTERLEAVED_PLANES:
+        FatalError("Interleaved bitplanes are not yet supported\n");
+        break;
+
+    case FB_TYPE_TEXT:
+        FatalError("Text frame buffers are not yet supported\n");
+        break;
+
+    case FB_TYPE_VGA_PLANES:
+        FatalError("VGA planes are not yet supported\n");
+        break;
+
+    default:
+        FatalError("Unsupported frame buffer type %u\n", priv->fix.type);
+        break;
+    }
+
     return KdShadowSet(pScreen, scrpriv->randr, update, window);
 }
 
