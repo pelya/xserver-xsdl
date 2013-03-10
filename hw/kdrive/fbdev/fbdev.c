@@ -439,7 +439,24 @@ fbdevSetShadow(ScreenPtr pScreen)
         break;
 
     case FB_TYPE_INTERLEAVED_PLANES:
-        FatalError("Interleaved bitplanes are not yet supported\n");
+        if (priv->fix.type_aux == 2) {
+            switch (priv->var.bits_per_pixel) {
+            case 4:
+                update = shadowUpdateIplan2p4;
+                break;
+
+            case 8:
+                update = shadowUpdateIplan2p8;
+                break;
+
+            default:
+                FatalError("Atari interleaved bitplanes with bpp %u are not yet supported\n",
+                           priv->var.bits_per_pixel);
+            }
+        } else {
+            FatalError("Interleaved bitplanes with interleave %u are not yet supported\n",
+                       priv->fix.type_aux);
+        }
         break;
 
     case FB_TYPE_TEXT:
