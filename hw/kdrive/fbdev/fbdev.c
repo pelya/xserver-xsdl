@@ -326,7 +326,8 @@ fbdevMapFramebuffer(KdScreenInfo * screen)
     KdPointerMatrix m;
     FbdevPriv *priv = screen->card->driver;
 
-    if (scrpriv->randr != RR_Rotate_0)
+    if (scrpriv->randr != RR_Rotate_0 ||
+        priv->fix.type != FB_TYPE_PACKED_PIXELS)
         scrpriv->shadow = TRUE;
     else
         scrpriv->shadow = FALSE;
