@@ -11,6 +11,7 @@ libshadow_la_SOURCES =		\
 	shadow.h		\
 	shalloc.c		\
 	shiplan2p4.c		\
+	shiplan2p8.c		\
 	shpacked.c		\
 	shplanar8.c		\
 	shplanar.c		\
