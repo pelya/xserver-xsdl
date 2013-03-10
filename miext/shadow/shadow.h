@@ -99,6 +99,9 @@ extern _X_EXPORT void
  shadowUpdateAfb4(ScreenPtr pScreen, shadowBufPtr pBuf);
 
 extern _X_EXPORT void
+ shadowUpdateAfb8(ScreenPtr pScreen, shadowBufPtr pBuf);
+
+extern _X_EXPORT void
  shadowUpdateIplan2p4(ScreenPtr pScreen, shadowBufPtr pBuf);
 
 extern _X_EXPORT void
