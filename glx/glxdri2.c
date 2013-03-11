@@ -882,6 +882,13 @@ initializeExtensions(__GLXDRIscreen * screen)
                    "AIGLX: enabled GLX_SGI_swap_control and GLX_MESA_swap_control\n");
     }
 
+    /* enable EXT_framebuffer_sRGB extension (even if there are no sRGB capable fbconfigs) */
+    {
+        __glXEnableExtension(screen->glx_enable_bits,
+                 "GLX_EXT_framebuffer_sRGB");
+        LogMessage(X_INFO, "AIGLX: enabled GLX_EXT_framebuffer_sRGB\n");
+    }
+
     for (i = 0; extensions[i]; i++) {
 #ifdef __DRI_READ_DRAWABLE
         if (strcmp(extensions[i]->name, __DRI_READ_DRAWABLE) == 0) {
