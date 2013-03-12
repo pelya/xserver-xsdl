@@ -206,6 +206,10 @@ fbdevScreenInitialize(KdScreenInfo * screen, FbdevScrPriv * scrpriv)
     depth = priv->var.bits_per_pixel;
     gray = priv->var.grayscale;
 
+    /* Calculate fix.line_length if it's zero */
+    if (!priv->fix.line_length)
+        priv->fix.line_length = (priv->var.xres_virtual * depth + 7) / 8;
+
     switch (priv->fix.visual) {
     case FB_VISUAL_PSEUDOCOLOR:
         if (gray) {
