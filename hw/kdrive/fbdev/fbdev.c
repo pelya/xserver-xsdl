@@ -216,11 +216,13 @@ fbdevScreenInitialize(KdScreenInfo * screen, FbdevScrPriv * scrpriv)
         screen->fb.visuals = (1 << StaticGray);
         break;
     case FB_VISUAL_PSEUDOCOLOR:
-        if (gray) {
-            screen->fb.visuals = (1 << StaticGray);
+        screen->fb.visuals = (1 << StaticGray);
+        if (priv->var.bits_per_pixel == 1) {
+            /* Override to monochrome, to have preallocated black/white */
+            priv->fix.visual = FB_VISUAL_MONO01;
+        } else if (gray) {
             /* could also support GrayScale, but what's the point? */
-        }
-        else {
+        } else {
             screen->fb.visuals = ((1 << StaticGray) |
                                   (1 << GrayScale) |
                                   (1 << StaticColor) |
