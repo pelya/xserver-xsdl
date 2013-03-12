@@ -211,6 +211,10 @@ fbdevScreenInitialize(KdScreenInfo * screen, FbdevScrPriv * scrpriv)
         priv->fix.line_length = (priv->var.xres_virtual * depth + 7) / 8;
 
     switch (priv->fix.visual) {
+    case FB_VISUAL_MONO01:
+    case FB_VISUAL_MONO10:
+        screen->fb.visuals = (1 << StaticGray);
+        break;
     case FB_VISUAL_PSEUDOCOLOR:
         if (gray) {
             screen->fb.visuals = (1 << StaticGray);
@@ -577,6 +581,26 @@ fbdevCreateColormap(ColormapPtr pmap)
     xColorItem *pdefs;
 
     switch (priv->fix.visual) {
+    case FB_VISUAL_MONO01:
+        pScreen->whitePixel = 0;
+        pScreen->blackPixel = 1;
+        pmap->red[0].co.local.red = 65535;
+        pmap->red[0].co.local.green = 65535;
+        pmap->red[0].co.local.blue = 65535;
+        pmap->red[1].co.local.red = 0;
+        pmap->red[1].co.local.green = 0;
+        pmap->red[1].co.local.blue = 0;
+        return TRUE;
+    case FB_VISUAL_MONO10:
+        pScreen->blackPixel = 0;
+        pScreen->whitePixel = 1;
+        pmap->red[0].co.local.red = 0;
+        pmap->red[0].co.local.green = 0;
+        pmap->red[0].co.local.blue = 0;
+        pmap->red[1].co.local.red = 65535;
+        pmap->red[1].co.local.green = 65535;
+        pmap->red[1].co.local.blue = 65535;
+        return TRUE;
     case FB_VISUAL_STATIC_PSEUDOCOLOR:
         pVisual = pmap->pVisual;
         nent = pVisual->ColormapEntries;
