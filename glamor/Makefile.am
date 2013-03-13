@@ -31,6 +31,7 @@ libglamor_la_SOURCES = \
 	glamor_fill.c \
 	glamor_fillspans.c \
 	glamor_getspans.c \
+	glamor_glext.h \
 	glamor_glyphs.c \
 	glamor_polyfillrect.c \
 	glamor_polylines.c \
