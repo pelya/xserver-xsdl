@@ -1,4 +1,4 @@
-inst_LTLIBRARIES = libglamor.la
+lib_LTLIBRARIES = libglamor.la
 
 # Override these since glamor doesn't need them and the needed files aren't
 # built (in hw/xfree86/os-support/solaris) until after glamor is built
@@ -10,14 +10,12 @@ else
 libglamor_la_LIBADD = $(GL_LIBS)
 endif
 
-instdir = $(moduledir)
-
 AM_CPPFLAGS = \
 	$(XORG_INCS)
 
 AM_CFLAGS = $(CWARNFLAGS) $(XORG_CFLAGS) $(DIX_CFLAGS) $(LIBDRM_CFLAGS)
 
-libglamor_la_LDFLAGS = -avoid-version
+libglamor_la_LDFLAGS = -version-info 0:0:0
 
 libglamor_la_SOURCES = \
 	compat-api.h \
@@ -65,7 +63,8 @@ if EGL
 LIBGLAMOREGL = libglamoregl.la
 module_LTLIBRARIES = $(LIBGLAMOREGL)
 libglamoregl_la_DEPENDENCIES = libglamor.la
-libglamoregl_la_LDFLAGS = -avoid-version -module $(EGL_LIBS) -lglamor $(GLX_SYS_LIBS)
+libglamoregl_la_LDFLAGS = -avoid-version -module
+libglamoregl_la_LIBADD = $(EGL_LIBS) $(GLX_SYS_LIBS) libglamor.la
 libglamoregl_la_SOURCES = glamor_eglmodule.c $(top_srcdir)/src/glamor_egl.c
 libglamoregl_la_CFLAGS = $(AM_CFLAGS) $(GLX_DEFINES) -I$(top_srcdir)/src $(LIBDRM_CFLAGS) $(EGL_CFLAGS)
 endif
