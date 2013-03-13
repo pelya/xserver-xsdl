@@ -116,7 +116,7 @@ glamor_egl_get_screen_private(ScrnInfoPtr scrn)
 _X_EXPORT void
 glamor_egl_make_current(ScreenPtr screen)
 {
-	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
 	struct glamor_egl_screen_private *glamor_egl =
 	    glamor_egl_get_screen_private(scrn);
 
@@ -139,7 +139,7 @@ glamor_egl_make_current(ScreenPtr screen)
 _X_EXPORT void
 glamor_egl_restore_context(ScreenPtr screen)
 {
-	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
 	struct glamor_egl_screen_private *glamor_egl =
 	    glamor_egl_get_screen_private(scrn);
 
@@ -221,7 +221,7 @@ glamor_create_texture_from_image(struct glamor_egl_screen_private
 Bool
 glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
 {
-	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
 	struct glamor_egl_screen_private *glamor_egl;
 	PixmapPtr	screen_pixmap;
 
@@ -245,7 +245,7 @@ glamor_egl_create_textured_screen_ext(ScreenPtr screen,
 				      int stride,
 				      PixmapPtr *back_pixmap)
 {
-	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
 	struct glamor_egl_screen_private *glamor_egl;
 
 	glamor_egl = glamor_egl_get_screen_private(scrn);
@@ -272,7 +272,7 @@ Bool
 glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 {
 	ScreenPtr screen = pixmap->drawable.pScreen;
-	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
 	struct glamor_egl_screen_private *glamor_egl;
 	EGLImageKHR image;
 	GLuint texture;
@@ -318,7 +318,7 @@ done:
 static void
 _glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
 {
-	ScrnInfoPtr scrn = xf86Screens[pixmap->drawable.pScreen->myNum];
+	ScrnInfoPtr scrn = xf86ScreenToScrn(pixmap->drawable.pScreen);
 	EGLImageKHR image;
 	struct glamor_egl_screen_private *glamor_egl =
 	    glamor_egl_get_screen_private(scrn);
@@ -338,7 +338,7 @@ _glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
 _X_EXPORT void
 glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back)
 {
-	ScrnInfoPtr scrn = xf86Screens[front->drawable.pScreen->myNum];
+	ScrnInfoPtr scrn = xf86ScreenToScrn(front->drawable.pScreen);
 	struct glamor_egl_screen_private *glamor_egl =
 	    glamor_egl_get_screen_private(scrn);
 	EGLImageKHR old_front_image;
@@ -371,7 +371,7 @@ glamor_egl_close_screen(CLOSE_SCREEN_ARGS_DECL)
 	PixmapPtr screen_pixmap;
 	EGLImageKHR back_image;
 
-	scrn = xf86Screens[screen->myNum];
+	scrn = xf86ScreenToScrn(screen);
 	glamor_egl = glamor_egl_get_screen_private(scrn);
 	screen_pixmap = screen->GetScreenPixmap(screen);
 
@@ -417,7 +417,7 @@ glamor_egl_has_extension(struct glamor_egl_screen_private *glamor_egl,
 void
 glamor_egl_screen_init(ScreenPtr screen)
 {
-	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
 	struct glamor_egl_screen_private *glamor_egl =
 	    glamor_egl_get_screen_private(scrn);
 
@@ -588,7 +588,7 @@ glamor_gl_dispatch_init(ScreenPtr screen,
 			struct glamor_gl_dispatch *dispatch,
 			int gl_version)
 {
-	ScrnInfoPtr scrn = xf86Screens[screen->myNum];
+	ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
 	struct glamor_egl_screen_private *glamor_egl =
 	    glamor_egl_get_screen_private(scrn);
 	if (!glamor_gl_dispatch_init_impl
