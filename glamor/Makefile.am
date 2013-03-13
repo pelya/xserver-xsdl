@@ -12,7 +12,7 @@ endif
 
 instdir = $(moduledir)
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	$(XORG_INCS)
 
 AM_CFLAGS = $(CWARNFLAGS) $(XORG_CFLAGS) $(DIX_CFLAGS) $(LIBDRM_CFLAGS)
