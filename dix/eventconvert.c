@@ -501,9 +501,7 @@ appendValuatorInfo(DeviceChangedEvent *dce, xXIValuatorInfo * info,
     info->min.frac = 0;
     info->max.integral = dce->valuators[axisnumber].max;
     info->max.frac = 0;
-    /* FIXME: value */
-    info->value.integral = 0;
-    info->value.frac = 0;
+    info->value = double_to_fp3232(dce->valuators[axisnumber].value);
     info->resolution = dce->valuators[axisnumber].resolution;
     info->number = axisnumber;
     info->mode = dce->valuators[axisnumber].mode;

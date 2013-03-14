@@ -277,6 +277,7 @@ CreateClassesChangedEvent(InternalEvent *event,
             dce->valuators[i].mode = slave->valuator->axes[i].mode;
             dce->valuators[i].name = slave->valuator->axes[i].label;
             dce->valuators[i].scroll = slave->valuator->axes[i].scroll;
+            dce->valuators[i].value = slave->valuator->axisVal[i];
         }
     }
     if (slave->key) {
