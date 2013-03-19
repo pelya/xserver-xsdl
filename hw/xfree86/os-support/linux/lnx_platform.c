@@ -7,6 +7,8 @@
 #include <xf86drm.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
 
 /* Linux platform device support */
 #include "xf86_OSproc.h"
@@ -35,7 +37,7 @@ get_drm_info(struct OdevAttributes *attribs, char *path)
     sv.drm_dd_minor = -1;       /* Don't care */
     err = drmSetInterfaceVersion(fd, &sv);
     if (err) {
-        ErrorF("setversion 1.4 failed\n");
+        ErrorF("setversion 1.4 failed: %s\n", strerror(-err));
 	goto out;
     }
 
