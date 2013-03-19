@@ -43,7 +43,10 @@ get_drm_info(struct OdevAttributes *attribs, char *path)
 	    if (tries > 1)
 		LogMessage(X_INFO, "setversion 1.4 succeeded on try #%d\n", tries);
 	    break;
-	} else if (err != -EACCES) {
+	} if (err == -EACCES) {
+	    if (tries % 500 == 0)
+		LogMessage(X_INFO, "waiting on drm device...\n");
+	} else {
 	    break;
 	}
 
