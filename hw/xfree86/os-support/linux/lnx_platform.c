@@ -43,8 +43,14 @@ get_drm_info(struct OdevAttributes *attribs, char *path)
 	    if (tries > 1)
 		LogMessage(X_INFO, "setversion 1.4 succeeded on try #%d\n", tries);
 	    break;
+	} else if (err != -EACCES) {
+	    break;
 	}
+
 	usleep(10000);
+
+	if (!drmSetMaster(fd))
+	    LogMessage(X_INFO, "drmSetMaster succeeded\n");
     }
     if (err) {
         ErrorF("setversion 1.4 failed: %s\n", strerror(-err));
