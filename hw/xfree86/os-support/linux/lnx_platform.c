@@ -34,6 +34,7 @@ get_drm_info(struct OdevAttributes *attribs, char *path)
     sv.drm_dd_minor = -1;       /* Don't care */
     if (drmSetInterfaceVersion(fd, &sv)) {
         ErrorF("setversion 1.4 failed\n");
+	close(fd);
         return FALSE;
     }
 
