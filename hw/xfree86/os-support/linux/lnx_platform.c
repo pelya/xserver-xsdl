@@ -23,6 +23,7 @@ get_drm_info(struct OdevAttributes *attribs, char *path)
     drmSetVersion sv;
     char *buf;
     int fd;
+    int err = 0;
 
     fd = open(path, O_RDWR, O_CLOEXEC);
     if (fd == -1)
@@ -32,10 +33,10 @@ get_drm_info(struct OdevAttributes *attribs, char *path)
     sv.drm_di_minor = 4;
     sv.drm_dd_major = -1;       /* Don't care */
     sv.drm_dd_minor = -1;       /* Don't care */
-    if (drmSetInterfaceVersion(fd, &sv)) {
+    err = drmSetInterfaceVersion(fd, &sv);
+    if (err) {
         ErrorF("setversion 1.4 failed\n");
-	close(fd);
-        return FALSE;
+	goto out;
     }
 
     xf86_add_platform_device(attribs);
@@ -44,8 +45,9 @@ get_drm_info(struct OdevAttributes *attribs, char *path)
     xf86_add_platform_device_attrib(xf86_num_platform_devices - 1,
                                     ODEV_ATTRIB_BUSID, buf);
     drmFreeBusid(buf);
+out:
     close(fd);
-    return TRUE;
+    return (err == 0);
 }
 
 Bool
