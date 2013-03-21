@@ -36,9 +36,6 @@
 #include "xorgVersion.h"
 #include "edid.h"
 #include "xf86Parser.h"
-#if XF86_MODES_RENAME
-#include "xf86Rename.h"
-#endif
 
 extern _X_EXPORT double xf86ModeHSync(const DisplayModeRec * mode);
 extern _X_EXPORT double xf86ModeVRefresh(const DisplayModeRec * mode);
