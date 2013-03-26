@@ -206,7 +206,7 @@ static Bool probe_hw(char *dev)
     int fd = open_hw(dev);
     if (fd != -1) {
         close(fd);
-	return TRUE;
+        return TRUE;
     }
     return FALSE;
 }
@@ -530,15 +530,27 @@ static void msBlockHandler(BLOCKHANDLER_ARGS_DECL)
 static void
 FreeRec(ScrnInfoPtr pScrn)
 {
+    modesettingPtr ms;
+
     if (!pScrn)
-	return;
+        return;
 
-    if (!pScrn->driverPrivate)
-	return;
-
-    free(pScrn->driverPrivate);
-
+    ms = modesettingPTR(pScrn);
+    if (!ms)
+        return;
     pScrn->driverPrivate = NULL;
+
+    if (ms->fd > 0) {
+        int ret;
+
+        if (ms->pEnt->location.type == BUS_PCI)
+            ret = drmClose(ms->fd);
+        else
+            ret = close(ms->fd);
+    }
+    free(ms->Options);
+    free(ms);
+
 }
 
 static Bool
@@ -596,8 +608,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
 #if XSERVER_PLATFORM_BUS
     if (pEnt->location.type == BUS_PLATFORM) {
-            char *path = xf86_get_platform_device_attrib(pEnt->location.id.plat, ODEV_ATTRIB_PATH);
-            ms->fd = open_hw(path);
+        char *path = xf86_get_platform_device_attrib(pEnt->location.id.plat, ODEV_ATTRIB_PATH);
+        ms->fd = open_hw(path);
     }
     else 
 #endif
