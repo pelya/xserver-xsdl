@@ -709,6 +709,9 @@ drmmode_output_get_modes(xf86OutputPtr output)
 	drmModePropertyPtr props;
 	xf86MonPtr mon = NULL;
 
+	if (!koutput)
+		return NULL;
+
 	/* look for an EDID property */
 	for (i = 0; i < koutput->count_props; i++) {
 		props = drmModeGetProperty(drmmode->fd, koutput->props[i]);
