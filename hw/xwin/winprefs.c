@@ -617,12 +617,9 @@ winOverrideIcon(char *res_name, char *res_class, char *wmName)
  * ICONS{} overrides)?
  */
 int
-winIconIsOverride(unsigned hiconIn)
+winIconIsOverride(HICON hicon)
 {
-    HICON hicon;
     int i;
-
-    hicon = (HICON) hiconIn;
 
     if (!hicon)
         return 0;
