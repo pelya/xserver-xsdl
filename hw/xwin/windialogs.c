@@ -47,13 +47,13 @@ extern Bool g_fClipboardStarted;
  * Local function prototypes
  */
 
-static wBOOL CALLBACK
+static INT_PTR CALLBACK
 winExitDlgProc(HWND hDialog, UINT message, WPARAM wParam, LPARAM lParam);
 
-static wBOOL CALLBACK
+static INT_PTR CALLBACK
 winChangeDepthDlgProc(HWND hDialog, UINT message, WPARAM wParam, LPARAM lParam);
 
-static wBOOL CALLBACK
+static INT_PTR CALLBACK
 winAboutDlgProc(HWND hDialog, UINT message, WPARAM wParam, LPARAM lParam);
 
 static void
@@ -285,7 +285,7 @@ winDisplayExitDialog(winPrivScreenPtr pScreenPriv)
     g_hDlgExit = CreateDialogParam(g_hInstance,
                                    "EXIT_DIALOG",
                                    pScreenPriv->hwndScreen,
-                                   winExitDlgProc, (int) pScreenPriv);
+                                   winExitDlgProc, (LPARAM) pScreenPriv);
 
     /* Show the dialog box */
     ShowWindow(g_hDlgExit, SW_SHOW);
@@ -304,7 +304,7 @@ winDisplayExitDialog(winPrivScreenPtr pScreenPriv)
  * Exit dialog window procedure
  */
 
-static wBOOL CALLBACK
+static INT_PTR CALLBACK
 winExitDlgProc(HWND hDialog, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static winPrivScreenPtr s_pScreenPriv = NULL;
@@ -404,14 +404,13 @@ winDisplayDepthChangeDialog(winPrivScreenPtr pScreenPriv)
                                           "DEPTH_CHANGE_BOX",
                                           pScreenPriv->hwndScreen,
                                           winChangeDepthDlgProc,
-                                          (int) pScreenPriv);
+                                          (LPARAM) pScreenPriv);
     /* Show the dialog box */
     ShowWindow(g_hDlgDepthChange, SW_SHOW);
 
-    ErrorF("winDisplayDepthChangeDialog - DialogBox returned: %d\n",
-           (int) g_hDlgDepthChange);
-    ErrorF("winDisplayDepthChangeDialog - GetLastError: %d\n",
-           (int) GetLastError());
+    if (!g_hDlgDepthChange)
+        ErrorF("winDisplayDepthChangeDialog - GetLastError: %d\n",
+                (int) GetLastError());
 
     /* Minimize the display window */
     ShowWindow(pScreenPriv->hwndScreen, SW_MINIMIZE);
@@ -422,7 +421,7 @@ winDisplayDepthChangeDialog(winPrivScreenPtr pScreenPriv)
  * disruptive screen depth changes. 
  */
 
-static wBOOL CALLBACK
+static INT_PTR CALLBACK
 winChangeDepthDlgProc(HWND hwndDialog, UINT message,
                       WPARAM wParam, LPARAM lParam)
 {
@@ -536,7 +535,7 @@ winDisplayAboutDialog(winPrivScreenPtr pScreenPriv)
     g_hDlgAbout = CreateDialogParam(g_hInstance,
                                     "ABOUT_BOX",
                                     pScreenPriv->hwndScreen,
-                                    winAboutDlgProc, (int) pScreenPriv);
+                                    winAboutDlgProc, (LPARAM) pScreenPriv);
 
     /* Show the dialog box */
     ShowWindow(g_hDlgAbout, SW_SHOW);
@@ -553,7 +552,7 @@ winDisplayAboutDialog(winPrivScreenPtr pScreenPriv)
  * Process messages for the about dialog.
  */
 
-static wBOOL CALLBACK
+static INT_PTR CALLBACK
 winAboutDlgProc(HWND hwndDialog, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static winPrivScreenPtr s_pScreenPriv = NULL;
