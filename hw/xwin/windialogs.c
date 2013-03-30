@@ -33,9 +33,6 @@
 #include <xwin-config.h>
 #endif
 #include "win.h"
-#ifdef __CYGWIN__
-#include <sys/cygwin.h>
-#endif
 #include <shellapi.h>
 #include "winprefs.h"
 
@@ -623,17 +620,8 @@ winAboutDlgProc(HWND hwndDialog, UINT message, WPARAM wParam, LPARAM lParam)
         {
             INT_PTR iReturn;
 
-#ifdef __CYGWIN__
-            const char *pszCygPath = "/usr/X11R6/share/doc/"
-                "xorg-x11-xwin/changelog.html";
-            char pszWinPath[MAX_PATH + 1];
-
-            /* Convert the POSIX path to a Win32 path */
-            cygwin_conv_to_win32_path(pszCygPath, pszWinPath);
-#else
             const char *pszWinPath = "http://x.cygwin.com/"
                 "devel/server/changelog.html";
-#endif
 
             iReturn = (INT_PTR) ShellExecute(NULL,
                                          "open",
