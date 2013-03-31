@@ -181,7 +181,7 @@ ReloadEnumWindowsProc(HWND hwnd, LPARAM lParam)
 
                 wmMsg.msg = WM_WM_ICON_EVENT;
                 wmMsg.hwndWindow = hwnd;
-                wmMsg.iWindow = (Window) GetProp(hwnd, WIN_WID_PROP);
+                wmMsg.iWindow = (Window) (INT_PTR) GetProp(hwnd, WIN_WID_PROP);
 
                 winSendMessageToWM(s_pScreenPriv->pWMInfo, &wmMsg);
             }

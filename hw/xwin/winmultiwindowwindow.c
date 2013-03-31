@@ -519,7 +519,7 @@ winCreateWindowsWindow(WindowPtr pWin)
     if (winMultiWindowGetTransientFor(pWin, &daddyId)) {
         if (daddyId) {
             hFore = GetForegroundWindow();
-            if (hFore && (daddyId != (Window) GetProp(hFore, WIN_WID_PROP)))
+            if (hFore && (daddyId != (Window) (INT_PTR) GetProp(hFore, WIN_WID_PROP)))
                 hFore = NULL;
         }
     }
@@ -593,7 +593,7 @@ winCreateWindowsWindow(WindowPtr pWin)
     /* Cause any .XWinrc menus to be added in main WNDPROC */
     PostMessage(hWnd, WM_INIT_SYS_MENU, 0, 0);
 
-    SetProp(hWnd, WIN_WID_PROP, (HANDLE) winGetWindowID(pWin));
+    SetProp(hWnd, WIN_WID_PROP, (HANDLE) (INT_PTR) winGetWindowID(pWin));
 
     /* Flag that this Windows window handles its own activation */
     SetProp(hWnd, WIN_NEEDMANAGE_PROP, (HANDLE) 0);
