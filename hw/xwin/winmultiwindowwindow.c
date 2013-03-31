@@ -486,7 +486,7 @@ winCreateWindowsWindow(WindowPtr pWin)
     winWindowPriv(pWin);
     winPrivScreenPtr pScreenPriv = pWinPriv->pScreenPriv;
     WinXSizeHints hints;
-    WindowPtr pDaddy;
+    Window daddyId;
     DWORD dwStyle, dwExStyle;
     RECT rc;
 
@@ -516,10 +516,10 @@ winCreateWindowsWindow(WindowPtr pWin)
     winDebug("winCreateWindowsWindow - %dx%d @ %dx%d\n", iWidth, iHeight, iX,
              iY);
 
-    if (winMultiWindowGetTransientFor(pWin, &pDaddy)) {
-        if (pDaddy) {
+    if (winMultiWindowGetTransientFor(pWin, &daddyId)) {
+        if (daddyId) {
             hFore = GetForegroundWindow();
-            if (hFore && (pDaddy != (WindowPtr) GetProp(hFore, WIN_WID_PROP)))
+            if (hFore && (daddyId != (Window) GetProp(hFore, WIN_WID_PROP)))
                 hFore = NULL;
         }
     }
