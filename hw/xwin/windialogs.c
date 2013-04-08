@@ -621,7 +621,7 @@ winAboutDlgProc(HWND hwndDialog, UINT message, WPARAM wParam, LPARAM lParam)
 
         case ID_ABOUT_CHANGELOG:
         {
-            int iReturn;
+            INT_PTR iReturn;
 
 #ifdef __CYGWIN__
             const char *pszCygPath = "/usr/X11R6/share/doc/"
@@ -635,12 +635,12 @@ winAboutDlgProc(HWND hwndDialog, UINT message, WPARAM wParam, LPARAM lParam)
                 "devel/server/changelog.html";
 #endif
 
-            iReturn = (int) ShellExecute(NULL,
+            iReturn = (INT_PTR) ShellExecute(NULL,
                                          "open",
                                          pszWinPath, NULL, NULL, SW_MAXIMIZE);
             if (iReturn < 32) {
                 ErrorF("winAboutDlgProc - WM_COMMAND - ID_ABOUT_CHANGELOG - "
-                       "ShellExecute failed: %d\n", iReturn);
+                       "ShellExecute failed: %d\n", (int)iReturn);
             }
         }
             return TRUE;
@@ -648,14 +648,15 @@ winAboutDlgProc(HWND hwndDialog, UINT message, WPARAM wParam, LPARAM lParam)
         case ID_ABOUT_WEBSITE:
         {
             const char *pszPath = __VENDORDWEBSUPPORT__;
-            int iReturn;
+            INT_PTR iReturn;
 
-            iReturn = (int) ShellExecute(NULL,
+            iReturn = (INT_PTR) ShellExecute(NULL,
                                          "open",
                                          pszPath, NULL, NULL, SW_MAXIMIZE);
             if (iReturn < 32) {
                 ErrorF("winAboutDlgProc - WM_COMMAND - ID_ABOUT_WEBSITE - "
-                       "ShellExecute failed: %d\n", iReturn);
+                       "ShellExecute failed: %d\n", (int)iReturn);
+
             }
         }
             return TRUE;
@@ -663,14 +664,14 @@ winAboutDlgProc(HWND hwndDialog, UINT message, WPARAM wParam, LPARAM lParam)
         case ID_ABOUT_UG:
         {
             const char *pszPath = "http://x.cygwin.com/docs/ug/";
-            int iReturn;
+            INT_PTR iReturn;
 
-            iReturn = (int) ShellExecute(NULL,
+            iReturn = (INT_PTR) ShellExecute(NULL,
                                          "open",
                                          pszPath, NULL, NULL, SW_MAXIMIZE);
             if (iReturn < 32) {
                 ErrorF("winAboutDlgProc - WM_COMMAND - ID_ABOUT_UG - "
-                       "ShellExecute failed: %d\n", iReturn);
+                       "ShellExecute failed: %d\n", (int)iReturn);
             }
         }
             return TRUE;
@@ -678,14 +679,14 @@ winAboutDlgProc(HWND hwndDialog, UINT message, WPARAM wParam, LPARAM lParam)
         case ID_ABOUT_FAQ:
         {
             const char *pszPath = "http://x.cygwin.com/docs/faq/";
-            int iReturn;
+            INT_PTR iReturn;
 
-            iReturn = (int) ShellExecute(NULL,
+            iReturn = (INT_PTR) ShellExecute(NULL,
                                          "open",
                                          pszPath, NULL, NULL, SW_MAXIMIZE);
             if (iReturn < 32) {
                 ErrorF("winAboutDlgProc - WM_COMMAND - ID_ABOUT_FAQ - "
-                       "ShellExecute failed: %d\n", iReturn);
+                       "ShellExecute failed: %d\n", (int)iReturn);
             }
         }
             return TRUE;
