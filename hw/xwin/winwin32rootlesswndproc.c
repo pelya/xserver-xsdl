@@ -832,24 +832,24 @@ winMWExtWMWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (!(pWinPos->flags & SWP_NOZORDER)) {
             if (pRLWinPriv->fRestackingNow || pScreenPriv->fRestacking) {
 #if CYGMULTIWINDOW_DEBUG
-                winDebug("Win %08x is now restacking.\n",
-                         (unsigned int) pRLWinPriv);
+                winDebug("Win %p is now restacking.\n",
+                         pRLWinPriv);
 #endif
                 break;
             }
 
             if (winIsInternalWMRunning(pScreenInfo) || IsRaiseOnClick(pWin)) {
 #if CYGMULTIWINDOW_DEBUG
-                winDebug("Win %08x has WINDOWSWM_RAISE_ON_CLICK.\n",
-                         (unsigned int) pRLWinPriv);
+                winDebug("Win %p has WINDOWSWM_RAISE_ON_CLICK.\n",
+                         pRLWinPriv);
 #endif
                 break;
             }
 
 #if CYGMULTIWINDOW_DEBUG
-            winDebug("Win %08x forbid to change z order (%08x).\n",
-                     (unsigned int) pRLWinPriv,
-                     (unsigned int) pWinPos->hwndInsertAfter);
+            winDebug("Win %p forbid to change z order (%p).\n",
+                     pRLWinPriv,
+                     pWinPos->hwndInsertAfter);
 #endif
             pWinPos->flags |= SWP_NOZORDER;
         }
