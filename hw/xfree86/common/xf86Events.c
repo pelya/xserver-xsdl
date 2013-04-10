@@ -427,7 +427,7 @@ xf86VTSwitch(void)
      * Since all screens are currently all in the same state it is sufficient
      * check the first.  This might change in future.
      */
-    if (xf86Screens[0]->vtSema) {
+    if (xf86VTOwner()) {
 
         DebugF("xf86VTSwitch: Leaving, xf86Exiting is %s\n",
                BOOLTOSTRING((dispatchException & DE_TERMINATE) ? TRUE : FALSE));
