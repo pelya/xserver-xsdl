@@ -17,6 +17,10 @@ if RECORD
 RECORD_DIR=record
 endif
 
+if DRI3
+DRI3_DIR=dri3
+endif
+
 SUBDIRS = \
 	doc \
 	man \
@@ -38,6 +42,7 @@ SUBDIRS = \
 	damageext \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
+	$(DRI3_DIR) \
 	exa \
 	config \
 	hw \

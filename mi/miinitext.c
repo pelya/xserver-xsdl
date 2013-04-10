@@ -287,6 +287,7 @@ static ExtensionModule staticExtensions[] = {
 #ifdef DPMSExtension
     {DPMSExtensionInit, DPMSExtensionName, &noDPMSExtension},
 #endif
+    {dri3_extension_init, DRI3_NAME, NULL},
 #ifdef RES
     {ResExtensionInit, XRES_NAME, &noResExtension},
 #endif

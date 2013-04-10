@@ -141,7 +141,7 @@ SyncCheckWarnIsCounter(const SyncObject * pSync, const char *warning)
  *  interested in the counter.  The two functions below are used to
  *  delete and add triggers on this list.
  */
-static void
+void
 SyncDeleteTriggerFromSyncObject(SyncTrigger * pTrigger)
 {
     SyncTriggerList *pCur;
@@ -184,7 +184,7 @@ SyncDeleteTriggerFromSyncObject(SyncTrigger * pTrigger)
     }
 }
 
-static int
+int
 SyncAddTriggerToSyncObject(SyncTrigger * pTrigger)
 {
     SyncTriggerList *pCur;
@@ -914,6 +914,34 @@ SyncCreate(ClientPtr client, XID id, unsigned char type)
     pSync->type = type;
 
     return pSync;
+}
+
+int
+SyncCreateFenceFromFD(ClientPtr client, DrawablePtr pDraw, XID id, int fd, BOOL initially_triggered)
+{
+    SyncFence  *pFence;
+    int         status;
+
+    pFence = (SyncFence *) SyncCreate(client, id, SYNC_FENCE);
+    if (!pFence)
+        return BadAlloc;
+
+    status = miSyncInitFenceFromFD(pDraw, pFence, fd, initially_triggered);
+    if (status != Success) {
+        miSyncDestroyFence(pFence);
+        return status;
+    }
+
+    if (!AddResource(id, RTFence, (pointer) pFence))
+        return BadAlloc;
+
+    return Success;
+}
+
+int
+SyncFDFromFence(ClientPtr client, DrawablePtr pDraw, SyncFence *pFence)
+{
+    return miSyncFDFromFence(pDraw, pFence);
 }
 
 static SyncCounter *
