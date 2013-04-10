@@ -113,6 +113,11 @@ xf86_get_platform_device_attrib(struct xf86_platform_device *device, int attrib_
     return NULL;
 }
 
+Bool
+xf86_get_platform_device_unowned(int index)
+{
+    return xf86_platform_devices[index].attribs->unowned;
+}
 
 /*
  * xf86IsPrimaryPlatform() -- return TRUE if primary device
@@ -497,5 +502,19 @@ xf86platformRemoveDevice(int index)
 
  out:
     return;
+}
+
+/* called on return from VT switch to find any new devices */
+void xf86platformVTProbe(void)
+{
+    int i;
+
+    for (i = 0; i < xf86_num_platform_devices; i++) {
+        if (xf86_platform_devices[i].attribs->unowned == FALSE)
+            continue;
+
+        xf86_platform_devices[i].attribs->unowned = FALSE;
+        xf86PlatformReprobeDevice(i, xf86_platform_devices[i].attribs);
+    }
 }
 #endif

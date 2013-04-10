@@ -84,6 +84,7 @@
 #include "dpmsproc.h"
 #endif
 
+#include "xf86platformBus.h"
 /*
  * This is a toggling variable:
  *  FALSE = No VT switching keys have been pressed last time around
@@ -559,6 +560,9 @@ xf86VTSwitch(void)
 
         for (ih = InputHandlers; ih; ih = ih->next)
             xf86EnableInputHandler(ih);
+
+        /* check for any new output devices */
+        xf86platformVTProbe();
 
         OsReleaseSIGIO();
     }
