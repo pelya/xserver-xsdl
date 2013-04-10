@@ -768,3 +768,12 @@ DDXRingBell(int volume, int pitch, int duration)
 {
     xf86OSRingBell(volume, pitch, duration);
 }
+
+Bool
+xf86VTOwner(void)
+{
+    /* at system startup xf86Screens[0] won't be set - but we will own the VT */
+    if (xf86NumScreens == 0)
+	return TRUE;
+    return xf86Screens[0]->vtSema;
+}
