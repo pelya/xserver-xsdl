@@ -140,8 +140,7 @@ xf86PlatformDeviceProbe(struct OdevAttributes *attribs)
     if (i != xf86_num_platform_devices)
         goto out_free;
 
-    LogMessage(X_INFO, "config/udev: Adding drm device (%s)\n",
-               path);
+    LogMessage(X_INFO, "xfree86: Adding drm device (%s)\n", path);
 
     ret = get_drm_info(attribs, path);
     if (ret == FALSE)
