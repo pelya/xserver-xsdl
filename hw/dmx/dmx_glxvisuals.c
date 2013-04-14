@@ -37,6 +37,7 @@
 #include <GL/glxproto.h>
 #include <X11/extensions/Xext.h>
 #include <X11/extensions/extutil.h>
+#include <limits.h>
 
 #include "dmx_glxvisuals.h"
 
@@ -84,7 +85,10 @@ GetGLXVisualConfigs(Display * dpy, int screen, int *nconfigs)
         SyncHandle();
         return NULL;
     }
-    props = (INT32 *) Xmalloc(nprops * __GLX_SIZE_CARD32);
+    if (nprops < (INT_MAX / __GLX_SIZE_CARD32))
+        props = Xmalloc(nprops * __GLX_SIZE_CARD32);
+    else
+        props = NULL;
     if (!props) {
         UnlockDisplay(dpy);
         SyncHandle();
@@ -92,15 +96,16 @@ GetGLXVisualConfigs(Display * dpy, int screen, int *nconfigs)
     }
 
     /* Allocate memory for our config structure */
-    config = (__GLXvisualConfig *)
-        Xmalloc(nvisuals * sizeof(__GLXvisualConfig));
+    if (nvisuals < (INT_MAX / sizeof(__GLXvisualConfig)))
+        config = Xcalloc(nvisuals, sizeof(__GLXvisualConfig));
+    else
+        config = NULL;
     if (!config) {
         free(props);
         UnlockDisplay(dpy);
         SyncHandle();
         return NULL;
     }
-    memset(config, 0, nvisuals * sizeof(__GLXvisualConfig));
     configs = config;
     num_good_visuals = 0;
 
