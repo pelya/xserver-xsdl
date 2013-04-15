@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <GL/glx.h>
 #include "xf86dri.h"
 #include <X11/dri/xf86driproto.h>
+#include <limits.h>
 
 static XExtensionInfo _xf86dri_info_data;
 static XExtensionInfo *xf86dri_info = &_xf86dri_info_data;
@@ -225,7 +226,11 @@ XF86DRIOpenConnection(Display * dpy, int screen,
     }
 
     if (rep.length) {
-        if (!(*busIdString = (char *) calloc(rep.busIdStringLength + 1, 1))) {
+        if (rep.busIdStringLength < INT_MAX)
+            *busIdString = calloc(rep.busIdStringLength + 1, 1);
+        else
+            *busIdString = NULL;
+        if (*busIdString == NULL) {
             _XEatData(dpy, ((rep.busIdStringLength + 3) & ~3));
             UnlockDisplay(dpy);
             SyncHandle();
