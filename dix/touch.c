@@ -365,6 +365,8 @@ TouchBeginTouch(DeviceIntPtr dev, int sourceid, uint32_t touchid,
 void
 TouchEndTouch(DeviceIntPtr dev, TouchPointInfoPtr ti)
 {
+    int i;
+
     if (ti->emulate_pointer) {
         GrabPtr grab;
 
@@ -375,6 +377,9 @@ TouchEndTouch(DeviceIntPtr dev, TouchPointInfoPtr ti)
                 (*dev->deviceGrab.DeactivateGrab) (dev);
         }
     }
+
+    for (i = 0; i < ti->num_listeners; i++)
+        TouchRemoveListener(ti, ti->listeners[0].listener);
 
     ti->active = FALSE;
     ti->pending_finish = FALSE;
@@ -692,15 +697,23 @@ void
 TouchAddListener(TouchPointInfoPtr ti, XID resource, int resource_type,
                  enum InputLevel level, enum TouchListenerType type,
                  enum TouchListenerState state, WindowPtr window,
-                 GrabPtr grab)
+                 const GrabPtr grab)
 {
+    GrabPtr g = NULL;
+
+    /* We need a copy of the grab, not the grab itself since that may be
+     * deleted by a UngrabButton request and leaves us with a dangling
+     * pointer */
+    if (grab)
+        g = AllocGrab(grab);
+
     ti->listeners[ti->num_listeners].listener = resource;
     ti->listeners[ti->num_listeners].resource_type = resource_type;
     ti->listeners[ti->num_listeners].level = level;
     ti->listeners[ti->num_listeners].state = state;
     ti->listeners[ti->num_listeners].type = type;
     ti->listeners[ti->num_listeners].window = window;
-    ti->listeners[ti->num_listeners].grab = grab;
+    ti->listeners[ti->num_listeners].grab = g;
     if (grab)
         ti->num_grabs++;
     ti->num_listeners++;
@@ -725,6 +738,7 @@ TouchRemoveListener(TouchPointInfoPtr ti, XID resource)
             continue;
 
         if (listener->grab) {
+            FreeGrab(listener->grab);
             listener->grab = NULL;
             ti->num_grabs--;
         }
@@ -734,6 +748,7 @@ TouchRemoveListener(TouchPointInfoPtr ti, XID resource)
         ti->num_listeners--;
         ti->listeners[ti->num_listeners].listener = 0;
         ti->listeners[ti->num_listeners].state = LISTENER_AWAITING_BEGIN;
+
         return TRUE;
     }
     return FALSE;

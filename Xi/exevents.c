@@ -1429,8 +1429,11 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
          */
         if (!devgrab && dev->deviceGrab.grab && dev->deviceGrab.implicitGrab) {
             TouchListener *l;
+            GrabPtr g;
 
             devgrab = dev->deviceGrab.grab;
+            g = AllocGrab(devgrab);
+            BUG_WARN(!g);
 
             *dev->deviceGrab.sync.event = ev->device_event;
 
@@ -1439,8 +1442,8 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
              * event selection. Thus, we update the last listener in the array.
              */
             l = &ti->listeners[ti->num_listeners - 1];
-            l->listener = devgrab->resource;
-            l->grab = devgrab;
+            l->listener = g->resource;
+            l->grab = g;
             //l->resource_type = RT_NONE;
 
             if (devgrab->grabtype != XI2 || devgrab->type != XI_TouchBegin)
