@@ -719,12 +719,13 @@ TouchRemoveListener(TouchPointInfoPtr ti, XID resource)
 
     for (i = 0; i < ti->num_listeners; i++) {
         int j;
+        TouchListener *listener = &ti->listeners[i];
 
-        if (ti->listeners[i].listener != resource)
+        if (listener->listener != resource)
             continue;
 
-        if (ti->listeners[i].grab) {
-            ti->listeners[i].grab = NULL;
+        if (listener->grab) {
+            listener->grab = NULL;
             ti->num_grabs--;
         }
 
