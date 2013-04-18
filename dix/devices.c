@@ -281,7 +281,6 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     dev->deviceGrab.grabTime = currentTime;
     dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
     dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
-    dev->deviceGrab.activeGrab = AllocGrab();
     dev->deviceGrab.sync.event = calloc(1, sizeof(DeviceEvent));
 
     XkbSetExtension(dev, ProcessKeyboardEvent);
@@ -977,7 +976,8 @@ CloseDevice(DeviceIntPtr dev)
         }
     }
 
-    FreeGrab(dev->deviceGrab.activeGrab);
+    if (dev->deviceGrab.grab)
+        FreeGrab(dev->deviceGrab.grab);
     free(dev->deviceGrab.sync.event);
     free(dev->config_info);     /* Allocated in xf86ActivateDevice. */
     free(dev->last.scroll);

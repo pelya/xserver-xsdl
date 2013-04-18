@@ -1490,8 +1490,9 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
         grabinfo->grabTime = time;
     if (grab->cursor)
         grab->cursor->refcnt++;
-    CopyGrab(grabinfo->activeGrab, grab);
-    grabinfo->grab = grabinfo->activeGrab;
+    BUG_WARN(grabinfo->grab != NULL);
+    grabinfo->grab = AllocGrab();
+    CopyGrab(grabinfo->grab, grab);
     grabinfo->fromPassiveGrab = isPassive;
     grabinfo->implicitGrab = autoGrab & ImplicitGrabMask;
     PostNewCursor(mouse);
@@ -1554,6 +1555,8 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
         ReattachToOldMaster(mouse);
 
     ComputeFreezes();
+
+    FreeGrab(grab);
 }
 
 /**
@@ -1591,8 +1594,9 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time,
         grabinfo->grabTime = syncEvents.time;
     else
         grabinfo->grabTime = time;
-    CopyGrab(grabinfo->activeGrab, grab);
-    grabinfo->grab = grabinfo->activeGrab;
+    BUG_WARN(grabinfo->grab != NULL);
+    grabinfo->grab = AllocGrab();
+    CopyGrab(grabinfo->grab, grab);
     grabinfo->fromPassiveGrab = passive;
     grabinfo->implicitGrab = passive & ImplicitGrabMask;
     CheckGrabForSyncs(keybd, (Bool) grab->keyboardMode,
@@ -1638,6 +1642,8 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
         ReattachToOldMaster(keybd);
 
     ComputeFreezes();
+
+    FreeGrab(grab);
 }
 
 void
