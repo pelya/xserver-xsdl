@@ -1427,21 +1427,22 @@ UpdateTouchesForGrab(DeviceIntPtr mouse)
 
     for (i = 0; i < mouse->touch->num_touches; i++) {
         TouchPointInfoPtr ti = mouse->touch->touches + i;
+        TouchListener *listener = &ti->listeners[0];
         GrabPtr grab = mouse->deviceGrab.grab;
 
         if (ti->active &&
-            CLIENT_BITS(ti->listeners[0].listener) == grab->resource) {
-            ti->listeners[0].listener = grab->resource;
-            ti->listeners[0].level = grab->grabtype;
-            ti->listeners[0].state = LISTENER_IS_OWNER;
-            ti->listeners[0].window = grab->window;
+            CLIENT_BITS(listener->listener) == grab->resource) {
+            listener->listener = grab->resource;
+            listener->level = grab->grabtype;
+            listener->state = LISTENER_IS_OWNER;
+            listener->window = grab->window;
 
             if (grab->grabtype == CORE || grab->grabtype == XI ||
                 !xi2mask_isset(grab->xi2mask, mouse, XI_TouchBegin))
-                ti->listeners[0].type = LISTENER_POINTER_GRAB;
+                listener->type = LISTENER_POINTER_GRAB;
             else
-                ti->listeners[0].type = LISTENER_GRAB;
-            ti->listeners[0].grab = grab;
+                listener->type = LISTENER_GRAB;
+            listener->grab = grab;
         }
     }
 }
