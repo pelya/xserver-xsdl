@@ -1492,8 +1492,7 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
     if (grab->cursor)
         grab->cursor->refcnt++;
     BUG_WARN(grabinfo->grab != NULL);
-    grabinfo->grab = AllocGrab();
-    CopyGrab(grabinfo->grab, grab);
+    grabinfo->grab = AllocGrab(grab);
     grabinfo->fromPassiveGrab = isPassive;
     grabinfo->implicitGrab = autoGrab & ImplicitGrabMask;
     PostNewCursor(mouse);
@@ -1596,8 +1595,7 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time,
     else
         grabinfo->grabTime = time;
     BUG_WARN(grabinfo->grab != NULL);
-    grabinfo->grab = AllocGrab();
-    CopyGrab(grabinfo->grab, grab);
+    grabinfo->grab = AllocGrab(grab);
     grabinfo->fromPassiveGrab = passive;
     grabinfo->implicitGrab = passive & ImplicitGrabMask;
     CheckGrabForSyncs(keybd, (Bool) grab->keyboardMode,
@@ -1991,7 +1989,7 @@ ActivateImplicitGrab(DeviceIntPtr dev, ClientPtr client, WindowPtr win,
     else
         return FALSE;
 
-    tempGrab = AllocGrab();
+    tempGrab = AllocGrab(NULL);
     if (!tempGrab)
         return FALSE;
     tempGrab->next = NULL;
@@ -3898,7 +3896,7 @@ CheckPassiveGrabsOnWindow(WindowPtr pWin,
     if (!grab)
         return NULL;
 
-    tempGrab = AllocGrab();
+    tempGrab = AllocGrab(NULL);
 
     /* Fill out the grab details, but leave the type for later before
      * comparing */
@@ -5087,7 +5085,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
     else {
         GrabPtr tempGrab;
 
-        tempGrab = AllocGrab();
+        tempGrab = AllocGrab(NULL);
 
         tempGrab->next = NULL;
         tempGrab->window = pWin;
@@ -5443,7 +5441,7 @@ ProcUngrabKey(ClientPtr client)
         client->errorValue = stuff->modifiers;
         return BadValue;
     }
-    tempGrab = AllocGrab();
+    tempGrab = AllocGrab(NULL);
     if (!tempGrab)
         return BadAlloc;
     tempGrab->resource = client->clientAsMask;
@@ -5637,7 +5635,7 @@ ProcUngrabButton(ClientPtr client)
 
     ptr = PickPointer(client);
 
-    tempGrab = AllocGrab();
+    tempGrab = AllocGrab(NULL);
     if (!tempGrab)
         return BadAlloc;
     tempGrab->resource = client->clientAsMask;

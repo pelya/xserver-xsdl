@@ -189,7 +189,7 @@ UngrabAllDevices(Bool kill_client)
 }
 
 GrabPtr
-AllocGrab(void)
+AllocGrab(const GrabPtr src)
 {
     GrabPtr grab = calloc(1, sizeof(GrabRec));
 
@@ -199,6 +199,12 @@ AllocGrab(void)
             free(grab);
             grab = NULL;
         }
+    }
+
+    if (src && !CopyGrab(grab, src)) {
+        free(grab->xi2mask);
+        free(grab);
+        grab = NULL;
     }
 
     return grab;
@@ -213,7 +219,7 @@ CreateGrab(int client, DeviceIntPtr device, DeviceIntPtr modDevice,
 {
     GrabPtr grab;
 
-    grab = AllocGrab();
+    grab = AllocGrab(NULL);
     if (!grab)
         return (GrabPtr) NULL;
     grab->resource = FakeClientID(client);

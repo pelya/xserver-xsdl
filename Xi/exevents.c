@@ -2844,7 +2844,7 @@ CheckDeviceGrabAndHintWindow(WindowPtr pWin, int type,
              (deliveryMask & DeviceButtonGrabMask)) {
         GrabPtr tempGrab;
 
-        tempGrab = AllocGrab();
+        tempGrab = AllocGrab(NULL);
         if (!tempGrab)
             return;
 
