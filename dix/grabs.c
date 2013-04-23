@@ -249,6 +249,8 @@ CreateGrab(int client, DeviceIntPtr device, DeviceIntPtr modDevice,
 void
 FreeGrab(GrabPtr pGrab)
 {
+    BUG_RETURN(!pGrab);
+
     if (pGrab->grabtype == XI2 && pGrab->type == XI_TouchBegin)
         TouchListenerGone(pGrab->resource);
 
