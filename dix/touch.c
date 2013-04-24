@@ -620,14 +620,14 @@ TouchConvertToPointerEvent(const InternalEvent *event,
     BUG_WARN_MSG(!(event->device_event.flags & TOUCH_POINTER_EMULATED),
                  "Non-emulating touch event\n");
 
-    *motion_event = *event;
+    motion_event->device_event = event->device_event;
     motion_event->any.type = ET_Motion;
     motion_event->device_event.detail.button = 0;
     motion_event->device_event.flags = XIPointerEmulated;
 
     if (nevents > 1) {
         BUG_RETURN_VAL(!button_event, 0);
-        *button_event = *event;
+        button_event->device_event = event->device_event;
         button_event->any.type = ptrtype;
         button_event->device_event.flags = XIPointerEmulated;
         /* detail is already correct */

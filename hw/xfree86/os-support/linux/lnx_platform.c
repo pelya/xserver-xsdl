@@ -26,35 +26,17 @@ get_drm_info(struct OdevAttributes *attribs, char *path, int delayed_index)
     char *buf;
     int fd;
     int err = 0;
-    int tries = 0;
 
     fd = open(path, O_RDWR, O_CLOEXEC);
     if (fd == -1)
         return FALSE;
 
-    while (tries++ < 200) {
-	sv.drm_di_major = 1;
-	sv.drm_di_minor = 4;
-	sv.drm_dd_major = -1;       /* Don't care */
-	sv.drm_dd_minor = -1;       /* Don't care */
+    sv.drm_di_major = 1;
+    sv.drm_di_minor = 4;
+    sv.drm_dd_major = -1;       /* Don't care */
+    sv.drm_dd_minor = -1;       /* Don't care */
 
-	err = drmSetInterfaceVersion(fd, &sv);
-	if (!err) {
-	    if (tries > 1)
-		LogMessage(X_INFO, "setversion 1.4 succeeded on try #%d\n", tries);
-	    break;
-	} if (err == -EACCES) {
-	    if (tries % 500 == 0)
-		LogMessage(X_INFO, "waiting on drm device...\n");
-	} else {
-	    break;
-	}
-
-	usleep(10000);
-
-	if (!drmSetMaster(fd))
-	    LogMessage(X_INFO, "drmSetMaster succeeded\n");
-    }
+    err = drmSetInterfaceVersion(fd, &sv);
     if (err) {
         ErrorF("setversion 1.4 failed: %s\n", strerror(-err));
 	goto out;
@@ -161,8 +143,7 @@ xf86PlatformDeviceProbe(struct OdevAttributes *attribs)
     if (i != xf86_num_platform_devices)
         goto out_free;
 
-    LogMessage(X_INFO, "config/udev: Adding drm device (%s)\n",
-               path);
+    LogMessage(X_INFO, "xfree86: Adding drm device (%s)\n", path);
 
     if (!xf86VTOwner()) {
             /* if we don't currently own the VT then don't probe the device,

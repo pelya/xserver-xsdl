@@ -1223,9 +1223,16 @@ TouchRejected(DeviceIntPtr sourcedev, TouchPointInfoPtr ti, XID resource,
  * touchpoint if it is pending finish.
  */
 static void
-ProcessTouchOwnershipEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
-                           TouchOwnershipEvent *ev)
+ProcessTouchOwnershipEvent(TouchOwnershipEvent *ev,
+                           DeviceIntPtr dev)
 {
+    TouchPointInfoPtr ti = TouchFindByClientID(dev, ev->touchid);
+
+    if (!ti) {
+        DebugF("[Xi] %s: Failed to get event %d for touchpoint %d\n",
+               dev->name, ev->type, ev->touchid);
+        return;
+    }
 
     if (ev->reason == XIRejectTouch)
         TouchRejected(dev, ti, ev->resource, ev);
@@ -1538,10 +1545,7 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
     if (!t)
         return;
 
-    if (ev->any.type == ET_TouchOwnership)
-        touchid = ev->touch_ownership_event.touchid;
-    else
-        touchid = ev->device_event.touchid;
+    touchid = ev->device_event.touchid;
 
     if (type == ET_TouchBegin) {
         ti = TouchBeginTouch(dev, ev->device_event.sourceid, touchid,
@@ -1614,19 +1618,13 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
         (type != ET_TouchEnd && ti->sprite.spriteTraceGood == 0))
         return;
 
-    /* TouchOwnership events are handled separately from the rest, as they
-     * have more complex semantics. */
-    if (ev->any.type == ET_TouchOwnership)
-        ProcessTouchOwnershipEvent(dev, ti, &ev->touch_ownership_event);
-    else {
-        TouchCopyValuatorData(&ev->device_event, ti);
-        /* WARNING: the event type may change to TouchUpdate in
-         * DeliverTouchEvents if a TouchEnd was delivered to a grabbing
-         * owner */
-        DeliverTouchEvents(dev, ti, (InternalEvent *) ev, 0);
-        if (ev->any.type == ET_TouchEnd)
-            TouchEndTouch(dev, ti);
-    }
+    TouchCopyValuatorData(&ev->device_event, ti);
+    /* WARNING: the event type may change to TouchUpdate in
+     * DeliverTouchEvents if a TouchEnd was delivered to a grabbing
+     * owner */
+    DeliverTouchEvents(dev, ti, (InternalEvent *) ev, 0);
+    if (ev->any.type == ET_TouchEnd)
+        TouchEndTouch(dev, ti);
 
     if (emulate_pointer)
         UpdateDeviceState(dev, &ev->device_event);
@@ -1820,9 +1818,13 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
         break;
     case ET_TouchBegin:
     case ET_TouchUpdate:
-    case ET_TouchOwnership:
     case ET_TouchEnd:
         ProcessTouchEvent(ev, device);
+        break;
+    case ET_TouchOwnership:
+        /* TouchOwnership events are handled separately from the rest, as they
+         * have more complex semantics. */
+        ProcessTouchOwnershipEvent(&ev->touch_ownership_event, device);
         break;
     case ET_BarrierHit:
     case ET_BarrierLeave:

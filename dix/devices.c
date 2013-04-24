@@ -795,6 +795,7 @@ FreeDeviceClass(int type, pointer *class)
             free((*t)->touches[i].valuators);
         }
 
+        free((*t)->touches);
         free((*t));
         break;
     }
@@ -2766,9 +2767,10 @@ AllocDevicePair(ClientPtr client, const char *name,
     keyboard->type = (master) ? MASTER_KEYBOARD : SLAVE;
 
     /* The ClassesRec stores the device classes currently not used. */
-    pointer->unused_classes = calloc(1, sizeof(ClassesRec));
-
-    keyboard->unused_classes = calloc(1, sizeof(ClassesRec));
+    if (IsMaster(pointer)) {
+        pointer->unused_classes = calloc(1, sizeof(ClassesRec));
+        keyboard->unused_classes = calloc(1, sizeof(ClassesRec));
+    }
 
     *ptr = pointer;
 
