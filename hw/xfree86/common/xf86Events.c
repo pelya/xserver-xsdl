@@ -561,8 +561,10 @@ xf86VTSwitch(void)
         for (ih = InputHandlers; ih; ih = ih->next)
             xf86EnableInputHandler(ih);
 
+#ifdef XSERVER_PLATFORM_BUS
         /* check for any new output devices */
         xf86platformVTProbe();
+#endif
 
         OsReleaseSIGIO();
     }
