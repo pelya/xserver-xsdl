@@ -263,6 +263,7 @@ void
 TouchFreeTouchPoint(DeviceIntPtr device, int index)
 {
     TouchPointInfoPtr ti;
+    int i;
 
     if (!device->touch || index >= device->touch->num_touches)
         return;
@@ -270,6 +271,9 @@ TouchFreeTouchPoint(DeviceIntPtr device, int index)
 
     if (ti->active)
         TouchEndTouch(device, ti);
+
+    for (i = 0; i < ti->num_listeners; i++)
+        TouchRemoveListener(ti, ti->listeners[0].listener);
 
     valuator_mask_free(&ti->valuators);
     free(ti->sprite.spriteTrace);
