@@ -20,7 +20,7 @@
 #include "hotplug.h"
 
 static Bool
-get_drm_info(struct OdevAttributes *attribs, char *path)
+get_drm_info(struct OdevAttributes *attribs, char *path, int delayed_index)
 {
     drmSetVersion sv;
     char *buf;
@@ -60,10 +60,14 @@ get_drm_info(struct OdevAttributes *attribs, char *path)
 	goto out;
     }
 
-    xf86_add_platform_device(attribs);
+    /* for a delayed probe we've already added the device */
+    if (delayed_index == -1) {
+            xf86_add_platform_device(attribs);
+            delayed_index = xf86_num_platform_devices - 1;
+    }
 
     buf = drmGetBusid(fd);
-    xf86_add_platform_device_attrib(xf86_num_platform_devices - 1,
+    xf86_add_platform_device_attrib(delayed_index,
                                     ODEV_ATTRIB_BUSID, buf);
     drmFreeBusid(buf);
 out:
@@ -113,6 +117,23 @@ xf86PlatformDeviceCheckBusID(struct xf86_platform_device *device, const char *bu
 }
 
 void
+xf86PlatformReprobeDevice(int index, struct OdevAttributes *attribs)
+{
+    Bool ret;
+    char *dpath;
+    dpath = xf86_get_platform_attrib(index, ODEV_ATTRIB_PATH);
+
+    ret = get_drm_info(attribs, dpath, index);
+    if (ret == FALSE) {
+        xf86_remove_platform_device(index);
+        return;
+    }
+    ret = xf86platformAddDevice(index);
+    if (ret == -1)
+        xf86_remove_platform_device(index);
+}
+
+void
 xf86PlatformDeviceProbe(struct OdevAttributes *attribs)
 {
     struct OdevAttribute *attrib;
@@ -143,7 +164,15 @@ xf86PlatformDeviceProbe(struct OdevAttributes *attribs)
     LogMessage(X_INFO, "config/udev: Adding drm device (%s)\n",
                path);
 
-    ret = get_drm_info(attribs, path);
+    if (!xf86VTOwner()) {
+            /* if we don't currently own the VT then don't probe the device,
+               just mark it as unowned for later use */
+            attribs->unowned = TRUE;
+            xf86_add_platform_device(attribs);
+            return;
+    }
+
+    ret = get_drm_info(attribs, path, -1);
     if (ret == FALSE)
         goto out_free;
 
@@ -160,6 +189,9 @@ void NewGPUDeviceRequest(struct OdevAttributes *attribs)
     xf86PlatformDeviceProbe(attribs);
 
     if (old_num == xf86_num_platform_devices)
+        return;
+
+    if (xf86_get_platform_device_unowned(xf86_num_platform_devices - 1) == TRUE)
         return;
 
     ret = xf86platformAddDevice(xf86_num_platform_devices-1);
@@ -195,7 +227,10 @@ void DeleteGPUDeviceRequest(struct OdevAttributes *attribs)
 
     ErrorF("xf86: remove device %d %s\n", index, syspath);
 
-    xf86platformRemoveDevice(index);
+    if (xf86_get_platform_device_unowned(index) == TRUE)
+            xf86_remove_platform_device(index);
+    else
+            xf86platformRemoveDevice(index);
 out:
     config_odev_free_attribute_list(attribs);
 }

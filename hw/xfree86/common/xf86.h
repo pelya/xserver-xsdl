@@ -238,6 +238,7 @@ extern _X_EXPORT void xf86InterceptSigIll(void (*sigillhandler) (void));
 extern _X_EXPORT Bool xf86EnableVTSwitch(Bool new);
 extern _X_EXPORT void xf86ProcessActionEvent(ActionEvent action, void *arg);
 extern _X_EXPORT void xf86PrintBacktrace(void);
+extern _X_EXPORT Bool xf86VTOwner(void);
 
 /* xf86Helper.c */
 
