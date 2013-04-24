@@ -1171,6 +1171,8 @@ IResetProc(ExtensionEntry * unused)
 
     free(xi_all_devices.name);
     free(xi_all_master_devices.name);
+
+    XIBarrierReset();
 }
 
 /***********************************************************************
