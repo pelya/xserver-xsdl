@@ -1919,7 +1919,7 @@ DeliverTouchEndEvent(DeviceIntPtr dev, TouchPointInfoPtr ti, InternalEvent *ev,
             rc = DeliverOneTouchEvent(client, dev, ti, grab, win, ev);
 
         if ((ti->num_listeners > 1 ||
-             listener->state != LISTENER_HAS_ACCEPTED) &&
+             (ti->num_grabs > 0 && listener->state != LISTENER_HAS_ACCEPTED)) &&
             (ev->device_event.flags & (TOUCH_ACCEPT | TOUCH_REJECT)) == 0) {
             ev->any.type = ET_TouchUpdate;
             ev->device_event.flags |= TOUCH_PENDING_END;
