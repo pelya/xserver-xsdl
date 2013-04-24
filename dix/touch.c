@@ -989,11 +989,11 @@ TouchListenerGone(XID resource)
                 continue;
 
             for (j = 0; j < ti->num_listeners; j++) {
-                if (ti->listeners[j].listener != resource)
+                if (CLIENT_BITS(ti->listeners[j].listener) != resource)
                     continue;
 
                 nev = GetTouchOwnershipEvents(events, dev, ti, XIRejectTouch,
-                                              resource, 0);
+                                              ti->listeners[j].listener, 0);
                 for (k = 0; k < nev; k++)
                     mieqProcessDeviceEvent(dev, events + k, NULL);
 
