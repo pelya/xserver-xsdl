@@ -41,7 +41,9 @@ static inline void _transp(CARD32 d[], unsigned int i1, unsigned int i2,
 }
 
 
-extern void c2p_unsupported(void);
+static inline void c2p_unsupported(void) {
+    BUG_WARN(1);
+}
 
 static inline CARD32 get_mask(unsigned int n)
 {
