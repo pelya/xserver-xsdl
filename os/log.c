@@ -250,7 +250,7 @@ void
 LogClose(enum ExitCode error)
 {
     if (logFile) {
-        ErrorF("Server terminated %s (%d). Closing log file.\n",
+        ErrorFSigSafe("Server terminated %s (%d). Closing log file.\n",
                (error == EXIT_NO_ERROR) ? "successfully" : "with error", error);
         fclose(logFile);
         logFile = NULL;
@@ -878,9 +878,9 @@ FatalError(const char *f, ...)
     static Bool beenhere = FALSE;
 
     if (beenhere)
-        ErrorF("\nFatalError re-entered, aborting\n");
+        ErrorFSigSafe("\nFatalError re-entered, aborting\n");
     else
-        ErrorF("\nFatal server error:\n");
+        ErrorFSigSafe("\nFatal server error:\n");
 
     va_start(args, f);
 
@@ -897,9 +897,9 @@ FatalError(const char *f, ...)
         va_end(apple_args);
     }
 #endif
-    VErrorF(f, args);
+    VErrorFSigSafe(f, args);
     va_end(args);
-    ErrorF("\n");
+    ErrorFSigSafe("\n");
     if (!beenhere)
         OsVendorFatalError(f, args2);
     va_end(args2);
