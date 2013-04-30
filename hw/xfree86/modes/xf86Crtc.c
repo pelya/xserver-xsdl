@@ -1997,6 +1997,14 @@ xf86CollectEnabledOutputs(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
     Bool any_enabled = FALSE;
     int o;
 
+    /*
+     * Don't bother enabling outputs on GPU screens: a client needs to attach
+     * it to a source provider before setting a mode that scans out a shared
+     * pixmap.
+     */
+    if (scrn->is_gpu)
+        return FALSE;
+
     for (o = 0; o < config->num_output; o++)
         any_enabled |= enabled[o] = xf86OutputEnabled(config->output[o], TRUE);
 
@@ -2466,9 +2474,11 @@ xf86InitialConfiguration(ScrnInfoPtr scrn, Bool canGrow)
 
     ret = xf86CollectEnabledOutputs(scrn, config, enabled);
     if (ret == FALSE && canGrow) {
-        xf86DrvMsg(i, X_WARNING,
-                   "Unable to find connected outputs - setting %dx%d initial framebuffer\n",
-                   NO_OUTPUT_DEFAULT_WIDTH, NO_OUTPUT_DEFAULT_HEIGHT);
+        if (!scrn->is_gpu)
+            xf86DrvMsg(i, X_WARNING,
+		       "Unable to find connected outputs - setting %dx%d "
+                       "initial framebuffer\n",
+                       NO_OUTPUT_DEFAULT_WIDTH, NO_OUTPUT_DEFAULT_HEIGHT);
         have_outputs = FALSE;
     }
     else {
