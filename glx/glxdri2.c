@@ -946,7 +946,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
                      &screen->fd, &driverName, &deviceName)) {
         LogMessage(X_INFO,
                    "AIGLX: Screen %d is not DRI2 capable\n", pScreen->myNum);
-        return NULL;
+        goto handle_error;
     }
 
     screen->base.destroy = __glXDRIscreenDestroy;
