@@ -465,6 +465,7 @@ Dispatch(void)
     free(clientReady);
     dispatchException &= ~DE_RESET;
     SmartScheduleLatencyLimited = 0;
+    ResetOsBuffers();
 }
 
 static int VendorRelease = VENDOR_RELEASE;
