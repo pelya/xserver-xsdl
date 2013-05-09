@@ -2023,6 +2023,9 @@ InitProximityClassDeviceStruct(DeviceIntPtr dev)
 {
     ProximityClassPtr proxc;
 
+    BUG_RETURN_VAL(dev == NULL, FALSE);
+    BUG_RETURN_VAL(dev->proximity != NULL, FALSE);
+
     proxc = (ProximityClassPtr) malloc(sizeof(ProximityClassRec));
     if (!proxc)
         return FALSE;
@@ -2048,10 +2051,10 @@ InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval,
 {
     AxisInfoPtr ax;
 
-    if (!dev || !dev->valuator || (minval > maxval && mode == Absolute))
-        return FALSE;
-    if (axnum >= dev->valuator->numAxes)
-        return FALSE;
+    BUG_RETURN_VAL(dev == NULL, FALSE);
+    BUG_RETURN_VAL(dev->valuator == NULL, FALSE);
+    BUG_RETURN_VAL(axnum >= dev->valuator->numAxes, FALSE);
+    BUG_RETURN_VAL(minval > maxval && mode == Absolute, FALSE);
 
     ax = dev->valuator->axes + axnum;
 
@@ -2081,8 +2084,9 @@ SetScrollValuator(DeviceIntPtr dev, int axnum, enum ScrollType type,
     InternalEvent dce;
     DeviceIntPtr master;
 
-    if (!dev || !dev->valuator || axnum >= dev->valuator->numAxes)
-        return FALSE;
+    BUG_RETURN_VAL(dev == NULL, FALSE);
+    BUG_RETURN_VAL(dev->valuator == NULL, FALSE);
+    BUG_RETURN_VAL(axnum >= dev->valuator->numAxes, FALSE);
 
     switch (type) {
     case SCROLL_TYPE_VERTICAL:
