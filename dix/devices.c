@@ -1367,7 +1367,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
     valc->numMotionEvents = numMotionEvents;
     valc->motionHintWindow = NullWindow;
 
-    if (mode & OutOfProximity)
+    if ((mode & OutOfProximity) && !dev->proximity)
         InitProximityClassDeviceStruct(dev);
 
     dev->valuator = valc;
