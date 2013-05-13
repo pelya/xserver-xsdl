@@ -1647,6 +1647,7 @@ InitTouchClassDeviceStruct(DeviceIntPtr device, unsigned int max_touches,
 
     BUG_RETURN_VAL(device == NULL, FALSE);
     BUG_RETURN_VAL(device->touch != NULL, FALSE);
+    BUG_RETURN_VAL(device->valuator == NULL, FALSE);
 
     /* Check the mode is valid, and at least X and Y axes. */
     BUG_RETURN_VAL(mode != XIDirectTouch && mode != XIDependentTouch, FALSE);
