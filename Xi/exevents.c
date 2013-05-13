@@ -1036,7 +1036,6 @@ DeliverOneTouchEvent(ClientPtr client, DeviceIntPtr dev, TouchPointInfoPtr ti,
 static void
 ActivateEarlyAccept(DeviceIntPtr dev, TouchPointInfoPtr ti)
 {
-    int rc;
     ClientPtr client;
     XID error;
     GrabPtr grab = ti->listeners[0].grab;
