@@ -1122,6 +1122,8 @@ TouchEmitTouchEnd(DeviceIntPtr dev, TouchPointInfoPtr ti, int flags, XID resourc
     TouchDeliverDeviceClassesChangedEvent(ti, GetTimeInMillis(), resource);
     GetDixTouchEnd(&event, dev, ti, flags);
     DeliverTouchEvents(dev, ti, &event, resource);
+    if (ti->num_grabs == 0)
+        UpdateDeviceState(dev, &event.device_event);
 }
 
 void
