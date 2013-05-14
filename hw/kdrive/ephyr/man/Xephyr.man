@@ -59,6 +59,10 @@ set 'cursor acceleration':
 The host's cursor is reused. This is only really there to aid
 debugging by avoiding server paints for the cursor. Performance
 improvement is negligible.
+.TP 8
+.B -resizeable
+Allow the Xephyr window to be resized, even if not embedded into a parent
+window. By default, the Xephyr window has a fixed size.
 .SH "SIGNALS"
 Send a SIGUSR1 to the server (e.g. pkill -USR1 Xephyr) to
 toggle the debugging mode.
