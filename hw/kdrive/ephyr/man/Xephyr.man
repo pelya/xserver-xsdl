@@ -46,7 +46,7 @@ and the following additional options:
 sets the screen size.
 .TP 8
 .BI -parent " id"
-uses exiting window
+uses existing window
 .I id .
 If a
 .BI -screen
