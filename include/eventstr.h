@@ -123,6 +123,7 @@ struct _DeviceEvent {
     int corestate;    /**< Core key/button state BEFORE the event */
     int key_repeat;   /**< Internally-generated key repeat event */
     uint32_t flags;   /**< Flags to be copied into the generated event */
+    uint32_t resource; /**< Touch event resource, only for TOUCH_REPLAYING */
 };
 
 /**
