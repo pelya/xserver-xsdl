@@ -134,12 +134,8 @@ FreeCursor(pointer value, XID cid)
 CursorPtr
 RefCursor(CursorPtr cursor)
 {
-    ErrorF("%s ::::: cursor is %p", __func__, cursor);
-    if (cursor) {
-        xorg_backtrace();
+    if (cursor)
         cursor->refcnt++;
-    }
-    ErrorF("\n");
     return cursor;
 }
 
