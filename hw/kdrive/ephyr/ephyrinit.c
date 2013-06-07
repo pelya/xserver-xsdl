@@ -28,6 +28,7 @@
 #endif
 #include "ephyr.h"
 #include "ephyrlog.h"
+#include "glx_extinit.h"
 
 extern Window EphyrPreExistingHostWin;
 extern Bool EphyrWantGrayScale;
@@ -47,6 +48,22 @@ extern KdKeyboardDriver LinuxEvdevKeyboardDriver;
 
 void processScreenArg(const char *screen_size, char *parent_id);
 
+static const
+ExtensionModule ephyrExtensions[] = {
+#ifdef GLXEXT
+    {GlxExtensionInit, "GLX", &noGlxExtension},
+#endif
+};
+
+static void
+ephyrExtensionInit(void)
+{
+    int i;
+
+    for (i = 0; i < ARRAY_SIZE(ephyrExtensions); i++)
+        LoadExtension(&ephyrExtensions[i], TRUE);
+}
+
 void
 InitCard(char *name)
 {
@@ -57,6 +74,9 @@ InitCard(char *name)
 void
 InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
 {
+    if (serverGeneration == 1)
+        ephyrExtensionInit();
+
     KdInitOutput(pScreenInfo, argc, argv);
 }
 
