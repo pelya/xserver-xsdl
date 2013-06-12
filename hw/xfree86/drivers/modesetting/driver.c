@@ -201,12 +201,25 @@ static int open_hw(char *dev)
     return fd;
 }
 
+static int check_outputs(int fd)
+{
+    drmModeResPtr res = drmModeGetResources(fd);
+    int ret;
+
+    if (!res)
+        return FALSE;
+    ret = res->count_connectors > 0;
+    drmModeFreeResources(res);
+    return ret;
+}
+
 static Bool probe_hw(char *dev)
 {
     int fd = open_hw(dev);
     if (fd != -1) {
+        int ret = check_outputs(fd);
         close(fd);
-        return TRUE;
+        return ret;
     }
     return FALSE;
 }
@@ -226,7 +239,7 @@ ms_DRICreatePCIBusID(const struct pci_device *dev)
 
 static Bool probe_hw_pci(char *dev, struct pci_device *pdev)
 {
-    int fd = open_hw(dev);
+    int ret = FALSE, fd = open_hw(dev);
     char *id, *devid;
     drmSetVersion sv;
 
@@ -247,13 +260,12 @@ static Bool probe_hw_pci(char *dev, struct pci_device *pdev)
     devid = ms_DRICreatePCIBusID(pdev);
     close(fd);
 
-    if (!id || !devid)
-	return FALSE;
+    if (id && devid && !strcmp(id, devid))
+        ret = check_outputs(fd);
 
-    if (!strcmp(id, devid))
-	return TRUE;
-
-    return FALSE;
+    free(id);
+    free(devid);
+    return ret;
 }
 static const OptionInfoRec *
 AvailableOptions(int chipid, int busid)
