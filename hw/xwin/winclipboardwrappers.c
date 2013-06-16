@@ -163,9 +163,6 @@ winProcEstablishConnection(ClientPtr client)
         ErrorF("winProcEstablishConnection - winInitClipboard returned.\n");
     }
 
-    /* Flag that clipboard client has been launched */
-    g_fClipboardLaunched = TRUE;
-
     return iReturn;
 }
 

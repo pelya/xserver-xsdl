@@ -60,16 +60,12 @@
 #ifdef HAS_DEVWINDOWS
 #define WIN_MSG_QUEUE_FNAME			"/dev/windows"
 #endif
-#define WIN_CONNECT_RETRIES			40
-#define WIN_CONNECT_DELAY			4
 #define WIN_JMP_OKAY				0
 #define WIN_JMP_ERROR_IO			2
 #define WIN_LOCAL_PROPERTY			"CYGX_CUT_BUFFER"
 #define WIN_XEVENTS_SUCCESS			0
 #define WIN_XEVENTS_CONVERT			2
 #define WIN_XEVENTS_NOTIFY			3
-#define WIN_CLIPBOARD_RETRIES			40
-#define WIN_CLIPBOARD_DELAY			1
 
 #define WM_WM_REINIT                           (WM_USER + 1)
 
