@@ -96,7 +96,6 @@ Bool g_fUnicodeClipboard = TRUE;
 Bool g_fClipboard = TRUE;
 Bool g_fClipboardLaunched = FALSE;
 Bool g_fClipboardStarted = FALSE;
-pthread_t g_ptClipboardProc;
 HWND g_hwndClipboard = NULL;
 void *g_pClipboardDisplay = NULL;
 Window g_iClipboardWindow = None;

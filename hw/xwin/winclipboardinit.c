@@ -46,10 +46,17 @@ int winProcSetSelectionOwner(ClientPtr /* client */ );
  * References to external symbols
  */
 
-extern pthread_t g_ptClipboardProc;
 extern winDispatchProcPtr winProcSetSelectionOwnerOrig;
 extern Bool g_fClipboard;
 extern HWND g_hwndClipboard;
+extern Bool g_fClipboardLaunched;
+extern Bool g_fClipboardStarted;
+
+/*
+ * Local variables
+ */
+
+static pthread_t g_ptClipboardProc;
 
 /*
  * Intialize the Clipboard module
@@ -74,6 +81,29 @@ winInitClipboard(void)
     }
 
     return TRUE;
+}
+
+void
+winClipboardShutdown(void)
+{
+  /* Close down clipboard resources */
+  if (g_fClipboard && g_fClipboardLaunched && g_fClipboardStarted) {
+    /* Synchronously destroy the clipboard window */
+    if (g_hwndClipboard != NULL) {
+      SendMessage(g_hwndClipboard, WM_DESTROY, 0, 0);
+      /* NOTE: g_hwndClipboard is set to NULL in winclipboardthread.c */
+    }
+    else
+      return;
+
+    /* Wait for the clipboard thread to exit */
+    pthread_join(g_ptClipboardProc, NULL);
+
+    g_fClipboardLaunched = FALSE;
+    g_fClipboardStarted = FALSE;
+
+    winDebug("winClipboardShutdown - Clipboard thread has exited.\n");
+  }
 }
 
 /*

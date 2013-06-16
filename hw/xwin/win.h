@@ -794,6 +794,9 @@ Bool
 
 void
  winFixClipboardChain(void);
+
+void
+ winClipboardShutdown(void);
 #endif
 
 /*
