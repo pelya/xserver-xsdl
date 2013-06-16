@@ -95,8 +95,6 @@ Bool g_fUnicodeClipboard = TRUE;
 Bool g_fClipboard = TRUE;
 Bool g_fClipboardStarted = FALSE;
 HWND g_hwndClipboard = NULL;
-void *g_pClipboardDisplay = NULL;
-Window g_iClipboardWindow = None;
 #endif
 
 /*
@@ -109,8 +107,6 @@ winInitializeGlobals(void)
 {
     g_dwCurrentThreadID = GetCurrentThreadId();
 #ifdef XWIN_CLIPBOARD
-    g_iClipboardWindow = None;
-    g_pClipboardDisplay = NULL;
     g_hwndClipboard = NULL;
 #endif
 }

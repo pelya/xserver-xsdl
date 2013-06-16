@@ -58,8 +58,6 @@
 extern Bool g_fUnicodeClipboard;
 extern Bool g_fClipboard;
 extern HWND g_hwndClipboard;
-extern void *g_pClipboardDisplay;
-extern Window g_iClipboardWindow;
 
 /*
  * Global variables
@@ -78,7 +76,7 @@ int xfixes_error_base;
  */
 
 static HWND
-winClipboardCreateMessagingWindow(void);
+winClipboardCreateMessagingWindow(Display *pDisplay, Window iWindow);
 
 static int
  winClipboardErrorHandler(Display * pDisplay, XErrorEvent * pErr);
@@ -192,9 +190,6 @@ winClipboardProc(void *pvNotUsed)
         goto winClipboardProc_Done;
     }
 
-    /* Save the display in a global used by the wndproc */
-    g_pClipboardDisplay = pDisplay;
-
     ErrorF("winClipboardProc - XOpenDisplay () returned and "
            "successfully opened the display.\n");
 
@@ -255,14 +250,11 @@ winClipboardProc(void *pvNotUsed)
                                 XFixesSelectionWindowDestroyNotifyMask |
                                 XFixesSelectionClientCloseNotifyMask);
 
-    /* Save the window in the screen privates */
-    g_iClipboardWindow = iWindow;
 
     /* Initialize monitored selection state */
     winClipboardInitMonitoredSelections();
-
     /* Create Windows messaging window */
-    hwnd = winClipboardCreateMessagingWindow();
+    hwnd = winClipboardCreateMessagingWindow(pDisplay, iWindow);
 
     /* Save copy of HWND in screen privates */
     g_hwndClipboard = hwnd;
@@ -419,8 +411,6 @@ winClipboardProc(void *pvNotUsed)
 #endif
 
     /* global clipboard variable reset */
-    g_iClipboardWindow = None;
-    g_pClipboardDisplay = NULL;
     g_hwndClipboard = NULL;
 
     return NULL;
@@ -431,9 +421,10 @@ winClipboardProc(void *pvNotUsed)
  */
 
 static HWND
-winClipboardCreateMessagingWindow(void)
+winClipboardCreateMessagingWindow(Display *pDisplay, Window iWindow)
 {
     WNDCLASSEX wc;
+    ClipboardWindowCreationParams cwcp;
     HWND hwnd;
 
     /* Setup our window class */
@@ -451,6 +442,10 @@ winClipboardCreateMessagingWindow(void)
     wc.hIconSm = 0;
     RegisterClassEx(&wc);
 
+    /* Information to be passed to WM_CREATE */
+    cwcp.pClipboardDisplay = pDisplay;
+    cwcp.iClipboardWindow = iWindow;
+
     /* Create the window */
     hwnd = CreateWindowExA(0,   /* Extended styles */
                            WIN_CLIPBOARD_WINDOW_CLASS,  /* Class name */
@@ -463,7 +458,7 @@ winClipboardCreateMessagingWindow(void)
                            (HWND) NULL, /* No parent or owner window */
                            (HMENU) NULL,        /* No menu */
                            GetModuleHandle(NULL),       /* Instance handle */
-                           NULL);       /* Creation data */
+                           &cwcp);       /* Creation data */
     assert(hwnd != NULL);
 
     /* I'm not sure, but we may need to call this to start message processing */

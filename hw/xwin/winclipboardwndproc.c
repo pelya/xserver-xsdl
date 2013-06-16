@@ -44,12 +44,6 @@
 
 #define WIN_POLL_TIMEOUT	1
 
-/*
- * References to external symbols
- */
-
-extern void *g_pClipboardDisplay;
-extern Window g_iClipboardWindow;
 
 /*
  * Process X events up to specified timeout
@@ -138,6 +132,8 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static HWND s_hwndNextViewer;
     static Bool s_fCBCInitialized;
+    static Display *pDisplay;
+    static Window iWindow;
 
     /* Branch on message type */
     switch (message) {
@@ -158,8 +154,12 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         HWND first, next;
         DWORD error_code = 0;
+        ClipboardWindowCreationParams *cwcp = (ClipboardWindowCreationParams *)((CREATESTRUCT *)lParam)->lpCreateParams;
 
         winDebug("winClipboardWindowProc - WM_CREATE\n");
+
+        pDisplay = cwcp->pClipboardDisplay;
+        iWindow = cwcp->iClipboardWindow;
 
         first = GetClipboardViewer();   /* Get handle to first viewer in chain. */
         if (first == hwnd)
@@ -243,8 +243,6 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         static Atom atomClipboard;
         static int generation;
         static Bool s_fProcessingDrawClipboard = FALSE;
-        Display *pDisplay = g_pClipboardDisplay;
-        Window iWindow = g_iClipboardWindow;
         int iReturn;
 
         winDebug("winClipboardWindowProc - WM_DRAWCLIPBOARD: Enter\n");
@@ -323,7 +321,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             /* Release PRIMARY selection if owned */
             iReturn = XGetSelectionOwner(pDisplay, XA_PRIMARY);
-            if (iReturn == g_iClipboardWindow) {
+            if (iReturn == iWindow) {
                 winDebug("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
                          "PRIMARY selection is owned by us.\n");
                 XSetSelectionOwner(pDisplay, XA_PRIMARY, None, CurrentTime);
@@ -335,7 +333,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             /* Release CLIPBOARD selection if owned */
             iReturn = XGetSelectionOwner(pDisplay, atomClipboard);
-            if (iReturn == g_iClipboardWindow) {
+            if (iReturn == iWindow) {
                 winDebug("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
                          "CLIPBOARD selection is owned by us.\n");
                 XSetSelectionOwner(pDisplay, atomClipboard, None, CurrentTime);
@@ -408,8 +406,6 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_RENDERALLFORMATS:
     {
         int iReturn;
-        Display *pDisplay = g_pClipboardDisplay;
-        Window iWindow = g_iClipboardWindow;
         Bool fConvertToUnicode;
 
         winDebug("winClipboardWindowProc - WM_RENDER*FORMAT - Hello.\n");
