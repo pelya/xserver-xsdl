@@ -55,8 +55,6 @@
 #include <X11/Xwindows.h>
 
 /* Clipboard module constants */
-#define WIN_CLIPBOARD_WINDOW_CLASS		"xwinclip"
-#define WIN_CLIPBOARD_WINDOW_TITLE		"xwinclip"
 #ifdef HAS_DEVWINDOWS
 #define WIN_MSG_QUEUE_FNAME			"/dev/windows"
 #endif
@@ -83,8 +81,6 @@ extern void winErrorFVerb(int verb, const char *format, ...);
 
 Bool
  winInitClipboard(void);
-
-HWND winClipboardCreateMessagingWindow(void);
 
 /*
  * winclipboardtextconv.c
