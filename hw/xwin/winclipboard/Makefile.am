@@ -1,0 +1,15 @@
+noinst_LTLIBRARIES = libXWinclipboard.la
+
+libXWinclipboard_la_SOURCES = \
+	winclipboard.h \
+	textconv.c \
+	thread.c \
+	wndproc.c \
+	xevents.c
+
+libXWinclipboard_la_CFLAGS = -DHAVE_XWIN_CONFIG_H \
+			     $(DIX_CFLAGS) \
+			     $(XWINMODULES_CFLAGS) \
+		             -I$(top_srcdir) -I$(top_srcdir)/miext/rootless -I$(srcdir)/..
+
+libXWinclipboard_la_LDFLAGS = -static -no-undefined

@@ -1,5 +1,3 @@
-#ifndef _WINCLIPBOARD_H_
-#define _WINCLIPBOARD_H_
 /*
  *Copyright (C) 2003-2004 Harold L Hunt II All Rights Reserved.
  *
@@ -29,6 +27,9 @@
  *
  * Authors:	Harold L Hunt II
  */
+
+#ifndef _WINCLIPBOARD_H_
+#define _WINCLIPBOARD_H_
 
 /* Standard library headers */
 #include <assert.h>

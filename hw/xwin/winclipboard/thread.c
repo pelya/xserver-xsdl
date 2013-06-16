@@ -265,7 +265,7 @@ winClipboardProc(char *szDisplay)
     }
 
     /* Pre-flush X events */
-    /* 
+    /*
      * NOTE: Apparently you'll freeze if you don't do this,
      *       because there may be events in local data structures
      *       already.
