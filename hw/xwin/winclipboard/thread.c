@@ -55,12 +55,6 @@
 #define WIN_CLIPBOARD_WINDOW_TITLE		"xwinclip"
 
 /*
- * References to external symbols
- */
-
-extern Bool g_fUnicodeClipboard;
-
-/*
  * Global variables
  */
 
@@ -69,7 +63,6 @@ static jmp_buf g_jmpEntry;
 static XIOErrorHandler g_winClipboardOldIOErrorHandler;
 static pthread_t g_winClipboardProcThread;
 
-Bool g_fUseUnicode = FALSE;
 int xfixes_event_base;
 int xfixes_error_base;
 
@@ -93,7 +86,7 @@ static int
  */
 
 Bool
-winClipboardProc(char *szDisplay)
+winClipboardProc(Bool fUseUnicode, char *szDisplay)
 {
     Atom atomClipboard;
     int iReturn;
@@ -110,17 +103,10 @@ winClipboardProc(char *szDisplay)
     Display *pDisplay = NULL;
     Window iWindow = None;
     int iRetries;
-    Bool fUseUnicode;
     int iSelectError;
     Bool fShutdown = FALSE;
 
     winDebug("winClipboardProc - Hello\n");
-
-    /* Do we use Unicode clipboard? */
-    fUseUnicode = g_fUnicodeClipboard;
-
-    /* Save the Unicode support flag in a global */
-    g_fUseUnicode = fUseUnicode;
 
     /* Allow multiple threads to access Xlib */
     if (XInitThreads() == 0) {

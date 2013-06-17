@@ -27,7 +27,7 @@
 #ifndef WINCLIPBOARD_H
 #define WINCLIPBOARD_H
 
-Bool winClipboardProc(char *szDisplay);
+Bool winClipboardProc(Bool fUseUnicode, char *szDisplay);
 
 void winFixClipboardChain(void);
 
