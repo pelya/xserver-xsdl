@@ -71,7 +71,7 @@ int xfixes_error_base;
  */
 
 static HWND
-winClipboardCreateMessagingWindow(Display *pDisplay, Window iWindow);
+winClipboardCreateMessagingWindow(Display *pDisplay, Window iWindow, ClipboardAtoms *atoms);
 
 static int
  winClipboardErrorHandler(Display * pDisplay, XErrorEvent * pErr);
@@ -88,7 +88,7 @@ static int
 Bool
 winClipboardProc(Bool fUseUnicode, char *szDisplay)
 {
-    Atom atomClipboard;
+    ClipboardAtoms atoms;
     int iReturn;
     HWND hwnd = NULL;
     int iConnectionNumber = 0;
@@ -188,8 +188,12 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
     if (!XFixesQueryExtension(pDisplay, &xfixes_event_base, &xfixes_error_base))
       ErrorF ("winClipboardProc - XFixes extension not present\n");
 
-    /* Create atom */
-    atomClipboard = XInternAtom(pDisplay, "CLIPBOARD", False);
+    /* Create atoms */
+    atoms.atomClipboard = XInternAtom(pDisplay, "CLIPBOARD", False);
+    atoms.atomLocalProperty = XInternAtom (pDisplay, "CYGX_CUT_BUFFER", False);
+    atoms.atomUTF8String = XInternAtom (pDisplay, "UTF8_STRING", False);
+    atoms.atomCompoundText = XInternAtom (pDisplay, "COMPOUND_TEXT", False);
+    atoms.atomTargets = XInternAtom (pDisplay, "TARGETS", False);
 
     /* Create a messaging window */
     iWindow = XCreateSimpleWindow(pDisplay,
@@ -220,7 +224,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
 
     XFixesSelectSelectionInput (pDisplay,
                                 iWindow,
-                                XInternAtom (pDisplay, "CLIPBOARD", False),
+                                atoms.atomClipboard,
                                 XFixesSetSelectionOwnerNotifyMask |
                                 XFixesSelectionWindowDestroyNotifyMask |
                                 XFixesSelectionClientCloseNotifyMask);
@@ -229,7 +233,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
     /* Initialize monitored selection state */
     winClipboardInitMonitoredSelections();
     /* Create Windows messaging window */
-    hwnd = winClipboardCreateMessagingWindow(pDisplay, iWindow);
+    hwnd = winClipboardCreateMessagingWindow(pDisplay, iWindow, &atoms);
 
     /* Save copy of HWND */
     g_hwndClipboard = hwnd;
@@ -246,10 +250,10 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
         }
 
         /* CLIPBOARD */
-        iReturn = XSetSelectionOwner(pDisplay, atomClipboard,
+        iReturn = XSetSelectionOwner(pDisplay, atoms.atomClipboard,
                                      iWindow, CurrentTime);
         if (iReturn == BadAtom || iReturn == BadWindow ||
-            XGetSelectionOwner(pDisplay, atomClipboard) != iWindow) {
+            XGetSelectionOwner(pDisplay, atoms.atomClipboard) != iWindow) {
             ErrorF("winClipboardProc - Could not set CLIPBOARD owner\n");
             goto winClipboardProc_Done;
         }
@@ -261,7 +265,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
      *       because there may be events in local data structures
      *       already.
      */
-    winClipboardFlushXEvents(hwnd, iWindow, pDisplay, fUseUnicode);
+    winClipboardFlushXEvents(hwnd, iWindow, pDisplay, fUseUnicode, &atoms);
 
     /* Pre-flush Windows messages */
     if (!winClipboardFlushWindowsMessageQueue(hwnd)) {
@@ -319,7 +323,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
         /* Branch on which descriptor became active */
         if (FD_ISSET(iConnectionNumber, &fdsRead)) {
             /* Process X events */
-            winClipboardFlushXEvents(hwnd, iWindow, pDisplay, fUseUnicode);
+            winClipboardFlushXEvents(hwnd, iWindow, pDisplay, fUseUnicode, &atoms);
         }
 
 #ifdef HAS_DEVWINDOWS
@@ -393,7 +397,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
  */
 
 static HWND
-winClipboardCreateMessagingWindow(Display *pDisplay, Window iWindow)
+winClipboardCreateMessagingWindow(Display *pDisplay, Window iWindow, ClipboardAtoms *atoms)
 {
     WNDCLASSEX wc;
     ClipboardWindowCreationParams cwcp;
@@ -417,6 +421,7 @@ winClipboardCreateMessagingWindow(Display *pDisplay, Window iWindow)
     /* Information to be passed to WM_CREATE */
     cwcp.pClipboardDisplay = pDisplay;
     cwcp.iClipboardWindow = iWindow;
+    cwcp.atoms = atoms;
 
     /* Create the window */
     hwnd = CreateWindowExA(0,   /* Extended styles */

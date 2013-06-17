@@ -61,7 +61,7 @@
 #endif
 #define WIN_JMP_OKAY				0
 #define WIN_JMP_ERROR_IO			2
-#define WIN_LOCAL_PROPERTY			"CYGX_CUT_BUFFER"
+
 #define WIN_XEVENTS_SUCCESS			0
 #define WIN_XEVENTS_CONVERT			2
 #define WIN_XEVENTS_NOTIFY			3
@@ -90,6 +90,15 @@ void
  */
 
 
+typedef struct
+{
+    Atom atomClipboard;
+    Atom atomLocalProperty;
+    Atom atomUTF8String;
+    Atom atomCompoundText;
+    Atom atomTargets;
+} ClipboardAtoms;
+
 /*
  * winclipboardwndproc.c
  */
@@ -103,6 +112,7 @@ typedef struct
 {
   Display *pClipboardDisplay;
   Window iClipboardWindow;
+  ClipboardAtoms *atoms;
 } ClipboardWindowCreationParams;
 
 /*
@@ -111,11 +121,11 @@ typedef struct
 
 int
 winClipboardFlushXEvents(HWND hwnd,
-                         int iWindow, Display * pDisplay, Bool fUnicodeSupport);
+                         int iWindow, Display * pDisplay, Bool fUnicodeSupport, ClipboardAtoms *atom);
 
 
 Atom
-winClipboardGetLastOwnedSelectionAtom(void);
+winClipboardGetLastOwnedSelectionAtom(ClipboardAtoms *atoms);
 
 void
 winClipboardInitMonitoredSelections(void);

@@ -62,7 +62,6 @@ static const char *szSelectionNames[CLIP_NUM_SELECTIONS] =
     { "PRIMARY", "CLIPBOARD" };
 
 static unsigned int lastOwnedSelectionIndex = CLIP_OWN_NONE;
-static Atom atomClipboard = None;
 
 static void
 MonitorSelection(XFixesSelectionNotifyEvent * e, unsigned int i)
@@ -98,7 +97,7 @@ MonitorSelection(XFixesSelectionNotifyEvent * e, unsigned int i)
 }
 
 Atom
-winClipboardGetLastOwnedSelectionAtom(void)
+winClipboardGetLastOwnedSelectionAtom(ClipboardAtoms *atoms)
 {
     if (lastOwnedSelectionIndex == CLIP_OWN_NONE)
         return None;
@@ -107,7 +106,7 @@ winClipboardGetLastOwnedSelectionAtom(void)
         return XA_PRIMARY;
 
     if (lastOwnedSelectionIndex == CLIP_OWN_CLIPBOARD)
-        return atomClipboard;
+        return atoms->atomClipboard;
 
     return None;
 }
@@ -129,22 +128,13 @@ winClipboardInitMonitoredSelections(void)
 
 int
 winClipboardFlushXEvents(HWND hwnd,
-                         int iWindow, Display * pDisplay, Bool fUseUnicode)
+                         int iWindow, Display * pDisplay, Bool fUseUnicode, ClipboardAtoms *atoms)
 {
-    static Atom atomLocalProperty;
-    static Atom atomCompoundText;
-    static Atom atomUTF8String;
-    static Atom atomTargets;
-    static int generation;
-
-    if (generation != serverGeneration) {
-        generation = serverGeneration;
-        atomClipboard = XInternAtom(pDisplay, "CLIPBOARD", False);
-        atomLocalProperty = XInternAtom(pDisplay, WIN_LOCAL_PROPERTY, False);
-        atomUTF8String = XInternAtom(pDisplay, "UTF8_STRING", False);
-        atomCompoundText = XInternAtom(pDisplay, "COMPOUND_TEXT", False);
-        atomTargets = XInternAtom(pDisplay, "TARGETS", False);
-    }
+    Atom atomClipboard = atoms->atomClipboard;
+    Atom atomLocalProperty = atoms->atomLocalProperty;
+    Atom atomUTF8String = atoms->atomUTF8String;
+    Atom atomCompoundText = atoms->atomCompoundText;
+    Atom atomTargets = atoms->atomTargets;
 
     /* Process all pending events */
     while (XPending(pDisplay)) {

@@ -54,7 +54,7 @@
 
 static int
 winProcessXEventsTimeout(HWND hwnd, int iWindow, Display * pDisplay,
-                         Bool fUseUnicode, int iTimeoutSec)
+                         Bool fUseUnicode, ClipboardAtoms *atoms, int iTimeoutSec)
 {
     int iConnNumber;
     struct timeval tv;
@@ -107,7 +107,7 @@ winProcessXEventsTimeout(HWND hwnd, int iWindow, Display * pDisplay,
             /* Process X events */
             /* Exit when we see that server is shutting down */
             iReturn = winClipboardFlushXEvents(hwnd,
-                                               iWindow, pDisplay, fUseUnicode);
+                                               iWindow, pDisplay, fUseUnicode, atoms);
 
             winDebug
                 ("winProcessXEventsTimeout () - winClipboardFlushXEvents returned %d\n",
@@ -137,6 +137,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     static Bool s_fCBCInitialized;
     static Display *pDisplay;
     static Window iWindow;
+    static ClipboardAtoms *atoms;
 
     /* Branch on message type */
     switch (message) {
@@ -163,6 +164,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         pDisplay = cwcp->pClipboardDisplay;
         iWindow = cwcp->iClipboardWindow;
+        atoms = cwcp->atoms;
 
         first = GetClipboardViewer();   /* Get handle to first viewer in chain. */
         if (first == hwnd)
@@ -243,17 +245,10 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_DRAWCLIPBOARD:
     {
-        static Atom atomClipboard;
-        static int generation;
         static Bool s_fProcessingDrawClipboard = FALSE;
         int iReturn;
 
         winDebug("winClipboardWindowProc - WM_DRAWCLIPBOARD: Enter\n");
-
-        if (generation != serverGeneration) {
-            generation = serverGeneration;
-            atomClipboard = XInternAtom(pDisplay, "CLIPBOARD", False);
-        }
 
         /*
          * We've occasionally seen a loop in the clipboard chain.
@@ -335,11 +330,11 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                               iReturn);
 
             /* Release CLIPBOARD selection if owned */
-            iReturn = XGetSelectionOwner(pDisplay, atomClipboard);
+            iReturn = XGetSelectionOwner(pDisplay, atoms->atomClipboard);
             if (iReturn == iWindow) {
                 winDebug("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
-                         "CLIPBOARD selection is owned by us.\n");
-                XSetSelectionOwner(pDisplay, atomClipboard, None, CurrentTime);
+                         "CLIPBOARD selection is owned by us, releasing\n");
+                XSetSelectionOwner(pDisplay, atoms->atomClipboard, None, CurrentTime);
             }
             else if (BadWindow == iReturn || BadAtom == iReturn)
                 winErrorFVerb(1, "winClipboardWindowProc - WM_DRAWCLIPBOARD - "
@@ -368,10 +363,10 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         /* Reassert ownership of the CLIPBOARD */
         iReturn = XSetSelectionOwner(pDisplay,
-                                     atomClipboard, iWindow, CurrentTime);
+                                     atoms->atomClipboard, iWindow, CurrentTime);
 
         if (iReturn == BadAtom || iReturn == BadWindow ||
-            XGetSelectionOwner(pDisplay, atomClipboard) != iWindow) {
+            XGetSelectionOwner(pDisplay, atoms->atomClipboard) != iWindow) {
             winErrorFVerb(1, "winClipboardWindowProc - WM_DRAWCLIPBOARD - "
                           "Could not reassert ownership of CLIPBOARD\n");
         }
@@ -421,11 +416,9 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         /* Request the selection contents */
         iReturn = XConvertSelection(pDisplay,
-                                    winClipboardGetLastOwnedSelectionAtom(),
-                                    XInternAtom(pDisplay,
-                                                "COMPOUND_TEXT", False),
-                                    XInternAtom(pDisplay,
-                                                "CYGX_CUT_BUFFER", False),
+                                    winClipboardGetLastOwnedSelectionAtom(atoms),
+                                    atoms->atomCompoundText,
+                                    atoms->atomLocalProperty,
                                     iWindow, CurrentTime);
         if (iReturn == BadAtom || iReturn == BadWindow) {
             winErrorFVerb(1, "winClipboardWindowProc - WM_RENDER*FORMAT - "
@@ -461,7 +454,9 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         iReturn = winProcessXEventsTimeout(hwnd,
                                            iWindow,
                                            pDisplay,
-                                           fConvertToUnicode, WIN_POLL_TIMEOUT);
+                                           fConvertToUnicode,
+                                           atoms,
+                                           WIN_POLL_TIMEOUT);
 
         /*
          * The last call to winProcessXEventsTimeout
