@@ -35,15 +35,18 @@
 #else
 #define HAS_WINSOCK 1
 #endif
+
 #include <sys/types.h>
 #include <signal.h>
-#include "winclipboard.h"
 #include "windisplay.h"
 #ifdef __CYGWIN__
 #include <errno.h>
 #endif
+
 #include "misc.h"
 #include <X11/extensions/Xfixes.h>
+#include "winclipboard.h"
+#include "internal.h"
 
 #define WIN_CONNECT_RETRIES			40
 #define WIN_CONNECT_DELAY			4

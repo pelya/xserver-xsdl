@@ -33,10 +33,13 @@
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>
 #endif
+
 #include <sys/types.h>
 #include <sys/time.h>
-#include "winclipboard.h"
+
+#include "internal.h"
 #include "misc.h"
+#include "winclipboard.h"
 
 /*
  * Constants

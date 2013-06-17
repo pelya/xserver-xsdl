@@ -35,21 +35,12 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "os.h"
+#include "win.h"
 #include "winclipboard/winclipboard.h"
 #include "windisplay.h"
 
 #define WIN_CLIPBOARD_RETRIES			40
 #define WIN_CLIPBOARD_DELAY			1
-
-extern void winSetAuthorization(void);
-
-/*
- * References to external symbols
- */
-
-extern Bool g_fClipboard;
-extern Bool g_fClipboardStarted;
 
 /*
  * Local variables

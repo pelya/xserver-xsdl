@@ -34,7 +34,7 @@
 #include <xwin-config.h>
 #endif
 
-#include "winclipboard.h"
+#include "internal.h"
 #include "misc.h"
 #include <X11/extensions/Xfixes.h>
 

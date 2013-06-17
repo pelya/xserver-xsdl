@@ -793,9 +793,6 @@ Bool
  winInitClipboard(void);
 
 void
- winFixClipboardChain(void);
-
-void
  winClipboardShutdown(void);
 #endif
 
