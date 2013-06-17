@@ -189,8 +189,8 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             s_hwndNextViewer = (HWND) lParam;
             if (s_hwndNextViewer == hwnd) {
                 s_hwndNextViewer = NULL;
-                winErrorFVerb(1, "winClipboardWindowProc - WM_CHANGECBCHAIN: "
-                              "attempted to set next window to ourselves.");
+                ErrorF("winClipboardWindowProc - WM_CHANGECBCHAIN: "
+                       "attempted to set next window to ourselves.");
             }
         }
         else if (s_hwndNextViewer)
@@ -262,8 +262,8 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             s_fCBCInitialized = FALSE;
             ChangeClipboardChain(hwnd, s_hwndNextViewer);
             winFixClipboardChain();
-            winErrorFVerb(1, "winClipboardWindowProc - WM_DRAWCLIPBOARD - "
-                          "Nested calls detected.  Re-initing.\n");
+            ErrorF("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
+                   "Nested calls detected.  Re-initing.\n");
             winDebug("winClipboardWindowProc - WM_DRAWCLIPBOARD: Exit\n");
             s_fProcessingDrawClipboard = FALSE;
             return 0;
@@ -325,9 +325,9 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 XSetSelectionOwner(pDisplay, XA_PRIMARY, None, CurrentTime);
             }
             else if (BadWindow == iReturn || BadAtom == iReturn)
-                winErrorFVerb(1, "winClipboardWindowProc - WM_DRAWCLIPBOARD - "
-                              "XGetSelection failed for PRIMARY: %d\n",
-                              iReturn);
+                ErrorF("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
+                       "XGetSelectionOwner failed for PRIMARY: %d\n",
+                       iReturn);
 
             /* Release CLIPBOARD selection if owned */
             iReturn = XGetSelectionOwner(pDisplay, atoms->atomClipboard);
@@ -337,9 +337,9 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 XSetSelectionOwner(pDisplay, atoms->atomClipboard, None, CurrentTime);
             }
             else if (BadWindow == iReturn || BadAtom == iReturn)
-                winErrorFVerb(1, "winClipboardWindowProc - WM_DRAWCLIPBOARD - "
-                              "XGetSelection failed for CLIPBOARD: %d\n",
-                              iReturn);
+                ErrorF("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
+                       "XGetSelectionOwner failed for CLIPBOARD: %d\n",
+                       iReturn);
 
             winDebug("winClipboardWindowProc - WM_DRAWCLIPBOARD: Exit\n");
             s_fProcessingDrawClipboard = FALSE;
@@ -353,8 +353,8 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                      XA_PRIMARY, iWindow, CurrentTime);
         if (iReturn == BadAtom || iReturn == BadWindow ||
             XGetSelectionOwner(pDisplay, XA_PRIMARY) != iWindow) {
-            winErrorFVerb(1, "winClipboardWindowProc - WM_DRAWCLIPBOARD - "
-                          "Could not reassert ownership of PRIMARY\n");
+            ErrorF("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
+                   "Could not reassert ownership of PRIMARY\n");
         }
         else {
             winDebug("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
@@ -367,8 +367,8 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         if (iReturn == BadAtom || iReturn == BadWindow ||
             XGetSelectionOwner(pDisplay, atoms->atomClipboard) != iWindow) {
-            winErrorFVerb(1, "winClipboardWindowProc - WM_DRAWCLIPBOARD - "
-                          "Could not reassert ownership of CLIPBOARD\n");
+            ErrorF("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
+                    "Could not reassert ownership of CLIPBOARD\n");
         }
         else {
             winDebug("winClipboardWindowProc - WM_DRAWCLIPBOARD - "
@@ -421,8 +421,8 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                     atoms->atomLocalProperty,
                                     iWindow, CurrentTime);
         if (iReturn == BadAtom || iReturn == BadWindow) {
-            winErrorFVerb(1, "winClipboardWindowProc - WM_RENDER*FORMAT - "
-                          "XConvertSelection () failed\n");
+            ErrorF("winClipboardWindowProc - WM_RENDER*FORMAT - "
+                   "XConvertSelection () failed\n");
             break;
         }
 
@@ -436,16 +436,16 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
 
             if (!OpenClipboard(hwnd)) {
-                winErrorFVerb(1, "winClipboardWindowProc - WM_RENDER*FORMATS - "
-                              "OpenClipboard () failed: %08x\n",
-                              GetLastError());
+                ErrorF("winClipboardWindowProc - WM_RENDER*FORMATS - "
+                       "OpenClipboard () failed: %08x\n",
+                       GetLastError());
                 break;
             }
 
             if (!EmptyClipboard()) {
-                winErrorFVerb(1, "winClipboardWindowProc - WM_RENDER*FORMATS - "
-                              "EmptyClipboard () failed: %08x\n",
-                              GetLastError());
+                ErrorF("winClipboardWindowProc - WM_RENDER*FORMATS - "
+                       "EmptyClipboard () failed: %08x\n",
+                       GetLastError());
                 break;
             }
         }
@@ -479,10 +479,9 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             /* We must close the clipboard */
 
             if (!CloseClipboard()) {
-                winErrorFVerb(1,
-                              "winClipboardWindowProc - WM_RENDERALLFORMATS - "
-                              "CloseClipboard () failed: %08x\n",
-                              GetLastError());
+                ErrorF("winClipboardWindowProc - WM_RENDERALLFORMATS - "
+                       "CloseClipboard () failed: %08x\n",
+                       GetLastError());
                 break;
             }
         }
