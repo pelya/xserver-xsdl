@@ -71,7 +71,6 @@
  * References to external symbols
  */
 
-extern char *display;
 extern void winDebug(const char *format, ...);
 extern void winErrorFVerb(int verb, const char *format, ...);
 
@@ -96,7 +95,7 @@ void
  * winclipboardthread.c
  */
 
-void *winClipboardProc(void *);
+void *winClipboardProc(char *szDisplay);
 
 /*
  * winclipboardwndproc.c

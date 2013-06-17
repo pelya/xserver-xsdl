@@ -37,9 +37,12 @@
 
 #include "os.h"
 #include "winclipboard.h"
+#include "windisplay.h"
 
 #define WIN_CLIPBOARD_RETRIES			40
 #define WIN_CLIPBOARD_DELAY			1
+
+extern void winSetAuthorization(void);
 
 /*
  * References to external symbols
@@ -61,16 +64,33 @@ static pthread_t g_ptClipboardProc;
 static void *
 winClipboardThreadProc(void *arg)
 {
+  char szDisplay[512];
   int clipboardRestarts = 0;
 
   while (1)
     {
       ++clipboardRestarts;
 
+      /* Use our generated cookie for authentication */
+      winSetAuthorization();
+
+      /* Setup the display connection string */
+      /*
+       * NOTE: Always connect to screen 0 since we require that screen
+       * numbers start at 0 and increase without gaps.  We only need
+       * to connect to one screen on the display to get events
+       * for all screens on the display.  That is why there is only
+       * one clipboard client thread.
+      */
+      winGetDisplayName(szDisplay, 0);
+
+      /* Print the display connection string */
+      ErrorF("winClipboardThreadProc - DISPLAY=%s\n", szDisplay);
+
       /* Flag that clipboard client has been launched */
       g_fClipboardStarted = TRUE;
 
-      winClipboardProc(arg);
+      winClipboardProc(szDisplay);
 
       /* Flag that clipboard client has stopped */
       g_fClipboardStarted = FALSE;
