@@ -68,6 +68,8 @@ winClipboardThreadProc(void *arg)
 
   while (1)
     {
+      Bool fShutdown;
+
       ++clipboardRestarts;
 
       /* Use our generated cookie for authentication */
@@ -89,10 +91,13 @@ winClipboardThreadProc(void *arg)
       /* Flag that clipboard client has been launched */
       g_fClipboardStarted = TRUE;
 
-      winClipboardProc(szDisplay);
+      fShutdown = winClipboardProc(szDisplay);
 
       /* Flag that clipboard client has stopped */
       g_fClipboardStarted = FALSE;
+
+      if (fShutdown)
+        break;
 
       /* checking if we need to restart */
       if (clipboardRestarts >= WIN_CLIPBOARD_RETRIES) {
