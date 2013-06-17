@@ -53,16 +53,6 @@ extern void *g_pClipboardDisplay;
 extern Window g_iClipboardWindow;
 extern Atom g_atomLastOwnedSelection;
 
-/* 
- * Local function prototypes
- */
-
-static int
-
-
-winProcessXEventsTimeout(HWND hwnd, int iWindow, Display * pDisplay,
-                         Bool fUseUnicode, int iTimeoutSec);
-
 /*
  * Process X events up to specified timeout
  */
