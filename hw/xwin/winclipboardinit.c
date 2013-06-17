@@ -79,8 +79,13 @@ winClipboardThreadProc(void *arg)
 
       /* Flag that clipboard client has been launched */
       g_fClipboardLaunched = TRUE;
+      g_fClipboardStarted = TRUE;
 
       winClipboardProc(arg);
+
+      /* Flag that clipboard client has stopped */
+      g_fClipboardLaunched = FALSE;
+      g_fClipboardStarted = FALSE;
 
       /* checking if we need to restart */
       if (clipboardRestarts >= WIN_CLIPBOARD_RETRIES) {

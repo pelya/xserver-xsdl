@@ -52,8 +52,6 @@
  */
 
 extern Bool g_fUnicodeClipboard;
-extern Bool g_fClipboardStarted;
-extern Bool g_fClipboardLaunched;
 extern Bool g_fClipboard;
 extern HWND g_hwndClipboard;
 extern void *g_pClipboardDisplay;
@@ -274,9 +272,6 @@ winClipboardProc(void *pvNotUsed)
         ErrorF("winClipboardProc - winClipboardFlushWindowsMessageQueue failed\n");
     }
 
-    /* Signal that the clipboard client has started */
-    g_fClipboardStarted = TRUE;
-
     /* Loop for X events */
     while (1) {
         /* Setup the file descriptor set */
@@ -395,8 +390,6 @@ winClipboardProc(void *pvNotUsed)
 #endif
 
     /* global clipboard variable reset */
-    g_fClipboardLaunched = FALSE;
-    g_fClipboardStarted = FALSE;
     g_iClipboardWindow = None;
     g_pClipboardDisplay = NULL;
     g_hwndClipboard = NULL;
