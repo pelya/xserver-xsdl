@@ -56,7 +56,6 @@ int winProcSetSelectionOwner(ClientPtr /* client */ );
 extern winDispatchProcPtr winProcSetSelectionOwnerOrig;
 extern Bool g_fClipboard;
 extern HWND g_hwndClipboard;
-extern Bool g_fClipboardLaunched;
 extern Bool g_fClipboardStarted;
 
 /*
@@ -78,13 +77,11 @@ winClipboardThreadProc(void *arg)
       ++clipboardRestarts;
 
       /* Flag that clipboard client has been launched */
-      g_fClipboardLaunched = TRUE;
       g_fClipboardStarted = TRUE;
 
       winClipboardProc(arg);
 
       /* Flag that clipboard client has stopped */
-      g_fClipboardLaunched = FALSE;
       g_fClipboardStarted = FALSE;
 
       /* checking if we need to restart */
@@ -131,7 +128,7 @@ void
 winClipboardShutdown(void)
 {
   /* Close down clipboard resources */
-  if (g_fClipboard && g_fClipboardLaunched && g_fClipboardStarted) {
+  if (g_fClipboard && g_fClipboardStarted) {
     /* Synchronously destroy the clipboard window */
     if (g_hwndClipboard != NULL) {
       SendMessage(g_hwndClipboard, WM_DESTROY, 0, 0);
@@ -143,7 +140,6 @@ winClipboardShutdown(void)
     /* Wait for the clipboard thread to exit */
     pthread_join(g_ptClipboardProc, NULL);
 
-    g_fClipboardLaunched = FALSE;
     g_fClipboardStarted = FALSE;
 
     winDebug("winClipboardShutdown - Clipboard thread has exited.\n");
