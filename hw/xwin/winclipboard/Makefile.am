@@ -13,3 +13,11 @@ libXWinclipboard_la_CFLAGS = -DHAVE_XWIN_CONFIG_H \
 		             -I$(top_srcdir) -I$(top_srcdir)/miext/rootless -I$(srcdir)/..
 
 libXWinclipboard_la_LDFLAGS = -static -no-undefined
+
+bin_PROGRAMS = xwinclip
+
+xwinclip_SOURCES = xwinclip.c debug.c
+
+xwinclip_CFLAGS = $(XWINMODULES_CFLAGS)
+
+xwinclip_LDADD = libXWinclipboard.la $(XWINMODULES_LIBS) -lgdi32
