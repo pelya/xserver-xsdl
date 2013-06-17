@@ -57,12 +57,12 @@
 
 extern Bool g_fUnicodeClipboard;
 extern Bool g_fClipboard;
-extern HWND g_hwndClipboard;
 
 /*
  * Global variables
  */
 
+static HWND g_hwndClipboard = NULL;
 static jmp_buf g_jmpEntry;
 static XIOErrorHandler g_winClipboardOldIOErrorHandler;
 static pthread_t g_winClipboardProcThread;
@@ -240,7 +240,7 @@ winClipboardProc(char *szDisplay)
     /* Create Windows messaging window */
     hwnd = winClipboardCreateMessagingWindow(pDisplay, iWindow);
 
-    /* Save copy of HWND in screen privates */
+    /* Save copy of HWND */
     g_hwndClipboard = hwnd;
 
     /* Assert ownership of selections if Win32 clipboard is owned */
@@ -355,10 +355,7 @@ winClipboardProc(char *szDisplay)
  winClipboardProc_Done:
     /* Close our Windows window */
     if (g_hwndClipboard) {
-        /* Destroy the Window window (hwnd) */
-        winDebug("winClipboardProc - Destroy Windows window\n");
-        PostMessage(g_hwndClipboard, WM_DESTROY, 0, 0);
-        winClipboardFlushWindowsMessageQueue(g_hwndClipboard);
+        winClipboardWindowDestroy();
     }
 
     /* Close our X window */
@@ -488,4 +485,20 @@ winClipboardIOErrorHandler(Display * pDisplay)
         g_winClipboardOldIOErrorHandler(pDisplay);
 
     return 0;
+}
+
+void
+winClipboardWindowDestroy(void)
+{
+  if (g_hwndClipboard) {
+    SendMessage(g_hwndClipboard, WM_DESTROY, 0, 0);
+  }
+}
+
+void
+winFixClipboardChain(void)
+{
+  if (g_hwndClipboard) {
+    PostMessage(g_hwndClipboard, WM_WM_REINIT, 0, 0);
+  }
 }

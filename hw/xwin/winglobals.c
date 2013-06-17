@@ -94,7 +94,6 @@ winDispatchProcPtr winProcEstablishConnectionOrig = NULL;
 Bool g_fUnicodeClipboard = TRUE;
 Bool g_fClipboard = TRUE;
 Bool g_fClipboardStarted = FALSE;
-HWND g_hwndClipboard = NULL;
 #endif
 
 /*
@@ -106,7 +105,4 @@ void
 winInitializeGlobals(void)
 {
     g_dwCurrentThreadID = GetCurrentThreadId();
-#ifdef XWIN_CLIPBOARD
-    g_hwndClipboard = NULL;
-#endif
 }
