@@ -113,6 +113,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
     Window iWindow = None;
     int iSelectError;
     Bool fShutdown = FALSE;
+    static Bool fErrorHandlerSet = FALSE;
 
     winDebug("winClipboardProc - Hello\n");
 
@@ -127,11 +128,15 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
         ErrorF("winClipboardProc - Warning: Locale not supported by X.\n");
     }
 
-    /* Set error handler */
-    XSetErrorHandler(winClipboardErrorHandler);
     g_winClipboardProcThread = pthread_self();
-    g_winClipboardOldIOErrorHandler =
-        XSetIOErrorHandler(winClipboardIOErrorHandler);
+
+    /* Set error handler */
+    if (!fErrorHandlerSet) {
+      XSetErrorHandler(winClipboardErrorHandler);
+      g_winClipboardOldIOErrorHandler =
+         XSetIOErrorHandler(winClipboardIOErrorHandler);
+      fErrorHandlerSet = TRUE;
+    }
 
     /* Set jump point for Error exits */
     if (setjmp(g_jmpEntry)) {
