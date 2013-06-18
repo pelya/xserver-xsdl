@@ -1944,6 +1944,10 @@ if test "x$XWIN" = xyes; then
 
 dnl XWin with AIGLX requires OpenGL spec files in order to generate wrapper code for native GL functions
 	if [test "x$XWIN" = xyes && test "x$AIGLX" = xyes] ; then
+           AC_CHECK_PROG(PYTHON, python, python)
+           if test -z "$PYTHON"; then
+                AC_MSG_ERROR([python not found])
+           fi
            if test "x$KHRONOS_SPEC_DIR" = "xauto" ; then
 		PKG_CHECK_MODULES([KHRONOS_OPENGL_REGISTRY], [khronos-opengl-registry])
 		KHRONOS_SPEC_DIR=`pkg-config khronos-opengl-registry --variable=specdir`
