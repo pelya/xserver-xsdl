@@ -54,7 +54,7 @@
  */
 
 static int
-winProcessXEventsTimeout(HWND hwnd, int iWindow, Display * pDisplay,
+winProcessXEventsTimeout(HWND hwnd, Window iWindow, Display * pDisplay,
                          Bool fUseUnicode, ClipboardAtoms *atoms, int iTimeoutSec)
 {
     int iConnNumber;

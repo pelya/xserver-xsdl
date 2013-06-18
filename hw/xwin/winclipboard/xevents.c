@@ -129,7 +129,7 @@ winClipboardInitMonitoredSelections(void)
 
 int
 winClipboardFlushXEvents(HWND hwnd,
-                         int iWindow, Display * pDisplay, Bool fUseUnicode, ClipboardAtoms *atoms)
+                         Window iWindow, Display * pDisplay, Bool fUseUnicode, ClipboardAtoms *atoms)
 {
     Atom atomClipboard = atoms->atomClipboard;
     Atom atomLocalProperty = atoms->atomLocalProperty;
