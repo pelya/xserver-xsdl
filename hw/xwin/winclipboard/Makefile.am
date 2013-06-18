@@ -21,3 +21,6 @@ xwinclip_SOURCES = xwinclip.c debug.c
 xwinclip_CFLAGS = $(XWINMODULES_CFLAGS)
 
 xwinclip_LDADD = libXWinclipboard.la $(XWINMODULES_LIBS) -lgdi32
+
+include $(top_srcdir)/manpages.am
+appman_PRE = xwinclip.man
