@@ -111,7 +111,6 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
     int iMaxDescriptor;
     Display *pDisplay = NULL;
     Window iWindow = None;
-    int iRetries;
     int iSelectError;
     Bool fShutdown = FALSE;
 
@@ -140,26 +139,8 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
         goto winClipboardProc_Done;
     }
 
-    /* Initialize retry count */
-    iRetries = 0;
-
-
-    /* Open the X display */
-    do {
-        pDisplay = XOpenDisplay(szDisplay);
-        if (pDisplay == NULL) {
-            ErrorF("winClipboardProc - Could not open display, "
-                   "try: %d, sleeping: %d\n", iRetries + 1, WIN_CONNECT_DELAY);
-            ++iRetries;
-            sleep(WIN_CONNECT_DELAY);
-            continue;
-        }
-        else
-            break;
-    }
-    while (pDisplay == NULL && iRetries < WIN_CONNECT_RETRIES);
-
     /* Make sure that the display opened */
+    pDisplay = XOpenDisplay(szDisplay);
     if (pDisplay == NULL) {
         ErrorF("winClipboardProc - Failed opening the display, giving up\n");
         goto winClipboardProc_Done;
