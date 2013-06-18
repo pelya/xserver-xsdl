@@ -325,14 +325,7 @@ winClipboardProc(void *pvNotUsed)
         /* Branch on which descriptor became active */
         if (FD_ISSET(iConnectionNumber, &fdsRead)) {
             /* Process X events */
-            /* Exit when we see that server is shutting down */
-            iReturn = winClipboardFlushXEvents(hwnd,
-                                               iWindow, pDisplay, fUseUnicode);
-            if (WIN_XEVENTS_SHUTDOWN == iReturn) {
-                ErrorF("winClipboardProc - winClipboardFlushXEvents "
-                       "trapped shutdown event, exiting main loop.\n");
-                break;
-            }
+            winClipboardFlushXEvents(hwnd, iWindow, pDisplay, fUseUnicode);
         }
 
 #ifdef HAS_DEVWINDOWS
