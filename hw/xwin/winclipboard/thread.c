@@ -36,10 +36,15 @@
 #define HAS_WINSOCK 1
 #endif
 
-#include <sys/types.h>
-#include <signal.h>
-#include "windisplay.h"
-#ifdef __CYGWIN__
+#include <assert.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <setjmp.h>
+#include <pthread.h>
+
+#ifdef HAS_WINSOCK
+#include <X11/Xwinsock.h>
+#else
 #include <errno.h>
 #endif
 

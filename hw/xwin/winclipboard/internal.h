@@ -32,20 +32,6 @@
 #ifndef WINCLIPBOARD_INTERNAL_H
 #define WINCLIPBOARD_INTERNAL_H
 
-/* Standard library headers */
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#ifdef __CYGWIN__
-#include <sys/select.h>
-#else
-#include <X11/Xwinsock.h>
-#endif
-#include <fcntl.h>
-#include <setjmp.h>
-#include <pthread.h>
-
 /* X headers */
 #include <X11/X.h>
 #include <X11/Xatom.h>
