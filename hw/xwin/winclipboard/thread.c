@@ -135,16 +135,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
         XSetIOErrorHandler(winClipboardIOErrorHandler);
 
     /* Set jump point for Error exits */
-    iReturn = setjmp(g_jmpEntry);
-
-    /* Check if we should continue operations */
-    if (iReturn != WIN_JMP_ERROR_IO && iReturn != WIN_JMP_OKAY) {
-        /* setjmp returned an unknown value, exit */
-        ErrorF("winClipboardProc - setjmp returned: %d exiting\n", iReturn);
-        goto winClipboardProc_Exit;
-    }
-    else if (iReturn == WIN_JMP_ERROR_IO) {
-        /* TODO: Cleanup the Win32 window and free any allocated memory */
+    if (setjmp(g_jmpEntry)) {
         ErrorF("winClipboardProc - setjmp returned for IO Error Handler.\n");
         goto winClipboardProc_Done;
     }
@@ -483,7 +474,7 @@ winClipboardIOErrorHandler(Display * pDisplay)
 
     if (pthread_equal(pthread_self(), g_winClipboardProcThread)) {
         /* Restart at the main entry point */
-        longjmp(g_jmpEntry, WIN_JMP_ERROR_IO);
+        longjmp(g_jmpEntry, 2);
     }
 
     if (g_winClipboardOldIOErrorHandler)
