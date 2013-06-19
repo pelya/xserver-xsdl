@@ -36,6 +36,15 @@
 #define HAS_WINSOCK 1
 #endif
 
+/*
+ * Including any server header might define the macro _XSERVER64 on 64 bit machines.
+ * That macro must _NOT_ be defined for Xlib client code, otherwise bad things happen.
+ * So let's undef that macro if necessary.
+ */
+#ifdef _XSERVER64
+#undef _XSERVER64
+#endif
+
 #include <assert.h>
 #include <unistd.h>
 #include <fcntl.h>
