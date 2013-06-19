@@ -370,8 +370,11 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
 
 #if 0
     /*
-     * FIXME: XCloseDisplay hangs if we call it, as of 2004/03/26.  The
-     * XSync and XSelectInput calls did not help.
+     * FIXME: XCloseDisplay hangs if we call it
+     *
+     * XCloseDisplay() calls XSync(), so any outstanding errors are reported.
+     * If we are built into the server, this can deadlock if the server is
+     * in the process of exiting and waiting for this thread to exit.
      */
 
     /* Discard any remaining events */
