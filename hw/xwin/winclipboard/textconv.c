@@ -31,14 +31,8 @@
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>
 #endif
-#include "win.h"
-#include <stdio.h>
 #include <stdlib.h>
-
-void
- winClipboardDOStoUNIX(char *pszSrc, int iLength);
-void
- winClipboardUNIXtoDOS(char **ppszData, int iLength);
+#include "internal.h"
 
 /*
  * Convert \r\n to \n
