@@ -33,10 +33,7 @@
 #define WINCLIPBOARD_INTERNAL_H
 
 /* X headers */
-#include <X11/X.h>
-#include <X11/Xatom.h>
-#include <X11/Xproto.h>
-#include <X11/Xutil.h>
+#include <X11/Xlib.h>
 
 /* Windows headers */
 #include <X11/Xwindows.h>
@@ -59,7 +56,7 @@
  */
 
 extern void winDebug(const char *format, ...);
-extern void winErrorFVerb(int verb, const char *format, ...);
+extern void ErrorF(const char *format, ...);
 
 /*
  * winclipboardtextconv.c
@@ -89,7 +86,7 @@ typedef struct
  * winclipboardwndproc.c
  */
 
-BOOL winClipboardFlushWindowsMessageQueue(HWND hwnd);
+Bool winClipboardFlushWindowsMessageQueue(HWND hwnd);
 
 LRESULT CALLBACK
 winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);

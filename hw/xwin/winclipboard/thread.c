@@ -41,6 +41,7 @@
 #include <fcntl.h>
 #include <setjmp.h>
 #include <pthread.h>
+#include <sys/param.h> // for MAX() macro
 
 #ifdef HAS_WINSOCK
 #include <X11/Xwinsock.h>
@@ -48,7 +49,7 @@
 #include <errno.h>
 #endif
 
-#include "misc.h"
+#include <X11/Xatom.h>
 #include <X11/extensions/Xfixes.h>
 #include "winclipboard.h"
 #include "internal.h"
@@ -185,7 +186,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
     }
 
     /* Find max of our file descriptors */
-    iMaxDescriptor = max(fdMessageQueue, iConnectionNumber) + 1;
+    iMaxDescriptor = MAX(fdMessageQueue, iConnectionNumber) + 1;
 #else
     iMaxDescriptor = iConnectionNumber + 1;
 #endif
