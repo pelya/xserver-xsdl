@@ -814,7 +814,7 @@ WriteToClient(ClientPtr who, int count, const void *__buf)
         }
     }
 #endif
-    if (oco->count + count + padBytes > oco->size) {
+    if (oco->count == 0 || oco->count + count + padBytes > oco->size) {
         FD_CLR(oc->fd, &OutputPending);
         if (!XFD_ANYSET(&OutputPending)) {
             CriticalOutputPending = FALSE;
