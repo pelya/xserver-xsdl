@@ -1687,15 +1687,14 @@ DoQueryContext(__GLXclientState * cl, GLXContextID gcId)
     ClientPtr client = cl->client;
     __GLXcontext *ctx;
     xGLXQueryContextInfoEXTReply reply;
-    int nProps;
-    int *sendBuf, *pSendBuf;
+    int nProps = 3;
+    int sendBuf[nProps * 2];
     int nReplyBytes;
     int err;
 
     if (!validGlxContext(cl->client, gcId, DixReadAccess, &ctx, &err))
         return err;
 
-    nProps = 3;
     reply = (xGLXQueryContextInfoEXTReply) {
         .type = X_Reply,
         .sequenceNumber = client->sequence,
@@ -1704,17 +1703,12 @@ DoQueryContext(__GLXclientState * cl, GLXContextID gcId)
     };
 
     nReplyBytes = reply.length << 2;
-    sendBuf = (int *) malloc((size_t) nReplyBytes);
-    if (sendBuf == NULL) {
-        return __glXError(GLXBadContext);       /* XXX: Is this correct? */
-    }
-    pSendBuf = sendBuf;
-    *pSendBuf++ = GLX_SHARE_CONTEXT_EXT;
-    *pSendBuf++ = (int) (ctx->share_id);
-    *pSendBuf++ = GLX_VISUAL_ID_EXT;
-    *pSendBuf++ = (int) (ctx->config->visualID);
-    *pSendBuf++ = GLX_SCREEN_EXT;
-    *pSendBuf++ = (int) (ctx->pGlxScreen->pScreen->myNum);
+    sendBuf[0] = GLX_SHARE_CONTEXT_EXT;
+    sendBuf[1] = (int) (ctx->share_id);
+    sendBuf[2] = GLX_VISUAL_ID_EXT;
+    sendBuf[3] = (int) (ctx->config->visualID);
+    sendBuf[4] = GLX_SCREEN_EXT;
+    sendBuf[5] = (int) (ctx->pGlxScreen->pScreen->myNum);
 
     if (client->swapped) {
         __glXSwapQueryContextInfoEXTReply(client, &reply, sendBuf);
@@ -1723,7 +1717,6 @@ DoQueryContext(__GLXclientState * cl, GLXContextID gcId)
         WriteToClient(client, sz_xGLXQueryContextInfoEXTReply, &reply);
         WriteToClient(client, nReplyBytes, sendBuf);
     }
-    free((char *) sendBuf);
 
     return Success;
 }
