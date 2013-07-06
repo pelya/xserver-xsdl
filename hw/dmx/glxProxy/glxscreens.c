@@ -154,7 +154,7 @@ CalcServerVersionAndExtensions(void)
         be_extensions[s] = (char *) malloc(numbytes);
         if (!be_extensions[s]) {
             /* Throw data on the floor */
-            _XEatData(dpy, length);
+            _XEatDataWords(dpy, length);
         }
         else {
             _XReadPad(dpy, (char *) be_extensions[s], numbytes);

@@ -2610,7 +2610,7 @@ __glXQueryExtensionsString(__GLXclientState * cl, GLbyte * pc)
     be_buf = (char *) malloc(numbytes);
     if (!be_buf) {
         /* Throw data on the floor */
-        _XEatData(dpy, len);
+        _XEatDataWords(dpy, len);
     }
     else {
         _XReadPad(dpy, (char *) be_buf, numbytes);
@@ -2691,7 +2691,7 @@ __glXQueryServerString(__GLXclientState * cl, GLbyte * pc)
     be_buf = (char *) malloc(numbytes);
     if (!be_buf) {
         /* Throw data on the floor */
-        _XEatData(dpy, len);
+        _XEatDataWords(dpy, len);
     }
     else {
         _XReadPad(dpy, (char *) be_buf, numbytes);
