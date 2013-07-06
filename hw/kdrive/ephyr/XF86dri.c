@@ -231,7 +231,7 @@ XF86DRIOpenConnection(Display * dpy, int screen,
         else
             *busIdString = NULL;
         if (*busIdString == NULL) {
-            _XEatData(dpy, ((rep.busIdStringLength + 3) & ~3));
+            _XEatDataWords(dpy, rep.length);
             UnlockDisplay(dpy);
             SyncHandle();
             TRACE("OpenConnection... return False");
@@ -333,7 +333,7 @@ XF86DRIGetClientDriverName(Display * dpy, int screen,
         else
             *clientDriverName = NULL;
         if (*clientDriverName == NULL) {
-            _XEatData(dpy, ((rep.clientDriverNameLength + 3) & ~3));
+            _XEatDataWords(dpy, rep.length);
             UnlockDisplay(dpy);
             SyncHandle();
             TRACE("GetClientDriverName... return False");
@@ -539,7 +539,7 @@ XF86DRIGetDrawableInfo(Display * dpy, int screen, Drawable drawable,
                           SIZEOF(xGenericReply) +
                           total_rects * sizeof(drm_clip_rect_t)) +
                          3) & ~3) >> 2)) {
-        _XEatData(dpy, rep.length);
+        _XEatDataWords(dpy, rep.length);
         UnlockDisplay(dpy);
         SyncHandle();
         TRACE("GetDrawableInfo... return False");
@@ -613,7 +613,7 @@ XF86DRIGetDeviceInfo(Display * dpy, int screen, drm_handle_t * hFrameBuffer,
 
     if (rep.length) {
         if (!(*pDevPrivate = (void *) calloc(rep.devPrivateSize, 1))) {
-            _XEatData(dpy, ((rep.devPrivateSize + 3) & ~3));
+            _XEatDataWords(dpy, rep.length);
             UnlockDisplay(dpy);
             SyncHandle();
             TRACE("GetDeviceInfo... return False");

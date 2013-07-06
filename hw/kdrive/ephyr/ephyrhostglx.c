@@ -211,8 +211,10 @@ ephyrHostGLXGetStringFromServer(int a_screen_number,
     _XReply(dpy, (xReply *) &reply, 0, False);
 
 #if UINT32_MAX >= (ULONG_MAX / 4)
-    if (reply.length >= (ULONG_MAX / 4))
+    if (reply.length >= (ULONG_MAX / 4)) {
+        _XEatDataWords(dpy, reply.length);
         goto eat_out;
+    }
 #endif
     if (reply.length > 0) {
         length = (unsigned long) reply.length * 4;
