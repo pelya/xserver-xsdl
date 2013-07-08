@@ -54,8 +54,6 @@ struct __GLXconfig {
 
     GLint level;
 
-    GLint pixmapMode;
-
     /* GLX */
     GLint visualID;
     GLint visualType;     /**< One of the GLX X visual types. (i.e., 
