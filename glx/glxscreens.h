@@ -92,8 +92,6 @@ struct __GLXconfig {
     /* OML_swap_method */
     GLint swapMethod;
 
-    GLint screen;
-
     /* EXT_texture_from_pixmap */
     GLint bindToTextureRgb;
     GLint bindToTextureRgba;
