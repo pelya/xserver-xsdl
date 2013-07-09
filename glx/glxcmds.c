@@ -1032,7 +1032,7 @@ __glXDisp_GetVisualConfigs(__GLXclientState * cl, GLbyte * pc)
     return Success;
 }
 
-#define __GLX_TOTAL_FBCONFIG_ATTRIBS (37)
+#define __GLX_TOTAL_FBCONFIG_ATTRIBS (44)
 #define __GLX_FBCONFIG_ATTRIBS_LENGTH (__GLX_TOTAL_FBCONFIG_ATTRIBS * 2)
 /**
  * Send the set of GLXFBConfigs to the client.  There is not currently
@@ -1117,13 +1117,23 @@ DoGetFBConfigs(__GLXclientState * cl, unsigned screen)
         WRITE_PAIR(GLX_SWAP_METHOD_OML, modes->swapMethod);
         WRITE_PAIR(GLX_SAMPLES_SGIS, modes->samples);
         WRITE_PAIR(GLX_SAMPLE_BUFFERS_SGIS, modes->sampleBuffers);
-        /* GLX_VISUAL_SELECT_GROUP_SGIX ? */
+        WRITE_PAIR(GLX_VISUAL_SELECT_GROUP_SGIX, modes->visualSelectGroup);
         WRITE_PAIR(GLX_DRAWABLE_TYPE, modes->drawableType);
         WRITE_PAIR(GLX_BIND_TO_TEXTURE_RGB_EXT, modes->bindToTextureRgb);
         WRITE_PAIR(GLX_BIND_TO_TEXTURE_RGBA_EXT, modes->bindToTextureRgba);
         WRITE_PAIR(GLX_BIND_TO_MIPMAP_TEXTURE_EXT, modes->bindToMipmapTexture);
         WRITE_PAIR(GLX_BIND_TO_TEXTURE_TARGETS_EXT,
                    modes->bindToTextureTargets);
+	WRITE_PAIR(GLX_Y_INVERTED_EXT, modes->yInverted);
+	if (modes->drawableType & GLX_PBUFFER_BIT) {
+	    WRITE_PAIR(GLX_MAX_PBUFFER_WIDTH, modes->maxPbufferWidth);
+	    WRITE_PAIR(GLX_MAX_PBUFFER_HEIGHT, modes->maxPbufferHeight);
+	    WRITE_PAIR(GLX_MAX_PBUFFER_PIXELS, modes->maxPbufferPixels);
+	    WRITE_PAIR(GLX_OPTIMAL_PBUFFER_WIDTH_SGIX,
+		       modes->optimalPbufferWidth);
+	    WRITE_PAIR(GLX_OPTIMAL_PBUFFER_HEIGHT_SGIX,
+		       modes->optimalPbufferHeight);
+	}
         /* Add attribute only if its value is not default. */
         if (modes->sRGBCapable != GL_FALSE) {
             WRITE_PAIR(GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, modes->sRGBCapable);
