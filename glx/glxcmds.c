@@ -42,10 +42,6 @@
 #include <windowstr.h>
 #include "glxutil.h"
 #include "glxext.h"
-#include "glapitable.h"
-#include "glapi.h"
-#include "glthread.h"
-#include "dispatch.h"
 #include "indirect_dispatch.h"
 #include "indirect_table.h"
 #include "indirect_util.h"
@@ -617,7 +613,7 @@ DoMakeCurrent(__GLXclientState * cl,
          */
         if (prevglxc->hasUnflushedCommands) {
             if (__glXForceCurrent(cl, tag, (int *) &error)) {
-                CALL_Flush(GET_DISPATCH(), ());
+                glFlush();
                 prevglxc->hasUnflushedCommands = GL_FALSE;
             }
             else {
@@ -800,7 +796,7 @@ __glXDisp_WaitGL(__GLXclientState * cl, GLbyte * pc)
         if (!__glXForceCurrent(cl, req->contextTag, &error))
             return error;
 
-        CALL_Finish(GET_DISPATCH(), ());
+        glFinish();
     }
 
     if (glxc && glxc->drawPriv->waitGL)
@@ -898,7 +894,7 @@ __glXDisp_CopyContext(__GLXclientState * cl, GLbyte * pc)
              ** Do whatever is needed to make sure that all preceding requests
              ** in both streams are completed before the copy is executed.
              */
-            CALL_Finish(GET_DISPATCH(), ());
+            glFinish();
             tagcx->hasUnflushedCommands = GL_FALSE;
         }
         else {
@@ -1675,7 +1671,7 @@ __glXDisp_SwapBuffers(__GLXclientState * cl, GLbyte * pc)
              ** Do whatever is needed to make sure that all preceding requests
              ** in both streams are completed before the swap is executed.
              */
-            CALL_Finish(GET_DISPATCH(), ());
+            glFinish();
             glxc->hasUnflushedCommands = GL_FALSE;
         }
         else {
@@ -1872,7 +1868,7 @@ __glXDisp_CopySubBufferMESA(__GLXclientState * cl, GLbyte * pc)
              ** Do whatever is needed to make sure that all preceding requests
              ** in both streams are completed before the swap is executed.
              */
-            CALL_Finish(GET_DISPATCH(), ());
+            glFinish();
             glxc->hasUnflushedCommands = GL_FALSE;
         }
         else {

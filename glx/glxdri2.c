@@ -49,10 +49,6 @@
 #include "glxdricommon.h"
 #include <GL/glxtokens.h>
 
-#include "glapitable.h"
-#include "glapi.h"
-#include "glthread.h"
-#include "dispatch.h"
 #include "extension_string.h"
 
 typedef struct __GLXDRIscreen __GLXDRIscreen;

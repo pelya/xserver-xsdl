@@ -541,6 +541,19 @@ __glXleaveServer(GLboolean rendering)
     glxServerLeaveCount++;
 }
 
+static void (*(*_get_proc_address)(const char *))(void);
+
+void
+__glXsetGetProcAddress(void (*(*get_proc_address) (const char *))(void))
+{
+    _get_proc_address = get_proc_address;
+}
+
+void *__glGetProcAddress(const char *proc)
+{
+    return _get_proc_address(proc);
+}
+
 /*
 ** Top level dispatcher; all commands are executed from here down.
 */
