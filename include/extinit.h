@@ -181,4 +181,9 @@ extern void XvMCExtensionInit(void);
 extern void dri3_extension_init(void);
 #endif
 
+#if defined(PRESENT)
+#include <X11/extensions/presentproto.h>
+#include "presentext.h"
+#endif
+
 #endif

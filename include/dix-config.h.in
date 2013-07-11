@@ -255,6 +255,9 @@
 /* Internal define for Xinerama */
 #undef PANORAMIX
 
+/* Support Present extension */
+#undef PRESENT
+
 /* Overall prefix */
 #undef PROJECTROOT
 

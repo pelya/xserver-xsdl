@@ -21,6 +21,10 @@ if DRI3
 DRI3_DIR=dri3
 endif
 
+if PRESENT
+PRESENT_DIR=present
+endif
+
 SUBDIRS = \
 	doc \
 	man \
@@ -42,6 +46,7 @@ SUBDIRS = \
 	damageext \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
+	$(PRESENT_DIR) \
 	$(DRI3_DIR) \
 	exa \
 	config \
