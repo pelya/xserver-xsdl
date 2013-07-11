@@ -165,6 +165,7 @@ extern void ListenOnOpenFD(int /* fd */ , int /* noxauth */ );
 #endif
 
 extern _X_EXPORT CARD32 GetTimeInMillis(void);
+extern _X_EXPORT CARD64 GetTimeInMicros(void);
 
 extern _X_EXPORT void AdjustWaitForDelay(pointer /*waitTime */ ,
                                          unsigned long /*newdelay */ );
