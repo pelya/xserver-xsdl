@@ -1010,6 +1010,10 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num, int *num_dv
 	/* need to do smart conversion here for compat with non-kms ATI driver */
 	if (koutput->connector_type >= MS_ARRAY_SIZE(output_names))
 		snprintf(name, 32, "Unknown-%d", koutput->connector_type_id - 1);
+#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
+	else if (pScrn->is_gpu)
+		snprintf(name, 32, "%s-%d-%d", output_names[koutput->connector_type], pScrn->scrnIndex - GPU_SCREEN_OFFSET + 1, koutput->connector_type_id - 1);
+#endif
 	else
 		snprintf(name, 32, "%s-%d", output_names[koutput->connector_type], koutput->connector_type_id - 1);
 
