@@ -299,7 +299,7 @@ DoCreateContext(__GLXclientState * cl, GLXContextID gcId,
     glxc->id = gcId;
     glxc->share_id = shareList;
     glxc->idExists = GL_TRUE;
-    glxc->isCurrent = GL_FALSE;
+    glxc->currentClient = NULL;
     glxc->isDirect = isDirect;
     glxc->hasUnflushedCommands = GL_FALSE;
     glxc->renderMode = GL_RENDER;
@@ -407,7 +407,7 @@ __glXDisp_DestroyContext(__GLXclientState * cl, GLbyte * pc)
         return err;
 
     glxc->idExists = GL_FALSE;
-    if (!glxc->isCurrent)
+    if (!glxc->currentClient)
         FreeResourceByType(req->context, __glXContextRes, FALSE);
 
     return Success;
@@ -444,7 +444,7 @@ StopUsingContext(__GLXcontext * glxc)
             /* Tell server GL library */
             __glXLastContext = 0;
         }
-        glxc->isCurrent = GL_FALSE;
+        glxc->currentClient = NULL;
         if (!glxc->idExists) {
             FreeResourceByType(glxc->id, __glXContextRes, FALSE);
         }
@@ -454,8 +454,8 @@ StopUsingContext(__GLXcontext * glxc)
 static void
 StartUsingContext(__GLXclientState * cl, __GLXcontext * glxc)
 {
-    glxc->isCurrent = GL_TRUE;
     __glXLastContext = glxc;
+    glxc->currentClient = cl->client;
 }
 
 /**
@@ -589,7 +589,7 @@ DoMakeCurrent(__GLXclientState * cl,
 
         if (!validGlxContext(client, contextId, DixUseAccess, &glxc, &error))
             return error;
-        if ((glxc != prevglxc) && glxc->isCurrent) {
+        if ((glxc != prevglxc) && glxc->currentClient) {
             /* Context is current to somebody else */
             return BadAccess;
         }
@@ -652,7 +652,7 @@ DoMakeCurrent(__GLXclientState * cl,
             return __glXError(GLXBadContext);
         }
 
-        glxc->isCurrent = GL_TRUE;
+        glxc->currentClient = client;
     }
 
     StopUsingContext(prevglxc);
@@ -873,7 +873,7 @@ __glXDisp_CopyContext(__GLXclientState * cl, GLbyte * pc)
     /*
      ** The destination context must not be current for any client.
      */
-    if (dst->isCurrent) {
+    if (dst->currentClient) {
         client->errorValue = dest;
         return BadAccess;
     }

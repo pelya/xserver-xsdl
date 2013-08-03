@@ -320,7 +320,7 @@ __glXDisp_CreateContextAttribsARB(__GLXclientState * cl, GLbyte * pc)
     ctx->id = req->context;
     ctx->share_id = req->shareList;
     ctx->idExists = True;
-    ctx->isCurrent = False;
+    ctx->currentClient = False;
     ctx->isDirect = req->isDirect;
     ctx->hasUnflushedCommands = False;
     ctx->renderMode = GL_RENDER;

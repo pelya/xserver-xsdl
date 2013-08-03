@@ -95,16 +95,15 @@ __glXResetLargeCommandStatus(__GLXclientState * cl)
 }
 
 /*
-** This procedure is called when the client who created the context goes
-** away OR when glXDestroyContext is called.  In either case, all we do is
-** flag that the ID is no longer valid, and (maybe) free the context.
-** use.
-*/
+ * This procedure is called when the client who created the context goes away
+ * OR when glXDestroyContext is called.  In either case, all we do is flag that
+ * the ID is no longer valid, and (maybe) free the context.
+ */
 static int
 ContextGone(__GLXcontext * cx, XID id)
 {
     cx->idExists = GL_FALSE;
-    if (!cx->isCurrent) {
+    if (!cx->currentClient) {
         __glXFreeContext(cx);
     }
 
@@ -138,9 +137,10 @@ DrawableGone(__GLXdrawable * glxPriv, XID xid)
 
     for (c = glxAllContexts; c; c = next) {
         next = c->next;
-        if (c->isCurrent && (c->drawPriv == glxPriv || c->readPriv == glxPriv)) {
+        if (c->currentClient &&
+		(c->drawPriv == glxPriv || c->readPriv == glxPriv)) {
             (*c->loseCurrent) (c);
-            c->isCurrent = GL_FALSE;
+            c->currentClient = NULL;
             if (c == __glXLastContext)
                 __glXFlushContextCache();
         }
@@ -196,16 +196,16 @@ __glXRemoveFromContextList(__GLXcontext * cx)
 GLboolean
 __glXFreeContext(__GLXcontext * cx)
 {
-    if (cx->idExists || cx->isCurrent)
+    if (cx->idExists || cx->currentClient)
         return GL_FALSE;
+
+    __glXRemoveFromContextList(cx);
 
     free(cx->feedbackBuf);
     free(cx->selectBuf);
     if (cx == __glXLastContext) {
         __glXFlushContextCache();
     }
-
-    __glXRemoveFromContextList(cx);
 
     /* We can get here through both regular dispatching from
      * __glXDispatch() or as a callback from the resource manager.  In
@@ -283,6 +283,7 @@ glxClientCallback(CallbackListPtr *list, pointer closure, pointer data)
     NewClientInfoRec *clientinfo = (NewClientInfoRec *) data;
     ClientPtr pClient = clientinfo->client;
     __GLXclientState *cl = glxGetClient(pClient);
+    __GLXcontext *c, *next;
 
     switch (pClient->clientState) {
     case ClientStateRunning:
@@ -290,6 +291,16 @@ glxClientCallback(CallbackListPtr *list, pointer closure, pointer data)
         break;
 
     case ClientStateGone:
+        /* detach from all current contexts */
+        for (c = glxAllContexts; c; c = next) {
+            next = c->next;
+            if (c->currentClient == pClient) {
+                c->loseCurrent(c);
+                c->currentClient = NULL;
+                __glXFreeContext(c);
+            }
+        }
+
         free(cl->returnBuf);
         free(cl->largeCmdBuf);
         free(cl->GLClientextensions);
