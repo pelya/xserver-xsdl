@@ -162,7 +162,7 @@ winLoadCursor(ScreenPtr pScreen, CursorPtr pCursor, int screen)
     HDC hDC;
     BITMAPV4HEADER bi;
     BITMAPINFO *pbmi;
-    unsigned long *lpBits;
+    uint32_t *lpBits;
 
     WIN_DEBUG_MSG("winLoadCursor: Win32: %dx%d X11: %dx%d hotspot: %d,%d\n",
                   pScreenPriv->cursor.sm_cx, pScreenPriv->cursor.sm_cy,
@@ -256,15 +256,14 @@ winLoadCursor(ScreenPtr pScreen, CursorPtr pCursor, int screen)
         bi.bV4AlphaMask = 0xFF000000;
 
         lpBits =
-            (unsigned long *) calloc(pScreenPriv->cursor.sm_cx *
-                                     pScreenPriv->cursor.sm_cy,
-                                     sizeof(unsigned long));
+            (uint32_t *) calloc(pScreenPriv->cursor.sm_cx *
+                                pScreenPriv->cursor.sm_cy,
+                                sizeof(uint32_t));
 
         if (lpBits) {
             int y;
             for (y = 0; y < nCY; y++) {
-                unsigned long *src, *dst;
-
+                void *src, *dst;
                 src = &(pCursor->bits->argb[y * pCursor->bits->width]);
                 dst = &(lpBits[y * pScreenPriv->cursor.sm_cx]);
                 memcpy(dst, src, 4 * nCX);
@@ -304,8 +303,8 @@ winLoadCursor(ScreenPtr pScreen, CursorPtr pCursor, int screen)
         pbmiColors[2].rgbReserved = 0;
 
         lpBits =
-            (unsigned long *) calloc(pScreenPriv->cursor.sm_cx *
-                                     pScreenPriv->cursor.sm_cy, sizeof(char));
+            (uint32_t *) calloc(pScreenPriv->cursor.sm_cx *
+                                pScreenPriv->cursor.sm_cy, sizeof(char));
 
         pCur = (unsigned char *) lpBits;
         if (lpBits) {
