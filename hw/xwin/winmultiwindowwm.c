@@ -1061,15 +1061,13 @@ winMultiWindowXMsgProc(void *pArg)
                 (pProcArg->pDisplay, pProcArg->dwScreen, TRUE)) {
                 if (!g_fAnotherWMRunning) {
                     g_fAnotherWMRunning = TRUE;
-                    SendMessage(*(HWND *) pProcArg->hwndScreen, WM_UNMANAGE, 0,
-                                0);
+                    SendMessage(pProcArg->hwndScreen, WM_UNMANAGE, 0, 0);
                 }
             }
             else {
                 if (g_fAnotherWMRunning) {
                     g_fAnotherWMRunning = FALSE;
-                    SendMessage(*(HWND *) pProcArg->hwndScreen, WM_MANAGE, 0,
-                                0);
+                    SendMessage(pProcArg->hwndScreen, WM_MANAGE, 0, 0);
                 }
             }
             Sleep(500);
