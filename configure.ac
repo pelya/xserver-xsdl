@@ -228,10 +228,6 @@ dnl AGPGART headers
 AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h sys/agpgart.h], AGP=yes)
 AM_CONDITIONAL(AGP, [test "x$AGP" = xyes])
 
-dnl APM header
-AC_CHECK_HEADERS([linux/apm_bios.h], LNXAPM=yes)
-AM_CONDITIONAL(LNXAPM, [test "x$LNXAPM" = xyes])
-
 dnl fbdev header
 AC_CHECK_HEADERS([linux/fb.h], FBDEV=yes)
 AM_CONDITIONAL(FBDEVHW, [test "x$FBDEV" = xyes])
@@ -638,6 +634,7 @@ AC_ARG_ENABLE(libdrm,         AS_HELP_STRING([--enable-libdrm], [Build Xorg with
 AC_ARG_ENABLE(clientids,      AS_HELP_STRING([--disable-clientids], [Build Xorg with client ID tracking (default: enabled)]), [CLIENTIDS=$enableval], [CLIENTIDS=yes])
 AC_ARG_ENABLE(pciaccess, AS_HELP_STRING([--enable-pciaccess], [Build Xorg with pciaccess library (default: enabled)]), [PCI=$enableval], [PCI=yes])
 AC_ARG_ENABLE(linux_acpi, AC_HELP_STRING([--disable-linux-acpi], [Disable building ACPI support on Linux (if available).]), [enable_linux_acpi=$enableval], [enable_linux_acpi=yes])
+AC_ARG_ENABLE(linux_apm, AC_HELP_STRING([--disable-linux-apm], [Disable building APM support on Linux (if available).]), [enable_linux_apm=$enableval], [enable_linux_apm=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -1736,9 +1733,6 @@ if test "x$XORG" = xyes; then
 
 	case $host_os in
 	  linux*)
-		if test "x$LNXAPM" = xyes; then
-			XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
-		fi
 		XORG_OS_SUBDIR="linux"
 		linux_acpi="no"
 		case $host_cpu in
@@ -1751,6 +1745,11 @@ if test "x$XORG" = xyes; then
 		  *)
 			;;
 		esac
+		dnl APM header
+		AC_CHECK_HEADERS([linux/apm_bios.h], [linux_apm=$enable_linux_apm])
+		if test "x$linux_apm" = xyes -o "x$linux_acpi" = xyes; then
+			AC_DEFINE(XF86PM, 1, [Support APM/ACPI power management in the server])
+		fi
 		;;
 	  freebsd* | kfreebsd*-gnu | dragonfly*)
 		XORG_OS_SUBDIR="bsd"
@@ -1913,6 +1912,7 @@ AM_CONDITIONAL([XORG_BUS_BSDPCI], [test "x$xorg_bus_bsdpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
 AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])
 AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])
+AM_CONDITIONAL([LNXAPM], [test "x$linux_apm" = xyes])
 AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
 AM_CONDITIONAL([SOLARIS_VT], [test "x$solaris_vt" = xyes])
 AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
