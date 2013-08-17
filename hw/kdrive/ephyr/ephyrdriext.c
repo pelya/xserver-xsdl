@@ -716,7 +716,6 @@ ProcXF86DRICreateContext(register ClientPtr client)
     ScreenPtr pScreen;
     VisualPtr visual;
     int i = 0;
-    unsigned long context_id = 0;
 
     REQUEST(xXF86DRICreateContextReq);
     REQUEST_SIZE_MATCH(xXF86DRICreateContextReq);
@@ -739,10 +738,9 @@ ProcXF86DRICreateContext(register ClientPtr client)
         return BadValue;
     }
 
-    context_id = stuff->context;
     if (!ephyrDRICreateContext(stuff->screen,
                                stuff->visual,
-                               &context_id,
+                               stuff->context,
                                (drm_context_t *) &rep.hHWContext)) {
         return BadValue;
     }
