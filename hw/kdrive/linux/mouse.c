@@ -193,7 +193,7 @@ MouseWriteBytes(int fd, unsigned char *c, int n, int timeout)
 #define MAX_VALID   4           /* number of valid packets before accepting */
 
 typedef struct _kmouseProt {
-    char *name;
+    const char *name;
     Bool (*Complete) (KdPointerInfo * pi, unsigned char *ev, int ne);
     int (*Valid) (KdPointerInfo * pi, unsigned char *ev, int ne);
     Bool (*Parse) (KdPointerInfo * pi, unsigned char *ev, int ne);

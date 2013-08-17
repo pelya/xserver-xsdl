@@ -174,7 +174,7 @@ typedef enum _kdPointerState {
 typedef struct _KdPointerInfo KdPointerInfo;
 
 typedef struct _KdPointerDriver {
-    char *name;
+    const char *name;
      Status(*Init) (KdPointerInfo *);
      Status(*Enable) (KdPointerInfo *);
     void (*Disable) (KdPointerInfo *);
@@ -243,7 +243,7 @@ typedef struct {
 typedef struct _KdKeyboardInfo KdKeyboardInfo;
 
 typedef struct _KdKeyboardDriver {
-    char *name;
+    const char *name;
     Bool (*Init) (KdKeyboardInfo *);
     Bool (*Enable) (KdKeyboardInfo *);
     void (*Leds) (KdKeyboardInfo *, int);
