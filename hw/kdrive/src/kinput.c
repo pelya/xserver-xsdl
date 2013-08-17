@@ -1675,13 +1675,6 @@ char *kdActionNames[] = {
 };
 #endif                          /* DEBUG */
 
-static void
-KdQueueEvent(DeviceIntPtr pDev, InternalEvent *ev)
-{
-    KdAssertSigioBlocked("KdQueueEvent");
-    mieqEnqueue(pDev, ev);
-}
-
 /* We return true if we're stealing the event. */
 static Bool
 KdRunMouseMachine(KdPointerInfo * pi, KdInputClass c, int type, int x, int y,
