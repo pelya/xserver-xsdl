@@ -411,13 +411,14 @@ Rotation KdAddRotation(Rotation a, Rotation b);
 Rotation KdSubRotation(Rotation a, Rotation b);
 
 void
- KdParseScreen(KdScreenInfo * screen, char *arg);
+ KdParseScreen(KdScreenInfo * screen, const char *arg);
 
-KdPointerInfo *KdParsePointer(char *arg);
+KdPointerInfo *KdParsePointer(const char *arg);
 
-KdKeyboardInfo *KdParseKeyboard(char *arg);
+KdKeyboardInfo *KdParseKeyboard(const char *arg);
 
-char *KdParseFindNext(char *cur, const char *delim, char *save, char *last);
+const char *
+KdParseFindNext(const char *cur, const char *delim, char *save, char *last);
 
 void
  KdParseRgba(char *rgba);

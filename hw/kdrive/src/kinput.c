@@ -1086,7 +1086,7 @@ KdParseKbdOptions(KdKeyboardInfo * ki)
 }
 
 KdKeyboardInfo *
-KdParseKeyboard(char *arg)
+KdParseKeyboard(const char *arg)
 {
     char save[1024];
     char delim;
@@ -1178,7 +1178,7 @@ KdParsePointerOptions(KdPointerInfo * pi)
 }
 
 KdPointerInfo *
-KdParsePointer(char *arg)
+KdParsePointer(const char *arg)
 {
     char save[1024];
     char delim;
