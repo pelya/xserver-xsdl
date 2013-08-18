@@ -41,64 +41,11 @@
 #endif
 
 typedef struct EphyrHostXVars EphyrHostXVars;
-typedef struct EphyrHostXEvent EphyrHostXEvent;
-typedef enum EphyrHostXEventType {
-    EPHYR_EV_MOUSE_MOTION,
-    EPHYR_EV_MOUSE_PRESS,
-    EPHYR_EV_MOUSE_RELEASE,
-    EPHYR_EV_KEY_PRESS,
-    EPHYR_EV_KEY_RELEASE,
-    EPHYR_EV_EXPOSE,
-    EPHYR_EV_CONFIGURE,
-} EphyrHostXEventType;
 
 typedef struct {
     int minKeyCode;
     int maxKeyCode;
 } EphyrKeySyms;
-
-struct EphyrHostXEvent {
-    EphyrHostXEventType type;
-
-    union {
-        struct mouse_motion {
-            int x;
-            int y;
-            int screen;
-            int window;
-        } mouse_motion;
-
-        struct mouse_down {
-            int button_num;
-        } mouse_down;
-
-        struct mouse_up {
-            int button_num;
-        } mouse_up;
-
-        struct key_up {
-            int scancode;
-        } key_up;
-
-        struct key_down {
-            int scancode;
-        } key_down;
-
-        struct expose {
-            int window;
-        } expose;
-
-        struct configure {
-            int width;
-            int height;
-            int screen;
-            int window;
-        } configure;
-
-    } data;
-
-    int key_state;
-};
 
 typedef struct {
     VisualID visualid;
@@ -198,9 +145,6 @@ hostx_paint_rect(KdScreenInfo *screen,
 
 void
  hostx_load_keymap(void);
-
-int
- hostx_get_event(EphyrHostXEvent * ev);
 
 xcb_connection_t *
 hostx_get_xcbconn(void);
