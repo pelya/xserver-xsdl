@@ -1390,15 +1390,6 @@ out:
     return is_ok;
 }
 
-int
-hostx_has_xshape(void)
-{
-    const xcb_query_extension_reply_t *rep;
-
-    rep = xcb_get_extension_data(HostX.conn, &xcb_shape_id);
-    return rep && rep->present;
-}
-
 #ifdef XF86DRI
 typedef struct {
     int is_valid;
@@ -1469,26 +1460,6 @@ hostx_get_resource_id_peer(int a_local_resource_id, int *a_remote_resource_id)
         return TRUE;
     }
     return FALSE;
-}
-
-int
-hostx_has_dri(void)
-{
-    const xcb_query_extension_reply_t *dri;
-
-    dri = xcb_get_extension_data(HostX.conn, &xcb_xf86dri_id);
-
-    return dri && dri->present;
-}
-
-int
-hostx_has_glx(void)
-{
-    const xcb_query_extension_reply_t *glx;
-
-    glx = xcb_get_extension_data(HostX.conn, &xcb_glx_id);
-
-    return glx && glx->present;
 }
 
 #endif                          /* XF86DRI */

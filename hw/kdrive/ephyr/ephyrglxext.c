@@ -29,6 +29,7 @@
 #include <kdrive-config.h>
 #endif
 
+#include <xcb/glx.h>
 #include "extnsionst.h"
 #include "ephyrglxext.h"
 #include "ephyrhostglx.h"
@@ -83,7 +84,7 @@ ephyrHijackGLXExtension(void)
 {
     const void *(*dispatch_functions)[2];
 
-    if (!hostx_has_glx()) {
+    if (!host_has_extension(&xcb_glx_id)) {
         EPHYR_LOG("host X does not have GLX\n");
         return FALSE;
     }

@@ -233,7 +233,8 @@ int hostx_set_window_bounding_rectangles(int a_window,
 
 int hostx_set_window_clipping_rectangles(int a_window,
                                          EphyrRect * a_rects, int a_num_rects);
-int hostx_has_xshape(void);
+
+int host_has_extension(xcb_extension_t *extension);
 
 #ifdef XF86DRI
 int hostx_lookup_peer_window(void *a_local_window,
