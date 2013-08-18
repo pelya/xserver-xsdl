@@ -287,8 +287,6 @@ ephyrXVPrivNew(void)
         goto error;
     }
 
-    ephyrHostXVInit();
-
     if (!ephyrXVPrivQueryHostAdaptors(xv_priv)) {
         EPHYR_LOG_ERROR("failed to query the host x for xv properties\n");
         goto error;
@@ -317,7 +315,7 @@ ephyrXVPrivDelete(EphyrXVPriv * a_this)
     if (!a_this)
         return;
     if (a_this->host_adaptors) {
-        ephyrHostXVAdaptorArrayDelete(a_this->host_adaptors);
+        free(a_this->host_adaptors);
         a_this->host_adaptors = NULL;
     }
     free(a_this->adaptors);
@@ -396,8 +394,7 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
         goto out;
     }
     if (a_this->host_adaptors)
-        a_this->num_adaptors =
-            ephyrHostXVAdaptorArrayGetSize(a_this->host_adaptors);
+        a_this->num_adaptors = a_this->host_adaptors->num_adaptors;
     if (a_this->num_adaptors < 0) {
         EPHYR_LOG_ERROR("failed to get number of host adaptors\n");
         goto out;
@@ -420,8 +417,7 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
         cur_host_adaptor = ephyrHostXVAdaptorArrayAt(a_this->host_adaptors, i);
         if (!cur_host_adaptor)
             continue;
-        a_this->adaptors[i].nPorts =
-            ephyrHostXVAdaptorGetNbPorts(cur_host_adaptor);
+        a_this->adaptors[i].nPorts = cur_host_adaptor->num_ports;
         if (a_this->adaptors[i].nPorts <= 0) {
             EPHYR_LOG_ERROR("Could not find any port of adaptor %d\n", i);
             continue;
@@ -433,7 +429,7 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
         a_this->adaptors[i].name = ephyrHostXVAdaptorGetName(cur_host_adaptor);
         if (!a_this->adaptors[i].name)
             a_this->adaptors[i].name = strdup("Xephyr Video Overlay");
-        base_port_id = ephyrHostXVAdaptorGetFirstPortID(cur_host_adaptor);
+        base_port_id = cur_host_adaptor->base_id;
         if (base_port_id < 0) {
             EPHYR_LOG_ERROR("failed to get port id for adaptor %d\n", i);
             continue;
@@ -455,10 +451,6 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
                                               &num_video_formats);
         a_this->adaptors[i].pFormats = (KdVideoFormatPtr) video_formats;
         a_this->adaptors[i].nFormats = num_video_formats;
-        /* got a_this->adaptors[i].nPorts already
-           a_this->adaptors[i].nPorts =
-           ephyrHostXVAdaptorGetNbPorts (cur_host_adaptor) ;
-         */
         a_this->adaptors[i].pPortPrivates =
             calloc(a_this->adaptors[i].nPorts,
                    sizeof(DevUnion) + sizeof(EphyrPortPriv));
@@ -710,15 +702,14 @@ ephyrXVPrivSaveImageToPortPriv(EphyrPortPriv * a_port_priv,
 static void
 ephyrStopVideo(KdScreenInfo * a_info, pointer a_port_priv, Bool a_exit)
 {
+    xcb_connection_t *conn = hostx_get_xcbconn();
     EphyrPortPriv *port_priv = a_port_priv;
+    EphyrScrPriv *scrpriv = a_info->driver;
 
-    EPHYR_RETURN_IF_FAIL(a_info && a_info->pScreen);
     EPHYR_RETURN_IF_FAIL(port_priv);
 
     EPHYR_LOG("enter\n");
-    if (!ephyrHostXVStopVideo(a_info->pScreen->myNum, port_priv->port_number)) {
-        EPHYR_LOG_ERROR("XvStopVideo() failed\n");
-    }
+    xcb_xv_stop_video(conn, port_priv->port_number, scrpriv->win);
     EPHYR_LOG("leave\n");
 }
 

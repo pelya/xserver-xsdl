@@ -82,16 +82,10 @@ typedef struct {
     unsigned short x1, y1, x2, y2;
 } EphyrHostBox;
 
-void ephyrHostXVInit(void);
-
-void ephyrHostFree(void *a_pointer);
-
 /*
  * host adaptor array
  */
 Bool ephyrHostXVQueryAdaptors(xcb_xv_query_adaptors_reply_t **a_adaptors);
-void ephyrHostXVAdaptorArrayDelete(xcb_xv_query_adaptors_reply_t *a_adaptors);
-int ephyrHostXVAdaptorArrayGetSize(const xcb_xv_query_adaptors_reply_t *a_this);
 xcb_xv_adaptor_info_t* ephyrHostXVAdaptorArrayAt(const xcb_xv_query_adaptors_reply_t *a_this,
                                                  int a_index);
 
@@ -103,8 +97,6 @@ char ephyrHostXVAdaptorGetType(const xcb_xv_adaptor_info_t *a_this);
 char* ephyrHostXVAdaptorGetName(const xcb_xv_adaptor_info_t *a_this);
 EphyrHostVideoFormat *ephyrHostXVAdaptorGetVideoFormats
     (const xcb_xv_adaptor_info_t *a_this, int *a_nb_formats);
-int ephyrHostXVAdaptorGetNbPorts(const xcb_xv_adaptor_info_t *a_this);
-int ephyrHostXVAdaptorGetFirstPortID(const xcb_xv_adaptor_info_t *a_this);
 
 Bool ephyrHostXVAdaptorHasPutVideo(const xcb_xv_adaptor_info_t *a_this,
                                    Bool *a_result);
@@ -215,10 +207,5 @@ Bool ephyrHostXVGetStill(int a_screen_num,
                          int a_port_id,
                          int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                          int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h);
-
-/*
- * StopVideo
- */
-Bool ephyrHostXVStopVideo(int a_screen_num, int a_port_id);
 
 #endif /*__EPHYRHOSTVIDEO_H__*/

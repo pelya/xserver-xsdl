@@ -43,12 +43,6 @@
 #define FALSE 0
 #endif /*FALSE*/
 
-
-void
-ephyrHostXVInit(void)
-{
-}
-
 Bool
 ephyrHostXVQueryAdaptors (xcb_xv_query_adaptors_reply_t **a_adaptors)
 {
@@ -76,19 +70,6 @@ out:
     EPHYR_LOG("leave\n");
     free(e);
     return is_ok;
-}
-
-void
-ephyrHostXVAdaptorArrayDelete (xcb_xv_query_adaptors_reply_t *a_adaptors)
-{
-    free (a_adaptors);
-}
-
-int
-ephyrHostXVAdaptorArrayGetSize (const xcb_xv_query_adaptors_reply_t *a_this)
-{
-    EPHYR_RETURN_VAL_IF_FAIL(a_this, -1);
-    return a_this->num_adaptors;
 }
 
 xcb_xv_adaptor_info_t *
@@ -154,20 +135,6 @@ ephyrHostXVAdaptorGetVideoFormats (const xcb_xv_adaptor_info_t *a_this,
     if (a_nb_formats)
         *a_nb_formats = nb_formats;
     return formats;
-}
-
-int
-ephyrHostXVAdaptorGetNbPorts(const xcb_xv_adaptor_info_t *a_this)
-{
-    EPHYR_RETURN_VAL_IF_FAIL(a_this, -1);
-
-    return a_this->num_ports;
-}
-
-int
-ephyrHostXVAdaptorGetFirstPortID (const xcb_xv_adaptor_info_t *a_this)
-{
-    return a_this->base_id;
 }
 
 Bool
@@ -538,12 +505,6 @@ ephyrHostGetAtomName(int a_atom)
     return ret;
 }
 
-void
-ephyrHostFree(void *a_pointer)
-{
-    free(a_pointer);
-}
-
 Bool
 ephyrHostXVPutImage(int a_screen_num,
                     int a_port_id,
@@ -730,20 +691,5 @@ ephyrHostXVGetStill(int a_screen_num, int a_port_id,
                      a_drw_x, a_drw_y, a_drw_w, a_drw_h);
     xcb_free_gc(conn, gc);
 
-    return TRUE;
-}
-
-Bool
-ephyrHostXVStopVideo(int a_screen_num, int a_port_id)
-{
-    xcb_connection_t *conn = hostx_get_xcbconn();
-
-    EPHYR_RETURN_VAL_IF_FAIL(conn, FALSE);
-
-    EPHYR_LOG("enter\n");
-
-    xcb_xv_stop_video(conn, a_port_id, hostx_get_window (a_screen_num));
-
-    EPHYR_LOG("leave\n");
     return TRUE;
 }
