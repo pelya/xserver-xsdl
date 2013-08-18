@@ -147,6 +147,9 @@ processScreenArg(const char *screen_size, char *parent_id)
 
         screen = KdScreenInfoAdd(card);
         KdParseScreen(screen, screen_size);
+        screen->driver = calloc(1, sizeof(EphyrScrPriv));
+        if (!screen->driver)
+            FatalError("Couldn't alloc screen private\n");
 
         if (parent_id) {
             p_id = strtol(parent_id, NULL, 0);
@@ -369,7 +372,7 @@ ephyrCursorEnable(ScreenPtr pScreen)
 
 KdCardFuncs ephyrFuncs = {
     ephyrCardInit,              /* cardinit */
-    ephyrScreenInit,            /* scrinit */
+    ephyrScreenInitialize,      /* scrinit */
     ephyrInitScreen,            /* initScreen */
     ephyrFinishInitScreen,      /* finishInitScreen */
     ephyrCreateResources,       /* createRes */

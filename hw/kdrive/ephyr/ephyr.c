@@ -99,8 +99,9 @@ ephyrCardInit(KdCardInfo * card)
 }
 
 Bool
-ephyrScreenInitialize(KdScreenInfo * screen, EphyrScrPriv * scrpriv)
+ephyrScreenInitialize(KdScreenInfo *screen)
 {
+    EphyrScrPriv *scrpriv = screen->driver;
     int width = 640, height = 480;
     CARD32 redMask, greenMask, blueMask;
 
@@ -117,7 +118,7 @@ ephyrScreenInitialize(KdScreenInfo * screen, EphyrScrPriv * scrpriv)
         if (screen->fb.depth < hostx_get_depth()
             && (screen->fb.depth == 24 || screen->fb.depth == 16
                 || screen->fb.depth == 8)) {
-            hostx_set_server_depth(screen, screen->fb.depth);
+            scrpriv->server_depth = screen->fb.depth;
         }
         else
             ErrorF
@@ -178,27 +179,6 @@ ephyrScreenInitialize(KdScreenInfo * screen, EphyrScrPriv * scrpriv)
     scrpriv->randr = screen->randr;
 
     return ephyrMapFramebuffer(screen);
-}
-
-Bool
-ephyrScreenInit(KdScreenInfo * screen)
-{
-    EphyrScrPriv *scrpriv;
-
-    scrpriv = calloc(1, sizeof(EphyrScrPriv));
-
-    if (!scrpriv)
-        return FALSE;
-
-    screen->driver = scrpriv;
-
-    if (!ephyrScreenInitialize(screen, scrpriv)) {
-        screen->driver = 0;
-        free(scrpriv);
-        return FALSE;
-    }
-
-    return TRUE;
 }
 
 void *

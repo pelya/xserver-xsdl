@@ -177,9 +177,6 @@ int
 int
 hostx_get_server_depth(KdScreenInfo *screen);
 
-void
-hostx_set_server_depth(KdScreenInfo *screen, int depth);
-
 int
 hostx_get_bpp(KdScreenInfo *screen);
 

@@ -56,20 +56,6 @@
 #include "ephyrlog.h"
 #include "ephyr.h"
 
-struct EphyrHostScreen {
-    Window win;
-    Window win_pre_existing;    /* Set via -parent option like xnest */
-    Window peer_win;            /* Used for GL; should be at most one */
-    xcb_image_t    *ximg;
-    int win_width, win_height;
-    int server_depth;
-    unsigned char *fb_data;     /* only used when host bpp != server bpp */
-    xcb_shm_segment_info_t shminfo;
-
-    KdScreenInfo *screen;
-    int mynum;                  /* Screen number */
-};
-
 struct EphyrHostXVars {
     char *server_dpy_name;
     xcb_connection_t *conn;
@@ -83,7 +69,7 @@ struct EphyrHostXVars {
     Bool have_shm;
 
     int n_screens;
-    struct EphyrHostScreen *screens;
+    KdScreenInfo **screens;
 
     long damage_debug_msec;
 
@@ -111,29 +97,15 @@ static void
 
 #define host_depth_matches_server(_vars) (HostX.depth == (_vars)->server_depth)
 
-static struct EphyrHostScreen *
-host_screen_from_screen_info(KdScreenInfo *screen)
-{
-    int i;
-
-    for (i = 0; i < HostX.n_screens; i++) {
-        if (HostX.screens[i].screen == screen) {
-            return &HostX.screens[i];
-        }
-    }
-    return NULL;
-}
-
 int
 hostx_want_screen_size(KdScreenInfo *screen, int *width, int *height)
 {
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
+    EphyrScrPriv *scrpriv = screen->driver;
 
-    if (host_screen &&
-        (host_screen->win_pre_existing != None ||
-         HostX.use_fullscreen == TRUE)) {
-        *width = host_screen->win_width;
-        *height = host_screen->win_height;
+    if (scrpriv && (scrpriv->win_pre_existing != None ||
+                    HostX.use_fullscreen == TRUE)) {
+        *width = scrpriv->win_width;
+        *height = scrpriv->win_height;
         return 1;
     }
 
@@ -143,15 +115,16 @@ hostx_want_screen_size(KdScreenInfo *screen, int *width, int *height)
 void
 hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num)
 {
+    EphyrScrPriv *scrpriv = screen->driver;
     int index = HostX.n_screens;
 
     HostX.n_screens += 1;
     HostX.screens = realloc(HostX.screens,
-                            HostX.n_screens * sizeof(struct EphyrHostScreen));
-    memset(&HostX.screens[index], 0, sizeof(struct EphyrHostScreen));
+                            HostX.n_screens * sizeof(HostX.screens[0]));
+    HostX.screens[index] = screen;
 
-    HostX.screens[index].screen = screen;
-    HostX.screens[index].win_pre_existing = win_id;
+    scrpriv->screen = screen;
+    scrpriv->win_pre_existing = win_id;
 }
 
 void
@@ -163,25 +136,25 @@ hostx_set_display_name(char *name)
 void
 hostx_set_screen_number(KdScreenInfo *screen, int number)
 {
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
+    EphyrScrPriv *scrpriv = screen->driver;
 
-    if (host_screen) {
-        host_screen->mynum = number;
-        hostx_set_win_title(host_screen->screen, "");
+    if (scrpriv) {
+        scrpriv->mynum = number;
+        hostx_set_win_title(screen, "");
     }
 }
 
 void
 hostx_set_win_title(KdScreenInfo *screen, const char *extra_text)
 {
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
+    EphyrScrPriv *scrpriv = screen->driver;
 
-    if (!host_screen)
+    if (!scrpriv)
         return;
 
     if (ephyrTitle) {
         xcb_icccm_set_wm_name(HostX.conn,
-                              host_screen->win,
+                              scrpriv->win,
                               XCB_ATOM_STRING,
                               8,
                               strlen(ephyrTitle),
@@ -193,10 +166,10 @@ hostx_set_win_title(KdScreenInfo *screen, const char *extra_text)
         memset(buf, 0, BUF_LEN + 1);
         snprintf(buf, BUF_LEN, "Xephyr on %s.%d %s",
                  HostX.server_dpy_name,
-                 host_screen->mynum, (extra_text != NULL) ? extra_text : "");
+                 scrpriv->mynum, (extra_text != NULL) ? extra_text : "");
 
         xcb_icccm_set_wm_name(HostX.conn,
-                              host_screen->win,
+                              scrpriv->win,
                               XCB_ATOM_STRING,
                               8,
                               strlen(buf),
@@ -219,9 +192,9 @@ hostx_use_host_cursor(void)
 int
 hostx_want_preexisting_window(KdScreenInfo *screen)
 {
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
+    EphyrScrPriv *scrpriv = screen->driver;
 
-    if (host_screen && host_screen->win_pre_existing) {
+    if (scrpriv && scrpriv->win_pre_existing) {
         return 1;
     }
     else {
@@ -261,9 +234,10 @@ hostx_set_fullscreen_hint(void)
     free(reply);
 
     for (index = 0; index < HostX.n_screens; index++) {
+        EphyrScrPriv *scrpriv = HostX.screens[index]->driver;
         xcb_change_property(HostX.conn,
                             PropModeReplace,
-                            HostX.screens[index].win,
+                            scrpriv->win,
                             atom_WINDOW_STATE,
                             XCB_ATOM_ATOM,
                             32,
@@ -316,7 +290,7 @@ hostx_init(void)
     char *class_hint;
     size_t class_len;
     const xcb_query_extension_reply_t *shm_rep;
-    xcb_screen_t *screen;
+    xcb_screen_t *xscreen;
 
     attr =
         XCB_EVENT_MASK_BUTTON_PRESS
@@ -334,11 +308,11 @@ hostx_init(void)
         exit(1);
     }
 
-    screen = xcb_aux_get_screen(HostX.conn, HostX.screen);
-    HostX.winroot = screen->root;
+    xscreen = xcb_aux_get_screen(HostX.conn, HostX.screen);
+    HostX.winroot = xscreen->root;
     HostX.gc = xcb_generate_id(HostX.conn);
-    HostX.depth = screen->root_depth;
-    HostX.visual  = xcb_aux_find_visual_by_id(screen, screen->root_visual);
+    HostX.depth = xscreen->root_depth;
+    HostX.visual  = xcb_aux_find_visual_by_id(xscreen, xscreen->root_visual);
 
     xcb_create_gc(HostX.conn, HostX.gc, HostX.winroot, 0, NULL);
     cookie_WINDOW_STATE = xcb_intern_atom(HostX.conn, FALSE,
@@ -350,19 +324,21 @@ hostx_init(void)
                         "_NET_WM_STATE_FULLSCREEN");
 
     for (index = 0; index < HostX.n_screens; index++) {
-        struct EphyrHostScreen *host_screen = &HostX.screens[index];
+        KdScreenInfo *screen = HostX.screens[index];
+        EphyrScrPriv *scrpriv = screen->driver;
 
-        host_screen->win = xcb_generate_id(HostX.conn);
-        host_screen->server_depth = HostX.depth;
+        scrpriv->win = xcb_generate_id(HostX.conn);
+        scrpriv->server_depth = HostX.depth;
+        scrpriv->ximg = NULL;
 
-        if (host_screen->win_pre_existing != XCB_WINDOW_NONE) {
+        if (scrpriv->win_pre_existing != XCB_WINDOW_NONE) {
             xcb_get_geometry_reply_t *prewin_geom;
             xcb_get_geometry_cookie_t cookie;
             xcb_generic_error_t *e = NULL;
 
             /* Get screen size from existing window */
             cookie = xcb_get_geometry(HostX.conn,
-                                      host_screen->win_pre_existing);
+                                      scrpriv->win_pre_existing);
             prewin_geom = xcb_get_geometry_reply(HostX.conn, cookie, &e);
 
             if (e) {
@@ -372,18 +348,18 @@ hostx_init(void)
                 exit (1);
             }
 
-            host_screen->win_width  = prewin_geom->width;
-            host_screen->win_height = prewin_geom->height;
+            scrpriv->win_width  = prewin_geom->width;
+            scrpriv->win_height = prewin_geom->height;
 
             free(prewin_geom);
 
             xcb_create_window(HostX.conn,
                               XCB_COPY_FROM_PARENT,
-                              host_screen->win,
-                              host_screen->win_pre_existing,
+                              scrpriv->win,
+                              scrpriv->win_pre_existing,
                               0,0,
-                              host_screen->win_width,
-                              host_screen->win_height,
+                              scrpriv->win_width,
+                              scrpriv->win_height,
                               0,
                               XCB_WINDOW_CLASS_COPY_FROM_PARENT,
                               XCB_COPY_FROM_PARENT,
@@ -393,7 +369,7 @@ hostx_init(void)
         else {
             xcb_create_window(HostX.conn,
                               XCB_COPY_FROM_PARENT,
-                              host_screen->win,
+                              scrpriv->win,
                               HostX.winroot,
                               0,0,100,100, /* will resize */
                               0,
@@ -402,12 +378,12 @@ hostx_init(void)
                               XCB_CW_EVENT_MASK,
                               &attr);
 
-            hostx_set_win_title (host_screen->screen,
-                                 "(ctrl+shift grabs mouse and keyboard)");
+            hostx_set_win_title(screen,
+                                "(ctrl+shift grabs mouse and keyboard)");
 
             if (HostX.use_fullscreen) {
-                host_screen->win_width  = screen->width_in_pixels;
-                host_screen->win_height = screen->height_in_pixels;
+                scrpriv->win_width  = xscreen->width_in_pixels;
+                scrpriv->win_height = xscreen->height_in_pixels;
 
                 hostx_set_fullscreen_hint();
             }
@@ -422,7 +398,7 @@ hostx_init(void)
                 strcpy(class_hint + strlen(ephyrResName) + 1, "Xephyr");
                 xcb_change_property(HostX.conn,
                                     XCB_PROP_MODE_REPLACE,
-                                    host_screen->win,
+                                    scrpriv->win,
                                     XCB_ATOM_WM_CLASS,
                                     XCB_ATOM_STRING,
                                     8,
@@ -435,7 +411,7 @@ hostx_init(void)
 
     if (!xcb_aux_parse_color("red", &red, &green, &blue)) {
         xcb_lookup_color_cookie_t c =
-            xcb_lookup_color(HostX.conn, screen->default_colormap, 3, "red");
+            xcb_lookup_color(HostX.conn, xscreen->default_colormap, 3, "red");
         xcb_lookup_color_reply_t *reply =
             xcb_lookup_color_reply(HostX.conn, c, NULL);
         red = reply->exact_red;
@@ -446,7 +422,7 @@ hostx_init(void)
 
     {
         xcb_alloc_color_cookie_t c = xcb_alloc_color(HostX.conn,
-                                                     screen->default_colormap,
+                                                     xscreen->default_colormap,
                                                      red, green, blue);
         xcb_alloc_color_reply_t *r = xcb_alloc_color_reply(HostX.conn, c, NULL);
         red = r->red;
@@ -470,16 +446,15 @@ hostx_init(void)
                           0,0,0,
                           1,1);
         for (index = 0; index < HostX.n_screens; index++) {
+            KdScreenInfo *screen = HostX.screens[index];
+            EphyrScrPriv *scrpriv = screen->driver;
+
             xcb_change_window_attributes(HostX.conn,
-                                         HostX.screens[index].win,
+                                         scrpriv->win,
                                          XCB_CW_CURSOR,
                                          &empty_cursor);
         }
         xcb_free_pixmap(HostX.conn, cursor_pxm);
-    }
-
-    for (index = 0; index < HostX.n_screens; index++) {
-        HostX.screens[index].ximg = NULL;
     }
 
     /* Try to get share memory ximages for a little bit more speed */
@@ -538,49 +513,40 @@ hostx_get_depth(void)
 int
 hostx_get_server_depth(KdScreenInfo *screen)
 {
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
+    EphyrScrPriv *scrpriv = screen->driver;
 
-    return host_screen ? host_screen->server_depth : 0;
-}
-
-void
-hostx_set_server_depth(KdScreenInfo *screen, int depth)
-{
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
-
-    if (host_screen)
-        host_screen->server_depth = depth;
+    return scrpriv ? scrpriv->server_depth : 0;
 }
 
 int
 hostx_get_bpp(KdScreenInfo *screen)
 {
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
+    EphyrScrPriv *scrpriv = screen->driver;
 
-    if (!host_screen)
+    if (!scrpriv)
         return 0;
 
-    if (host_depth_matches_server (host_screen))
+    if (host_depth_matches_server(scrpriv))
         return HostX.visual->bits_per_rgb_value;
     else
-        return host_screen->server_depth; /*XXX correct ?*/
+        return scrpriv->server_depth; /*XXX correct ?*/
 }
 
 void
 hostx_get_visual_masks(KdScreenInfo *screen,
                        CARD32 *rmsk, CARD32 *gmsk, CARD32 *bmsk)
 {
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
+    EphyrScrPriv *scrpriv = screen->driver;
 
-    if (!host_screen)
+    if (!scrpriv)
         return;
 
-    if (host_depth_matches_server(host_screen)) {
+    if (host_depth_matches_server(scrpriv)) {
         *rmsk = HostX.visual->red_mask;
         *gmsk = HostX.visual->green_mask;
         *bmsk = HostX.visual->blue_mask;
     }
-    else if (host_screen->server_depth == 16) {
+    else if (scrpriv->server_depth == 16) {
         /* Assume 16bpp 565 */
         *rmsk = 0xf800;
         *gmsk = 0x07e0;
@@ -645,11 +611,10 @@ hostx_screen_init(KdScreenInfo *screen,
                   int width, int height, int buffer_height,
                   int *bytes_per_line, int *bits_per_pixel)
 {
+    EphyrScrPriv *scrpriv = screen->driver;
     Bool shm_success = FALSE;
 
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
-
-    if (!host_screen) {
+    if (!scrpriv) {
         fprintf(stderr, "%s: Error in accessing hostx data\n", __func__);
         exit(1);
     }
@@ -657,64 +622,64 @@ hostx_screen_init(KdScreenInfo *screen,
     EPHYR_DBG("host_screen=%p wxh=%dx%d, buffer_height=%d",
               host_screen, width, height, buffer_height);
 
-    if (host_screen->ximg != NULL) {
+    if (scrpriv->ximg != NULL) {
         /* Free up the image data if previously used
          * i.ie called by server reset
          */
 
         if (HostX.have_shm) {
-            xcb_shm_detach(HostX.conn, host_screen->shminfo.shmseg);
-            xcb_image_destroy (host_screen->ximg);
-            shmdt(host_screen->shminfo.shmaddr);
-            shmctl(host_screen->shminfo.shmid, IPC_RMID, 0);
+            xcb_shm_detach(HostX.conn, scrpriv->shminfo.shmseg);
+            xcb_image_destroy(scrpriv->ximg);
+            shmdt(scrpriv->shminfo.shmaddr);
+            shmctl(scrpriv->shminfo.shmid, IPC_RMID, 0);
         }
         else {
-            free(host_screen->ximg->data);
-            host_screen->ximg->data = NULL;
+            free(scrpriv->ximg->data);
+            scrpriv->ximg->data = NULL;
 
-            xcb_image_destroy(host_screen->ximg);
+            xcb_image_destroy(scrpriv->ximg);
         }
     }
 
     if (HostX.have_shm) {
-        host_screen->ximg = xcb_image_create_native(HostX.conn,
-                                                    width,
-                                                    buffer_height,
-                                                    XCB_IMAGE_FORMAT_Z_PIXMAP,
-                                                    HostX.depth,
-                                                    NULL,
-                                                    ~0,
-                                                    NULL);
+        scrpriv->ximg = xcb_image_create_native(HostX.conn,
+                                                width,
+                                                buffer_height,
+                                                XCB_IMAGE_FORMAT_Z_PIXMAP,
+                                                HostX.depth,
+                                                NULL,
+                                                ~0,
+                                                NULL);
 
-        host_screen->shminfo.shmid =
+        scrpriv->shminfo.shmid =
             shmget(IPC_PRIVATE,
-                   host_screen->ximg->stride * buffer_height,
+                   scrpriv->ximg->stride * buffer_height,
                    IPC_CREAT | 0777);
-        host_screen->ximg->data = shmat(host_screen->shminfo.shmid, 0, 0);
-        host_screen->shminfo.shmaddr = host_screen->ximg->data;
+        scrpriv->ximg->data = shmat(scrpriv->shminfo.shmid, 0, 0);
+        scrpriv->shminfo.shmaddr = scrpriv->ximg->data;
 
-        if (host_screen->ximg->data == (uint8_t *) -1) {
+        if (scrpriv->ximg->data == (uint8_t *) -1) {
             EPHYR_DBG
                 ("Can't attach SHM Segment, falling back to plain XImages");
             HostX.have_shm = FALSE;
-            xcb_image_destroy (host_screen->ximg);
-            shmctl(host_screen->shminfo.shmid, IPC_RMID, 0);
+            xcb_image_destroy (scrpriv->ximg);
+            shmctl(scrpriv->shminfo.shmid, IPC_RMID, 0);
         }
         else {
-            EPHYR_DBG("SHM segment attached %p", host_screen->shminfo.shmaddr);
-            host_screen->shminfo.shmseg = xcb_generate_id(HostX.conn);
+            EPHYR_DBG("SHM segment attached %p", scrpriv->shminfo.shmaddr);
+            scrpriv->shminfo.shmseg = xcb_generate_id(HostX.conn);
             xcb_shm_attach(HostX.conn,
-                           host_screen->shminfo.shmseg,
-                           host_screen->shminfo.shmid,
+                           scrpriv->shminfo.shmseg,
+                           scrpriv->shminfo.shmid,
                            FALSE);
             shm_success = TRUE;
         }
     }
 
     if (!shm_success) {
-        EPHYR_DBG("Creating image %dx%d for screen host_screen=%p\n",
-                  width, buffer_height, host_screen);
-        host_screen->ximg = xcb_image_create_native(HostX.conn,
+        EPHYR_DBG("Creating image %dx%d for screen scrpriv=%p\n",
+                  width, buffer_height, scrpriv);
+        scrpriv->ximg = xcb_image_create_native(HostX.conn,
                                                     width,
                                                     buffer_height,
                                                     XCB_IMAGE_FORMAT_Z_PIXMAP,
@@ -723,53 +688,53 @@ hostx_screen_init(KdScreenInfo *screen,
                                                     ~0,
                                                     NULL);
 
-        host_screen->ximg->data =
-            malloc(host_screen->ximg->stride * buffer_height);
+        scrpriv->ximg->data =
+            malloc(scrpriv->ximg->stride * buffer_height);
     }
 
-    *bytes_per_line = host_screen->ximg->stride;
-    *bits_per_pixel = host_screen->ximg->bpp;
+    *bytes_per_line = scrpriv->ximg->stride;
+    *bits_per_pixel = scrpriv->ximg->bpp;
 
-    if (host_screen->win_pre_existing == None && !EphyrWantResize) {
+    if (scrpriv->win_pre_existing == None && !EphyrWantResize) {
         /* Ask the WM to keep our size static */
         xcb_size_hints_t size_hints = {0};
         size_hints.max_width = size_hints.min_width = width;
         size_hints.max_height = size_hints.min_height = height;
         size_hints.flags = (XCB_ICCCM_SIZE_HINT_P_MIN_SIZE |
                             XCB_ICCCM_SIZE_HINT_P_MAX_SIZE);
-        xcb_icccm_set_wm_normal_hints(HostX.conn, host_screen->win,
+        xcb_icccm_set_wm_normal_hints(HostX.conn, scrpriv->win,
                                       &size_hints);
     }
 
-    xcb_map_window(HostX.conn, host_screen->win);
+    xcb_map_window(HostX.conn, scrpriv->win);
 
     xcb_aux_sync(HostX.conn);
 
-    host_screen->win_width = width;
-    host_screen->win_height = height;
+    scrpriv->win_width = width;
+    scrpriv->win_height = height;
 
-    if (host_depth_matches_server(host_screen)) {
+    if (host_depth_matches_server(scrpriv)) {
         EPHYR_DBG("Host matches server");
-        return host_screen->ximg->data;
+        return scrpriv->ximg->data;
     }
     else {
-        EPHYR_DBG("server bpp %i", host_screen->server_depth >> 3);
-        host_screen->fb_data =
-            malloc(width * buffer_height * (host_screen->server_depth >> 3));
-        return host_screen->fb_data;
+        EPHYR_DBG("server bpp %i", scrpriv->server_depth >> 3);
+        scrpriv->fb_data =
+            malloc(width * buffer_height * (scrpriv->server_depth >> 3));
+        return scrpriv->fb_data;
     }
 }
 
-static void hostx_paint_debug_rect(struct EphyrHostScreen *host_screen,
+static void hostx_paint_debug_rect(KdScreenInfo *screen,
                                    int x, int y, int width, int height);
 
 void
 hostx_paint_rect(KdScreenInfo *screen,
                  int sx, int sy, int dx, int dy, int width, int height)
 {
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
+    EphyrScrPriv *scrpriv = screen->driver;
 
-    EPHYR_DBG("painting in screen %d\n", host_screen->mynum);
+    EPHYR_DBG("painting in screen %d\n", scrpriv->mynum);
 
     /*
      *  Copy the image data updated by the shadow layer
@@ -777,7 +742,7 @@ hostx_paint_rect(KdScreenInfo *screen,
      */
 
     if (HostXWantDamageDebug) {
-        hostx_paint_debug_rect(host_screen, dx, dy, width, height);
+        hostx_paint_debug_rect(screen, dx, dy, width, height);
     }
 
     /* 
@@ -792,23 +757,23 @@ hostx_paint_rect(KdScreenInfo *screen,
      *       ... and it will be slower than the matching depth case.
      */
 
-    if (!host_depth_matches_server(host_screen)) {
-        int x, y, idx, bytes_per_pixel = (host_screen->server_depth >> 3);
+    if (!host_depth_matches_server(scrpriv)) {
+        int x, y, idx, bytes_per_pixel = (scrpriv->server_depth >> 3);
         unsigned char r, g, b;
         unsigned long host_pixel;
 
-        EPHYR_DBG("Unmatched host depth host_screen=%p\n", host_screen);
+        EPHYR_DBG("Unmatched host depth scrpriv=%p\n", scrpriv);
         for (y = sy; y < sy + height; y++)
             for (x = sx; x < sx + width; x++) {
                 idx =
-                    (host_screen->win_width * y * bytes_per_pixel) +
+                    (scrpriv->win_width * y * bytes_per_pixel) +
                     (x * bytes_per_pixel);
 
-                switch (host_screen->server_depth) {
+                switch (scrpriv->server_depth) {
                 case 16:
                 {
                     unsigned short pixel =
-                        *(unsigned short *) (host_screen->fb_data + idx);
+                        *(unsigned short *) (scrpriv->fb_data + idx);
 
                     r = ((pixel & 0xf800) >> 8);
                     g = ((pixel & 0x07e0) >> 3);
@@ -816,14 +781,14 @@ hostx_paint_rect(KdScreenInfo *screen,
 
                     host_pixel = (r << 16) | (g << 8) | (b);
 
-                    xcb_image_put_pixel(host_screen->ximg, x, y, host_pixel);
+                    xcb_image_put_pixel(scrpriv->ximg, x, y, host_pixel);
                     break;
                 }
                 case 8:
                 {
                     unsigned char pixel =
-                        *(unsigned char *) (host_screen->fb_data + idx);
-                    xcb_image_put_pixel(host_screen->ximg, x, y,
+                        *(unsigned char *) (scrpriv->fb_data + idx);
+                    xcb_image_put_pixel(scrpriv->ximg, x, y,
                                         HostX.cmap[pixel]);
                     break;
                 }
@@ -834,13 +799,13 @@ hostx_paint_rect(KdScreenInfo *screen,
     }
 
     if (HostX.have_shm) {
-        xcb_image_shm_put(HostX.conn, host_screen->win,
-                          HostX.gc, host_screen->ximg,
-                          host_screen->shminfo,
+        xcb_image_shm_put(HostX.conn, scrpriv->win,
+                          HostX.gc, scrpriv->ximg,
+                          scrpriv->shminfo,
                           sx, sy, dx, dy, width, height, FALSE);
     }
     else {
-        xcb_image_put(HostX.conn, host_screen->win, HostX.gc, host_screen->ximg,
+        xcb_image_put(HostX.conn, scrpriv->win, HostX.gc, scrpriv->ximg,
                       dx, dy, 0);
     }
 
@@ -848,9 +813,10 @@ hostx_paint_rect(KdScreenInfo *screen,
 }
 
 static void
-hostx_paint_debug_rect(struct EphyrHostScreen *host_screen,
+hostx_paint_debug_rect(KdScreenInfo *screen,
                        int x, int y, int width, int height)
 {
+    EphyrScrPriv *scrpriv = screen->driver;
     struct timespec tspec;
     xcb_rectangle_t rect = { .x = x, .y = y, .width = width, .height = height };
     xcb_void_cookie_t cookie;
@@ -864,7 +830,7 @@ hostx_paint_debug_rect(struct EphyrHostScreen *host_screen,
 
     /* fprintf(stderr, "Xephyr updating: %i+%i %ix%i\n", x, y, width, height); */
 
-    cookie = xcb_poly_fill_rectangle_checked(HostX.conn, host_screen->win,
+    cookie = xcb_poly_fill_rectangle_checked(HostX.conn, scrpriv->win,
                                              HostX.gc, 1, &rect);
     e = xcb_request_check(HostX.conn, cookie);
     free(e);
@@ -887,23 +853,21 @@ hostx_load_keymap(void)
     ephyrKeySyms.maxKeyCode = max_keycode;
 }
 
-static struct EphyrHostScreen *
-host_screen_from_window(Window w)
+static KdScreenInfo *
+screen_from_window(Window w)
 {
     int index = 0;
-    struct EphyrHostScreen *result = NULL;
 
     for (index = 0; index < HostX.n_screens; index++) {
-        if (HostX.screens[index].win == w
-            || HostX.screens[index].peer_win == w
-            || HostX.screens[index].win_pre_existing == w) {
-            result = &HostX.screens[index];
-            goto out;
+        EphyrScrPriv *scrpriv = HostX.screens[index]->driver;
+        if (scrpriv->win == w
+            || scrpriv->peer_win == w
+            || scrpriv->win_pre_existing == w) {
+            return HostX.screens[index];
         }
     }
 
- out:
-    return result;
+    return NULL;
 }
 
 int
@@ -948,8 +912,8 @@ hostx_get_event(EphyrHostXEvent * ev)
 
     case XCB_EXPOSE: {
         xcb_expose_event_t *expose = (xcb_expose_event_t *)xev;
-        struct EphyrHostScreen *host_screen =
-            host_screen_from_window(expose->window);
+        KdScreenInfo *screen = screen_from_window(expose->window);
+        EphyrScrPriv *scrpriv = screen->driver;
 
         /* Wait for the last expose event in a series of cliprects
          * to actually paint our screen.
@@ -957,10 +921,10 @@ hostx_get_event(EphyrHostXEvent * ev)
         if (expose->count != 0)
             break;
 
-        if (host_screen) {
-            hostx_paint_rect(host_screen->screen, 0, 0, 0, 0,
-                             host_screen->win_width,
-                             host_screen->win_height);
+        if (scrpriv) {
+            hostx_paint_rect(screen, 0, 0, 0, 0,
+                             scrpriv->win_width,
+                             scrpriv->win_height);
         }
         else {
             EPHYR_LOG_ERROR("failed to get host screen\n");
@@ -974,15 +938,14 @@ hostx_get_event(EphyrHostXEvent * ev)
 
     case XCB_MOTION_NOTIFY: {
         xcb_motion_notify_event_t *motion = (xcb_motion_notify_event_t *)xev;
-        struct EphyrHostScreen *host_screen =
-            host_screen_from_window(motion->event);
+        KdScreenInfo *screen = screen_from_window(motion->event);
+        EphyrScrPriv *scrpriv = screen->driver;
 
         ev->type = EPHYR_EV_MOUSE_MOTION;
         ev->data.mouse_motion.x = motion->event_x;
         ev->data.mouse_motion.y = motion->event_y;
         ev->data.mouse_motion.window = motion->event;
-        ev->data.mouse_motion.screen =
-            (host_screen ? host_screen->mynum : -1);
+        ev->data.mouse_motion.screen = scrpriv ? scrpriv->mynum : -1;
         free(xev);
         return 1;
     }
@@ -1023,14 +986,14 @@ hostx_get_event(EphyrHostXEvent * ev)
         if ((xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Shift_L
              || xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Shift_R)
             && (key->state & XCB_MOD_MASK_CONTROL)) {
-            struct EphyrHostScreen *host_screen =
-                host_screen_from_window(key->event);
+            KdScreenInfo *screen = screen_from_window(key->event);
+            EphyrScrPriv *scrpriv = screen->driver;
 
             if (grabbed_screen != -1) {
                 xcb_ungrab_keyboard(HostX.conn, XCB_TIME_CURRENT_TIME);
                 xcb_ungrab_pointer(HostX.conn, XCB_TIME_CURRENT_TIME);
                 grabbed_screen = -1;
-                hostx_set_win_title(host_screen->screen,
+                hostx_set_win_title(screen,
                                     "(ctrl+shift grabs mouse and keyboard)");
             }
             else {
@@ -1038,7 +1001,7 @@ hostx_get_event(EphyrHostXEvent * ev)
                 xcb_grab_keyboard_cookie_t kbgrabc =
                     xcb_grab_keyboard(HostX.conn,
                                       TRUE,
-                                      host_screen->win,
+                                      scrpriv->win,
                                       XCB_TIME_CURRENT_TIME,
                                       XCB_GRAB_MODE_ASYNC,
                                       XCB_GRAB_MODE_ASYNC);
@@ -1046,11 +1009,11 @@ hostx_get_event(EphyrHostXEvent * ev)
                 xcb_grab_pointer_cookie_t pgrabc =
                     xcb_grab_pointer(HostX.conn,
                                      TRUE,
-                                     host_screen->win,
+                                     scrpriv->win,
                                      0,
                                      XCB_GRAB_MODE_ASYNC,
                                      XCB_GRAB_MODE_ASYNC,
-                                     host_screen->win,
+                                     scrpriv->win,
                                      XCB_NONE,
                                      XCB_TIME_CURRENT_TIME);
                 xcb_grab_pointer_reply_t *pgrabr;
@@ -1065,9 +1028,9 @@ hostx_get_event(EphyrHostXEvent * ev)
                             xcb_ungrab_keyboard(HostX.conn,
                                                 XCB_TIME_CURRENT_TIME);
                         } else {
-                        grabbed_screen = host_screen->mynum;
+                        grabbed_screen = scrpriv->mynum;
                         hostx_set_win_title
-                            (host_screen->screen,
+                            (screen,
                              "(ctrl+shift releases mouse and keyboard)");
                     }
                 }
@@ -1087,14 +1050,13 @@ hostx_get_event(EphyrHostXEvent * ev)
 
     case ConfigureNotify:
         {
-            struct EphyrHostScreen *host_screen;
             xcb_configure_notify_event_t *configure =
                 (xcb_configure_notify_event_t *)xev;
+            KdScreenInfo *screen = screen_from_window(configure->window);
+            EphyrScrPriv *scrpriv = screen->driver;
 
-            host_screen = host_screen_from_window(configure->window);
-
-            if (!host_screen ||
-                (host_screen->win_pre_existing == None && !EphyrWantResize)) {
+            if (!scrpriv ||
+                (scrpriv->win_pre_existing == None && !EphyrWantResize)) {
                 free(xev);
                 return 0;
             }
@@ -1103,7 +1065,7 @@ hostx_get_event(EphyrHostXEvent * ev)
             ev->data.configure.width = configure->width;
             ev->data.configure.height = configure->height;
             ev->data.configure.window = configure->window;
-            ev->data.configure.screen = host_screen->mynum;
+            ev->data.configure.screen = scrpriv->mynum;
             free(xev);
 
             return 1;
@@ -1131,11 +1093,13 @@ hostx_get_screen(void)
 int
 hostx_get_window(int a_screen_number)
 {
+    EphyrScrPriv *scrpriv;
     if (a_screen_number < 0 || a_screen_number >= HostX.n_screens) {
         EPHYR_LOG_ERROR("bad screen number:%d\n", a_screen_number);
         return 0;
     }
-    return HostX.screens[a_screen_number].win;
+    scrpriv = HostX.screens[a_screen_number]->driver;
+    return scrpriv->win;
 }
 
 int
@@ -1228,6 +1192,8 @@ hostx_create_window(int a_screen_number,
     xcb_screen_t *screen = xcb_aux_get_screen(HostX.conn, hostx_get_screen());
     xcb_visualtype_t *visual;
     int depth = 0;
+    EphyrScrPriv *scrpriv = HostX.screens[a_screen_number]->driver;
+
     EPHYR_RETURN_VAL_IF_FAIL(screen && a_geometry, FALSE);
 
     EPHYR_LOG("enter\n");
@@ -1264,8 +1230,8 @@ hostx_create_window(int a_screen_number,
                       XCB_WINDOW_CLASS_COPY_FROM_PARENT,
                       a_visual_id, winmask, attrs);
 
-    if (HostX.screens[a_screen_number].peer_win == XCB_NONE) {
-        HostX.screens[a_screen_number].peer_win = win;
+    if (scrpriv->peer_win == XCB_NONE) {
+        scrpriv->peer_win = win;
     }
     else {
         EPHYR_LOG_ERROR("multiple peer windows created for same screen\n");
