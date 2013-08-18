@@ -62,10 +62,6 @@ static Bool DoSimpleClip(BoxPtr a_dst_drw, BoxPtr a_clipper, BoxPtr a_result);
 
 static Bool ephyrLocalAtomToHost(int a_local_atom, int *a_host_atom);
 
-/*
-static Bool ephyrHostAtomToLocal (int a_host_atom, int *a_local_atom) ;
-*/
-
 static EphyrXVPriv *ephyrXVPrivNew(void);
 static void ephyrXVPrivDelete(EphyrXVPriv * a_this);
 static Bool ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this);
@@ -239,36 +235,6 @@ ephyrLocalAtomToHost(int a_local_atom, int *a_host_atom)
     *a_host_atom = host_atom;
     return TRUE;
 }
-
-/*
- Not used yed.
-static Bool
-ephyrHostAtomToLocal (int a_host_atom, int *a_local_atom)
-{
-    Bool is_ok=FALSE ;
-    char *atom_name=NULL ;
-    int atom=None ;
-
-    EPHYR_RETURN_VAL_IF_FAIL (a_local_atom, FALSE) ;
-
-    atom_name = ephyrHostGetAtomName (a_host_atom) ;
-    if (!atom_name)
-        goto out ;
-
-    atom = MakeAtom (atom_name, strlen (atom_name), TRUE) ;
-    if (atom == None)
-        goto out ;
-
-    *a_local_atom = atom ;
-    is_ok = TRUE ;
-
-out:
-    if (atom_name) {
-        ephyrHostFree (atom_name) ;
-    }
-    return is_ok ;
-}
-*/
 
 /**************
  *</helpers>
