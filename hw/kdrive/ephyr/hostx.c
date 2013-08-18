@@ -54,6 +54,7 @@
 #include <xcb/glx.h>
 #endif /* XF86DRI */
 #include "ephyrlog.h"
+#include "ephyr.h"
 
 struct EphyrHostScreen {
     Window win;
@@ -65,7 +66,7 @@ struct EphyrHostScreen {
     unsigned char *fb_data;     /* only used when host bpp != server bpp */
     xcb_shm_segment_info_t shminfo;
 
-    void *info;                 /* Pointer to the screen this is associated with */
+    KdScreenInfo *screen;
     int mynum;                  /* Screen number */
 };
 
@@ -111,12 +112,12 @@ static void
 #define host_depth_matches_server(_vars) (HostX.depth == (_vars)->server_depth)
 
 static struct EphyrHostScreen *
-host_screen_from_screen_info(EphyrScreenInfo * screen)
+host_screen_from_screen_info(KdScreenInfo *screen)
 {
     int i;
 
     for (i = 0; i < HostX.n_screens; i++) {
-        if (HostX.screens[i].info == screen) {
+        if (HostX.screens[i].screen == screen) {
             return &HostX.screens[i];
         }
     }
@@ -124,7 +125,7 @@ host_screen_from_screen_info(EphyrScreenInfo * screen)
 }
 
 int
-hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height)
+hostx_want_screen_size(KdScreenInfo *screen, int *width, int *height)
 {
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
 
@@ -140,7 +141,7 @@ hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height)
 }
 
 void
-hostx_add_screen(EphyrScreenInfo screen, unsigned long win_id, int screen_num)
+hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num)
 {
     int index = HostX.n_screens;
 
@@ -149,7 +150,7 @@ hostx_add_screen(EphyrScreenInfo screen, unsigned long win_id, int screen_num)
                             HostX.n_screens * sizeof(struct EphyrHostScreen));
     memset(&HostX.screens[index], 0, sizeof(struct EphyrHostScreen));
 
-    HostX.screens[index].info = screen;
+    HostX.screens[index].screen = screen;
     HostX.screens[index].win_pre_existing = win_id;
 }
 
@@ -160,18 +161,18 @@ hostx_set_display_name(char *name)
 }
 
 void
-hostx_set_screen_number(EphyrScreenInfo screen, int number)
+hostx_set_screen_number(KdScreenInfo *screen, int number)
 {
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
 
     if (host_screen) {
         host_screen->mynum = number;
-        hostx_set_win_title(host_screen->info, "");
+        hostx_set_win_title(host_screen->screen, "");
     }
 }
 
 void
-hostx_set_win_title(EphyrScreenInfo screen, const char *extra_text)
+hostx_set_win_title(KdScreenInfo *screen, const char *extra_text)
 {
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
 
@@ -216,7 +217,7 @@ hostx_use_host_cursor(void)
 }
 
 int
-hostx_want_preexisting_window(EphyrScreenInfo screen)
+hostx_want_preexisting_window(KdScreenInfo *screen)
 {
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
 
@@ -401,7 +402,7 @@ hostx_init(void)
                               XCB_CW_EVENT_MASK,
                               &attr);
 
-            hostx_set_win_title (host_screen->info,
+            hostx_set_win_title (host_screen->screen,
                                  "(ctrl+shift grabs mouse and keyboard)");
 
             if (HostX.use_fullscreen) {
@@ -535,7 +536,7 @@ hostx_get_depth(void)
 }
 
 int
-hostx_get_server_depth(EphyrScreenInfo screen)
+hostx_get_server_depth(KdScreenInfo *screen)
 {
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
 
@@ -543,7 +544,7 @@ hostx_get_server_depth(EphyrScreenInfo screen)
 }
 
 void
-hostx_set_server_depth(EphyrScreenInfo screen, int depth)
+hostx_set_server_depth(KdScreenInfo *screen, int depth)
 {
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
 
@@ -552,7 +553,7 @@ hostx_set_server_depth(EphyrScreenInfo screen, int depth)
 }
 
 int
-hostx_get_bpp(EphyrScreenInfo screen)
+hostx_get_bpp(KdScreenInfo *screen)
 {
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
 
@@ -566,7 +567,7 @@ hostx_get_bpp(EphyrScreenInfo screen)
 }
 
 void
-hostx_get_visual_masks(EphyrScreenInfo screen,
+hostx_get_visual_masks(KdScreenInfo *screen,
                        CARD32 *rmsk, CARD32 *gmsk, CARD32 *bmsk)
 {
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
@@ -640,7 +641,7 @@ hostx_set_cmap_entry(unsigned char idx,
  * by fakexa for storing offscreen pixmap data.
  */
 void *
-hostx_screen_init(EphyrScreenInfo screen,
+hostx_screen_init(KdScreenInfo *screen,
                   int width, int height, int buffer_height,
                   int *bytes_per_line, int *bits_per_pixel)
 {
@@ -763,7 +764,7 @@ static void hostx_paint_debug_rect(struct EphyrHostScreen *host_screen,
                                    int x, int y, int width, int height);
 
 void
-hostx_paint_rect(EphyrScreenInfo screen,
+hostx_paint_rect(KdScreenInfo *screen,
                  int sx, int sy, int dx, int dy, int width, int height)
 {
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
@@ -957,7 +958,7 @@ hostx_get_event(EphyrHostXEvent * ev)
             break;
 
         if (host_screen) {
-            hostx_paint_rect(host_screen->info, 0, 0, 0, 0,
+            hostx_paint_rect(host_screen->screen, 0, 0, 0, 0,
                              host_screen->win_width,
                              host_screen->win_height);
         }
@@ -1029,7 +1030,7 @@ hostx_get_event(EphyrHostXEvent * ev)
                 xcb_ungrab_keyboard(HostX.conn, XCB_TIME_CURRENT_TIME);
                 xcb_ungrab_pointer(HostX.conn, XCB_TIME_CURRENT_TIME);
                 grabbed_screen = -1;
-                hostx_set_win_title(host_screen->info,
+                hostx_set_win_title(host_screen->screen,
                                     "(ctrl+shift grabs mouse and keyboard)");
             }
             else {
@@ -1066,7 +1067,7 @@ hostx_get_event(EphyrHostXEvent * ev)
                         } else {
                         grabbed_screen = host_screen->mynum;
                         hostx_set_win_title
-                            (host_screen->info,
+                            (host_screen->screen,
                              "(ctrl+shift releases mouse and keyboard)");
                     }
                 }

@@ -29,6 +29,7 @@
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include <xcb/xcb.h>
+#include "ephyr.h"
 
 #define EPHYR_WANT_DEBUG 0
 
@@ -41,7 +42,6 @@
 
 typedef struct EphyrHostXVars EphyrHostXVars;
 typedef struct EphyrHostXEvent EphyrHostXEvent;
-typedef void *EphyrScreenInfo;
 typedef enum EphyrHostXEventType {
     EPHYR_EV_MOUSE_MOTION,
     EPHYR_EV_MOUSE_PRESS,
@@ -127,7 +127,7 @@ typedef struct {
 } EphyrRect;
 
 int
- hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height);
+hostx_want_screen_size(KdScreenInfo *screen, int *width, int *height);
 
 int
  hostx_want_host_cursor(void);
@@ -142,7 +142,7 @@ int
  hostx_want_fullscreen(void);
 
 int
- hostx_want_preexisting_window(EphyrScreenInfo screen);
+hostx_want_preexisting_window(KdScreenInfo *screen);
 
 void
  hostx_use_preexisting_window(unsigned long win_id);
@@ -160,43 +160,43 @@ int
  hostx_init(void);
 
 void
- hostx_add_screen(EphyrScreenInfo screen, unsigned long win_id, int screen_num);
+hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num);
 
 void
  hostx_set_display_name(char *name);
 
 void
- hostx_set_screen_number(EphyrScreenInfo screen, int number);
+hostx_set_screen_number(KdScreenInfo *screen, int number);
 
 void
- hostx_set_win_title(EphyrScreenInfo screen, const char *extra_text);
+hostx_set_win_title(KdScreenInfo *screen, const char *extra_text);
 
 int
  hostx_get_depth(void);
 
 int
- hostx_get_server_depth(EphyrScreenInfo screen);
+hostx_get_server_depth(KdScreenInfo *screen);
 
 void
- hostx_set_server_depth(EphyrScreenInfo screen, int depth);
+hostx_set_server_depth(KdScreenInfo *screen, int depth);
 
 int
- hostx_get_bpp(void *info);
+hostx_get_bpp(KdScreenInfo *screen);
 
 void
- hostx_get_visual_masks(void *info, CARD32 *rmsk, CARD32 *gmsk, CARD32 *bmsk);
+hostx_get_visual_masks(KdScreenInfo *screen,
+                       CARD32 *rmsk, CARD32 *gmsk, CARD32 *bmsk);
 void
 
 hostx_set_cmap_entry(unsigned char idx,
                      unsigned char r, unsigned char g, unsigned char b);
 
-void *hostx_screen_init(EphyrScreenInfo screen,
+void *hostx_screen_init(KdScreenInfo *screen,
                         int width, int height, int buffer_height,
                         int *bytes_per_line, int *bits_per_pixel);
 
 void
-
-hostx_paint_rect(EphyrScreenInfo screen,
+hostx_paint_rect(KdScreenInfo *screen,
                  int sx, int sy, int dx, int dy, int width, int height);
 
 void
