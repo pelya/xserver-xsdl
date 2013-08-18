@@ -170,6 +170,12 @@ static int s_base_port_id;
  * ************/
 
 static Bool
+adaptor_has_flags(const xcb_xv_adaptor_info_t *adaptor, uint32_t flags)
+{
+    return (adaptor->type & flags) == flags;
+}
+
+static Bool
 DoSimpleClip(BoxPtr a_dst_box, BoxPtr a_clipper, BoxPtr a_result)
 {
     BoxRec dstClippedBox;
@@ -508,7 +514,6 @@ static Bool
 ephyrXVPrivSetAdaptorsHooks(EphyrXVPriv * a_this)
 {
     int i = 0;
-    Bool has_it = FALSE;
     xcb_xv_adaptor_info_t *cur_host_adaptor = NULL;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_this, FALSE);
@@ -528,45 +533,26 @@ ephyrXVPrivSetAdaptorsHooks(EphyrXVPriv * a_this)
             EPHYR_LOG_ERROR("failed to get host adaptor at index %d\n", i);
             continue;
         }
-        has_it = FALSE;
-        if (!ephyrHostXVAdaptorHasPutImage(cur_host_adaptor, &has_it)) {
-            EPHYR_LOG_ERROR("error\n");
-        }
-        if (has_it) {
+
+        if (adaptor_has_flags(cur_host_adaptor,
+                              XCB_XV_TYPE_IMAGE_MASK | XCB_XV_TYPE_INPUT_MASK))
             a_this->adaptors[i].PutImage = ephyrPutImage;
-        }
 
-        has_it = FALSE;
-        if (!ephyrHostXVAdaptorHasPutVideo(cur_host_adaptor, &has_it)) {
-            EPHYR_LOG_ERROR("error\n");
-        }
-        if (has_it) {
+        if (adaptor_has_flags(cur_host_adaptor,
+                              XCB_XV_TYPE_VIDEO_MASK | XCB_XV_TYPE_INPUT_MASK))
             a_this->adaptors[i].PutVideo = ephyrPutVideo;
-        }
 
-        has_it = FALSE;
-        if (!ephyrHostXVAdaptorHasGetVideo(cur_host_adaptor, &has_it)) {
-            EPHYR_LOG_ERROR("error\n");
-        }
-        if (has_it) {
+        if (adaptor_has_flags(cur_host_adaptor,
+                              XCB_XV_TYPE_VIDEO_MASK | XCB_XV_TYPE_OUTPUT_MASK))
             a_this->adaptors[i].GetVideo = ephyrGetVideo;
-        }
 
-        has_it = FALSE;
-        if (!ephyrHostXVAdaptorHasPutStill(cur_host_adaptor, &has_it)) {
-            EPHYR_LOG_ERROR("error\n");
-        }
-        if (has_it) {
+        if (adaptor_has_flags(cur_host_adaptor,
+                              XCB_XV_TYPE_STILL_MASK | XCB_XV_TYPE_INPUT_MASK))
             a_this->adaptors[i].PutStill = ephyrPutStill;
-        }
 
-        has_it = FALSE;
-        if (!ephyrHostXVAdaptorHasGetStill(cur_host_adaptor, &has_it)) {
-            EPHYR_LOG_ERROR("error\n");
-        }
-        if (has_it) {
+        if (adaptor_has_flags(cur_host_adaptor,
+                              XCB_XV_TYPE_STILL_MASK | XCB_XV_TYPE_OUTPUT_MASK))
             a_this->adaptors[i].GetStill = ephyrGetStill;
-        }
     }
     EPHYR_LOG("leave\n");
     return TRUE;

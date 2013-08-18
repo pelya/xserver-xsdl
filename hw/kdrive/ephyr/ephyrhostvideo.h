@@ -98,17 +98,6 @@ char* ephyrHostXVAdaptorGetName(const xcb_xv_adaptor_info_t *a_this);
 EphyrHostVideoFormat *ephyrHostXVAdaptorGetVideoFormats
     (const xcb_xv_adaptor_info_t *a_this, int *a_nb_formats);
 
-Bool ephyrHostXVAdaptorHasPutVideo(const xcb_xv_adaptor_info_t *a_this,
-                                   Bool *a_result);
-Bool ephyrHostXVAdaptorHasGetVideo(const xcb_xv_adaptor_info_t *a_this,
-                                   Bool *a_result);
-Bool ephyrHostXVAdaptorHasPutStill(const xcb_xv_adaptor_info_t *a_this,
-                                   Bool *a_result);
-Bool ephyrHostXVAdaptorHasGetStill(const xcb_xv_adaptor_info_t *a_this,
-                                   Bool *a_result);
-Bool ephyrHostXVAdaptorHasPutImage(const xcb_xv_adaptor_info_t *a_this,
-                                   Bool *a_result);
-
 /*
  * encoding
  */
