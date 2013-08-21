@@ -119,51 +119,6 @@ getDrawableDamageRef(DrawablePtr pDrawable)
     DamagePtr	*pPrev = (DamagePtr *) \
 	dixLookupPrivateAddr(&(pWindow)->devPrivates, damageWinPrivateKey)
 
-static void
-damageReportDamagePostRendering(DamagePtr pDamage, RegionPtr pOldDamage,
-                                RegionPtr pDamageRegion)
-{
-    BoxRec tmpBox;
-    RegionRec tmpRegion, newDamage;
-    Bool was_empty;
-
-    RegionUnion(&newDamage, pOldDamage, pDamageRegion);
-
-    switch (pDamage->damageLevel) {
-    case DamageReportRawRegion:
-        (*pDamage->damageReportPostRendering) (pDamage, pDamageRegion,
-                                               pDamage->closure);
-        break;
-    case DamageReportDeltaRegion:
-        RegionNull(&tmpRegion);
-        RegionSubtract(&tmpRegion, pDamageRegion, pOldDamage);
-        if (RegionNotEmpty(&tmpRegion)) {
-            (*pDamage->damageReportPostRendering) (pDamage, &tmpRegion,
-                                                   pDamage->closure);
-        }
-        RegionUninit(&tmpRegion);
-        break;
-    case DamageReportBoundingBox:
-        tmpBox = *RegionExtents(pOldDamage);
-        if (!BOX_SAME(&tmpBox, RegionExtents(&newDamage))) {
-            (*pDamage->damageReportPostRendering) (pDamage, &newDamage,
-                                                   pDamage->closure);
-        }
-        break;
-    case DamageReportNonEmpty:
-        was_empty = !RegionNotEmpty(pOldDamage);
-        if (was_empty && RegionNotEmpty(&newDamage)) {
-            (*pDamage->damageReportPostRendering) (pDamage, &newDamage,
-                                                   pDamage->closure);
-        }
-        break;
-    case DamageReportNone:
-        break;
-    }
-
-    RegionUninit(&newDamage);
-}
-
 #if DAMAGE_DEBUG_ENABLE
 static void
 _damageRegionAppend(DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
@@ -299,13 +254,9 @@ damageRegionAppend(DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
             RegionTranslate(pDamageRegion, -draw_x, -draw_y);
 
         /* Store damage region if needed after submission. */
-        if (pDamage->reportAfter || pDamage->damageMarker)
+        if (pDamage->reportAfter)
             RegionUnion(&pDamage->pendingDamage,
                         &pDamage->pendingDamage, pDamageRegion);
-
-        /* Duplicate current damage if needed. */
-        if (pDamage->damageMarker)
-            RegionCopy(&pDamage->backupDamage, &pDamage->damage);
 
         /* Report damage now, if desired. */
         if (!pDamage->reportAfter) {
@@ -335,12 +286,6 @@ damageRegionProcessPending(DrawablePtr pDrawable)
     drawableDamage(pDrawable);
 
     for (; pDamage != NULL; pDamage = pDamage->pNext) {
-        /* submit damage marker whenever possible. */
-        if (pDamage->damageMarker)
-            (*pDamage->damageMarker) (pDrawable, pDamage,
-                                      &pDamage->backupDamage,
-                                      &pDamage->pendingDamage,
-                                      pDamage->closure);
         if (pDamage->reportAfter) {
             /* It's possible that there is only interest in postRendering reporting. */
             if (pDamage->damageReport)
@@ -350,10 +295,8 @@ damageRegionProcessPending(DrawablePtr pDrawable)
                             &pDamage->pendingDamage);
         }
 
-        if (pDamage->reportAfter || pDamage->damageMarker)
+        if (pDamage->reportAfter)
             RegionEmpty(&pDamage->pendingDamage);
-        if (pDamage->damageMarker)
-            RegionEmpty(&pDamage->backupDamage);
     }
 
 }
@@ -1762,9 +1705,7 @@ DamageCreate(DamageReportFunc damageReport,
     pDamage->reportAfter = FALSE;
 
     pDamage->damageReport = damageReport;
-    pDamage->damageReportPostRendering = NULL;
     pDamage->damageDestroy = damageDestroy;
-    pDamage->damageMarker = NULL;
     pDamage->pScreen = pScreen;
 
     (*pScrPriv->funcs.Create) (pDamage);
@@ -1936,17 +1877,6 @@ DamageRegionProcessPending(DrawablePtr pDrawable)
     damageRegionProcessPending(pDrawable);
 }
 
-/* If a damage marker is provided, then this function must be called after rendering is done. */
-/* Please do call back so any future enhancements can assume this function is called. */
-/* There are no strict timing requirements for calling this function, just as soon as (is cheaply) possible. */
-void
-DamageRegionRendered(DrawablePtr pDrawable, DamagePtr pDamage,
-                     RegionPtr pOldDamage, RegionPtr pRegion)
-{
-    if (pDamage->damageReportPostRendering)
-        damageReportDamagePostRendering(pDamage, pOldDamage, pRegion);
-}
-
 /* This call is very odd, i'm leaving it intact for API sake, but please don't use it. */
 void
 DamageDamageRegion(DrawablePtr pDrawable, RegionPtr pRegion)
@@ -1964,15 +1894,6 @@ void
 DamageSetReportAfterOp(DamagePtr pDamage, Bool reportAfter)
 {
     pDamage->reportAfter = reportAfter;
-}
-
-void
-DamageSetPostRenderingFunctions(DamagePtr pDamage,
-                                DamageReportFunc damageReportPostRendering,
-                                DamageMarkerFunc damageMarker)
-{
-    pDamage->damageReportPostRendering = damageReportPostRendering;
-    pDamage->damageMarker = damageMarker;
 }
 
 DamageScreenFuncsPtr
