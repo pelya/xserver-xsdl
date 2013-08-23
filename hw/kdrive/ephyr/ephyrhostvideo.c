@@ -43,31 +43,6 @@
 #define FALSE 0
 #endif /*FALSE*/
 
-EphyrHostVideoFormat*
-ephyrHostXVAdaptorGetVideoFormats (const xcb_xv_adaptor_info_t *a_this,
-                                   int *a_nb_formats)
-{
-    EphyrHostVideoFormat *formats = NULL;
-    int nb_formats = 0, i = 0;
-    xcb_xv_format_t *format = xcb_xv_adaptor_info_formats(a_this);
-
-    EPHYR_RETURN_VAL_IF_FAIL(a_this, NULL);
-
-    nb_formats = a_this->num_formats;
-    formats = calloc(nb_formats, sizeof(EphyrHostVideoFormat));
-    for (i = 0; i < nb_formats; i++) {
-        xcb_visualtype_t *visual =
-            xcb_aux_find_visual_by_id(
-                    xcb_aux_get_screen(hostx_get_xcbconn(), hostx_get_screen()),
-                    format[i].visual);
-        formats[i].depth = format[i].depth;
-        formats[i].visual_class = visual->_class;
-    }
-    if (a_nb_formats)
-        *a_nb_formats = nb_formats;
-    return formats;
-}
-
 Bool
 ephyrHostXVQueryEncodings(int a_port_id,
                           EphyrHostEncoding ** a_encodings,

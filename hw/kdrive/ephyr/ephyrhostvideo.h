@@ -31,11 +31,6 @@
 #include <xcb/xv.h>
 #include <X11/Xdefs.h>
 
-typedef struct _EphyrHostVideoFormat {
-    char depth;
-    short visual_class;
-} EphyrHostVideoFormat;
-
 typedef struct _EphyrHostRational {
     int numerator;
     int denominator;
@@ -80,12 +75,6 @@ typedef struct _EphyrHostImageFormat {
 typedef struct {
     unsigned short x1, y1, x2, y2;
 } EphyrHostBox;
-
-/*
- * host adaptor
- */
-EphyrHostVideoFormat *ephyrHostXVAdaptorGetVideoFormats
-    (const xcb_xv_adaptor_info_t *a_this, int *a_nb_formats);
 
 /*
  * encoding

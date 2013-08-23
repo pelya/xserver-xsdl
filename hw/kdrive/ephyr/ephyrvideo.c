@@ -401,10 +401,9 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
 {
     xcb_connection_t *conn = hostx_get_xcbconn();
     xcb_screen_t *xscreen = xcb_aux_get_screen(conn, hostx_get_screen());
-    EphyrHostVideoFormat *video_formats = NULL;
     EphyrHostEncoding *encodings = NULL;
     EphyrHostImageFormat *image_formats = NULL;
-    int num_video_formats = 0, base_port_id = 0,
+    int base_port_id = 0,
         num_formats = 0, i = 0, port_priv_offset = 0;
     unsigned num_encodings = 0;
     Bool is_ok = FALSE;
@@ -425,6 +424,7 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
             goto out;
         }
     }
+
     if (a_this->host_adaptors)
         a_this->num_adaptors = a_this->host_adaptors->num_adaptors;
     if (a_this->num_adaptors < 0) {
@@ -447,6 +447,7 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
     it = xcb_xv_query_adaptors_info_iterator(a_this->host_adaptors);
     for (i = 0; i < a_this->num_adaptors; i++) {
         xcb_xv_adaptor_info_t *cur_host_adaptor = it.data;
+        xcb_xv_format_t *format = xcb_xv_adaptor_info_formats(cur_host_adaptor);
         int j = 0;
 
         a_this->adaptors[i].nPorts = cur_host_adaptor->num_ports;
@@ -480,11 +481,18 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
         a_this->adaptors[i].nEncodings = num_encodings;
         a_this->adaptors[i].pEncodings =
             videoEncodingDup(encodings, num_encodings);
-        video_formats = (EphyrHostVideoFormat *)
-            ephyrHostXVAdaptorGetVideoFormats(cur_host_adaptor,
-                                              &num_video_formats);
-        a_this->adaptors[i].pFormats = (KdVideoFormatPtr) video_formats;
-        a_this->adaptors[i].nFormats = num_video_formats;
+
+        a_this->adaptors[i].nFormats = cur_host_adaptor->num_formats;
+        a_this->adaptors[i].pFormats =
+            calloc(cur_host_adaptor->num_formats,
+                   sizeof(*a_this->adaptors[i].pFormats));
+        for (j = 0; j < cur_host_adaptor->num_formats; j++) {
+            xcb_visualtype_t *visual =
+                xcb_aux_find_visual_by_id(xscreen, format[j].visual);
+            a_this->adaptors[i].pFormats[j].depth = format[j].depth;
+            a_this->adaptors[i].pFormats[j].class = visual->_class;
+        }
+
         a_this->adaptors[i].pPortPrivates =
             calloc(a_this->adaptors[i].nPorts,
                    sizeof(DevUnion) + sizeof(EphyrPortPriv));
