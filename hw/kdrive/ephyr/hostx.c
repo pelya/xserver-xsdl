@@ -1092,46 +1092,6 @@ out:
     return is_ok;
 }
 
-int
-hostx_set_window_clipping_rectangles(int a_window,
-                                     EphyrRect * a_rects, int a_num_rects)
-{
-    Bool is_ok = FALSE;
-    int i = 0;
-    xcb_rectangle_t *rects = NULL;
-
-    EPHYR_RETURN_VAL_IF_FAIL(a_rects, FALSE);
-
-    EPHYR_LOG("enter. num rects:%d\n", a_num_rects);
-
-    rects = calloc(a_num_rects, sizeof (xcb_rectangle_t));
-    if (!rects)
-        goto out;
-    for (i = 0; i < a_num_rects; i++) {
-        rects[i].x = a_rects[i].x1;
-        rects[i].y = a_rects[i].y1;
-        rects[i].width = abs(a_rects[i].x2 - a_rects[i].x1);
-        rects[i].height = abs(a_rects[i].y2 - a_rects[i].y1);
-        EPHYR_LOG("clipped to rect[x:%d,y:%d,w:%d,h:%d]\n",
-                  rects[i].x, rects[i].y, rects[i].width, rects[i].height);
-    }
-    xcb_shape_rectangles(HostX.conn,
-                         XCB_SHAPE_SO_SET,
-                         XCB_SHAPE_SK_CLIP,
-                         XCB_CLIP_ORDERING_YX_BANDED,
-                         a_window,
-                         0, 0,
-                         a_num_rects,
-                         rects);
-    is_ok = TRUE;
-
-out:
-    free(rects);
-    rects = NULL;
-    EPHYR_LOG("leave\n");
-    return is_ok;
-}
-
 #ifdef XF86DRI
 typedef struct {
     int is_valid;

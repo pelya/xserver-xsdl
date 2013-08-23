@@ -172,9 +172,6 @@ int hostx_set_window_geometry(int a_win, EphyrBox * a_geo);
 int hostx_set_window_bounding_rectangles(int a_window,
                                          EphyrRect * a_rects, int a_num_rects);
 
-int hostx_set_window_clipping_rectangles(int a_window,
-                                         EphyrRect * a_rects, int a_num_rects);
-
 int host_has_extension(xcb_extension_t *extension);
 
 #ifdef XF86DRI
