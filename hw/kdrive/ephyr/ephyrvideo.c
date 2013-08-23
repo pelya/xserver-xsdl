@@ -60,8 +60,6 @@ struct _EphyrPortPriv {
 };
 typedef struct _EphyrPortPriv EphyrPortPriv;
 
-static Bool DoSimpleClip(BoxPtr a_dst_drw, BoxPtr a_clipper, BoxPtr a_result);
-
 static Bool ephyrLocalAtomToHost(int a_local_atom, int *a_host_atom);
 
 static EphyrXVPriv *ephyrXVPrivNew(void);
@@ -175,49 +173,6 @@ static Bool
 adaptor_has_flags(const xcb_xv_adaptor_info_t *adaptor, uint32_t flags)
 {
     return (adaptor->type & flags) == flags;
-}
-
-static Bool
-DoSimpleClip(BoxPtr a_dst_box, BoxPtr a_clipper, BoxPtr a_result)
-{
-    BoxRec dstClippedBox;
-
-    EPHYR_RETURN_VAL_IF_FAIL(a_dst_box && a_clipper && a_result, FALSE);
-
-    /*
-     * setup the clipbox inside the destination.
-     */
-    dstClippedBox.x1 = a_dst_box->x1;
-    dstClippedBox.x2 = a_dst_box->x2;
-    dstClippedBox.y1 = a_dst_box->y1;
-    dstClippedBox.y2 = a_dst_box->y2;
-
-    /*
-     * if the cliper leftmost edge is inside
-     * the destination area then the leftmost edge of the resulting
-     * clipped box is the leftmost edge of the cliper.
-     */
-    if (a_clipper->x1 > dstClippedBox.x1)
-        dstClippedBox.x1 = a_clipper->x1;
-
-    /*
-     * if the cliper top edge is inside the destination area
-     * then the bottom horizontal edge of the resulting clipped box
-     * is the bottom edge of the cliper
-     */
-    if (a_clipper->y1 > dstClippedBox.y1)
-        dstClippedBox.y1 = a_clipper->y1;
-
-    /*ditto for right edge */
-    if (a_clipper->x2 < dstClippedBox.x2)
-        dstClippedBox.x2 = a_clipper->x2;
-
-    /*ditto for bottom edge */
-    if (a_clipper->y2 < dstClippedBox.y2)
-        dstClippedBox.y2 = a_clipper->y2;
-
-    memcpy(a_result, &dstClippedBox, sizeof(dstClippedBox));
-    return TRUE;
 }
 
 static Bool
@@ -1158,24 +1113,11 @@ ephyrPutVideo(KdScreenInfo * a_info,
     xcb_connection_t *conn = hostx_get_xcbconn();
     xcb_gcontext_t gc;
     EphyrPortPriv *port_priv = a_port_priv;
-    BoxRec clipped_area, dst_box;
-    int result = BadImplementation;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_info->pScreen, BadValue);
     EPHYR_RETURN_VAL_IF_FAIL(a_drawable && port_priv, BadValue);
 
     EPHYR_LOG("enter\n");
-
-    dst_box.x1 = a_drw_x;
-    dst_box.x2 = a_drw_x + a_drw_w;
-    dst_box.y1 = a_drw_y;
-    dst_box.y2 = a_drw_y + a_drw_h;
-
-    if (!DoSimpleClip(&dst_box,
-                      RegionExtents(a_clipping_region), &clipped_area)) {
-        EPHYR_LOG_ERROR("failed to simple clip\n");
-        goto out;
-    }
 
     gc = xcb_generate_id(conn);
     xcb_create_gc(conn, gc, scrpriv->win, 0, NULL);
@@ -1185,11 +1127,8 @@ ephyrPutVideo(KdScreenInfo * a_info,
                      a_drw_x, a_drw_y, a_drw_w, a_drw_h);
     xcb_free_gc(conn, gc);
 
-    result = Success;
-
- out:
     EPHYR_LOG("leave\n");
-    return result;
+    return Success;
 }
 
 static int
@@ -1205,24 +1144,11 @@ ephyrGetVideo(KdScreenInfo * a_info,
     xcb_connection_t *conn = hostx_get_xcbconn();
     xcb_gcontext_t gc;
     EphyrPortPriv *port_priv = a_port_priv;
-    BoxRec clipped_area, dst_box;
-    int result = BadImplementation;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_info && a_info->pScreen, BadValue);
     EPHYR_RETURN_VAL_IF_FAIL(a_drawable && port_priv, BadValue);
 
     EPHYR_LOG("enter\n");
-
-    dst_box.x1 = a_drw_x;
-    dst_box.x2 = a_drw_x + a_drw_w;
-    dst_box.y1 = a_drw_y;
-    dst_box.y2 = a_drw_y + a_drw_h;
-
-    if (!DoSimpleClip(&dst_box,
-                      RegionExtents(a_clipping_region), &clipped_area)) {
-        EPHYR_LOG_ERROR("failed to simple clip\n");
-        goto out;
-    }
 
     gc = xcb_generate_id(conn);
     xcb_create_gc(conn, gc, scrpriv->win, 0, NULL);
@@ -1233,11 +1159,8 @@ ephyrGetVideo(KdScreenInfo * a_info,
 
     xcb_free_gc(conn, gc);
 
-    result = Success;
-
- out:
     EPHYR_LOG("leave\n");
-    return result;
+    return Success;
 }
 
 static int
@@ -1253,24 +1176,11 @@ ephyrPutStill(KdScreenInfo * a_info,
     xcb_connection_t *conn = hostx_get_xcbconn();
     xcb_gcontext_t gc;
     EphyrPortPriv *port_priv = a_port_priv;
-    BoxRec clipped_area, dst_box;
-    int result = BadImplementation;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_info && a_info->pScreen, BadValue);
     EPHYR_RETURN_VAL_IF_FAIL(a_drawable && port_priv, BadValue);
 
     EPHYR_LOG("enter\n");
-
-    dst_box.x1 = a_drw_x;
-    dst_box.x2 = a_drw_x + a_drw_w;
-    dst_box.y1 = a_drw_y;
-    dst_box.y2 = a_drw_y + a_drw_h;
-
-    if (!DoSimpleClip(&dst_box,
-                      RegionExtents(a_clipping_region), &clipped_area)) {
-        EPHYR_LOG_ERROR("failed to simple clip\n");
-        goto out;
-    }
 
     gc = xcb_generate_id(conn);
     xcb_create_gc(conn, gc, scrpriv->win, 0, NULL);
@@ -1280,11 +1190,8 @@ ephyrPutStill(KdScreenInfo * a_info,
                      a_drw_x, a_drw_y, a_drw_w, a_drw_h);
     xcb_free_gc(conn, gc);
 
-    result = Success;
-
- out:
     EPHYR_LOG("leave\n");
-    return result;
+    return Success;
 }
 
 static int
@@ -1300,24 +1207,11 @@ ephyrGetStill(KdScreenInfo * a_info,
     xcb_connection_t *conn = hostx_get_xcbconn();
     xcb_gcontext_t gc;
     EphyrPortPriv *port_priv = a_port_priv;
-    BoxRec clipped_area, dst_box;
-    int result = BadImplementation;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_info && a_info->pScreen, BadValue);
     EPHYR_RETURN_VAL_IF_FAIL(a_drawable && port_priv, BadValue);
 
     EPHYR_LOG("enter\n");
-
-    dst_box.x1 = a_drw_x;
-    dst_box.x2 = a_drw_x + a_drw_w;
-    dst_box.y1 = a_drw_y;
-    dst_box.y2 = a_drw_y + a_drw_h;
-
-    if (!DoSimpleClip(&dst_box,
-                      RegionExtents(a_clipping_region), &clipped_area)) {
-        EPHYR_LOG_ERROR("failed to simple clip\n");
-        goto out;
-    }
 
     gc = xcb_generate_id(conn);
     xcb_create_gc(conn, gc, scrpriv->win, 0, NULL);
@@ -1327,11 +1221,8 @@ ephyrGetStill(KdScreenInfo * a_info,
                      a_drw_x, a_drw_y, a_drw_w, a_drw_h);
     xcb_free_gc(conn, gc);
 
-    result = Success;
-
- out:
     EPHYR_LOG("leave\n");
-    return result;
+    return Success;
 }
 
 static int
