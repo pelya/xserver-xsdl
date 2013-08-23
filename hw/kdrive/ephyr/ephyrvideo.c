@@ -33,12 +33,12 @@
 #include <X11/extensions/Xv.h>
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
+#include <xcb/xv.h>
 #include "ephyrlog.h"
 #include "kdrive.h"
 #include "kxv.h"
 #include "ephyr.h"
 #include "hostx.h"
-#include "ephyrhostvideo.h"
 
 struct _EphyrXVPriv {
     xcb_xv_query_adaptors_reply_t *host_adaptors;
@@ -223,8 +223,10 @@ DoSimpleClip(BoxPtr a_dst_box, BoxPtr a_clipper, BoxPtr a_result)
 static Bool
 ephyrLocalAtomToHost(int a_local_atom, int *a_host_atom)
 {
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_intern_atom_cookie_t cookie;
+    xcb_intern_atom_reply_t *reply;
     const char *atom_name = NULL;
-    int host_atom = None;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_host_atom, FALSE);
 
@@ -236,11 +238,16 @@ ephyrLocalAtomToHost(int a_local_atom, int *a_host_atom)
     if (!atom_name)
         return FALSE;
 
-    if (!ephyrHostGetAtom(atom_name, FALSE, &host_atom) || host_atom == None) {
+    cookie = xcb_intern_atom(conn, FALSE, strlen(atom_name), atom_name);
+    reply = xcb_intern_atom_reply(conn, cookie, NULL);
+    if (!reply || reply->atom == None) {
         EPHYR_LOG_ERROR("no atom for string %s defined in host X\n", atom_name);
         return FALSE;
     }
-    *a_host_atom = host_atom;
+
+    *a_host_atom = reply->atom;
+    free(reply);
+
     return TRUE;
 }
 
@@ -902,20 +909,29 @@ ephyrQueryBestSize(KdScreenInfo * a_info,
                    unsigned int *a_prefered_w,
                    unsigned int *a_prefered_h, pointer a_port_priv)
 {
-    int res = 0;
+    xcb_connection_t *conn = hostx_get_xcbconn();
     EphyrPortPriv *port_priv = a_port_priv;
+    xcb_xv_query_best_size_cookie_t cookie =
+        xcb_xv_query_best_size(conn,
+                               port_priv->port_number,
+                               a_src_w, a_src_h,
+                               a_drw_w, a_drw_h,
+                               a_motion);
+    xcb_xv_query_best_size_reply_t *reply =
+        xcb_xv_query_best_size_reply(conn, cookie, NULL);
 
-    EPHYR_RETURN_IF_FAIL(port_priv);
+    EPHYR_LOG("enter: frame (%dx%d), drw (%dx%d)\n",
+              a_src_w, a_src_h, a_drw_w, a_drw_h);
 
-    EPHYR_LOG("enter\n");
-    res = ephyrHostXVQueryBestSize(port_priv->port_number,
-                                   a_motion,
-                                   a_src_w, a_src_h,
-                                   a_drw_w, a_drw_h,
-                                   a_prefered_w, a_prefered_h);
-    if (!res) {
-        EPHYR_LOG_ERROR("Failed to query best size\n");
+    if (!reply) {
+        EPHYR_LOG_ERROR ("XvQueryBestSize() failed\n");
+        return;
     }
+    *a_prefered_w = reply->actual_width;
+    *a_prefered_h = reply->actual_height;
+    EPHYR_LOG("actual (%dx%d)\n", *a_prefered_w, *a_prefered_h);
+    free(reply);
+
     EPHYR_LOG("leave\n");
 }
 

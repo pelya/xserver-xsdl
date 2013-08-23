@@ -25,9 +25,7 @@ HOSTX_SRCS =			\
 	hostx.h
 
 HOSTVIDEO_SRCS =		\
-	ephyrvideo.c		\
-	ephyrhostvideo.c	\
-	ephyrhostvideo.h
+	ephyrvideo.c
 
 HOSTDRI_SRCS =			\
 	ephyrdriext.c		\
