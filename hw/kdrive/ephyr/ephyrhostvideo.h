@@ -28,7 +28,6 @@
 #ifndef __EPHYRHOSTVIDEO_H__
 #define __EPHYRHOSTVIDEO_H__
 
-typedef struct _EphyrHostXVAdaptorArray EphyrHostXVAdaptorArray;
 #include <xcb/xv.h>
 #include <X11/Xdefs.h>
 
@@ -83,18 +82,8 @@ typedef struct {
 } EphyrHostBox;
 
 /*
- * host adaptor array
- */
-Bool ephyrHostXVQueryAdaptors(xcb_xv_query_adaptors_reply_t **a_adaptors);
-xcb_xv_adaptor_info_t* ephyrHostXVAdaptorArrayAt(const xcb_xv_query_adaptors_reply_t *a_this,
-                                                 int a_index);
-
-/*
  * host adaptor
  */
-
-char ephyrHostXVAdaptorGetType(const xcb_xv_adaptor_info_t *a_this);
-char* ephyrHostXVAdaptorGetName(const xcb_xv_adaptor_info_t *a_this);
 EphyrHostVideoFormat *ephyrHostXVAdaptorGetVideoFormats
     (const xcb_xv_adaptor_info_t *a_this, int *a_nb_formats);
 

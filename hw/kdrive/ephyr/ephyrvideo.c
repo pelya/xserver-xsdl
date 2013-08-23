@@ -31,6 +31,8 @@
 #endif
 #include <string.h>
 #include <X11/extensions/Xv.h>
+#include <xcb/xcb.h>
+#include <xcb/xcb_aux.h>
 #include "ephyrlog.h"
 #include "kdrive.h"
 #include "kxv.h"
@@ -381,7 +383,8 @@ portAttributesDup(const xcb_xv_query_port_attributes_reply_t *a_encodings)
 static Bool
 ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
 {
-    xcb_xv_adaptor_info_t *cur_host_adaptor = NULL;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_screen_t *xscreen = xcb_aux_get_screen(conn, hostx_get_screen());
     EphyrHostVideoFormat *video_formats = NULL;
     EphyrHostEncoding *encodings = NULL;
     xcb_xv_query_port_attributes_reply_t *attributes = NULL;
@@ -390,14 +393,22 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
         num_formats = 0, i = 0, port_priv_offset = 0;
     unsigned num_encodings = 0;
     Bool is_ok = FALSE;
+    xcb_generic_error_t *e = NULL;
+    xcb_xv_adaptor_info_iterator_t it;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_this, FALSE);
 
     EPHYR_LOG("enter\n");
 
-    if (!ephyrHostXVQueryAdaptors(&a_this->host_adaptors)) {
-        EPHYR_LOG_ERROR("failed to query host adaptors\n");
-        goto out;
+    {
+        xcb_xv_query_adaptors_cookie_t cookie =
+            xcb_xv_query_adaptors(conn, xscreen->root);
+        a_this->host_adaptors = xcb_xv_query_adaptors_reply(conn, cookie, &e);
+        if (e) {
+            free(e);
+            EPHYR_LOG_ERROR("failed to query host adaptors\n");
+            goto out;
+        }
     }
     if (a_this->host_adaptors)
         a_this->num_adaptors = a_this->host_adaptors->num_adaptors;
@@ -417,22 +428,24 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
             goto out;
         }
     }
+
+    it = xcb_xv_query_adaptors_info_iterator(a_this->host_adaptors);
     for (i = 0; i < a_this->num_adaptors; i++) {
+        xcb_xv_adaptor_info_t *cur_host_adaptor = it.data;
         int j = 0;
 
-        cur_host_adaptor = ephyrHostXVAdaptorArrayAt(a_this->host_adaptors, i);
-        if (!cur_host_adaptor)
-            continue;
         a_this->adaptors[i].nPorts = cur_host_adaptor->num_ports;
         if (a_this->adaptors[i].nPorts <= 0) {
             EPHYR_LOG_ERROR("Could not find any port of adaptor %d\n", i);
             continue;
         }
-        a_this->adaptors[i].type = ephyrHostXVAdaptorGetType(cur_host_adaptor);
+        a_this->adaptors[i].type = cur_host_adaptor->type;
         a_this->adaptors[i].type |= XvWindowMask;
         a_this->adaptors[i].flags =
             VIDEO_OVERLAID_IMAGES | VIDEO_CLIP_TO_VIEWPORT;
-        a_this->adaptors[i].name = ephyrHostXVAdaptorGetName(cur_host_adaptor);
+        a_this->adaptors[i].name =
+            strndup(xcb_xv_adaptor_info_name(cur_host_adaptor),
+                    cur_host_adaptor->name_size);
         if (!a_this->adaptors[i].name)
             a_this->adaptors[i].name = strdup("Xephyr Video Overlay");
         base_port_id = cur_host_adaptor->base_id;
@@ -494,6 +507,8 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
         }
         a_this->adaptors[i].pImages = (KdImagePtr) image_formats;
         a_this->adaptors[i].nImages = num_formats;
+
+        xcb_xv_adaptor_info_next(&it);
     }
     is_ok = TRUE;
 
@@ -514,25 +529,22 @@ static Bool
 ephyrXVPrivSetAdaptorsHooks(EphyrXVPriv * a_this)
 {
     int i = 0;
-    xcb_xv_adaptor_info_t *cur_host_adaptor = NULL;
+    xcb_xv_adaptor_info_iterator_t it;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_this, FALSE);
 
     EPHYR_LOG("enter\n");
 
+    it = xcb_xv_query_adaptors_info_iterator(a_this->host_adaptors);
     for (i = 0; i < a_this->num_adaptors; i++) {
+        xcb_xv_adaptor_info_t *cur_host_adaptor = it.data;
+
         a_this->adaptors[i].ReputImage = ephyrReputImage;
         a_this->adaptors[i].StopVideo = ephyrStopVideo;
         a_this->adaptors[i].SetPortAttribute = ephyrSetPortAttribute;
         a_this->adaptors[i].GetPortAttribute = ephyrGetPortAttribute;
         a_this->adaptors[i].QueryBestSize = ephyrQueryBestSize;
         a_this->adaptors[i].QueryImageAttributes = ephyrQueryImageAttributes;
-
-        cur_host_adaptor = ephyrHostXVAdaptorArrayAt(a_this->host_adaptors, i);
-        if (!cur_host_adaptor) {
-            EPHYR_LOG_ERROR("failed to get host adaptor at index %d\n", i);
-            continue;
-        }
 
         if (adaptor_has_flags(cur_host_adaptor,
                               XCB_XV_TYPE_IMAGE_MASK | XCB_XV_TYPE_INPUT_MASK))
