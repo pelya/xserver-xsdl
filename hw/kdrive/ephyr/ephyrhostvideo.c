@@ -120,30 +120,6 @@ ephyrHostEncodingsDelete(EphyrHostEncoding * a_encodings, int a_num_encodings)
     }
     free(a_encodings);
 }
-
-void
-ephyrHostAttributesDelete(xcb_xv_query_port_attributes_reply_t *a_attributes)
-{
-    free(a_attributes);
-}
-
-Bool
-ephyrHostXVQueryPortAttributes(int a_port_id,
-                               xcb_xv_query_port_attributes_reply_t **a_attributes)
-{
-    xcb_xv_query_port_attributes_cookie_t cookie;
-    xcb_xv_query_port_attributes_reply_t *reply;
-    xcb_connection_t *conn = hostx_get_xcbconn();
-
-    EPHYR_RETURN_VAL_IF_FAIL(a_attributes, FALSE);
-
-    cookie = xcb_xv_query_port_attributes(conn, a_port_id);
-    reply = xcb_xv_query_port_attributes_reply(conn, cookie, NULL);
-    *a_attributes = reply;
-
-    return (reply != NULL);
-}
-
 Bool
 ephyrHostXVQueryImageFormats(int a_port_id,
                              EphyrHostImageFormat ** a_formats,
@@ -200,51 +176,6 @@ ephyrHostXVQueryImageFormats(int a_port_id,
 }
 
 Bool
-ephyrHostXVSetPortAttribute(int a_port_id, int a_atom, int a_attr_value)
-{
-    EPHYR_LOG("atom,value: (%d,%d)\n", a_atom, a_attr_value);
-
-    xcb_xv_set_port_attribute(hostx_get_xcbconn(),
-                              a_port_id,
-                              a_atom,
-                              a_attr_value);
-    xcb_flush(hostx_get_xcbconn());
-    EPHYR_LOG("leave\n");
-
-    return TRUE;
-}
-
-Bool
-ephyrHostXVGetPortAttribute(int a_port_id, int a_atom, int *a_attr_value)
-{
-    Bool ret = FALSE;
-    xcb_connection_t *conn = hostx_get_xcbconn();
-    xcb_xv_get_port_attribute_cookie_t cookie;
-    xcb_xv_get_port_attribute_reply_t *reply;
-    xcb_generic_error_t *e;
-
-    EPHYR_RETURN_VAL_IF_FAIL(a_attr_value, FALSE);
-
-    EPHYR_LOG("enter, a_port_id: %d, a_atomid: %d\n", a_port_id, a_atom);
-
-    cookie = xcb_xv_get_port_attribute(conn, a_port_id, a_atom);
-    reply = xcb_xv_get_port_attribute_reply(conn, cookie, &e);
-    if (e) {
-        EPHYR_LOG_ERROR ("XvGetPortAttribute() failed: %d \n", e->error_code);
-        free(e);
-        goto out;
-    }
-    *a_attr_value = reply->value;
-    EPHYR_LOG("atom,value: (%d, %d)\n", a_atom, *a_attr_value);
-
-    ret = TRUE;
-
- out:
-    EPHYR_LOG("leave\n");
-    return ret;
-}
-
-Bool
 ephyrHostXVQueryBestSize(int a_port_id,
                          Bool a_motion,
                          unsigned int a_frame_w,
@@ -283,44 +214,6 @@ out:
     free(reply);
     EPHYR_LOG("leave\n");
     return is_ok;
-}
-
-Bool
-ephyrHostXVQueryImageAttributes(int a_port_id,
-                                int a_image_id /*image fourcc code */ ,
-                                unsigned short *a_width,
-                                unsigned short *a_height,
-                                int *a_image_size,
-                                int *a_pitches, int *a_offsets)
-{
-    xcb_connection_t *conn = hostx_get_xcbconn ();
-    xcb_xv_query_image_attributes_cookie_t cookie;
-    xcb_xv_query_image_attributes_reply_t *reply;
-
-    EPHYR_RETURN_VAL_IF_FAIL(a_width, FALSE);
-    EPHYR_RETURN_VAL_IF_FAIL(a_height, FALSE);
-    EPHYR_RETURN_VAL_IF_FAIL(a_image_size, FALSE);
-
-    cookie = xcb_xv_query_image_attributes(conn,
-                                           a_port_id, a_image_id,
-                                           *a_width, *a_height);
-    reply = xcb_xv_query_image_attributes_reply(conn, cookie, NULL);
-    if (!reply)
-        return FALSE;
-    if (a_pitches && a_offsets) {
-        memcpy(a_pitches,
-               xcb_xv_query_image_attributes_pitches(reply),
-               reply->num_planes << 2);
-        memcpy(a_offsets,
-               xcb_xv_query_image_attributes_offsets(reply),
-               reply->num_planes << 2);
-    }
-    *a_width = reply->width;
-    *a_height = reply->height;
-    *a_image_size = reply->data_size;
-    free(reply);
-
-    return TRUE;
 }
 
 Bool

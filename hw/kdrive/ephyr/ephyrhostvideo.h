@@ -98,25 +98,12 @@ void ephyrHostEncodingsDelete(EphyrHostEncoding * a_encodings,
                               int a_num_encodings);
 
 /*
- * attribute
- */
-Bool ephyrHostXVQueryPortAttributes(int a_port_id,
-                                    xcb_xv_query_port_attributes_reply_t **a_attributes);
-
-void ephyrHostAttributesDelete(xcb_xv_query_port_attributes_reply_t *a_attributes);
-
-/*
  * image format
  */
 
 Bool ephyrHostXVQueryImageFormats(int a_port_id,
                                   EphyrHostImageFormat ** a_formats,
                                   int *a_num_format);
-/*
- * Port Attribute Get/Set
- */
-Bool ephyrHostXVSetPortAttribute(int a_port_id, int a_atom, int a_attr_value);
-Bool ephyrHostXVGetPortAttribute(int a_port_id, int a_atom, int *a_attr_value);
 
 /*
  *size query
@@ -130,12 +117,6 @@ Bool ephyrHostXVQueryBestSize(int a_port_id,
                               unsigned int *a_actual_w,
                               unsigned int *a_actual_h);
 
-Bool ephyrHostXVQueryImageAttributes(int a_port_id,
-                                     int a_image_id /*image fourcc code */ ,
-                                     unsigned short *a_width,
-                                     unsigned short *a_height,
-                                     int *a_image_size,
-                                     int *a_pitches, int *a_offsets);
 /*
  * atom
  */
