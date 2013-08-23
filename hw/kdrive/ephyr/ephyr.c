@@ -1033,9 +1033,12 @@ ephyrProcessKeyRelease(xcb_generic_event_t *xev)
     if (!keysyms)
         keysyms = xcb_key_symbols_alloc(conn);
 
-    if ((xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Shift_L
-         || xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Shift_R)
-        && (key->state & XCB_MOD_MASK_CONTROL)) {
+    if (((xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Shift_L
+          || xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Shift_R)
+         && (key->state & XCB_MOD_MASK_CONTROL)) ||
+        ((xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Control_L
+          || xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Control_R)
+         && (key->state & XCB_MOD_MASK_SHIFT))) {
         KdScreenInfo *screen = screen_from_window(key->event);
         EphyrScrPriv *scrpriv = screen->driver;
 
