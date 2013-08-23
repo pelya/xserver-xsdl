@@ -44,58 +44,6 @@
 #endif /*FALSE*/
 
 Bool
-ephyrHostXVQueryEncodings(int a_port_id,
-                          EphyrHostEncoding ** a_encodings,
-                          unsigned int *a_num_encodings)
-{
-    EphyrHostEncoding *encodings = NULL;
-    xcb_xv_encoding_info_iterator_t encoding_info;
-    xcb_xv_query_encodings_cookie_t cookie;
-    xcb_xv_query_encodings_reply_t *reply;
-    unsigned int num_encodings = 0, i;
-
-    EPHYR_RETURN_VAL_IF_FAIL(a_encodings && a_num_encodings, FALSE);
-
-    cookie = xcb_xv_query_encodings(hostx_get_xcbconn(), a_port_id);
-    reply = xcb_xv_query_encodings_reply(hostx_get_xcbconn(), cookie, NULL);
-    if (!reply)
-        return FALSE;
-    num_encodings = reply->num_encodings;
-    encoding_info = xcb_xv_query_encodings_info_iterator(reply);
-    if (num_encodings) {
-        encodings = calloc(num_encodings, sizeof (EphyrHostEncoding));
-        for (i=0; i<num_encodings; i++, xcb_xv_encoding_info_next(&encoding_info)) {
-            encodings[i].id = encoding_info.data->encoding;
-            encodings[i].name = malloc(encoding_info.data->name_size + 1);
-	    memcpy(encodings[i].name, xcb_xv_encoding_info_name(encoding_info.data), encoding_info.data->name_size);
-	    encodings[i].name[encoding_info.data->name_size] = '\0';
-            encodings[i].width = encoding_info.data->width;
-            encodings[i].height = encoding_info.data->height;
-            encodings[i].rate.numerator = encoding_info.data->rate.numerator;
-            encodings[i].rate.denominator = encoding_info.data->rate.denominator;
-        }
-    }
-    free(reply);
-    *a_encodings = encodings;
-    *a_num_encodings = num_encodings;
-
-    return TRUE;
-}
-
-void
-ephyrHostEncodingsDelete(EphyrHostEncoding * a_encodings, int a_num_encodings)
-{
-    int i = 0;
-
-    if (!a_encodings)
-        return;
-    for (i = 0; i < a_num_encodings; i++) {
-        free(a_encodings[i].name);
-        a_encodings[i].name = NULL;
-    }
-    free(a_encodings);
-}
-Bool
 ephyrHostXVQueryImageFormats(int a_port_id,
                              EphyrHostImageFormat ** a_formats,
                              int *a_num_format)

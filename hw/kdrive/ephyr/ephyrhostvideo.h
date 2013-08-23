@@ -31,18 +31,6 @@
 #include <xcb/xv.h>
 #include <X11/Xdefs.h>
 
-typedef struct _EphyrHostRational {
-    int numerator;
-    int denominator;
-} EphyrHostRational;
-
-typedef struct _EphyrHostEncoding {
-    int id;
-    char *name;
-    unsigned short width, height;
-    EphyrHostRational rate;
-} EphyrHostEncoding;
-
 typedef struct _EphyrHostImageFormat {
     int id;                     /* Unique descriptor for the format */
     int type;                   /* XvRGB, XvYUV */
@@ -75,16 +63,6 @@ typedef struct _EphyrHostImageFormat {
 typedef struct {
     unsigned short x1, y1, x2, y2;
 } EphyrHostBox;
-
-/*
- * encoding
- */
-Bool ephyrHostXVQueryEncodings(int a_port_id,
-                               EphyrHostEncoding ** a_encodings,
-                               unsigned int *a_num_encodings);
-
-void ephyrHostEncodingsDelete(EphyrHostEncoding * a_encodings,
-                              int a_num_encodings);
 
 /*
  * image format

@@ -332,24 +332,47 @@ ephyrXVPrivDelete(EphyrXVPriv * a_this)
     EPHYR_LOG("leave\n");
 }
 
-static KdVideoEncodingPtr
-videoEncodingDup(EphyrHostEncoding * a_encodings, int a_num_encodings)
+static Bool
+translate_video_encodings(KdVideoAdaptorPtr adaptor,
+                          xcb_xv_adaptor_info_t *host_adaptor)
 {
-    KdVideoEncodingPtr result = NULL;
-    int i = 0;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    int i;
+    xcb_xv_query_encodings_cookie_t cookie;
+    xcb_xv_query_encodings_reply_t *reply;
+    xcb_xv_encoding_info_iterator_t encoding_it;
 
-    EPHYR_RETURN_VAL_IF_FAIL(a_encodings && a_num_encodings, NULL);
+    cookie = xcb_xv_query_encodings(conn, host_adaptor->base_id);
+    reply = xcb_xv_query_encodings_reply(conn, cookie, NULL);
+    if (!reply)
+        return FALSE;
 
-    result = calloc(a_num_encodings, sizeof(KdVideoEncodingRec));
-    for (i = 0; i < a_num_encodings; i++) {
-        result[i].id = a_encodings[i].id;
-        result[i].name = strdup(a_encodings[i].name);
-        result[i].width = a_encodings[i].width;
-        result[i].height = a_encodings[i].height;
-        result[i].rate.numerator = a_encodings[i].rate.numerator;
-        result[i].rate.denominator = a_encodings[i].rate.denominator;
+    adaptor->nEncodings = reply->num_encodings;
+    adaptor->pEncodings = calloc(adaptor->nEncodings,
+                                  sizeof(*adaptor->pEncodings));
+    if (!adaptor->pEncodings) {
+        free(reply);
+        return FALSE;
     }
-    return result;
+
+    encoding_it = xcb_xv_query_encodings_info_iterator(reply);
+    for (i = 0; i < adaptor->nEncodings; i++) {
+        xcb_xv_encoding_info_t *encoding_info = encoding_it.data;
+        KdVideoEncodingPtr encoding = &adaptor->pEncodings[i];
+
+        encoding->id = encoding_info->encoding;
+        encoding->name = strndup(xcb_xv_encoding_info_name(encoding_info),
+                                 encoding_info->name_size);
+        encoding->width = encoding_info->width;
+        encoding->height = encoding_info->height;
+        encoding->rate.numerator = encoding_info->rate.numerator;
+        encoding->rate.denominator = encoding_info->rate.denominator;
+
+        xcb_xv_encoding_info_next(&encoding_it);
+    }
+
+    free(reply);
+    return TRUE;
 }
 
 static Bool
@@ -401,11 +424,9 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
 {
     xcb_connection_t *conn = hostx_get_xcbconn();
     xcb_screen_t *xscreen = xcb_aux_get_screen(conn, hostx_get_screen());
-    EphyrHostEncoding *encodings = NULL;
     EphyrHostImageFormat *image_formats = NULL;
     int base_port_id = 0,
         num_formats = 0, i = 0, port_priv_offset = 0;
-    unsigned num_encodings = 0;
     Bool is_ok = FALSE;
     xcb_generic_error_t *e = NULL;
     xcb_xv_adaptor_info_iterator_t it;
@@ -472,15 +493,12 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
         if (!s_base_port_id)
             s_base_port_id = base_port_id;
 
-        if (!ephyrHostXVQueryEncodings(base_port_id,
-                                       &encodings, &num_encodings)) {
+        if (!translate_video_encodings(&a_this->adaptors[i],
+                                       cur_host_adaptor)) {
             EPHYR_LOG_ERROR("failed to get encodings for port port id %d,"
                             " adaptors %d\n", base_port_id, i);
             continue;
         }
-        a_this->adaptors[i].nEncodings = num_encodings;
-        a_this->adaptors[i].pEncodings =
-            videoEncodingDup(encodings, num_encodings);
 
         a_this->adaptors[i].nFormats = cur_host_adaptor->num_formats;
         a_this->adaptors[i].pFormats =
@@ -531,10 +549,6 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
     is_ok = TRUE;
 
  out:
-    if (encodings) {
-        ephyrHostEncodingsDelete(encodings, num_encodings);
-        encodings = NULL;
-    }
     EPHYR_LOG("leave\n");
     return is_ok;
 }
