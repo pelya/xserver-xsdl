@@ -31,10 +31,6 @@
 #include <xcb/xv.h>
 #include <X11/Xdefs.h>
 
-typedef struct {
-    unsigned short x1, y1, x2, y2;
-} EphyrHostBox;
-
 /*
  *size query
  */
@@ -53,48 +49,5 @@ Bool ephyrHostXVQueryBestSize(int a_port_id,
 Bool ephyrHostGetAtom(const char *a_name,
                       Bool a_create_if_not_exists, int *a_atom);
 char *ephyrHostGetAtomName(int a_atom);
-
-/*
- *PutImage
- * (ignore clipping for now)
- */
-Bool ephyrHostXVPutImage(int a_screen_num,
-                         int a_port_id,
-                         int a_image_id,
-                         int a_drw_x,
-                         int a_drw_y,
-                         int a_drw_w,
-                         int a_drw_h,
-                         int a_src_x,
-                         int a_src_y,
-                         int a_src_w,
-                         int a_src_h,
-                         int a_image_width,
-                         int a_image_height,
-                         unsigned char *a_buf,
-                         EphyrHostBox * a_clip_rects, int a_clip_rect_nums);
-
-/*
- * Putvideo/PutStill/GetVideo
- */
-Bool ephyrHostXVPutVideo(int a_screen_num,
-                         int a_port_id,
-                         int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
-                         int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h);
-
-Bool ephyrHostXVGetVideo(int a_screen_num,
-                         int a_port_id,
-                         int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
-                         int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h);
-
-Bool ephyrHostXVPutStill(int a_screen_num,
-                         int a_port_id,
-                         int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
-                         int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h);
-
-Bool ephyrHostXVGetStill(int a_screen_num,
-                         int a_port_id,
-                         int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
-                         int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h);
 
 #endif /*__EPHYRHOSTVIDEO_H__*/

@@ -919,6 +919,93 @@ ephyrQueryBestSize(KdScreenInfo * a_info,
     EPHYR_LOG("leave\n");
 }
 
+
+static Bool
+ephyrHostXVPutImage(KdScreenInfo * a_info,
+                    EphyrPortPriv *port_priv,
+                    int a_image_id,
+                    int a_drw_x,
+                    int a_drw_y,
+                    int a_drw_w,
+                    int a_drw_h,
+                    int a_src_x,
+                    int a_src_y,
+                    int a_src_w,
+                    int a_src_h,
+                    int a_image_width,
+                    int a_image_height,
+                    unsigned char *a_buf,
+                    BoxPtr a_clip_rects, int a_clip_rect_nums)
+{
+    EphyrScrPriv *scrpriv = a_info->driver;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_gcontext_t gc;
+    Bool is_ok = TRUE;
+    xcb_rectangle_t *rects = NULL;
+    int data_len, width, height;
+    xcb_xv_query_image_attributes_cookie_t image_attr_cookie;
+    xcb_xv_query_image_attributes_reply_t *image_attr_reply;
+
+    EPHYR_RETURN_VAL_IF_FAIL(a_buf, FALSE);
+
+    EPHYR_LOG("enter, num_clip_rects: %d\n", a_clip_rect_nums);
+
+    image_attr_cookie = xcb_xv_query_image_attributes(conn,
+                                                      port_priv->port_number,
+                                                      a_image_id,
+                                                      a_image_width,
+                                                      a_image_height);
+    image_attr_reply = xcb_xv_query_image_attributes_reply(conn,
+                                                           image_attr_cookie,
+                                                           NULL);
+    if (!image_attr_reply)
+        goto out;
+    data_len = image_attr_reply->data_size;
+    width = image_attr_reply->width;
+    height = image_attr_reply->height;
+    free(image_attr_reply);
+
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn, gc, scrpriv->win, 0, NULL);
+
+    if (a_clip_rect_nums) {
+        int i = 0;
+        rects = calloc(a_clip_rect_nums, sizeof(xcb_rectangle_t));
+        for (i=0; i < a_clip_rect_nums; i++) {
+            rects[i].x = a_clip_rects[i].x1;
+            rects[i].y = a_clip_rects[i].y1;
+            rects[i].width = a_clip_rects[i].x2 - a_clip_rects[i].x1;
+            rects[i].height = a_clip_rects[i].y2 - a_clip_rects[i].y1;
+            EPHYR_LOG("(x,y,w,h): (%d,%d,%d,%d)\n",
+                      rects[i].x, rects[i].y, rects[i].width, rects[i].height);
+        }
+        xcb_set_clip_rectangles(conn,
+                                XCB_CLIP_ORDERING_YX_BANDED,
+                                gc,
+                                0,
+                                0,
+                                a_clip_rect_nums,
+                                rects);
+	free(rects);
+    }
+    xcb_xv_put_image(conn,
+                     port_priv->port_number,
+                     scrpriv->win,
+                     gc,
+                     a_image_id,
+                     a_src_x, a_src_y, a_src_w, a_src_h,
+                     a_drw_x, a_drw_y, a_drw_w, a_drw_h,
+                     width, height,
+                     data_len, a_buf);
+    xcb_free_gc(conn, gc);
+
+    is_ok = TRUE;
+
+out:
+    EPHYR_LOG("leave\n");
+    return is_ok;
+}
+
 static int
 ephyrPutImage(KdScreenInfo * a_info,
               DrawablePtr a_drawable,
@@ -945,13 +1032,12 @@ ephyrPutImage(KdScreenInfo * a_info,
 
     EPHYR_LOG("enter\n");
 
-    if (!ephyrHostXVPutImage(a_info->pScreen->myNum,
-                             port_priv->port_number,
+    if (!ephyrHostXVPutImage(a_info, port_priv,
                              a_id,
                              a_drw_x, a_drw_y, a_drw_w, a_drw_h,
                              a_src_x, a_src_y, a_src_w, a_src_h,
                              a_width, a_height, a_buf,
-                             (EphyrHostBox *) RegionRects(a_clipping_region),
+                             RegionRects(a_clipping_region),
                              RegionNumRects(a_clipping_region))) {
         EPHYR_LOG_ERROR("EphyrHostXVPutImage() failed\n");
         goto out;
@@ -1021,8 +1107,8 @@ ephyrReputImage(KdScreenInfo * a_info,
         EPHYR_LOG_ERROR("has null image buf in cache\n");
         goto out;
     }
-    if (!ephyrHostXVPutImage(a_info->pScreen->myNum,
-                             port_priv->port_number,
+    if (!ephyrHostXVPutImage(a_info,
+                             port_priv,
                              port_priv->image_id,
                              a_drw_x, a_drw_y,
                              port_priv->drw_w, port_priv->drw_h,
@@ -1030,7 +1116,7 @@ ephyrReputImage(KdScreenInfo * a_info,
                              port_priv->src_w, port_priv->src_h,
                              port_priv->image_width, port_priv->image_height,
                              port_priv->image_buf,
-                             (EphyrHostBox *) RegionRects(a_clipping_region),
+                             RegionRects(a_clipping_region),
                              RegionNumRects(a_clipping_region))) {
         EPHYR_LOG_ERROR("ephyrHostXVPutImage() failed\n");
         goto out;
@@ -1052,6 +1138,9 @@ ephyrPutVideo(KdScreenInfo * a_info,
               short a_drw_w, short a_drw_h,
               RegionPtr a_clipping_region, pointer a_port_priv)
 {
+    EphyrScrPriv *scrpriv = a_info->driver;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_gcontext_t gc;
     EphyrPortPriv *port_priv = a_port_priv;
     BoxRec clipped_area, dst_box;
     int result = BadImplementation;
@@ -1072,13 +1161,14 @@ ephyrPutVideo(KdScreenInfo * a_info,
         goto out;
     }
 
-    if (!ephyrHostXVPutVideo(a_info->pScreen->myNum,
-                             port_priv->port_number,
-                             a_vid_x, a_vid_y, a_vid_w, a_vid_h,
-                             a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
-        EPHYR_LOG_ERROR("ephyrHostXVPutVideo() failed\n");
-        goto out;
-    }
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn, gc, scrpriv->win, 0, NULL);
+    xcb_xv_put_video(conn, port_priv->port_number,
+                     scrpriv->win, gc,
+                     a_vid_x, a_vid_y, a_vid_w, a_vid_h,
+                     a_drw_x, a_drw_y, a_drw_w, a_drw_h);
+    xcb_free_gc(conn, gc);
+
     result = Success;
 
  out:
@@ -1095,6 +1185,9 @@ ephyrGetVideo(KdScreenInfo * a_info,
               short a_drw_w, short a_drw_h,
               RegionPtr a_clipping_region, pointer a_port_priv)
 {
+    EphyrScrPriv *scrpriv = a_info->driver;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_gcontext_t gc;
     EphyrPortPriv *port_priv = a_port_priv;
     BoxRec clipped_area, dst_box;
     int result = BadImplementation;
@@ -1115,13 +1208,15 @@ ephyrGetVideo(KdScreenInfo * a_info,
         goto out;
     }
 
-    if (!ephyrHostXVGetVideo(a_info->pScreen->myNum,
-                             port_priv->port_number,
-                             a_vid_x, a_vid_y, a_vid_w, a_vid_h,
-                             a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
-        EPHYR_LOG_ERROR("ephyrHostXVGetVideo() failed\n");
-        goto out;
-    }
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn, gc, scrpriv->win, 0, NULL);
+    xcb_xv_get_video(conn, port_priv->port_number,
+                     scrpriv->win, gc,
+                     a_vid_x, a_vid_y, a_vid_w, a_vid_h,
+                     a_drw_x, a_drw_y, a_drw_w, a_drw_h);
+
+    xcb_free_gc(conn, gc);
+
     result = Success;
 
  out:
@@ -1138,6 +1233,9 @@ ephyrPutStill(KdScreenInfo * a_info,
               short a_drw_w, short a_drw_h,
               RegionPtr a_clipping_region, pointer a_port_priv)
 {
+    EphyrScrPriv *scrpriv = a_info->driver;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_gcontext_t gc;
     EphyrPortPriv *port_priv = a_port_priv;
     BoxRec clipped_area, dst_box;
     int result = BadImplementation;
@@ -1158,13 +1256,14 @@ ephyrPutStill(KdScreenInfo * a_info,
         goto out;
     }
 
-    if (!ephyrHostXVPutStill(a_info->pScreen->myNum,
-                             port_priv->port_number,
-                             a_vid_x, a_vid_y, a_vid_w, a_vid_h,
-                             a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
-        EPHYR_LOG_ERROR("ephyrHostXVPutStill() failed\n");
-        goto out;
-    }
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn, gc, scrpriv->win, 0, NULL);
+    xcb_xv_put_still(conn, port_priv->port_number,
+                     scrpriv->win, gc,
+                     a_vid_x, a_vid_y, a_vid_w, a_vid_h,
+                     a_drw_x, a_drw_y, a_drw_w, a_drw_h);
+    xcb_free_gc(conn, gc);
+
     result = Success;
 
  out:
@@ -1181,6 +1280,9 @@ ephyrGetStill(KdScreenInfo * a_info,
               short a_drw_w, short a_drw_h,
               RegionPtr a_clipping_region, pointer a_port_priv)
 {
+    EphyrScrPriv *scrpriv = a_info->driver;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_gcontext_t gc;
     EphyrPortPriv *port_priv = a_port_priv;
     BoxRec clipped_area, dst_box;
     int result = BadImplementation;
@@ -1201,13 +1303,14 @@ ephyrGetStill(KdScreenInfo * a_info,
         goto out;
     }
 
-    if (!ephyrHostXVGetStill(a_info->pScreen->myNum,
-                             port_priv->port_number,
-                             a_vid_x, a_vid_y, a_vid_w, a_vid_h,
-                             a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
-        EPHYR_LOG_ERROR("ephyrHostXVGetStill() failed\n");
-        goto out;
-    }
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn, gc, scrpriv->win, 0, NULL);
+    xcb_xv_get_still(conn, port_priv->port_number,
+                     scrpriv->win, gc,
+                     a_vid_x, a_vid_y, a_vid_w, a_vid_h,
+                     a_drw_x, a_drw_y, a_drw_w, a_drw_h);
+    xcb_free_gc(conn, gc);
+
     result = Success;
 
  out:
