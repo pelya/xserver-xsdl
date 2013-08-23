@@ -114,7 +114,7 @@ ddxUseMsg(void)
 
     ErrorF("\nXephyr Option Usage:\n");
     ErrorF("-parent <XID>        Use existing window as Xephyr root win\n");
-    ErrorF("-host-cursor         Re-use exisiting X host server cursor\n");
+    ErrorF("-sw-cursor           Render cursors in software in Xephyr\n");
     ErrorF("-fullscreen          Attempt to run Xephyr fullscreen\n");
     ErrorF("-grayscale           Simulate 8bit grayscale\n");
     ErrorF("-resizeable          Make Xephyr windows resizeable\n");
@@ -203,8 +203,12 @@ ddxProcessArgument(int argc, char **argv, int i)
         UseMsg();
         exit(1);
     }
+    else if (!strcmp(argv[i], "-sw-cursor")) {
+        hostx_use_sw_cursor();
+        return 1;
+    }
     else if (!strcmp(argv[i], "-host-cursor")) {
-        hostx_use_host_cursor();
+        /* Compatibility with the old command line argument, now the default. */
         return 1;
     }
     else if (!strcmp(argv[i], "-fullscreen")) {

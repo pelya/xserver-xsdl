@@ -80,7 +80,7 @@ int
  hostx_want_host_cursor(void);
 
 void
- hostx_use_host_cursor(void);
+ hostx_use_sw_cursor(void);
 
 void
  hostx_use_fullscreen(void);

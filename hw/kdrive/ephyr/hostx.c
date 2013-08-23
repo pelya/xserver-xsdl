@@ -64,7 +64,7 @@ struct EphyrHostXVars {
     Window winroot;
     xcb_gcontext_t  gc;
     int depth;
-    Bool use_host_cursor;
+    Bool use_sw_cursor;
     Bool use_fullscreen;
     Bool have_shm;
 
@@ -180,13 +180,13 @@ hostx_set_win_title(KdScreenInfo *screen, const char *extra_text)
 int
 hostx_want_host_cursor(void)
 {
-    return HostX.use_host_cursor;
+    return !HostX.use_sw_cursor;
 }
 
 void
-hostx_use_host_cursor(void)
+hostx_use_sw_cursor(void)
 {
-    HostX.use_host_cursor = TRUE;
+    HostX.use_sw_cursor = TRUE;
 }
 
 int
