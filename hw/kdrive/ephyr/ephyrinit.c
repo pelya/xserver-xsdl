@@ -28,6 +28,7 @@
 #endif
 #include "ephyr.h"
 #include "ephyrlog.h"
+#include "glx_extinit.h"
 
 extern Window EphyrPreExistingHostWin;
 extern Bool EphyrWantGrayScale;
@@ -54,9 +55,28 @@ InitCard(char *name)
     KdCardInfoAdd(&ephyrFuncs, 0);
 }
 
+static const ExtensionModule ephyrExtensions[] = {
+#ifdef GLXEXT
+ { GlxExtensionInit, "GLX", &noGlxExtension },
+#endif
+};
+
+static
+void ephyrExtensionInit(void)
+{
+ int i;
+
+ for (i = 0; i < ARRAY_SIZE(ephyrExtensions); i++)
+ LoadExtension(&ephyrExtensions[i], TRUE);
+}
+
+
 void
 InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
 {
+    if (serverGeneration == 1)
+        ephyrExtensionInit();
+
     KdInitOutput(pScreenInfo, argc, argv);
 }
 
