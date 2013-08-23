@@ -174,6 +174,7 @@ hostx_set_win_title(KdScreenInfo *screen, const char *extra_text)
                               8,
                               strlen(buf),
                               buf);
+        xcb_flush(HostX.conn);
     }
 }
 
