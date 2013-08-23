@@ -31,46 +31,9 @@
 #include <xcb/xv.h>
 #include <X11/Xdefs.h>
 
-typedef struct _EphyrHostImageFormat {
-    int id;                     /* Unique descriptor for the format */
-    int type;                   /* XvRGB, XvYUV */
-    int byte_order;             /* LSBFirst, MSBFirst */
-    char guid[16];              /* Globally Unique IDentifier */
-    int bits_per_pixel;
-    int format;                 /* XvPacked, XvPlanar */
-    int num_planes;
-
-    /* for RGB formats only */
-    int depth;
-    unsigned int red_mask;
-    unsigned int green_mask;
-    unsigned int blue_mask;
-
-    /* for YUV formats only */
-    unsigned int y_sample_bits;
-    unsigned int u_sample_bits;
-    unsigned int v_sample_bits;
-    unsigned int horz_y_period;
-    unsigned int horz_u_period;
-    unsigned int horz_v_period;
-    unsigned int vert_y_period;
-    unsigned int vert_u_period;
-    unsigned int vert_v_period;
-    char component_order[32];   /* eg. UYVY */
-    int scanline_order;         /* XvTopToBottom, XvBottomToTop */
-} EphyrHostImageFormat;
-
 typedef struct {
     unsigned short x1, y1, x2, y2;
 } EphyrHostBox;
-
-/*
- * image format
- */
-
-Bool ephyrHostXVQueryImageFormats(int a_port_id,
-                                  EphyrHostImageFormat ** a_formats,
-                                  int *a_num_format);
 
 /*
  *size query

@@ -44,61 +44,6 @@
 #endif /*FALSE*/
 
 Bool
-ephyrHostXVQueryImageFormats(int a_port_id,
-                             EphyrHostImageFormat ** a_formats,
-                             int *a_num_format)
-{
-    xcb_connection_t *conn = hostx_get_xcbconn();
-    xcb_xv_list_image_formats_cookie_t cookie;
-    xcb_xv_list_image_formats_reply_t *reply;
-    xcb_xv_image_format_info_t *format;
-    EphyrHostImageFormat *ephyrFormats;
-    int i;
-
-    EPHYR_RETURN_VAL_IF_FAIL(a_formats && a_num_format, FALSE);
-
-    cookie = xcb_xv_list_image_formats(conn, a_port_id);
-    reply = xcb_xv_list_image_formats_reply(conn, cookie, NULL);
-    if (!reply)
-        return FALSE;
-    *a_num_format = reply->num_formats;
-    ephyrFormats = calloc(reply->num_formats, sizeof(EphyrHostImageFormat));
-    if (!ephyrFormats) {
-        free(reply);
-        return FALSE;
-    }
-    format = xcb_xv_list_image_formats_format(reply);
-    for (i = 0; i < reply->num_formats; i++) {
-        ephyrFormats[i].id = format[i].id;
-        ephyrFormats[i].type = format[i].type;
-        ephyrFormats[i].byte_order = format[i].byte_order;
-        memcpy(ephyrFormats[i].guid, format[i].guid, 16);
-        ephyrFormats[i].bits_per_pixel = format[i].bpp;
-        ephyrFormats[i].format = format[i].format;
-        ephyrFormats[i].num_planes = format[i].num_planes;
-        ephyrFormats[i].depth = format[i].depth;
-        ephyrFormats[i].red_mask = format[i].red_mask;
-        ephyrFormats[i].green_mask = format[i].green_mask;
-        ephyrFormats[i].blue_mask = format[i].blue_mask;
-        ephyrFormats[i].y_sample_bits = format[i].y_sample_bits;
-        ephyrFormats[i].u_sample_bits = format[i].u_sample_bits;
-        ephyrFormats[i].v_sample_bits = format[i].v_sample_bits;
-        ephyrFormats[i].horz_y_period = format[i].vhorz_y_period;
-        ephyrFormats[i].horz_u_period = format[i].vhorz_u_period;
-        ephyrFormats[i].horz_v_period = format[i].vhorz_v_period;
-        ephyrFormats[i].vert_y_period = format[i].vvert_y_period;
-        ephyrFormats[i].vert_u_period = format[i].vvert_u_period;
-        ephyrFormats[i].vert_v_period = format[i].vvert_v_period;
-        memcpy(ephyrFormats[i].component_order, format[i].vcomp_order, 32);
-        ephyrFormats[i].scanline_order = format[i].vscanline_order;
-    }
-    *a_formats = ephyrFormats;
-
-    free(reply);
-    return TRUE;
-}
-
-Bool
 ephyrHostXVQueryBestSize(int a_port_id,
                          Bool a_motion,
                          unsigned int a_frame_w,

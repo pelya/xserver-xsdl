@@ -420,13 +420,65 @@ translate_xv_attributes(KdVideoAdaptorPtr adaptor,
 }
 
 static Bool
+translate_xv_image_formats(KdVideoAdaptorPtr adaptor,
+                           xcb_xv_adaptor_info_t *host_adaptor)
+{
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    int i = 0;
+    xcb_xv_list_image_formats_cookie_t cookie =
+        xcb_xv_list_image_formats(conn, host_adaptor->base_id);
+    xcb_xv_list_image_formats_reply_t *reply =
+        xcb_xv_list_image_formats_reply(conn, cookie, NULL);
+    xcb_xv_image_format_info_t *formats;
+
+    if (!reply)
+        return FALSE;
+
+    adaptor->nImages = reply->num_formats;
+    adaptor->pImages = calloc(reply->num_formats, sizeof(KdImageRec));
+    if (!adaptor->pImages) {
+        free(reply);
+        return FALSE;
+    }
+
+    formats = xcb_xv_list_image_formats_format(reply);
+    for (i = 0; i < reply->num_formats; i++) {
+        KdImagePtr image = &adaptor->pImages[i];
+
+        image->id = formats[i].id;
+        image->type = formats[i].type;
+        image->byte_order = formats[i].byte_order;
+        memcpy(image->guid, formats[i].guid, 16);
+        image->bits_per_pixel = formats[i].bpp;
+        image->format = formats[i].format;
+        image->num_planes = formats[i].num_planes;
+        image->depth = formats[i].depth;
+        image->red_mask = formats[i].red_mask;
+        image->green_mask = formats[i].green_mask;
+        image->blue_mask = formats[i].blue_mask;
+        image->y_sample_bits = formats[i].y_sample_bits;
+        image->u_sample_bits = formats[i].u_sample_bits;
+        image->v_sample_bits = formats[i].v_sample_bits;
+        image->horz_y_period = formats[i].vhorz_y_period;
+        image->horz_u_period = formats[i].vhorz_u_period;
+        image->horz_v_period = formats[i].vhorz_v_period;
+        image->vert_y_period = formats[i].vvert_y_period;
+        image->vert_u_period = formats[i].vvert_u_period;
+        image->vert_v_period = formats[i].vvert_v_period;
+        memcpy(image->component_order, formats[i].vcomp_order, 32);
+        image->scanline_order = formats[i].vscanline_order;
+    }
+
+    free(reply);
+    return TRUE;
+}
+
+static Bool
 ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
 {
     xcb_connection_t *conn = hostx_get_xcbconn();
     xcb_screen_t *xscreen = xcb_aux_get_screen(conn, hostx_get_screen());
-    EphyrHostImageFormat *image_formats = NULL;
-    int base_port_id = 0,
-        num_formats = 0, i = 0, port_priv_offset = 0;
+    int base_port_id = 0, i = 0, port_priv_offset = 0;
     Bool is_ok = FALSE;
     xcb_generic_error_t *e = NULL;
     xcb_xv_adaptor_info_iterator_t it;
@@ -535,14 +587,11 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
         }
         }
 
-        if (!ephyrHostXVQueryImageFormats(base_port_id,
-                                          &image_formats, &num_formats)) {
+        if (!translate_xv_image_formats(&a_this->adaptors[i], cur_host_adaptor)) {
             EPHYR_LOG_ERROR("failed to get image formats "
                             "for adaptor %d\n", i);
             continue;
         }
-        a_this->adaptors[i].pImages = (KdImagePtr) image_formats;
-        a_this->adaptors[i].nImages = num_formats;
 
         xcb_xv_adaptor_info_next(&it);
     }
