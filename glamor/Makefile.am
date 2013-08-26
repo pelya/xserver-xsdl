@@ -64,9 +64,15 @@ LIBGLAMOREGL = libglamoregl.la
 module_LTLIBRARIES = $(LIBGLAMOREGL)
 libglamoregl_la_DEPENDENCIES = libglamor.la
 libglamoregl_la_LDFLAGS = -avoid-version -module
-libglamoregl_la_LIBADD = $(EGL_LIBS) $(GLX_SYS_LIBS) libglamor.la
+libglamoregl_la_LIBADD = $(EGL_LIBS) $(GLX_SYS_LIBS) $(GBM_LIBS) libglamor.la
 libglamoregl_la_SOURCES = glamor_eglmodule.c $(top_srcdir)/src/glamor_egl.c
-libglamoregl_la_CFLAGS = $(AM_CFLAGS) $(GLX_DEFINES) -I$(top_srcdir)/src $(LIBDRM_CFLAGS) $(EGL_CFLAGS)
+libglamoregl_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	$(GLX_DEFINES) \
+	-I$(top_srcdir)/src \
+	$(LIBDRM_CFLAGS) \
+	$(EGL_CFLAGS) \
+	$(GBM_CFLAGS)
 endif
 
 
