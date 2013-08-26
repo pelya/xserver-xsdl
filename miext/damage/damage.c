@@ -1843,8 +1843,9 @@ DamageDrawInternal(ScreenPtr pScreen, Bool enable)
 }
 
 void
-DamageUnregister(DrawablePtr pDrawable, DamagePtr pDamage)
+DamageUnregister(DamagePtr pDamage)
 {
+    DrawablePtr pDrawable = pDamage->pDrawable;
     ScreenPtr pScreen = pDrawable->pScreen;
 
     damageScrPriv(pScreen);
@@ -1888,7 +1889,7 @@ DamageDestroy(DamagePtr pDamage)
     damageScrPriv(pScreen);
 
     if (pDamage->pDrawable)
-        DamageUnregister(pDamage->pDrawable, pDamage);
+        DamageUnregister(pDamage);
 
     if (pDamage->damageDestroy)
         (*pDamage->damageDestroy) (pDamage, pDamage->closure);

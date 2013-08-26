@@ -146,8 +146,7 @@ static void
 miSpriteDisableDamage(ScreenPtr pScreen, miSpriteScreenPtr pScreenPriv)
 {
     if (pScreenPriv->damageRegistered) {
-        DamageUnregister(&(pScreen->GetScreenPixmap(pScreen)->drawable),
-                         pScreenPriv->pDamage);
+        DamageUnregister(pScreenPriv->pDamage);
         pScreenPriv->damageRegistered = 0;
     }
 }

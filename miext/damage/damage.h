@@ -80,7 +80,7 @@ extern _X_EXPORT void
  DamageRegister(DrawablePtr pDrawable, DamagePtr pDamage);
 
 extern _X_EXPORT void
- DamageUnregister(DrawablePtr pDrawable, DamagePtr pDamage);
+ DamageUnregister(DamagePtr pDamage);
 
 extern _X_EXPORT void
  DamageDestroy(DamagePtr pDamage);
