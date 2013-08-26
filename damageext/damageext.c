@@ -429,7 +429,6 @@ FreeDamageExt(pointer value, XID did)
      */
     pDamageExt->id = 0;
     if (pDamageExt->pDamage) {
-        DamageUnregister(pDamageExt->pDrawable, pDamageExt->pDamage);
         DamageDestroy(pDamageExt->pDamage);
     }
     free(pDamageExt);

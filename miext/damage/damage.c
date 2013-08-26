@@ -1637,7 +1637,6 @@ damageDestroyWindow(WindowPtr pWindow)
     damageScrPriv(pScreen);
 
     while ((pDamage = damageGetWinPriv(pWindow))) {
-        DamageUnregister(&pWindow->drawable, pDamage);
         DamageDestroy(pDamage);
     }
     unwrap(pScrPriv, pScreen, DestroyWindow);
@@ -1887,6 +1886,9 @@ DamageDestroy(DamagePtr pDamage)
     ScreenPtr pScreen = pDamage->pScreen;
 
     damageScrPriv(pScreen);
+
+    if (pDamage->pDrawable)
+        DamageUnregister(pDamage->pDrawable, pDamage);
 
     if (pDamage->damageDestroy)
         (*pDamage->damageDestroy) (pDamage, pDamage->closure);
