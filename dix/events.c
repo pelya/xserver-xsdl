@@ -4256,17 +4256,8 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 
         sendCore = (IsMaster(thisDev) && thisDev->coreEvents);
         /* try core event */
-        if (sendCore && grab->grabtype == CORE) {
-            deliveries = DeliverOneGrabbedEvent(event, thisDev, CORE);
-        }
-
-        if (!deliveries) {
-            deliveries = DeliverOneGrabbedEvent(event, thisDev, XI2);
-        }
-
-        if (!deliveries) {
-            deliveries = DeliverOneGrabbedEvent(event, thisDev, XI);
-        }
+        if ((sendCore && grab->grabtype == CORE) || grab->grabtype != CORE)
+            deliveries = DeliverOneGrabbedEvent(event, thisDev, grab->grabtype);
 
         if (deliveries && (event->any.type == ET_Motion))
             thisDev->valuator->motionHintWindow = grab->window;
