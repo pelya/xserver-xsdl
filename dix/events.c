@@ -4268,7 +4268,11 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
         if (deliveries && (event->any.type == ET_Motion))
             thisDev->valuator->motionHintWindow = grab->window;
     }
-    if (deliveries && !deactivateGrab && event->any.type != ET_Motion) {
+    if (deliveries && !deactivateGrab &&
+        (event->any.type == ET_KeyPress ||
+         event->any.type == ET_KeyRelease ||
+         event->any.type == ET_ButtonPress ||
+         event->any.type == ET_ButtonRelease)) {
         switch (grabinfo->sync.state) {
         case FREEZE_BOTH_NEXT_EVENT:
             dev = GetPairedDevice(thisDev);
