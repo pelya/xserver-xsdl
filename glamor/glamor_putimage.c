@@ -287,7 +287,7 @@ _glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	box.x2 = x + w + drawable->x;
 	box.y2 = y + h + drawable->y;
 
-	if ((clip != NULL && !RegionContainsRect(clip, &box))
+	if ((clip != NULL && RegionContainsRect(clip, &box) != rgnIN)
 	     || gc->alu != GXcopy) {
 		temp_pixmap = glamor_create_pixmap(drawable->pScreen, w, h, depth, 0);
 		if (temp_pixmap == NULL)
