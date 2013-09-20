@@ -934,6 +934,9 @@ NTRAPS_LOOP_AGAIN:
 				traps_not_completed -= traps_count;
 				glamor_flush_composite_triangles(screen);
 				goto NTRAPS_LOOP_AGAIN;
+			} else {
+				ptrap = traps;
+				traps_count = ntrap;
 			}
 
 			pbox++;
