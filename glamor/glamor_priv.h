@@ -304,6 +304,9 @@ typedef struct glamor_screen_private {
 	int state;
 	unsigned int render_idle_cnt;
 	ScreenPtr screen;
+
+	/* xv */
+	GLint xv_prog;
 } glamor_screen_private;
 
 typedef enum glamor_access {
@@ -992,6 +995,30 @@ glamor_composite_rectangles(CARD8	 op,
 			 xRenderColor	*color,
 			 int		 num_rects,
 			 xRectangle	*rects);
+
+/* glamor_xv */
+typedef struct {
+    uint32_t	 transform_index;
+    uint32_t	 gamma; /* gamma value x 1000 */
+    int brightness;
+    int saturation;
+    int hue;
+    int contrast;
+
+    DrawablePtr pDraw;
+    PixmapPtr pPixmap;
+    uint32_t src_pitch;
+    uint8_t *src_addr;
+    int src_w, src_h, dst_w, dst_h;
+    int src_x, src_y, drw_x, drw_y;
+    int w, h;
+    RegionRec     clip;
+    PixmapPtr src_pix[3]; /* y, u, v for planar */
+    int src_pix_w, src_pix_h;
+} glamor_port_private;
+
+void glamor_init_xv_shader(ScreenPtr screen);
+void glamor_fini_xv_shader(ScreenPtr screen);
 
 #include"glamor_utils.h"
 

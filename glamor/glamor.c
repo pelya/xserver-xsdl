@@ -428,6 +428,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 #ifdef GLAMOR_GRADIENT_SHADER
 	glamor_init_gradient_shader(screen);
 #endif
+#ifdef GLAMOR_XV
+	glamor_init_xv_shader(screen);
+#endif
 	glamor_pixmap_init(screen);
 
 	glamor_priv->flags = flags;
@@ -447,6 +450,9 @@ glamor_release_screen_priv(ScreenPtr screen)
 	glamor_screen_private *glamor_priv;
 
 	glamor_priv = glamor_get_screen_private(screen);
+#ifdef GLAMOR_XV
+	glamor_fini_xv_shader(screen);
+#endif
 #ifdef RENDER
 	glamor_fini_composite_shaders(screen);
 #endif

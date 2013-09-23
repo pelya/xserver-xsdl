@@ -37,7 +37,7 @@
 #include <picturestr.h>
 #include <fb.h>
 #include <fbpict.h>
-
+#include <xf86xv.h>
 /*
  * glamor_pixmap_type : glamor pixmap's type.
  * @MEMORY: pixmap is in memory.
@@ -347,5 +347,7 @@ extern _X_EXPORT Bool glamor_poly_line_nf(DrawablePtr pDrawable, GCPtr pGC, int 
 
 extern _X_EXPORT Bool glamor_poly_lines_nf(DrawablePtr drawable, GCPtr gc, int mode, int n,
 					   DDXPointPtr points);
+
+extern _X_EXPORT XF86VideoAdaptorPtr glamor_xv_init(ScreenPtr pScreen, int num_texture_ports);
 
 #endif /* GLAMOR_H */
