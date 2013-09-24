@@ -568,13 +568,13 @@ winClipboardFlushXEvents(HWND hwnd,
             winDebug("SelectionNotify - returned data %d left %d\n",
                      xtpText.nitems, ulReturnBytesLeft);
 
-            /* Request the selection data */
+            /* Retrieve the selection data and delete the property */
             iReturn = XGetWindowProperty(pDisplay,
                                          iWindow,
                                          atomLocalProperty,
                                          0,
                                          ulReturnBytesLeft,
-                                         False,
+                                         True,
                                          AnyPropertyType,
                                          &xtpText.encoding,
                                          &xtpText.format,
