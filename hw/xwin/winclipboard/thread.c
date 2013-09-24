@@ -123,6 +123,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
     int iSelectError;
     Bool fShutdown = FALSE;
     static Bool fErrorHandlerSet = FALSE;
+    ClipboardConversionData data;
 
     winDebug("winClipboardProc - Hello\n");
 
@@ -260,7 +261,8 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
      *       because there may be events in local data structures
      *       already.
      */
-    winClipboardFlushXEvents(hwnd, iWindow, pDisplay, fUseUnicode, &atoms);
+    data.fUseUnicode = fUseUnicode;
+    winClipboardFlushXEvents(hwnd, iWindow, pDisplay, &data, &atoms);
 
     /* Pre-flush Windows messages */
     if (!winClipboardFlushWindowsMessageQueue(hwnd)) {
@@ -318,7 +320,7 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
         /* Branch on which descriptor became active */
         if (FD_ISSET(iConnectionNumber, &fdsRead)) {
             /* Process X events */
-            winClipboardFlushXEvents(hwnd, iWindow, pDisplay, fUseUnicode, &atoms);
+            winClipboardFlushXEvents(hwnd, iWindow, pDisplay, &data, &atoms);
         }
 
 #ifdef HAS_DEVWINDOWS

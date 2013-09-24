@@ -39,8 +39,9 @@
 #include <X11/Xwindows.h>
 
 #define WIN_XEVENTS_SUCCESS			0
-#define WIN_XEVENTS_CONVERT			2
-#define WIN_XEVENTS_NOTIFY			3
+#define WIN_XEVENTS_FAILED			1
+#define WIN_XEVENTS_NOTIFY_DATA			3
+#define WIN_XEVENTS_NOTIFY_TARGETS		4
 
 #define WM_WM_REINIT                           (WM_USER + 1)
 
@@ -95,9 +96,15 @@ typedef struct
  * winclipboardxevents.c
  */
 
+typedef struct
+{
+  Bool fUseUnicode;
+  Atom *targetList;
+} ClipboardConversionData;
+
 int
 winClipboardFlushXEvents(HWND hwnd,
-                         Window iWindow, Display * pDisplay, Bool fUnicodeSupport, ClipboardAtoms *atom);
+                         Window iWindow, Display * pDisplay, ClipboardConversionData *data, ClipboardAtoms *atom);
 
 
 Atom
