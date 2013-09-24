@@ -43,6 +43,7 @@
 #undef _XSERVER64
 #endif
 
+#include <limits.h>
 #include "internal.h"
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
@@ -551,29 +552,12 @@ winClipboardFlushXEvents(HWND hwnd,
                 }
             }
 
-            /* Retrieve the size of the stored data */
-            iReturn = XGetWindowProperty(pDisplay, iWindow, atomLocalProperty, 0, 0,    /* Don't get data, just size */
-                                         False,
-                                         AnyPropertyType,
-                                         &xtpText.encoding,
-                                         &xtpText.format,
-                                         &xtpText.nitems,
-                                         &ulReturnBytesLeft, &xtpText.value);
-            if (iReturn != Success) {
-                ErrorF("winClipboardFlushXEvents - SelectionNotify - "
-                       "XGetWindowProperty () failed, aborting: %d\n", iReturn);
-                break;
-            }
-
-            winDebug("SelectionNotify - returned data %d left %d\n",
-                     xtpText.nitems, ulReturnBytesLeft);
-
             /* Retrieve the selection data and delete the property */
             iReturn = XGetWindowProperty(pDisplay,
                                          iWindow,
                                          atomLocalProperty,
                                          0,
-                                         ulReturnBytesLeft,
+                                         INT_MAX,
                                          True,
                                          AnyPropertyType,
                                          &xtpText.encoding,
