@@ -1377,6 +1377,10 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h, glamor_acces
 
 	data = glamor_download_sub_pixmap_to_cpu(pixmap, x, y, w, h, sub_pixmap->devKind,
 						 data, pbo, access);
+	if(data == NULL) {
+		fbDestroyPixmap(sub_pixmap);
+		return NULL;
+	}
 	if (pbo) {
 		assert(sub_pixmap->devPrivate.ptr == NULL);
 		sub_pixmap->devPrivate.ptr = data;
