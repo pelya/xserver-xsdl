@@ -234,7 +234,7 @@ EnableDisableExtensionError(const char *name, Bool enable)
 }
 
 /* List of built-in (statically linked) extensions */
-static ExtensionModule staticExtensions[] = {
+static const ExtensionModule staticExtensions[] = {
     {GEExtensionInit, "Generic Event Extension", &noGEExtension},
     {ShapeExtensionInit, "SHAPE", NULL},
 #ifdef MITSHM
