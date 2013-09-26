@@ -331,7 +331,7 @@ InitExtensions(int argc, char *argv[])
 
     AddStaticExtensions();
 
-    for (i = 0; ExtensionModuleList[i].name != NULL; i++) {
+    for (i = 0; i < numExtensionModules; i++) {
         ext = &ExtensionModuleList[i];
         if (ext->initFunc != NULL &&
             (ext->disablePtr == NULL || !*ext->disablePtr)) {
@@ -352,14 +352,13 @@ NewExtensionModule(void)
 
     n = numExtensionModules + 1;
     ExtensionModuleList = realloc(ExtensionModuleList,
-                                  (n + 1) * sizeof(ExtensionModule));
+                                  n * sizeof(ExtensionModule));
     if (ExtensionModuleList == NULL) {
         ExtensionModuleList = save;
         return NULL;
     }
     else {
         numExtensionModules++;
-        ExtensionModuleList[numExtensionModules].name = NULL;
         return ExtensionModuleList + (numExtensionModules - 1);
     }
 }
