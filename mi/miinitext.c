@@ -312,15 +312,13 @@ static void
 AddStaticExtensions(void)
 {
     static Bool listInitialised = FALSE;
-    int i;
 
     if (listInitialised)
         return;
     listInitialised = TRUE;
 
     /* Add built-in extensions to the list. */
-    for (i = 0; i < ARRAY_SIZE(staticExtensions); i++)
-        LoadExtension(&staticExtensions[i], TRUE);
+    LoadExtensionList(staticExtensions, ARRAY_SIZE(staticExtensions), TRUE);
 }
 
 void
@@ -341,7 +339,7 @@ InitExtensions(int argc, char *argv[])
 }
 
 static ExtensionModule *
-NewExtensionModule(void)
+NewExtensionModuleList(int size)
 {
     ExtensionModule *save = ExtensionModuleList;
     int n;
@@ -350,7 +348,7 @@ NewExtensionModule(void)
     if (!ExtensionModuleList)
         numExtensionModules = 0;
 
-    n = numExtensionModules + 1;
+    n = numExtensionModules + size;
     ExtensionModuleList = realloc(ExtensionModuleList,
                                   n * sizeof(ExtensionModule));
     if (ExtensionModuleList == NULL) {
@@ -358,29 +356,35 @@ NewExtensionModule(void)
         return NULL;
     }
     else {
-        numExtensionModules++;
-        return ExtensionModuleList + (numExtensionModules - 1);
+        numExtensionModules += size;
+        return ExtensionModuleList + (numExtensionModules - size);
     }
 }
 
 void
-LoadExtension(const ExtensionModule * e, Bool builtin)
+LoadExtensionList(const ExtensionModule ext[], int size, Bool builtin)
 {
     ExtensionModule *newext;
+    const char *msg;
+    int i;
 
     /* Make sure built-in extensions get added to the list before those
      * in modules. */
     AddStaticExtensions();
 
-    if (!(newext = NewExtensionModule()))
+    if (!(newext = NewExtensionModuleList(size)))
         return;
 
     if (builtin)
-        ErrorF("Initializing built-in extension %s\n", e->name);
+        msg = "Initializing built-in";
     else
-        ErrorF("Loading extension %s\n", e->name);
+        msg = "Loading";
 
-    newext->name = e->name;
-    newext->initFunc = e->initFunc;
-    newext->disablePtr = e->disablePtr;
+    for (i = 0; i < size; i++, newext++) {
+        ErrorF("%s extension %s\n", msg, ext[i].name);
+
+        newext->name = ext[i].name;
+        newext->initFunc = ext[i].initFunc;
+        newext->disablePtr = ext[i].disablePtr;
+    }
 }
