@@ -369,9 +369,6 @@ LoadExtension(const ExtensionModule * e, Bool builtin)
 {
     ExtensionModule *newext;
 
-    if (e == NULL || e->name == NULL)
-        return;
-
     /* Make sure built-in extensions get added to the list before those
      * in modules. */
     AddStaticExtensions();
