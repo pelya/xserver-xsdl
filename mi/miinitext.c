@@ -346,10 +346,6 @@ NewExtensionModule(void)
     ExtensionModule *save = ExtensionModuleList;
     int n;
 
-    /* Make sure built-in extensions get added to the list before those
-     * in modules. */
-    AddStaticExtensions();
-
     /* Sanity check */
     if (!ExtensionModuleList)
         numExtensionModules = 0;
@@ -375,6 +371,10 @@ LoadExtension(const ExtensionModule * e, Bool builtin)
 
     if (e == NULL || e->name == NULL)
         return;
+
+    /* Make sure built-in extensions get added to the list before those
+     * in modules. */
+    AddStaticExtensions();
 
     if (!(newext = NewExtensionModule()))
         return;
