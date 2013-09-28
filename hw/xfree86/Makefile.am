@@ -84,6 +84,7 @@ os-support/solaris/solaris-@SOLARIS_INOUT_ARCH@.il:
 	 $(MAKE) $(AM_MAKEFLAGS) solaris-@SOLARIS_INOUT_ARCH@.il
 endif
 
+# Without logdir, X will post an error on the terminal and will not start
 install-data-local:
 	$(AM_V_GEN)$(MKDIR_P) $(DESTDIR)$(logdir)
 if CYGWIN
