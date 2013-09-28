@@ -87,16 +87,15 @@ endif
 # do not use $(mkdir_p) if you want automake 1.7 to work
 install-data-local:
 	mkdir -p $(DESTDIR)$(logdir)
+if CYGWIN
+	$(INSTALL_DATA) libXorg.exe.a $(DESTDIR)$(libdir)/libXorg.exe.a
+endif
 
-
-install-exec-local: install-binPROGRAMS
+install-exec-hook:
 	(cd $(DESTDIR)$(bindir) && rm -f X && $(LN_S) Xorg$(EXEEXT) X)
 if INSTALL_SETUID
 	chown root $(DESTDIR)$(bindir)/Xorg
 	chmod u+s $(DESTDIR)$(bindir)/Xorg
-endif
-if CYGWIN
-	$(INSTALL_DATA) libXorg.exe.a $(DESTDIR)$(libdir)/libXorg.exe.a
 endif
 
 # Use variables from XORG_MANPAGE_SECTIONS and X Server configuration
