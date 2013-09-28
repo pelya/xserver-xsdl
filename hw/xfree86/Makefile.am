@@ -84,9 +84,8 @@ os-support/solaris/solaris-@SOLARIS_INOUT_ARCH@.il:
 	 $(MAKE) $(AM_MAKEFLAGS) solaris-@SOLARIS_INOUT_ARCH@.il
 endif
 
-# do not use $(mkdir_p) if you want automake 1.7 to work
 install-data-local:
-	mkdir -p $(DESTDIR)$(logdir)
+	$(AM_V_GEN)$(MKDIR_P) $(DESTDIR)$(logdir)
 if CYGWIN
 	$(INSTALL_DATA) libXorg.exe.a $(DESTDIR)$(libdir)/libXorg.exe.a
 endif
