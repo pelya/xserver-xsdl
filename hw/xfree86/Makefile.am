@@ -98,6 +98,14 @@ if INSTALL_SETUID
 	chmod u+s $(DESTDIR)$(bindir)/Xorg
 endif
 
+uninstall-local:
+if CYGWIN
+	$(AM_V_at)rm -f $(DESTDIR)$(libdir)/libXorg.exe.a
+endif
+
+uninstall-hook:
+	$(AM_V_at)rm -f $(DESTDIR)$(bindir)/X
+
 # Use variables from XORG_MANPAGE_SECTIONS and X Server configuration
 # Do not include manpages.am as values are not appropriate for rc files
 CONF_SUBSTS =	-e 's|__filemansuffix__|$(FILE_MAN_SUFFIX)|g' \
