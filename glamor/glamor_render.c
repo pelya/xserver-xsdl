@@ -408,7 +408,7 @@ glamor_init_composite_shaders(ScreenPtr screen)
 	if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
 		dispatch->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 				       eb_size,
-				       NULL, GL_DYNAMIC_DRAW);
+				       NULL, GL_STATIC_DRAW);
 		eb = dispatch->glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 	}
 	else {
@@ -428,7 +428,7 @@ glamor_init_composite_shaders(ScreenPtr screen)
 	} else {
 		dispatch->glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 				       eb_size,
-				       eb, GL_DYNAMIC_DRAW);
+				       eb, GL_STATIC_DRAW);
 		dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		dispatch->glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
