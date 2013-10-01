@@ -244,10 +244,19 @@ _glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
 		if (box_cnt == 1)
 			dispatch->glDrawArrays(GL_TRIANGLE_FAN, 0, box_cnt * 4);
 		else
+#ifndef GLAMOR_GLES2
+			dispatch->glDrawRangeElements(GL_TRIANGLES,
+						      0,
+						      box_cnt * 4,
+						      box_cnt * 6,
+						      GL_UNSIGNED_SHORT,
+						      NULL);
+#else
 			dispatch->glDrawElements(GL_TRIANGLES,
 						 box_cnt * 6,
 						 GL_UNSIGNED_SHORT,
 						 NULL);
+#endif
 		nbox -= box_cnt;
 		box += box_cnt;
 	}

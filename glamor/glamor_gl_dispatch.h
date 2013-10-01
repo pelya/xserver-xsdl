@@ -12,6 +12,7 @@ typedef struct glamor_gl_dispatch {
 
 	/* Elements Array*/
 	void (*glDrawElements) (GLenum mode, GLsizei count, GLenum type, const GLvoid * indices);
+	void (*glDrawRangeElements) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid * indices);
 
 	/* Raster functions */
 	void (*glReadPixels) (GLint x, GLint y,

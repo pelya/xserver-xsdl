@@ -841,8 +841,14 @@ glamor_flush_composite_rects(ScreenPtr screen)
 	if (!glamor_priv->render_nr_verts)
 		return;
 
+#ifndef GLAMOR_GLES2
+	dispatch->glDrawRangeElements(GL_TRIANGLES, 0, glamor_priv->render_nr_verts,
+				      (glamor_priv->render_nr_verts * 3) / 2,
+				      GL_UNSIGNED_SHORT, NULL);
+#else
 	dispatch->glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
 				 GL_UNSIGNED_SHORT, NULL);
+#endif
 	glamor_put_dispatch(glamor_priv);
 }
 

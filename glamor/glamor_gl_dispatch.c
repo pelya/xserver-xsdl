@@ -54,6 +54,7 @@ glamor_gl_dispatch_init_impl(struct glamor_gl_dispatch *dispatch,
 	INIT_FUNC(dispatch, glMapBufferRange, get_proc_address);
 	INIT_FUNC(dispatch, glUnmapBuffer, get_proc_address);
 	INIT_FUNC(dispatch, glBlitFramebuffer, get_proc_address);
+	INIT_FUNC(dispatch, glDrawRangeElements, get_proc_address);
 #endif
 	INIT_FUNC(dispatch, glViewport, get_proc_address);
 	INIT_FUNC(dispatch, glDrawArrays, get_proc_address);

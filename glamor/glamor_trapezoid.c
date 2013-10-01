@@ -1543,8 +1543,14 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 			        glamor_priv->vb, GL_DYNAMIC_DRAW);
 		}
 
+#ifndef GLAMOR_GLES2
+		dispatch->glDrawRangeElements(GL_TRIANGLES, 0, glamor_priv->render_nr_verts,
+			(glamor_priv->render_nr_verts * 3) / 2,
+		        GL_UNSIGNED_SHORT, NULL);
+#else
 		dispatch->glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
 		        GL_UNSIGNED_SHORT, NULL);
+#endif
 	}
 
 	dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
