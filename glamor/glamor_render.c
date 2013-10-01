@@ -568,6 +568,7 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
 
 	switch (picture->filter) {
 	default:
+	case PictFilterFast:
 	case PictFilterNearest:
 		dispatch->glTexParameteri(GL_TEXTURE_2D,
 					  GL_TEXTURE_MIN_FILTER,
@@ -576,6 +577,8 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
 					  GL_TEXTURE_MAG_FILTER,
 					  GL_NEAREST);
 		break;
+	case PictFilterGood:
+	case PictFilterBest:
 	case PictFilterBilinear:
 		dispatch->glTexParameteri(GL_TEXTURE_2D,
 					  GL_TEXTURE_MIN_FILTER,
@@ -1769,6 +1772,12 @@ _glamor_composite(CARD8 op,
 				("glamor_composite(): component alpha op %x\n", op);
 			goto fail;
 		}
+	}
+
+	if ((source && source->filter >= PictFilterConvolution)
+			|| (mask && mask->filter >= PictFilterConvolution)) {
+		glamor_fallback("glamor_composite(): unsupported filter\n");
+		goto fail;
 	}
 
 	if (!miComputeCompositeRegion(&region,
