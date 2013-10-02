@@ -406,9 +406,7 @@ __glXDisp_DestroyContext(__GLXclientState * cl, GLbyte * pc)
                          &glxc, &err))
         return err;
 
-    glxc->idExists = GL_FALSE;
-    if (!glxc->currentClient)
-        FreeResourceByType(req->context, __glXContextRes, FALSE);
+    FreeResourceByType(req->context, __glXContextRes, FALSE);
 
     return Success;
 }
