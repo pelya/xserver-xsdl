@@ -389,10 +389,7 @@ ephyrUnsetInternalDamage(ScreenPtr pScreen)
     KdScreenPriv(pScreen);
     KdScreenInfo *screen = pScreenPriv->screen;
     EphyrScrPriv *scrpriv = screen->driver;
-    PixmapPtr pPixmap = NULL;
 
-    pPixmap = (*pScreen->GetScreenPixmap) (pScreen);
-    DamageUnregister(&pPixmap->drawable, scrpriv->pDamage);
     DamageDestroy(scrpriv->pDamage);
 
     RemoveBlockAndWakeupHandlers(ephyrInternalDamageBlockHandler,
@@ -823,8 +820,6 @@ miPointerScreenFuncRec ephyrPointerScreenFuncs = {
     ephyrCursorOffScreen,
     ephyrCrossScreen,
     ephyrWarpCursor,
-    NULL,
-    NULL
 };
 
 #ifdef XF86DRI
