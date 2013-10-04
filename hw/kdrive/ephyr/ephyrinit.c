@@ -48,22 +48,6 @@ extern KdKeyboardDriver LinuxEvdevKeyboardDriver;
 
 void processScreenArg(const char *screen_size, char *parent_id);
 
-static const
-ExtensionModule ephyrExtensions[] = {
-#ifdef GLXEXT
-    {GlxExtensionInit, "GLX", &noGlxExtension},
-#endif
-};
-
-static void
-ephyrExtensionInit(void)
-{
-    int i;
-
-    for (i = 0; i < ARRAY_SIZE(ephyrExtensions); i++)
-        LoadExtension(&ephyrExtensions[i], TRUE);
-}
-
 void
 InitCard(char *name)
 {
