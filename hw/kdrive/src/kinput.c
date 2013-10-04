@@ -2030,25 +2030,25 @@ KdCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
         dx = KdScreenOrigin(pNewScreen)->x - KdScreenOrigin(pScreen)->x;
         dy = KdScreenOrigin(pNewScreen)->y - KdScreenOrigin(pScreen)->y;
         if (*x < 0) {
-            if (dx <= 0 && -dx < best_x) {
+            if (dx < 0 && -dx < best_x) {
                 best_x = -dx;
                 n_best_x = n;
             }
         }
         else if (*x >= pScreen->width) {
-            if (dx >= 0 && dx < best_x) {
+            if (dx > 0 && dx < best_x) {
                 best_x = dx;
                 n_best_x = n;
             }
         }
         if (*y < 0) {
-            if (dy <= 0 && -dy < best_y) {
+            if (dy < 0 && -dy < best_y) {
                 best_y = -dy;
                 n_best_y = n;
             }
         }
         else if (*y >= pScreen->height) {
-            if (dy >= 0 && dy < best_y) {
+            if (dy > 0 && dy < best_y) {
                 best_y = dy;
                 n_best_y = n;
             }
