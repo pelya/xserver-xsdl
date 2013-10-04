@@ -1080,10 +1080,10 @@ if test "x$GLX" = xno; then
         AIGLX=no
 fi
 
-if test "x$AIGLX" = xyes -a \( "x$DRI" = xyes -o "x$DRI2" = xyes \); then
+if test "x$AIGLX" = xyes -a \( "x$DRI2" = xyes \); then
 	AC_DEFINE(AIGLX, 1, [Build AIGLX loader])
 fi
-AM_CONDITIONAL(AIGLX_DRI_LOADER, { test "x$DRI" = xyes || test "x$DRI2" = xyes; } && test "x$AIGLX" = xyes)
+AM_CONDITIONAL(AIGLX_DRI_LOADER, { test "x$DRI2" = xyes; } && test "x$AIGLX" = xyes)
 
 if test "x$GLX_USE_TLS" = xyes ; then
 	GLX_DEFINES="-DGLX_USE_TLS -DPTHREADS"
