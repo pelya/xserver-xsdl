@@ -76,7 +76,13 @@ typedef struct {
     /* buildin video mode */
     DisplayModeRec buildin;
 
+    /* disable non-fatal unsupported ioctls */
+    CARD32 unsupported_ioctls;
 } fbdevHWRec, *fbdevHWPtr;
+
+enum {
+    FBIOBLANK_UNSUPPORTED = 0,
+};
 
 Bool
 fbdevHWGetRec(ScrnInfoPtr pScrn)
@@ -831,6 +837,9 @@ fbdevHWDPMSSet(ScrnInfoPtr pScrn, int mode, int flags)
     if (!pScrn->vtSema)
         return;
 
+    if (fPtr->unsupported_ioctls & (1 << FBIOBLANK_UNSUPPORTED))
+        return;
+
     switch (mode) {
     case DPMSModeOn:
         fbmode = 0;
@@ -848,9 +857,23 @@ fbdevHWDPMSSet(ScrnInfoPtr pScrn, int mode, int flags)
         return;
     }
 
-    if (-1 == ioctl(fPtr->fd, FBIOBLANK, (void *) fbmode))
-        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-                   "FBIOBLANK: %s\n", strerror(errno));
+RETRY:
+    if (-1 == ioctl(fPtr->fd, FBIOBLANK, (void *) fbmode)) {
+        switch (errno) {
+        case EAGAIN:
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                       "FBIOBLANK: %s\n", strerror(errno));
+	    break;
+        case EINTR:
+        case ERESTART:
+            goto RETRY;
+        default:
+            fPtr->unsupported_ioctls |= (1 << FBIOBLANK_UNSUPPORTED);
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                       "FBIOBLANK: %s (Screen blanking not supported "
+                       "by kernel - disabling)\n", strerror(errno));
+        }
+    }
 }
 
 Bool
@@ -863,11 +886,27 @@ fbdevHWSaveScreen(ScreenPtr pScreen, int mode)
     if (!pScrn->vtSema)
         return TRUE;
 
+    if (fPtr->unsupported_ioctls & (1 << FBIOBLANK_UNSUPPORTED))
+        return FALSE;
+
     unblank = xf86IsUnblank(mode);
 
+RETRY:
     if (-1 == ioctl(fPtr->fd, FBIOBLANK, (void *) (1 - unblank))) {
-        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-                   "FBIOBLANK: %s\n", strerror(errno));
+        switch (errno) {
+        case EAGAIN:
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                       "FBIOBLANK: %s\n", strerror(errno));
+            break;
+        case EINTR:
+        case ERESTART:
+            goto RETRY;
+        default:
+            fPtr->unsupported_ioctls |= (1 << FBIOBLANK_UNSUPPORTED);
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                       "FBIOBLANK: %s (Screen blanking not supported "
+                       "by kernel - disabling)\n", strerror(errno));
+        }
         return FALSE;
     }
 
