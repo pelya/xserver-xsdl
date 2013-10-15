@@ -262,6 +262,8 @@ InputInfo inputInfo;
 
 EventSyncInfoRec syncEvents;
 
+static TimeStamp lastDeviceEventTime[MAXDEVICES];
+
 /**
  * The root window the given device is currently on.
  */
@@ -1043,33 +1045,47 @@ XineramaGetCursorScreen(DeviceIntPtr pDev)
 #define TIMESLOP (5 * 60 * 1000)        /* 5 minutes */
 
 static void
-MonthChangedOrBadTime(InternalEvent *ev)
+MonthChangedOrBadTime(CARD32 *ms)
 {
     /* If the ddx/OS is careless about not processing timestamped events from
      * different sources in sorted order, then it's possible for time to go
      * backwards when it should not.  Here we ensure a decent time.
      */
-    if ((currentTime.milliseconds - ev->any.time) > TIMESLOP)
+    if ((currentTime.milliseconds - *ms) > TIMESLOP)
         currentTime.months++;
     else
-        ev->any.time = currentTime.milliseconds;
+        *ms = currentTime.milliseconds;
+}
+
+void
+NoticeTime(const DeviceIntPtr dev, TimeStamp time)
+{
+    lastDeviceEventTime[XIAllDevices] = currentTime;
+    lastDeviceEventTime[dev->id] = currentTime;
 }
 
 static void
-NoticeTime(InternalEvent *ev, DeviceIntPtr dev)
+NoticeTimeMillis(const DeviceIntPtr dev, CARD32 *ms)
 {
-    if (ev->any.time < currentTime.milliseconds)
-        MonthChangedOrBadTime(ev);
-    currentTime.milliseconds = ev->any.time;
-    lastDeviceEventTime[XIAllDevices] = currentTime;
-    lastDeviceEventTime[dev->id] = currentTime;
+    TimeStamp time;
+    if (*ms < currentTime.milliseconds)
+        MonthChangedOrBadTime(ms);
+    time.months = currentTime.months;
+    time.milliseconds = *ms;
+    NoticeTime(dev, time);
 }
 
 void
 NoticeEventTime(InternalEvent *ev, DeviceIntPtr dev)
 {
     if (!syncEvents.playingEvents)
-        NoticeTime(ev, dev);
+        NoticeTimeMillis(dev, &ev->any.time);
+}
+
+TimeStamp
+LastEventTime(int deviceid)
+{
+    return lastDeviceEventTime[deviceid];
 }
 
 /**************************************************************************
@@ -1093,7 +1109,7 @@ EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
     if (!xorg_list_is_empty(&syncEvents.pending))
         tail = xorg_list_last_entry(&syncEvents.pending, QdEventRec, next);
 
-    NoticeTime((InternalEvent *)event, device);
+    NoticeTimeMillis(device, &ev->any.time);
 
     /* Fix for key repeating bug. */
     if (device->key != NULL && device->key->xkbInfo != NULL &&
@@ -5276,8 +5292,11 @@ InitEvents(void)
     inputInfo.pointer = (DeviceIntPtr) NULL;
 
     for (i = 0; i < MAXDEVICES; i++) {
+        DeviceIntRec dummy;
         memcpy(&event_filters[i], default_filter, sizeof(default_filter));
-        lastDeviceEventTime[i] = currentTime;
+
+        dummy.id = i;
+        NoticeTime(&dummy, currentTime);
     }
 
     syncEvents.replayDev = (DeviceIntPtr) NULL;

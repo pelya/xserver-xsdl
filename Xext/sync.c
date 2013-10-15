@@ -2605,7 +2605,7 @@ IdleTimeQueryValue(pointer pCounter, CARD64 * pValue_return)
     }
     else
         deviceid = XIAllDevices;
-    idle = GetTimeInMillis() - lastDeviceEventTime[deviceid].milliseconds;
+    idle = GetTimeInMillis() - LastEventTime(deviceid).milliseconds;
     XSyncIntsToValue(pValue_return, idle, 0);
 }
 
