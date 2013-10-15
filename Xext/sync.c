@@ -1031,42 +1031,29 @@ SyncComputeBracketValues(SyncCounter * pCounter)
         }
         else if (pTrigger->test_type == XSyncNegativeTransition &&
                  ct != XSyncCounterNeverIncreases) {
-            if (XSyncValueGreaterThan(pCounter->value, pTrigger->test_value) &&
-                XSyncValueGreaterThan(pTrigger->test_value, psci->bracket_less))
-            {
-                psci->bracket_less = pTrigger->test_value;
-                pnewltval = &psci->bracket_less;
-            }
-            else if (XSyncValueEqual(pCounter->value, pTrigger->test_value) &&
-                     XSyncValueGreaterThan(pTrigger->test_value,
-                                           psci->bracket_less)) {
-                /*
-                 * The value is exactly equal to our threshold.  We want one
-                 * more event in the negative direction to ensure we pick up
-                 * when the value is less than this threshold.
-                 */
-                psci->bracket_less = pTrigger->test_value;
-                pnewltval = &psci->bracket_less;
+            if (XSyncValueGreaterOrEqual(pCounter->value, pTrigger->test_value) &&
+                XSyncValueGreaterThan(pTrigger->test_value, psci->bracket_less)) {
+                    /*
+                     * If the value is exactly equal to our threshold, we want one
+                     * more event in the negative direction to ensure we pick up
+                     * when the value is less than this threshold.
+                     */
+                    psci->bracket_less = pTrigger->test_value;
+                    pnewltval = &psci->bracket_less;
             }
         }
         else if (pTrigger->test_type == XSyncPositiveTransition &&
                  ct != XSyncCounterNeverDecreases) {
-            if (XSyncValueLessThan(pCounter->value, pTrigger->test_value) &&
-                XSyncValueLessThan(pTrigger->test_value, psci->bracket_greater))
-            {
-                psci->bracket_greater = pTrigger->test_value;
-                pnewgtval = &psci->bracket_greater;
-            }
-            else if (XSyncValueEqual(pCounter->value, pTrigger->test_value) &&
-                     XSyncValueLessThan(pTrigger->test_value,
-                                        psci->bracket_greater)) {
-                /*
-                 * The value is exactly equal to our threshold.  We want one
-                 * more event in the positive direction to ensure we pick up
-                 * when the value *exceeds* this threshold.
-                 */
-                psci->bracket_greater = pTrigger->test_value;
-                pnewgtval = &psci->bracket_greater;
+            if (XSyncValueLessOrEqual(pCounter->value, pTrigger->test_value) &&
+                XSyncValueLessThan(pTrigger->test_value, psci->bracket_greater)) {
+                    /*
+                     * If the value is exactly equal to our threshold, we
+                     * want one more event in the positive direction to
+                     * ensure we pick up when the value *exceeds* this
+                     * threshold.
+                     */
+                    psci->bracket_greater = pTrigger->test_value;
+                    pnewgtval = &psci->bracket_greater;
             }
         }
     }                           /* end for each trigger */
