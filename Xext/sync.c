@@ -2624,7 +2624,7 @@ IdleTimeBlockHandler(pointer pCounter, struct timeval **wt, pointer LastSelectMa
         return;
 
     old_idle = counter->value;
-    IdleTimeQueryValue(NULL, &idle);
+    IdleTimeQueryValue(counter, &idle);
     counter->value = idle;      /* push, so CheckTrigger works */
 
     if (less && XSyncValueLessOrEqual(idle, *less)) {
