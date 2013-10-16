@@ -1058,9 +1058,8 @@ SyncComputeBracketValues(SyncCounter * pCounter)
         }
     }                           /* end for each trigger */
 
-    if (pnewgtval || pnewltval) {
-        (*psci->BracketValues) ((pointer) pCounter, pnewltval, pnewgtval);
-    }
+    (*psci->BracketValues) ((pointer) pCounter, pnewltval, pnewgtval);
+
 }
 
 /*
