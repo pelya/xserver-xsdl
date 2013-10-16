@@ -2686,6 +2686,15 @@ IdleTimeBlockHandler(pointer pCounter, struct timeval **wt, pointer LastSelectMa
 }
 
 static void
+IdleTimeCheckBrackets(SyncCounter *counter, XSyncValue idle, XSyncValue *less, XSyncValue *greater)
+{
+    if ((greater && XSyncValueGreaterOrEqual(idle, *greater)) ||
+        (less && XSyncValueLessOrEqual(idle, *less))) {
+        SyncChangeCounter(counter, idle);
+    }
+}
+
+static void
 IdleTimeWakeupHandler(pointer pCounter, int rc, pointer LastSelectMask)
 {
     SyncCounter *counter = pCounter;
@@ -2699,10 +2708,24 @@ IdleTimeWakeupHandler(pointer pCounter, int rc, pointer LastSelectMask)
 
     IdleTimeQueryValue(pCounter, &idle);
 
-    if ((greater && XSyncValueGreaterOrEqual(idle, *greater)) ||
-        (less && XSyncValueLessOrEqual(idle, *less))) {
-        SyncChangeCounter(counter, idle);
+    /*
+      There is no guarantee for the WakeupHandler to be called within a specific
+      timeframe. Idletime may go to 0, but by the time we get here, it may be
+      non-zero and alarms for a pos. transition on 0 won't get triggered.
+      https://bugs.freedesktop.org/show_bug.cgi?id=70476
+      */
+    if (LastEventTimeWasReset(priv->deviceid)) {
+        LastEventTimeToggleResetFlag(priv->deviceid, FALSE);
+        if (!XSyncValueIsZero(idle)) {
+            XSyncValue zero;
+            XSyncIntsToValue(&zero, 0, 0);
+            IdleTimeCheckBrackets(counter, zero, less, greater);
+            less = priv->value_less;
+            greater = priv->value_greater;
+        }
     }
+
+    IdleTimeCheckBrackets(counter, idle, less, greater);
 }
 
 static void
@@ -2720,6 +2743,9 @@ IdleTimeBracketValues(pointer pCounter, CARD64 * pbracket_less,
                                      IdleTimeWakeupHandler, pCounter);
     }
     else if (!registered && (pbracket_less || pbracket_greater)) {
+        /* Reset flag must be zero so we don't force a idle timer reset on
+           the first wakeup */
+        LastEventTimeToggleResetAll(FALSE);
         RegisterBlockAndWakeupHandlers(IdleTimeBlockHandler,
                                        IdleTimeWakeupHandler, pCounter);
     }

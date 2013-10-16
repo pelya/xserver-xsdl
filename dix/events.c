@@ -262,7 +262,10 @@ InputInfo inputInfo;
 
 EventSyncInfoRec syncEvents;
 
-static TimeStamp lastDeviceEventTime[MAXDEVICES];
+static struct DeviceEventTime {
+    Bool reset;
+    TimeStamp time;
+} lastDeviceEventTime[MAXDEVICES];
 
 /**
  * The root window the given device is currently on.
@@ -1060,8 +1063,11 @@ MonthChangedOrBadTime(CARD32 *ms)
 void
 NoticeTime(const DeviceIntPtr dev, TimeStamp time)
 {
-    lastDeviceEventTime[XIAllDevices] = currentTime;
-    lastDeviceEventTime[dev->id] = currentTime;
+    lastDeviceEventTime[XIAllDevices].time = currentTime;
+    lastDeviceEventTime[dev->id].time = currentTime;
+
+    LastEventTimeToggleResetFlag(dev->id, TRUE);
+    LastEventTimeToggleResetFlag(XIAllDevices, TRUE);
 }
 
 static void
@@ -1085,7 +1091,30 @@ NoticeEventTime(InternalEvent *ev, DeviceIntPtr dev)
 TimeStamp
 LastEventTime(int deviceid)
 {
-    return lastDeviceEventTime[deviceid];
+    return lastDeviceEventTime[deviceid].time;
+}
+
+Bool
+LastEventTimeWasReset(int deviceid)
+{
+    return lastDeviceEventTime[deviceid].reset;
+}
+
+void
+LastEventTimeToggleResetFlag(int deviceid, Bool state)
+{
+    lastDeviceEventTime[deviceid].reset = state;
+}
+
+void
+LastEventTimeToggleResetAll(Bool state)
+{
+    DeviceIntPtr dev;
+    nt_list_for_each_entry(dev, inputInfo.devices, next) {
+        LastEventTimeToggleResetFlag(dev->id, FALSE);
+    }
+    LastEventTimeToggleResetFlag(XIAllDevices, FALSE);
+    LastEventTimeToggleResetFlag(XIAllMasterDevices, FALSE);
 }
 
 /**************************************************************************
@@ -5297,6 +5326,7 @@ InitEvents(void)
 
         dummy.id = i;
         NoticeTime(&dummy, currentTime);
+        LastEventTimeToggleResetFlag(i, FALSE);
     }
 
     syncEvents.replayDev = (DeviceIntPtr) NULL;
