@@ -1019,6 +1019,11 @@ SyncComputeBracketValues(SyncCounter * pCounter)
                 psci->bracket_greater = pTrigger->test_value;
                 pnewgtval = &psci->bracket_greater;
             }
+            else if (XSyncValueGreaterThan(pCounter->value, pTrigger->test_value) &&
+                     XSyncValueGreaterThan(pTrigger->test_value, psci->bracket_less)) {
+                    psci->bracket_less = pTrigger->test_value;
+                    pnewltval = &psci->bracket_less;
+            }
         }
         else if (pTrigger->test_type == XSyncNegativeComparison &&
                  ct != XSyncCounterNeverDecreases) {
@@ -1027,6 +1032,11 @@ SyncComputeBracketValues(SyncCounter * pCounter)
                                       psci->bracket_less)) {
                 psci->bracket_less = pTrigger->test_value;
                 pnewltval = &psci->bracket_less;
+            }
+            else if (XSyncValueLessThan(pCounter->value, pTrigger->test_value) &&
+                     XSyncValueLessThan(pTrigger->test_value, psci->bracket_greater)) {
+                    psci->bracket_greater = pTrigger->test_value;
+                    pnewgtval = &psci->bracket_greater;
             }
         }
         else if (pTrigger->test_type == XSyncNegativeTransition &&
@@ -1041,6 +1051,11 @@ SyncComputeBracketValues(SyncCounter * pCounter)
                     psci->bracket_less = pTrigger->test_value;
                     pnewltval = &psci->bracket_less;
             }
+            else if (XSyncValueLessThan(pCounter->value, pTrigger->test_value) &&
+                     XSyncValueLessThan(pTrigger->test_value, psci->bracket_greater)) {
+                    psci->bracket_greater = pTrigger->test_value;
+                    pnewgtval = &psci->bracket_greater;
+            }
         }
         else if (pTrigger->test_type == XSyncPositiveTransition &&
                  ct != XSyncCounterNeverDecreases) {
@@ -1054,6 +1069,11 @@ SyncComputeBracketValues(SyncCounter * pCounter)
                      */
                     psci->bracket_greater = pTrigger->test_value;
                     pnewgtval = &psci->bracket_greater;
+            }
+            else if (XSyncValueGreaterThan(pCounter->value, pTrigger->test_value) &&
+                     XSyncValueGreaterThan(pTrigger->test_value, psci->bracket_less)) {
+                    psci->bracket_less = pTrigger->test_value;
+                    pnewltval = &psci->bracket_less;
             }
         }
     }                           /* end for each trigger */
