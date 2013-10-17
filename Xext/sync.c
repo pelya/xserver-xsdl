@@ -699,6 +699,14 @@ SyncAwaitTriggerFired(SyncTrigger * pTrigger)
     FreeResource(pAwaitUnion->header.delete_id, RT_NONE);
 }
 
+static CARD64
+SyncUpdateCounter(SyncCounter *pCounter, CARD64 newval)
+{
+    CARD64 oldval = pCounter->value;
+    pCounter->value = newval;
+    return oldval;
+}
+
 /*  This function should always be used to change a counter's value so that
  *  any triggers depending on the counter will be checked.
  */
@@ -708,8 +716,7 @@ SyncChangeCounter(SyncCounter * pCounter, CARD64 newval)
     SyncTriggerList *ptl, *pnext;
     CARD64 oldval;
 
-    oldval = pCounter->value;
-    pCounter->value = newval;
+    oldval = SyncUpdateCounter(pCounter, newval);
 
     /* run through triggers to see if any become true */
     for (ptl = pCounter->sync.pTriglist; ptl; ptl = pnext) {
@@ -2712,6 +2719,8 @@ IdleTimeCheckBrackets(SyncCounter *counter, XSyncValue idle, XSyncValue *less, X
         (less && XSyncValueLessOrEqual(idle, *less))) {
         SyncChangeCounter(counter, idle);
     }
+    else
+        SyncUpdateCounter(counter, idle);
 }
 
 static void
