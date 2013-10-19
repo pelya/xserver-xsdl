@@ -181,7 +181,6 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 			       w, h, 0, GL_COLOR_INDEX, GL_BITMAP, bits);
 	dispatch->glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	dispatch->glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-	dispatch->glEnable(GL_TEXTURE_2D);
 
 	/* Now that we've set up our bitmap texture and the shader, shove
 	 * the destination rectangle through the cliprects and run the
