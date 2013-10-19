@@ -30,7 +30,7 @@
 
 static Bool
 _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
-		 DDXPointPtr points, int *widths, int n, int sorted,
+		 DDXPointPtr points, int *widths, int numPoints, int sorted,
 		 Bool fallback)
 {
 	PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
@@ -53,9 +53,9 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		goto fail;
 
 	glamor_get_drawable_deltas(drawable, dest_pixmap, &x_off, &y_off);
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < numPoints; i++) {
 
-		n = REGION_NUM_RECTS(clip);
+		int n = REGION_NUM_RECTS(clip);
 		pbox = REGION_RECTS(clip);
 		while (n--) {
 			int x1 = points[i].x;
@@ -85,7 +85,7 @@ fail:
 	glamor_fallback("to %p (%c)\n",
 			drawable, glamor_get_drawable_location(drawable));
 	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
-		fbSetSpans(drawable, gc, src, points, widths, n, sorted);
+		fbSetSpans(drawable, gc, src, points, widths, numPoints, sorted);
 		glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
 	}
 	ret = TRUE;
