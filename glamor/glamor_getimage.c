@@ -90,7 +90,6 @@ glamor_get_image(DrawablePtr pDrawable, int x, int y, int w, int h,
 		 unsigned int format, unsigned long planeMask, char *d)
 {
 	_glamor_get_image(pDrawable, x, y, w, h, format, planeMask, d, TRUE);
-	return;
 }
 
 Bool
