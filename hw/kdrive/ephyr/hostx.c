@@ -695,9 +695,6 @@ hostx_screen_init(KdScreenInfo *screen,
             malloc(scrpriv->ximg->stride * buffer_height);
     }
 
-    *bytes_per_line = scrpriv->ximg->stride;
-    *bits_per_pixel = scrpriv->ximg->bpp;
-
     if (scrpriv->win_pre_existing == None && !EphyrWantResize) {
         /* Ask the WM to keep our size static */
         xcb_size_hints_t size_hints = {0};
@@ -717,10 +714,16 @@ hostx_screen_init(KdScreenInfo *screen,
     scrpriv->win_height = height;
 
     if (host_depth_matches_server(scrpriv)) {
+        *bytes_per_line = scrpriv->ximg->stride;
+        *bits_per_pixel = scrpriv->ximg->bpp;
+
         EPHYR_DBG("Host matches server");
         return scrpriv->ximg->data;
     }
     else {
+        *bytes_per_line = width * (scrpriv->server_depth >> 3);
+        *bits_per_pixel = scrpriv->server_depth;
+
         EPHYR_DBG("server bpp %i", scrpriv->server_depth >> 3);
         scrpriv->fb_data =
             malloc(width * buffer_height * (scrpriv->server_depth >> 3));
