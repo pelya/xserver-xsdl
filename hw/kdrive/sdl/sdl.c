@@ -30,16 +30,25 @@
 #include <SDL/SDL.h>
 #include <X11/keysym.h>
 
+#define DEBUG 1
+#define printf(...) fprintf(stderr, __VA_ARGS__)
+
 static void xsdlFini(void);
 static Bool sdlScreenInit(KdScreenInfo *screen);
 static Bool sdlFinishInitScreen(ScreenPtr pScreen);
 static Bool sdlCreateRes(ScreenPtr pScreen);
 
 static void sdlKeyboardFini(KdKeyboardInfo *ki);
-static Bool sdlKeyboardInit(KdKeyboardInfo *ki);
+static Status sdlKeyboardInit(KdKeyboardInfo *ki);
+static Status sdlKeyboardEnable (KdKeyboardInfo *ki);
+static void sdlKeyboardDisable (KdKeyboardInfo *ki);
+static void sdlKeyboardLeds (KdKeyboardInfo *ki, int leds);
+static void sdlKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int duration);
 
 static Bool sdlMouseInit(KdPointerInfo *pi);
 static void sdlMouseFini(KdPointerInfo *pi);
+static Status sdlMouseEnable (KdPointerInfo *pi);
+static void sdlMouseDisable (KdPointerInfo *pi);
 
 void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, CARD32 *size, void *closure);
 void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf);
@@ -53,12 +62,18 @@ KdKeyboardDriver sdlKeyboardDriver = {
     .name = "keyboard",
     .Init = sdlKeyboardInit,
     .Fini = sdlKeyboardFini,
+    .Enable = sdlKeyboardEnable,
+    .Disable = sdlKeyboardDisable,
+    .Leds = sdlKeyboardLeds,
+    .Bell = sdlKeyboardBell,
 };
 
 KdPointerDriver sdlMouseDriver = {
     .name = "mouse",
     .Init = sdlMouseInit,
     .Fini = sdlMouseFini,
+    .Enable = sdlMouseEnable,
+    .Disable = sdlMouseDisable,
 };
 
 
@@ -182,28 +197,66 @@ static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 
 static void sdlKeyboardFini(KdKeyboardInfo *ki)
 {
+#ifdef DEBUG
+    printf("sdlKeyboardFini() %p\n", ki);
+#endif
         sdlKeyboard = NULL;
 }
 
-static Bool sdlKeyboardInit(KdKeyboardInfo *ki)
+static Status sdlKeyboardInit(KdKeyboardInfo *ki)
 {
         ki->minScanCode = 8;
         ki->maxScanCode = 255;
 
 	sdlKeyboard = ki;
-
-        return TRUE;
+#ifdef DEBUG
+    printf("sdlKeyboardInit() %p\n", ki);
+#endif
+        return Success;
 }
 
-static Bool sdlMouseInit (KdPointerInfo *pi)
+static Status sdlKeyboardEnable (KdKeyboardInfo *ki)
+{
+    return Success;
+}
+
+static void sdlKeyboardDisable (KdKeyboardInfo *ki)
+{
+}
+
+static void sdlKeyboardLeds (KdKeyboardInfo *ki, int leds)
+{
+}
+
+static void sdlKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int duration)
+{
+}
+
+static Status sdlMouseInit (KdPointerInfo *pi)
 {
         sdlPointer = pi;
-	return TRUE;
+#ifdef DEBUG
+    printf("sdlMouseInit() %p\n", pi);
+#endif
+	return Success;
 }
 
 static void sdlMouseFini(KdPointerInfo *pi)
 {
+#ifdef DEBUG
+    printf("sdlMouseFini() %p\n", pi);
+#endif
         sdlPointer = NULL;
+}
+
+static Status sdlMouseEnable (KdPointerInfo *pi)
+{
+    return Success;
+}
+
+static void sdlMouseDisable (KdPointerInfo *pi)
+{
+    return;
 }
 
 
