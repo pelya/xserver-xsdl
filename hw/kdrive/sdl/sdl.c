@@ -139,9 +139,6 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
 	struct SdlDriver *sdlDriver=screen->driver;
-#ifdef DEBUG
-	printf("Shadow update()\n");
-#endif
 	if(SDL_MUSTLOCK(sdlDriver->screen))
 	{
 		if(SDL_LockSurface(sdlDriver->screen)<0)
@@ -353,9 +350,6 @@ void sdlTimer(void)
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
-#ifdef DEBUG
-				printf("Keycode: %d\n", event.key.keysym.scancode);
-#endif
 			        KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
 				break;
 
