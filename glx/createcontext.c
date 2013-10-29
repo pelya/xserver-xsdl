@@ -68,6 +68,8 @@ validate_render_type(uint32_t render_type)
     switch (render_type) {
     case GLX_RGBA_TYPE:
     case GLX_COLOR_INDEX_TYPE:
+    case GLX_RGBA_FLOAT_TYPE_ARB:
+    case GLX_RGBA_UNSIGNED_FLOAT_TYPE_EXT:
         return True;
     default:
         return False;
