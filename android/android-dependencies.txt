@@ -1,0 +1,1 @@
+libpixman-1-dev libxfont-dev libxkbfile-dev libpciaccess-dev xutils-dev x11proto-*
