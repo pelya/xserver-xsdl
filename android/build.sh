@@ -2,7 +2,7 @@
 
 set -x
 
-NCPU=8
+NCPU=4
 export BUILDDIR=`pwd`
 NDK=`which ndk-build`
 NDK=`dirname $NDK`
@@ -17,6 +17,7 @@ env CFLAGS="-I`pwd`/../../../sdl/project/jni/png/include -I$NDK/sources/android/
 ../setCrossEnvironment.sh \
 ./configure \
 --host=arm-linux-androideabi \
+--disable-arm-iwmmxt
 
 ../setCrossEnvironment.sh \
 nice make -j$NCPU V=1 2>&1 || exit 1
