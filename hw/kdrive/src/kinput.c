@@ -1895,6 +1895,8 @@ KdEnqueuePointerEvent(KdPointerInfo * pi, unsigned long flags, int rx, int ry,
     }
     else {
         dixflags = POINTER_ABSOLUTE;
+        if (flags & KD_POINTER_DESKTOP)
+            dixflags |= POINTER_DESKTOP;
         if (x != pi->dixdev->last.valuators[0] ||
             y != pi->dixdev->last.valuators[1])
             _KdEnqueuePointerEvent(pi, MotionNotify, x, y, z, 0, dixflags,
