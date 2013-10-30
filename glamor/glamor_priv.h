@@ -31,8 +31,6 @@
 #include "config.h"
 #endif
 
-#include "compiler.h"
-
 #include <xorg-server.h>
 #ifndef DEBUG
 #define NDEBUG

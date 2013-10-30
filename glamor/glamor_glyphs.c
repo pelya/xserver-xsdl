@@ -191,7 +191,7 @@ find_continuous_bits(unsigned int bits, int bits_cnt, unsigned int *pbits_mask)
 
     bits_mask = ((1LL << bits_cnt) - 1);
 
-    if (unlikely(bits_cnt > 56)) {
+    if (_X_UNLIKELY(bits_cnt > 56)) {
         while (bits) {
             if ((bits & bits_mask) == bits_mask) {
                 *pbits_mask = bits_mask << idx;
@@ -751,7 +751,7 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs,
         left_to_right = TRUE;
         cur_list = list++;
 
-        if (unlikely(!first_list)) {
+        if (_X_UNLIKELY(!first_list)) {
             pixman_region_init_with_extents(&current_region, extents);
             pixman_region_union(&list_region, &list_region, &current_region);
             first = TRUE;
@@ -821,7 +821,7 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs,
                 }
             }
             else {
-                if (unlikely(!first_list)) {
+                if (_X_UNLIKELY(!first_list)) {
                     current_box.x1 = x1;
                     current_box.y1 = y1;
                     current_box.x2 = x2;
@@ -1709,7 +1709,7 @@ _glamor_glyphs(CARD8 op,
     format = mask_format->depth << 24 | mask_format->format;
 
     fixed_list = calloc(fixed_size, sizeof(*fixed_list));
-    if (unlikely(fixed_list == NULL))
+    if (_X_UNLIKELY(fixed_list == NULL))
         fixed_size = 0;
     fixed_cnt = glamor_glyphs_intersect(nlist, list, glyphs,
                                         format, dst->pDrawable->pScreen,

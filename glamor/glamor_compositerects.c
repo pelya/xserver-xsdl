@@ -246,7 +246,7 @@ glamor_composite_rectangles(CARD8 op,
         goto done;
     }
     else {
-        if (likely(priv->type != GLAMOR_TEXTURE_LARGE)) {
+        if (_X_LIKELY(priv->type != GLAMOR_TEXTURE_LARGE)) {
             int error;
 
             source = CreateSolidPicture(0, color, &error);

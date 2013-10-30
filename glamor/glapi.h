@@ -88,12 +88,12 @@ extern void *_glapi_Context;
 #ifdef THREADS
 
 #define GET_DISPATCH() \
-     (likely(_glapi_Dispatch) ? _glapi_Dispatch : _glapi_get_dispatch())
+     (_X_LIKELY(_glapi_Dispatch) ? _glapi_Dispatch : _glapi_get_dispatch())
 
 #define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) \
-     (likely(_glapi_Context) ? _glapi_Context : _glapi_get_context())
+     (_X_LIKELY(_glapi_Context) ? _glapi_Context : _glapi_get_context())
 
-#define SET_CURRENT_CONTEXT(C) do { if (likely(_glapi_Context))   \
+#define SET_CURRENT_CONTEXT(C) do { if (_X_LIKELY(_glapi_Context))      \
 					_glapi_Context = (void*)C; \
 				     else \
 					_glapi_set_context(C); } while(0)
