@@ -2,33 +2,48 @@
 
 set -x
 
-NCPU=4
 export BUILDDIR=`pwd`
+
+NCPU=4
+
 NDK=`which ndk-build`
 NDK=`dirname $NDK`
 NDK=`readlink -f $NDK`
 
 
-[ -e pixman-0.30.2/libpixman.so ] || {
+[ -e pixman-0.30.2/pixman/.libs/libpixman-1.so ] || {
 [ -e pixman-0.30.2 ] || curl http://cairographics.org/releases/pixman-0.30.2.tar.gz | tar xvz || exit 1
 cd pixman-0.30.2
 
-env CFLAGS="-I`pwd`/../../../sdl/project/jni/png/include -I$NDK/sources/android/cpufeatures" \
-../setCrossEnvironment.sh \
+# -I`pwd`/../../../sdl/project/jni/png/include -L`pwd`/../../../sdl/project/
+
+env CFLAGS="-I$NDK/sources/android/cpufeatures" \
+LDFLAGS="-L$NDK/sources/android/libportable/libs/armeabi -lportable" \
+$BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=arm-linux-androideabi \
 --disable-arm-iwmmxt
 
-../setCrossEnvironment.sh \
+cd pixman
+
+$BUILDDIR/setCrossEnvironment.sh \
 nice make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
 }
 
 
+ln -sf $BUILDDIR/../../sdl/project/libs/armeabi/libsdl-1.2.so $BUILDDIR/libSDL.so
+#ln -sf $BUILDDIR/pixman-0.30.2/pixman/.libs/libpixman-1.so $BUILDDIR/libpixman-1.so
+ln -sf $BUILDDIR/pixman-0.30.2/pixman/.libs/libpixman-1.a $BUILDDIR/libpixman-1.a
+ln -sf $NDK/sources/android/libportable/libs/armeabi/libportable.a $BUILDDIR/libpthread.a # dummy
+ln -sf $NDK/sources/android/libportable/libs/armeabi/libportable.a $BUILDDIR/libts.a # dummy
 
 [ -e Makefile ] || \
-env CFLAGS="-include `pwd`/compiler-workarounds.h" \
+env CFLAGS="-include `pwd`/compiler-workarounds.h \
+	-I$BUILDDIR/pixman-0.30.2/pixman \
+	-I$BUILDDIR/../../sdl/project/jni/sdl-1.2/include" \
+LDFLAGS="-L$BUILDDIR/../../sdl/project/libs/armeabi -L$BUILDDIR" \
 ./setCrossEnvironment.sh \
 ../configure \
 --host=arm-linux-androideabi \
