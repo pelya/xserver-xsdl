@@ -2238,7 +2238,7 @@ if test "x$CONFIG_HAL" = xno && test "x$CONFIG_UDEV" = xno; then
              ***********************************************])
 fi
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 glx/Makefile
 include/Makefile
@@ -2339,3 +2339,4 @@ test/xi2/Makefile
 xserver.ent
 xorg-server.pc
 ])
+AC_OUTPUT
