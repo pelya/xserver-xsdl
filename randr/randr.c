@@ -420,6 +420,32 @@ RRExtensionInit(void)
 #endif
 }
 
+void
+RRResourcesChanged(ScreenPtr pScreen)
+{
+    rrScrPriv(pScreen);
+    pScrPriv->resourcesChanged = TRUE;
+
+    RRSetChanged(pScreen);
+}
+
+static void
+RRDeliverResourceEvent(ClientPtr client, WindowPtr pWin)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+
+    rrScrPriv(pScreen);
+
+    xRRResourceChangeNotifyEvent re = {
+        .type = RRNotify + RREventBase,
+        .subCode = RRNotify_ResourceChange,
+        .timestamp = pScrPriv->lastSetTime.milliseconds,
+        .window = pWin->drawable.id
+    };
+
+    WriteEventsToClient(client, 1, (xEvent *) &re);
+}
+
 static int
 TellChanged(WindowPtr pWin, pointer value)
 {
@@ -480,6 +506,12 @@ TellChanged(WindowPtr pWin, pointer value)
                     RRDeliverProviderEvent(client, pWin, pSlaveScrPriv->provider);
             }
         }
+
+        if (pRREvent->mask & RRResourceChangeNotifyMask) {
+            if (pScrPriv->resourcesChanged) {
+                RRDeliverResourceEvent(client, pWin);
+            }
+        }
     }
     return WT_WALKCHILDREN;
 }
@@ -536,7 +568,11 @@ RRTellChanged(ScreenPtr pScreen)
         }
         pScrPriv->changed = FALSE;
         mastersp->changed = FALSE;
+
         WalkTree(master, TellChanged, (pointer) master);
+
+        mastersp->resourcesChanged = FALSE;
+
         for (i = 0; i < pScrPriv->numOutputs; i++)
             pScrPriv->outputs[i]->changed = FALSE;
         for (i = 0; i < pScrPriv->numCrtcs; i++)

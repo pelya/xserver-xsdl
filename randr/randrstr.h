@@ -301,6 +301,7 @@ typedef struct _rrScrPriv {
     Bool changed;               /* some config changed */
     Bool configChanged;         /* configuration changed */
     Bool layoutChanged;         /* screen layout changed */
+    Bool resourcesChanged;      /* screen resources change */
 
     CARD16 minWidth, minHeight;
     CARD16 maxWidth, maxHeight;
@@ -485,6 +486,9 @@ extern _X_EXPORT int
  */
 extern _X_EXPORT void
  RRDeliverScreenEvent(ClientPtr client, WindowPtr pWin, ScreenPtr pScreen);
+
+extern _X_EXPORT void
+ RRResourcesChanged(ScreenPtr pScreen);
 
 /* randr.c */
 /* set a screen change on the primary screen */
