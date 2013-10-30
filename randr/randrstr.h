@@ -164,6 +164,7 @@ struct _rrProvider {
     int nameLength;
     RRPropertyPtr properties;
     Bool pendingProperties;
+    Bool changed;
     struct _rrProvider *offload_sink;
     struct _rrProvider *output_source;
 };
@@ -922,6 +923,9 @@ RRProviderSetCapabilities(RRProviderPtr provider, uint32_t capabilities);
 
 extern _X_EXPORT Bool
 RRProviderLookup(XID id, RRProviderPtr *provider_p);
+
+extern _X_EXPORT void
+RRDeliverProviderEvent(ClientPtr client, WindowPtr pWin, RRProviderPtr provider);
 
 /* rrproviderproperty.c */
 
