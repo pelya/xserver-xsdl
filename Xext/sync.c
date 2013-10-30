@@ -2654,7 +2654,16 @@ IdleTimeBlockHandler(pointer pCounter, struct timeval **wt, pointer LastSelectMa
     IdleTimeQueryValue(counter, &idle);
     counter->value = idle;      /* push, so CheckTrigger works */
 
-    if (less && XSyncValueLessOrEqual(idle, *less)) {
+    /**
+     * There's an indefinite amount of time between ProcessInputEvents()
+     * where the idle time is reset and the time we actually get here. idle
+     * may be past the lower bracket if we dawdled with the events, so
+     * check for whether we did reset and bomb out of select immediately.
+     */
+    if (less && XSyncValueGreaterThan(idle, *less) &&
+        LastEventTimeWasReset(priv->deviceid)) {
+        AdjustWaitForDelay(wt, 0);
+    } else if (less && XSyncValueLessOrEqual(idle, *less)) {
         /*
          * We've been idle for less than the threshold value, and someone
          * wants to know about that, but now we need to know whether they
