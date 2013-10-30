@@ -27,9 +27,7 @@
 #ifndef GLAMOR_PRIV_H
 #define GLAMOR_PRIV_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "dix-config.h"
 
 #include <xorg-server.h>
 #ifndef DEBUG

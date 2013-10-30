@@ -27,9 +27,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "dix-config.h"
 
 #define GLAMOR_FOR_XORG
 #include <xorg-server.h>
