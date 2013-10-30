@@ -46,8 +46,7 @@ libglamor_la_SOURCES = \
 	glamor_compositerects.c\
 	glamor_xv.c\
 	glamor_utils.h\
-	glamor.h\
-	glapi.h
+	glamor.h
 
 sdk_HEADERS = glamor.h
 

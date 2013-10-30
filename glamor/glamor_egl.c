@@ -61,9 +61,6 @@
 
 #include "glamor.h"
 #include "glamor_gl_dispatch.h"
-#ifdef GLX_USE_SHARED_DISPATCH
-#include "glapi.h"
-#endif
 
 static const char glamor_name[] = "glamor";
 
@@ -93,8 +90,6 @@ struct glamor_egl_screen_private {
     struct gbm_device *gbm;
 #endif
     int has_gem;
-    void *glamor_context;
-    void *current_context;
     int gl_context_depth;
     int dri3_capable;
 
@@ -115,7 +110,6 @@ glamor_egl_get_screen_private(ScrnInfoPtr scrn)
         scrn->privates[xf86GlamorEGLPrivateIndex].ptr;
 }
 
-#ifdef GLX_USE_SHARED_DISPATCH
 _X_EXPORT void
 glamor_egl_make_current(ScreenPtr screen)
 {
@@ -126,9 +120,7 @@ glamor_egl_make_current(ScreenPtr screen)
     if (glamor_egl->gl_context_depth++)
         return;
 
-    GET_CURRENT_CONTEXT(glamor_egl->current_context);
-
-    if (glamor_egl->glamor_context != glamor_egl->current_context) {
+    if (glamor_egl->context != eglGetCurrentContext()) {
         eglMakeCurrent(glamor_egl->display, EGL_NO_SURFACE,
                        EGL_NO_SURFACE, EGL_NO_CONTEXT);
         if (!eglMakeCurrent(glamor_egl->display,
@@ -149,14 +141,9 @@ glamor_egl_restore_context(ScreenPtr screen)
     if (--glamor_egl->gl_context_depth)
         return;
 
-    if (glamor_egl->current_context &&
-        glamor_egl->glamor_context != glamor_egl->current_context)
-        SET_CURRENT_CONTEXT(glamor_egl->current_context);
+    eglMakeCurrent(glamor_egl->display, EGL_NO_SURFACE,
+                   EGL_NO_SURFACE, EGL_NO_CONTEXT);
 }
-#else
-#define glamor_egl_make_current(x)
-#define glamor_egl_restore_context(s)
-#endif
 
 static EGLImageKHR
 _glamor_egl_create_image(struct glamor_egl_screen_private *glamor_egl,
@@ -796,18 +783,13 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
                    "Failed to make EGL context current\n");
         return FALSE;
     }
-#ifdef GLX_USE_SHARED_DISPATCH
-    GET_CURRENT_CONTEXT(glamor_egl->glamor_context);
-#endif
     glamor_egl->saved_free_screen = scrn->FreeScreen;
     scrn->FreeScreen = glamor_egl_free_screen;
 #ifdef GLAMOR_GLES2
     xf86DrvMsg(scrn->scrnIndex, X_INFO, "Using GLES2.\n");
-#ifdef GLX_USE_SHARED_DISPATCH
     xf86DrvMsg(scrn->scrnIndex, X_WARNING,
                "Glamor is using GLES2 but GLX needs GL. "
                "Indirect GLX may not work correctly.\n");
-#endif
 #endif
     return TRUE;
 }

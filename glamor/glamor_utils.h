@@ -1834,7 +1834,6 @@ glamor_restore_current(ScreenPtr screen)
     glamor_egl_restore_context(screen);
 }
 
-#ifdef GLX_USE_SHARED_DISPATCH
 static inline glamor_gl_dispatch *
 glamor_get_dispatch(glamor_screen_private * glamor_priv)
 {
@@ -1850,19 +1849,5 @@ glamor_put_dispatch(glamor_screen_private * glamor_priv)
     if (glamor_priv->flags & GLAMOR_USE_EGL_SCREEN)
         glamor_restore_current(glamor_priv->screen);
 }
-#else
-#warning "Indirect GLX may be broken, need to implement context switch."
-static inline glamor_gl_dispatch *
-glamor_get_dispatch(glamor_screen_private * glamor_priv)
-{
-    return &glamor_priv->_dispatch;
-}
-
-static inline void
-glamor_put_dispatch(glamor_screen_private * glamor_priv)
-{
-}
-
-#endif
 
 #endif
