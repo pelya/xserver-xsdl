@@ -138,6 +138,71 @@ ln -sf ../$F X11/fonts/
 done
 }
 
+[ -e libXau.a ] || {
+[ -e libXau-1.0.8 ] || curl http://cgit.freedesktop.org/xorg/lib/libXau/snapshot/libXau-1.0.8.tar.gz | tar xvz || exit 1
+
+cd libXau-1.0.8
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+ln -sf libXau-1.0.8/.libs/libXau.a ./
+ln -sf ../libXau-1.0.8/include/X11/Xauth.h X11/
+}
+
+
+
+[ -e libXdmcp.a ] || {
+[ -e libXdmcp-1.1.1 ] || curl http://cgit.freedesktop.org/xorg/lib/libXdmcp/snapshot/libXdmcp-1.1.1.tar.gz | tar xvz || exit 1
+
+cd libXdmcp-1.1.1
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+ln -sf libXdmcp-1.1.1/.libs/libXdmcp.a ./
+ln -sf ../libXdmcp-1.1.1/include/X11/Xdmcp.h X11/
+}
+
+
 ln -sf $BUILDDIR/../../sdl/project/libs/armeabi-v7a/libsdl-1.2.so $BUILDDIR/libSDL.so
 ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR/libpthread.a # dummy
 ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR/libts.a # dummy
