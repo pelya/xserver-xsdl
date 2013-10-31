@@ -190,7 +190,7 @@ miSyncSetup(ScreenPtr pScreen)
 
     pScreenPriv = SYNC_SCREEN_PRIV(pScreen);
 
-    if (pScreenPriv->funcs.CreateFence) {
+    if (!pScreenPriv->funcs.CreateFence) {
         pScreenPriv->funcs = miSyncScreenFuncs;
 
         /* Wrap CloseScreen to clean up */
