@@ -96,6 +96,10 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #define getpid(x) _getpid(x)
 #endif
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
+
 #ifdef XF86BIGFONT
 #include "xf86bigfontsrv.h"
 #endif
@@ -599,6 +603,10 @@ LogSWrite(int verb, const char *buf, size_t len, Bool end_line)
 {
     static Bool newline = TRUE;
     int ret;
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_INFO, "XSDL", "%.*s", len, buf);
+#endif
 
     if (verb < 0 || logVerbosity >= verb)
         ret = write(2, buf, len);
