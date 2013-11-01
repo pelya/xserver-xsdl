@@ -333,7 +333,7 @@ ln -sf libfontenc-1.1.2/src/.libs/libfontenc.a ./
 
 # =========== libXfont.a ===========
 
-ln -sf $BUILDDIR/../../../../../project/obj/local/armeabi-v7a/libfreetype.a $BUILDDIR/
+ln -sf $BUILDDIR/../../../../../obj/local/armeabi-v7a/libfreetype.a $BUILDDIR/
 
 [ -e libXfont.a ] || {
 curl http://cgit.freedesktop.org/xorg/lib/libXfont/snapshot/libXfont-1.4.6.tar.gz | tar xvz || exit 1
@@ -587,10 +587,10 @@ env CFLAGS=" \
 	-DFNONBLOCK=O_NONBLOCK \
 	-DFNDELAY=O_NDELAY \
 	-I$BUILDDIR/pixman-0.30.2/pixman \
-	-I$BUILDDIR/../../../../../project/jni/sdl-1.2/include" \
+	-I$BUILDDIR/../../../../../jni/sdl-1.2/include" \
 LDFLAGS="-L$BUILDDIR" \
 ./setCrossEnvironment.sh \
-LIBS="-lfontenc -lfreetype" \
+LIBS="-lfontenc -lfreetype -llog" \
 ../configure \
 --host=arm-linux-androideabi \
 --prefix=/usr \
