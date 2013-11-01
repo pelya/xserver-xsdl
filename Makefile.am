@@ -101,6 +101,8 @@ DIST_SUBDIRS = \
 	glx \
 	exa \
 	config \
+	dri3 \
+	present \
 	hw \
 	test
 
