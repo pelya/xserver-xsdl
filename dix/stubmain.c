@@ -30,9 +30,9 @@ int dix_main(int argc, char *argv[], char *envp[]);
  */
 #if defined(__ANDROID__)
 int
-SDL_main(int argc, char *argv[])
+android_main(int argc, char *argv[], char *envp[])
 {
-    return dix_main(argc, argv, NULL);
+    return dix_main(argc, argv, envp);
 }
 #else
 int
