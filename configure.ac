@@ -296,7 +296,7 @@ AC_CHECK_HEADER([machine/apmvar.h],[
 AM_CONDITIONAL(BSD_APM, [test "x$ac_cv_BSD_APM" = xyes])
 AM_CONDITIONAL(BSD_KQUEUE_APM, [test "x$ac_cv_BSD_KQUEUE_APM" = xyes])
 	
-dnl glibc backtrace support check (hw/xfree86/common/xf86Events.c)
+dnl glibc backtrace support check
 AC_CHECK_HEADER([execinfo.h],[
     AC_CHECK_LIB(c, backtrace, [
         AC_DEFINE(HAVE_BACKTRACE, 1, [Has backtrace support])
