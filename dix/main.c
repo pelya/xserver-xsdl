@@ -129,8 +129,7 @@ int dix_main(int argc, char *argv[], char *envp[]);
 
 int dix_main(int argc, char *argv[], char *envp[])
 #elif defined(__ANDROID__)
-char *envp[] = NULL;
-int SDL_main(int argc, char *argv[])
+int android_main(int argc, char *argv[], char *envp[])
 #else
 int main(int argc, char *argv[], char *envp[])
 #endif
