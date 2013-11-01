@@ -1,0 +1,33 @@
+--- Xos_r.h	2013-03-30 01:21:00.000000000 +0200
++++ Xos_r.h	2013-11-01 19:59:53.048246394 +0200
+@@ -289,16 +289,7 @@
+     ((p).pws.pw_passwd = (p).pws.pw_name + (p).len + 1), \
+     ((p).len = strlen((p).pwp->pw_passwd)), \
+     strcpy((p).pws.pw_passwd,(p).pwp->pw_passwd), \
+-    ((p).pws.pw_age = (p).pws.pw_passwd + (p).len + 1), \
+-    ((p).len = strlen((p).pwp->pw_age)), \
+-    strcpy((p).pws.pw_age, (p).pwp->pw_age), \
+-    ((p).pws.pw_comment = (p).pws.pw_age + (p).len + 1), \
+-    ((p).len = strlen((p).pwp->pw_comment)), \
+-    strcpy((p).pws.pw_comment, (p).pwp->pw_comment), \
+-    ((p).pws.pw_gecos = (p).pws.pw_comment + (p).len + 1), \
+-    ((p).len = strlen((p).pwp->pw_gecos)), \
+-    strcpy((p).pws.pw_gecos, (p).pwp->pw_gecos), \
+-    ((p).pws.pw_dir = (p).pws.pw_comment + (p).len + 1), \
++    ((p).pws.pw_dir = (p).pws.pw_passwd + (p).len + 1), \
+     ((p).len = strlen((p).pwp->pw_dir)), \
+     strcpy((p).pws.pw_dir, (p).pwp->pw_dir), \
+     ((p).pws.pw_shell = (p).pws.pw_dir + (p).len + 1), \
+--- Xpoll.h.in	2013-03-30 01:21:00.000000000 +0200
++++ Xpoll.h.in	2013-11-01 21:19:40.877429614 +0200
+@@ -67,6 +67,10 @@
+ # endif
+ #endif
+ 
++#ifdef __ANDROID__
++typedef unsigned long fd_mask;
++#endif
++
+ #define XFD_SETSIZE	256
+ 
+ #ifndef FD_SETSIZE
