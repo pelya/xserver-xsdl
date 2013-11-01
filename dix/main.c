@@ -128,6 +128,9 @@ pthread_cond_t serverRunningCond = PTHREAD_COND_INITIALIZER;
 int dix_main(int argc, char *argv[], char *envp[]);
 
 int dix_main(int argc, char *argv[], char *envp[])
+#elif defined(__ANDROID__)
+char *envp[] = NULL;
+int SDL_main(int argc, char *argv[])
 #else
 int main(int argc, char *argv[], char *envp[])
 #endif
