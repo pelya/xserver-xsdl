@@ -212,7 +212,7 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 			break;
 		}
 
-		FatalError("destination is framebuffer incomplete: %s [%#x]\n",
+		FatalError("destination is framebuffer incomplete: %s [%x]\n",
 			   str, status);
 	}
 	glamor_put_dispatch(fbo->glamor_priv);
