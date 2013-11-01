@@ -16,7 +16,7 @@ NDK=`readlink -f $NDK`
 curl http://cgit.freedesktop.org/xorg/proto/x11proto/snapshot/xproto-7.0.24.tar.gz | tar xvz || exit 1
 ln -sf xproto-7.0.24 X11
 cd X11
-patch -p0 < ../xproto.patch || exit 1
+patch -p0 < ../xproto.diff || exit 1
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=arm-linux-androideabi \
 || exit 1
