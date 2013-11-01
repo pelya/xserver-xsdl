@@ -333,7 +333,7 @@ ln -sf libfontenc-1.1.2/src/.libs/libfontenc.a ./
 
 # =========== libXfont.a ===========
 
-ln -sf $BUILDDIR/../../sdl/project/obj/local/armeabi-v7a/libfreetype.a $BUILDDIR/
+ln -sf $BUILDDIR/../../../../../project/obj/local/armeabi-v7a/libfreetype.a $BUILDDIR/
 
 [ -e libXfont.a ] || {
 curl http://cgit.freedesktop.org/xorg/lib/libXfont/snapshot/libXfont-1.4.6.tar.gz | tar xvz || exit 1
@@ -346,7 +346,7 @@ autoreconf -v --install \
 
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h \
--I$BUILDDIR/../../sdl/project/jni/freetype/include \
+-I$BUILDDIR/../../../../../jni/freetype/include \
 -DNO_LOCALE" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -575,7 +575,7 @@ done
 
 # =========== xsdl ==========
 
-ln -sf $BUILDDIR/../../sdl/project/libs/armeabi-v7a/libsdl-1.2.so $BUILDDIR/libSDL.so
+ln -sf $BUILDDIR/../../../../../libs/armeabi-v7a/libsdl-1.2.so $BUILDDIR/libSDL.so
 ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR/libpthread.a # dummy
 ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR/libts.a # dummy
 
@@ -587,7 +587,7 @@ env CFLAGS=" \
 	-DFNONBLOCK=O_NONBLOCK \
 	-DFNDELAY=O_NDELAY \
 	-I$BUILDDIR/pixman-0.30.2/pixman \
-	-I$BUILDDIR/../../sdl/project/jni/sdl-1.2/include" \
+	-I$BUILDDIR/../../../../../project/jni/sdl-1.2/include" \
 LDFLAGS="-L$BUILDDIR" \
 ./setCrossEnvironment.sh \
 LIBS="-lfontenc -lfreetype" \
@@ -601,3 +601,5 @@ LIBS="-lfontenc -lfreetype" \
 || exit 1
 
 { ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1 ; } | tee build.log
+
+exit 0
