@@ -1,6 +1,6 @@
 #!/bin/sh
 env SDL=yes CFLAGS="-O0 -g" \
-./configure --prefix=/usr \
+./configure --prefix=`pwd`/data/usr \
 --enable-debug \
 --disable-xorg --disable-dmx --disable-xvfb --disable-xnest --disable-xquartz --disable-xwin \
 --disable-xephyr --disable-xfake --disable-xfbdev --disable-unit-tests \
