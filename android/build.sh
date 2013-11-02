@@ -579,6 +579,8 @@ ln -sf $BUILDDIR/../../../../../libs/armeabi-v7a/libsdl-1.2.so $BUILDDIR/libSDL.
 ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR/libpthread.a # dummy
 ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR/libts.a # dummy
 
+[ -z "$PACKAGE_NAME" ] && PACKAGE_NAME=X.org.server
+
 [ -e Makefile ] || \
 env CFLAGS=" \
 	-isystem$BUILDDIR \
@@ -593,7 +595,7 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lfontenc -lfreetype -llog" \
 ../configure \
 --host=arm-linux-androideabi \
---prefix=/usr \
+--prefix=/sdcard/Android/data/$PACKAGE_NAME/files/usr \
 --disable-xorg --disable-dmx --disable-xvfb --disable-xnest --disable-xquartz --disable-xwin \
 --disable-xephyr --disable-xfake --disable-xfbdev --disable-unit-tests --disable-tslib \
 --disable-shm --disable-mitshm --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
