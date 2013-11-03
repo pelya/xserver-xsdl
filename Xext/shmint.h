@@ -62,6 +62,10 @@ typedef struct _ShmFuncs {
 #define SHM_FD_PASSING  1
 #endif
 
+#ifdef SHM_FD_PASSING
+#include "busfault.h"
+#endif
+
 typedef struct _ShmDesc {
     struct _ShmDesc *next;
     int shmid;
@@ -71,6 +75,7 @@ typedef struct _ShmDesc {
     unsigned long size;
 #ifdef SHM_FD_PASSING
     Bool is_fd;
+    struct busfault *busfault;
     XID resource;
 #endif
 } ShmDescRec, *ShmDescPtr;

@@ -438,9 +438,11 @@ ShmDetachSegment(pointer value, /* must conform to DeleteType */
     if (--shmdesc->refcnt)
         return TRUE;
 #if SHM_FD_PASSING
-    if (shmdesc->is_fd)
+    if (shmdesc->is_fd) {
+        if (shmdesc->busfault)
+            busfault_unregister(shmdesc->busfault);
         munmap(shmdesc->addr, shmdesc->size);
-    else
+    } else
 #endif
         shmdt(shmdesc->addr);
     for (prev = &Shmsegs; *prev != shmdesc; prev = &(*prev)->next);
@@ -1099,6 +1101,19 @@ ProcShmCreatePixmap(ClientPtr client)
 }
 
 #ifdef SHM_FD_PASSING
+
+static void
+ShmBusfaultNotify(void *context)
+{
+    ShmDescPtr shmdesc = context;
+
+    ErrorF("shared memory 0x%x truncated by client\n",
+           (unsigned int) shmdesc->resource);
+    busfault_unregister(shmdesc->busfault);
+    shmdesc->busfault = NULL;
+    FreeResource (shmdesc->resource, RT_NONE);
+}
+
 static int
 ProcShmAttachFd(ClientPtr client)
 {
@@ -1143,6 +1158,15 @@ ProcShmAttachFd(ClientPtr client)
     shmdesc->refcnt = 1;
     shmdesc->writable = !stuff->readOnly;
     shmdesc->size = statb.st_size;
+    shmdesc->resource = stuff->shmseg;
+
+    shmdesc->busfault = busfault_register_mmap(shmdesc->addr, shmdesc->size, ShmBusfaultNotify, shmdesc);
+    if (!shmdesc->busfault) {
+        munmap(shmdesc->addr, shmdesc->size);
+        free(shmdesc);
+        return BadAlloc;
+    }
+
     shmdesc->next = Shmsegs;
     Shmsegs = shmdesc;
 
@@ -1198,6 +1222,15 @@ ProcShmCreateSegment(ClientPtr client)
     shmdesc->refcnt = 1;
     shmdesc->writable = !stuff->readOnly;
     shmdesc->size = stuff->size;
+
+    shmdesc->busfault = busfault_register_mmap(shmdesc->addr, shmdesc->size, ShmBusfaultNotify, shmdesc);
+    if (!shmdesc->busfault) {
+        close(fd);
+        munmap(shmdesc->addr, shmdesc->size);
+        free(shmdesc);
+        return BadAlloc;
+    }
+
     shmdesc->next = Shmsegs;
     Shmsegs = shmdesc;
 

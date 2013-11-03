@@ -455,4 +455,7 @@
 /* Use XTrans FD passing support */
 #undef XTRANS_SEND_FDS
 
+/* Wrap SIGBUS to catch MIT-SHM faults */
+#undef BUSFAULT
+
 #endif /* _DIX_CONFIG_H_ */

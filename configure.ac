@@ -1171,6 +1171,25 @@ case "$DRI3,$HAVE_DRI3PROTO" in
 		;;
 esac
 
+AC_CHECK_FUNCS([sigaction])
+
+BUSFAULT=no
+
+case x"$ac_cv_func_sigaction" in
+	xyes)
+		AC_DEFINE(HAVE_SIGACTION, 1, [Have sigaction function])
+		BUSFAULT=yes
+		;;
+esac
+
+case x"$BUSFAULT" in
+	xyes)
+		AC_DEFINE(BUSFAULT, 1, [Include busfault OS API])
+		;;
+esac
+
+AM_CONDITIONAL(BUSFAULT, test x"$BUSFAULT" = xyes)
+
 PKG_CHECK_MODULES([XSHMFENCE], $XSHMFENCE,
 		  [HAVE_XSHMFENCE=yes], [HAVE_XSHMFENCE=no])
 
