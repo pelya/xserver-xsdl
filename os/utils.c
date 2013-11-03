@@ -840,7 +840,7 @@ ProcessCommandLine(int argc, char *argv[])
 #endif
 #ifdef LOCK_SERVER
         else if (strcmp(argv[i], "-nolock") == 0) {
-#if !defined(WIN32) && !defined(__CYGWIN__)
+#if !defined(WIN32) && !defined(__CYGWIN__) && !defined(__ANDROID__)
             if (getuid() != 0)
                 ErrorF
                     ("Warning: the -nolock option can only be used by root\n");

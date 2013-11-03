@@ -1,0 +1,6 @@
+default xkb_semantics "default" {
+
+xkb_types		{ include "default" 	};
+xkb_compatibility	{ include "default"	};
+
+};
