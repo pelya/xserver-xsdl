@@ -306,7 +306,7 @@ extern _X_EXPORT void OsReleaseSignals (void);
 
 extern _X_EXPORT void OsAbort (void) _X_NORETURN;
 
-#if !defined(WIN32)
+#if !defined(WIN32) && !defined(__ANDROID__)
 extern _X_EXPORT int System(char *);
 extern _X_EXPORT pointer Popen(char *, char *);
 extern _X_EXPORT int Pclose(pointer);

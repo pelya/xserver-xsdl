@@ -57,10 +57,9 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	XKM_OUTPUT_DIR	"compiled/"
 #endif
 
-#define	PRE_ERROR_MSG "\"The XKEYBOARD keymap compiler (xkbcomp) reports:\""
-#define	ERROR_PREFIX	"\"> \""
-#define	POST_ERROR_MSG1 "\"Errors from xkbcomp are not fatal to the X server\""
-#define	POST_ERROR_MSG2 "\"End of messages from xkbcomp\""
+#define	PRE_ERROR_MSG "xkbcomp:"
+#define	ERROR_PREFIX	"---"
+#define	POST_ERROR_MSG1 "======="
 
 #if defined(WIN32)
 #define PATHSEPARATOR "\\"
@@ -223,8 +222,8 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
     }
 
     if (asprintf(&buf,
-		 "\"%s%sxkbcomp\" -w %d %s -xkm \"%s\" "
-		  "-em1 %s -emp %s -eml %s \"%s%s.xkm\"",
+		 "%s%sxkbcomp -w %d %s -xkm %s "
+		  "-em1 %s -emp %s -eml %s %s%s.xkm",
 		 xkbbindir, xkbbindirsep,
 		 ((xkbDebugFlags < 2) ? 1 :
 		  ((xkbDebugFlags > 10) ? 10 : (int) xkbDebugFlags)),
@@ -250,7 +249,13 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 #ifdef DEBUG
     if (xkbDebugFlags) {
        ErrorF("[xkb] XkbDDXCompileKeymapByNames compiling keymap:\n");
+#ifdef __ANDROID__
+       //FILE * dbg = fopen("/sdcard/xkb-input.txt", "wb");
+       //XkbWriteXKBKeymapForNames(dbg,names,xkb,want,need);
+       //fclose(dbg);
+#else
        XkbWriteXKBKeymapForNames(stderr,names,xkb,want,need);
+#endif
     }
 #endif
 	XkbWriteXKBKeymapForNames(out,names,xkb,want,need);
