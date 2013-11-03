@@ -1350,7 +1350,7 @@ OsAbort(void)
     abort();
 }
 
-#if !defined(WIN32)
+#if !defined(WIN32) && !defined(__ANDROID__)
 /*
  * "safer" versions of system(3), popen(3) and pclose(3) which give up
  * all privs before running a command.

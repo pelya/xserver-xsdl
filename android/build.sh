@@ -316,6 +316,7 @@ env CFLAGS="-isystem$BUILDDIR -include strings.h" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
 || exit 1
 
 cp -f `which libtool` ./
@@ -353,6 +354,7 @@ LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
 || exit 1
 
 cp -f `which libtool` ./
@@ -388,6 +390,7 @@ LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
 || exit 1
 
 cp -f `which libtool` ./
@@ -421,6 +424,7 @@ LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
 || exit 1
 
 cp -f `which libtool` ./
@@ -466,6 +470,7 @@ LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
 || exit 1
 
 cp -f `which libtool` ./
@@ -516,6 +521,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 LIBS="-lXau -lXdmcp -landroid_support" \
 ./configure \
 --host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
 || exit 1
 
 cp -f `which libtool` ./
@@ -556,6 +562,7 @@ LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
 || exit 1
 
 cp -f `which libtool` ./
@@ -592,6 +599,7 @@ LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
 || exit 1
 
 cp -f `which libtool` ./
