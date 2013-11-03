@@ -308,13 +308,14 @@ int ddxProcessArgument(int argc, char **argv, int i)
 void sdlTimer(void)
 {
 	static int buttonState=0;
+	static int pressure = 0;
 	SDL_Event event;
 	SDL_ShowCursor(FALSE);
 	/* get the mouse state */
 	while ( SDL_PollEvent(&event) ) {
 		switch (event.type) {
 			case SDL_MOUSEMOTION:
-				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, 0);
+				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, pressure);
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				switch(event.button.button)
@@ -337,6 +338,7 @@ void sdlTimer(void)
 				{
 					case 1:
 						buttonState=KD_BUTTON_1;
+						pressure = 0;
 						break;
 					case 2:
 						buttonState=KD_BUTTON_2;
@@ -352,6 +354,10 @@ void sdlTimer(void)
 			case SDL_KEYUP:
 			        KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
 				break;
+			case SDL_JOYAXISMOTION:
+				if(event.jaxis.which == 0 && event.jaxis.axis == 4)
+					pressure = event.jaxis.value * (32768 / 1024); // Pressure is in range 0-1024, X server wants 0-32768
+				break;
 
 			case SDL_QUIT:
 				/* this should never happen */
@@ -365,7 +371,9 @@ static int xsdlInit(void)
 #ifdef DEBUG
 	printf("Calling SDL_Init()\n");
 #endif
-	return SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
+	SDL_JoystickOpen(0); // Receive pressure events
+	return 0;
 }
 
 

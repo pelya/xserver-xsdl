@@ -5,6 +5,7 @@ set -x
 export BUILDDIR=`pwd`
 
 NCPU=4
+uname -s | grep -i "linux" && NCPU=`cat /proc/cpuinfo | grep -c -i processor`
 
 NDK=`which ndk-build`
 NDK=`dirname $NDK`
@@ -21,7 +22,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=arm-linux-androideabi \
 || exit 1
 cd $BUILDDIR
-}
+} || exit 1
 
 # =========== fontsproto ===========
 
@@ -33,7 +34,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=arm-linux-androideabi \
 || exit 1
 cd $BUILDDIR
-}
+} || exit 1
 
 # =========== xtrans ===========
 
@@ -54,7 +55,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 
 cd $BUILDDIR
 ln -sf ../xtrans-1.2.7 X11/Xtrans
-}
+} || exit 1
 
 # =========== xextproto ===========
 
@@ -66,7 +67,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=arm-linux-androideabi \
 || exit 1
 cd $BUILDDIR
-}
+} || exit 1
 
 # =========== inputproto ===========
 
@@ -80,7 +81,7 @@ cd $BUILDDIR
 for F in inputproto-2.3/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== kbproto ===========
 
@@ -94,7 +95,7 @@ cd $BUILDDIR
 for F in kbproto-1.0.6/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== xineramaproto ===========
 
@@ -108,7 +109,7 @@ cd $BUILDDIR
 for F in xineramaproto-1.2.1/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== renderproto ===========
 
@@ -122,7 +123,7 @@ cd $BUILDDIR
 for F in renderproto-0.11.1/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== xfixesproto ===========
 
@@ -136,7 +137,7 @@ cd $BUILDDIR
 for F in fixesproto-5.0/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== damageproto ===========
 
@@ -150,7 +151,7 @@ cd $BUILDDIR
 for F in damageproto-1.2.1/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== compositeproto ===========
 
@@ -164,7 +165,7 @@ cd $BUILDDIR
 for F in compositeproto-0.4.2/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== bigreqsproto ===========
 
@@ -178,7 +179,7 @@ cd $BUILDDIR
 for F in bigreqsproto-1.1.2/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== scrnsaverproto ===========
 
@@ -192,7 +193,7 @@ cd $BUILDDIR
 for F in scrnsaverproto-1.2.2/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== videoproto ===========
 
@@ -206,7 +207,7 @@ cd $BUILDDIR
 for F in videoproto-2.3.2/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== resourceproto ===========
 
@@ -220,7 +221,7 @@ cd $BUILDDIR
 for F in resourceproto-1.2.0/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== xcmiscproto ===========
 
@@ -234,7 +235,7 @@ cd $BUILDDIR
 for F in xcmiscproto-1.2.2/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== randrproto ===========
 
@@ -248,7 +249,7 @@ cd $BUILDDIR
 for F in randrproto-1.4.0/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== xf86bigfontproto ===========
 
@@ -262,7 +263,7 @@ cd $BUILDDIR
 for F in xf86bigfontproto-1.2.0/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== recordproto ===========
 
@@ -276,7 +277,7 @@ cd $BUILDDIR
 for F in recordproto-1.14.2/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
 
 # =========== libpixman-1.a ===========
 
@@ -298,7 +299,7 @@ make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
 ln -sf $BUILDDIR/pixman-0.30.2/pixman/.libs/libpixman-1.a $BUILDDIR/libpixman-1.a
-}
+} || exit 1
 
 # =========== libfontenc.a ===========
 
@@ -329,7 +330,7 @@ make -j$NCPU V=1 2>&1 || exit 1
 cd $BUILDDIR
 ln -sf ../libfontenc-1.1.2/include/X11/fonts/fontenc.h X11/fonts/
 ln -sf libfontenc-1.1.2/src/.libs/libfontenc.a ./
-}
+} || exit 1
 
 # =========== libXfont.a ===========
 
@@ -368,7 +369,7 @@ ln -sf libXfont-1.4.6/src/.libs/libXfont.a ./
 for F in libXfont-1.4.6/include/X11/fonts/* ; do
 ln -sf ../$F X11/fonts/
 done
-}
+} || exit 1
 
 # =========== libXau.a ==========
 
@@ -401,7 +402,7 @@ make -j$NCPU V=1 2>&1 || exit 1
 cd $BUILDDIR
 ln -sf libXau-1.0.8/.libs/libXau.a ./
 ln -sf ../libXau-1.0.8/include/X11/Xauth.h X11/
-}
+} || exit 1
 
 # =========== libXdmcp.a ==========
 
@@ -434,7 +435,7 @@ make -j$NCPU V=1 2>&1 || exit 1
 cd $BUILDDIR
 ln -sf libXdmcp-1.1.1/.libs/libXdmcp.a ./
 ln -sf ../libXdmcp-1.1.1/include/X11/Xdmcp.h X11/
-}
+} || exit 1
 
 # =========== xcbproto ===========
 [ -e proto-1.8 ] || {
@@ -446,7 +447,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 cd $BUILDDIR
-}
+} || exit 1
 
 # =========== libxcb.a ==========
 
@@ -482,7 +483,7 @@ mkdir -p xcb
 ln -sf ../libxcb-1.9.1/src/xcb.h xcb/
 ln -sf ../libxcb-1.9.1/src/xproto.h xcb/
 ln -sf ../libxcb-1.9.1/src/xcbext.h xcb/
-}
+} || exit 1
 
 [ -e libandroid_support.a ] || {
 mkdir -p android_support
@@ -495,7 +496,7 @@ sh -c '$CC $CFLAGS -Drestrict=__restrict__ -ffunction-sections -fdata-sections \
 	ar rcs ../libandroid_support.a *.o' \
 || exit 1
 cd $BUILDDIR
-}
+} || exit 1
 
 # =========== libX11.a ==========
 
@@ -535,7 +536,7 @@ ln -sf libX11-1.6.2/src/.libs/libX11.a ./
 for F in libX11-1.6.2/include/X11/*.h ; do
 ln -sf ../$F X11
 done
-}
+} || exit 1
 
 # =========== libxkbfile.a ==========
 
@@ -571,7 +572,42 @@ ln -sf libxkbfile-1.0.8/src/.libs/libxkbfile.a ./
 for F in libxkbfile-1.0.8/include/X11/extensions/*.h ; do
 ln -sf ../$F X11/extensions/
 done
-}
+} || exit 1
+
+# =========== xkbcomp binary ==========
+
+[ -e xkbcomp ] || {
+curl http://cgit.freedesktop.org/xorg/app/xkbcomp/snapshot/xkbcomp-1.2.4.tar.gz | tar xvz || exit 1
+
+cd xkbcomp-1.2.4
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+cp -f xkbcomp-1.2.4/xkbcomp ./
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP xkbcomp'
+} || exit 1
 
 # =========== xsdl ==========
 
@@ -582,7 +618,7 @@ ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR
 [ -z "$PACKAGE_NAME" ] && PACKAGE_NAME=X.org.server
 
 [ -e Makefile ] || \
-env CFLAGS=" \
+env CFLAGS=" -DDEBUG \
 	-isystem$BUILDDIR \
 	-include strings.h\
 	-include linux/time.h \
@@ -595,13 +631,14 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lfontenc -lfreetype -llog" \
 ../configure \
 --host=arm-linux-androideabi \
---prefix=/sdcard/Android/data/$PACKAGE_NAME/files/usr \
+--prefix=$TARGET_DIR/usr \
+--with-xkb-output=$TARGET_DIR/tmp \
 --disable-xorg --disable-dmx --disable-xvfb --disable-xnest --disable-xquartz --disable-xwin \
 --disable-xephyr --disable-xfake --disable-xfbdev --disable-unit-tests --disable-tslib \
 --disable-shm --disable-mitshm --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
 --enable-xsdl --enable-kdrive --enable-kdrive-kbd --enable-kdrive-mouse --enable-kdrive-evdev \
 || exit 1
 
-{ ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1 ; } | tee build.log
+./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1
 
 exit 0

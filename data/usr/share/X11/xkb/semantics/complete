@@ -1,0 +1,6 @@
+default xkb_semantics "complete" {
+
+xkb_types		{ include "complete" 	};
+xkb_compatibility	{ include "complete"	};
+
+};

@@ -47,7 +47,7 @@ int		XkbEventBase;
 static	int	XkbErrorBase;
 int		XkbReqCode;
 int		XkbKeyboardErrorCode;
-CARD32		xkbDebugFlags = 0;
+CARD32		xkbDebugFlags = 1;
 static CARD32	xkbDebugCtrls = 0;
 
 static RESTYPE	RT_XKBCLIENT;
