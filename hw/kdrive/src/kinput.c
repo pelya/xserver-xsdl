@@ -1152,6 +1152,8 @@ KdInitInput(void)
     if (SeatId) /* Enable input hot-plugging */
         config_init();
 #endif
+
+    KdExecuteChildCommand();
 }
 
 void
