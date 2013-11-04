@@ -544,6 +544,126 @@ ln -sf ../$F X11
 done
 } || exit 1
 
+# =========== libXext.a ==========
+
+[ -e libXext.a ] || {
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libXext/snapshot/libXext-1.3.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+curl $PKGURL | tar xvz || exit 1
+
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+ln -sf $PKGDIR/src/.libs/libXext.a ./
+for F in $PKGDIR/include/X11/extensions/*.h ; do
+ln -sf ../$F X11/extensions/
+done
+} || exit 1
+
+# =========== libXrender.a ==========
+
+[ -e libXrender.a ] || {
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libXrender/snapshot/libXrender-0.9.8.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+curl $PKGURL | tar xvz || exit 1
+
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+ln -sf $PKGDIR/src/.libs/libXrender.a ./
+for F in $PKGDIR/include/X11/extensions/*.h ; do
+ln -sf ../$F X11/extensions/
+done
+} || exit 1
+
+# =========== libXrandr.a ==========
+
+[ -e libXrandr.a ] || {
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libXrandr/snapshot/libXrandr-1.4.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+curl $PKGURL | tar xvz || exit 1
+
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+ln -sf $PKGDIR/src/.libs/libXrandr.a ./
+for F in $PKGDIR/include/X11/extensions/*.h ; do
+ln -sf ../$F X11/extensions/
+done
+} || exit 1
+
 # =========== libxkbfile.a ==========
 
 [ -e libxkbfile.a ] || {
@@ -615,6 +735,203 @@ cd $BUILDDIR
 cp -f xkbcomp-1.2.4/xkbcomp ./
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xkbcomp'
+} || exit 1
+
+# =========== libICE.a ==========
+
+[ -e libICE.a ] || {
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libICE/snapshot/libICE-1.0.8.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+curl $PKGURL | tar xvz || exit 1
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+#LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+ln -sf $PKGDIR/src/.libs/libICE.a ./
+ln -sf ../$PKGDIR/include/X11/ICE X11/
+} || exit 1
+
+# =========== libSM.a ==========
+
+[ -e libSM.a ] || {
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libSM/snapshot/libSM-1.2.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+curl $PKGURL | tar xvz || exit 1
+
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+#LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+ln -sf $PKGDIR/src/.libs/libSM.a ./
+ln -sf ../$PKGDIR/include/X11/SM X11/
+} || exit 1
+
+# =========== libXt.a ==========
+
+[ -e libXt.a ] || {
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libXt/snapshot/libXt-1.1.4.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+curl $PKGURL | tar xvz || exit 1
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+echo "all: makestrs" > util/Makefile
+echo "makestrs:" >> util/Makefile
+echo "	/usr/bin/gcc makestrs.c -o makestrs -I /usr/include" >> util/Makefile
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+ln -sf $PKGDIR/src/.libs/libXt.a ./
+for F in $PKGDIR/include/X11/*.h ; do
+ln -sf ../$F X11/
+done
+} || exit 1
+
+# =========== libXmu.a ==========
+
+[ -e libXmu.a ] || {
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libXmu/snapshot/libXmu-1.1.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+curl $PKGURL | tar xvz || exit 1
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h" \
+LDFLAGS="-L$BUILDDIR" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support -lSM -lICE" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+ln -sf $PKGDIR/src/.libs/libXmuu.a ./
+ln -sf $PKGDIR/src/.libs/libXmu.a ./
+ln -sf ../$PKGDIR/include/X11/Xmu X11/
+} || exit 1
+
+# =========== xhost binary ==========
+
+[ -e xhost ] || {
+PKGURL=http://cgit.freedesktop.org/xorg/app/xhost/snapshot/xhost-1.0.6.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+curl $PKGURL | tar xvz || exit 1
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h \
+-Dsethostent=abs -Dendhostent=sync" \
+LDFLAGS="-L$BUILDDIR" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=arm-linux-androideabi \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+cp -f $PKGDIR/xhost ./
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP xhost'
 } || exit 1
 
 # =========== xsdl ==========
