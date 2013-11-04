@@ -90,7 +90,6 @@ glamor_init_xv_shader(ScreenPtr screen)
 	glamor_screen_private *glamor_priv;
 	glamor_gl_dispatch *dispatch;
 	GLint fs_prog, vs_prog;
-	GLint sampler_loc;
 
 	glamor_priv = glamor_get_screen_private(screen);
 	dispatch =  glamor_get_dispatch(glamor_priv);
