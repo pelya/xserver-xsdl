@@ -81,6 +81,7 @@ char		    *kdSwitchCmd;
 DDXPointRec	    kdOrigin;
 Bool		    kdHasPointer = FALSE;
 Bool		    kdHasKbd = FALSE;
+char		    *kdExecuteCommand = NULL;
 
 static Bool         kdCaughtSignal = FALSE;
 
@@ -453,6 +454,7 @@ KdUseMsg (void)
     ErrorF("-origin X,Y      Locates the next screen in the the virtual screen (Xinerama)\n");
     ErrorF("-switchCmd       Command to execute on vt switch\n");
     ErrorF("-zap             Terminate server on Ctrl+Alt+Backspace\n");
+    ErrorF("-exec command    Execute command after server started\n");
     ErrorF("vtxx             Use virtual terminal xx instead of the next available\n");
 }
 
@@ -576,6 +578,16 @@ KdProcessArgument (int argc, char **argv, int i)
         KdAddConfigKeyboard(argv[i + 1]);
 	kdHasKbd = TRUE;
         return 2;
+    }
+    if (!strcmp (argv[i], "-exec"))
+    {
+	if ((i+1) < argc)
+	{
+		kdExecuteCommand = argv[i + 1];
+	}
+	else
+	    UseMsg ();
+	return 2;
     }
 
     return 0;

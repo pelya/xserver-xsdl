@@ -504,6 +504,9 @@ void
 KdCloseInput(void);
 
 void
+KdExecuteChildCommand();
+
+void
 KdAddPointerDriver(KdPointerDriver *);
 
 void
