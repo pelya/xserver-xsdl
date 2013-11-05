@@ -9,7 +9,7 @@
 
 extern char *kdExecuteCommand;
 
-static void child_command(void *unused)
+static void *child_command(void *unused)
 {
 	FILE *cmd;
 	char buf[512];
@@ -26,6 +26,7 @@ static void child_command(void *unused)
 		printf ("> %s", buf);
 	}
 	printf ("Child command returned with status %d", pclose (cmd));
+	return NULL;
 }
 
 void KdExecuteChildCommand()

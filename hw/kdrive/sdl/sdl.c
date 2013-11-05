@@ -28,6 +28,7 @@
 #endif
 #include "kdrive.h"
 #include <SDL/SDL.h>
+#include <SDL/SDL_screenkeyboard.h>
 #include <X11/keysym.h>
 
 #define DEBUG 1
@@ -352,7 +353,13 @@ void sdlTimer(void)
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
-			        KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
+				if (event.key.keysym.sym == SDLK_UNDO)
+				{
+					if(event.type == SDL_KEYUP)
+						SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
+				}
+				else
+					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
 				break;
 			case SDL_JOYAXISMOTION:
 				if(event.jaxis.which == 0 && event.jaxis.axis == 4)
