@@ -1640,7 +1640,7 @@ xf86SetBackingStore(ScreenPtr pScreen)
             from = X_CONFIG;
     }
     free(options);
-    pScreen->backingStoreSupport = useBS ? Always : NotUseful;
+    pScreen->backingStoreSupport = useBS ? WhenMapped : NotUseful;
     if (serverGeneration == 1)
         xf86DrvMsg(pScreen->myNum, from, "Backing store %s\n",
                    useBS ? "enabled" : "disabled");
