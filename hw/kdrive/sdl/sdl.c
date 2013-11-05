@@ -30,9 +30,11 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_screenkeyboard.h>
 #include <X11/keysym.h>
+#include <android/log.h>
 
-#define DEBUG 1
-#define printf(...) fprintf(stderr, __VA_ARGS__)
+// DEBUG
+//#define printf(...)
+#define printf(...) __android_log_print(ANDROID_LOG_INFO, "XSDL", __VA_ARGS__)
 
 static void xsdlFini(void);
 static Bool sdlScreenInit(KdScreenInfo *screen);
@@ -96,9 +98,7 @@ struct SdlDriver
 static Bool sdlScreenInit(KdScreenInfo *screen)
 {
 	struct SdlDriver *sdlDriver=calloc(1, sizeof(struct SdlDriver));
-#ifdef DEBUG
 	printf("sdlScreenInit()\n");
-#endif
 	if (!screen->width || !screen->height)
 	{
 		screen->width = 640;
@@ -106,15 +106,11 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 	}
 	if (!screen->fb.depth)
 		screen->fb.depth = 4;
-#ifdef DEBUG
 	printf("Attempting for %dx%d/%dbpp mode\n", screen->width, screen->height, screen->fb.depth);
-#endif
 	sdlDriver->screen=SDL_SetVideoMode(screen->width, screen->height, screen->fb.depth, 0);
 	if(sdlDriver->screen==NULL)
 		return FALSE;
-#ifdef DEBUG
 	printf("Set %dx%d/%dbpp mode\n", sdlDriver->screen->w, sdlDriver->screen->h, sdlDriver->screen->format->BitsPerPixel);
-#endif
 	screen->width=sdlDriver->screen->w;
 	screen->height=sdlDriver->screen->h;
 	screen->fb.depth=sdlDriver->screen->format->BitsPerPixel;
@@ -144,9 +140,7 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 	{
 		if(SDL_LockSurface(sdlDriver->screen)<0)
 		{
-#ifdef DEBUG
 			printf("Couldn't lock SDL surface - d'oh!\n");
-#endif
 			return;
 		}
 	}
@@ -163,9 +157,7 @@ void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, C
 	KdScreenInfo *screen = pScreenPriv->screen;
 	struct SdlDriver *sdlDriver=screen->driver;
 	*size=(sdlDriver->screen->w*sdlDriver->screen->format->BitsPerPixel)/8;
-#ifdef DEBUG
-	printf("Shadow window()\n");
-#endif
+	//printf("Shadow window()\n");
 	return (void *)((CARD8 *)sdlDriver->screen->pixels + row * (*size) + offset);
 }
 
@@ -195,10 +187,8 @@ static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 
 static void sdlKeyboardFini(KdKeyboardInfo *ki)
 {
-#ifdef DEBUG
     printf("sdlKeyboardFini() %p\n", ki);
-#endif
-        sdlKeyboard = NULL;
+    sdlKeyboard = NULL;
 }
 
 static Status sdlKeyboardInit(KdKeyboardInfo *ki)
@@ -207,9 +197,7 @@ static Status sdlKeyboardInit(KdKeyboardInfo *ki)
         ki->maxScanCode = 255;
 
 	sdlKeyboard = ki;
-#ifdef DEBUG
     printf("sdlKeyboardInit() %p\n", ki);
-#endif
         return Success;
 }
 
@@ -232,19 +220,15 @@ static void sdlKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int 
 
 static Status sdlMouseInit (KdPointerInfo *pi)
 {
-        sdlPointer = pi;
-#ifdef DEBUG
+    sdlPointer = pi;
     printf("sdlMouseInit() %p\n", pi);
-#endif
-	return Success;
+    return Success;
 }
 
 static void sdlMouseFini(KdPointerInfo *pi)
 {
-#ifdef DEBUG
     printf("sdlMouseFini() %p\n", pi);
-#endif
-        sdlPointer = NULL;
+    sdlPointer = NULL;
 }
 
 static Status sdlMouseEnable (KdPointerInfo *pi)
@@ -261,17 +245,13 @@ static void sdlMouseDisable (KdPointerInfo *pi)
 void InitCard(char *name)
 {
         KdCardInfoAdd (&sdlFuncs,  0);
-#ifdef DEBUG
 	printf("InitCard: %s\n", name);
-#endif
 }
 
 void InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
 	KdInitOutput(pScreenInfo, argc, argv);
-#ifdef DEBUG
 	printf("InitOutput()\n");
-#endif
 }
 
 void InitInput(int argc, char **argv)
@@ -316,6 +296,7 @@ void sdlTimer(void)
 	while ( SDL_PollEvent(&event) ) {
 		switch (event.type) {
 			case SDL_MOUSEMOTION:
+				//printf("SDL_MOUSEMOTION pressure %d\n", pressure);
 				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, pressure);
 				break;
 			case SDL_MOUSEBUTTONDOWN:
@@ -363,7 +344,7 @@ void sdlTimer(void)
 				break;
 			case SDL_JOYAXISMOTION:
 				if(event.jaxis.which == 0 && event.jaxis.axis == 4)
-					pressure = event.jaxis.value * (32768 / 1024); // Pressure is in range 0-1024, X server wants 0-32768
+					pressure = event.jaxis.value;
 				break;
 
 			case SDL_QUIT:
@@ -375,9 +356,7 @@ void sdlTimer(void)
 
 static int xsdlInit(void)
 {
-#ifdef DEBUG
 	printf("Calling SDL_Init()\n");
-#endif
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
 	SDL_JoystickOpen(0); // Receive pressure events
 	return 0;
