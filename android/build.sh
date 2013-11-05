@@ -934,6 +934,46 @@ $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xhost'
 } || exit 1
 
+# =========== xli binary ==========
+
+[ -e xli ] || {
+PKGURL=http://web.aanet.com.au/gwg/xli-1.16.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+curl $PKGURL | tar xvz || exit 1
+cd $PKGDIR
+
+echo "SRCS = bright.c clip.c cmuwmrast.c compress.c dither.c faces.c fbm.c \
+      fill.c  g3.c gif.c halftone.c imagetypes.c img.c mac.c mcidas.c \
+      mc_tables.c merge.c misc.c new.c options.c path.c pbm.c pcx.c \
+      reduce.c jpeg.c jpeglib.c rle.c rlelib.c root.c rotate.c send.c smooth.c \
+      sunraster.c value.c window.c xbitmap.c xli.c \
+      xpixmap.c xwd.c zio.c zoom.c ddxli.c doslib.c tga.c bmp.c pcd.c " > Makefile
+echo 'xli: $(SRCS)' >> Makefile
+echo '	$(CC) $(CFLAGS) $(SRCS) -o xli $(LDFLAGS) -lX11 -lxcb -lXau -lXdmcp -landroid_support -lm' >> Makefile
+
+echo '#include <stdarg.h>' > varargs.h
+
+sed -i 's/extern int errno;//' *.c
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h \
+-include sys/select.h \
+-include math.h \
+-include stdlib.h \
+-include string.h \
+-Drindex=strchr \
+-isystem ." \
+LDFLAGS="-L$BUILDDIR" \
+$BUILDDIR/setCrossEnvironment.sh \
+make V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+cp -f $PKGDIR/xli ./
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP xli'
+} || exit 1
+
 # =========== xsdl ==========
 
 ln -sf $BUILDDIR/../../../../../libs/armeabi-v7a/libsdl-1.2.so $BUILDDIR/libSDL.so
@@ -965,5 +1005,7 @@ LIBS="-lfontenc -lfreetype -llog" \
 || exit 1
 
 ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1
+
+
 
 exit 0
