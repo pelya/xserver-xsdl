@@ -1144,6 +1144,7 @@ AM_CONDITIONAL(XSHMFENCE, test "x$HAVE_XSHMFENCE" = xyes)
 case x"$HAVE_XSHMFENCE" in
 	xyes)
 		AC_DEFINE(HAVE_XSHMFENCE, 1, [Have X Shared Memory Fence library])
+		REQUIRED_LIBS="$REQUIRED_LIBS xshmfence"
 		;;
 esac
 
