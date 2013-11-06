@@ -221,6 +221,7 @@ struct glamor_saved_procs {
 	CreatePictureProcPtr create_picture;
 	DestroyPictureProcPtr destroy_picture;
 	UnrealizeGlyphProcPtr unrealize_glyph;
+	SetWindowPixmapProcPtr set_window_pixmap;
 };
 
 #ifdef GLAMOR_GLES2
@@ -933,6 +934,8 @@ Bool glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format, GLenu
 void glamor_destroy_upload_pixmap(PixmapPtr pixmap);
 
 int glamor_create_picture(PicturePtr picture);
+
+void glamor_set_window_pixmap(WindowPtr pWindow, PixmapPtr pPixmap);
 
 Bool
 glamor_prepare_access_picture(PicturePtr picture, glamor_access_t access);

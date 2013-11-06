@@ -215,8 +215,8 @@ glamor_composite_rectangles(CARD8	 op,
 	if (dst->pCompositeClip->data &&
 	    (!pixman_region_intersect(&region, &region, dst->pCompositeClip) ||
 	     region_is_empty(&region))) {
-		DEBUGF(("%s: zero-intersection between rectangles and clip\n",
-		     __FUNCTION__));
+		DEBUGF("%s: zero-intersection between rectangles and clip\n",
+		     __FUNCTION__);
 		pixman_region_fini(&region);
 		return;
 	}

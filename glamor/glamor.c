@@ -413,6 +413,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 	glamor_priv->saved_procs.create_picture = ps->CreatePicture;
 	ps->CreatePicture = glamor_create_picture;
 
+	glamor_priv->saved_procs.set_window_pixmap = screen->SetWindowPixmap;
+	screen->SetWindowPixmap = glamor_set_window_pixmap;
+
 	glamor_priv->saved_procs.destroy_picture = ps->DestroyPicture;
 	ps->DestroyPicture = glamor_destroy_picture;
 	glamor_init_composite_shaders(screen);
@@ -531,6 +534,7 @@ glamor_close_screen(CLOSE_SCREEN_ARGS_DECL)
 	ps->CompositeRects = glamor_priv->saved_procs.composite_rects;
 	ps->Glyphs = glamor_priv->saved_procs.glyphs;
 	ps->UnrealizeGlyph = glamor_priv->saved_procs.unrealize_glyph;
+	screen->SetWindowPixmap = glamor_priv->saved_procs.set_window_pixmap;
 #endif
 	screen_pixmap = screen->GetScreenPixmap(screen);
 	glamor_set_pixmap_private(screen_pixmap, NULL);
