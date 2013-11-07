@@ -184,8 +184,10 @@ present_vblank_notify(present_vblank_ptr vblank, CARD8 kind, CARD8 mode, uint64_
 static void
 present_pixmap_idle(PixmapPtr pixmap, WindowPtr window, CARD32 serial, struct present_fence *present_fence)
 {
-    present_fence_set_triggered(present_fence);
-    present_send_idle_notify(window, serial, pixmap, present_fence);
+    if (present_fence)
+        present_fence_set_triggered(present_fence);
+    if (window)
+        present_send_idle_notify(window, serial, pixmap, present_fence);
 }
 
 RRCrtcPtr
@@ -297,7 +299,8 @@ present_flip_idle(ScreenPtr screen)
     if (screen_priv->flip_pixmap) {
         present_pixmap_idle(screen_priv->flip_pixmap, screen_priv->flip_window,
                             screen_priv->flip_serial, screen_priv->flip_idle_fence);
-        present_fence_destroy(screen_priv->flip_idle_fence);
+        if (screen_priv->flip_idle_fence)
+            present_fence_destroy(screen_priv->flip_idle_fence);
         dixDestroyPixmap(screen_priv->flip_pixmap, screen_priv->flip_pixmap->drawable.id);
         screen_priv->flip_crtc = NULL;
         screen_priv->flip_window = NULL;
