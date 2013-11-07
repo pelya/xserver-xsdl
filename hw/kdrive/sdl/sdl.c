@@ -56,7 +56,7 @@ static void sdlMouseDisable (KdPointerInfo *pi);
 void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, CARD32 *size, void *closure);
 void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf);
 
-void sdlTimer(void);
+void sdlPollInput(void);
 
 KdKeyboardInfo *sdlKeyboard = NULL;
 KdPointerInfo *sdlPointer = NULL;
@@ -119,15 +119,13 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 	screen->fb.greenMask=sdlDriver->screen->format->Gmask;
 	screen->fb.blueMask=sdlDriver->screen->format->Bmask;
 	screen->fb.bitsPerPixel=sdlDriver->screen->format->BitsPerPixel;
-	screen->rate=60;
-	//screen->memory_base=(CARD8 *)sdlDriver->screen->pixels;
-	//screen->memory_size=0;
-	//screen->off_screen_base=0;
+	screen->rate=30; // 60 is too intense for CPU
 	screen->driver=sdlDriver;
-	screen->fb.byteStride=(sdlDriver->screen->w*sdlDriver->screen->format->BitsPerPixel)/8;
+	screen->fb.byteStride=sdlDriver->screen->pitch;
 	screen->fb.pixelStride=sdlDriver->screen->w;
 	screen->fb.frameBuffer=(CARD8 *)sdlDriver->screen->pixels;
 	SDL_WM_SetCaption("Freedesktop.org X server (SDL)", NULL);
+
 	return TRUE;
 }
 
@@ -136,6 +134,12 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
 	struct SdlDriver *sdlDriver=screen->driver;
+	pixman_box16_t * rects;
+	int amount, pixelCount = 0, i;
+	enum { SDL_NUMRECTS = 16 };
+	
+	/*
+	// Not needed on Android
 	if(SDL_MUSTLOCK(sdlDriver->screen))
 	{
 		if(SDL_LockSurface(sdlDriver->screen)<0)
@@ -147,7 +151,31 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 	
 	if(SDL_MUSTLOCK(sdlDriver->screen))
 		SDL_UnlockSurface(sdlDriver->screen);
-	SDL_UpdateRect(sdlDriver->screen, 0, 0, sdlDriver->screen->w, sdlDriver->screen->h);
+	*/
+
+	rects = pixman_region_rectangles(&pBuf->pDamage->damage, &amount);
+	for (i = 0; i < amount; i++)
+	{
+		pixelCount += (pBuf->pDamage->damage.extents.x2 - pBuf->pDamage->damage.extents.x1) *
+						(pBuf->pDamage->damage.extents.y2 - pBuf->pDamage->damage.extents.y1);
+	}
+	// Each subrect is copied into temp buffer before uploading to OpenGL texture,
+	// so if total area of pixels copied is more than 1/3 of the whole screen area,
+	// there will be performance hit instead of optimization.
+	if( amount > SDL_NUMRECTS || pixelCount * 3 > sdlDriver->screen->w * sdlDriver->screen->h )
+		SDL_Flip(sdlDriver->screen);
+	else
+	{
+		SDL_Rect sdlrects[SDL_NUMRECTS];
+		for (i = 0; i < amount; i++)
+		{
+			sdlrects[i].x = rects[i].x1;
+			sdlrects[i].y = rects[i].y1;
+			sdlrects[i].w = rects[i].x2 - rects[i].x1;
+			sdlrects[i].h = rects[i].y2 - rects[i].y1;
+		}
+		SDL_UpdateRects(sdlDriver->screen, amount, sdlrects);
+	}
 }
 
 
@@ -156,7 +184,7 @@ void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, C
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
 	struct SdlDriver *sdlDriver=screen->driver;
-	*size=(sdlDriver->screen->w*sdlDriver->screen->format->BitsPerPixel)/8;
+	*size=sdlDriver->screen->pitch;
 	//printf("Shadow window()\n");
 	return (void *)((CARD8 *)sdlDriver->screen->pixels + row * (*size) + offset);
 }
@@ -286,13 +314,14 @@ int ddxProcessArgument(int argc, char **argv, int i)
 	return KdProcessArgument(argc, argv, i);
 }
 
-void sdlTimer(void)
+void sdlPollInput(void)
 {
 	static int buttonState=0;
 	static int pressure = 0;
 	SDL_Event event;
-	SDL_ShowCursor(FALSE);
-	/* get the mouse state */
+
+	//printf("sdlPollInput() %d\n", SDL_GetTicks());
+
 	while ( SDL_PollEvent(&event) ) {
 		switch (event.type) {
 			case SDL_MOUSEMOTION:
@@ -377,7 +406,7 @@ CloseInput (void)
 KdOsFuncs sdlOsFuncs={
 	.Init = xsdlInit,
 	.Fini = xsdlFini,
-	.pollEvents = sdlTimer,
+	.pollEvents = sdlPollInput,
 };
 
 void OsVendorInit (void)
