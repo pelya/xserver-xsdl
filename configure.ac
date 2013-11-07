@@ -1118,6 +1118,41 @@ case "$DRI2,$HAVE_DRI2PROTO" in
 esac
 AM_CONDITIONAL(DRI2, test "x$DRI2" = xyes)
 
+AC_ARG_ENABLE(xtrans-send-fds,	AS_HELP_STRING([--disable-xtrans-send-fds], [Use Xtrans support for fd passing (default: auto)]), [XTRANS_SEND_FDS=$enableval], [XTRANS_SEND_FDS=auto])
+
+case "x$XTRANS_SEND_FDS" in
+xauto)
+	case "$host_os" in
+	linux*)
+		XTRANS_SEND_FDS=yes
+		;;
+	*)
+		XTRANS_SEND_FDS=no
+		;;
+	esac
+esac
+
+case "x$XTRANS_SEND_FDS" in
+xyes)
+	AC_DEFINE(XTRANS_SEND_FDS, 1, [Enable xtrans fd passing support])
+	;;
+esac
+
+case "$DRI3,$XTRANS_SEND_FDS" in
+	yes,yes | auto,yes)
+		;;
+	yes,no)
+		AC_MSG_ERROR([DRI3 requested, but xtrans fd passing support not found.])
+		DRI3=no
+		;;
+	no,*)
+		;;
+	*)
+		AC_MSG_NOTICE([DRI3 disabled because xtrans fd passing support not found.])
+		DRI3=no
+		;;
+esac
+
 PKG_CHECK_MODULES([DRI3PROTO], $DRI3PROTO,
                   [HAVE_DRI3PROTO=yes], [HAVE_DRI3PROTO=no])
 

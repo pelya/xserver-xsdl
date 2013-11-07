@@ -452,4 +452,7 @@
 /* Have support for X shared memory fence library (xshmfence) */
 #undef HAVE_XSHMFENCE
 
+/* Use XTrans FD passing support */
+#undef XTRANS_SEND_FDS
+
 #endif /* _DIX_CONFIG_H_ */
