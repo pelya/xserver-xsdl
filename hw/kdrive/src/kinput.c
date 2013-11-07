@@ -2008,7 +2008,7 @@ KdBlockHandler (int		screen,
     if(kdOsFuncs->pollEvents)
     {
 	    (*kdOsFuncs->pollEvents)();
-	    myTimeout=20;
+	    myTimeout=30; // Cap framerate to 33 FPS, more than enough for GUI
     }
     if(myTimeout>0)
     	AdjustWaitForDelay (timeout, myTimeout);
