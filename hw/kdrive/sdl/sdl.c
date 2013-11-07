@@ -162,6 +162,7 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 	// Each subrect is copied into temp buffer before uploading to OpenGL texture,
 	// so if total area of pixels copied is more than 1/3 of the whole screen area,
 	// there will be performance hit instead of optimization.
+#if 0
 	if( amount > SDL_NUMRECTS || pixelCount * 3 > sdlDriver->screen->w * sdlDriver->screen->h )
 		SDL_Flip(sdlDriver->screen);
 	else
@@ -173,9 +174,13 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 			sdlrects[i].y = rects[i].y1;
 			sdlrects[i].w = rects[i].x2 - rects[i].x1;
 			sdlrects[i].h = rects[i].y2 - rects[i].y1;
+			//printf("sdlShadowUpdate: rect %d: %04d:%04d:%04d:%04d", i, rects[i].x1, rects[i].y1, rects[i].x2, rects[i].y2);
 		}
 		SDL_UpdateRects(sdlDriver->screen, amount, sdlrects);
 	}
+#else
+	SDL_Flip(sdlDriver->screen);
+#endif
 }
 
 
