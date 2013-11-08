@@ -31,6 +31,7 @@ RELEASE_DATE="2013-10-31"
 RELEASE_NAME="Bom Retiro"
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
+AC_USE_SYSTEM_EXTENSIONS
 
 # Require xorg-macros minimum of 1.14 for XORG_COMPILER_BRAND in XORG_DEFAULT_OPTIONS
 m4_ifndef([XORG_MACROS_VERSION],
@@ -1096,7 +1097,7 @@ AC_ARG_ENABLE(xtrans-send-fds,	AS_HELP_STRING([--disable-xtrans-send-fds], [Use 
 case "x$XTRANS_SEND_FDS" in
 xauto)
 	case "$host_os" in
-	linux*)
+	linux*|solaris*)
 		XTRANS_SEND_FDS=yes
 		;;
 	*)

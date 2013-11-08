@@ -449,6 +449,14 @@
 #include "dix-config-apple-verbatim.h"
 #endif
 
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# undef __EXTENSIONS__
+#endif
+
+/* Defined if needed to expose struct msghdr.msg_control */
+#undef _XOPEN_SOURCE
+
 /* Have support for X shared memory fence library (xshmfence) */
 #undef HAVE_XSHMFENCE
 
