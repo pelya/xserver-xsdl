@@ -86,14 +86,15 @@ KdCardFuncs sdlFuncs = {
     .createRes = sdlCreateRes,	/* createRes */
 };
 
-int mouseState=0;
+int mouseState = 0;
+
+enum { NUMRECTS = 32, FULLSCREEN_REFRESH_TIME = 1000 };
+//Uint32 nextFullScreenRefresh = 0;
 
 struct SdlDriver
 {
 	SDL_Surface *screen;
 };
-
-
 
 static Bool sdlScreenInit(KdScreenInfo *screen)
 {
@@ -135,8 +136,8 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 	KdScreenInfo *screen = pScreenPriv->screen;
 	struct SdlDriver *sdlDriver=screen->driver;
 	pixman_box16_t * rects;
-	int amount, pixelCount = 0, i;
-	enum { SDL_NUMRECTS = 16 };
+	int amount, i;
+	int updateRectsPixelCount = 0;
 	
 	/*
 	// Not needed on Android
@@ -154,33 +155,39 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 	*/
 
 	rects = pixman_region_rectangles(&pBuf->pDamage->damage, &amount);
-	for (i = 0; i < amount; i++)
+	for ( i = 0; i < amount; i++ )
 	{
-		pixelCount += (pBuf->pDamage->damage.extents.x2 - pBuf->pDamage->damage.extents.x1) *
+		updateRectsPixelCount += (pBuf->pDamage->damage.extents.x2 - pBuf->pDamage->damage.extents.x1) *
 						(pBuf->pDamage->damage.extents.y2 - pBuf->pDamage->damage.extents.y1);
 	}
 	// Each subrect is copied into temp buffer before uploading to OpenGL texture,
 	// so if total area of pixels copied is more than 1/3 of the whole screen area,
 	// there will be performance hit instead of optimization.
-#if 0
-	if( amount > SDL_NUMRECTS || pixelCount * 3 > sdlDriver->screen->w * sdlDriver->screen->h )
+	//printf("sdlShadowUpdate: time %d", SDL_GetTicks());
+
+	if ( amount > NUMRECTS || updateRectsPixelCount * 3 > sdlDriver->screen->w * sdlDriver->screen->h )
+	{
+		//printf("SDL_Flip");
 		SDL_Flip(sdlDriver->screen);
+		//nextFullScreenRefresh = 0;
+	}
 	else
 	{
-		SDL_Rect sdlrects[SDL_NUMRECTS];
-		for (i = 0; i < amount; i++)
+		SDL_Rect updateRects[NUMRECTS];
+		//if ( ! nextFullScreenRefresh )
+		//	nextFullScreenRefresh = SDL_GetTicks() + FULLSCREEN_REFRESH_TIME;
+		for ( i = 0; i < amount; i++ )
 		{
-			sdlrects[i].x = rects[i].x1;
-			sdlrects[i].y = rects[i].y1;
-			sdlrects[i].w = rects[i].x2 - rects[i].x1;
-			sdlrects[i].h = rects[i].y2 - rects[i].y1;
+			updateRects[i].x = rects[i].x1;
+			updateRects[i].y = rects[i].y1;
+			updateRects[i].w = rects[i].x2 - rects[i].x1;
+			updateRects[i].h = rects[i].y2 - rects[i].y1;
 			//printf("sdlShadowUpdate: rect %d: %04d:%04d:%04d:%04d", i, rects[i].x1, rects[i].y1, rects[i].x2, rects[i].y2);
 		}
-		SDL_UpdateRects(sdlDriver->screen, amount, sdlrects);
+		//printf("SDL_UpdateRects %d %d", SDL_GetTicks(), amount);
+		SDL_UpdateRects(sdlDriver->screen, amount, updateRects);
 	}
-#else
 	SDL_Flip(sdlDriver->screen);
-#endif
 }
 
 
@@ -188,8 +195,8 @@ void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, C
 {
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
-	struct SdlDriver *sdlDriver=screen->driver;
-	*size=sdlDriver->screen->pitch;
+	struct SdlDriver *sdlDriver = screen->driver;
+	*size = sdlDriver->screen->pitch;
 	//printf("Shadow window()\n");
 	return (void *)((CARD8 *)sdlDriver->screen->pixels + row * (*size) + offset);
 }
@@ -386,6 +393,14 @@ void sdlPollInput(void)
 				SDL_Quit();
 		}
 	}
+	/*
+	if ( nextFullScreenRefresh && nextFullScreenRefresh < SDL_GetTicks() )
+	{
+		//printf("SDL_Flip from sdlPollInput");
+		SDL_Flip(SDL_GetVideoSurface());
+		nextFullScreenRefresh = 0;
+	}
+	*/
 }
 
 static int xsdlInit(void)
