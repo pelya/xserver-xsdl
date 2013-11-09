@@ -72,8 +72,6 @@ struct present_vblank {
     Bool                flip;
     Bool                sync_flip;
     Bool                abort_flip;
-
-    Bool                window_destroyed;
 };
 
 typedef struct present_screen_priv {

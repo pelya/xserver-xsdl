@@ -171,7 +171,8 @@ present_vblank_notify(present_vblank_ptr vblank, CARD8 kind, CARD8 mode, uint64_
 {
     int         n;
 
-    present_send_complete_notify(vblank->window, kind, mode, vblank->serial, ust, crtc_msc - vblank->msc_offset);
+    if (vblank->window)
+        present_send_complete_notify(vblank->window, kind, mode, vblank->serial, ust, crtc_msc - vblank->msc_offset);
     for (n = 0; n < vblank->num_notifies; n++) {
         WindowPtr   window = vblank->notifies[n].window;
         CARD32      serial = vblank->notifies[n].serial;
@@ -336,8 +337,7 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc);
 static void
 present_flip_notify(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
 {
-    WindowPtr                   window = vblank->window;
-    ScreenPtr                   screen = window->drawable.pScreen;
+    ScreenPtr                   screen = vblank->screen;
     present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
 
     DebugPresent(("\tn %p %8lld: %08lx -> %08lx\n", vblank, vblank->target_msc,
@@ -363,8 +363,7 @@ present_flip_notify(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
     if (vblank->abort_flip)
         present_unflip(screen);
 
-    if (!vblank->window_destroyed)
-        present_vblank_notify(vblank, PresentCompleteKindPixmap, PresentCompleteModeFlip, ust, crtc_msc);
+    present_vblank_notify(vblank, PresentCompleteKindPixmap, PresentCompleteModeFlip, ust, crtc_msc);
     present_vblank_destroy(vblank);
 }
 
@@ -474,7 +473,7 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
     }
 
     xorg_list_del(&vblank->event_queue);
-    if (vblank->pixmap) {
+    if (vblank->pixmap && vblank->window) {
 
         if (vblank->flip && screen_priv->flip_pending == NULL && !screen_priv->unflip_event_id) {
 
