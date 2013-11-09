@@ -374,6 +374,8 @@ present_event_notify(uint64_t event_id, uint64_t ust, uint64_t msc)
     present_vblank_ptr  vblank, tmp;
     int                 s;
 
+    if (!event_id)
+        return;
     DebugPresent(("\te %lld ust %lld msc %lld\n", event_id, ust, msc));
     xorg_list_for_each_entry_safe(vblank, tmp, &present_exec_queue, event_queue) {
         if (vblank->event_id == event_id) {
@@ -398,6 +400,7 @@ present_event_notify(uint64_t event_id, uint64_t ust, uint64_t msc)
             DebugPresent(("\tun %lld\n", event_id));
             screen_priv->unflip_event_id = 0;
             present_flip_idle(screen);
+            return;
         }
     }
 }
