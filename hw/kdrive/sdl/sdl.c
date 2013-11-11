@@ -388,9 +388,9 @@ void sdlPollInput(void)
 					pressure = event.jaxis.value;
 				break;
 
-			case SDL_QUIT:
+			//case SDL_QUIT:
 				/* this should never happen */
-				SDL_Quit();
+				//SDL_Quit(); // SDL_Quit() on Android is buggy
 		}
 	}
 	/*
@@ -414,7 +414,7 @@ static int xsdlInit(void)
 
 static void xsdlFini(void)
 {
-	SDL_Quit();
+	//SDL_Quit(); // SDL_Quit() on Android is buggy
 }
 
 void
