@@ -121,7 +121,8 @@ busfault_sigaction(int sig, siginfo_t *info, void *param)
      * /dev/zero over that area and keep going
      */
 
-    new_addr = mmap(busfault->addr, busfault->size, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE|MAP_FIXED, -1, 0);
+    new_addr = mmap(busfault->addr, busfault->size, PROT_READ|PROT_WRITE,
+                    MAP_ANON|MAP_PRIVATE|MAP_FIXED, -1, 0);
 
     if (new_addr == MAP_FAILED)
         goto panic;
