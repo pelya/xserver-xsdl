@@ -1879,9 +1879,6 @@ if test "x$XORG" = xyes; then
 		if test "${OS_MINOR}" -lt 8 ; then
 			AC_MSG_ERROR([This release no longer supports Solaris versions older than Solaris 8.])
 		fi
-		if test "x$SUNCC" = "xyes"; then
-			solaris_asm_inline="yes"
-		fi
 		AC_CHECK_DECL([_LP64], [SOLARIS_64="yes"], [SOLARIS_64="no"])
 			
 		case $host_cpu in
@@ -1902,11 +1899,6 @@ if test "x$XORG" = xyes; then
 			xorg@lists.freedesktop.org.]) ;;
 		esac
 		AC_SUBST([SOLARIS_INOUT_ARCH])
-		if test x$solaris_asm_inline = xyes ; then
-			SOLARIS_ASM_CFLAGS='$(top_srcdir)/hw/xfree86/os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il'
-			XORG_CFLAGS="${XORG_CFLAGS} "'$(SOLARIS_ASM_CFLAGS)'
-		fi
-		AC_SUBST([SOLARIS_ASM_CFLAGS])
 		;;
 	  gnu*)
 		XORG_OS_SUBDIR="hurd"
@@ -2012,7 +2004,6 @@ AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
 AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])
 AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])
 AM_CONDITIONAL([LNXAPM], [test "x$linux_apm" = xyes])
-AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
 AM_CONDITIONAL([SOLARIS_VT], [test "x$solaris_vt" = xyes])
 AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
 AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
