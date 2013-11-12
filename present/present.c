@@ -453,6 +453,26 @@ present_check_flip_window (WindowPtr window)
 }
 
 /*
+ * Called when the wait fence is triggered; just gets the current msc/ust and
+ * calls present_execute again. That will re-check the fence and pend the
+ * request again if it's still not actually ready
+ */
+static void
+present_wait_fence_triggered(void *param)
+{
+    present_vblank_ptr  vblank = param;
+    WindowPtr           window = vblank->window;
+    uint64_t            ust = 0, crtc_msc = 0;
+
+    if (window) {
+        present_window_priv_ptr     window_priv = present_get_window_priv(window, TRUE);
+        if (window_priv)
+            (void) present_get_ust_msc(window, window_priv->crtc, &ust, &crtc_msc);
+    }
+    present_execute(vblank, ust, crtc_msc);
+}
+
+/*
  * Once the required MSC has been reached, execute the pending request.
  *
  * For requests to actually present something, either blt contents to
@@ -469,7 +489,10 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
     present_screen_priv_ptr     screen_priv = present_screen_priv(window->drawable.pScreen);
 
     if (vblank->wait_fence) {
-        /* XXX check fence, queue if not ready */
+        if (!present_fence_check_triggered(vblank->wait_fence)) {
+            present_fence_set_callback(vblank->wait_fence, present_wait_fence_triggered, vblank);
+            return;
+        }
     }
 
     xorg_list_del(&vblank->event_queue);
@@ -654,6 +677,12 @@ present_pixmap(WindowPtr window,
             target_msc--;
     }
 
+    if (wait_fence) {
+        vblank->wait_fence = present_fence_create(wait_fence);
+        if (!vblank->wait_fence)
+            goto no_mem;
+    }
+
     if (idle_fence) {
         vblank->idle_fence = present_fence_create(idle_fence);
         if (!vblank->idle_fence)
@@ -763,6 +792,9 @@ present_vblank_destroy(present_vblank_ptr vblank)
         RegionDestroy(vblank->valid);
     if (vblank->update)
         RegionDestroy(vblank->update);
+
+    if (vblank->wait_fence)
+        present_fence_destroy(vblank->wait_fence);
 
     if (vblank->idle_fence)
         present_fence_destroy(vblank->idle_fence);

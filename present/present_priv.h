@@ -249,6 +249,14 @@ present_fence_destroy(struct present_fence *present_fence);
 void
 present_fence_set_triggered(struct present_fence *present_fence);
 
+Bool
+present_fence_check_triggered(struct present_fence *present_fence);
+
+void
+present_fence_set_callback(struct present_fence *present_fence,
+                           void (*callback)(void *param),
+                           void *param);
+
 XID
 present_fence_id(struct present_fence *present_fence);
 
@@ -269,6 +277,13 @@ present_create_notifies(ClientPtr client, int num_notifies, xPresentNotify *x_no
 
 void
 present_destroy_notifies(present_notify_ptr notifies, int num_notifies);
+
+/*
+ * present_redirect.c
+ */
+
+WindowPtr
+present_redirect(ClientPtr client, WindowPtr target);
 
 /*
  * present_request.c
