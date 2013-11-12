@@ -375,10 +375,22 @@ void sdlPollInput(void)
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
-				if (event.key.keysym.sym == SDLK_UNDO)
+				if (event.key.keysym.sym == SDLK_HELP)
 				{
 					if(event.type == SDL_KEYUP)
 						SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
+				}
+				else
+				if (event.key.keysym.sym == SDLK_UNDO)
+				{
+					if(event.type == SDL_KEYUP)
+					{
+						// Send Ctrl-Z
+						KdEnqueueKeyboardEvent (sdlKeyboard, 37, 0); // LCTRL
+						KdEnqueueKeyboardEvent (sdlKeyboard, 52, 0); // Z
+						KdEnqueueKeyboardEvent (sdlKeyboard, 52, 1); // Z
+						KdEnqueueKeyboardEvent (sdlKeyboard, 37, 1); // LCTRL
+					}
 				}
 				else
 					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
