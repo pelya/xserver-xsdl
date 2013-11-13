@@ -1086,6 +1086,49 @@ case "$DRI2,$HAVE_DRI2PROTO" in
 esac
 AM_CONDITIONAL(DRI2, test "x$DRI2" = xyes)
 
+dnl
+dnl Locate a suitable tmp file system for creating shared memeory files
+dnl
+
+AC_ARG_WITH(shared-memory-dir, AS_HELP_STRING([--with-shared-memory-dir=PATH], [Path to directory in a world-writable temporary directory for anonymous shared memory (default: auto)]),
+[],
+[with_shared_memory_dir=yes])
+
+shmdirs="/run/shm /var/tmp /tmp"
+
+case x"$with_shared_memory_dir" in
+xyes)
+	for dir in $shmdirs; do
+		case x"$with_shared_memory_dir" in
+		xyes)
+			echo Checking temp dir "$dir"
+			if test -d "$dir"; then
+				with_shared_memory_dir="$dir"
+			fi
+			;;
+		esac
+	done
+	;;
+x/*)
+	;;
+xno)
+	;;
+*)
+	AC_MSG_ERROR([Invalid directory specified for --with-shared-memory-dir: $with_shared_memory_dir])
+	;;
+esac
+
+case x"$with_shared_memory_dir" in
+xyes)
+	AC_MSG_ERROR([No directory found for shared memory temp files.])
+	;;
+xno)
+	;;
+*)
+	AC_DEFINE_UNQUOTED(SHMDIR, ["$with_shared_memory_dir"], [Directory for shared memory temp files])
+	;;
+esac
+
 AC_ARG_ENABLE(xtrans-send-fds,	AS_HELP_STRING([--disable-xtrans-send-fds], [Use Xtrans support for fd passing (default: auto)]), [XTRANS_SEND_FDS=$enableval], [XTRANS_SEND_FDS=auto])
 
 case "x$XTRANS_SEND_FDS" in
