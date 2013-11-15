@@ -156,7 +156,7 @@ xf86CloseLog(enum ExitCode error);
 
 /* xf86Init.c */
 extern _X_EXPORT Bool
-xf86LoadModules(char **list, pointer *optlist);
+xf86LoadModules(const char **list, pointer *optlist);
 extern _X_EXPORT int
 xf86SetVerbosity(int verb);
 extern _X_EXPORT int

@@ -67,7 +67,7 @@ int xf86validateLayout(XF86ConfigPtr p);
 XF86ConfModulePtr xf86parseModuleSection(void);
 void xf86printModuleSection(FILE * cf, XF86ConfModulePtr ptr);
 extern _X_EXPORT XF86LoadPtr xf86addNewLoadDirective(XF86LoadPtr head,
-                                                     char *name, int type,
+                                                     const char *name, int type,
                                                      XF86OptionPtr opts);
 void xf86freeModules(XF86ConfModulePtr ptr);
 

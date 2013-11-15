@@ -395,7 +395,7 @@ void
 InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
 {
     int i, j, k, scr_index;
-    char **modulelist;
+    const char **modulelist;
     pointer *optionlist;
     Pix24Flags screenpix24, pix24;
     MessageType pix24From = X_DEFAULT;
@@ -623,7 +623,9 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
 
         for (i = 0; i < xf86NumScreens; i++) {
             if (xf86Screens[i]->name == NULL) {
-                XNFasprintf(&xf86Screens[i]->name, "screen%d", i);
+                char *tmp;
+                XNFasprintf(&tmp, "screen%d", i);
+                xf86Screens[i]->name = tmp;
                 xf86MsgVerb(X_WARNING, 0,
                             "Screen driver %d has no name set, using `%s'.\n",
                             i, xf86Screens[i]->name);
@@ -1536,7 +1538,7 @@ ddxUseMsg(void)
  * xf86LoadModules iterates over a list that is being passed in.
  */
 Bool
-xf86LoadModules(char **list, pointer *optlist)
+xf86LoadModules(const char **list, pointer *optlist)
 {
     int errmaj, errmin;
     pointer opt;

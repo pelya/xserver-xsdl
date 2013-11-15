@@ -204,8 +204,7 @@ extern _X_EXPORT Bool xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set,
                                    int flags);
 
 #ifdef DPMSExtension
-extern _X_EXPORT int DPMSSet(ClientPtr client, int level);
-extern _X_EXPORT Bool DPMSSupported(void);
+#include "dpmsproc.h"
 #endif
 
 /* xf86DGA.c */
@@ -339,7 +338,7 @@ xf86LoadDrvSubModule(DriverPtr drv, const char *name);
 extern _X_EXPORT pointer
 xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name);
 extern _X_EXPORT pointer
-xf86LoadOneModule(char *name, pointer optlist);
+xf86LoadOneModule(const char *name, pointer optlist);
 extern _X_EXPORT void
 xf86UnloadSubModule(pointer mod);
 extern _X_EXPORT Bool
@@ -350,7 +349,7 @@ extern _X_EXPORT void
 xf86SetSilkenMouse(ScreenPtr pScreen);
 extern _X_EXPORT pointer
 xf86FindXvOptions(ScrnInfoPtr pScrn, int adapt_index, const char *port_name,
-                  char **adaptor_name, pointer *adaptor_options);
+                  const char **adaptor_name, pointer *adaptor_options);
 extern _X_EXPORT void
 xf86GetOS(const char **name, int *major, int *minor, int *teeny);
 extern _X_EXPORT ScrnInfoPtr

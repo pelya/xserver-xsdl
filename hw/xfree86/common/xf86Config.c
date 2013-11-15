@@ -236,11 +236,11 @@ xf86ValidateFontPath(char *path)
  * use the datastructure that the parser provides and pick out the parts
  * that we need at this point
  */
-char **
+const char **
 xf86ModulelistFromConfig(pointer **optlist)
 {
     int count = 0, i = 0;
-    char **modulearray;
+    const char **modulearray;
 
     const char *ignore[] = { "GLcore", "speedo", "bitmap", "drm",
         "freetype", "type1",
@@ -374,12 +374,12 @@ xf86ModulelistFromConfig(pointer **optlist)
     return modulearray;
 }
 
-char **
+const char **
 xf86DriverlistFromConfig(void)
 {
     int count = 0;
     int j;
-    char **modulearray;
+    const char **modulearray;
     screenLayoutPtr slp;
 
     /*
@@ -446,11 +446,11 @@ xf86DriverlistFromConfig(void)
     return modulearray;
 }
 
-char **
+const char **
 xf86InputDriverlistFromConfig(void)
 {
     int count = 0;
-    char **modulearray;
+    const char **modulearray;
     InputInfoPtr *idp;
 
     /*
@@ -505,11 +505,11 @@ xf86InputDriverlistFromConfig(void)
 }
 
 static void
-fixup_video_driver_list(char **drivers)
+fixup_video_driver_list(const char **drivers)
 {
     static const char *fallback[4] = { "fbdev", "vesa", "wsfb", NULL };
-    char **end, **drv;
-    char *x;
+    const char **end, **drv;
+    const char *x;
     int i;
 
     /* walk to the end of the list */
@@ -533,10 +533,10 @@ fixup_video_driver_list(char **drivers)
     }
 }
 
-static char **
+static const char **
 GenerateDriverlist(const char *dirname)
 {
-    char **ret;
+    const char **ret;
     const char *subdirs[] = { dirname, NULL };
     static const char *patlist[] = { "(.*)_drv\\.so", NULL };
     ret = LoaderListDirs(subdirs, patlist);
@@ -548,10 +548,10 @@ GenerateDriverlist(const char *dirname)
     return ret;
 }
 
-char **
+const char **
 xf86DriverlistFromCompile(void)
 {
-    static char **driverlist = NULL;
+    static const char **driverlist = NULL;
 
     if (!driverlist)
         driverlist = GenerateDriverlist("drivers");
@@ -589,7 +589,7 @@ configFiles(XF86ConfFilesPtr fileconf)
     /* FontPath */
     must_copy = TRUE;
 
-    temp_path = defaultFontPath ? defaultFontPath : "";
+    temp_path = defaultFontPath ? defaultFontPath : (char *) "";
     if (xf86fpFlag)
         pathFrom = X_CMDLINE;
     else if (fileconf && fileconf->file_fontpath) {
@@ -606,7 +606,7 @@ configFiles(XF86ConfFilesPtr fileconf)
     }
     else
         pathFrom = X_DEFAULT;
-    temp_path = defaultFontPath ? defaultFontPath : "";
+    temp_path = defaultFontPath ? defaultFontPath : (char *) "";
 
     /* xf86ValidateFontPath modifies its argument, but returns a copy of it. */
     temp_path = must_copy ? xnfstrdup(defaultFontPath) : defaultFontPath;
@@ -2349,7 +2349,7 @@ checkInput(serverLayoutPtr layout, Bool implicit_layout)
 ConfigStatus
 xf86HandleConfigFile(Bool autoconfig)
 {
-    char *scanptr;
+    const char *scanptr;
     Bool singlecard = 0;
     Bool implicit_layout = FALSE;
 

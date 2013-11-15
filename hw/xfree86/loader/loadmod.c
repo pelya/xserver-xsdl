@@ -482,7 +482,7 @@ FindModule(const char *module, const char *dirname, const char **subdirlist,
     return name;
 }
 
-char **
+const char **
 LoaderListDirs(const char **subdirlist, const char **patternlist)
 {
     char buf[PATH_MAX + 1];
@@ -490,7 +490,7 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
     char **elem;
     const char **subdirs;
     const char **s;
-    PatternPtr patterns;
+    PatternPtr patterns = NULL;
     PatternPtr p;
     DIR *d;
     struct dirent *dp;
@@ -571,7 +571,7 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
     FreePatterns(patterns);
     FreeSubdirs(subdirs);
     FreePathList(pathlist);
-    return ret;
+    return (const char **) ret;
 }
 
 void

@@ -34,7 +34,7 @@ typedef enum {
 } VidModeSelectMonitor;
 
 typedef union {
-    pointer ptr;
+    const void *ptr;
     int i;
     float f;
 } vidMonitorValue;

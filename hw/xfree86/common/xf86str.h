@@ -424,7 +424,7 @@ typedef struct {
     rgb blackColour;
     rgb whiteColour;
     int defaultVisual;
-    char **modes;
+    const char **modes;
     pointer options;
 } DispRec, *DispPtr;
 

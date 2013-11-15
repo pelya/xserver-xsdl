@@ -123,7 +123,7 @@ extern _X_EXPORT OptionInfoPtr xf86TokenToOptinfo(const OptionInfoRec * table,
 extern _X_EXPORT const char *xf86TokenToOptName(const OptionInfoRec * table,
                                                 int token);
 extern _X_EXPORT Bool xf86IsOptionSet(const OptionInfoRec * table, int token);
-extern _X_EXPORT char *xf86GetOptValString(const OptionInfoRec * table,
+extern _X_EXPORT const char *xf86GetOptValString(const OptionInfoRec * table,
                                            int token);
 extern _X_EXPORT Bool xf86GetOptValInteger(const OptionInfoRec * table,
                                            int token, int *value);

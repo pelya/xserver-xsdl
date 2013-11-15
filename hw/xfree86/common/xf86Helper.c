@@ -1068,9 +1068,7 @@ void
 xf86EnableDisableFBAccess(ScrnInfoPtr pScrnInfo, Bool enable)
 {
     ScreenPtr pScreen = pScrnInfo->pScreen;
-    PixmapPtr pspix;
 
-    pspix = (*pScreen->GetScreenPixmap) (pScreen);
     if (enable) {
         /*
          * Restore all of the clip lists on the screen
@@ -1566,7 +1564,7 @@ xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name)
  * xf86LoadOneModule loads a single module.
  */
 pointer
-xf86LoadOneModule(char *name, pointer opt)
+xf86LoadOneModule(const char *name, pointer opt)
 {
     int errmaj, errmin;
     char *Name;
@@ -1698,8 +1696,8 @@ xf86SetSilkenMouse(ScreenPtr pScreen)
 /* Wrote this function for the PM2 Xv driver, preliminary. */
 
 pointer
-xf86FindXvOptions(ScrnInfoPtr pScrn, int adaptor_index, char *port_name,
-                  char **adaptor_name, pointer *adaptor_options)
+xf86FindXvOptions(ScrnInfoPtr pScrn, int adaptor_index, const char *port_name,
+                  const char **adaptor_name, pointer *adaptor_options)
 {
     confXvAdaptorPtr adaptor;
     int i;
@@ -1817,7 +1815,7 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
         pNewProp->next = NULL;
     }
     else {
-        free(pNewProp->name);
+        free((void *) pNewProp->name);
         existing = TRUE;
     }
 

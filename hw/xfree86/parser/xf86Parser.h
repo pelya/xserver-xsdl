@@ -180,7 +180,7 @@ typedef struct {
     GenericListRec list;
     const char *mon_identifier;
     const char *mon_vendor;
-    const char *mon_modelname;
+    char *mon_modelname;
     int mon_width;              /* in mm */
     int mon_height;             /* in mm */
     XF86ConfModeLinePtr mon_modeline_lst;
@@ -304,7 +304,7 @@ typedef struct {
 
 typedef struct {
     GenericListRec list;
-    const char *identifier;
+    char *identifier;
     const char *driver;
     struct xorg_list match_product;
     struct xorg_list match_vendor;
