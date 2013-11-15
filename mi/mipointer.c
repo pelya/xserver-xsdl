@@ -352,7 +352,6 @@ miPointerWarpCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     miPointerPtr pPointer;
     BOOL changedScreen = FALSE;
 
-    SetupScreen(pScreen);
     pPointer = MIPOINTER(pDev);
 
     if (pPointer->pScreen != pScreen) {
@@ -465,14 +464,12 @@ miPointerUpdateSprite(DeviceIntPtr pDev)
 void
 miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
 {
-    miPointerScreenPtr pScreenPriv;
     ScreenPtr pScreen;
     miPointerPtr pPointer;
 
     pPointer = MIPOINTER(pDev);
 
     pScreen = screenInfo.screens[screen_no];
-    pScreenPriv = GetScreenPrivate(pScreen);
     mieqSwitchScreen(pDev, pScreen, FALSE);
     NewCurrentScreen(pDev, pScreen, x, y);
 
