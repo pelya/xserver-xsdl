@@ -1,0 +1,3 @@
+[submodule "android/android-shmem"]
+	path = android/android-shmem
+	url = git@github.com:pelya/android-shmem.git
