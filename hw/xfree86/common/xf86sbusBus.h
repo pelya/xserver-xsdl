@@ -52,16 +52,16 @@ typedef struct sbus_device {
     int fd;
     int width, height;
     sbusPromNode node;
-    char *descr;
-    char *device;
+    const char *descr;
+    const char *device;
 } sbusDevice, *sbusDevicePtr;
 
 struct sbus_devtable {
     int devId;
     int fbType;
-    char *promName;
-    char *driverName;
-    char *descr;
+    const char *promName;
+    const char *driverName;
+    const char *descr;
 };
 
 extern _X_EXPORT void xf86SbusProbe(void);

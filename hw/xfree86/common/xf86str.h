@@ -145,7 +145,7 @@ typedef enum {
 typedef struct _DisplayModeRec {
     struct _DisplayModeRec *prev;
     struct _DisplayModeRec *next;
-    char *name;                 /* identifier for the mode */
+    const char *name;           /* identifier for the mode */
     ModeStatus status;
     int type;
 
@@ -212,9 +212,9 @@ typedef struct {
 #define GAMMA_ZERO	(GAMMA_MIN / 100.0)
 
 typedef struct {
-    char *id;
-    char *vendor;
-    char *model;
+    const char *id;
+    const char *vendor;
+    const char *model;
     int nHsync;
     range hsync[MAX_HSYNC];
     int nVrefresh;
@@ -386,19 +386,19 @@ typedef enum {
 } DacSpeedIndex;
 
 typedef struct {
-    char *identifier;
-    char *vendor;
-    char *board;
-    char *chipset;
-    char *ramdac;
-    char *driver;
+    const char *identifier;
+    const char *vendor;
+    const char *board;
+    const char *chipset;
+    const char *ramdac;
+    const char *driver;
     struct _confscreenrec *myScreenSection;
     Bool claimed;
     int dacSpeeds[MAXDACSPEEDS];
     int numclocks;
     int clock[MAXCLOCKS];
-    char *clockchip;
-    char *busID;
+    const char *clockchip;
+    const char *busID;
     Bool active;
     Bool inUse;
     int videoRam;
@@ -429,19 +429,19 @@ typedef struct {
 } DispRec, *DispPtr;
 
 typedef struct _confxvportrec {
-    char *identifier;
+    const char *identifier;
     pointer options;
 } confXvPortRec, *confXvPortPtr;
 
 typedef struct _confxvadaptrec {
-    char *identifier;
+    const char *identifier;
     int numports;
     confXvPortPtr ports;
     pointer options;
 } confXvAdaptorRec, *confXvAdaptorPtr;
 
 typedef struct _confscreenrec {
-    char *id;
+    const char *id;
     int screennum;
     int defaultdepth;
     int defaultbpp;
@@ -467,25 +467,25 @@ typedef enum {
 
 typedef struct _screenlayoutrec {
     confScreenPtr screen;
-    char *topname;
+    const char *topname;
     confScreenPtr top;
-    char *bottomname;
+    const char *bottomname;
     confScreenPtr bottom;
-    char *leftname;
+    const char *leftname;
     confScreenPtr left;
-    char *rightname;
+    const char *rightname;
     confScreenPtr right;
     PositionType where;
     int x;
     int y;
-    char *refname;
+    const char *refname;
     confScreenPtr refscreen;
 } screenLayoutRec, *screenLayoutPtr;
 
 typedef struct _InputInfoRec InputInfoRec;
 
 typedef struct _serverlayoutrec {
-    char *id;
+    const char *id;
     screenLayoutPtr screens;
     GDevPtr inactives;
     InputInfoRec **inputs;      /* NULL terminated */

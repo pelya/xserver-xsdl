@@ -349,7 +349,7 @@ xf86SetBackingStore(ScreenPtr pScreen);
 extern _X_EXPORT void
 xf86SetSilkenMouse(ScreenPtr pScreen);
 extern _X_EXPORT pointer
-xf86FindXvOptions(ScrnInfoPtr pScrn, int adapt_index, char *port_name,
+xf86FindXvOptions(ScrnInfoPtr pScrn, int adapt_index, const char *port_name,
                   char **adaptor_name, pointer *adaptor_options);
 extern _X_EXPORT void
 xf86GetOS(const char **name, int *major, int *minor, int *teeny);

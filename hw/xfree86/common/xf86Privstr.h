@@ -136,7 +136,7 @@ typedef struct {
 /* Information for root window properties. */
 typedef struct _RootWinProp {
     struct _RootWinProp *next;
-    char *name;
+    const char *name;
     Atom type;
     short format;
     long size;

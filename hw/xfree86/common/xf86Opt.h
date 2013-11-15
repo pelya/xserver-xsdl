@@ -39,7 +39,7 @@ typedef struct {
 
 typedef union {
     unsigned long num;
-    char *str;
+    const char *str;
     double realnum;
     Bool bool;
     OptFrequency freq;

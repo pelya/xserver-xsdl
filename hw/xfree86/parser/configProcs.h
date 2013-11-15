@@ -141,7 +141,7 @@ xf86freeExtensions(XF86ConfExtensionsPtr ptr);
 #include <xorg-config.h>
 #endif
 
-#ifndef IN_XSERVER
+#ifndef HAVE_XORG_CONFIG_H
 /* Externally provided functions */
 void
 ErrorF(const char *f, ...);

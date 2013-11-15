@@ -137,7 +137,7 @@ typedef enum {
 
 typedef struct {
     int id;
-    char *name;
+    const char *name;
     unsigned short width, height;
     XvRationalRec rate;
 } XF86VideoEncodingRec, *XF86VideoEncodingPtr;
@@ -151,13 +151,13 @@ typedef struct {
     int flags;
     int min_value;
     int max_value;
-    char *name;
+    const char *name;
 } XF86AttributeRec, *XF86AttributePtr;
 
 typedef struct {
     unsigned int type;
     int flags;
-    char *name;
+    const char *name;
     int nEncodings;
     XF86VideoEncodingPtr pEncodings;
     int nFormats;
