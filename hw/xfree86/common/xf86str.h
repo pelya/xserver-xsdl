@@ -299,7 +299,7 @@ struct _DriverRec;
 
 typedef struct {
     int driverVersion;
-    char *driverName;
+    const char *driverName;
     void (*Identify) (int flags);
     Bool (*Probe) (struct _DriverRec * drv, int flags);
     const OptionInfoRec *(*AvailableOptions) (int chipid, int bustype);
@@ -315,7 +315,7 @@ struct xf86_platform_device;
 
 typedef struct _DriverRec {
     int driverVersion;
-    char *driverName;
+    const char *driverName;
     void (*Identify) (int flags);
     Bool (*Probe) (struct _DriverRec * drv, int flags);
     const OptionInfoRec *(*AvailableOptions) (int chipid, int bustype);
@@ -671,7 +671,7 @@ typedef void xf86ModeSetProc(ScrnInfoPtr);
 
 typedef struct _ScrnInfoRec {
     int driverVersion;
-    char *driverName;           /* canonical name used in */
+    const char *driverName;     /* canonical name used in */
     /* the config file */
     ScreenPtr pScreen;          /* Pointer to the ScreenRec */
     int scrnIndex;              /* Number of this screen */
@@ -730,7 +730,7 @@ typedef struct _ScrnInfoRec {
     int heightmm;
     int xDpi;                   /* width DPI */
     int yDpi;                   /* height DPI */
-    char *name;                 /* Name to prefix messages */
+    const char *name;           /* Name to prefix messages */
     pointer driverPrivate;      /* Driver private area */
     DevUnion *privates;         /* Other privates can hook in
                                  * here */
@@ -741,9 +741,9 @@ typedef struct _ScrnInfoRec {
 
     /* Some of these may be moved out of here into the driver private area */
 
-    char *chipset;              /* chipset name */
-    char *ramdac;               /* ramdac name */
-    char *clockchip;            /* clock name */
+    const char *chipset;        /* chipset name */
+    const char *ramdac;         /* ramdac name */
+    const char *clockchip;      /* clock name */
     Bool progClock;             /* clock is programmable */
     int numClocks;              /* number of clocks */
     int clock[MAXCLOCKS];       /* list of clock frequencies */
