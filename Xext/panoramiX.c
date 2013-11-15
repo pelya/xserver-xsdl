@@ -118,7 +118,7 @@ static DevPrivateKeyRec PanoramiXScreenKeyRec;
 typedef struct {
     DDXPointRec clipOrg;
     DDXPointRec patOrg;
-    GCFuncs *wrapFuncs;
+    const GCFuncs *wrapFuncs;
 } PanoramiXGCRec, *PanoramiXGCPtr;
 
 typedef struct {
@@ -134,7 +134,7 @@ static void XineramaChangeClip(GCPtr, int, pointer, int);
 static void XineramaDestroyClip(GCPtr);
 static void XineramaCopyClip(GCPtr, GCPtr);
 
-static GCFuncs XineramaGCFuncs = {
+static const GCFuncs XineramaGCFuncs = {
     XineramaValidateGC, XineramaChangeGC, XineramaCopyGC, XineramaDestroyGC,
     XineramaChangeClip, XineramaDestroyClip, XineramaCopyClip
 };

@@ -193,7 +193,6 @@ DestroyConstructResourceBytesCtx(ConstructResourceBytesCtx *ctx)
 static int
 ProcXResQueryVersion(ClientPtr client)
 {
-    REQUEST(xXResQueryVersionReq);
     xXResQueryVersionReply rep = {
         .type = X_Reply,
         .sequenceNumber = client->sequence,
@@ -1103,7 +1102,6 @@ ProcResDispatch(ClientPtr client)
 static int
 SProcXResQueryVersion(ClientPtr client)
 {
-    REQUEST(xXResQueryVersionReq);
     REQUEST_SIZE_MATCH(xXResQueryVersionReq);
     return ProcXResQueryVersion(client);
 }
