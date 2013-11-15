@@ -359,7 +359,7 @@ damageCreateGC(GCPtr pGC)
 
 #define DAMAGE_GC_OP_PROLOGUE(pGC, pDrawable) \
     damageGCPriv(pGC);  \
-    GCFuncs *oldFuncs = pGC->funcs; \
+    const GCFuncs *oldFuncs = pGC->funcs; \
     unwrap(pGCPriv, pGC, funcs);  \
     unwrap(pGCPriv, pGC, ops); \
 
@@ -379,7 +379,6 @@ damageCreateGC(GCPtr pGC)
 static void
 damageValidateGC(GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 {
-    drawableDamage(pDrawable);
     DAMAGE_GC_FUNC_PROLOGUE(pGC);
     (*pGC->funcs->ValidateGC) (pGC, changes, pDrawable);
     pGCPriv->ops = pGC->ops; /* just so it's not NULL */
