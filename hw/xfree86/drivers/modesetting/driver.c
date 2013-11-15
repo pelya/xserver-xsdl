@@ -183,7 +183,7 @@ Identify(int flags)
 		      Chipsets);
 }
 
-static int open_hw(char *dev)
+static int open_hw(const char *dev)
 {
     int fd;
     if (dev)
@@ -213,7 +213,7 @@ static int check_outputs(int fd)
     return ret;
 }
 
-static Bool probe_hw(char *dev)
+static Bool probe_hw(const char *dev)
 {
     int fd = open_hw(dev);
     if (fd != -1) {
@@ -237,7 +237,7 @@ ms_DRICreatePCIBusID(const struct pci_device *dev)
 }
 
 
-static Bool probe_hw_pci(char *dev, struct pci_device *pdev)
+static Bool probe_hw_pci(const char *dev, struct pci_device *pdev)
 {
     int ret = FALSE, fd = open_hw(dev);
     char *id, *devid;
@@ -298,7 +298,7 @@ ms_pci_probe(DriverPtr driver,
     scrn = xf86ConfigPciEntity(scrn, 0, entity_num, NULL,
 			       NULL, NULL, NULL, NULL, NULL);
     if (scrn) {
-	char *devpath;
+	const char *devpath;
 	GDevPtr devSection = xf86GetDevFromEntity(scrn->entityList[0],
 						  scrn->entityInstanceList[0]);
 
@@ -335,7 +335,7 @@ ms_platform_probe(DriverPtr driver,
               int entity_num, int flags, struct xf86_platform_device *dev, intptr_t match_data)
 {
     ScrnInfoPtr scrn = NULL;
-    char *path = xf86_get_platform_device_attrib(dev, ODEV_ATTRIB_PATH);
+    const char *path = xf86_get_platform_device_attrib(dev, ODEV_ATTRIB_PATH);
     int scr_flags = 0;
 
     if (flags & PLATFORM_PROBE_GPU_SCREEN)
@@ -369,7 +369,7 @@ Probe(DriverPtr drv, int flags)
     int i, numDevSections;
     GDevPtr *devSections;
     Bool foundScreen = FALSE;
-    char *dev;
+    const char *dev;
     ScrnInfoPtr scrn = NULL;
 
     /* For now, just bail out for PROBE_DETECT. */
@@ -559,6 +559,7 @@ FreeRec(ScrnInfoPtr pScrn)
             ret = drmClose(ms->fd);
         else
             ret = close(ms->fd);
+        (void) ret;
     }
     free(ms->Options);
     free(ms);
@@ -572,7 +573,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     rgb defaultWeight = { 0, 0, 0 };
     EntityInfoPtr pEnt;
     EntPtr msEnt = NULL;
-    char *BusID = NULL, *devicename;
+    char *BusID = NULL;
+    const char *devicename;
     Bool prefer_shadow = TRUE;
     uint64_t value = 0;
     int ret;

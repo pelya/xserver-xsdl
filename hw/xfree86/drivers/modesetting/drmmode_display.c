@@ -534,14 +534,13 @@ drmmode_set_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix)
 	DamageRegister(&ppix->drawable, drmmode_crtc->slave_damage);
 
 	if (ppriv->fb_id == 0) {
-		int r;
-		r = drmModeAddFB(drmmode->fd, ppix->drawable.width,
-				 ppix->drawable.height,
-				 ppix->drawable.depth,
-				 ppix->drawable.bitsPerPixel,
-				 ppix->devKind,
-				 ppriv->backing_bo->handle,
-				 &ppriv->fb_id);
+                drmModeAddFB(drmmode->fd, ppix->drawable.width,
+                             ppix->drawable.height,
+                             ppix->drawable.depth,
+                             ppix->drawable.bitsPerPixel,
+                             ppix->devKind,
+                             ppriv->backing_bo->handle,
+                             &ppriv->fb_id);
 	}
 	return TRUE;
 }
@@ -830,7 +829,7 @@ drmmode_output_create_resources(xf86OutputPtr output)
 	drmmode_prop = p->mode_prop;
 
 	if (drmmode_prop->flags & DRM_MODE_PROP_RANGE) {
-	    INT32 range[2];
+	    INT32 prop_range[2];
 	    INT32 value = p->value;
 
 	    p->num_atoms = 1;
@@ -838,12 +837,12 @@ drmmode_output_create_resources(xf86OutputPtr output)
 	    if (!p->atoms)
 		continue;
 	    p->atoms[0] = MakeAtom(drmmode_prop->name, strlen(drmmode_prop->name), TRUE);
-	    range[0] = drmmode_prop->values[0];
-	    range[1] = drmmode_prop->values[1];
+	    prop_range[0] = drmmode_prop->values[0];
+	    prop_range[1] = drmmode_prop->values[1];
 	    err = RRConfigureOutputProperty(output->randr_output, p->atoms[0],
 		    FALSE, TRUE,
 		    drmmode_prop->flags & DRM_MODE_PROP_IMMUTABLE ? TRUE : FALSE,
-		    2, range);
+		    2, prop_range);
 	    if (err != 0) {
 		xf86DrvMsg(output->scrn->scrnIndex, X_ERROR,
 			"RRConfigureOutputProperty error, %d\n", err);
