@@ -129,11 +129,11 @@ XkbFreeRMLVOSet(XkbRMLVOSet * rmlvo, Bool freeRMLVO)
     if (!rmlvo)
         return;
 
-    free(rmlvo->rules);
-    free(rmlvo->model);
-    free(rmlvo->layout);
-    free(rmlvo->variant);
-    free(rmlvo->options);
+    free((void *) rmlvo->rules);
+    free((void *) rmlvo->model);
+    free((void *) rmlvo->layout);
+    free((void *) rmlvo->variant);
+    free((void *) rmlvo->options);
 
     if (freeRMLVO)
         free(rmlvo);

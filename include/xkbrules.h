@@ -64,7 +64,7 @@ typedef struct _XkbRF_Rule {
 typedef struct _XkbRF_Group {
     int number;
     const char *name;
-    const char *words;
+    char *words;
 } XkbRF_GroupRec, *XkbRF_GroupPtr;
 
 #define	XkbRF_PendingMatch	(1L<<1)
