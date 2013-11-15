@@ -203,10 +203,6 @@ extern _X_EXPORT void xf86ReconfigureLayout(void);
 extern _X_EXPORT Bool xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set,
                                    int flags);
 
-#ifdef DPMSExtension
-#include "dpmsproc.h"
-#endif
-
 /* xf86DGA.c */
 
 #ifdef XFreeXDGA
