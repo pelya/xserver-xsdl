@@ -389,7 +389,7 @@ extern _X_EXPORT ModeStatus
 xf86CheckModeForDriver(ScrnInfoPtr scrp, DisplayModePtr mode, int flags);
 extern _X_EXPORT int
 xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
-                  char **modeNames, ClockRangePtr clockRanges,
+                  const char **modeNames, ClockRangePtr clockRanges,
                   int *linePitches, int minPitch, int maxPitch,
                   int minHeight, int maxHeight, int pitchInc,
                   int virtualX, int virtualY, int apertureSize,
