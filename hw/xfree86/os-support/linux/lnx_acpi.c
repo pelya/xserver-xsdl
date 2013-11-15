@@ -74,13 +74,12 @@ lnxACPIGetEventFromOs(int fd, pmEvent * events, int num)
 
     /* Check that we have a video event */
     if (!strncmp(ev, "video", 5)) {
-        char *video = NULL;
         char *GFX = NULL;
         char *notify = NULL;
         char *data = NULL;      /* doesn't appear to be used in the kernel */
-        unsigned long int notify_l, data_l;
+        unsigned long int notify_l;
 
-        video = strtok(ev, " ");
+        strtok(ev, " ");
 
         if (!(GFX = strtok(NULL, " ")))
             return 0;
@@ -97,8 +96,8 @@ lnxACPIGetEventFromOs(int fd, pmEvent * events, int num)
 
         if (!(data = strtok(NULL, " ")))
             return 0;
-        data_l = strtoul(data, NULL, 16);
 #if 0
+        data_l = strtoul(data, NULL, 16);
         ErrorF("data: 0x%lx\n", data_l);
 #endif
 

@@ -1563,8 +1563,6 @@ DRI2CloseScreen(ScreenPtr pScreen)
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, NULL);
 }
 
-extern Bool DRI2ModuleSetup(void);
-
 /* Called by InitExtensions() */
 Bool
 DRI2ModuleSetup(void)

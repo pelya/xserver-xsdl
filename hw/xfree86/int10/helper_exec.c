@@ -170,7 +170,7 @@ dump_code(xf86Int10InfoPtr pInt)
     CARD32 lina = SEG_ADR((CARD32), X86_CS, IP);
 
     xf86DrvMsgVerb(pInt->pScrn->scrnIndex, X_INFO, 3, "code at 0x%8.8" PRIx32 ":\n",
-                   lina);
+                   (unsigned) lina);
     for (i = 0; i < 0x10; i++)
         xf86ErrorFVerb(3, " %2.2x", MEM_RB(pInt, lina + i));
     xf86ErrorFVerb(3, "\n");
@@ -229,7 +229,7 @@ port_rep_inb(xf86Int10InfoPtr pInt,
 
     if (PRINT_PORT && DEBUG_IO_TRACE())
         ErrorF(" rep_insb(%#x) %" PRIu32 " bytes at %8.8" PRIx32 " %s\n",
-               port, count, base, d_f ? "up" : "down");
+               port, (unsigned) count, (unsigned) base, d_f ? "up" : "down");
     while (count--) {
         MEM_WB(pInt, dst, x_inb(port));
         dst += inc;
@@ -246,7 +246,7 @@ port_rep_inw(xf86Int10InfoPtr pInt,
 
     if (PRINT_PORT && DEBUG_IO_TRACE())
         ErrorF(" rep_insw(%#x) %" PRIu32 " bytes at %8.8" PRIx32 " %s\n",
-               port, count, base, d_f ? "up" : "down");
+               port, (unsigned) count, (unsigned) base, d_f ? "up" : "down");
     while (count--) {
         MEM_WW(pInt, dst, x_inw(port));
         dst += inc;
@@ -263,7 +263,7 @@ port_rep_inl(xf86Int10InfoPtr pInt,
 
     if (PRINT_PORT && DEBUG_IO_TRACE())
         ErrorF(" rep_insl(%#x) %" PRIu32 " bytes at %8.8" PRIx32 " %s\n",
-               port, count, base, d_f ? "up" : "down");
+               port, (unsigned) count, (unsigned) base, d_f ? "up" : "down");
     while (count--) {
         MEM_WL(pInt, dst, x_inl(port));
         dst += inc;
@@ -280,7 +280,7 @@ port_rep_outb(xf86Int10InfoPtr pInt,
 
     if (PRINT_PORT && DEBUG_IO_TRACE())
         ErrorF(" rep_outb(%#x) %" PRIu32 " bytes at %8.8" PRIx32 " %s\n",
-               port, count, base, d_f ? "up" : "down");
+               port, (unsigned) count, (unsigned) base, d_f ? "up" : "down");
     while (count--) {
         x_outb(port, MEM_RB(pInt, dst));
         dst += inc;
@@ -297,7 +297,7 @@ port_rep_outw(xf86Int10InfoPtr pInt,
 
     if (PRINT_PORT && DEBUG_IO_TRACE())
         ErrorF(" rep_outw(%#x) %" PRIu32 " bytes at %8.8" PRIx32 " %s\n",
-               port, count, base, d_f ? "up" : "down");
+               port, (unsigned) count, (unsigned) base, d_f ? "up" : "down");
     while (count--) {
         x_outw(port, MEM_RW(pInt, dst));
         dst += inc;
@@ -314,7 +314,7 @@ port_rep_outl(xf86Int10InfoPtr pInt,
 
     if (PRINT_PORT && DEBUG_IO_TRACE())
         ErrorF(" rep_outl(%#x) %" PRIu32 " bytes at %8.8" PRIx32 " %s\n",
-               port, count, base, d_f ? "up" : "down");
+               port, (unsigned) count, (unsigned) base, d_f ? "up" : "down");
     while (count--) {
         x_outl(port, MEM_RL(pInt, dst));
         dst += inc;
@@ -429,7 +429,7 @@ x_inl(CARD16 port)
     if (!pciCfg1in(port, &val)) {
         val = pci_io_read32(Int10Current->io, port);
         if (PRINT_PORT && DEBUG_IO_TRACE())
-            ErrorF(" inl(%#x) = %8.8" PRIx32 "\n", port, val);
+            ErrorF(" inl(%#x) = %8.8" PRIx32 "\n", port, (unsigned) val);
     }
     return val;
 }
@@ -439,7 +439,7 @@ x_outl(CARD16 port, CARD32 val)
 {
     if (!pciCfg1out(port, val)) {
         if (PRINT_PORT && DEBUG_IO_TRACE())
-            ErrorF(" outl(%#x, %8.8" PRIx32 ")\n", port, val);
+            ErrorF(" outl(%#x, %8.8" PRIx32 ")\n", port, (unsigned) val);
         pci_io_write32(Int10Current->io, port, val);
     }
 }
@@ -526,8 +526,8 @@ pciCfg1in(CARD16 addr, CARD32 *val)
         pci_device_cfg_read_u32(pci_device_for_cfg_address(PciCfg1Addr),
                                 (uint32_t *) val, PCI_OFFSET(PciCfg1Addr));
         if (PRINT_PORT && DEBUG_IO_TRACE())
-            ErrorF(" cfg_inl(%#" PRIx32 ") = %8.8" PRIx32 "\n", PciCfg1Addr,
-                   *val);
+            ErrorF(" cfg_inl(%#" PRIx32 ") = %8.8" PRIx32 "\n", (unsigned) PciCfg1Addr,
+                   (unsigned) *val);
         return 1;
     }
     return 0;
@@ -542,8 +542,8 @@ pciCfg1out(CARD16 addr, CARD32 val)
     }
     if (addr == 0xCFC) {
         if (PRINT_PORT && DEBUG_IO_TRACE())
-            ErrorF(" cfg_outl(%#" PRIx32 ", %8.8" PRIx32 ")\n", PciCfg1Addr,
-                   val);
+            ErrorF(" cfg_outl(%#" PRIx32 ", %8.8" PRIx32 ")\n", (unsigned) PciCfg1Addr,
+                   (unsigned) val);
         pci_device_cfg_write_u32(pci_device_for_cfg_address(PciCfg1Addr), val,
                                  PCI_OFFSET(PciCfg1Addr));
         return 1;
@@ -567,8 +567,8 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
         pci_device_cfg_read_u16(pci_device_for_cfg_address(PciCfg1Addr),
                                 val, PCI_OFFSET(PciCfg1Addr) + offset);
         if (PRINT_PORT && DEBUG_IO_TRACE())
-            ErrorF(" cfg_inw(%#" PRIx32 ") = %4.4x\n", PciCfg1Addr + offset,
-                   *val);
+            ErrorF(" cfg_inw(%#" PRIx32 ") = %4.4x\n", (unsigned) (PciCfg1Addr + offset),
+                   (unsigned) *val);
         return 1;
     }
     return 0;
@@ -589,8 +589,8 @@ pciCfg1outw(CARD16 addr, CARD16 val)
         const unsigned offset = addr - 0xCFC;
 
         if (PRINT_PORT && DEBUG_IO_TRACE())
-            ErrorF(" cfg_outw(%#" PRIx32 ", %4.4x)\n", PciCfg1Addr + offset,
-                   val);
+            ErrorF(" cfg_outw(%#" PRIx32 ", %4.4x)\n", (unsigned) (PciCfg1Addr + offset),
+                   (unsigned) val);
         pci_device_cfg_write_u16(pci_device_for_cfg_address(PciCfg1Addr), val,
                                  PCI_OFFSET(PciCfg1Addr) + offset);
         return 1;
@@ -614,8 +614,8 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
         pci_device_cfg_read_u8(pci_device_for_cfg_address(PciCfg1Addr),
                                val, PCI_OFFSET(PciCfg1Addr) + offset);
         if (PRINT_PORT && DEBUG_IO_TRACE())
-            ErrorF(" cfg_inb(%#" PRIx32 ") = %2.2x\n", PciCfg1Addr + offset,
-                   *val);
+            ErrorF(" cfg_inb(%#" PRIx32 ") = %2.2x\n", (unsigned) (PciCfg1Addr + offset),
+                   (unsigned) *val);
         return 1;
     }
     return 0;
@@ -636,8 +636,8 @@ pciCfg1outb(CARD16 addr, CARD8 val)
         const unsigned offset = addr - 0xCFC;
 
         if (PRINT_PORT && DEBUG_IO_TRACE())
-            ErrorF(" cfg_outb(%#" PRIx32 ", %2.2x)\n", PciCfg1Addr + offset,
-                   val);
+            ErrorF(" cfg_outb(%#" PRIx32 ", %2.2x)\n", (unsigned) (PciCfg1Addr + offset),
+                   (unsigned) val);
         pci_device_cfg_write_u8(pci_device_for_cfg_address(PciCfg1Addr), val,
                                 PCI_OFFSET(PciCfg1Addr) + offset);
         return 1;
