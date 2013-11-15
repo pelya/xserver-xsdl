@@ -221,12 +221,12 @@ typedef struct _InputOption InputOption;
 typedef struct _XI2Mask XI2Mask;
 
 typedef struct _InputAttributes {
-    char *product;
-    char *vendor;
-    char *device;
-    char *pnp_id;
-    char *usb_id;
-    char **tags;                /* null-terminated */
+    const char *product;
+    const char *vendor;
+    const char *device;
+    const char *pnp_id;
+    const char *usb_id;
+    const char **tags;                /* null-terminated */
     uint32_t flags;
 } InputAttributes;
 

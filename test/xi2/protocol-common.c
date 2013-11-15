@@ -43,9 +43,6 @@ static ClientRec server_client;
 
 void *userdata;
 
-extern int CorePointerProc(DeviceIntPtr pDev, int what);
-extern int CoreKeyboardProc(DeviceIntPtr pDev, int what);
-
 static void
 fake_init_sprite(DeviceIntPtr dev)
 {

@@ -955,7 +955,7 @@ CloseDevice(DeviceIntPtr dev)
     while (dev->xkb_interest)
         XkbRemoveResourceClient((DevicePtr) dev, dev->xkb_interest->resource);
 
-    free(dev->name);
+    free((void *) dev->name);
 
     classes = (ClassesPtr) &dev->key;
     FreeAllDeviceClasses(classes);
@@ -2735,6 +2735,7 @@ AllocDevicePair(ClientPtr client, const char *name,
 {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
+    char *dev_name;
 
     *ptr = *keybd = NULL;
 
@@ -2745,12 +2746,12 @@ AllocDevicePair(ClientPtr client, const char *name,
     if (!pointer)
         return BadAlloc;
 
-    if (asprintf(&pointer->name, "%s pointer", name) == -1) {
-        pointer->name = NULL;
+    if (asprintf(&dev_name, "%s pointer", name) == -1) {
         RemoveDevice(pointer, FALSE);
 
         return BadAlloc;
     }
+    pointer->name = dev_name;
 
     pointer->public.processInputProc = ProcessOtherEvent;
     pointer->public.realInputProc = ProcessOtherEvent;
@@ -2771,13 +2772,13 @@ AllocDevicePair(ClientPtr client, const char *name,
         return BadAlloc;
     }
 
-    if (asprintf(&keyboard->name, "%s keyboard", name) == -1) {
-        keyboard->name = NULL;
+    if (asprintf(&dev_name, "%s keyboard", name) == -1) {
         RemoveDevice(keyboard, FALSE);
         RemoveDevice(pointer, FALSE);
 
         return BadAlloc;
     }
+    keyboard->name = dev_name;
 
     keyboard->public.processInputProc = ProcessOtherEvent;
     keyboard->public.realInputProc = ProcessOtherEvent;
