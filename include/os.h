@@ -448,7 +448,7 @@ extern _X_EXPORT void
 AddLocalHosts(void);
 
 extern _X_EXPORT void
-ResetHosts(char *display);
+ResetHosts(const char *display);
 
 extern _X_EXPORT void
 EnableLocalHost(void);
@@ -471,7 +471,7 @@ RegisterAuthorizations(void);
 #endif
 
 extern _X_EXPORT void
-InitAuthorization(char * /*filename */ );
+InitAuthorization(const char * /*filename */ );
 
 /* extern int LoadAuthorization(void); */
 

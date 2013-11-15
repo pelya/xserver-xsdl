@@ -814,7 +814,7 @@ AddLocalHosts(void)
 
 /* Reset access control list to initial hosts */
 void
-ResetHosts(char *display)
+ResetHosts(const char *display)
 {
     register HOST *host;
     char lhostname[120], ohostname[120];
