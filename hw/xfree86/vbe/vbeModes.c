@@ -356,8 +356,10 @@ VBESetModeNames(DisplayModePtr pMode)
                 pMode->name = strdup("BADMODE");
             }
             else {
-                XNFasprintf(&pMode->name, "%dx%d",
+                char *tmp;
+                XNFasprintf(&tmp, "%dx%d",
                             pMode->HDisplay, pMode->VDisplay);
+                pMode->name = tmp;
             }
         }
         pMode = pMode->next;
