@@ -921,7 +921,7 @@ dmxInputScanForExtensions(DMXInputInfo * dmxInput, int doXI)
                 break;
             }
             dmxLogInput(dmxInput, "  %2d %-10.10s %-16.16s\n",
-                        devices[i].id,
+                        (int) devices[i].id,
                         devices[i].name ? devices[i].name : "", use);
         }
 
@@ -993,7 +993,6 @@ dmxInputLateReInit(DMXInputInfo * dmxInput)
 void
 dmxInputInit(DMXInputInfo * dmxInput)
 {
-    DeviceIntPtr pPointer = NULL, pKeyboard = NULL;
     dmxArg a;
     const char *name;
     int i;
@@ -1108,12 +1107,6 @@ dmxInputInit(DMXInputInfo * dmxInput)
         DMXLocalInputInfoPtr dmxLocal = dmxInput->devs[i];
 
         dmxLocal->pDevice = dmxAddDevice(dmxLocal);
-        if (dmxLocal->isCore) {
-            if (dmxLocal->type == DMX_LOCAL_MOUSE)
-                pPointer = dmxLocal->pDevice;
-            if (dmxLocal->type == DMX_LOCAL_KEYBOARD)
-                pKeyboard = dmxLocal->pDevice;
-        }
     }
 
     dmxInput->processInputEvents = dmxProcessInputEvents;
@@ -1136,7 +1129,7 @@ dmxInputFreeLocal(DMXLocalInputInfoRec * local)
         local->destroy_private(local->private);
     free(local->history);
     free(local->valuators);
-    free(local->deviceName);
+    free((void *) local->deviceName);
     local->private = NULL;
     local->history = NULL;
     local->deviceName = NULL;
@@ -1164,7 +1157,7 @@ dmxInputFree(DMXInputInfo * dmxInput)
     dmxInput->devs = NULL;
     dmxInput->numDevs = 0;
     if (dmxInput->freename)
-        free(dmxInput->name);
+        free((void *) dmxInput->name);
     dmxInput->name = NULL;
 }
 
@@ -1218,7 +1211,7 @@ dmxInputLogDevices(void)
                 dmxLogCont(dmxInfo, "\t[i%d/%*.*s",
                            dmxInput->inputIdx, len, len, dmxInput->name);
                 if (dmxInput->devs[i]->deviceId >= 0)
-                    dmxLogCont(dmxInfo, "/id%d", dmxInput->devs[i]->deviceId);
+                    dmxLogCont(dmxInfo, "/id%d", (int) dmxInput->devs[i]->deviceId);
                 if (dmxInput->devs[i]->deviceName)
                     dmxLogCont(dmxInfo, "=%s", dmxInput->devs[i]->deviceName);
                 dmxLogCont(dmxInfo, "] %s\n",

@@ -825,8 +825,8 @@ dmxConsoleInit(DevicePtr pDev)
 
     /* Set up properties */
     XStoreName(dpy, win, DMX_CONSOLE_NAME);
-    class_hints.res_name = DMX_RES_NAME;
-    class_hints.res_class = DMX_RES_CLASS;
+    class_hints.res_name = (char *) DMX_RES_NAME;
+    class_hints.res_class = (char *) DMX_RES_CLASS;
     XSetClassHint(dpy, win, &class_hints);
 
     /* Map the window */

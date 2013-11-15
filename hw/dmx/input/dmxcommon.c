@@ -339,7 +339,7 @@ dmxCommonOthOn(DevicePtr pDev)
     if (!(priv->xi = XOpenDevice(priv->display, dmxLocal->deviceId))) {
         dmxLog(dmxWarning, "Cannot open %s device (id=%d) on %s\n",
                dmxLocal->deviceName ? dmxLocal->deviceName : "(unknown)",
-               dmxLocal->deviceId, dmxInput->name);
+               (int) dmxLocal->deviceId, dmxInput->name);
         return -1;
     }
     ADD(DeviceKeyPress);
