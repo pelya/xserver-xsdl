@@ -800,8 +800,8 @@ XvMCFindXvImage(XvPortPtr pPort, CARD32 id)
 }
 
 int
-xf86XvMCRegisterDRInfo(ScreenPtr pScreen, char *name,
-                       char *busID, int major, int minor, int patchLevel)
+xf86XvMCRegisterDRInfo(ScreenPtr pScreen, const char *name,
+                       const char *busID, int major, int minor, int patchLevel)
 {
     XvMCScreenPtr pScreenPriv = XVMC_GET_PRIVATE(pScreen);
 

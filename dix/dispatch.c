@@ -470,7 +470,7 @@ Dispatch(void)
 }
 
 static int VendorRelease = VENDOR_RELEASE;
-static char *VendorString = VENDOR_NAME;
+static const char *VendorString = VENDOR_NAME;
 
 void
 SetVendorRelease(int release)
@@ -479,7 +479,7 @@ SetVendorRelease(int release)
 }
 
 void
-SetVendorString(char *string)
+SetVendorString(const char *string)
 {
     VendorString = string;
 }

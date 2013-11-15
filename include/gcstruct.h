@@ -276,8 +276,8 @@ typedef struct _GC {
     pointer clientClip;
     unsigned long stateChanges; /* masked with GC_<kind> */
     unsigned long serialNumber;
-    GCFuncs *funcs;
-    GCOps *ops;
+    const GCFuncs *funcs;
+    const GCOps *ops;
     PrivateRec *devPrivates;
     /*
      * The following were moved here from private storage to allow device-

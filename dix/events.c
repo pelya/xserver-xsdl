@@ -2671,6 +2671,9 @@ DeliverOneEvent(InternalEvent *event, DeviceIntPtr dev, enum InputLevel level,
     case CORE:
         rc = EventToCore(event, &xE, &count);
         break;
+    default:
+        rc = BadImplementation;
+        break;
     }
 
     if (rc == Success) {
@@ -3828,6 +3831,8 @@ MatchForType(const GrabPtr grab, GrabPtr tmp, enum InputLevel level,
         match = CORE_MATCH;
         ignore_device = TRUE;
         break;
+    default:
+        return NO_MATCH;
     }
 
     tmp->grabtype = grabtype;

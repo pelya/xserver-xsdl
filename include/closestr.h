@@ -47,7 +47,7 @@ typedef struct _OFclosure {
     Mask flags;
 
 /* XXX -- get these from request buffer instead? */
-    char *origFontName;
+    const char *origFontName;
     int origFontNameLen;
     XID fontid;
     char *fontname;

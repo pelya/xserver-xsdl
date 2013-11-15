@@ -128,7 +128,7 @@ dixGetGlyphs(FontPtr font, unsigned long count, unsigned char *chars,
  * adding RT_FONT prevents conflict with default cursor font
  */
 Bool
-SetDefaultFont(char *defaultfontname)
+SetDefaultFont(const char *defaultfontname)
 {
     int err;
     FontPtr pf;
@@ -224,7 +224,7 @@ FreeFPE(FontPathElementPtr fpe)
     fpe->refcount--;
     if (fpe->refcount == 0) {
         (*fpe_functions[fpe->type].free_fpe) (fpe);
-        free(fpe->name);
+        free((void *) fpe->name);
         free(fpe);
     }
 }
@@ -288,7 +288,7 @@ doOpenFont(ClientPtr client, OFclosurePtr c)
 
         if (err == FontNameAlias && alias) {
             newlen = strlen(alias);
-            newname = (char *) realloc(c->fontname, newlen);
+            newname = (char *) realloc((char *) c->fontname, newlen);
             if (!newname) {
                 err = AllocError;
                 break;
@@ -368,14 +368,14 @@ doOpenFont(ClientPtr client, OFclosurePtr c)
         FreeFPE(c->fpe_list[i]);
     }
     free(c->fpe_list);
-    free(c->fontname);
+    free((void *) c->fontname);
     free(c);
     return TRUE;
 }
 
 int
 OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname,
-         char *pfontname)
+         const char *pfontname)
 {
     OFclosurePtr c;
     int i;
@@ -426,7 +426,7 @@ OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname,
      */
     c->fpe_list = malloc(sizeof(FontPathElementPtr) * num_fpes);
     if (!c->fpe_list) {
-        free(c->fontname);
+        free((void *) c->fontname);
         free(c);
         return BadAlloc;
     }
@@ -1537,7 +1537,7 @@ ImageText(ClientPtr client, DrawablePtr pDraw, GC * pGC, int nChars,
 
 /* does the necessary magic to figure out the fpe type */
 static int
-DetermineFPEType(char *pathname)
+DetermineFPEType(const char *pathname)
 {
     int i;
 
@@ -1633,21 +1633,23 @@ SetFontPathElements(int npaths, unsigned char *paths, int *bad, Bool persist)
             }
             /* if error or can't do it, act like it's a new one */
             if (!fpe) {
+                char *name;
                 fpe = malloc(sizeof(FontPathElementRec));
                 if (!fpe) {
                     err = BadAlloc;
                     goto bail;
                 }
-                fpe->name = malloc(len + 1);
-                if (!fpe->name) {
+                name = malloc(len + 1);
+                if (!name) {
                     free(fpe);
                     err = BadAlloc;
                     goto bail;
                 }
                 fpe->refcount = 1;
 
-                strncpy(fpe->name, (char *) cp, (int) len);
-                fpe->name[len] = '\0';
+                strncpy(name, (char *) cp, (int) len);
+                name[len] = '\0';
+                fpe->name = name;
                 fpe->name_length = len;
                 fpe->type = DetermineFPEType(fpe->name);
                 if (fpe->type == -1)
@@ -1660,7 +1662,7 @@ SetFontPathElements(int npaths, unsigned char *paths, int *bad, Bool persist)
                             ("[dix] Could not init font path element %s, removing from list!\n",
                              fpe->name);
                     }
-                    free(fpe->name);
+                    free((void *) fpe->name);
                     free(fpe);
                 }
             }
@@ -1712,9 +1714,10 @@ SetFontPath(ClientPtr client, int npaths, unsigned char *paths)
 }
 
 int
-SetDefaultFontPath(char *path)
+SetDefaultFontPath(const char *path)
 {
-    char *temp_path, *start, *end;
+    const char *start, *end;
+    char *temp_path;
     unsigned char *cp, *pp, *nump, *newpath;
     int num = 1, len, err, size = 0, bad;
 

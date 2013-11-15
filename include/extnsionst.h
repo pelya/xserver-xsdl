@@ -58,14 +58,14 @@ typedef struct _ExtensionEntry {
     int index;
     void (*CloseDown) (         /* called at server shutdown */
                           struct _ExtensionEntry * /* extension */ );
-    char *name;                 /* extension name */
+    const char *name;           /* extension name */
     int base;                   /* base request number */
     int eventBase;
     int eventLast;
     int errorBase;
     int errorLast;
     int num_aliases;
-    char **aliases;
+    const char **aliases;
     pointer extPrivate;
     unsigned short (*MinorOpcode) (     /* called for errors */
                                       ClientPtr /* client */ );
