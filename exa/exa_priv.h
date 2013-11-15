@@ -248,11 +248,19 @@ extern DevPrivateKeyRec exaScreenPrivateKeyRec;
     real->mem = priv->Saved##mem; \
 }
 
+#ifdef HAVE_TYPEOF
+#define swap(priv, real, mem) {\
+    typeof(real->mem) tmp = priv->Saved##mem; \
+    priv->Saved##mem = real->mem; \
+    real->mem = tmp; \
+}
+#else
 #define swap(priv, real, mem) {\
     void *tmp = priv->Saved##mem; \
     priv->Saved##mem = real->mem; \
     real->mem = tmp; \
 }
+#endif
 
 #define EXA_PRE_FALLBACK(_screen_) \
     ExaScreenPriv(_screen_); \
@@ -333,8 +341,8 @@ typedef struct {
 
 typedef struct {
     /* GC values from the layer below. */
-    GCOps *Savedops;
-    GCFuncs *Savedfuncs;
+    const GCOps *Savedops;
+    const GCFuncs *Savedfuncs;
 } ExaGCPrivRec, *ExaGCPrivPtr;
 
 typedef struct {
