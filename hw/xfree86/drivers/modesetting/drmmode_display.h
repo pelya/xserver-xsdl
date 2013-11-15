@@ -37,6 +37,10 @@
 #define MODESETTING_OUTPUT_SLAVE_SUPPORT 1
 #endif
 
+#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,14,99,2,0)
+#define DamageUnregister(d, dd) DamageUnregister(dd)
+#endif
+
 struct dumb_bo {
     uint32_t handle;
     uint32_t size;
