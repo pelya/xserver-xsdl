@@ -773,7 +773,7 @@ dri2FlushFrontBuffer(__DRIdrawable * driDrawable, void *loaderPrivate)
 }
 
 static const __DRIdri2LoaderExtension loaderExtension = {
-    {__DRI_DRI2_LOADER, __DRI_DRI2_LOADER_VERSION},
+    {__DRI_DRI2_LOADER, 3},
     dri2GetBuffers,
     dri2FlushFrontBuffer,
     dri2GetBuffersWithFormat,
@@ -781,7 +781,7 @@ static const __DRIdri2LoaderExtension loaderExtension = {
 
 #ifdef __DRI_USE_INVALIDATE
 static const __DRIuseInvalidateExtension dri2UseInvalidate = {
-    {__DRI_USE_INVALIDATE, __DRI_USE_INVALIDATE_VERSION}
+    {__DRI_USE_INVALIDATE, 1}
 };
 #endif
 
