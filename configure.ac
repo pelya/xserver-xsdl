@@ -1826,6 +1826,10 @@ if test "x$XORG" = xyes; then
 			xorg_bus_sparc="yes"
 			;;
 		esac
+	else
+		if test "x$CONFIG_UDEV_KMS" = xyes; then
+			AC_MSG_ERROR([Platform device enumeration requires libpciaccess])
+		fi
 	fi
 	AC_MSG_RESULT([$PCI])
 
