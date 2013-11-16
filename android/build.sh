@@ -982,7 +982,7 @@ ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR
 
 [ -z "$PACKAGE_NAME" ] && PACKAGE_NAME=X.org.server
 
-[ -e Makefile ] || \
+[ -e Makefile ] && grep "`pwd`" Makefile > /dev/null || \
 env CFLAGS=" -DDEBUG \
 	-isystem$BUILDDIR \
 	-include strings.h\
