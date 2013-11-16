@@ -1830,6 +1830,9 @@ if test "x$XORG" = xyes; then
 		if test "x$CONFIG_UDEV_KMS" = xyes; then
 			AC_MSG_ERROR([Platform device enumeration requires libpciaccess])
 		fi
+		if test "x$INT10" != xstub; then
+			AC_MSG_ERROR([Cannot build int10 without libpciaccess])
+		fi
 	fi
 	AC_MSG_RESULT([$PCI])
 
