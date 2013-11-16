@@ -1809,24 +1809,23 @@ if test "x$XORG" = xyes; then
 
 	AC_MSG_CHECKING([whether to build Xorg PCI functions])
 	if test "x$PCI" = xyes; then
+		PKG_CHECK_MODULES([PCIACCESS], $LIBPCIACCESS)
+		SDK_REQUIRED_MODULES="$SDK_REQUIRED_MODULES $LIBPCIACCESS"
+		XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $GLX_SYS_LIBS $LIBDRM_LIBS"
+		XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS $LIBDRM_CFLAGS"
 
-	PKG_CHECK_MODULES([PCIACCESS], $LIBPCIACCESS)
-	SDK_REQUIRED_MODULES="$SDK_REQUIRED_MODULES $LIBPCIACCESS"
-	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $GLX_SYS_LIBS $LIBDRM_LIBS"
-	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS $LIBDRM_CFLAGS"
-
-	AC_DEFINE(XSERVER_LIBPCIACCESS, 1, [Use libpciaccess for all pci manipulation])
-	AC_DEFINE_DIR(PCI_TXT_IDS_PATH, PCI_TXT_IDS_DIR, [Default PCI text file ID path])
-	case $host_os in
-	  gnu* | freebsd* | kfreebsd*-gnu | netbsd* | openbsd* | solaris* | dragonfly*)
-		xorg_bus_bsdpci="yes"
-		;;
-	esac
-	case $host_cpu in
-	  sparc*)
-		xorg_bus_sparc="yes"
-		;;
-	esac
+		AC_DEFINE(XSERVER_LIBPCIACCESS, 1, [Use libpciaccess for all pci manipulation])
+		AC_DEFINE_DIR(PCI_TXT_IDS_PATH, PCI_TXT_IDS_DIR, [Default PCI text file ID path])
+		case $host_os in
+		  gnu* | freebsd* | kfreebsd*-gnu | netbsd* | openbsd* | solaris* | dragonfly*)
+			xorg_bus_bsdpci="yes"
+			;;
+		esac
+		case $host_cpu in
+		  sparc*)
+			xorg_bus_sparc="yes"
+			;;
+		esac
 	fi
 	AC_MSG_RESULT([$PCI])
 
