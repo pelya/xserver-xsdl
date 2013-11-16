@@ -993,7 +993,7 @@ env CFLAGS=" -DDEBUG \
 	-I$BUILDDIR/../../../../../jni/sdl-1.2/include" \
 LDFLAGS="-L$BUILDDIR" \
 ./setCrossEnvironment.sh \
-LIBS="-lfontenc -lfreetype -llog" \
+LIBS="-lfontenc -lfreetype -llog -lSDL" \
 ../configure \
 --host=arm-linux-androideabi \
 --prefix=$TARGET_DIR/usr \
