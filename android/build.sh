@@ -11,6 +11,33 @@ NDK=`which ndk-build`
 NDK=`dirname $NDK`
 NDK=`readlink -f $NDK`
 
+# =========== android-shmem ===========
+
+[ -e libandroid-shmem.a ] || {
+
+[ -e android-shmem/LICENSE ] || {
+	cd ..
+	git submodule update --init android/android-shmem || exit 1
+	cd $BUILDDIR
+} || exit 1
+[ -e android-shmem/libancillary/ancillary.h ] || {
+	cd android-shmem
+	git submodule update --init libancillary || exit 1
+	cd ..
+} || exit 1
+
+cd android-shmem
+$BUILDDIR/setCrossEnvironment.sh \
+env NDK=$NDK \
+sh -c '$CC $CFLAGS \
+	-I . \
+	-I libancillary \
+	-c *.c && \
+	ar rcs ../libandroid-shmem.a *.o' \
+|| exit 1
+cd $BUILDDIR
+} || exit 1
+
 # =========== xsproto ===========
 
 [ -e X11/Xfuncproto.h ] || {
@@ -515,10 +542,11 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+			-isystem$BUILDDIR/android-shmem \
+			-include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
-LIBS="-lXau -lXdmcp -landroid_support" \
+LIBS="-lXau -lXdmcp -landroid_support -landroid-shmem" \
 ./configure \
 --host=arm-linux-androideabi \
 --prefix=$TARGET_DIR/usr \
@@ -985,6 +1013,7 @@ ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR
 [ -e Makefile ] && grep "`pwd`" Makefile > /dev/null || \
 env CFLAGS=" -DDEBUG \
 	-isystem$BUILDDIR \
+	-isystem$BUILDDIR/android-shmem \
 	-include strings.h\
 	-include linux/time.h \
 	-DFNONBLOCK=O_NONBLOCK \
@@ -993,15 +1022,16 @@ env CFLAGS=" -DDEBUG \
 	-I$BUILDDIR/../../../../../jni/sdl-1.2/include" \
 LDFLAGS="-L$BUILDDIR" \
 ./setCrossEnvironment.sh \
-LIBS="-lfontenc -lfreetype -llog -lSDL" \
+LIBS="-lfontenc -lfreetype -llog -lSDL -landroid-shmem" \
 ../configure \
 --host=arm-linux-androideabi \
 --prefix=$TARGET_DIR/usr \
 --with-xkb-output=$TARGET_DIR/tmp \
 --disable-xorg --disable-dmx --disable-xvfb --disable-xnest --disable-xquartz --disable-xwin \
 --disable-xephyr --disable-xfake --disable-xfbdev --disable-unit-tests --disable-tslib \
---disable-shm --disable-mitshm --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
+--disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
 --enable-xsdl --enable-kdrive --enable-kdrive-kbd --enable-kdrive-mouse --enable-kdrive-evdev \
+--enable-shm --enable-mitshm \
 || exit 1
 
 ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1
