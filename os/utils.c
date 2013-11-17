@@ -1946,10 +1946,10 @@ CheckUserAuthorization(void)
  * Tokenize a string into a NULL terminated array of strings. Always returns
  * an allocated array unless an error occurs.
  */
-char **
+const char **
 xstrtokenize(const char *str, const char *separators)
 {
-    char **list, **nlist;
+    const char **list, **nlist;
     char *tok, *tmp;
     unsigned num = 0, n;
 
@@ -1977,7 +1977,7 @@ xstrtokenize(const char *str, const char *separators)
  error:
     free(tmp);
     for (n = 0; n < num; n++)
-        free(list[n]);
+        free((void *) list[n]);
     free(list);
     return NULL;
 }
