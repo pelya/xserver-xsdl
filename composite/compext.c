@@ -335,12 +335,10 @@ ProcCompositeReleaseOverlayWindow(ClientPtr client)
 {
     REQUEST(xCompositeReleaseOverlayWindowReq);
     WindowPtr pWin;
-    ScreenPtr pScreen;
     CompOverlayClientPtr pOc;
 
     REQUEST_SIZE_MATCH(xCompositeReleaseOverlayWindowReq);
     VERIFY_WINDOW(pWin, stuff->window, client, DixGetAttrAccess);
-    pScreen = pWin->drawable.pScreen;
 
     /* 
      * Has client queried a reference to the overlay window
@@ -873,7 +871,6 @@ PanoramiXCompositeReleaseOverlayWindow(ClientPtr client)
 {
     REQUEST(xCompositeReleaseOverlayWindowReq);
     WindowPtr pWin;
-    ScreenPtr pScreen;
     CompOverlayClientPtr pOc;
     PanoramiXRes *win;
     int i, rc;
@@ -893,7 +890,6 @@ PanoramiXCompositeReleaseOverlayWindow(ClientPtr client)
             client->errorValue = stuff->window;
             return rc;
         }
-        pScreen = pWin->drawable.pScreen;
 
         /*
          * Has client queried a reference to the overlay window
