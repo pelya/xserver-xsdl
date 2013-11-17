@@ -4419,7 +4419,7 @@ ProcXkbSetNames(ClientPtr client)
  * (swapped) 16 bit string length, non-zero terminated.
  */
 static char *
-XkbWriteCountedString(char *wire, char *str, Bool swap)
+XkbWriteCountedString(char *wire, const char *str, Bool swap)
 {
     CARD16 len, *pLen, paddedLen;
 
