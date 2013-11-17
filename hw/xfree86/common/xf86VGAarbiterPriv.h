@@ -137,8 +137,8 @@ typedef struct _VGAarbiterScreen {
 } VGAarbiterScreenRec, *VGAarbiterScreenPtr;
 
 typedef struct _VGAarbiterGC {
-    GCOps *wrapOps;
-    GCFuncs *wrapFuncs;
+    const GCOps *wrapOps;
+    const GCFuncs *wrapFuncs;
 } VGAarbiterGCRec, *VGAarbiterGCPtr;
 
 /* Screen funcs */
