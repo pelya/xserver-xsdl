@@ -137,11 +137,13 @@ device_added(struct udev_device *udev_device)
         /* construct USB ID in lowercase hex - "0000:ffff" */
         if (product &&
             sscanf(product, "%*x/%4x/%4x/%*x", &usb_vendor, &usb_model) == 2) {
-            if (asprintf(&attrs.usb_id, "%04x:%04x", usb_vendor, usb_model)
+            char *usb_id;
+            if (asprintf(&usb_id, "%04x:%04x", usb_vendor, usb_model)
                 == -1)
-                attrs.usb_id = NULL;
+                usb_id = NULL;
             else
                 LOG_PROPERTY(ppath, "PRODUCT", product);
+            attrs.usb_id = usb_id;
         }
     }
     if (!name)
@@ -240,16 +242,16 @@ device_added(struct udev_device *udev_device)
     free(config_info);
     input_option_free_list(&input_options);
 
-    free(attrs.usb_id);
-    free(attrs.pnp_id);
-    free(attrs.product);
-    free(attrs.device);
-    free(attrs.vendor);
+    free((void *) attrs.usb_id);
+    free((void *) attrs.pnp_id);
+    free((void *) attrs.product);
+    free((void *) attrs.device);
+    free((void *) attrs.vendor);
     if (attrs.tags) {
-        char **tag = attrs.tags;
+        const char **tag = attrs.tags;
 
         while (*tag) {
-            free(*tag);
+            free((void *) *tag);
             tag++;
         }
         free(attrs.tags);
