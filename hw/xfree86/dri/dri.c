@@ -100,6 +100,11 @@ drmServerInfo DRIDRMServerInfo;
  * easily changed here.
  */
 #define DRI_MSG_VERBOSITY 1
+
+static void
+DRIDrvMsg(int scrnIndex, MessageType type, const char *format, ...)
+    _X_ATTRIBUTE_PRINTF(3,4);
+
 static void
 DRIDrvMsg(int scrnIndex, MessageType type, const char *format, ...)
 {
@@ -400,7 +405,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
         }
         DRIDrvMsg(pScreen->myNum, X_INFO,
                   "[drm] added %d byte SAREA at %p\n",
-                  pDRIPriv->pDriverInfo->SAREASize, pDRIPriv->hSAREA);
+                  (int) pDRIPriv->pDriverInfo->SAREASize, (void *) (uintptr_t) pDRIPriv->hSAREA);
 
         /* Backwards compat. */
         if (drmMap(pDRIPriv->drmFD,
@@ -414,7 +419,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
             return FALSE;
         }
         DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] mapped SAREA %p to %p\n",
-                  pDRIPriv->hSAREA, pDRIPriv->pSAREA);
+                  (void *) (uintptr_t) pDRIPriv->hSAREA, pDRIPriv->pSAREA);
         memset(pDRIPriv->pSAREA, 0, pDRIPriv->pDriverInfo->SAREASize);
     }
     else {
@@ -442,7 +447,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
             return FALSE;
         }
         DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] framebuffer handle = %p\n",
-                  pDRIPriv->pDriverInfo->hFrameBuffer);
+                  (void *) (uintptr_t) pDRIPriv->pDriverInfo->hFrameBuffer);
     }
     else {
         DRIDrvMsg(pScreen->myNum, X_INFO,
@@ -513,7 +518,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     pDRIPriv->myContextPriv = pDRIContextPriv;
 
     DRIDrvMsg(pScreen->myNum, X_INFO,
-              "X context handle = %p\n", pDRIPriv->myContext);
+              "X context handle = %p\n", (void *) (uintptr_t) pDRIPriv->myContext);
 
     /* Now that we have created the X server's context, we can grab the
      * hardware lock for the X server.
@@ -731,13 +736,13 @@ DRICloseScreen(ScreenPtr pScreen)
         if (closeMaster || pDRIPriv->hSAREA != pDRIEntPriv->hLSAREA) {
             DRIDrvMsg(pScreen->myNum, X_INFO,
                       "[drm] unmapping %d bytes of SAREA %p at %p\n",
-                      pDRIInfo->SAREASize, pDRIPriv->hSAREA, pDRIPriv->pSAREA);
+                      (int) pDRIInfo->SAREASize, (void *) (uintptr_t) pDRIPriv->hSAREA, pDRIPriv->pSAREA);
             if (drmUnmap(pDRIPriv->pSAREA, pDRIInfo->SAREASize)) {
                 DRIDrvMsg(pScreen->myNum, X_ERROR,
                           "[drm] unable to unmap %d bytes"
                           " of SAREA %p at %p\n",
-                          pDRIInfo->SAREASize,
-                          pDRIPriv->hSAREA, pDRIPriv->pSAREA);
+                          (int) pDRIInfo->SAREASize,
+                          (void *) (uintptr_t) pDRIPriv->hSAREA, pDRIPriv->pSAREA);
             }
         }
         else {
@@ -758,6 +763,10 @@ DRICloseScreen(ScreenPtr pScreen)
 }
 
 #define DRM_MSG_VERBOSITY 3
+
+static int
+dri_drm_debug_print(const char *format, va_list ap)
+    _X_ATTRIBUTE_PRINTF(1,0);
 
 static int
 dri_drm_debug_print(const char *format, va_list ap)
@@ -2214,9 +2223,9 @@ DRILock(ScreenPtr pScreen, int flags)
     else if (*pDRIPriv->pLockingContext != pDRIPriv->myContext) {
         DRIDrvMsg(pScreen->myNum, X_ERROR,
                   "[DRI] Locking deadlock.\n"
-                  "\tAlready locked with context %d,\n"
-                  "\ttrying to lock with context %d.\n",
-                  pDRIPriv->pLockingContext, pDRIPriv->myContext);
+                  "\tAlready locked with context %p,\n"
+                  "\ttrying to lock with context %p.\n",
+                  pDRIPriv->pLockingContext, (void *) (uintptr_t) pDRIPriv->myContext);
     }
     (*pDRIPriv->pLockRefCount)++;
 }
@@ -2233,8 +2242,8 @@ DRIUnlock(ScreenPtr pScreen)
         if (pDRIPriv->myContext != *pDRIPriv->pLockingContext) {
             DRIDrvMsg(pScreen->myNum, X_ERROR,
                       "[DRI] Unlocking inconsistency:\n"
-                      "\tContext %d trying to unlock lock held by context %d\n",
-                      pDRIPriv->pLockingContext, pDRIPriv->myContext);
+                      "\tContext %p trying to unlock lock held by context %p\n",
+                      pDRIPriv->pLockingContext, (void *) (uintptr_t) pDRIPriv->myContext);
         }
         (*pDRIPriv->pLockRefCount)--;
     }
