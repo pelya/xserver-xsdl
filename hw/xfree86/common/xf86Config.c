@@ -171,7 +171,7 @@ xf86GetPathElem(char **pnt)
 static char *
 xf86ValidateFontPath(char *path)
 {
-    char *tmp_path, *out_pnt, *path_elem, *next, *p1, *dir_elem;
+    char *next, *tmp_path, *out_pnt, *path_elem, *p1, *dir_elem;
     struct stat stat_buf;
     int flag;
     int dirlen;
@@ -589,33 +589,35 @@ configFiles(XF86ConfFilesPtr fileconf)
     /* FontPath */
     must_copy = TRUE;
 
-    temp_path = defaultFontPath ? defaultFontPath : (char *) "";
+    temp_path = defaultFontPath ? (char *) defaultFontPath : (char *) "";
     if (xf86fpFlag)
         pathFrom = X_CMDLINE;
     else if (fileconf && fileconf->file_fontpath) {
         pathFrom = X_CONFIG;
         if (xf86Info.useDefaultFontPath) {
-            if (asprintf(&defaultFontPath, "%s%s%s", fileconf->file_fontpath,
+            char *new_font_path;
+            if (asprintf(&new_font_path, "%s%s%s", fileconf->file_fontpath,
                          *temp_path ? "," : "", temp_path) == -1)
-                defaultFontPath = NULL;
+                new_font_path = NULL;
             else
                 must_copy = FALSE;
+            defaultFontPath = new_font_path;
         }
         else
             defaultFontPath = fileconf->file_fontpath;
     }
     else
         pathFrom = X_DEFAULT;
-    temp_path = defaultFontPath ? defaultFontPath : (char *) "";
+    temp_path = defaultFontPath ? (char *) defaultFontPath : (char *) "";
 
     /* xf86ValidateFontPath modifies its argument, but returns a copy of it. */
-    temp_path = must_copy ? xnfstrdup(defaultFontPath) : defaultFontPath;
+    temp_path = must_copy ? xnfstrdup(defaultFontPath) : (char *) defaultFontPath;
     defaultFontPath = xf86ValidateFontPath(temp_path);
     free(temp_path);
 
     /* make fontpath more readable in the logfiles */
     countDirs = 1;
-    temp_path = defaultFontPath;
+    temp_path = (char *) defaultFontPath;
     while ((temp_path = index(temp_path, ',')) != NULL) {
         countDirs++;
         temp_path++;
@@ -623,7 +625,7 @@ configFiles(XF86ConfFilesPtr fileconf)
 
     log_buf = xnfalloc(strlen(defaultFontPath) + (2 * countDirs) + 1);
     temp_path = log_buf;
-    start = defaultFontPath;
+    start = (char *) defaultFontPath;
     while ((end = index(start, ',')) != NULL) {
         size = (end - start) + 1;
         *(temp_path++) = '\t';
