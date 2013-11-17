@@ -62,8 +62,8 @@ typedef struct {
 } ShadowScreenRec, *ShadowScreenPtr;
 
 typedef struct {
-    GCOps *ops;
-    GCFuncs *funcs;
+    const GCOps *ops;
+    const GCFuncs *funcs;
 } ShadowGCRec, *ShadowGCPtr;
 
 static DevPrivateKeyRec ShadowScreenKeyRec;
@@ -96,7 +96,7 @@ static DevPrivateKeyRec ShadowGCKeyRec;
 #define SHADOW_GC_OP_PROLOGUE(pGC)\
     ShadowScreenPtr pPriv = GET_SCREEN_PRIVATE(pGC->pScreen); \
     ShadowGCPtr pGCPriv = GET_GC_PRIVATE(pGC);\
-    GCFuncs *oldFuncs = pGC->funcs;\
+    const GCFuncs *oldFuncs = pGC->funcs;\
     pGC->funcs = pGCPriv->funcs;\
     pGC->ops = pGCPriv->ops
 
