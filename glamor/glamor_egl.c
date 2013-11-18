@@ -315,6 +315,40 @@ done:
 	return ret;
 }
 
+Bool
+glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap, void *bo)
+{
+	ScreenPtr screen = pixmap->drawable.pScreen;
+	ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+	struct glamor_egl_screen_private *glamor_egl;
+	EGLImageKHR image;
+	GLuint texture;
+	Bool ret = FALSE;
+
+	glamor_egl = glamor_egl_get_screen_private(scrn);
+
+	glamor_egl_make_current(screen);
+
+	image = glamor_egl->egl_create_image_khr(glamor_egl->display,
+						 glamor_egl->context,
+						 EGL_NATIVE_PIXMAP_KHR,
+						 bo, NULL);
+	if (image == EGL_NO_IMAGE_KHR) {
+		glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
+		goto done;
+	}
+	glamor_create_texture_from_image(glamor_egl, image, &texture);
+	glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
+	glamor_set_pixmap_texture(pixmap, texture);
+	dixSetPrivate(&pixmap->devPrivates, glamor_egl_pixmap_private_key,
+		      image);
+	ret = TRUE;
+
+done:
+	glamor_egl_restore_context(screen);
+	return ret;
+}
+
 static void
 _glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
 {

@@ -230,6 +230,19 @@ extern _X_EXPORT Bool glamor_egl_create_textured_pixmap(PixmapPtr pixmap,
 							int handle,
 							int stride);
 
+/*
+ * @glamor_egl_create_textured_pixmap_from_bo: Try to create a textured pixmap
+ * 					       from a gbm_bo.
+ *
+ * @pixmap: The pixmap need to be processed.
+ * @bo: a pointer on a gbm_bo structure attached to this pixmap at DDX layer.
+ *
+ * This function is similar to glamor_egl_create_textured_pixmap.
+ */
+extern _X_EXPORT Bool
+	glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap,
+						      void *bo);
+
 extern _X_EXPORT void glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap);
 #endif
 
