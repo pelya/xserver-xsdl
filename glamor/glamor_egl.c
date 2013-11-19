@@ -500,6 +500,8 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 
 	glamor_identify(0);
 	glamor_egl = calloc(sizeof(*glamor_egl), 1);
+	if (glamor_egl == NULL)
+		return FALSE;
 	if (xf86GlamorEGLPrivateIndex == -1)
 		xf86GlamorEGLPrivateIndex =
 		    xf86AllocateScrnInfoPrivateIndex();
@@ -514,7 +516,7 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 	}
 	glamor_egl->display = eglGetDisplay(glamor_egl->gbm);
 #else
-	glamor_egl->display = eglGetDisplay((EGLNativeDisplayType)fd);
+	glamor_egl->display = eglGetDisplay((EGLNativeDisplayType)(intptr_t)fd);
 #endif
 
 	glamor_egl->has_gem = glamor_egl_check_has_gem(fd);
