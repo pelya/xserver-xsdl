@@ -321,8 +321,8 @@ present_unflip(ScreenPtr screen)
 
     /* Update the screen pixmap with the current flip pixmap contents
      */
-    if (screen_priv->flip_pixmap) {
-        present_copy_region(&screen->GetScreenPixmap(screen)->drawable,
+    if (screen_priv->flip_pixmap && screen_priv->flip_window) {
+        present_copy_region(&screen_priv->flip_window->drawable,
                             screen_priv->flip_pixmap,
                             NULL, 0, 0);
     }
