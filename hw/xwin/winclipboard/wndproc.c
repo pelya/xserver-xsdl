@@ -83,8 +83,18 @@ winProcessXEventsTimeout(HWND hwnd, Window iWindow, Display * pDisplay,
         fd_set fdsRead;
         long remainingTime;
 
-        /* We need to ensure that all pending events are processed */
-        XSync(pDisplay, FALSE);
+        /* Process X events */
+        iReturn = winClipboardFlushXEvents(hwnd, iWindow, pDisplay, data, atoms);
+
+        winDebug("winProcessXEventsTimeout () - winClipboardFlushXEvents returned %d\n", iReturn);
+
+        if ((WIN_XEVENTS_NOTIFY_DATA == iReturn) || (WIN_XEVENTS_NOTIFY_TARGETS == iReturn) || (WIN_XEVENTS_FAILED == iReturn)) {
+          /* Bail out */
+          return iReturn;
+        }
+
+        /* We need to ensure that all pending requests are sent */
+        XFlush(pDisplay);
 
         /* Setup the file descriptor set */
         FD_ZERO(&fdsRead);
@@ -113,24 +123,8 @@ winProcessXEventsTimeout(HWND hwnd, Window iWindow, Display * pDisplay,
             break;
         }
 
-        /* Branch on which descriptor became active */
-        if (FD_ISSET(iConnNumber, &fdsRead)) {
-            /* Process X events */
-            /* Exit when we see that server is shutting down */
-            iReturn = winClipboardFlushXEvents(hwnd,
-                                               iWindow, pDisplay, data, atoms);
-
-            winDebug
-                ("winProcessXEventsTimeout () - winClipboardFlushXEvents returned %d\n",
-                 iReturn);
-
-            if ((WIN_XEVENTS_NOTIFY_DATA == iReturn) || (WIN_XEVENTS_NOTIFY_TARGETS == iReturn) || (WIN_XEVENTS_FAILED == iReturn)) {
-                /* Bail out */
-                return iReturn;
-            }
-        }
-        else {
-            winDebug("winProcessXEventsTimeout - Spurious wake\n");
+        if (!FD_ISSET(iConnNumber, &fdsRead)) {
+            winDebug("winProcessXEventsTimeout - Spurious wake, select() returned %d\n", iReturn);
         }
     }
 

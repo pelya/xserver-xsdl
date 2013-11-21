@@ -255,22 +255,25 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
         }
     }
 
-    /* Pre-flush X events */
-    /*
-     * NOTE: Apparently you'll freeze if you don't do this,
-     *       because there may be events in local data structures
-     *       already.
-     */
     data.fUseUnicode = fUseUnicode;
-    winClipboardFlushXEvents(hwnd, iWindow, pDisplay, &data, &atoms);
 
-    /* Pre-flush Windows messages */
-    if (!winClipboardFlushWindowsMessageQueue(hwnd)) {
-        ErrorF("winClipboardProc - winClipboardFlushWindowsMessageQueue failed\n");
-    }
-
-    /* Loop for X events */
+    /* Loop for events */
     while (1) {
+
+        /* Process X events */
+        winClipboardFlushXEvents(hwnd,
+                                 iWindow, pDisplay, &data, &atoms);
+
+        /* Process Windows messages */
+        if (!winClipboardFlushWindowsMessageQueue(hwnd)) {
+          ErrorF("winClipboardProc - winClipboardFlushWindowsMessageQueue trapped "
+                       "WM_QUIT message, exiting main loop.\n");
+          break;
+        }
+
+        /* We need to ensure that all pending requests are sent */
+        XFlush(pDisplay);
+
         /* Setup the file descriptor set */
         /*
          * NOTE: You have to do this before every call to select
@@ -317,10 +320,9 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
             break;
         }
 
-        /* Branch on which descriptor became active */
         if (FD_ISSET(iConnectionNumber, &fdsRead)) {
-            /* Process X events */
-            winClipboardFlushXEvents(hwnd, iWindow, pDisplay, &data, &atoms);
+            winDebug
+                ("winClipboardProc - X connection ready, pumping X event queue\n");
         }
 
 #ifdef HAS_DEVWINDOWS
@@ -330,14 +332,16 @@ winClipboardProc(Bool fUseUnicode, char *szDisplay)
         if (1)
 #endif
         {
-            /* Process Windows messages */
-            if (!winClipboardFlushWindowsMessageQueue(hwnd)) {
-                ErrorF("winClipboardProc - "
-                       "winClipboardFlushWindowsMessageQueue trapped "
-                       "WM_QUIT message, exiting main loop.\n");
-                break;
-            }
+            winDebug
+                ("winClipboardProc - /dev/windows ready, pumping Windows message queue\n");
         }
+
+#ifdef HAS_DEVWINDOWS
+        if (!(FD_ISSET(iConnectionNumber, &fdsRead)) &&
+            !(FD_ISSET(fdMessageQueue, &fdsRead))) {
+            winDebug("winClipboardProc - Spurious wake, select() returned %d\n", iReturn);
+        }
+#endif
     }
 
  winClipboardProc_Exit:
