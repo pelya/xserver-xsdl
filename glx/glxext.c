@@ -399,6 +399,9 @@ GlxExtensionInit(void)
 
     __glXErrorBase = extEntry->errorBase;
     __glXEventBase = extEntry->eventBase;
+#if PRESENT
+    __glXregisterPresentCompleteNotify();
+#endif
 }
 
 /************************************************************************/

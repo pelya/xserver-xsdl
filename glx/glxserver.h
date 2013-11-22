@@ -120,6 +120,15 @@ void glxResumeClients(void);
 void __glXsetGetProcAddress(void (*(*get_proc_address) (const char *)) (void));
 void *__glGetProcAddress(const char *);
 
+void
+__glXsendSwapEvent(__GLXdrawable *drawable, int type, CARD64 ust,
+                   CARD64 msc, CARD32 sbc);
+
+#if PRESENT
+void
+__glXregisterPresentCompleteNotify(void);
+#endif
+
 /*
 ** State kept per client.
 */
