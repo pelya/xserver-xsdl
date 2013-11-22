@@ -38,7 +38,7 @@
 static DevPrivateKeyRec syncShmFencePrivateKey;
 
 typedef struct _SyncShmFencePrivate {
-    int32_t             *fence;
+    struct xshmfence    *fence;
     int                 fd;
 } SyncShmFencePrivateRec, *SyncShmFencePrivatePtr;
 
