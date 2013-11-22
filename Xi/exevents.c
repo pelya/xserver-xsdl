@@ -1845,7 +1845,8 @@ DeliverTouchBeginEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
         if (rc == Success) {
             listener->state = LISTENER_IS_OWNER;
             /* async grabs cannot replay, so automatically accept this touch */
-            if (dev->deviceGrab.grab &&
+            if (listener->type == LISTENER_POINTER_GRAB &&
+                dev->deviceGrab.grab &&
                 dev->deviceGrab.fromPassiveGrab &&
                 dev->deviceGrab.grab->pointerMode == GrabModeAsync)
                 ActivateEarlyAccept(dev, ti);
