@@ -800,7 +800,7 @@ FIXESPROTO="fixesproto >= 5.0"
 DAMAGEPROTO="damageproto >= 1.1"
 XCMISCPROTO="xcmiscproto >= 1.2.0"
 BIGREQSPROTO="bigreqsproto >= 1.1.0"
-XTRANS="xtrans >= 1.3.2"
+XTRANS="xtrans >= 1.3.3"
 PRESENTPROTO="presentproto >= 1.0"
 
 dnl List of libraries that require a specific version
@@ -830,6 +830,26 @@ SDK_REQUIRED_MODULES="$XPROTO $RANDRPROTO $RENDERPROTO $XEXTPROTO $INPUTPROTO $K
 AC_SUBST(SDK_REQUIRED_MODULES)
 
 REQUIRED_MODULES="$FIXESPROTO $DAMAGEPROTO $XCMISCPROTO $XTRANS $BIGREQSPROTO $SDK_REQUIRED_MODULES"
+
+dnl systemd socket activation
+dnl activate the code in libxtrans that grabs systemd's socket fds
+AC_ARG_WITH([systemd-daemon],
+	AS_HELP_STRING([--with-systemd-daemon],
+		[support systemd socket activation (default: auto)]),
+	[WITH_SYSTEMD_DAEMON=$withval], [WITH_SYSTEMD_DAEMON=auto])
+PKG_CHECK_MODULES([SYSTEMD_DAEMON], [libsystemd-daemon],
+                  [HAVE_SYSTEMD_DAEMON=yes], [HAVE_SYSTEMD_DAEMON=no])
+if test "x$WITH_SYSTEMD_DAEMON" = xauto; then
+	WITH_SYSTEMD_DAEMON="$HAVE_SYSTEMD_DAEMON"
+fi
+if test "x$WITH_SYSTEMD_DAEMON" = xyes; then
+	if "x$HAVE_SYSTEMD_DAEMON" = xno; then
+		AC_MSG_ERROR([systemd support requested but no library has been found])
+	fi
+	AC_DEFINE(HAVE_SYSTEMD_DAEMON, 1, [Define to 1 if libsystemd-daemon is available])
+	REQUIRED_LIBS="$REQUIRED_LIBS libsystemd-daemon"
+fi
+AM_CONDITIONAL([HAVE_SYSTEMD_DAEMON], [test "x$HAVE_SYSTEMD_DAEMON" = "xyes"])
 
 if test "x$CONFIG_UDEV" = xyes &&
  { test "x$CONFIG_DBUS_API" = xyes || test "x$CONFIG_HAL" = xyes; }; then

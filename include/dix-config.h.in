@@ -199,6 +199,9 @@
 /* Define to 1 if you have the `strndup' function. */
 #undef HAVE_STRNDUP
 
+/* Define to 1 if libsystemd-daemon is available */
+#undef HAVE_SYSTEMD_DAEMON
+
 /* Define to 1 if SYSV IPC is available */
 #undef HAVE_SYSV_IPC
 
