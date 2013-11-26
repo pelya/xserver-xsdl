@@ -348,6 +348,8 @@ present_flip_notify(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
 
     present_flip_idle(screen);
 
+    xorg_list_del(&vblank->event_queue);
+
     /* Transfer reference for pixmap and fence from vblank to screen_priv */
     screen_priv->flip_crtc = vblank->crtc;
     screen_priv->flip_window = vblank->window;
@@ -378,14 +380,12 @@ present_event_notify(uint64_t event_id, uint64_t ust, uint64_t msc)
     DebugPresent(("\te %lld ust %lld msc %lld\n", event_id, ust, msc));
     xorg_list_for_each_entry_safe(vblank, tmp, &present_exec_queue, event_queue) {
         if (vblank->event_id == event_id) {
-            xorg_list_del(&vblank->event_queue);
             present_execute(vblank, ust, msc);
             return;
         }
     }
     xorg_list_for_each_entry_safe(vblank, tmp, &present_flip_queue, event_queue) {
         if (vblank->event_id == event_id) {
-            xorg_list_del(&vblank->event_queue);
             present_flip_notify(vblank, ust, msc);
             return;
         }
@@ -447,7 +447,7 @@ present_check_flip_window (WindowPtr window)
 
     /* Now check any queued vblanks */
     xorg_list_for_each_entry(vblank, &window_priv->vblank, window_list) {
-        if (vblank->flip && !present_check_flip(vblank->crtc, window, vblank->pixmap, FALSE, NULL, 0, 0))
+        if (vblank->queued && vblank->flip && !present_check_flip(vblank->crtc, window, vblank->pixmap, FALSE, NULL, 0, 0))
             vblank->flip = FALSE;
     }
 }
@@ -496,16 +496,17 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
     }
 
     xorg_list_del(&vblank->event_queue);
+    vblank->queued = FALSE;
+
     if (vblank->pixmap && vblank->window) {
 
         if (vblank->flip && screen_priv->flip_pending == NULL && !screen_priv->unflip_event_id) {
 
             DebugPresent(("\tf %p %8lld: %08lx -> %08lx\n", vblank, crtc_msc, vblank->pixmap->drawable.id, vblank->window->drawable.id));
-            /* Prepare to flip by removing from the window/screen lists
+            /* Prepare to flip by placing it in the flip queue and
              * and sticking it into the flip_pending field
              */
             screen_priv->flip_pending = vblank;
-            xorg_list_del(&vblank->window_list);
 
             xorg_list_add(&vblank->event_queue, &present_flip_queue);
             /* Try to flip
@@ -701,10 +702,12 @@ present_pixmap(WindowPtr window,
                       target_crtc));
 
     xorg_list_add(&vblank->event_queue, &present_exec_queue);
+    vblank->queued = TRUE;
     if (target_msc >= crtc_msc) {
         ret = present_queue_vblank(screen, target_crtc, vblank->event_id, target_msc);
         if (ret != Success) {
             xorg_list_del(&vblank->event_queue);
+            vblank->queued = FALSE;
             goto failure;
         }
     } else
@@ -737,6 +740,7 @@ present_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64
     xorg_list_for_each_entry_safe(vblank, tmp, &present_exec_queue, event_queue) {
         if (vblank->event_id == event_id) {
             xorg_list_del(&vblank->event_queue);
+            vblank->queued = FALSE;
             return;
         }
     }
