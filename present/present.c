@@ -594,7 +594,9 @@ present_pixmap(WindowPtr window,
     if (!window_priv)
         return BadAlloc;
 
-    if (!target_crtc) {
+    if (!screen_priv || !screen_priv->info)
+        target_crtc = NULL;
+    else if (!target_crtc) {
         /* Update the CRTC if we have a pixmap or we don't have a CRTC
          */
         if (!pixmap)
