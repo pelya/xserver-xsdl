@@ -621,6 +621,11 @@ present_pixmap(WindowPtr window,
             if (vblank->crtc != target_crtc || vblank->target_msc != target_msc)
                 continue;
 
+            DebugPresent(("\tx %lld %p %8lld: %08lx -> %08lx (crtc %p)\n",
+                          vblank->event_id, vblank, target_msc,
+                          vblank->pixmap->drawable.id, vblank->window->drawable.id,
+                          vblank->crtc));
+
             present_pixmap_idle(vblank->pixmap, vblank->window, vblank->serial, vblank->idle_fence);
             present_fence_destroy(vblank->idle_fence);
             dixDestroyPixmap(vblank->pixmap, vblank->pixmap->drawable.id);
