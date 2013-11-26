@@ -324,6 +324,8 @@ present_unflip(ScreenPtr screen)
         (*screen->SetWindowPixmap)(screen_priv->flip_window,
                                    (*screen->GetScreenPixmap)(screen));
 
+    (*screen->SetWindowPixmap)(screen->root, (*screen->GetScreenPixmap)(screen));
+
     /* Update the screen pixmap with the current flip pixmap contents
      */
     if (screen_priv->flip_pixmap && screen_priv->flip_window) {
@@ -527,6 +529,7 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
                     (*screen->SetWindowPixmap)(screen_priv->flip_window,
                                                (*screen->GetScreenPixmap)(screen));
                 (*screen->SetWindowPixmap)(vblank->window, vblank->pixmap);
+                (*screen->SetWindowPixmap)(screen->root, vblank->pixmap);
                 return;
             }
 
