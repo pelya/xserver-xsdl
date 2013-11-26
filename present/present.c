@@ -115,7 +115,8 @@ present_check_flip(RRCrtcPtr    crtc,
     }
 
     /* Make sure the window hasn't been redirected with Composite */
-    if (screen->GetWindowPixmap(window) != screen->GetScreenPixmap(screen))
+    if (screen->GetWindowPixmap(window) != screen->GetScreenPixmap(screen) &&
+        screen->GetWindowPixmap(window) != screen_priv->flip_pixmap)
         return FALSE;
 
     /* Check for full-screen window */
@@ -319,6 +320,10 @@ present_unflip(ScreenPtr screen)
     assert (!screen_priv->unflip_event_id);
     assert (!screen_priv->flip_pending);
 
+    if (screen_priv->flip_window)
+        (*screen->SetWindowPixmap)(screen_priv->flip_window,
+                                   (*screen->GetScreenPixmap)(screen));
+
     /* Update the screen pixmap with the current flip pixmap contents
      */
     if (screen_priv->flip_pixmap && screen_priv->flip_window) {
@@ -486,7 +491,8 @@ static void
 present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
 {
     WindowPtr                   window = vblank->window;
-    present_screen_priv_ptr     screen_priv = present_screen_priv(window->drawable.pScreen);
+    ScreenPtr                   screen = window->drawable.pScreen;
+    present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
 
     if (vblank->wait_fence) {
         if (!present_fence_check_triggered(vblank->wait_fence)) {
@@ -511,8 +517,18 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
             xorg_list_add(&vblank->event_queue, &present_flip_queue);
             /* Try to flip
              */
-            if (present_flip(vblank->crtc, vblank->event_id, vblank->target_msc, vblank->pixmap, vblank->sync_flip))
+            if (present_flip(vblank->crtc, vblank->event_id, vblank->target_msc, vblank->pixmap, vblank->sync_flip)) {
+
+                /* Fix window pixmaps:
+                 *  1) Restore previous flip window pixmap
+                 *  2) Set current flip window pixmap to the new pixmap
+                 */
+                if (screen_priv->flip_window && screen_priv->flip_window != window)
+                    (*screen->SetWindowPixmap)(screen_priv->flip_window,
+                                               (*screen->GetScreenPixmap)(screen));
+                (*screen->SetWindowPixmap)(vblank->window, vblank->pixmap);
                 return;
+            }
 
             xorg_list_del(&vblank->event_queue);
             /* Oops, flip failed. Clear the flip_pending field
@@ -532,7 +548,7 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
             /* Check current flip
              */
             if (window == screen_priv->flip_window)
-                present_unflip(window->drawable.pScreen);
+                present_unflip(screen);
         }
         present_copy_region(&window->drawable, vblank->pixmap, vblank->update, vblank->x_off, vblank->y_off);
 
