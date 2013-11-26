@@ -520,6 +520,7 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
             /* Try to flip
              */
             if (present_flip(vblank->crtc, vblank->event_id, vblank->target_msc, vblank->pixmap, vblank->sync_flip)) {
+                RegionPtr damage;
 
                 /* Fix window pixmaps:
                  *  1) Restore previous flip window pixmap
@@ -530,6 +531,16 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
                                                (*screen->GetScreenPixmap)(screen));
                 (*screen->SetWindowPixmap)(vblank->window, vblank->pixmap);
                 (*screen->SetWindowPixmap)(screen->root, vblank->pixmap);
+
+                /* Report update region as damaged
+                 */
+                if (vblank->update) {
+                    damage = vblank->update;
+                    RegionIntersect(damage, damage, &window->clipList);
+                } else
+                    damage = &window->clipList;
+
+                DamageDamageRegion(&vblank->window->drawable, damage);
                 return;
             }
 
