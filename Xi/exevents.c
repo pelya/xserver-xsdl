@@ -1413,7 +1413,8 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
                 !(ev->device_event.flags & TOUCH_CLIENT_ID))
                 TouchListenerAcceptReject(dev, ti, 0, XIAcceptTouch);
 
-            if (deliveries && ev->any.type == ET_TouchEnd &&
+            if (ev->any.type == ET_TouchEnd &&
+                ti->num_listeners == 1 &&
                 !dev->button->buttonsDown &&
                 dev->deviceGrab.fromPassiveGrab && GrabIsPointerGrab(grab)) {
                 (*dev->deviceGrab.DeactivateGrab) (dev);
