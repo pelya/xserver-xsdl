@@ -117,7 +117,9 @@ void __glXleaveServer(GLboolean rendering);
 void glxSuspendClients(void);
 void glxResumeClients(void);
 
-void __glXsetGetProcAddress(void (*(*get_proc_address) (const char *)) (void));
+typedef void (*glx_func_ptr)(void);
+typedef glx_func_ptr (*glx_gpa_proc)(const char *);
+void __glXsetGetProcAddress(glx_gpa_proc get_proc_address);
 void *__glGetProcAddress(const char *);
 
 void
