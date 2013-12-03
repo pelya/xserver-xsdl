@@ -70,7 +70,6 @@ libglx_la_SOURCES = \
         glxscreens.c \
         glxscreens.h \
         glxserver.h \
-        glxstubs.c \
         glxutil.h \
         render2.c \
         render2swap.c \
