@@ -55,7 +55,6 @@ typedef struct __GLXDRIscreen __GLXDRIscreen;
 typedef struct __GLXDRIcontext __GLXDRIcontext;
 typedef struct __GLXDRIdrawable __GLXDRIdrawable;
 
-
 #ifdef __DRI2_ROBUSTNESS
 #define ALL_DRI_CTX_FLAGS (__DRI_CTX_FLAG_DEBUG                         \
                            | __DRI_CTX_FLAG_FORWARD_COMPATIBLE          \
@@ -929,6 +928,9 @@ initializeExtensions(__GLXDRIscreen * screen)
     }
 }
 
+/* white lie */
+extern glx_func_ptr glXGetProcAddressARB(const char *);
+
 static __GLXscreen *
 __glXDRIscreenProbe(ScreenPtr pScreen)
 {
@@ -1012,6 +1014,8 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     pScrn->EnterVT = glxDRIEnterVT;
     screen->leaveVT = pScrn->LeaveVT;
     pScrn->LeaveVT = glxDRILeaveVT;
+
+    __glXsetGetProcAddress(glXGetProcAddressARB);
 
     LogMessage(X_INFO, "AIGLX: Loaded and initialized %s\n", driverName);
 
