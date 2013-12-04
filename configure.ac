@@ -30,6 +30,7 @@ AC_INIT([xorg-server], 1.15.99.900, [https://bugs.freedesktop.org/enter_bug.cgi?
 RELEASE_DATE="2014-01-09"
 RELEASE_NAME="Golden Gaytime"
 AC_CONFIG_SRCDIR([Makefile.am])
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -74,9 +75,8 @@ AC_CONFIG_HEADERS(include/version-config.h)
 
 AM_PROG_AS
 AC_PROG_LN_S
-AC_LIBTOOL_WIN32_DLL
-AC_DISABLE_STATIC
-AC_PROG_LIBTOOL
+LT_PREREQ([2.2])
+LT_INIT([disable-static win32-dll])
 PKG_PROG_PKG_CONFIG
 AC_PROG_LEX
 AC_PROG_YACC
