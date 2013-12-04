@@ -897,14 +897,14 @@ if test "x$CONFIG_HAL" = xyes; then
 	fi
 
 	AC_DEFINE(CONFIG_HAL, 1, [Use the HAL hotplug API])
-	CONFIG_NEED_DBUS="yes"
+	NEED_DBUS="yes"
 fi
 AM_CONDITIONAL(CONFIG_HAL, [test "x$CONFIG_HAL" = xyes])
 
-if test "x$CONFIG_NEED_DBUS" = xyes; then
-        AC_DEFINE(CONFIG_NEED_DBUS, 1, [Use D-Bus for input hotplug])
+if test "x$NEED_DBUS" = xyes; then
+        AC_DEFINE(NEED_DBUS, 1, [Enable D-Bus core])
 fi
-AM_CONDITIONAL(CONFIG_NEED_DBUS, [test "x$CONFIG_NEED_DBUS" = xyes])
+AM_CONDITIONAL(NEED_DBUS, [test "x$NEED_DBUS" = xyes])
 
 if test "x$CONFIG_WSCONS" = xauto; then
 	case $host_os in

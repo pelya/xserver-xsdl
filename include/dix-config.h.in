@@ -414,8 +414,8 @@
 /* Use udev_enumerate_add_match_tag() */
 #undef HAVE_UDEV_ENUMERATE_ADD_MATCH_TAG
 
-/* Use D-Bus for input hotplug */
-#undef CONFIG_NEED_DBUS
+/* Enable D-Bus core */
+#undef NEED_DBUS
 
 /* Support HAL for hotplug */
 #undef CONFIG_HAL

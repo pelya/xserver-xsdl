@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2007 Daniel Stone
+ * Copyright © 2013 Red Hat, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,27 +20,37 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *
- * Author: Daniel Stone <daniel@fooishbar.org>
+ * Author: Hans de Goede <hdegoede@redhat.com>
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
+#ifndef DBUS_CORE_H
+#define DBUS_CORE_H
+
+#ifdef NEED_DBUS
+typedef struct DBusConnection DBusConnection;
+
+typedef void (*dbus_core_connect_hook) (DBusConnection * connection,
+                                               void *data);
+typedef void (*dbus_core_disconnect_hook) (void *data);
+
+struct dbus_core_hook {
+    dbus_core_connect_hook connect;
+    dbus_core_disconnect_hook disconnect;
+    void *data;
+
+    struct dbus_core_hook *next;
+};
+
+int dbus_core_init(void);
+void dbus_core_fini(void);
+int dbus_core_add_hook(struct dbus_core_hook *hook);
+void dbus_core_remove_hook(struct dbus_core_hook *hook);
+
+#else
+
+#define dbus_core_init()
+#define dbus_core_fini()
+
 #endif
-#include "input.h"
-#include "list.h"
 
-void remove_devices(const char *backend, const char *config_info);
-BOOL device_is_duplicate(const char *config_info);
-
-#ifdef CONFIG_UDEV
-int config_udev_pre_init(void);
-int config_udev_init(void);
-void config_udev_fini(void);
-void config_udev_odev_probe(config_odev_probe_proc_ptr probe_callback);
-#elif defined(CONFIG_HAL)
-int config_hal_init(void);
-void config_hal_fini(void);
-#elif defined(CONFIG_WSCONS)
-int config_wscons_init(void);
-void config_wscons_fini(void);
 #endif

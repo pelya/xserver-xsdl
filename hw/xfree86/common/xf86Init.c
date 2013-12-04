@@ -53,6 +53,7 @@
 #include "scrnintstr.h"
 #include "site.h"
 #include "mi.h"
+#include "dbus-core.h"
 
 #include "compiler.h"
 
@@ -455,6 +456,8 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
 
         if (xf86DoShowOptions)
             DoShowOptions();
+
+        dbus_core_init();
 
         /* Do a general bus probe.  This will be a PCI probe for x86 platforms */
         xf86BusProbe();
@@ -1058,6 +1061,8 @@ ddxGiveUp(enum ExitCode error)
 
     if (xorgHWOpenConsole)
         xf86CloseConsole();
+
+    dbus_core_fini();
 
     xf86CloseLog(error);
 
