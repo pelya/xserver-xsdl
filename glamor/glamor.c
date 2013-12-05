@@ -209,7 +209,12 @@ glamor_destroy_textured_pixmap(PixmapPtr pixmap)
 Bool
 glamor_destroy_pixmap(PixmapPtr pixmap)
 {
-	glamor_destroy_textured_pixmap(pixmap);
+	glamor_screen_private
+	  *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
+	if (glamor_priv->dri3_enabled)
+		glamor_egl_destroy_textured_pixmap(pixmap);
+	else
+		glamor_destroy_textured_pixmap(pixmap);
 	return fbDestroyPixmap(pixmap);
 }
 
@@ -551,4 +556,73 @@ void
 glamor_fini(ScreenPtr screen)
 {
 	/* Do nothing currently. */
+}
+
+void glamor_enable_dri3(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(screen);
+	glamor_priv->dri3_enabled = TRUE;
+}
+
+Bool glamor_is_dri3_support_enabled(ScreenPtr screen)
+{
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(screen);
+	return glamor_priv->dri3_enabled;
+}
+
+int
+glamor_dri3_fd_from_pixmap (ScreenPtr screen,
+                            PixmapPtr pixmap,
+                            CARD16 *stride,
+                            CARD32 *size)
+{
+	glamor_pixmap_private *pixmap_priv;
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(pixmap->drawable.pScreen);
+
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	if (pixmap_priv == NULL || !glamor_priv->dri3_enabled)
+		return -1;
+	switch (pixmap_priv->type)
+	{
+		case GLAMOR_TEXTURE_DRM:
+		case GLAMOR_TEXTURE_ONLY:
+			glamor_pixmap_ensure_fbo(pixmap, GL_RGBA, 0);
+			return glamor_egl_dri3_fd_name_from_tex(screen,
+								pixmap,
+								pixmap_priv->base.fbo->tex,
+								FALSE,
+								stride,
+								size);
+		default: break;
+	}
+	return -1;
+}
+
+int
+glamor_dri3_name_from_pixmap (PixmapPtr pixmap)
+{
+	glamor_pixmap_private *pixmap_priv;
+	glamor_screen_private *glamor_priv =
+	    glamor_get_screen_private(pixmap->drawable.pScreen);
+
+	pixmap_priv = glamor_get_pixmap_private(pixmap);
+	if (pixmap_priv == NULL || !glamor_priv->dri3_enabled)
+		return -1;
+	switch (pixmap_priv->type)
+	{
+		case GLAMOR_TEXTURE_DRM:
+		case GLAMOR_TEXTURE_ONLY:
+			glamor_pixmap_ensure_fbo(pixmap, GL_RGBA, 0);
+			return glamor_egl_dri3_fd_name_from_tex(pixmap->drawable.pScreen,
+								pixmap,
+								pixmap_priv->base.fbo->tex,
+								TRUE,
+								NULL,
+								NULL);
+		default: break;
+	}
+	return -1;
 }

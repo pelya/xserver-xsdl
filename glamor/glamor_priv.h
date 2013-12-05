@@ -305,6 +305,7 @@ typedef struct glamor_screen_private {
 	int state;
 	unsigned int render_idle_cnt;
 	ScreenPtr screen;
+	int dri3_enabled;
 
 	/* xv */
 	GLint xv_prog;
