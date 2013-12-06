@@ -3460,7 +3460,7 @@ __glXDisp_CopyTexSubImage3D(GLbyte * pc)
 void
 __glXDisp_ActiveTexture(GLbyte * pc)
 {
-    glActiveTexture(*(GLenum *) (pc + 0));
+    glActiveTextureARB(*(GLenum *) (pc + 0));
 }
 
 void
@@ -3473,7 +3473,7 @@ __glXDisp_MultiTexCoord1dv(GLbyte * pc)
     }
 #endif
 
-    glMultiTexCoord1dv(*(GLenum *) (pc + 8), (const GLdouble *) (pc + 0));
+    glMultiTexCoord1dvARB(*(GLenum *) (pc + 8), (const GLdouble *) (pc + 0));
 }
 
 void
@@ -3485,13 +3485,13 @@ __glXDisp_MultiTexCoord1fvARB(GLbyte * pc)
 void
 __glXDisp_MultiTexCoord1iv(GLbyte * pc)
 {
-    glMultiTexCoord1iv(*(GLenum *) (pc + 0), (const GLint *) (pc + 4));
+    glMultiTexCoord1ivARB(*(GLenum *) (pc + 0), (const GLint *) (pc + 4));
 }
 
 void
 __glXDisp_MultiTexCoord1sv(GLbyte * pc)
 {
-    glMultiTexCoord1sv(*(GLenum *) (pc + 0), (const GLshort *) (pc + 4));
+    glMultiTexCoord1svARB(*(GLenum *) (pc + 0), (const GLshort *) (pc + 4));
 }
 
 void
@@ -3504,7 +3504,7 @@ __glXDisp_MultiTexCoord2dv(GLbyte * pc)
     }
 #endif
 
-    glMultiTexCoord2dv(*(GLenum *) (pc + 16), (const GLdouble *) (pc + 0));
+    glMultiTexCoord2dvARB(*(GLenum *) (pc + 16), (const GLdouble *) (pc + 0));
 }
 
 void
@@ -3516,13 +3516,13 @@ __glXDisp_MultiTexCoord2fvARB(GLbyte * pc)
 void
 __glXDisp_MultiTexCoord2iv(GLbyte * pc)
 {
-    glMultiTexCoord2iv(*(GLenum *) (pc + 0), (const GLint *) (pc + 4));
+    glMultiTexCoord2ivARB(*(GLenum *) (pc + 0), (const GLint *) (pc + 4));
 }
 
 void
 __glXDisp_MultiTexCoord2sv(GLbyte * pc)
 {
-    glMultiTexCoord2sv(*(GLenum *) (pc + 0), (const GLshort *) (pc + 4));
+    glMultiTexCoord2svARB(*(GLenum *) (pc + 0), (const GLshort *) (pc + 4));
 }
 
 void
@@ -3535,7 +3535,7 @@ __glXDisp_MultiTexCoord3dv(GLbyte * pc)
     }
 #endif
 
-    glMultiTexCoord3dv(*(GLenum *) (pc + 24), (const GLdouble *) (pc + 0));
+    glMultiTexCoord3dvARB(*(GLenum *) (pc + 24), (const GLdouble *) (pc + 0));
 }
 
 void
@@ -3547,13 +3547,13 @@ __glXDisp_MultiTexCoord3fvARB(GLbyte * pc)
 void
 __glXDisp_MultiTexCoord3iv(GLbyte * pc)
 {
-    glMultiTexCoord3iv(*(GLenum *) (pc + 0), (const GLint *) (pc + 4));
+    glMultiTexCoord3ivARB(*(GLenum *) (pc + 0), (const GLint *) (pc + 4));
 }
 
 void
 __glXDisp_MultiTexCoord3sv(GLbyte * pc)
 {
-    glMultiTexCoord3sv(*(GLenum *) (pc + 0), (const GLshort *) (pc + 4));
+    glMultiTexCoord3svARB(*(GLenum *) (pc + 0), (const GLshort *) (pc + 4));
 }
 
 void
@@ -3566,7 +3566,7 @@ __glXDisp_MultiTexCoord4dv(GLbyte * pc)
     }
 #endif
 
-    glMultiTexCoord4dv(*(GLenum *) (pc + 32), (const GLdouble *) (pc + 0));
+    glMultiTexCoord4dvARB(*(GLenum *) (pc + 32), (const GLdouble *) (pc + 0));
 }
 
 void
@@ -3578,13 +3578,13 @@ __glXDisp_MultiTexCoord4fvARB(GLbyte * pc)
 void
 __glXDisp_MultiTexCoord4iv(GLbyte * pc)
 {
-    glMultiTexCoord4iv(*(GLenum *) (pc + 0), (const GLint *) (pc + 4));
+    glMultiTexCoord4ivARB(*(GLenum *) (pc + 0), (const GLint *) (pc + 4));
 }
 
 void
 __glXDisp_MultiTexCoord4sv(GLbyte * pc)
 {
-    glMultiTexCoord4sv(*(GLenum *) (pc + 0), (const GLshort *) (pc + 4));
+    glMultiTexCoord4svARB(*(GLenum *) (pc + 0), (const GLshort *) (pc + 4));
 }
 
 void

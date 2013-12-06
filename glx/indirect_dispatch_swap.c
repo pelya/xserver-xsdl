@@ -3821,7 +3821,7 @@ __glXDispSwap_CopyTexSubImage3D(GLbyte * pc)
 void
 __glXDispSwap_ActiveTexture(GLbyte * pc)
 {
-    glActiveTexture((GLenum) bswap_ENUM(pc + 0));
+    glActiveTextureARB((GLenum) bswap_ENUM(pc + 0));
 }
 
 void
@@ -3834,8 +3834,8 @@ __glXDispSwap_MultiTexCoord1dv(GLbyte * pc)
     }
 #endif
 
-    glMultiTexCoord1dv((GLenum) bswap_ENUM(pc + 8),
-                       (const GLdouble *) bswap_64_array((uint64_t *) (pc + 0),
+    glMultiTexCoord1dvARB((GLenum) bswap_ENUM(pc + 8),
+                          (const GLdouble *) bswap_64_array((uint64_t *) (pc + 0),
                                                          1));
 }
 
@@ -3850,17 +3850,17 @@ __glXDispSwap_MultiTexCoord1fvARB(GLbyte * pc)
 void
 __glXDispSwap_MultiTexCoord1iv(GLbyte * pc)
 {
-    glMultiTexCoord1iv((GLenum) bswap_ENUM(pc + 0),
-                       (const GLint *) bswap_32_array((uint32_t *) (pc + 4),
-                                                      1));
+    glMultiTexCoord1ivARB((GLenum) bswap_ENUM(pc + 0),
+                          (const GLint *) bswap_32_array((uint32_t *) (pc + 4),
+                                                         1));
 }
 
 void
 __glXDispSwap_MultiTexCoord1sv(GLbyte * pc)
 {
-    glMultiTexCoord1sv((GLenum) bswap_ENUM(pc + 0),
-                       (const GLshort *) bswap_16_array((uint16_t *) (pc + 4),
-                                                        1));
+    glMultiTexCoord1svARB((GLenum) bswap_ENUM(pc + 0),
+                          (const GLshort *) bswap_16_array((uint16_t *) (pc + 4),
+                                                           1));
 }
 
 void
@@ -3873,9 +3873,9 @@ __glXDispSwap_MultiTexCoord2dv(GLbyte * pc)
     }
 #endif
 
-    glMultiTexCoord2dv((GLenum) bswap_ENUM(pc + 16),
-                       (const GLdouble *) bswap_64_array((uint64_t *) (pc + 0),
-                                                         2));
+    glMultiTexCoord2dvARB((GLenum) bswap_ENUM(pc + 16),
+                          (const GLdouble *) bswap_64_array((uint64_t *) (pc + 0),
+                                                            2));
 }
 
 void
@@ -3889,17 +3889,17 @@ __glXDispSwap_MultiTexCoord2fvARB(GLbyte * pc)
 void
 __glXDispSwap_MultiTexCoord2iv(GLbyte * pc)
 {
-    glMultiTexCoord2iv((GLenum) bswap_ENUM(pc + 0),
-                       (const GLint *) bswap_32_array((uint32_t *) (pc + 4),
-                                                      2));
+    glMultiTexCoord2ivARB((GLenum) bswap_ENUM(pc + 0),
+                          (const GLint *) bswap_32_array((uint32_t *) (pc + 4),
+                                                         2));
 }
 
 void
 __glXDispSwap_MultiTexCoord2sv(GLbyte * pc)
 {
-    glMultiTexCoord2sv((GLenum) bswap_ENUM(pc + 0),
-                       (const GLshort *) bswap_16_array((uint16_t *) (pc + 4),
-                                                        2));
+    glMultiTexCoord2svARB((GLenum) bswap_ENUM(pc + 0),
+                          (const GLshort *) bswap_16_array((uint16_t *) (pc + 4),
+                                                           2));
 }
 
 void
@@ -3912,9 +3912,9 @@ __glXDispSwap_MultiTexCoord3dv(GLbyte * pc)
     }
 #endif
 
-    glMultiTexCoord3dv((GLenum) bswap_ENUM(pc + 24),
-                       (const GLdouble *) bswap_64_array((uint64_t *) (pc + 0),
-                                                         3));
+    glMultiTexCoord3dvARB((GLenum) bswap_ENUM(pc + 24),
+                          (const GLdouble *) bswap_64_array((uint64_t *) (pc + 0),
+                                                            3));
 }
 
 void
@@ -3928,17 +3928,17 @@ __glXDispSwap_MultiTexCoord3fvARB(GLbyte * pc)
 void
 __glXDispSwap_MultiTexCoord3iv(GLbyte * pc)
 {
-    glMultiTexCoord3iv((GLenum) bswap_ENUM(pc + 0),
-                       (const GLint *) bswap_32_array((uint32_t *) (pc + 4),
-                                                      3));
+    glMultiTexCoord3ivARB((GLenum) bswap_ENUM(pc + 0),
+                          (const GLint *) bswap_32_array((uint32_t *) (pc + 4),
+                                                         3));
 }
 
 void
 __glXDispSwap_MultiTexCoord3sv(GLbyte * pc)
 {
-    glMultiTexCoord3sv((GLenum) bswap_ENUM(pc + 0),
-                       (const GLshort *) bswap_16_array((uint16_t *) (pc + 4),
-                                                        3));
+    glMultiTexCoord3svARB((GLenum) bswap_ENUM(pc + 0),
+                          (const GLshort *) bswap_16_array((uint16_t *) (pc + 4),
+                                                           3));
 }
 
 void
@@ -3951,9 +3951,9 @@ __glXDispSwap_MultiTexCoord4dv(GLbyte * pc)
     }
 #endif
 
-    glMultiTexCoord4dv((GLenum) bswap_ENUM(pc + 32),
-                       (const GLdouble *) bswap_64_array((uint64_t *) (pc + 0),
-                                                         4));
+    glMultiTexCoord4dvARB((GLenum) bswap_ENUM(pc + 32),
+                          (const GLdouble *) bswap_64_array((uint64_t *) (pc + 0),
+                                                            4));
 }
 
 void
@@ -3967,17 +3967,17 @@ __glXDispSwap_MultiTexCoord4fvARB(GLbyte * pc)
 void
 __glXDispSwap_MultiTexCoord4iv(GLbyte * pc)
 {
-    glMultiTexCoord4iv((GLenum) bswap_ENUM(pc + 0),
-                       (const GLint *) bswap_32_array((uint32_t *) (pc + 4),
-                                                      4));
+    glMultiTexCoord4ivARB((GLenum) bswap_ENUM(pc + 0),
+                          (const GLint *) bswap_32_array((uint32_t *) (pc + 4),
+                                                         4));
 }
 
 void
 __glXDispSwap_MultiTexCoord4sv(GLbyte * pc)
 {
-    glMultiTexCoord4sv((GLenum) bswap_ENUM(pc + 0),
-                       (const GLshort *) bswap_16_array((uint16_t *) (pc + 4),
-                                                        4));
+    glMultiTexCoord4svARB((GLenum) bswap_ENUM(pc + 0),
+                          (const GLshort *) bswap_16_array((uint16_t *) (pc + 4),
+                                                           4));
 }
 
 void
