@@ -453,7 +453,7 @@ int glamor_egl_dri3_fd_name_from_tex (ScreenPtr screen,
 		image = glamor_egl->egl_create_image_khr(glamor_egl->display,
 							 glamor_egl->context,
 							 EGL_GL_TEXTURE_2D_KHR,
-							 tex, attribs);
+							 (EGLClientBuffer)(uintptr_t)tex, attribs);
 		if (image == EGL_NO_IMAGE_KHR)
 			goto failure;
 
