@@ -725,6 +725,8 @@ void
 PanoramiXDamageInit(void)
 {
     XRT_DAMAGE = CreateNewResourceType(PanoramiXDamageDelete, "XineramaDamage");
+    if (!XRT_DAMAGE)
+        FatalError("Couldn't Xineramify Damage extension\n");
 
     PanoramiXSaveDamageCreate = ProcDamageVector[X_DamageCreate];
     ProcDamageVector[X_DamageCreate] = PanoramiXDamageCreate;
