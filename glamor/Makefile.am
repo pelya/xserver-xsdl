@@ -1,19 +1,12 @@
 lib_LTLIBRARIES = libglamor.la
 
-# Override these since glamor doesn't need them and the needed files aren't
-# built (in hw/xfree86/os-support/solaris) until after glamor is built
-SOLARIS_ASM_CFLAGS=""
-
 if GLAMOR_GLES2
 libglamor_la_LIBADD = $(GLESV2_LIBS)
 else
 libglamor_la_LIBADD = $(GL_LIBS)
 endif
 
-AM_CPPFLAGS = \
-	$(XORG_INCS)
-
-AM_CFLAGS = $(CWARNFLAGS) $(XORG_CFLAGS) $(DIX_CFLAGS) $(LIBDRM_CFLAGS)
+AM_CFLAGS = $(CWARNFLAGS) $(XORG_CFLAGS) $(LIBDRM_CFLAGS)
 
 libglamor_la_LDFLAGS = -version-info 0:0:0
 
