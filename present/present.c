@@ -312,6 +312,36 @@ present_flip_idle(ScreenPtr screen)
     }
 }
 
+struct pixmap_visit {
+    PixmapPtr   old;
+    PixmapPtr   new;
+};
+
+static int
+present_set_tree_pixmap_visit(WindowPtr window, pointer data)
+{
+    struct pixmap_visit *visit = data;
+    ScreenPtr           screen = window->drawable.pScreen;
+
+    if ((*screen->GetWindowPixmap)(window) != visit->old)
+        return WT_DONTWALKCHILDREN;
+    (*screen->SetWindowPixmap)(window, visit->new);
+    return WT_WALKCHILDREN;
+}
+    
+static void
+present_set_tree_pixmap(WindowPtr window, PixmapPtr pixmap)
+{
+    struct pixmap_visit visit;
+    ScreenPtr           screen = window->drawable.pScreen;
+
+    visit.old = (*screen->GetWindowPixmap)(window);
+    visit.new = pixmap;
+    if (visit.old == visit.new)
+        return;
+    TraverseTree(window, present_set_tree_pixmap_visit, &visit);
+}
+
 static void
 present_unflip(ScreenPtr screen)
 {
@@ -321,10 +351,10 @@ present_unflip(ScreenPtr screen)
     assert (!screen_priv->flip_pending);
 
     if (screen_priv->flip_window)
-        (*screen->SetWindowPixmap)(screen_priv->flip_window,
-                                   (*screen->GetScreenPixmap)(screen));
+        present_set_tree_pixmap(screen_priv->flip_window,
+                                  (*screen->GetScreenPixmap)(screen));
 
-    (*screen->SetWindowPixmap)(screen->root, (*screen->GetScreenPixmap)(screen));
+    present_set_tree_pixmap(screen->root, (*screen->GetScreenPixmap)(screen));
 
     /* Update the screen pixmap with the current flip pixmap contents
      */
@@ -527,10 +557,10 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
                  *  2) Set current flip window pixmap to the new pixmap
                  */
                 if (screen_priv->flip_window && screen_priv->flip_window != window)
-                    (*screen->SetWindowPixmap)(screen_priv->flip_window,
-                                               (*screen->GetScreenPixmap)(screen));
-                (*screen->SetWindowPixmap)(vblank->window, vblank->pixmap);
-                (*screen->SetWindowPixmap)(screen->root, vblank->pixmap);
+                    present_set_tree_pixmap(screen_priv->flip_window,
+                                              (*screen->GetScreenPixmap)(screen));
+                present_set_tree_pixmap(vblank->window, vblank->pixmap);
+                present_set_tree_pixmap(screen->root, vblank->pixmap);
 
                 /* Report update region as damaged
                  */
