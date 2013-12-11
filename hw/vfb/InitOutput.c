@@ -404,7 +404,6 @@ vfbInstallColormap(ColormapPtr pmap)
     if (pmap != oldpmap) {
         int entries;
         XWDFileHeader *pXWDHeader;
-        XWDColor *pXWDCmap;
         VisualPtr pVisual;
         Pixel *ppix;
         xrgb *prgb;
@@ -419,7 +418,6 @@ vfbInstallColormap(ColormapPtr pmap)
 
         entries = pmap->pVisual->ColormapEntries;
         pXWDHeader = vfbScreens[pmap->pScreen->myNum].pXWDHeader;
-        pXWDCmap = vfbScreens[pmap->pScreen->myNum].pXWDCmap;
         pVisual = pmap->pVisual;
 
         swapcopy32(pXWDHeader->visual_class, pVisual->class);
