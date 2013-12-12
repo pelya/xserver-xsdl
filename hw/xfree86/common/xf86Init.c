@@ -544,7 +544,8 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
             if (NEED_IO_ENABLED(flags))
                 want_hw_access = TRUE;
 
-            if (!(flags & HW_SKIP_CONSOLE))
+            /* Non-seat0 X servers should not open console */
+            if (!(flags & HW_SKIP_CONSOLE) && !ServerIsNotSeat0())
                 xorgHWOpenConsole = TRUE;
         }
 
