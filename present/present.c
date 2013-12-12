@@ -663,10 +663,18 @@ present_pixmap(WindowPtr window,
     if (crtc_msc >= target_msc) {
         if (divisor != 0) {
             target_msc = crtc_msc - (crtc_msc % divisor) + remainder;
-            if (target_msc <= crtc_msc)
-                target_msc += divisor;
-        } else
+            if (options & PresentOptionAsync) {
+                if (target_msc < crtc_msc)
+                    target_msc += divisor;
+            } else {
+                if (target_msc <= crtc_msc)
+                    target_msc += divisor;
+            }
+        } else {
             target_msc = crtc_msc;
+            if (!(options & PresentOptionAsync))
+                target_msc++;
+        }
     }
 
     /*
