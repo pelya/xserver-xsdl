@@ -1218,7 +1218,7 @@ case "$DRI3,$HAVE_XSHMFENCE" in
 	yes,yes | auto,yes)
 		;;
 	yes,no)
-		AC_MSG_ERROR("DRI3 requested, but xshmfence not found.])
+		AC_MSG_ERROR([DRI3 requested, but xshmfence not found.])
 		DRI3=no
 		;;
 	no,*)
