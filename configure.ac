@@ -614,7 +614,6 @@ AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--enable-xf86bigfont], [Build XF86
 AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
 AC_ARG_ENABLE(config-udev,    AS_HELP_STRING([--enable-config-udev], [Build udev support (default: auto)]), [CONFIG_UDEV=$enableval], [CONFIG_UDEV=auto])
 AC_ARG_ENABLE(config-udev-kms,    AS_HELP_STRING([--enable-config-udev-kms], [Build udev kms support (default: auto)]), [CONFIG_UDEV_KMS=$enableval], [CONFIG_UDEV_KMS=auto])
-AC_ARG_ENABLE(config-dbus,    AS_HELP_STRING([--enable-config-dbus], [Build D-BUS API support (default: no)]), [CONFIG_DBUS_API=$enableval], [CONFIG_DBUS_API=no])
 AC_ARG_ENABLE(config-hal,     AS_HELP_STRING([--disable-config-hal], [Build HAL support (default: auto)]), [CONFIG_HAL=$enableval], [CONFIG_HAL=auto])
 AC_ARG_ENABLE(config-wscons,  AS_HELP_STRING([--enable-config-wscons], [Build wscons config support (default: auto)]), [CONFIG_WSCONS=$enableval], [CONFIG_WSCONS=auto])
 AC_ARG_ENABLE(xfree86-utils,     AS_HELP_STRING([--enable-xfree86-utils], [Build xfree86 DDX utilities (default: enabled)]), [XF86UTILS=$enableval], [XF86UTILS=yes])
@@ -703,7 +702,6 @@ dnl DDX Detection... Yes, it's ugly to have it here... but we need to
 dnl handle this early on so that we don't require unsupported extensions
 case $host_os in
 	cygwin* | mingw*)
-		CONFIG_DBUS_API=no
 		CONFIG_HAL=no
 		CONFIG_UDEV=no
 		CONFIG_UDEV_KMS=no
@@ -851,9 +849,8 @@ if test "x$WITH_SYSTEMD_DAEMON" = xyes; then
 fi
 AM_CONDITIONAL([HAVE_SYSTEMD_DAEMON], [test "x$HAVE_SYSTEMD_DAEMON" = "xyes"])
 
-if test "x$CONFIG_UDEV" = xyes &&
- { test "x$CONFIG_DBUS_API" = xyes || test "x$CONFIG_HAL" = xyes; }; then
-	AC_MSG_ERROR([Hotplugging through both libudev and dbus/hal not allowed])
+if test "x$CONFIG_UDEV" = xyes && test "x$CONFIG_HAL" = xyes; then
+	AC_MSG_ERROR([Hotplugging through both libudev and hal not allowed])
 fi
 
 PKG_CHECK_MODULES(UDEV, $LIBUDEV, [HAVE_LIBUDEV=yes], [HAVE_LIBUDEV=no])
@@ -862,7 +859,6 @@ if test "x$CONFIG_UDEV" = xauto; then
 fi
 AM_CONDITIONAL(CONFIG_UDEV, [test "x$CONFIG_UDEV" = xyes])
 if test "x$CONFIG_UDEV" = xyes; then
-	CONFIG_DBUS_API=no
 	CONFIG_HAL=no
 	if test "x$CONFIG_UDEV_KMS" = xauto; then
 		CONFIG_UDEV_KMS="$HAVE_LIBUDEV"
@@ -885,27 +881,11 @@ if test "x$CONFIG_UDEV" = xyes; then
 fi
 AM_CONDITIONAL(CONFIG_UDEV_KMS, [test "x$CONFIG_UDEV_KMS" = xyes])
 
-dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
-dnl CONFIG_DBUS_API is true if we want to enable the D-Bus config
-dnl API.
 PKG_CHECK_MODULES(DBUS, $LIBDBUS, [HAVE_DBUS=yes], [HAVE_DBUS=no])
 if test "x$HAVE_DBUS" = xyes; then
 	AC_DEFINE(HAVE_DBUS, 1, [Have D-Bus support])
 fi
 AM_CONDITIONAL(HAVE_DBUS, [test "x$HAVE_DBUS" = xyes])
-
-if test "x$CONFIG_DBUS_API" = xauto; then
-	CONFIG_DBUS_API="$HAVE_DBUS"
-fi
-if test "x$CONFIG_DBUS_API" = xyes; then
-	if ! test "x$HAVE_DBUS" = xyes; then
-		AC_MSG_ERROR([D-Bus configuration API requested, but D-Bus is not installed.])
-	fi
-
-	AC_DEFINE(CONFIG_DBUS_API, 1, [Use the D-Bus input configuration API])
-	CONFIG_NEED_DBUS="yes"
-fi
-AM_CONDITIONAL(CONFIG_DBUS_API, [test "x$CONFIG_DBUS_API" = xyes])
 
 PKG_CHECK_MODULES(HAL, hal, [HAVE_HAL=yes], [HAVE_HAL=no])
 if test "x$CONFIG_HAL" = xauto; then

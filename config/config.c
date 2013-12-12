@@ -49,10 +49,6 @@ config_init(void)
         ErrorF("[config] failed to initialise udev\n");
 #elif defined(CONFIG_NEED_DBUS)
     if (config_dbus_core_init()) {
-#ifdef CONFIG_DBUS_API
-        if (!config_dbus_init())
-            ErrorF("[config] failed to initialise D-Bus API\n");
-#endif
 #ifdef CONFIG_HAL
         if (!config_hal_init())
             ErrorF("[config] failed to initialise HAL\n");
@@ -75,9 +71,6 @@ config_fini(void)
 #elif defined(CONFIG_NEED_DBUS)
 #ifdef CONFIG_HAL
     config_hal_fini();
-#endif
-#ifdef CONFIG_DBUS_API
-    config_dbus_fini();
 #endif
     config_dbus_core_fini();
 #elif defined(CONFIG_WSCONS)

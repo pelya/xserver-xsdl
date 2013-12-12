@@ -417,9 +417,6 @@
 /* Use D-Bus for input hotplug */
 #undef CONFIG_NEED_DBUS
 
-/* Support the D-Bus hotplug API */
-#undef CONFIG_DBUS_API
-
 /* Support HAL for hotplug */
 #undef CONFIG_HAL
 

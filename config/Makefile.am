@@ -21,13 +21,6 @@ AM_CFLAGS += $(DBUS_CFLAGS)
 libconfig_la_SOURCES += dbus-core.c
 libconfig_la_LIBADD = $(DBUS_LIBS)
 
-if CONFIG_DBUS_API
-dbusconfigdir = $(sysconfdir)/dbus-1/system.d
-dbusconfig_DATA = xorg-server.conf
-
-libconfig_la_SOURCES += dbus.c
-endif
-
 if CONFIG_HAL
 AM_CFLAGS += $(HAL_CFLAGS)
 libconfig_la_SOURCES += hal.c
