@@ -689,6 +689,9 @@ present_pixmap(WindowPtr window,
             if (!vblank->pixmap)
                 continue;
 
+            if (!vblank->queued)
+                continue;
+
             if (vblank->crtc != target_crtc || vblank->target_msc != target_msc)
                 continue;
 
