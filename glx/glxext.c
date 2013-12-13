@@ -554,7 +554,9 @@ __glXsetGetProcAddress(glx_gpa_proc get_proc_address)
 
 void *__glGetProcAddress(const char *proc)
 {
-    return _get_proc_address(proc);
+    void *ret = _get_proc_address(proc);
+
+    return ret ? ret : NoopDDA;
 }
 
 /*
