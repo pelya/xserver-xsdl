@@ -490,7 +490,7 @@ static int glamor_xv_put_image(ScrnInfoPtr pScrn,
 
 	if (!port_priv->src_pix[0] || (width != port_priv->src_pix_w || height != port_priv->src_pix_h)) {
 		int i;
-		for (i = 0; i < 2; i++)
+		for (i = 0; i < 3; i++)
 			if (port_priv->src_pix[i])
 				glamor_destroy_pixmap(port_priv->src_pix[i]);
 
