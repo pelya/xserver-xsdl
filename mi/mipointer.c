@@ -152,7 +152,7 @@ miPointerCloseScreen(ScreenPtr pScreen)
     SetupScreen(pScreen);
 
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
-    free((pointer) pScreenPriv);
+    free((void *) pScreenPriv);
     FreeEventList(mipointermove_events, GetMaximumEventsNum());
     mipointermove_events = NULL;
     return (*pScreen->CloseScreen) (pScreen);

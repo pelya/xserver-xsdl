@@ -64,7 +64,7 @@ typedef struct _LFWIstate {
     int current_fpe;
     int max_names;
     Bool list_started;
-    pointer private;
+    void *private;
 } LFWIstateRec, *LFWIstatePtr;
 
 typedef struct _LFWIclosure {

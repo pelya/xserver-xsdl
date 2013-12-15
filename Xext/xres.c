@@ -267,7 +267,7 @@ ProcXResQueryClients(ClientPtr client)
 }
 
 static void
-ResFindAllRes(pointer value, XID id, RESTYPE type, pointer cdata)
+ResFindAllRes(void *value, XID id, RESTYPE type, void *cdata)
 {
     int *counts = (int *) cdata;
 
@@ -365,7 +365,7 @@ ResGetApproxPixmapBytes(PixmapPtr pix)
 }
 
 static void
-ResFindResourcePixmaps(pointer value, XID id, RESTYPE type, pointer cdata)
+ResFindResourcePixmaps(void *value, XID id, RESTYPE type, void *cdata)
 {
     SizeType sizeFunc = GetResourceTypeSizeFunc(type);
     ResourceSizeRec size = { 0, 0, 0 };
@@ -376,7 +376,7 @@ ResFindResourcePixmaps(pointer value, XID id, RESTYPE type, pointer cdata)
 }
 
 static void 
-ResFindPixmaps(pointer value, XID id, pointer cdata)
+ResFindPixmaps(void *value, XID id, void *cdata)
 {
     unsigned long *bytes = (unsigned long *) cdata;
     PixmapPtr pix = (PixmapPtr) value;
@@ -385,7 +385,7 @@ ResFindPixmaps(pointer value, XID id, pointer cdata)
 }
 
 static void
-ResFindWindowPixmaps(pointer value, XID id, pointer cdata)
+ResFindWindowPixmaps(void *value, XID id, void *cdata)
 {
     unsigned long *bytes = (unsigned long *) cdata;
     WindowPtr pWin = (WindowPtr) value;
@@ -398,7 +398,7 @@ ResFindWindowPixmaps(pointer value, XID id, pointer cdata)
 }
 
 static void
-ResFindGCPixmaps(pointer value, XID id, pointer cdata)
+ResFindGCPixmaps(void *value, XID id, void *cdata)
 {
     unsigned long *bytes = (unsigned long *) cdata;
     GCPtr pGC = (GCPtr) value;
@@ -411,7 +411,7 @@ ResFindGCPixmaps(pointer value, XID id, pointer cdata)
 }
 
 static void
-ResFindPicturePixmaps(pointer value, XID id, pointer cdata)
+ResFindPicturePixmaps(void *value, XID id, void *cdata)
 {
 #ifdef RENDER
     ResFindResourcePixmaps(value, id, PictureType, cdata);
@@ -419,7 +419,7 @@ ResFindPicturePixmaps(pointer value, XID id, pointer cdata)
 }
 
 static void
-ResFindCompositeClientWindowPixmaps (pointer value, XID id, pointer cdata)
+ResFindCompositeClientWindowPixmaps (void *value, XID id, void *cdata)
 {
 #ifdef COMPOSITE
     ResFindResourcePixmaps(value, id, CompositeClientWindowType, cdata);
@@ -446,32 +446,32 @@ ProcXResQueryClientPixmapBytes(ClientPtr client)
     bytes = 0;
 
     FindClientResourcesByType(clients[clientID], RT_PIXMAP, ResFindPixmaps,
-                              (pointer) (&bytes));
+                              (void *) (&bytes));
 
     /* 
      * Make sure win background pixmaps also held to account. 
      */
     FindClientResourcesByType(clients[clientID], RT_WINDOW,
-                              ResFindWindowPixmaps, (pointer) (&bytes));
+                              ResFindWindowPixmaps, (void *) (&bytes));
 
     /* 
      * GC Tile & Stipple pixmaps too.
      */
     FindClientResourcesByType(clients[clientID], RT_GC,
-                              ResFindGCPixmaps, (pointer) (&bytes));
+                              ResFindGCPixmaps, (void *) (&bytes));
 
 #ifdef RENDER
     /* Render extension picture pixmaps. */
     FindClientResourcesByType(clients[clientID], PictureType,
                               ResFindPicturePixmaps,
-                              (pointer)(&bytes));
+                              (void *)(&bytes));
 #endif
 
 #ifdef COMPOSITE
     /* Composite extension client window pixmaps. */
     FindClientResourcesByType(clients[clientID], CompositeClientWindowType,
                               ResFindCompositeClientWindowPixmaps,
-                              (pointer)(&bytes));
+                              (void *)(&bytes));
 #endif
 
     rep = (xXResQueryClientPixmapBytesReply) {
@@ -753,10 +753,10 @@ SwapXResQueryResourceBytes(struct xorg_list *response)
                         FindRes
 */
 static void
-AddSubResourceSizeSpec(pointer value,
+AddSubResourceSizeSpec(void *value,
                        XID id,
                        RESTYPE type,
-                       pointer cdata)
+                       void *cdata)
 {
     ConstructResourceBytesCtx *ctx = cdata;
 
@@ -818,7 +818,7 @@ AddSubResourceSizeSpec(pointer value,
                         FindRes
 */
 static void
-AddResourceSizeValue(pointer ptr, XID id, RESTYPE type, pointer cdata)
+AddResourceSizeValue(void *ptr, XID id, RESTYPE type, void *cdata)
 {
     ConstructResourceBytesCtx *ctx = cdata;
     if (ctx->status == Success &&
@@ -888,7 +888,7 @@ AddResourceSizeValue(pointer ptr, XID id, RESTYPE type, pointer cdata)
    @param[in/out] cdata  The context object that contains the resource type
 */
 static void
-AddResourceSizeValueWithResType(pointer ptr, XID id, pointer cdata)
+AddResourceSizeValueWithResType(void *ptr, XID id, void *cdata)
 {
     ConstructResourceBytesCtx *ctx = cdata;
     AddResourceSizeValue(ptr, id, ctx->resType, cdata);
@@ -906,7 +906,7 @@ AddResourceSizeValueWithResType(pointer ptr, XID id, pointer cdata)
                          type FindAllRes
 */
 static void
-AddResourceSizeValueByResource(pointer ptr, XID id, RESTYPE type, pointer cdata)
+AddResourceSizeValueByResource(void *ptr, XID id, RESTYPE type, void *cdata)
 {
     ConstructResourceBytesCtx *ctx = cdata;
     xXResResourceIdSpec *spec = ctx->curSpec;

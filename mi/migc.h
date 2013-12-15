@@ -38,7 +38,7 @@ extern _X_EXPORT void miDestroyClip(GCPtr       /*pGC */
 
 extern _X_EXPORT void miChangeClip(GCPtr /*pGC */ ,
                                    int /*type */ ,
-                                   pointer /*pvalue */ ,
+                                   void */*pvalue */ ,
                                    int  /*nrects */
     );
 

@@ -163,7 +163,7 @@ typedef Bool (*PointerAccelSchemeInitProc) (DeviceIntPtr /*dev */ ,
                                             /*protoScheme */ );
 
 typedef struct _DeviceRec {
-    pointer devicePrivate;
+    void *devicePrivate;
     ProcessInputProc processInputProc;  /* current */
     ProcessInputProc realInputProc;     /* deliver */
     ProcessInputProc enqueueInputProc;  /* enqueue */
@@ -316,7 +316,7 @@ extern _X_EXPORT Bool InitTouchClassDeviceStruct(DeviceIntPtr /*device */ ,
 
 typedef void (*BellProcPtr) (int /*percent */ ,
                              DeviceIntPtr /*device */ ,
-                             pointer /*ctrl */ ,
+                             void */*ctrl */ ,
                              int);
 
 typedef void (*KbdCtrlProcPtr) (DeviceIntPtr /*device */ ,

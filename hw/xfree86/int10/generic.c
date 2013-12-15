@@ -87,8 +87,8 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     if (!xf86Int10ExecSetup(pInt))
         goto error0;
     pInt->mem = &genericMem;
-    pInt->private = (pointer) xnfcalloc(1, sizeof(genericInt10Priv));
-    INTPriv(pInt)->alloc = (pointer) xnfcalloc(1, ALLOC_ENTRIES(getpagesize()));
+    pInt->private = (void *) xnfcalloc(1, sizeof(genericInt10Priv));
+    INTPriv(pInt)->alloc = (void *) xnfcalloc(1, ALLOC_ENTRIES(getpagesize()));
     pInt->pScrn = pScrn;
     base = INTPriv(pInt)->base = xnfalloc(SYS_BIOS);
 
@@ -343,10 +343,10 @@ xf86Int10FreePages(xf86Int10InfoPtr pInt, void *pbase, int num)
 	   : *(uint8_t*) V_ADDR(addr)
 #define V_ADDR_RW(addr) \
 	(VRAM(addr)) ? MMIO_IN16((uint16_t*)VRAM_BASE,VRAM_ADDR(addr)) \
-	   : ldw_u((pointer)V_ADDR(addr))
+	   : ldw_u((void *)V_ADDR(addr))
 #define V_ADDR_RL(addr) \
 	(VRAM(addr)) ? MMIO_IN32((uint32_t*)VRAM_BASE,VRAM_ADDR(addr)) \
-	   : ldl_u((pointer)V_ADDR(addr))
+	   : ldl_u((void *)V_ADDR(addr))
 
 #define V_ADDR_WB(addr,val) \
 	if(VRAM(addr)) \
@@ -357,13 +357,13 @@ xf86Int10FreePages(xf86Int10InfoPtr pInt, void *pbase, int num)
 	if(VRAM(addr)) \
 	    MMIO_OUT16((uint16_t*)VRAM_BASE,VRAM_ADDR(addr),val); \
 	else \
-	    stw_u((val),(pointer)(V_ADDR(addr)));
+	    stw_u((val),(void *)(V_ADDR(addr)));
 
 #define V_ADDR_WL(addr,val) \
 	if (VRAM(addr)) \
 	    MMIO_OUT32((uint32_t*)VRAM_BASE,VRAM_ADDR(addr),val); \
 	else \
-	    stl_u(val,(pointer)(V_ADDR(addr)));
+	    stl_u(val,(void *)(V_ADDR(addr)));
 
 static uint8_t
 read_b(xf86Int10InfoPtr pInt, int addr)
@@ -425,7 +425,7 @@ write_l(xf86Int10InfoPtr pInt, int addr, uint32_t val)
     V_ADDR_WB(addr + 3, val >> 24);
 }
 
-pointer
+void *
 xf86int10Addr(xf86Int10InfoPtr pInt, uint32_t addr)
 {
     return V_ADDR(addr);

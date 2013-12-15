@@ -229,7 +229,7 @@ xf86RotateRedisplay(ScreenPtr pScreen)
 
 static void
 xf86RotateBlockHandler(ScreenPtr pScreen,
-                       pointer pTimeout, pointer pReadmask)
+                       void *pTimeout, void *pReadmask)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);

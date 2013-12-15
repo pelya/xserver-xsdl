@@ -189,13 +189,13 @@ static void timeout(void);
 
 static void restart(void);
 
-static void XdmcpBlockHandler(pointer /*data */ ,
+static void XdmcpBlockHandler(void */*data */ ,
                               struct timeval ** /*wt */ ,
-                              pointer /*LastSelectMask */ );
+                              void */*LastSelectMask */ );
 
-static void XdmcpWakeupHandler(pointer /*data */ ,
+static void XdmcpWakeupHandler(void */*data */ ,
                                int /*i */ ,
-                               pointer /*LastSelectMask */ );
+                               void */*LastSelectMask */ );
 
 /*
  * Register the Manufacturer display ID
@@ -578,7 +578,7 @@ XdmcpInit(void)
                                   strlen(defaultDisplayClass));
         AccessUsingXdmcp();
         RegisterBlockAndWakeupHandlers(XdmcpBlockHandler, XdmcpWakeupHandler,
-                                       (pointer) 0);
+                                       (void *) 0);
         timeOutRtx = 0;
         DisplayNumber = (CARD16) atoi(display);
         get_xdmcp_sock();
@@ -592,7 +592,7 @@ XdmcpReset(void)
     state = XDM_INIT_STATE;
     if (state != XDM_OFF) {
         RegisterBlockAndWakeupHandlers(XdmcpBlockHandler, XdmcpWakeupHandler,
-                                       (pointer) 0);
+                                       (void *) 0);
         timeOutRtx = 0;
         send_packet();
     }
@@ -635,8 +635,8 @@ XdmcpCloseDisplay(int sock)
  */
 
  /*ARGSUSED*/ static void
-XdmcpBlockHandler(pointer data, /* unused */
-                  struct timeval **wt, pointer pReadmask)
+XdmcpBlockHandler(void *data, /* unused */
+                  struct timeval **wt, void *pReadmask)
 {
     fd_set *LastSelectMask = (fd_set *) pReadmask;
     CARD32 millisToGo;
@@ -663,8 +663,8 @@ XdmcpBlockHandler(pointer data, /* unused */
  */
 
  /*ARGSUSED*/ static void
-XdmcpWakeupHandler(pointer data,        /* unused */
-                   int i, pointer pReadmask)
+XdmcpWakeupHandler(void *data,        /* unused */
+                   int i, void *pReadmask)
 {
     fd_set *LastSelectMask = (fd_set *) pReadmask;
     fd_set devicesReadable;

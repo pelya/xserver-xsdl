@@ -430,13 +430,13 @@ void
 
 ExaCheckImageGlyphBlt(DrawablePtr pDrawable, GCPtr pGC,
                       int x, int y, unsigned int nglyph,
-                      CharInfoPtr * ppci, pointer pglyphBase);
+                      CharInfoPtr * ppci, void *pglyphBase);
 
 void
 
 ExaCheckPolyGlyphBlt(DrawablePtr pDrawable, GCPtr pGC,
                      int x, int y, unsigned int nglyph,
-                     CharInfoPtr * ppci, pointer pglyphBase);
+                     CharInfoPtr * ppci, void *pglyphBase);
 
 void
 
@@ -609,7 +609,7 @@ Bool
 
 exaModifyPixmapHeader_classic(PixmapPtr pPixmap, int width, int height,
                               int depth, int bitsPerPixel, int devKind,
-                              pointer pPixData);
+                              void *pPixData);
 
 Bool
  exaDestroyPixmap_classic(PixmapPtr pPixmap);
@@ -627,7 +627,7 @@ Bool
 
 exaModifyPixmapHeader_driver(PixmapPtr pPixmap, int width, int height,
                              int depth, int bitsPerPixel, int devKind,
-                             pointer pPixData);
+                             void *pPixData);
 
 Bool
  exaDestroyPixmap_driver(PixmapPtr pPixmap);
@@ -644,7 +644,7 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
 Bool
 
 exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
-                            int bitsPerPixel, int devKind, pointer pPixData);
+                            int bitsPerPixel, int devKind, void *pPixData);
 
 Bool
  exaDestroyPixmap_mixed(PixmapPtr pPixmap);

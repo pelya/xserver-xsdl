@@ -237,7 +237,7 @@ xf86ValidateFontPath(char *path)
  * that we need at this point
  */
 const char **
-xf86ModulelistFromConfig(pointer **optlist)
+xf86ModulelistFromConfig(void ***optlist)
 {
     int count = 0, i = 0;
     const char **modulearray;
@@ -246,7 +246,7 @@ xf86ModulelistFromConfig(pointer **optlist)
         "freetype", "type1",
         NULL
     };
-    pointer *optarray;
+    void **optarray;
     XF86LoadPtr modp;
     Bool found;
 
@@ -352,7 +352,7 @@ xf86ModulelistFromConfig(pointer **optlist)
      * allocate the memory and walk the list again to fill in the pointers
      */
     modulearray = xnfalloc((count + 1) * sizeof(char *));
-    optarray = xnfalloc((count + 1) * sizeof(pointer));
+    optarray = xnfalloc((count + 1) * sizeof(void *));
     count = 0;
     if (xf86configptr->conf_modules) {
         modp = xf86configptr->conf_modules->mod_load_lst;
@@ -2446,7 +2446,7 @@ xf86HandleConfigFile(Bool autoconfig)
     else {
         if (xf86configptr->conf_flags != NULL) {
             char *dfltlayout = NULL;
-            pointer optlist = xf86configptr->conf_flags->flg_option_lst;
+            void *optlist = xf86configptr->conf_flags->flg_option_lst;
 
             if (optlist && xf86FindOption(optlist, "defaultserverlayout"))
                 dfltlayout =

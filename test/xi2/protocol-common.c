@@ -251,7 +251,7 @@ init_simple(void)
     init_window(&window, &root, CLIENT_WINDOW_ID);
 
     serverClient = &server_client;
-    InitClient(serverClient, 0, (pointer) NULL);
+    InitClient(serverClient, 0, (void *) NULL);
     if (!InitClientResources(serverClient)) /* for root resources */
         FatalError("couldn't init server resources");
     SyncExtensionInit();

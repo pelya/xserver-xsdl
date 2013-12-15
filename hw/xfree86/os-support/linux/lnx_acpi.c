@@ -33,14 +33,14 @@
 #define ACPI_VIDEO_HEAD_END		(~0u)
 
 static void lnxCloseACPI(void);
-static pointer ACPIihPtr = NULL;
+static void *ACPIihPtr = NULL;
 PMClose lnxACPIOpen(void);
 
 /* in milliseconds */
 #define ACPI_REOPEN_DELAY 1000
 
 static CARD32
-lnxACPIReopen(OsTimerPtr timer, CARD32 time, pointer arg)
+lnxACPIReopen(OsTimerPtr timer, CARD32 time, void *arg)
 {
     if (lnxACPIOpen()) {
         TimerFree(timer);

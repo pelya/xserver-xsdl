@@ -396,7 +396,7 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
 {
     int i, j, k, scr_index;
     const char **modulelist;
-    pointer *optionlist;
+    void **optionlist;
     Pix24Flags screenpix24, pix24;
     MessageType pix24From = X_DEFAULT;
     Bool pix24Fail = FALSE;
@@ -1538,10 +1538,10 @@ ddxUseMsg(void)
  * xf86LoadModules iterates over a list that is being passed in.
  */
 Bool
-xf86LoadModules(const char **list, pointer *optlist)
+xf86LoadModules(const char **list, void **optlist)
 {
     int errmaj, errmin;
-    pointer opt;
+    void *opt;
     int i;
     char *name;
     Bool failed = FALSE;

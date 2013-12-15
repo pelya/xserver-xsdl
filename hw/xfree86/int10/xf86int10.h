@@ -24,10 +24,10 @@ typedef struct {
     uint16_t BIOSseg;
     uint16_t inb40time;
     ScrnInfoPtr pScrn;
-    pointer cpuRegs;
+    void *cpuRegs;
     char *BIOSScratch;
     int Flags;
-    pointer private;
+    void *private;
     struct _int10Mem *mem;
     int num;
     int ax;
@@ -69,7 +69,7 @@ extern _X_EXPORT void *xf86Int10AllocPages(xf86Int10InfoPtr pInt, int num,
                                            int *off);
 extern _X_EXPORT void xf86Int10FreePages(xf86Int10InfoPtr pInt, void *pbase,
                                          int num);
-extern _X_EXPORT pointer xf86int10Addr(xf86Int10InfoPtr pInt, uint32_t addr);
+extern _X_EXPORT void *xf86int10Addr(xf86Int10InfoPtr pInt, uint32_t addr);
 
 /* x86 executor related functions */
 extern _X_EXPORT void xf86ExecX86int10(xf86Int10InfoPtr pInt);

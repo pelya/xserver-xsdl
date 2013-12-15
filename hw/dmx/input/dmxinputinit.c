@@ -225,7 +225,7 @@ dmxKbdCtrl(DeviceIntPtr pDevice, KeybdCtrl * ctrl)
 
 /* taken from kdrive/src/kinput.c: */
 static void
-dmxBell(int volume, DeviceIntPtr pDev, pointer arg, int something)
+dmxBell(int volume, DeviceIntPtr pDev, void *arg, int something)
 {
 #if 0
     KeybdCtrl *ctrl = arg;
@@ -336,7 +336,7 @@ _dmxKeyboardBellProc(DMXLocalInputInfoPtr dmxLocal, int percent)
  * sound the bell on all of the devices that send core events. */
 void
 dmxKeyboardBellProc(int percent, DeviceIntPtr pDevice,
-                    pointer ctrl, int unknown)
+                    void *ctrl, int unknown)
 {
     GETDMXLOCALFROMPDEVICE;
     int i, j;
@@ -633,7 +633,7 @@ dmxCollectAll(DMXInputInfo * dmxInput)
 }
 
 static void
-dmxBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadMask)
+dmxBlockHandler(void *blockData, OSTimePtr pTimeout, void *pReadMask)
 {
     DMXInputInfo *dmxInput = &dmxInputs[(uintptr_t) blockData];
     static unsigned long generation = 0;
@@ -645,7 +645,7 @@ dmxBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadMask)
 }
 
 static void
-dmxSwitchReturn(pointer p)
+dmxSwitchReturn(void *p)
 {
     DMXInputInfo *dmxInput = p;
     int i;
@@ -662,7 +662,7 @@ dmxSwitchReturn(pointer p)
 }
 
 static void
-dmxWakeupHandler(pointer blockData, int result, pointer pReadMask)
+dmxWakeupHandler(void *blockData, int result, void *pReadMask)
 {
     DMXInputInfo *dmxInput = &dmxInputs[(uintptr_t) blockData];
     int i;

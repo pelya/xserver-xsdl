@@ -1052,7 +1052,7 @@ DRICreateContext(ScreenPtr pScreen, VisualPtr visual,
     }
 
     /* track this in case the client dies before cleanup */
-    AddResource(context, DRIContextPrivResType, (pointer) pDRIContextPriv);
+    AddResource(context, DRIContextPrivResType, (void *) pDRIContextPriv);
 
     return TRUE;
 }
@@ -1067,7 +1067,7 @@ DRIDestroyContext(ScreenPtr pScreen, XID context)
 
 /* DRIContextPrivDelete is called by the resource manager. */
 Bool
-DRIContextPrivDelete(pointer pResource, XID id)
+DRIContextPrivDelete(void *pResource, XID id)
 {
     DRIContextPrivPtr pDRIContextPriv = (DRIContextPrivPtr) pResource;
     DRIScreenPrivPtr pDRIPriv;
@@ -1150,7 +1150,7 @@ DRITransitionTo2d(ScreenPtr pScreen)
 }
 
 static int
-DRIDCNTreeTraversal(WindowPtr pWin, pointer data)
+DRIDCNTreeTraversal(WindowPtr pWin, void *data)
 {
     DRIDrawablePrivPtr pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
 
@@ -1189,7 +1189,7 @@ DRIDriverClipNotify(ScreenPtr pScreen)
         if (pDRIPriv->nrWindows > 0) {
             pDRIPriv->nrWalked = 0;
             TraverseTree(pScreen->root, DRIDCNTreeTraversal,
-                         (pointer) pDRIWindows);
+                         (void *) pDRIWindows);
         }
 
         pDRIInfo->ClipNotify(pScreen, pDRIWindows, pDRIPriv->nrWindows);
@@ -1284,7 +1284,7 @@ DRICreateDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable,
 
         /* track this in case the client dies */
         AddResource(FakeClientID(client->index), DRIDrawablePrivResType,
-                    (pointer) (intptr_t) pDrawable->id);
+                    (void *) (intptr_t) pDrawable->id);
 
         if (pDRIDrawablePriv->hwDrawable) {
             drmUpdateDrawableInfo(pDRIPriv->drmFD,
@@ -1337,7 +1337,7 @@ DRIDrawablePrivDestroy(WindowPtr pWin)
 }
 
 static Bool
-DRIDestroyDrawableCB(pointer value, XID id, pointer data)
+DRIDestroyDrawableCB(void *value, XID id, void *data)
 {
     if (value == data) {
         /* This calls back DRIDrawablePrivDelete which frees private area */
@@ -1355,7 +1355,7 @@ DRIDestroyDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable)
     if (pDrawable->type == DRAWABLE_WINDOW) {
         LookupClientResourceComplex(client, DRIDrawablePrivResType,
                                     DRIDestroyDrawableCB,
-                                    (pointer) (intptr_t) pDrawable->id);
+                                    (void *) (intptr_t) pDrawable->id);
     }
     else {                      /* pixmap (or for GLX 1.3, a PBuffer) */
         /* NOT_DONE */
@@ -1366,7 +1366,7 @@ DRIDestroyDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable)
 }
 
 Bool
-DRIDrawablePrivDelete(pointer pResource, XID id)
+DRIDrawablePrivDelete(void *pResource, XID id)
 {
     WindowPtr pWin;
     int rc;
@@ -1625,7 +1625,7 @@ DRIDestroyInfoRec(DRIInfoPtr DRIInfo)
 }
 
 void
-DRIWakeupHandler(pointer wakeupData, int result, pointer pReadmask)
+DRIWakeupHandler(void *wakeupData, int result, void *pReadmask)
 {
     int i;
 
@@ -1640,7 +1640,7 @@ DRIWakeupHandler(pointer wakeupData, int result, pointer pReadmask)
 }
 
 void
-DRIBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
+DRIBlockHandler(void *blockData, OSTimePtr pTimeout, void *pReadmask)
 {
     int i;
 
@@ -1656,7 +1656,7 @@ DRIBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
 
 void
 DRIDoWakeupHandler(ScreenPtr pScreen,
-                   unsigned long result, pointer pReadmask)
+                   unsigned long result, void *pReadmask)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
 
@@ -1674,7 +1674,7 @@ DRIDoWakeupHandler(ScreenPtr pScreen,
 
 void
 DRIDoBlockHandler(ScreenPtr pScreen,
-                  pointer pTimeout, pointer pReadmask)
+                  void *pTimeout, void *pReadmask)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
 
@@ -1877,7 +1877,7 @@ DRIWindowExposures(WindowPtr pWin, RegionPtr prgn, RegionPtr bsreg)
 }
 
 static int
-DRITreeTraversal(WindowPtr pWin, pointer data)
+DRITreeTraversal(WindowPtr pWin, void *data)
 {
     DRIDrawablePrivPtr pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
 
@@ -1937,7 +1937,7 @@ DRICopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 
         RegionNull(&reg);
         pDRIPriv->nrWalked = 0;
-        TraverseTree(pWin, DRITreeTraversal, (pointer) (&reg));
+        TraverseTree(pWin, DRITreeTraversal, (void *) (&reg));
 
         if (RegionNotEmpty(&reg)) {
             RegionTranslate(&reg, ptOldOrg.x - pWin->drawable.x,

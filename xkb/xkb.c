@@ -370,7 +370,7 @@ _XkbBell(ClientPtr client, DeviceIntPtr dev, WindowPtr pWin,
          int percent, int forceSound, int eventOnly, Atom name)
 {
     int base;
-    pointer ctrl;
+    void *ctrl;
     int oldPitch, oldDuration;
     int newPercent;
 
@@ -390,7 +390,7 @@ _XkbBell(ClientPtr client, DeviceIntPtr dev, WindowPtr pWin,
             return BadValue;
         }
         base = k->ctrl.bell;
-        ctrl = (pointer) &(k->ctrl);
+        ctrl = (void *) &(k->ctrl);
         oldPitch = k->ctrl.bell_pitch;
         oldDuration = k->ctrl.bell_duration;
         if (pitch != 0) {
@@ -422,7 +422,7 @@ _XkbBell(ClientPtr client, DeviceIntPtr dev, WindowPtr pWin,
             return BadValue;
         }
         base = b->ctrl.percent;
-        ctrl = (pointer) &(b->ctrl);
+        ctrl = (void *) &(b->ctrl);
         oldPitch = b->ctrl.pitch;
         oldDuration = b->ctrl.duration;
         if (pitch != 0) {
@@ -6820,7 +6820,7 @@ ProcXkbDispatch(ClientPtr client)
 }
 
 static int
-XkbClientGone(pointer data, XID id)
+XkbClientGone(void *data, XID id)
 {
     DevicePtr pXDev = (DevicePtr) data;
 

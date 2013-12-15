@@ -291,7 +291,7 @@ device_removed(struct udev_device *device)
 }
 
 static void
-wakeup_handler(pointer data, int err, pointer read_mask)
+wakeup_handler(void *data, int err, void *read_mask)
 {
     int udev_fd = udev_monitor_get_fd(udev_monitor);
     struct udev_device *udev_device;
@@ -324,7 +324,7 @@ wakeup_handler(pointer data, int err, pointer read_mask)
 }
 
 static void
-block_handler(pointer data, struct timeval **tv, pointer read_mask)
+block_handler(void *data, struct timeval **tv, void *read_mask)
 {
 }
 

@@ -140,7 +140,7 @@ typedef struct _RootWinProp {
     Atom type;
     short format;
     long size;
-    pointer data;
+    void *data;
 } RootWinProp, *RootWinPropPtr;
 
 /* ISC's cc can't handle ~ of UL constants, so explicitly type cast them. */

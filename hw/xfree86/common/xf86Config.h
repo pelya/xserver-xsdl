@@ -59,7 +59,7 @@ typedef struct _ModuleDefault {
 /*
  * prototypes
  */
-const char **xf86ModulelistFromConfig(pointer **);
+const char **xf86ModulelistFromConfig(void ***);
 const char **xf86DriverlistFromConfig(void);
 const char **xf86DriverlistFromCompile(void);
 const char **xf86InputDriverlistFromConfig(void);

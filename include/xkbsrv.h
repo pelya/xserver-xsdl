@@ -281,7 +281,7 @@ extern _X_EXPORT DevPrivateKeyRec xkbDevicePrivateKeyRec;
 
 #define XKBDEVICEINFO(dev) ((xkbDeviceInfoPtr)dixLookupPrivate(&(dev)->devPrivates, xkbDevicePrivateKey))
 
-extern void xkbUnwrapProc(DeviceIntPtr, DeviceHandleProc, pointer);
+extern void xkbUnwrapProc(DeviceIntPtr, DeviceHandleProc, void *);
 
 /***====================================================================***/
 
@@ -600,7 +600,7 @@ extern _X_EXPORT void XkbHandleBell(BOOL /* force */ ,
                                     BOOL /* eventOnly */ ,
                                     DeviceIntPtr /* kbd */ ,
                                     CARD8 /* percent */ ,
-                                    pointer /* ctrl */ ,
+                                    void */* ctrl */ ,
                                     CARD8 /* class */ ,
                                     Atom /* name */ ,
                                     WindowPtr /* pWin */ ,

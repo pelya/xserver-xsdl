@@ -66,7 +66,7 @@ typedef struct _ExtensionEntry {
     int errorLast;
     int num_aliases;
     const char **aliases;
-    pointer extPrivate;
+    void *extPrivate;
     unsigned short (*MinorOpcode) (     /* called for errors */
                                       ClientPtr /* client */ );
     PrivateRec *devPrivates;

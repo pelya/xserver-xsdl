@@ -475,7 +475,7 @@ static void
  exaCopyGC(GCPtr pGCSrc, unsigned long mask, GCPtr pGCDst);
 
 static void
- exaChangeClip(GCPtr pGC, int type, pointer pvalue, int nrects);
+ exaChangeClip(GCPtr pGC, int type, void *pvalue, int nrects);
 
 static void
  exaCopyClip(GCPtr pGCDst, GCPtr pGCSrc);
@@ -579,7 +579,7 @@ exaCopyGC(GCPtr pGCSrc, unsigned long mask, GCPtr pGCDst)
 }
 
 static void
-exaChangeClip(GCPtr pGC, int type, pointer pvalue, int nrects)
+exaChangeClip(GCPtr pGC, int type, void *pvalue, int nrects)
 {
     ExaGCPriv(pGC);
     swap(pExaGC, pGC, funcs);
@@ -702,8 +702,8 @@ exaCreateScreenResources(ScreenPtr pScreen)
 }
 
 static void
-ExaBlockHandler(ScreenPtr pScreen, pointer pTimeout,
-                pointer pReadmask)
+ExaBlockHandler(ScreenPtr pScreen, void *pTimeout,
+                void *pReadmask)
 {
     ExaScreenPriv(pScreen);
 
@@ -733,7 +733,7 @@ ExaBlockHandler(ScreenPtr pScreen, pointer pTimeout,
 
 static void
 ExaWakeupHandler(ScreenPtr pScreen, unsigned long result,
-                 pointer pReadmask)
+                 void *pReadmask)
 {
     ExaScreenPriv(pScreen);
 

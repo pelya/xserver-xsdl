@@ -107,7 +107,7 @@ static int
  * Eval config and modify DeviceVelocityRec accordingly
  */
 static void
-ProcessVelocityConfiguration(DeviceIntPtr pDev, const char *devname, pointer list,
+ProcessVelocityConfiguration(DeviceIntPtr pDev, const char *devname, void *list,
                              DeviceVelocityPtr s)
 {
     int tempi;

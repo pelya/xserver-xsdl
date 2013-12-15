@@ -142,7 +142,7 @@ XkbFreeRMLVOSet(XkbRMLVOSet * rmlvo, Bool freeRMLVO)
 }
 
 static Bool
-XkbWriteRulesProp(ClientPtr client, pointer closure)
+XkbWriteRulesProp(ClientPtr client, void *closure)
 {
     int len, out;
     Atom name;

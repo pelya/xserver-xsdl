@@ -224,8 +224,8 @@ typedef struct {
     Gamma gamma;                /* Gamma of the monitor */
     int widthmm;
     int heightmm;
-    pointer options;
-    pointer DDC;
+    void *options;
+    void *DDC;
     Bool reducedblanking;       /* Allow CVT reduced blanking modes? */
     int maxPixClock;            /* in kHz, like mode->Clock */
 } MonRec, *MonPtr;
@@ -259,7 +259,7 @@ typedef enum {
     GET_REQUIRED_HW_INTERFACES = 10
 } xorgDriverFuncOp;
 
-typedef Bool xorgDriverFuncProc(ScrnInfoPtr, xorgDriverFuncOp, pointer);
+typedef Bool xorgDriverFuncProc(ScrnInfoPtr, xorgDriverFuncOp, void *);
 
 /* RR_GET_INFO, RR_SET_CONFIG */
 typedef struct {
@@ -303,7 +303,7 @@ typedef struct {
     void (*Identify) (int flags);
     Bool (*Probe) (struct _DriverRec * drv, int flags);
     const OptionInfoRec *(*AvailableOptions) (int chipid, int bustype);
-    pointer module;
+    void *module;
     int refCount;
 } DriverRec1;
 
@@ -319,7 +319,7 @@ typedef struct _DriverRec {
     void (*Identify) (int flags);
     Bool (*Probe) (struct _DriverRec * drv, int flags);
     const OptionInfoRec *(*AvailableOptions) (int chipid, int bustype);
-    pointer module;
+    void *module;
     int refCount;
     xorgDriverFuncProc *driverFunc;
 
@@ -408,7 +408,7 @@ typedef struct {
     unsigned long IOBase;
     int chipID;
     int chipRev;
-    pointer options;
+    void *options;
     int irq;
     int screen;                 /* For multi-CRTC cards */
 } GDevRec, *GDevPtr;
@@ -425,19 +425,19 @@ typedef struct {
     rgb whiteColour;
     int defaultVisual;
     const char **modes;
-    pointer options;
+    void *options;
 } DispRec, *DispPtr;
 
 typedef struct _confxvportrec {
     const char *identifier;
-    pointer options;
+    void *options;
 } confXvPortRec, *confXvPortPtr;
 
 typedef struct _confxvadaptrec {
     const char *identifier;
     int numports;
     confXvPortPtr ports;
-    pointer options;
+    void *options;
 } confXvAdaptorRec, *confXvAdaptorPtr;
 
 typedef struct _confscreenrec {
@@ -452,7 +452,7 @@ typedef struct _confscreenrec {
     DispPtr displays;
     int numxvadaptors;
     confXvAdaptorPtr xvadaptors;
-    pointer options;
+    void *options;
 } confScreenRec, *confScreenPtr;
 
 typedef enum {
@@ -489,7 +489,7 @@ typedef struct _serverlayoutrec {
     screenLayoutPtr screens;
     GDevPtr inactives;
     InputInfoRec **inputs;      /* NULL terminated */
-    pointer options;
+    void *options;
 } serverLayoutRec, *serverLayoutPtr;
 
 typedef struct _confdribufferrec {
@@ -512,7 +512,7 @@ typedef struct _confdrirec {
 #define NUM_RESERVED_POINTERS		14
 #define NUM_RESERVED_FUNCS		10
 
-typedef pointer (*funcPointer) (void);
+typedef void *(*funcPointer) (void);
 
 /* flags for depth 24 pixmap options */
 typedef enum {
@@ -581,7 +581,7 @@ typedef struct _PciChipsets {
 } PciChipsets;
 
 /* Entity properties */
-typedef void (*EntityProc) (int entityIndex, pointer private);
+typedef void (*EntityProc) (int entityIndex, void *private);
 
 typedef struct _entityInfo {
     int index;
@@ -731,11 +731,11 @@ typedef struct _ScrnInfoRec {
     int xDpi;                   /* width DPI */
     int yDpi;                   /* height DPI */
     const char *name;           /* Name to prefix messages */
-    pointer driverPrivate;      /* Driver private area */
+    void *driverPrivate;        /* Driver private area */
     DevUnion *privates;         /* Other privates can hook in
                                  * here */
     DriverPtr drv;              /* xf86DriverList[] entry */
-    pointer module;             /* Pointer to module head */
+    void *module;               /* Pointer to module head */
     int colorKey;
     int overlayFlags;
 
@@ -754,7 +754,7 @@ typedef struct _ScrnInfoRec {
     int memClk;                 /* memory clock */
     int textClockFreq;          /* clock of text mode */
     Bool flipPixels;            /* swap default black/white */
-    pointer options;
+    void *options;
 
     int chipID;
     int chipRev;
@@ -779,7 +779,7 @@ typedef struct _ScrnInfoRec {
     int *entityInstanceList;
     struct pci_device *vgaDev;
 
-    pointer reservedPtr[NUM_RESERVED_POINTERS];
+    void *reservedPtr[NUM_RESERVED_POINTERS];
 
     /*
      * Driver entry points.
@@ -864,7 +864,7 @@ typedef enum {
 typedef void (*DPMSSetProcPtr) (ScrnInfoPtr, int, int);
 
 /* Input handler proc */
-typedef void (*InputHandlerProc) (int fd, pointer data);
+typedef void (*InputHandlerProc) (int fd, void *data);
 
 /* These are used by xf86GetClocks */
 #define CLK_REG_SAVE		-1
