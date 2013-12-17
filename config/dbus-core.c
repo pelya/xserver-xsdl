@@ -233,8 +233,8 @@ dbus_core_init(void)
     memset(&bus_info, 0, sizeof(bus_info));
     bus_info.fd = -1;
     bus_info.hooks = NULL;
-    bus_info.connection = NULL;
-    bus_info.timer = TimerSet(NULL, 0, 1, reconnect_timer, NULL);
+    if (!connect_to_bus())
+        bus_info.timer = TimerSet(NULL, 0, 1, reconnect_timer, NULL);
 
     return 1;
 }
