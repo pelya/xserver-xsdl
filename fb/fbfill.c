@@ -26,6 +26,50 @@
 
 #include "fb.h"
 
+static void
+fbStipple(FbBits * dst, FbStride dstStride,
+          int dstX, int dstBpp,
+          int width, int height,
+          FbStip * stip, FbStride stipStride,
+          int stipWidth, int stipHeight,
+          FbBits fgand, FbBits fgxor,
+          FbBits bgand, FbBits bgxor,
+          int xRot, int yRot)
+{
+    int stipX, stipY, sx;
+    int widthTmp;
+    int h, w;
+    int x, y;
+
+    modulus(-yRot, stipHeight, stipY);
+    modulus(dstX / dstBpp - xRot, stipWidth, stipX);
+    y = 0;
+    while (height) {
+        h = stipHeight - stipY;
+        if (h > height)
+            h = height;
+        height -= h;
+        widthTmp = width;
+        x = dstX;
+        sx = stipX;
+        while (widthTmp) {
+            w = (stipWidth - sx) * dstBpp;
+            if (w > widthTmp)
+                w = widthTmp;
+            widthTmp -= w;
+            fbBltOne(stip + stipY * stipStride,
+                     stipStride,
+                     sx,
+                     dst + y * dstStride,
+                     dstStride, x, dstBpp, w, h, fgand, fgxor, bgand, bgxor);
+            x += w;
+            sx = 0;
+        }
+        y += h;
+        stipY = 0;
+    }
+}
+
 void
 fbFill(DrawablePtr pDrawable, GCPtr pGC, int x, int y, int width, int height)
 {
@@ -97,7 +141,7 @@ fbFill(DrawablePtr pDrawable, GCPtr pGC, int x, int y, int width, int height)
             fbStipple(dst + (y + dstYoff) * dstStride, dstStride,
                       (x + dstXoff) * dstBpp, dstBpp, width * dstBpp, height,
                       stip, stipStride, stipWidth, stipHeight,
-                      pPriv->evenStipple, fgand, fgxor, bgand, bgxor,
+                      fgand, fgxor, bgand, bgxor,
                       pGC->patOrg.x + pDrawable->x + dstXoff,
                       pGC->patOrg.y + pDrawable->y - y);
             fbFinishAccess(&pStip->drawable);

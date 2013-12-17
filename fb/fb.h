@@ -452,7 +452,6 @@ typedef struct {
     FbBits bgand, bgxor;        /* for stipples */
     FbBits fg, bg, pm;          /* expanded and filled */
     unsigned int dashLength;    /* total of all dash elements */
-    unsigned char evenStipple;  /* stipple is even */
     unsigned char bpp;          /* current drawable bpp */
 } FbGCPrivRec, *FbGCPrivPtr;
 
@@ -545,11 +544,6 @@ typedef struct {
  * Accelerated tiles are power of 2 width <= FB_UNIT
  */
 #define FbEvenTile(w)	    ((w) <= FB_UNIT && FbPowerOfTwo(w))
-/*
- * Accelerated stipples are power of 2 width and <= FB_UNIT/dstBpp
- * with dstBpp a power of 2 as well
- */
-#define FbEvenStip(w,bpp)   ((w) * (bpp) <= FB_UNIT && FbPowerOfTwo(w) && FbPowerOfTwo(bpp))
 
 /*
  * fb24_32.c
@@ -1336,58 +1330,6 @@ extern _X_EXPORT void
 fbSolid24(FbBits * dst,
           FbStride dstStride,
           int dstX, int width, int height, FbBits and, FbBits xor);
-
-/*
- * fbstipple.c
- */
-
-extern _X_EXPORT void
- fbTransparentSpan(FbBits * dst, FbBits stip, FbBits fgxor, int n);
-
-extern _X_EXPORT void
-
-fbEvenStipple(FbBits * dst,
-              FbStride dstStride,
-              int dstX,
-              int dstBpp,
-              int width,
-              int height,
-              FbStip * stip,
-              FbStride stipStride,
-              int stipHeight,
-              FbBits fgand,
-              FbBits fgxor, FbBits bgand, FbBits bgxor, int xRot, int yRot);
-
-extern _X_EXPORT void
-
-fbOddStipple(FbBits * dst,
-             FbStride dstStride,
-             int dstX,
-             int dstBpp,
-             int width,
-             int height,
-             FbStip * stip,
-             FbStride stipStride,
-             int stipWidth,
-             int stipHeight,
-             FbBits fgand,
-             FbBits fgxor, FbBits bgand, FbBits bgxor, int xRot, int yRot);
-
-extern _X_EXPORT void
-
-fbStipple(FbBits * dst,
-          FbStride dstStride,
-          int dstX,
-          int dstBpp,
-          int width,
-          int height,
-          FbStip * stip,
-          FbStride stipStride,
-          int stipWidth,
-          int stipHeight,
-          Bool even,
-          FbBits fgand,
-          FbBits fgxor, FbBits bgand, FbBits bgxor, int xRot, int yRot);
 
 /*
  * fbtile.c

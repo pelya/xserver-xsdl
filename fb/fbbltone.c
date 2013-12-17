@@ -62,26 +62,6 @@
 	bits = (src < srcEnd ? READ(src++) : 0); \
 }
 
-#define LaneCases1(n,a)	    case n: FbLaneCase(n,a); break
-#define LaneCases2(n,a)	    LaneCases1(n,a); LaneCases1(n+1,a)
-#define LaneCases4(n,a)	    LaneCases2(n,a); LaneCases2(n+2,a)
-#define LaneCases8(n,a)	    LaneCases4(n,a); LaneCases4(n+4,a)
-#define LaneCases16(n,a)    LaneCases8(n,a); LaneCases8(n+8,a)
-
-#define LaneCases(a)	    LaneCases16(0,a)
-
-static const CARD8 fb8Lane[16] = {
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-};
-
-static const CARD8 fb16Lane[16] = {
-    0, 3, 12, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-};
-
-static const CARD8 fb32Lane[16] = {
-    0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-};
-
 void
 fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
          int srcX,              /* bit position of source */
@@ -110,7 +90,6 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
     Bool transparent;           /* accelerate 0 nop */
     int srcinc;                 /* source units consumed */
     Bool endNeedsLoad = FALSE;  /* need load for endmask */
-    const CARD8 *fbLane;
     int startbyte, endbyte;
 
     if (dstBpp == 24) {
@@ -176,15 +155,6 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
     fbBits = 0;                 /* unused */
     if (pixelsPerDst <= 8)
         fbBits = fbStippleTable[pixelsPerDst];
-    fbLane = 0;
-    if (transparent && fgand == 0) {
-        if (dstBpp == 8)
-            fbLane = fb8Lane;
-        if (dstBpp == 16)
-            fbLane = fb16Lane;
-        if (dstBpp == 32)
-            fbLane = fb32Lane;
-    }
 
     /*
      * Compute total number of destination words written, but 
@@ -235,15 +205,10 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
              */
             if (startmask) {
                 mask = fbBits[FbLeftStipBits(bits, pixelsPerDst)];
-                if (fbLane) {
-                    fbTransparentSpan(dst, mask & startmask, fgxor, 1);
-                }
-                else {
-                    if (mask || !transparent)
-                        FbDoLeftMaskByteStippleRRop(dst, mask,
-                                                    fgand, fgxor, bgand, bgxor,
-                                                    startbyte, startmask);
-                }
+                if (mask || !transparent)
+                    FbDoLeftMaskByteStippleRRop(dst, mask,
+                                                fgand, fgxor, bgand, bgxor,
+                                                startbyte, startmask);
                 bits = FbStipLeft(bits, pixelsPerDst);
                 dst++;
                 n--;
@@ -263,29 +228,15 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
                     }
                 }
                 else {
-                    if (fbLane) {
-                        while (bits && n) {
-                            switch (fbLane[FbLeftStipBits(bits, pixelsPerDst)]) {
-                                LaneCases((CARD8 *) dst);
-                            }
-                            bits = FbStipLeft(bits, pixelsPerDst);
-                            dst++;
-                            n--;
+                    while (n--) {
+                        left = FbLeftStipBits(bits, pixelsPerDst);
+                        if (left || !transparent) {
+                            mask = fbBits[left];
+                            WRITE(dst, FbStippleRRop(READ(dst), mask, fgand,
+                                                     fgxor, bgand, bgxor));
                         }
-                        dst += n;
-                    }
-                    else {
-                        while (n--) {
-                            left = FbLeftStipBits(bits, pixelsPerDst);
-                            if (left || !transparent) {
-                                mask = fbBits[left];
-                                WRITE(dst, FbStippleRRop(READ(dst), mask,
-                                                         fgand, fgxor, bgand,
-                                                         bgxor));
-                            }
-                            dst++;
-                            bits = FbStipLeft(bits, pixelsPerDst);
-                        }
+                        dst++;
+                        bits = FbStipLeft(bits, pixelsPerDst);
                     }
                 }
                 if (!w)
@@ -307,15 +258,9 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
                 LoadBits;
             }
             mask = fbBits[FbLeftStipBits(bits, pixelsPerDst)];
-            if (fbLane) {
-                fbTransparentSpan(dst, mask & endmask, fgxor, 1);
-            }
-            else {
-                if (mask || !transparent)
-                    FbDoRightMaskByteStippleRRop(dst, mask,
-                                                 fgand, fgxor, bgand, bgxor,
-                                                 endbyte, endmask);
-            }
+            if (mask || !transparent)
+                FbDoRightMaskByteStippleRRop(dst, mask, fgand, fgxor,
+                                             bgand, bgxor, endbyte, endmask);
         }
         dst += dstStride;
         src += srcStride;
