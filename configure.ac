@@ -646,8 +646,6 @@ AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest serv
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
 AC_ARG_ENABLE(standalone-xpbproxy, AS_HELP_STRING([--enable-standalone-xpbproxy], [Build a standalone xpbproxy (in addition to the one integrated into Xquartz as a separate thread) (default: no)]), [STANDALONE_XPBPROXY=$enableval], [STANDALONE_XPBPROXY=no])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
-AC_ARG_ENABLE(glamor,         AS_HELP_STRING([--enable-glamor], [Build glamor dix module (default: no)]), [GLAMOR=$enableval], [GLAMOR=no])
-AC_ARG_ENABLE(glamor-ddx,     AS_HELP_STRING([--enable-glamor-ddx], [Build glamor ddx (default: no)]), [GLAMOR_DDX=$enableval], [GLAMOR_DDX=no])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
@@ -657,8 +655,6 @@ dnl kdrive options
 AC_ARG_ENABLE(kdrive-kbd,     AS_HELP_STRING([--enable-kdrive-kbd], [Build kbd driver for kdrive (default: auto)]), [KDRIVE_KBD=$enableval], [KDRIVE_KBD=auto])
 AC_ARG_ENABLE(kdrive-mouse,   AC_HELP_STRING([--enable-kdrive-mouse], [Build mouse driver for kdrive (default: auto)]), [KDRIVE_MOUSE=$enableval], [KDRIVE_MOUSE=auto])
 AC_ARG_ENABLE(kdrive-evdev,   AC_HELP_STRING([--enable-kdrive-evdev], [Build evdev driver for kdrive (default: auto)]), [KDRIVE_EVDEV=$enableval], [KDRIVE_EVDEV=auto])
-dnl glamor options
-AC_ARG_ENABLE(glamor-gles2,         AS_HELP_STRING([--enable-glamor-gles2], [Build glamor based on gles2 (default: no)]), [GLAMOR_GLES2=$enableval], [GLAMOR_GLES2=no])
 
 
 dnl chown/chmod to be setuid root as part of build
@@ -801,9 +797,7 @@ LIBUDEV="libudev >= 143"
 LIBSELINUX="libselinux >= 2.0.86"
 LIBDBUS="dbus-1 >= 1.0"
 LIBPIXMAN="pixman-1 >= 0.21.8"
-LIBEGL="egl"
-LIBGLESV2="glesv2"
-LIBGBM="gbm"
+
 dnl Pixman is always required, but we separate it out so we can link
 dnl specific modules against it
 PKG_CHECK_MODULES(PIXMAN, $LIBPIXMAN)
@@ -1771,37 +1765,6 @@ AM_CONDITIONAL([SOLARIS_VT], [test "x$solaris_vt" = xyes])
 AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
 AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 
-dnl glamor 
-
-if [test "x$XEPHYR" = xyes || test "x$GLAMOR_DDX" = xyes] ; then
-   GLAMOR=yes
-fi
-
-AM_CONDITIONAL([GLAMOR], [test "x$GLAMOR" = xyes])
-AM_CONDITIONAL([GLAMOR_GLES2], [test "x$GLAMOR_GLES2" = xyes])
-AM_CONDITIONAL([GLAMOR_DDX], [test "x$GLAMOR_DDX" = xyes])
-
-if test "x$GLAMOR" = xyes; then 
-   AC_DEFINE(GLAMOR,1,[Build Glamor])
-
-   if test "x$GLAMOR_GLES2" = xyes; then
-      AC_DEFINE(GLAMOR_GLES2,1,[Build glamor over GLES2])
-      PKG_CHECK_MODULES(GLESV2, $LIBGLESV2)
-      REQUIRED_LIBS="$REQUIRED_LIBS $LIBGLESV2"
-   else 
-      AC_DEFINE(GLAMOR_GL,1,[Build glamor over GL])
-      PKG_CHECK_MODULES(GL, $LIBGL)
-      REQUIRED_LIBS="$REQUIRED_LIBS $LIBGL"
-   fi
-
-   if test "x$GLAMOR_DDX" = xyes; then
-     AC_DEFINE(GLAMOR_DDX,1,[Enable glamor ddx driver])
-     PKG_CHECK_MODULES(EGL, $LIBEGL)
-     PKG_CHECK_MODULES(EGL, $LIBGBM)
-     REQUIRED_LIBS="$REQUIRED_LIBS $LIBEGL"
-   fi
-fi
-
 dnl XWin DDX
 
 AC_MSG_CHECKING([whether to build XWin DDX])
@@ -2035,10 +1998,6 @@ if test "$KDRIVE" = yes; then
     if test "x$DRI" = xyes && test "x$GLX" = xyes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS $LIBGL libdrm"
     fi
-    # The glamor stuff requires libGL, but that conflicts with GLX currently.
-    if test "x$GLX" = xno; then
-        XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS gl"
-    fi
 
     PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [xephyr="yes"], [xephyr="no"])
     if test "x$XEPHYR" = xauto; then
@@ -2174,7 +2133,6 @@ Xext/Makefile
 Xi/Makefile
 xfixes/Makefile
 exa/Makefile
-glamor/Makefile
 hw/Makefile
 hw/xfree86/Makefile
 hw/xfree86/common/Makefile
@@ -2212,7 +2170,6 @@ hw/xfree86/utils/Makefile
 hw/xfree86/utils/man/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile
-hw/xfree86/glamor/Makefile
 hw/dmx/config/Makefile
 hw/dmx/config/man/Makefile
 hw/dmx/doc/Makefile

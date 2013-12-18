@@ -1118,11 +1118,7 @@ videoPtrToDriverList(struct pci_device *dev,
             } else if (dev->device_id == 0x8108) {
                 break; /* "hooray" for poulsbo */
 	    } else {
-#ifdef GLAMOR_DDX
-	      driverList[0] = "glamor";
-#else
-	      driverList[0] = "intel";
-#endif
+		driverList[0] = "intel";
 	    }
 	    break;
 	case 0x102b:		    driverList[0] = "mga";	break;

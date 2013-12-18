@@ -7,8 +7,7 @@ INCLUDES = 			\
 	@XEPHYR_CFLAGS@		\
 	@DRIPROTO_CFLAGS@	\
 	-I$(top_srcdir)		\
-	-I$(top_srcdir)/exa	\
-	-I$(top_srcdir)/glamor
+	-I$(top_srcdir)/exa
 
 if XV
 LIBXEPHYR_HOSTXV=libxephyr-hostxv.la
@@ -48,7 +47,6 @@ XEPHYR_SRCS =			\
 	ephyr.h			\
 	ephyrlog.h		\
 	ephyr_draw.c		\
-	ephyr_glamor.c		\
 	os.c
 
 libxephyr_hostx_la_SOURCES = $(HOSTX_SRCS)
@@ -66,28 +64,18 @@ libxephyr_la_SOURCES = $(XEPHYR_SRCS)
 Xephyr_SOURCES = \
 	ephyrinit.c
 
-if GLAMOR_GLES2
-GLAMOR_GL_LIB = -lGLESv2
-else
-GLAMOR_GL_LIB = -lGL
-endif
-
 Xephyr_LDADD = 						\
 	libxephyr.la					\
 	libxephyr-hostx.la				\
 	$(LIBXEPHYR_HOSTXV)				\
 	$(LIBXEPHYR_HOSTDRI)				\
 	$(top_builddir)/exa/libexa.la			\
-	$(top_builddir)/glamor/libglamor.la		\
 	@KDRIVE_LIBS@					\
-	@XEPHYR_LIBS@                                   \
-        $(GLAMOR_GL_LIB)
+	@XEPHYR_LIBS@
 
 Xephyr_DEPENDENCIES =	\
 	libxephyr.la					\
 	libxephyr-hostx.la				\
-	$(top_builddir)/exa/libexa.la			\
-	$(top_builddir)/glamor/libglamor.la		\
 	$(LIBXEPHYR_HOSTXV)				\
 	$(LIBXEPHYR_HOSTDRI)				\
 	@KDRIVE_LOCAL_LIBS@

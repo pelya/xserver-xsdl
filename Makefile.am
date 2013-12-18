@@ -17,10 +17,6 @@ if RECORD
 RECORD_DIR=record
 endif
 
-if GLAMOR
-GLAMOR_DIR=glamor
-endif
-
 SUBDIRS = \
 	doc \
 	man \
@@ -42,7 +38,6 @@ SUBDIRS = \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
 	exa \
-	$(GLAMOR_DIR) \
 	config \
 	hw \
 	test
@@ -93,7 +88,6 @@ DIST_SUBDIRS = \
 	composite \
 	glx \
 	exa \
-	glamor \
 	config \
 	hw \
 	test

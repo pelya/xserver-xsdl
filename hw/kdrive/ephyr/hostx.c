@@ -46,7 +46,6 @@
 #include <unistd.h>
 #include <string.h> 		/* for memset */
 #include <time.h>
-#include <err.h>
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -62,7 +61,6 @@
 #include <GL/glx.h>
 #endif /* XF86DRI */
 #include "ephyrlog.h"
-#include "GL/glx.h"
 
 #ifdef XF86DRI
 extern Bool XF86DRIQueryExtension (Display *dpy,
@@ -97,7 +95,6 @@ struct EphyrHostXVars
   Display        *dpy;
   int             screen;
   Visual         *visual;
-  XVisualInfo    *visual_info;
   Window          winroot;
   GC              gc;
   int             depth;
@@ -126,13 +123,9 @@ extern int            monitorResolution;
 char           *ephyrResName = NULL;
 int             ephyrResNameFromCmd = 0;
 char	       *ephyrTitle = NULL;
-Bool ephyr_glamor = FALSE;
 
 static void
 hostx_set_fullscreen_hint(void);
-
-static void
-ephyr_glamor_get_visual(void);
 
 /* X Error traps */
 
@@ -369,11 +362,8 @@ hostx_init (void)
   HostX.winroot = RootWindow(HostX.dpy, HostX.screen);
   HostX.gc      = XCreateGC(HostX.dpy, HostX.winroot, 0, NULL);
   HostX.depth   = DefaultDepth(HostX.dpy, HostX.screen);
-  if (ephyr_glamor) {
-      ephyr_glamor_get_visual();
-  } else {
-      HostX.visual  = DefaultVisual(HostX.dpy, HostX.screen);
-  }
+  HostX.visual  = DefaultVisual(HostX.dpy, HostX.screen);
+
   class_hint = XAllocClassHint();
 
   for (index = 0 ; index < HostX.n_screens ; index++)
@@ -767,11 +757,6 @@ hostx_screen_init (EphyrScreenInfo screen,
 static void hostx_paint_debug_rect (struct EphyrHostScreen *host_screen,
                                     int x,     int y,
                                     int width, int height);
-static void
-ephyr_glamor_paint_rect (EphyrScreenInfo screen,
-			 int sx,    int sy,
-			 int dx,    int dy,
-			 int width, int height);
 
 void
 hostx_paint_rect (EphyrScreenInfo screen,
@@ -782,11 +767,6 @@ hostx_paint_rect (EphyrScreenInfo screen,
   struct EphyrHostScreen *host_screen = host_screen_from_screen_info (screen);
 
   EPHYR_DBG ("painting in screen %d\n", host_screen->mynum) ;
-
-  if (ephyr_glamor) {
-      ephyr_glamor_paint_rect(screen, sx, sy, dx, dy, width, height);
-      return;
-  }
 
   /*
    *  Copy the image data updated by the shadow layer
@@ -1465,82 +1445,3 @@ hostx_has_glx (void)
 }
 
 #endif /* XF86DRI */
-
-static void
-ephyr_glamor_get_visual(void)
-{
-    Display *dpy = HostX.dpy;
-    int attribs[] = {GLX_RGBA,
-		     GLX_RED_SIZE, 1,
-		     GLX_GREEN_SIZE, 1,
-		     GLX_BLUE_SIZE, 1,
-		     GLX_DOUBLEBUFFER, 1,
-		     None};
-    XVisualInfo *visual_info;
-    int event_base = 0, error_base = 0;
-
-    if (!glXQueryExtension (dpy, &event_base, &error_base))
-        errx(1, "Couldn't find GLX extension\n");
-
-    visual_info = glXChooseVisual(dpy, DefaultScreen(dpy), attribs);
-    if (visual_info == NULL)
-	errx(1, "Couldn't get RGB visual\n");
-
-    HostX.visual_info = visual_info;
-    HostX.visual = visual_info->visual;
-}
-
-void
-ephyr_glamor_host_create_context(EphyrScreenInfo ephyr_screen)
-{
-    Display *dpy = HostX.dpy;
-    GLXContext ctx;
-    struct EphyrHostScreen *host_screen;
-
-    host_screen = host_screen_from_screen_info(ephyr_screen);
-
-    ctx = glXCreateContext(dpy, HostX.visual_info, NULL, True);
-    if (ctx == NULL)
-	errx(1, "glXCreateContext failed\n");
-
-    if (!glXMakeCurrent(dpy, host_screen->win, ctx))
-	errx(1, "glXMakeCurrent failed\n");
-}
-
-static void
-ephyr_glamor_paint_rect (EphyrScreenInfo screen,
-			 int sx,    int sy,
-			 int dx,    int dy,
-			 int width, int height)
-{
-    struct EphyrHostScreen *host_screen = host_screen_from_screen_info (screen);
-    static PFNGLXCOPYSUBBUFFERMESAPROC pglXCopySubBufferMESA = NULL;
-
-    if (!pglXCopySubBufferMESA) {
-	pglXCopySubBufferMESA = (PFNGLXCOPYSUBBUFFERMESAPROC)
-	    glXGetProcAddressARB((const GLubyte*)"glXCopySubBufferMESA");
-	assert(pglXCopySubBufferMESA);
-    }
-
-    /* Always copy the full screen until we get things rendering correctly. */
-#if 0
-    pglXCopySubBufferMESA(HostX.dpy, host_screen->win,
-			  sx, sy, width, height);
-#else
-    pglXCopySubBufferMESA(HostX.dpy, host_screen->win,
-			  0, 0,
-			  host_screen->win_width, host_screen->win_height);
-#endif
-}
-
-struct glamor_gl_dispatch;
-extern Bool 
-glamor_gl_dispatch_init_impl(struct glamor_gl_dispatch *dispatch, int gl_version, void* func);
-
-Bool
-glamor_gl_dispatch_init(void *screen, struct glamor_gl_dispatch *dispatch, int gl_version)
-{
-        if (!glamor_gl_dispatch_init_impl(dispatch, gl_version, glXGetProcAddress))
-          return FALSE;
-        return TRUE;
-}

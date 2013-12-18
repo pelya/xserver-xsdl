@@ -196,13 +196,6 @@ ephyrDrawDisable(ScreenPtr pScreen);
 void
 ephyrDrawFini(ScreenPtr pScreen);
 
-/* ephyr_glamor.c */
-Bool ephyr_glamor_init(ScreenPtr pScreen);
-void ephyr_glamor_enable(ScreenPtr pScreen);
-void ephyr_glamor_disable(ScreenPtr pScreen);
-void ephyr_glamor_fini(ScreenPtr pScreen);
-void ephyr_glamor_host_paint_rect(ScreenPtr pScreen);
-
 /*ephyvideo.c*/
 
 Bool ephyrInitVideo(ScreenPtr pScreen) ;

@@ -261,7 +261,4 @@ int hostx_has_dri (void) ;
 int hostx_has_glx (void) ;
 #endif /* XF86DRI */
 
-/* ephyr_glamor_host.c */
-void ephyr_glamor_host_create_context(EphyrScreenInfo ephyr_screen);
-
 #endif /*_XLIBS_STUFF_H_*/

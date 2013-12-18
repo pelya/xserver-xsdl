@@ -1,41 +1,4 @@
-			Glamor setup
-
-1. Prerequirement.
-Please install makedepend and libudev-devel firstly. 
-
-2. Build xserver-glamor.
-
-Then do the following steps one by one.
-2.1. get latest glamor at github.
-
-2.2 Setup xorg development environment, use xserver-glamor to 
-    replace the official xserver. 
- Here is the link of how to setup xorg development environment: 
- http://www.x.org/wiki/ModularDevelopersGuide
- 
- For most of the packages, we prefer latest git version. Especially
- for the mesa package.
-
- When build mesa, use the following parameters: (assume you want to 
- install the experimental xorg to /opt/gfx-test) 
-#mesa/./autogen.sh --prefix=/opt/gfx-test --with-egl-platforms=drm --disable-gallium  --disable-gallium-egl
-
- build xserver-glamor as below:
-#xserver-glamor/./autogen.sh --disable-glx --enable-kdrive --enable-xephyr
-
- Once you finish all the building process, you can have a try as below:
-xserver-glamor#startx -- `pwd`/hw/xfree86/Xorg If you can find the 
- following messages on the console, then everything should work correctly.
-Mesa: Initializing x86-64 optimizations
-
-
-3. Restrictions:
-
-Currently, glamor doesn't support glx extension, will be fixed in the future.
-
-Glamor setup done.
-
-				X Server
+					X Server
 
 The X server accepts requests from client applications to create windows,
 which are (normally rectangular) "virtual screens" that the client program

@@ -394,7 +394,7 @@ ephyrSetInternalDamage (ScreenPtr pScreen)
   KdScreenInfo	*screen = pScreenPriv->screen;
   EphyrScrPriv	*scrpriv = screen->driver;
   PixmapPtr      pPixmap = NULL;
-
+  
   scrpriv->pDamage = DamageCreate ((DamageReportFunc) 0,
 				   (DamageDestroyFunc) 0,
 				   DamageReportNone,
@@ -669,9 +669,7 @@ ephyrInitScreen (ScreenPtr pScreen)
   }
   if (!ephyrNoDRI) {
     ephyrDRIExtensionInit (pScreen) ;
-#if 0
     ephyrHijackGLXExtension () ;
-#endif
   }
 #endif
 
@@ -683,7 +681,6 @@ ephyrInitScreen (ScreenPtr pScreen)
 
   return TRUE;
 }
-
 
 Bool
 ephyrFinishInitScreen (ScreenPtr pScreen)
@@ -701,7 +698,6 @@ ephyrFinishInitScreen (ScreenPtr pScreen)
 
   return TRUE;
 }
-extern Bool ephyr_glamor;
 
 Bool
 ephyrCreateResources (ScreenPtr pScreen)
@@ -712,20 +708,14 @@ ephyrCreateResources (ScreenPtr pScreen)
 
   EPHYR_LOG("mark pScreen=%p mynum=%d shadow=%d",
             pScreen, pScreen->myNum, scrpriv->shadow);
+
   if (scrpriv->shadow) 
     return KdShadowSet (pScreen, 
 			scrpriv->randr, 
 			ephyrShadowUpdate, 
 			ephyrWindowLinear);
-  else {
-    if (ephyr_glamor) {
-      KdScreenPriv(pScreen);
-      KdScreenInfo	*screen = pScreenPriv->screen;
-      if (!glamor_glyphs_init(pScreen)) return FALSE;
-      glamor_set_screen_pixmap_texture(pScreen, screen->width, screen->height, 0);
-    }
+  else
     return ephyrSetInternalDamage(pScreen); 
-  }
 }
 
 void
