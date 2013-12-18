@@ -48,6 +48,7 @@
 #endif
 
 #include "glamor_debug.h"
+#include "glamor_context.h"
 
 #include <list.h>
 
@@ -281,6 +282,8 @@ typedef struct glamor_screen_private {
 
     /* xv */
     GLint xv_prog;
+
+    struct glamor_context ctx;
 } glamor_screen_private;
 
 typedef enum glamor_access {
@@ -926,6 +929,9 @@ void glamor_composite_rectangles(CARD8 op,
                                  PicturePtr dst,
                                  xRenderColor *color,
                                  int num_rects, xRectangle *rects);
+
+extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen,
+                                             struct glamor_context *glamor_ctx);
 
 /* glamor_xv */
 typedef struct {

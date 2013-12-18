@@ -21,34 +21,36 @@
  * IN THE SOFTWARE.
  */
 
-/** @file glamor_egl_stubs.c
+/**
+ * @file glamor_context.h
  *
- * Stubbed out glamor_egl.c functions for servers other than Xorg.
+ * This is the struct of state required for context switching in
+ * glamor.  It has to use types that don't require including either
+ * server headers or Xlib headers, since it will be included by both
+ * the server and the GLX (xlib) code.
  */
 
-#include "glamor_priv.h"
+struct glamor_context {
+    /** Either an EGLDisplay or an Xlib Display */
+    void *display;
 
-void
-glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
-{
-}
+    /** Either a GLXContext or an EGLContext. */
+    void *ctx;
 
-void
-glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap)
-{
-}
+    /** The EGLSurface we should MakeCurrent to */
+    void *drawable;
 
-int
-glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
-                                 PixmapPtr pixmap,
-                                 unsigned int tex,
-                                 Bool want_name, CARD16 *stride, CARD32 *size)
-{
-    return 0;
-}
+    /** The GLXDrawable we should MakeCurrent to */
+    uint32_t drawable_xid;
 
-unsigned int
-glamor_egl_create_argb8888_based_texture(ScreenPtr screen, int w, int h)
-{
-    return 0;
-}
+    /**
+     * Count of how deep in glamor_get_context() we are, to reduce
+     * MakeCurrent calls.
+     */
+    int get_count;
+
+    void (*get_context)(struct glamor_context *glamor_ctx);
+    void (*put_context)(struct glamor_context *glamor_ctx);
+};
+
+Bool glamor_glx_screen_init(struct glamor_context *glamor_ctx);

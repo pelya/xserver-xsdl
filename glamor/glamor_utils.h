@@ -1817,29 +1817,15 @@ __fls(unsigned long x)
 #endif
 
 static inline void
-glamor_make_current(ScreenPtr screen)
-{
-    glamor_egl_make_current(screen);
-}
-
-static inline void
-glamor_restore_current(ScreenPtr screen)
-{
-    glamor_egl_restore_context(screen);
-}
-
-static inline void
 glamor_get_context(glamor_screen_private * glamor_priv)
 {
-    if (glamor_priv->flags & GLAMOR_USE_EGL_SCREEN)
-        glamor_make_current(glamor_priv->screen);
+    glamor_priv->ctx.get_context(&glamor_priv->ctx);
 }
 
 static inline void
 glamor_put_context(glamor_screen_private * glamor_priv)
 {
-    if (glamor_priv->flags & GLAMOR_USE_EGL_SCREEN)
-        glamor_restore_current(glamor_priv->screen);
+    glamor_priv->ctx.put_context(&glamor_priv->ctx);
 }
 
 #endif
