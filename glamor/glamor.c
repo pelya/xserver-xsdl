@@ -261,6 +261,7 @@ glamor_set_debug_level(int *debug_level)
 
 int glamor_debug_level;
 
+
 /** Set up glamor for an already-configured GL context. */
 Bool
 glamor_init(ScreenPtr screen, unsigned int flags)

@@ -475,4 +475,7 @@
 /* Ask fontsproto to make font path element names const */
 #define FONT_PATH_ELEMENT_NAME_CONST    1
 
+/* Build GLAMOR */
+#undef GLAMOR
+
 #endif /* _DIX_CONFIG_H_ */
