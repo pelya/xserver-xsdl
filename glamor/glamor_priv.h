@@ -54,19 +54,6 @@
 #include "glamor_debug.h"
 
 #include <list.h>
-/* The list.h rename all the function to add xorg_ prefix.
-   We add hack here to avoid the compile error when using
-   old version xserver header file.
-   These will be removed in future. */
-#ifndef xorg_list_entry
-#define xorg_list list
-#define xorg_list_for_each_entry list_for_each_entry
-#define xorg_list_for_each_entry_safe list_for_each_entry_safe
-#define xorg_list_del list_del
-#define xorg_list_add list_add
-#define xorg_list_append list_append
-#define xorg_list_init list_init
-#endif
 
 struct glamor_pixmap_private;
 
