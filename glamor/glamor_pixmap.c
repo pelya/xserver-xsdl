@@ -248,7 +248,7 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int st
 			  b_shift, b_bits,			\
 			  g_shift, g_bits,			\
 			  r_shift, r_bits)			\
-	{								\
+	do {								\
 		typeof(src) a,b,g,r;					\
 		typeof(src) a_mask_src, b_mask_src, g_mask_src, r_mask_src;\
 		a_mask_src = (((1 << (a_bits_src)) - 1) << a_shift_src);\
@@ -270,7 +270,7 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int st
 			(*dst) = ((a) << (a_shift)) | ((b) << (b_shift)) | ((g) << (g_shift)) | ((r) << (r_shift)); \
 		else 												    \
 			(*dst) = ((a) << (a_shift)) | ((r) << (b_shift)) | ((g) << (g_shift)) | ((b) << (r_shift)); \
-	}
+	} while (0)
 
 static void *
 _glamor_color_revert_x2b10g10r10(void *src_bits, void *dst_bits, int w, int h, int stride, int no_alpha, int revert, int swap_rb)
@@ -293,7 +293,7 @@ _glamor_color_revert_x2b10g10r10(void *src_bits, void *dst_bits, int w, int h, i
 			if (revert == REVERT_DOWNLOADING_2_10_10_10)
 				GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
 						  24, 8, 16, 8, 8, 8, 0, 8,
-						  30, 2, 20, 10, 10, 10, 0, 10)
+						  30, 2, 20, 10, 10, 10, 0, 10);
 			else
 				GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
 						  30, 2, 20, 10, 10, 10, 0, 10,
@@ -330,7 +330,7 @@ _glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h, int 
 			if (revert == REVERT_DOWNLOADING_1_5_5_5)
 				GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
 						  0, 1, 1, 5, 6, 5, 11, 5,
-						  15, 1, 10, 5, 5, 5, 0, 5)
+						  15, 1, 10, 5, 5, 5, 0, 5);
 			else
 				GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
 						  15, 1, 10, 5, 5, 5, 0, 5,
