@@ -36,7 +36,6 @@
 #define NDEBUG
 #endif
 #include "glamor.h"
-#include "compat-api.h"
 
 #define GL_GLEXT_PROTOTYPES
 

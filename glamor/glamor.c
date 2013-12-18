@@ -495,7 +495,7 @@ glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
 }
 
 Bool
-glamor_close_screen(CLOSE_SCREEN_ARGS_DECL)
+glamor_close_screen(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv;
     PixmapPtr screen_pixmap;
@@ -539,7 +539,7 @@ glamor_close_screen(CLOSE_SCREEN_ARGS_DECL)
 
     glamor_release_screen_priv(screen);
 
-    return screen->CloseScreen(CLOSE_SCREEN_ARGS);
+    return screen->CloseScreen(screen);
 }
 
 void

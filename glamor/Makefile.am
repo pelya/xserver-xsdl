@@ -11,7 +11,6 @@ AM_CFLAGS = $(CWARNFLAGS) $(XORG_CFLAGS) $(LIBDRM_CFLAGS)
 libglamor_la_LDFLAGS = -version-info 0:0:0
 
 libglamor_la_SOURCES = \
-	compat-api.h \
 	glamor.c \
 	glamor_copyarea.c \
 	glamor_copywindow.c \
