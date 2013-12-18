@@ -30,14 +30,12 @@
 #define GLAMOR_H
 
 #include <scrnintstr.h>
-#include <xf86.h>
-#include <xf86str.h>
 #include <pixmapstr.h>
 #include <gcstruct.h>
 #include <picturestr.h>
 #include <fb.h>
 #include <fbpict.h>
-#include <xf86xv.h>
+
 /*
  * glamor_pixmap_type : glamor pixmap's type.
  * @MEMORY: pixmap is in memory.

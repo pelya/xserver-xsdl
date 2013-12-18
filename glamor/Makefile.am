@@ -6,7 +6,7 @@ else
 libglamor_la_LIBADD = $(GL_LIBS)
 endif
 
-AM_CFLAGS = $(CWARNFLAGS) $(XORG_CFLAGS) $(LIBDRM_CFLAGS)
+AM_CFLAGS = $(CWARNFLAGS) $(DIX_CFLAGS) $(LIBDRM_CFLAGS)
 
 libglamor_la_LDFLAGS = -version-info 0:0:0
 
