@@ -627,9 +627,11 @@ glamor_xv_init(ScreenPtr screen, int num_texture_ports)
     return adapt;
 }
 #else
+#if 0
 XF86VideoAdaptorPtr
 glamor_xv_init(ScreenPtr screen, int num_texture_ports)
 {
     return NULL;
 }
+#endif
 #endif
