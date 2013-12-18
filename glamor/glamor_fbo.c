@@ -129,7 +129,7 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 void
 glamor_purge_fbo(glamor_pixmap_fbo *fbo)
 {
-    glamor_get_dispatch(fbo->glamor_priv);
+    glamor_get_context(fbo->glamor_priv);
 
     if (fbo->fb)
         glDeleteFramebuffers(1, &fbo->fb);
@@ -137,7 +137,7 @@ glamor_purge_fbo(glamor_pixmap_fbo *fbo)
         glDeleteTextures(1, &fbo->tex);
     if (fbo->pbo)
         glDeleteBuffers(1, &fbo->pbo);
-    glamor_put_dispatch(fbo->glamor_priv);
+    glamor_put_context(fbo->glamor_priv);
 
     free(fbo);
 }
@@ -180,7 +180,7 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 {
     int status;
 
-    glamor_get_dispatch(fbo->glamor_priv);
+    glamor_get_context(fbo->glamor_priv);
 
     if (fbo->fb == 0)
         glGenFramebuffers(1, &fbo->fb);
@@ -219,7 +219,7 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
         FatalError("destination is framebuffer incomplete: %s [%x]\n",
                    str, status);
     }
-    glamor_put_dispatch(fbo->glamor_priv);
+    glamor_put_context(fbo->glamor_priv);
 }
 
 glamor_pixmap_fbo *
@@ -241,9 +241,9 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
     fbo->glamor_priv = glamor_priv;
 
     if (flag == GLAMOR_CREATE_PIXMAP_MAP) {
-        glamor_get_dispatch(glamor_priv);
+        glamor_get_context(glamor_priv);
         glGenBuffers(1, &fbo->pbo);
-        glamor_put_dispatch(glamor_priv);
+        glamor_put_context(glamor_priv);
         goto done;
     }
 
@@ -341,14 +341,14 @@ _glamor_create_tex(glamor_screen_private *glamor_priv,
                                                        w, h);
     }
     if (!tex) {
-        glamor_get_dispatch(glamor_priv);
+        glamor_get_context(glamor_priv);
         glGenTextures(1, &tex);
         glBindTexture(GL_TEXTURE_2D, tex);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0,
                      format, GL_UNSIGNED_BYTE, NULL);
-        glamor_put_dispatch(glamor_priv);
+        glamor_put_context(glamor_priv);
     }
     return tex;
 }

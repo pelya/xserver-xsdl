@@ -66,7 +66,7 @@ void
 glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *fbo, int x0, int y0,
                                   int width, int height)
 {
-    glamor_get_dispatch(fbo->glamor_priv);
+    glamor_get_context(fbo->glamor_priv);
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
 #ifndef GLAMOR_GLES2
@@ -77,7 +77,7 @@ glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *fbo, int x0, int y0,
 #endif
     glViewport(x0, y0, width, height);
 
-    glamor_put_dispatch(fbo->glamor_priv);
+    glamor_put_context(fbo->glamor_priv);
 }
 
 void
@@ -400,7 +400,7 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, unsigned int *tex,
     int non_sub = 0;
     unsigned int iformat = 0;
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     if (*tex == 0) {
         glGenTextures(1, tex);
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
@@ -425,7 +425,7 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, unsigned int *tex,
 
     if (bits == NULL)
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 static Bool
@@ -522,7 +522,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
                                  x + w, y + h,
                                  glamor_priv->yInverted, vertices);
     /* Slow path, we need to flip y or wire alpha to 1. */
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
                           GL_FALSE, 2 * sizeof(float), vertices);
     glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
@@ -556,7 +556,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
     glDeleteTextures(1, &tex);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 
     if (need_free_bits)
         free(bits);
@@ -838,7 +838,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h,
     if (temp_fbo == NULL)
         return NULL;
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     temp_xscale = 1.0 / w;
     temp_yscale = 1.0 / h;
 
@@ -876,7 +876,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h,
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glUseProgram(0);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
     return temp_fbo;
 }
 
@@ -956,7 +956,7 @@ _glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, GLenum format,
         fbo_y_off = 0;
     }
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glPixelStorei(GL_PACK_ALIGNMENT, 4);
 
     if (glamor_priv->has_pack_invert || glamor_priv->yInverted) {
@@ -987,7 +987,7 @@ _glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, GLenum format,
         unsigned int temp_pbo;
         int yy;
 
-        glamor_get_dispatch(glamor_priv);
+        glamor_get_context(glamor_priv);
         glGenBuffers(1, &temp_pbo);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, temp_pbo);
         glBufferData(GL_PIXEL_PACK_BUFFER, stride * h, NULL, GL_STREAM_READ);
@@ -1002,7 +1002,7 @@ _glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, GLenum format,
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 
     if (need_post_conversion) {
         /* As OpenGL desktop version never enters here.
@@ -1176,10 +1176,10 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
         data = malloc(stride * pixmap->drawable.height);
     }
     else {
-        glamor_get_dispatch(glamor_priv);
+        glamor_get_context(glamor_priv);
         if (pixmap_priv->base.fbo->pbo == 0)
             glGenBuffers(1, &pixmap_priv->base.fbo->pbo);
-        glamor_put_dispatch(glamor_priv);
+        glamor_put_context(glamor_priv);
         pbo = pixmap_priv->base.fbo->pbo;
     }
 

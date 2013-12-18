@@ -71,7 +71,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
     pixmap_priv_get_fbo_off(dst_pixmap_priv, &fbo_x_off, &fbo_y_off);
     pixmap_priv_get_fbo_off(src_pixmap_priv, &src_fbo_x_off, &src_fbo_y_off);
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, src_pixmap_priv->base.fbo->fb);
     glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
     glamor_get_drawable_deltas(src, src_pixmap, &src_x_off, &src_y_off);
@@ -113,7 +113,7 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
                               GL_COLOR_BUFFER_BIT, GL_NEAREST);
         }
     }
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
     glamor_priv->state = BLIT_STATE;
     return TRUE;
 }
@@ -157,7 +157,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
     glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
 
     glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
     glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
@@ -213,7 +213,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 #endif
     glUseProgram(0);
     /* The source texture is bound to a fbo, we have to flush it here. */
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
     glamor_priv->state = RENDER_STATE;
     glamor_priv->render_idle_cnt = 0;
     return TRUE;
@@ -374,12 +374,12 @@ _glamor_copy_n_to_n(DrawablePtr src,
     if (gc) {
         if (!glamor_set_planemask(dst_pixmap, gc->planemask))
             goto fall_back;
-        glamor_get_dispatch(glamor_priv);
+        glamor_get_context(glamor_priv);
         if (!glamor_set_alu(gc->alu)) {
-            glamor_put_dispatch(glamor_priv);
+            glamor_put_context(glamor_priv);
             goto fail;
         }
-        glamor_put_dispatch(glamor_priv);
+        glamor_put_context(glamor_priv);
     }
 
     if (!src_pixmap_priv) {
@@ -552,9 +552,9 @@ _glamor_copy_n_to_n(DrawablePtr src,
     }
 
  fail:
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glamor_set_alu(GXcopy);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 
     if (ok)
         return TRUE;

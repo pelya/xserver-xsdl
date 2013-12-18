@@ -62,7 +62,7 @@ glamor_init_tile_shader(ScreenPtr screen)
     GLint sampler_uniform_location;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glamor_priv->tile_prog = glCreateProgram();
     vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, tile_vs);
     fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, tile_fs);
@@ -83,7 +83,7 @@ glamor_init_tile_shader(ScreenPtr screen)
     glamor_priv->tile_wh =
         glGetUniformLocation(glamor_priv->tile_prog, "wh");
     glUseProgram(0);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 void
@@ -92,9 +92,9 @@ glamor_fini_tile_shader(ScreenPtr screen)
     glamor_screen_private *glamor_priv;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glDeleteProgram(glamor_priv->tile_prog);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 static void
@@ -124,7 +124,7 @@ _glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     glamor_set_destination_pixmap_priv_nc(dst_pixmap_priv);
     pixmap_priv_get_dest_scale(dst_pixmap_priv, &dst_xscale, &dst_yscale);
     pixmap_priv_get_scale(src_pixmap_priv, &src_xscale, &src_yscale);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glUseProgram(glamor_priv->tile_prog);
 
     glamor_pixmap_fbo_fix_wh_ratio(wh, src_pixmap_priv);
@@ -163,7 +163,7 @@ _glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 #endif
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glUseProgram(0);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 
     glamor_priv->state = RENDER_STATE;
     glamor_priv->render_idle_cnt = 0;
@@ -201,10 +201,10 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
         goto fail;
     }
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     if (!glamor_set_alu(alu)) {
         glamor_fallback("unsupported alu %x\n", alu);
-        glamor_put_dispatch(glamor_priv);
+        glamor_put_context(glamor_priv);
         goto fail;
     }
 
@@ -298,7 +298,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
         _glamor_tile(pixmap, tile, x, y, width, height, tile_x, tile_y);
 
     glamor_set_alu(GXcopy);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
     return TRUE;
  fail:
     return FALSE;

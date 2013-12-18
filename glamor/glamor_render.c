@@ -316,7 +316,7 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
     GLint source_sampler_uniform_location, mask_sampler_uniform_location;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     vs = glamor_create_composite_vs(key);
     if (vs == 0)
         goto out;
@@ -365,7 +365,7 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
     }
 
  out:
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 static glamor_composite_shader *
@@ -407,7 +407,7 @@ glamor_init_composite_shaders(ScreenPtr screen)
     int eb_size;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glGenBuffers(1, &glamor_priv->vbo);
     glGenBuffers(1, &glamor_priv->ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
@@ -448,7 +448,7 @@ glamor_init_composite_shaders(ScreenPtr screen)
         glamor_priv->vb = (char *) vb;
     }
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 void
@@ -459,7 +459,7 @@ glamor_fini_composite_shaders(ScreenPtr screen)
     int i, j, k;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glDeleteBuffers(1, &glamor_priv->vbo);
     glDeleteBuffers(1, &glamor_priv->ebo);
 
@@ -473,7 +473,7 @@ glamor_fini_composite_shaders(ScreenPtr screen)
     if (glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP && glamor_priv->vb)
         free(glamor_priv->vb);
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 static Bool
@@ -529,7 +529,7 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
     float wh[4];
     int repeat_type;
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, pixmap_priv->base.fbo->tex);
     repeat_type = picture->repeatType;
@@ -598,7 +598,7 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
             repeat_type -= RepeatFix;
     }
     glUniform1i(repeat_location, repeat_type);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 static void
@@ -717,7 +717,7 @@ glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
 
     vert_size = n_verts * glamor_priv->vb_stride;
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
         if (glamor_priv->vbo_size < (glamor_priv->vbo_offset + vert_size)) {
@@ -764,7 +764,7 @@ glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
                                          4 : 2) * sizeof(float)));
         glEnableVertexAttribArray(GLAMOR_VERTEX_MASK);
     }
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 void
@@ -797,7 +797,7 @@ glamor_flush_composite_rects(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
         glUnmapBuffer(GL_ARRAY_BUFFER);
     else {
@@ -818,7 +818,7 @@ glamor_flush_composite_rects(ScreenPtr screen)
     glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
                    GL_UNSIGNED_SHORT, NULL);
 #endif
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 int pict_format_combine_tab[][3] = {
@@ -1194,7 +1194,7 @@ glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
 
     glamor_priv = dest_priv->base.glamor_priv;
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glUseProgram(shader->prog);
 
     if (key->source == SHADER_SOURCE_SOLID) {
@@ -1229,7 +1229,7 @@ glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
         glBlendFunc(op_info->source_blend, op_info->dest_blend);
     }
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 static Bool
@@ -1286,7 +1286,7 @@ glamor_composite_with_shader(CARD8 op,
     glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
     glamor_composite_set_shader_blend(dest_pixmap_priv, &key, shader, &op_info);
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
 
     glamor_priv->has_source_coords = key.source != SHADER_SOURCE_SOLID;
     glamor_priv->has_mask_coords = (key.mask != SHADER_MASK_NONE &&
@@ -1421,7 +1421,7 @@ glamor_composite_with_shader(CARD8 op,
     glamor_priv->render_idle_cnt = 0;
     if (saved_source_format)
         source->format = saved_source_format;
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 
     ret = TRUE;
     return ret;

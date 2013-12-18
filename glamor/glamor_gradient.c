@@ -176,7 +176,7 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count,
         "}\n";
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
 
     if (use_array) {
         XNFasprintf(&gradient_fs,
@@ -353,7 +353,7 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
         return;
     }
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
 
     if (dyn_gen && glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2]) {
         glDeleteShader(glamor_priv->radial_gradient_shaders
@@ -422,7 +422,7 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
         radial_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][index] =
         fs_getcolor_prog;
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 static void
@@ -586,7 +586,7 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
         return;
     }
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     if (dyn_gen && glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2]) {
         glDeleteShader(glamor_priv->linear_gradient_shaders
                        [SHADER_GRADIENT_VS_PROG][2]);
@@ -652,7 +652,7 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
         linear_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][index] =
         fs_getcolor_prog;
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 void
@@ -695,7 +695,7 @@ glamor_fini_gradient_shader(ScreenPtr screen)
     int i = 0;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
 
     for (i = 0; i < 3; i++) {
         /* Linear Gradient */
@@ -737,7 +737,7 @@ glamor_fini_gradient_shader(ScreenPtr screen)
                             [SHADER_GRADIENT_RADIAL][i]);
     }
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 static void
@@ -868,7 +868,7 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
            tex_vertices[0], tex_vertices[1], tex_vertices[2], tex_vertices[3],
            tex_vertices[4], tex_vertices[5], tex_vertices[6], tex_vertices[7]);
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
 
     glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
                           GL_FALSE, 0, vertices);
@@ -878,7 +878,7 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
     glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
     glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 
     return 1;
 }
@@ -1021,7 +1021,7 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
     GLint r2_uniform_location = 0;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
 
     /* Create a pixmap with VBO. */
     pixmap = glamor_create_pixmap(screen,
@@ -1258,7 +1258,7 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glUseProgram(0);
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
     return dst_picture;
 
  GRADIENT_FAIL:
@@ -1279,7 +1279,7 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glUseProgram(0);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
     return NULL;
 }
 
@@ -1343,7 +1343,7 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
     GLint pt_distance_uniform_location = 0;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
 
     /* Create a pixmap with VBO. */
     pixmap = glamor_create_pixmap(screen,
@@ -1611,7 +1611,7 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glUseProgram(0);
 
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
     return dst_picture;
 
  GRADIENT_FAIL:
@@ -1632,7 +1632,7 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glUseProgram(0);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
     return NULL;
 }
 

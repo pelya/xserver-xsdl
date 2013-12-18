@@ -153,7 +153,7 @@ glamor_init_solid_shader(ScreenPtr screen)
     GLint fs_prog, vs_prog;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glamor_priv->solid_prog = glCreateProgram();
     vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, solid_vs);
     fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, solid_fs);
@@ -166,7 +166,7 @@ glamor_init_solid_shader(ScreenPtr screen)
 
     glamor_priv->solid_color_uniform_location =
         glGetUniformLocation(glamor_priv->solid_prog, "color");
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 void
@@ -175,9 +175,9 @@ glamor_fini_solid_shader(ScreenPtr screen)
     glamor_screen_private *glamor_priv;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glDeleteProgram(glamor_priv->solid_prog);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 }
 
 static void
@@ -193,7 +193,7 @@ _glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
 
     glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     glUseProgram(glamor_priv->solid_prog);
 
     glUniform4fv(glamor_priv->solid_color_uniform_location, 1, color);
@@ -256,7 +256,7 @@ _glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
 
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glUseProgram(0);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
     glamor_priv->state = RENDER_STATE;
     glamor_priv->render_idle_cnt = 0;
 }
@@ -327,13 +327,13 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
         return FALSE;
     }
 
-    glamor_get_dispatch(glamor_priv);
+    glamor_get_context(glamor_priv);
     if (!glamor_set_alu(alu)) {
         if (alu == GXclear)
             fg_pixel = 0;
         else {
             glamor_fallback("unsupported alu %x\n", alu);
-            glamor_put_dispatch(glamor_priv);
+            glamor_put_context(glamor_priv);
             return FALSE;
         }
     }
@@ -344,7 +344,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glamor_solid_boxes(pixmap, &box, 1, fg_pixel);
 
     glamor_set_alu(GXcopy);
-    glamor_put_dispatch(glamor_priv);
+    glamor_put_context(glamor_priv);
 
     return TRUE;
 }
