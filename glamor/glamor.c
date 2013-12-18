@@ -123,6 +123,17 @@ glamor_set_screen_pixmap(PixmapPtr screen_pixmap, PixmapPtr *back_pixmap)
     glamor_priv->back_pixmap = back_pixmap;
 }
 
+uint32_t
+glamor_get_pixmap_texture(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+
+    if (pixmap_priv->type != GLAMOR_TEXTURE_ONLY)
+        return 0;
+
+    return pixmap_priv->base.fbo->tex;
+}
+
 PixmapPtr
 glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
                      unsigned int usage)

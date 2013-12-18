@@ -124,6 +124,8 @@ extern _X_EXPORT Bool glamor_close_screen(ScreenPtr screen);
 extern _X_EXPORT void glamor_set_screen_pixmap(PixmapPtr screen_pixmap,
                                                PixmapPtr *back_pixmap);
 
+extern _X_EXPORT uint32_t glamor_get_pixmap_texture(PixmapPtr pixmap);
+
 /* @glamor_glyphs_init: Initialize glyphs internal data structures.
  *
  * @pScreen: Current screen pointer.

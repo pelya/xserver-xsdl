@@ -27,10 +27,18 @@ AM_CPPFLAGS = 			\
 	@XEPHYR_INCS@		\
 	@XEPHYR_CFLAGS@		\
 	-I$(top_srcdir)		\
+	-I$(top_srcdir)/glamor	\
 	-I$(top_srcdir)/exa
 
 if XV
 XV_SRCS = ephyrvideo.c
+endif
+
+if GLAMOR
+GLAMOR_SRCS = \
+	ephyr_glamor_glx.c \
+	ephyr_glamor_glx.h \
+	()
 endif
 
 if DRI
@@ -59,14 +67,24 @@ Xephyr_SOURCES = \
 	hostx.h \
 	$(XV_SRCS) \
 	$(DRI_SRCS) \
+	$(GLAMOR_SRCS) \
 	$()
+
+if GLAMOR
+AM_CPPFLAGS += $(XLIB_CFLAGS)
+XEPHYR_GLAMOR_LIB = \
+	$(top_builddir)/glamor/libglamor.la \
+	$(top_builddir)/glamor/libglamor_egl_stubs.la \
+	$()
+endif
 
 Xephyr_LDADD = 						\
 	$(top_builddir)/exa/libexa.la			\
+	$(XEPHYR_GLAMOR_LIB)				\
 	@KDRIVE_LIBS@					\
 	@XEPHYR_LIBS@
 
-Xephyr_DEPENDENCIES = @KDRIVE_LOCAL_LIBS@
+Xephyr_DEPENDENCIES = @KDRIVE_LOCAL_LIBS@ $(XEPHYR_GLAMOR_LIB)
 
 Xephyr_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
