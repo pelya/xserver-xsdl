@@ -1828,13 +1828,11 @@ glamor_restore_current(ScreenPtr screen)
     glamor_egl_restore_context(screen);
 }
 
-static inline glamor_gl_dispatch *
+static inline void
 glamor_get_dispatch(glamor_screen_private * glamor_priv)
 {
     if (glamor_priv->flags & GLAMOR_USE_EGL_SCREEN)
         glamor_make_current(glamor_priv->screen);
-
-    return &glamor_priv->_dispatch;
 }
 
 static inline void

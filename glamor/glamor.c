@@ -218,11 +218,10 @@ void
 glamor_block_handler(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-    glamor_gl_dispatch *dispatch;
 
-    dispatch = glamor_get_dispatch(glamor_priv);
+    glamor_get_dispatch(glamor_priv);
     glamor_priv->tick++;
-    dispatch->glFlush();
+    glFlush();
     glamor_fbo_expire(glamor_priv);
     glamor_put_dispatch(glamor_priv);
     if (glamor_priv->state == RENDER_STATE
@@ -236,9 +235,9 @@ static void
 _glamor_block_handler(void *data, OSTimePtr timeout, void *last_select_mask)
 {
     glamor_screen_private *glamor_priv = data;
-    glamor_gl_dispatch *dispatch = glamor_get_dispatch(glamor_priv);
 
-    dispatch->glFlush();
+    glamor_get_dispatch(glamor_priv);
+    glFlush();
     glamor_put_dispatch(glamor_priv);
 }
 
@@ -316,8 +315,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     }
 #endif
 
-    glamor_gl_dispatch_init(screen, &glamor_priv->_dispatch, gl_version);
-
 #ifdef GLAMOR_GLES2
     if (!glamor_gl_has_extension("GL_EXT_texture_format_BGRA8888")) {
         ErrorF("GL_EXT_texture_format_BGRA8888 required\n");
@@ -329,8 +326,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         glamor_gl_has_extension("GL_MESA_pack_invert");
     glamor_priv->has_fbo_blit =
         glamor_gl_has_extension("GL_EXT_framebuffer_blit");
-    glamor_priv->_dispatch.glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE,
-                                         &glamor_priv->max_fbo_size);
+    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size);
 #ifdef MAX_FBO_SIZE
     glamor_priv->max_fbo_size = MAX_FBO_SIZE;
 #endif

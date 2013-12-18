@@ -47,7 +47,6 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count,
                                    int use_array)
 {
     glamor_screen_private *glamor_priv;
-    glamor_gl_dispatch *dispatch;
 
     char *gradient_fs = NULL;
     GLint fs_getcolor_prog;
@@ -177,18 +176,18 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count,
         "}\n";
 
     glamor_priv = glamor_get_screen_private(screen);
-    dispatch = glamor_get_dispatch(glamor_priv);
+    glamor_get_dispatch(glamor_priv);
 
     if (use_array) {
         XNFasprintf(&gradient_fs,
                     gradient_fs_getcolor, stops_count, stops_count);
         fs_getcolor_prog =
-            glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER, gradient_fs);
+            glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, gradient_fs);
         free(gradient_fs);
     }
     else {
         fs_getcolor_prog =
-            glamor_compile_glsl_prog(dispatch, GL_FRAGMENT_SHADER,
+            glamor_compile_glsl_prog(GL_FRAGMENT_SHADER,
                                      gradient_fs_getcolor_no_array);
     }
 
@@ -200,7 +199,6 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
                                        int dyn_gen)
 {
     glamor_screen_private *glamor_priv;
-    glamor_gl_dispatch *dispatch;
     int index;
 
     GLint gradient_prog = 0;
@@ -355,42 +353,37 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
         return;
     }
 
-    dispatch = glamor_get_dispatch(glamor_priv);
+    glamor_get_dispatch(glamor_priv);
 
     if (dyn_gen && glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2]) {
-        dispatch->glDeleteShader(glamor_priv->
-                                 radial_gradient_shaders
-                                 [SHADER_GRADIENT_VS_PROG][2]);
+        glDeleteShader(glamor_priv->radial_gradient_shaders
+                       [SHADER_GRADIENT_VS_PROG][2]);
         glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_VS_PROG][2] = 0;
 
-        dispatch->glDeleteShader(glamor_priv->
-                                 radial_gradient_shaders
-                                 [SHADER_GRADIENT_FS_MAIN_PROG][2]);
+        glDeleteShader(glamor_priv->radial_gradient_shaders
+                       [SHADER_GRADIENT_FS_MAIN_PROG][2]);
         glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][2] =
             0;
 
-        dispatch->glDeleteShader(glamor_priv->
-                                 radial_gradient_shaders
-                                 [SHADER_GRADIENT_FS_GETCOLOR_PROG][2]);
+        glDeleteShader(glamor_priv->radial_gradient_shaders
+                       [SHADER_GRADIENT_FS_GETCOLOR_PROG][2]);
         glamor_priv->
             radial_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][2] = 0;
 
-        dispatch->glDeleteProgram(glamor_priv->
-                                  gradient_prog[SHADER_GRADIENT_RADIAL][2]);
+        glDeleteProgram(glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2]);
         glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][2] = 0;
     }
 
-    gradient_prog = dispatch->glCreateProgram();
+    gradient_prog = glCreateProgram();
 
-    vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, gradient_vs);
+    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, gradient_vs);
 
     XNFasprintf(&gradient_fs,
                 gradient_radial_fs_template,
                 PIXMAN_REPEAT_NONE, PIXMAN_REPEAT_NORMAL,
                 PIXMAN_REPEAT_REFLECT);
 
-    fs_main_prog = glamor_compile_glsl_prog(dispatch,
-                                            GL_FRAGMENT_SHADER, gradient_fs);
+    fs_main_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, gradient_fs);
 
     free(gradient_fs);
 
@@ -398,18 +391,16 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
         _glamor_create_getcolor_fs_program(screen, stops_count,
                                            (stops_count > 0));
 
-    dispatch->glAttachShader(gradient_prog, vs_prog);
-    dispatch->glAttachShader(gradient_prog, fs_getcolor_prog);
-    dispatch->glAttachShader(gradient_prog, fs_main_prog);
+    glAttachShader(gradient_prog, vs_prog);
+    glAttachShader(gradient_prog, fs_getcolor_prog);
+    glAttachShader(gradient_prog, fs_main_prog);
 
-    dispatch->glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS,
-                                   "v_positionsition");
-    dispatch->glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE,
-                                   "v_texcoord");
+    glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS, "v_positionsition");
+    glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE, "v_texcoord");
 
-    glamor_link_glsl_prog(dispatch, gradient_prog);
+    glamor_link_glsl_prog(gradient_prog);
 
-    dispatch->glUseProgram(0);
+    glUseProgram(0);
 
     if (dyn_gen) {
         index = 2;
@@ -439,7 +430,6 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
                                        int dyn_gen)
 {
     glamor_screen_private *glamor_priv;
-    glamor_gl_dispatch *dispatch;
 
     int index = 0;
     GLint gradient_prog = 0;
@@ -596,58 +586,51 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
         return;
     }
 
-    dispatch = glamor_get_dispatch(glamor_priv);
+    glamor_get_dispatch(glamor_priv);
     if (dyn_gen && glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2]) {
-        dispatch->glDeleteShader(glamor_priv->
-                                 linear_gradient_shaders
-                                 [SHADER_GRADIENT_VS_PROG][2]);
+        glDeleteShader(glamor_priv->linear_gradient_shaders
+                       [SHADER_GRADIENT_VS_PROG][2]);
         glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_VS_PROG][2] = 0;
 
-        dispatch->glDeleteShader(glamor_priv->
-                                 linear_gradient_shaders
-                                 [SHADER_GRADIENT_FS_MAIN_PROG][2]);
+        glDeleteShader(glamor_priv->linear_gradient_shaders
+                       [SHADER_GRADIENT_FS_MAIN_PROG][2]);
         glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][2] =
             0;
 
-        dispatch->glDeleteShader(glamor_priv->
-                                 linear_gradient_shaders
-                                 [SHADER_GRADIENT_FS_GETCOLOR_PROG][2]);
+        glDeleteShader(glamor_priv->linear_gradient_shaders
+                       [SHADER_GRADIENT_FS_GETCOLOR_PROG][2]);
         glamor_priv->
             linear_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][2] = 0;
 
-        dispatch->glDeleteProgram(glamor_priv->
-                                  gradient_prog[SHADER_GRADIENT_LINEAR][2]);
+        glDeleteProgram(glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2]);
         glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][2] = 0;
     }
 
-    gradient_prog = dispatch->glCreateProgram();
+    gradient_prog = glCreateProgram();
 
-    vs_prog = glamor_compile_glsl_prog(dispatch, GL_VERTEX_SHADER, gradient_vs);
+    vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, gradient_vs);
 
     XNFasprintf(&gradient_fs,
                 gradient_fs_template,
                 PIXMAN_REPEAT_NORMAL, PIXMAN_REPEAT_REFLECT);
 
-    fs_main_prog = glamor_compile_glsl_prog(dispatch,
-                                            GL_FRAGMENT_SHADER, gradient_fs);
+    fs_main_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, gradient_fs);
     free(gradient_fs);
 
     fs_getcolor_prog =
         _glamor_create_getcolor_fs_program(screen, stops_count,
                                            (stops_count > 0));
 
-    dispatch->glAttachShader(gradient_prog, vs_prog);
-    dispatch->glAttachShader(gradient_prog, fs_getcolor_prog);
-    dispatch->glAttachShader(gradient_prog, fs_main_prog);
+    glAttachShader(gradient_prog, vs_prog);
+    glAttachShader(gradient_prog, fs_getcolor_prog);
+    glAttachShader(gradient_prog, fs_main_prog);
 
-    dispatch->glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS,
-                                   "v_position");
-    dispatch->glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE,
-                                   "v_texcoord");
+    glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS, "v_position");
+    glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE, "v_texcoord");
 
-    glamor_link_glsl_prog(dispatch, gradient_prog);
+    glamor_link_glsl_prog(gradient_prog);
 
-    dispatch->glUseProgram(0);
+    glUseProgram(0);
 
     if (dyn_gen) {
         index = 2;
@@ -709,56 +692,49 @@ void
 glamor_fini_gradient_shader(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv;
-    glamor_gl_dispatch *dispatch;
     int i = 0;
 
     glamor_priv = glamor_get_screen_private(screen);
-    dispatch = glamor_get_dispatch(glamor_priv);
+    glamor_get_dispatch(glamor_priv);
 
     for (i = 0; i < 3; i++) {
         /* Linear Gradient */
         if (glamor_priv->linear_gradient_shaders[SHADER_GRADIENT_VS_PROG][i])
-            dispatch->glDeleteShader(glamor_priv->
-                                     linear_gradient_shaders
-                                     [SHADER_GRADIENT_VS_PROG][i]);
+            glDeleteShader(glamor_priv->linear_gradient_shaders
+                           [SHADER_GRADIENT_VS_PROG][i]);
 
         if (glamor_priv->
             linear_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][i])
-            dispatch->glDeleteShader(glamor_priv->
-                                     linear_gradient_shaders
-                                     [SHADER_GRADIENT_FS_MAIN_PROG][i]);
+            glDeleteShader(glamor_priv->linear_gradient_shaders
+                           [SHADER_GRADIENT_FS_MAIN_PROG][i]);
 
         if (glamor_priv->
             linear_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][i])
-            dispatch->glDeleteShader(glamor_priv->
-                                     linear_gradient_shaders
-                                     [SHADER_GRADIENT_FS_GETCOLOR_PROG][i]);
+            glDeleteShader(glamor_priv->linear_gradient_shaders
+                           [SHADER_GRADIENT_FS_GETCOLOR_PROG][i]);
 
         if (glamor_priv->gradient_prog[SHADER_GRADIENT_LINEAR][i])
-            dispatch->glDeleteProgram(glamor_priv->
-                                      gradient_prog[SHADER_GRADIENT_LINEAR][i]);
+            glDeleteProgram(glamor_priv->gradient_prog
+                            [SHADER_GRADIENT_LINEAR][i]);
 
         /* Radial Gradient */
         if (glamor_priv->radial_gradient_shaders[SHADER_GRADIENT_VS_PROG][i])
-            dispatch->glDeleteShader(glamor_priv->
-                                     radial_gradient_shaders
-                                     [SHADER_GRADIENT_VS_PROG][i]);
+            glDeleteShader(glamor_priv->radial_gradient_shaders
+                           [SHADER_GRADIENT_VS_PROG][i]);
 
         if (glamor_priv->
             radial_gradient_shaders[SHADER_GRADIENT_FS_MAIN_PROG][i])
-            dispatch->glDeleteShader(glamor_priv->
-                                     radial_gradient_shaders
-                                     [SHADER_GRADIENT_FS_MAIN_PROG][i]);
+            glDeleteShader(glamor_priv->radial_gradient_shaders
+                           [SHADER_GRADIENT_FS_MAIN_PROG][i]);
 
         if (glamor_priv->
             radial_gradient_shaders[SHADER_GRADIENT_FS_GETCOLOR_PROG][i])
-            dispatch->glDeleteShader(glamor_priv->
-                                     radial_gradient_shaders
-                                     [SHADER_GRADIENT_FS_GETCOLOR_PROG][i]);
+            glDeleteShader(glamor_priv->radial_gradient_shaders
+                           [SHADER_GRADIENT_FS_GETCOLOR_PROG][i]);
 
         if (glamor_priv->gradient_prog[SHADER_GRADIENT_RADIAL][i])
-            dispatch->glDeleteProgram(glamor_priv->
-                                      gradient_prog[SHADER_GRADIENT_RADIAL][i]);
+            glDeleteProgram(glamor_priv->gradient_prog
+                            [SHADER_GRADIENT_RADIAL][i]);
     }
 
     glamor_put_dispatch(glamor_priv);
@@ -835,7 +811,6 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 {
     glamor_pixmap_private *pixmap_priv;
     PixmapPtr pixmap = NULL;
-    glamor_gl_dispatch *dispatch = NULL;
 
     pixmap = glamor_get_drawable_pixmap(dst_picture->pDrawable);
     pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -893,15 +868,15 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
            tex_vertices[0], tex_vertices[1], tex_vertices[2], tex_vertices[3],
            tex_vertices[4], tex_vertices[5], tex_vertices[6], tex_vertices[7]);
 
-    dispatch = glamor_get_dispatch(glamor_priv);
+    glamor_get_dispatch(glamor_priv);
 
-    dispatch->glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
-                                    GL_FALSE, 0, vertices);
-    dispatch->glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT,
-                                    GL_FALSE, 0, tex_vertices);
+    glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
+                          GL_FALSE, 0, vertices);
+    glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT,
+                          GL_FALSE, 0, tex_vertices);
 
-    dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-    dispatch->glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+    glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
+    glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
     glamor_put_dispatch(glamor_priv);
 
@@ -996,7 +971,6 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
                                         PictFormatShort format)
 {
     glamor_screen_private *glamor_priv;
-    glamor_gl_dispatch *dispatch;
     PicturePtr dst_picture = NULL;
     PixmapPtr pixmap = NULL;
     GLint gradient_prog = 0;
@@ -1047,7 +1021,7 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
     GLint r2_uniform_location = 0;
 
     glamor_priv = glamor_get_screen_private(screen);
-    dispatch = glamor_get_dispatch(glamor_priv);
+    glamor_get_dispatch(glamor_priv);
 
     /* Create a pixmap with VBO. */
     pixmap = glamor_create_pixmap(screen,
@@ -1088,77 +1062,74 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
     }
 
     /* Bind all the uniform vars . */
-    transform_mat_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "transform_mat");
-    repeat_type_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "repeat_type");
-    n_stop_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "n_stop");
-    A_value_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "A_value");
-    repeat_type_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "repeat_type");
-    c1_uniform_location = dispatch->glGetUniformLocation(gradient_prog, "c1");
-    r1_uniform_location = dispatch->glGetUniformLocation(gradient_prog, "r1");
-    c2_uniform_location = dispatch->glGetUniformLocation(gradient_prog, "c2");
-    r2_uniform_location = dispatch->glGetUniformLocation(gradient_prog, "r2");
+    transform_mat_uniform_location = glGetUniformLocation(gradient_prog,
+                                                          "transform_mat");
+    repeat_type_uniform_location = glGetUniformLocation(gradient_prog,
+                                                        "repeat_type");
+    n_stop_uniform_location = glGetUniformLocation(gradient_prog, "n_stop");
+    A_value_uniform_location = glGetUniformLocation(gradient_prog, "A_value");
+    repeat_type_uniform_location =glGetUniformLocation(gradient_prog,
+                                                       "repeat_type");
+    c1_uniform_location = glGetUniformLocation(gradient_prog, "c1");
+    r1_uniform_location = glGetUniformLocation(gradient_prog, "r1");
+    c2_uniform_location = glGetUniformLocation(gradient_prog, "c2");
+    r2_uniform_location = glGetUniformLocation(gradient_prog, "r2");
 
     if (src_picture->pSourcePict->radial.nstops + 2 <= RADIAL_SMALL_STOPS) {
         stop0_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop0");
+            glGetUniformLocation(gradient_prog, "stop0");
         stop1_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop1");
+            glGetUniformLocation(gradient_prog, "stop1");
         stop2_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop2");
+            glGetUniformLocation(gradient_prog, "stop2");
         stop3_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop3");
+            glGetUniformLocation(gradient_prog, "stop3");
         stop4_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop4");
+            glGetUniformLocation(gradient_prog, "stop4");
         stop5_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop5");
+            glGetUniformLocation(gradient_prog, "stop5");
         stop6_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop6");
+            glGetUniformLocation(gradient_prog, "stop6");
         stop7_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop7");
+            glGetUniformLocation(gradient_prog, "stop7");
 
         stop_color0_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color0");
+            glGetUniformLocation(gradient_prog, "stop_color0");
         stop_color1_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color1");
+            glGetUniformLocation(gradient_prog, "stop_color1");
         stop_color2_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color2");
+            glGetUniformLocation(gradient_prog, "stop_color2");
         stop_color3_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color3");
+            glGetUniformLocation(gradient_prog, "stop_color3");
         stop_color4_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color4");
+            glGetUniformLocation(gradient_prog, "stop_color4");
         stop_color5_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color5");
+            glGetUniformLocation(gradient_prog, "stop_color5");
         stop_color6_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color6");
+            glGetUniformLocation(gradient_prog, "stop_color6");
         stop_color7_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color7");
+            glGetUniformLocation(gradient_prog, "stop_color7");
     }
     else {
         stops_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stops");
+            glGetUniformLocation(gradient_prog, "stops");
         stop_colors_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_colors");
+            glGetUniformLocation(gradient_prog, "stop_colors");
     }
 
-    dispatch->glUseProgram(gradient_prog);
+    glUseProgram(gradient_prog);
 
-    dispatch->glUniform1i(repeat_type_uniform_location,
-                          src_picture->repeatType);
+    glUniform1i(repeat_type_uniform_location, src_picture->repeatType);
 
     if (src_picture->transform) {
         _glamor_gradient_convert_trans_matrix(src_picture->transform,
                                               transform_mat, width, height, 0);
-        dispatch->glUniformMatrix3fv(transform_mat_uniform_location,
-                                     1, 1, &transform_mat[0][0]);
+        glUniformMatrix3fv(transform_mat_uniform_location,
+                           1, 1, &transform_mat[0][0]);
     }
     else {
-        dispatch->glUniformMatrix3fv(transform_mat_uniform_location,
-                                     1, 1, &identity_mat[0][0]);
+        glUniformMatrix3fv(transform_mat_uniform_location,
+                           1, 1, &identity_mat[0][0]);
     }
 
     if (!_glamor_gradient_set_pixmap_destination
@@ -1193,54 +1164,53 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
     if (src_picture->pSourcePict->linear.nstops + 2 <= RADIAL_SMALL_STOPS) {
         int j = 0;
 
-        dispatch->glUniform4f(stop_color0_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color0_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color1_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color1_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color2_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color2_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color3_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color3_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color4_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color4_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color5_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color5_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color6_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color6_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color7_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color7_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
 
         j = 0;
-        dispatch->glUniform1f(stop0_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop1_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop2_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop3_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop4_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop5_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop6_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop7_uniform_location, n_stops[j++]);
-        dispatch->glUniform1i(n_stop_uniform_location, count);
+        glUniform1f(stop0_uniform_location, n_stops[j++]);
+        glUniform1f(stop1_uniform_location, n_stops[j++]);
+        glUniform1f(stop2_uniform_location, n_stops[j++]);
+        glUniform1f(stop3_uniform_location, n_stops[j++]);
+        glUniform1f(stop4_uniform_location, n_stops[j++]);
+        glUniform1f(stop5_uniform_location, n_stops[j++]);
+        glUniform1f(stop6_uniform_location, n_stops[j++]);
+        glUniform1f(stop7_uniform_location, n_stops[j++]);
+        glUniform1i(n_stop_uniform_location, count);
     }
     else {
-        dispatch->glUniform4fv(stop_colors_uniform_location, count,
-                               stop_colors);
-        dispatch->glUniform1fv(stops_uniform_location, count, n_stops);
-        dispatch->glUniform1i(n_stop_uniform_location, count);
+        glUniform4fv(stop_colors_uniform_location, count, stop_colors);
+        glUniform1fv(stops_uniform_location, count, n_stops);
+        glUniform1i(n_stop_uniform_location, count);
     }
 
     c1x = (float) pixman_fixed_to_double(src_picture->pSourcePict->radial.c1.x);
@@ -1255,25 +1225,25 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
 
     glamor_set_circle_centre(width, height, c1x, c1y, glamor_priv->yInverted,
                              cxy);
-    dispatch->glUniform2fv(c1_uniform_location, 1, cxy);
-    dispatch->glUniform1f(r1_uniform_location, r1);
+    glUniform2fv(c1_uniform_location, 1, cxy);
+    glUniform1f(r1_uniform_location, r1);
 
     glamor_set_circle_centre(width, height, c2x, c2y, glamor_priv->yInverted,
                              cxy);
-    dispatch->glUniform2fv(c2_uniform_location, 1, cxy);
-    dispatch->glUniform1f(r2_uniform_location, r2);
+    glUniform2fv(c2_uniform_location, 1, cxy);
+    glUniform1f(r2_uniform_location, r2);
 
     A_value =
         (c2x - c1x) * (c2x - c1x) + (c2y - c1y) * (c2y - c1y) - (r2 -
                                                                  r1) * (r2 -
                                                                         r1);
-    dispatch->glUniform1f(A_value_uniform_location, A_value);
+    glUniform1f(A_value_uniform_location, A_value);
 
     DEBUGF("C1:(%f, %f) R1:%f\nC2:(%f, %f) R2:%f\nA = %f\n",
            c1x, c1y, r1, c2x, c2y, r2, A_value);
 
     /* Now rendering. */
-    dispatch->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     /* Do the clear logic. */
     if (stops_count > RADIAL_SMALL_STOPS) {
@@ -1281,12 +1251,12 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
         free(stop_colors);
     }
 
-    dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
-    dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-    dispatch->glUseProgram(0);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+    glUseProgram(0);
 
     glamor_put_dispatch(glamor_priv);
     return dst_picture;
@@ -1303,12 +1273,12 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
             free(stop_colors);
     }
 
-    dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
-    dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-    dispatch->glUseProgram(0);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+    glUseProgram(0);
     glamor_put_dispatch(glamor_priv);
     return NULL;
 }
@@ -1321,7 +1291,6 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
                                         PictFormatShort format)
 {
     glamor_screen_private *glamor_priv;
-    glamor_gl_dispatch *dispatch;
     PicturePtr dst_picture = NULL;
     PixmapPtr pixmap = NULL;
     GLint gradient_prog = 0;
@@ -1374,7 +1343,7 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
     GLint pt_distance_uniform_location = 0;
 
     glamor_priv = glamor_get_screen_private(screen);
-    dispatch = glamor_get_dispatch(glamor_priv);
+    glamor_get_dispatch(glamor_priv);
 
     /* Create a pixmap with VBO. */
     pixmap = glamor_create_pixmap(screen,
@@ -1417,79 +1386,78 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
 
     /* Bind all the uniform vars . */
     n_stop_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "n_stop");
+        glGetUniformLocation(gradient_prog, "n_stop");
     pt_slope_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "pt_slope");
+        glGetUniformLocation(gradient_prog, "pt_slope");
     repeat_type_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "repeat_type");
+        glGetUniformLocation(gradient_prog, "repeat_type");
     hor_ver_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "hor_ver");
+        glGetUniformLocation(gradient_prog, "hor_ver");
     transform_mat_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "transform_mat");
+        glGetUniformLocation(gradient_prog, "transform_mat");
     cos_val_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "cos_val");
+        glGetUniformLocation(gradient_prog, "cos_val");
     p1_distance_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "p1_distance");
+        glGetUniformLocation(gradient_prog, "p1_distance");
     pt_distance_uniform_location =
-        dispatch->glGetUniformLocation(gradient_prog, "pt_distance");
+        glGetUniformLocation(gradient_prog, "pt_distance");
 
     if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_SMALL_STOPS) {
         stop0_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop0");
+            glGetUniformLocation(gradient_prog, "stop0");
         stop1_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop1");
+            glGetUniformLocation(gradient_prog, "stop1");
         stop2_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop2");
+            glGetUniformLocation(gradient_prog, "stop2");
         stop3_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop3");
+            glGetUniformLocation(gradient_prog, "stop3");
         stop4_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop4");
+            glGetUniformLocation(gradient_prog, "stop4");
         stop5_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop5");
+            glGetUniformLocation(gradient_prog, "stop5");
         stop6_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop6");
+            glGetUniformLocation(gradient_prog, "stop6");
         stop7_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop7");
+            glGetUniformLocation(gradient_prog, "stop7");
 
         stop_color0_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color0");
+            glGetUniformLocation(gradient_prog, "stop_color0");
         stop_color1_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color1");
+            glGetUniformLocation(gradient_prog, "stop_color1");
         stop_color2_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color2");
+            glGetUniformLocation(gradient_prog, "stop_color2");
         stop_color3_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color3");
+            glGetUniformLocation(gradient_prog, "stop_color3");
         stop_color4_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color4");
+            glGetUniformLocation(gradient_prog, "stop_color4");
         stop_color5_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color5");
+            glGetUniformLocation(gradient_prog, "stop_color5");
         stop_color6_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color6");
+            glGetUniformLocation(gradient_prog, "stop_color6");
         stop_color7_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_color7");
+            glGetUniformLocation(gradient_prog, "stop_color7");
     }
     else {
         stops_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stops");
+            glGetUniformLocation(gradient_prog, "stops");
         stop_colors_uniform_location =
-            dispatch->glGetUniformLocation(gradient_prog, "stop_colors");
+            glGetUniformLocation(gradient_prog, "stop_colors");
     }
 
-    dispatch->glUseProgram(gradient_prog);
+    glUseProgram(gradient_prog);
 
-    dispatch->glUniform1i(repeat_type_uniform_location,
-                          src_picture->repeatType);
+    glUniform1i(repeat_type_uniform_location, src_picture->repeatType);
 
     /* set the transform matrix. */
     if (src_picture->transform) {
         _glamor_gradient_convert_trans_matrix(src_picture->transform,
                                               transform_mat, width, height, 1);
-        dispatch->glUniformMatrix3fv(transform_mat_uniform_location,
-                                     1, 1, &transform_mat[0][0]);
+        glUniformMatrix3fv(transform_mat_uniform_location,
+                           1, 1, &transform_mat[0][0]);
     }
     else {
-        dispatch->glUniformMatrix3fv(transform_mat_uniform_location,
-                                     1, 1, &identity_mat[0][0]);
+        glUniformMatrix3fv(transform_mat_uniform_location,
+                           1, 1, &identity_mat[0][0]);
     }
 
     if (!_glamor_gradient_set_pixmap_destination
@@ -1547,66 +1515,65 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
     if (src_picture->pSourcePict->linear.nstops + 2 <= LINEAR_SMALL_STOPS) {
         int j = 0;
 
-        dispatch->glUniform4f(stop_color0_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color0_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color1_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color1_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color2_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color2_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color3_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color3_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color4_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color4_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color5_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color5_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color6_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color6_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
         j++;
-        dispatch->glUniform4f(stop_color7_uniform_location,
-                              stop_colors[4 * j + 0], stop_colors[4 * j + 1],
-                              stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
+        glUniform4f(stop_color7_uniform_location,
+                    stop_colors[4 * j + 0], stop_colors[4 * j + 1],
+                    stop_colors[4 * j + 2], stop_colors[4 * j + 3]);
 
         j = 0;
-        dispatch->glUniform1f(stop0_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop1_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop2_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop3_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop4_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop5_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop6_uniform_location, n_stops[j++]);
-        dispatch->glUniform1f(stop7_uniform_location, n_stops[j++]);
+        glUniform1f(stop0_uniform_location, n_stops[j++]);
+        glUniform1f(stop1_uniform_location, n_stops[j++]);
+        glUniform1f(stop2_uniform_location, n_stops[j++]);
+        glUniform1f(stop3_uniform_location, n_stops[j++]);
+        glUniform1f(stop4_uniform_location, n_stops[j++]);
+        glUniform1f(stop5_uniform_location, n_stops[j++]);
+        glUniform1f(stop6_uniform_location, n_stops[j++]);
+        glUniform1f(stop7_uniform_location, n_stops[j++]);
 
-        dispatch->glUniform1i(n_stop_uniform_location, count);
+        glUniform1i(n_stop_uniform_location, count);
     }
     else {
-        dispatch->glUniform4fv(stop_colors_uniform_location, count,
-                               stop_colors);
-        dispatch->glUniform1fv(stops_uniform_location, count, n_stops);
-        dispatch->glUniform1i(n_stop_uniform_location, count);
+        glUniform4fv(stop_colors_uniform_location, count, stop_colors);
+        glUniform1fv(stops_uniform_location, count, n_stops);
+        glUniform1i(n_stop_uniform_location, count);
     }
 
     if (src_picture->pSourcePict->linear.p2.y == src_picture->pSourcePict->linear.p1.y) {       // The horizontal case.
-        dispatch->glUniform1i(hor_ver_uniform_location, 1);
+        glUniform1i(hor_ver_uniform_location, 1);
         DEBUGF("p1.y: %f, p2.y: %f, enter the horizontal case\n",
                pt1[1], pt2[1]);
 
         p1_distance = pt1[0];
         pt_distance = (pt2[0] - p1_distance);
-        dispatch->glUniform1f(p1_distance_uniform_location, p1_distance);
-        dispatch->glUniform1f(pt_distance_uniform_location, pt_distance);
+        glUniform1f(p1_distance_uniform_location, p1_distance);
+        glUniform1f(pt_distance_uniform_location, pt_distance);
     }
     else {
         /* The slope need to compute here. In shader, the viewport set will change
@@ -1616,20 +1583,20 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
             (float) (src_picture->pSourcePict->linear.p2.y
                      - src_picture->pSourcePict->linear.p1.y);
         slope = slope * yscale / xscale;
-        dispatch->glUniform1f(pt_slope_uniform_location, slope);
-        dispatch->glUniform1i(hor_ver_uniform_location, 0);
+        glUniform1f(pt_slope_uniform_location, slope);
+        glUniform1i(hor_ver_uniform_location, 0);
 
         cos_val = sqrt(1.0 / (slope * slope + 1.0));
-        dispatch->glUniform1f(cos_val_uniform_location, cos_val);
+        glUniform1f(cos_val_uniform_location, cos_val);
 
         p1_distance = (pt1[1] - pt1[0] * slope) * cos_val;
         pt_distance = (pt2[1] - pt2[0] * slope) * cos_val - p1_distance;
-        dispatch->glUniform1f(p1_distance_uniform_location, p1_distance);
-        dispatch->glUniform1f(pt_distance_uniform_location, pt_distance);
+        glUniform1f(p1_distance_uniform_location, p1_distance);
+        glUniform1f(pt_distance_uniform_location, pt_distance);
     }
 
     /* Now rendering. */
-    dispatch->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     /* Do the clear logic. */
     if (stops_count > LINEAR_SMALL_STOPS) {
@@ -1637,12 +1604,12 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
         free(stop_colors);
     }
 
-    dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
-    dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-    dispatch->glUseProgram(0);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+    glUseProgram(0);
 
     glamor_put_dispatch(glamor_priv);
     return dst_picture;
@@ -1659,12 +1626,12 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
             free(stop_colors);
     }
 
-    dispatch->glBindBuffer(GL_ARRAY_BUFFER, 0);
-    dispatch->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    dispatch->glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-    dispatch->glUseProgram(0);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
+    glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
+    glUseProgram(0);
     glamor_put_dispatch(glamor_priv);
     return NULL;
 }

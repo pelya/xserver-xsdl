@@ -35,15 +35,11 @@
 #endif
 #include "glamor.h"
 
-#ifdef GLAMOR_GLES2
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#include <epoxy/gl.h>
 
+#ifdef GLAMOR_GLES2
 #define GLAMOR_DEFAULT_PRECISION   "precision mediump float;\n"
-#include "glamor_glext.h"
 #else
-#include <GL/gl.h>
-#include <GL/glext.h>
 #define GLAMOR_DEFAULT_PRECISION
 #endif
 
@@ -178,8 +174,6 @@ typedef struct {
     uint16_t evict;
 } glamor_glyph_cache_t;
 
-#include "glamor_gl_dispatch.h"
-
 struct glamor_saved_procs {
     CloseScreenProcPtr close_screen;
     CreateGCProcPtr create_gc;
@@ -220,7 +214,6 @@ struct glamor_saved_procs {
 #define RENDER_IDEL_MAX 32
 
 typedef struct glamor_screen_private {
-    struct glamor_gl_dispatch _dispatch;
     int yInverted;
     unsigned int tick;
     enum glamor_gl_flavor gl_flavor;
@@ -583,9 +576,8 @@ Bool glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
                     unsigned char alu, unsigned long planemask,
                     unsigned long fg_pixel, unsigned long bg_pixel,
                     int stipple_x, int stipple_y);
-GLint glamor_compile_glsl_prog(glamor_gl_dispatch *dispatch, GLenum type,
-                               const char *source);
-void glamor_link_glsl_prog(glamor_gl_dispatch *dispatch, GLint prog);
+GLint glamor_compile_glsl_prog(GLenum type, const char *source);
+void glamor_link_glsl_prog(GLint prog);
 void glamor_get_color_4f_from_pixel(PixmapPtr pixmap,
                                     unsigned long fg_pixel, GLfloat *color);
 
@@ -604,7 +596,7 @@ glamor_pixmap_fbo *glamor_es2_pixmap_read_prepare(PixmapPtr source, int x,
                                                   int no_alpha, int revert,
                                                   int swap_rb);
 
-Bool glamor_set_alu(struct glamor_gl_dispatch *dispatch, unsigned char alu);
+Bool glamor_set_alu(unsigned char alu);
 Bool glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask);
 Bool glamor_change_window_attributes(WindowPtr pWin, unsigned long mask);
 RegionPtr glamor_bitmap_to_region(PixmapPtr pixmap);

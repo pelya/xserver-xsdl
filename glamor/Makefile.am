@@ -10,11 +10,9 @@ libglamor_la_SOURCES = \
 	glamor_copywindow.c \
 	glamor_core.c \
 	glamor_debug.h \
-	glamor_gl_dispatch.h \
 	glamor_fill.c \
 	glamor_fillspans.c \
 	glamor_getspans.c \
-	glamor_glext.h \
 	glamor_glyphs.c \
 	glamor_polyfillrect.c \
 	glamor_polylines.c \
@@ -35,7 +33,6 @@ libglamor_la_SOURCES = \
 	glamor_largepixmap.c\
 	glamor_picture.c\
 	glamor_window.c\
-	glamor_gl_dispatch.c\
 	glamor_fbo.c\
 	glamor_compositerects.c\
 	glamor_xv.c\

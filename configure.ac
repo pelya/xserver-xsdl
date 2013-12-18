@@ -2069,7 +2069,7 @@ dnl glamor
 AM_CONDITIONAL([GLAMOR], [test "x$GLAMOR" = xyes])
 if test "x$GLAMOR" = xyes; then
 	AC_DEFINE(GLAMOR, 1, [Build glamor])
-	PKG_CHECK_MODULES([GLAMOR], [egl gl])
+	PKG_CHECK_MODULES([GLAMOR], [epoxy])
 fi
 
 dnl XWin DDX
