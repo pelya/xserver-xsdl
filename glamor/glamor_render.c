@@ -869,7 +869,7 @@ combine_pict_format(PictFormatShort * des, const PictFormatShort src,
                     const PictFormatShort mask, enum shader_in in_ca)
 {
     PictFormatShort new_vis;
-    int src_type, mask_type, src_bpp, mask_bpp;
+    int src_type, mask_type, src_bpp;
     int i;
 
     if (src == mask) {
@@ -877,9 +877,8 @@ combine_pict_format(PictFormatShort * des, const PictFormatShort src,
         return TRUE;
     }
     src_bpp = PICT_FORMAT_BPP(src);
-    mask_bpp = PICT_FORMAT_BPP(mask);
 
-    assert(src_bpp == mask_bpp);
+    assert(src_bpp == PICT_FORMAT_BPP(mask));
 
     new_vis = PICT_FORMAT_VIS(src) | PICT_FORMAT_VIS(mask);
 

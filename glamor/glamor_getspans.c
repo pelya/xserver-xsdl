@@ -54,6 +54,7 @@ _glamor_get_spans(DrawablePtr drawable,
                                                                   depth),
                                                  readpixels_dst, 0,
                                                  GLAMOR_ACCESS_RO);
+        (void)data;
         assert(data == readpixels_dst);
         readpixels_dst += PixmapBytePad(widths[i], drawable->depth);
     }
