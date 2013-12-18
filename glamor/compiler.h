@@ -56,4 +56,4 @@
 
 #define COMPILE_TIME_ASSERT(E) ((void)sizeof(char[1 - 2*!(E)]))
 
-#endif /* _SNA_COMPILER_H_ */
+#endif                          /* _SNA_COMPILER_H_ */

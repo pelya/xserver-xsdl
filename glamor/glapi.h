@@ -22,7 +22,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 /**
  * \mainpage Mesa GL API Module
  *
@@ -63,59 +62,55 @@
 #define _glapi_Context _mglapi_Context
 #endif
 
-typedef void (*_glapi_proc)(void);
+typedef void (*_glapi_proc) (void);
 struct _glapi_table;
-
 
 #if defined (GLX_USE_TLS)
 
-extern __thread struct _glapi_table * _glapi_tls_Dispatch
-    __attribute__((tls_model("initial-exec")));
+extern __thread struct _glapi_table *_glapi_tls_Dispatch
+    __attribute__ ((tls_model("initial-exec")));
 
-extern __thread void * _glapi_tls_Context
-    __attribute__((tls_model("initial-exec")));
+extern __thread void *_glapi_tls_Context
+    __attribute__ ((tls_model("initial-exec")));
 
 extern const struct _glapi_table *_glapi_Dispatch;
 extern const void *_glapi_Context;
 
-# define GET_DISPATCH() _glapi_tls_Dispatch
-# define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) _glapi_tls_Context
-# define SET_CURRENT_CONTEXT(C)  _glapi_tls_Context = (void*)C
+#define GET_DISPATCH() _glapi_tls_Dispatch
+#define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) _glapi_tls_Context
+#define SET_CURRENT_CONTEXT(C)  _glapi_tls_Context = (void*)C
 
 #else
 
 extern struct _glapi_table *_glapi_Dispatch;
 extern void *_glapi_Context;
 
-# ifdef THREADS
+#ifdef THREADS
 
-#  define GET_DISPATCH() \
+#define GET_DISPATCH() \
      (likely(_glapi_Dispatch) ? _glapi_Dispatch : _glapi_get_dispatch())
 
-#  define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) \
+#define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) \
      (likely(_glapi_Context) ? _glapi_Context : _glapi_get_context())
 
-
-# define SET_CURRENT_CONTEXT(C) do { if (likely(_glapi_Context))   \
+#define SET_CURRENT_CONTEXT(C) do { if (likely(_glapi_Context))   \
 					_glapi_Context = (void*)C; \
 				     else \
 					_glapi_set_context(C); } while(0)
 
-# else
+#else
 
-#  define GET_DISPATCH() _glapi_Dispatch
-#  define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) _glapi_Context
-# define SET_CURRENT_CONTEXT(C)  _glapi_Context = (void*)C
+#define GET_DISPATCH() _glapi_Dispatch
+#define GET_CURRENT_CONTEXT(C)  C = (typeof(C)) _glapi_Context
+#define SET_CURRENT_CONTEXT(C)  _glapi_Context = (void*)C
 
-# endif
+#endif
 
-#endif /* defined (GLX_USE_TLS) */
-
+#endif                          /* defined (GLX_USE_TLS) */
 
 extern void
-_glapi_set_context(void *context);
+ _glapi_set_context(void *context);
 
-extern void *
-_glapi_get_context(void);
+extern void *_glapi_get_context(void);
 
 #endif
