@@ -408,6 +408,28 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
 }
 
 void
+xf86DisableInputDeviceForVTSwitch(InputInfoPtr pInfo)
+{
+    if (!pInfo->dev)
+        return;
+
+    if (!pInfo->dev->enabled)
+        pInfo->flags |= XI86_DEVICE_DISABLED;
+
+    xf86ReleaseKeys(pInfo->dev);
+    ProcessInputEvents();
+    DisableDevice(pInfo->dev, TRUE);
+}
+
+void
+xf86EnableInputDeviceForVTSwitch(InputInfoPtr pInfo)
+{
+    if (pInfo->dev && (pInfo->flags & XI86_DEVICE_DISABLED) == 0)
+        EnableDevice(pInfo->dev, TRUE);
+    pInfo->flags &= ~XI86_DEVICE_DISABLED;
+}
+
+void
 xf86VTLeave(void)
 {
     int i;
@@ -436,15 +458,8 @@ xf86VTLeave(void)
         else
             xf86DisableGeneralHandler(ih);
     }
-    for (pInfo = xf86InputDevs; pInfo; pInfo = pInfo->next) {
-        if (pInfo->dev) {
-            if (!pInfo->dev->enabled)
-                pInfo->flags |= XI86_DEVICE_DISABLED;
-            xf86ReleaseKeys(pInfo->dev);
-            ProcessInputEvents();
-            DisableDevice(pInfo->dev, TRUE);
-        }
-    }
+    for (pInfo = xf86InputDevs; pInfo; pInfo = pInfo->next)
+        xf86DisableInputDeviceForVTSwitch(pInfo);
 
     OsBlockSIGIO();
     for (i = 0; i < xf86NumScreens; i++)
@@ -494,13 +509,8 @@ switch_failed:
     }
     dixSaveScreens(serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
 
-    pInfo = xf86InputDevs;
-    while (pInfo) {
-        if (pInfo->dev && (pInfo->flags & XI86_DEVICE_DISABLED) == 0)
-            EnableDevice(pInfo->dev, TRUE);
-        pInfo->flags &= ~XI86_DEVICE_DISABLED;
-        pInfo = pInfo->next;
-    }
+    for (pInfo = xf86InputDevs; pInfo; pInfo = pInfo->next)
+        xf86EnableInputDeviceForVTSwitch(pInfo);
     for (ih = InputHandlers; ih; ih = ih->next) {
         if (ih->is_input)
             xf86EnableInputHandler(ih);
@@ -546,14 +556,8 @@ xf86VTEnter(void)
     /* Turn screen saver off when switching back */
     dixSaveScreens(serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
 
-    pInfo = xf86InputDevs;
-    while (pInfo) {
-        if (pInfo->dev && (pInfo->flags & XI86_DEVICE_DISABLED) == 0)
-            EnableDevice(pInfo->dev, TRUE);
-        pInfo->flags &= ~XI86_DEVICE_DISABLED;
-        pInfo = pInfo->next;
-    }
-
+    for (pInfo = xf86InputDevs; pInfo; pInfo = pInfo->next)
+        xf86EnableInputDeviceForVTSwitch(pInfo);
     for (ih = InputHandlers; ih; ih = ih->next) {
         if (ih->is_input)
             xf86EnableInputHandler(ih);
