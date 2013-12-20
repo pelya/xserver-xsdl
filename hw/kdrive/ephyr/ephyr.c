@@ -1223,6 +1223,9 @@ ephyrPoll(void)
             break;
         }
 
+        if (ephyr_glamor)
+            ephyr_glamor_process_event(xev);
+
         free(xev);
     }
 }

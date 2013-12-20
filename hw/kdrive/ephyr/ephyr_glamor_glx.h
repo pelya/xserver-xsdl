@@ -53,10 +53,21 @@ ephyr_glamor_glx_screen_fini(struct ephyr_glamor *glamor);
 void
 ephyr_glamor_damage_redisplay(struct ephyr_glamor *glamor,
                               struct pixman_region16 *damage);
-#else
+
+void
+ephyr_glamor_process_event(xcb_generic_event_t *xev);
+
+#else /* !GLAMOR */
+
 static inline void
 ephyr_glamor_damage_redisplay(struct ephyr_glamor *glamor,
                               struct pixman_region16 *damage)
 {
 }
-#endif
+
+static inline void
+ephyr_glamor_process_event(xcb_generic_event_t *xev)
+{
+}
+
+#endif /* !GLAMOR */

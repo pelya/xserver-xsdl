@@ -29,12 +29,17 @@
 
 #include <stdlib.h>
 #include <X11/Xlib.h>
+#include <X11/Xlibint.h>
+#undef Xcalloc
+#undef Xrealloc
+#undef Xfree
 #include <X11/Xlib-xcb.h>
 #include <xcb/xcb_aux.h>
 #include <pixman.h>
 #include <epoxy/glx.h>
 #include "ephyr_glamor_glx.h"
 #include "os.h"
+#include <X11/Xproto.h>
 
 /** @{
  *
@@ -216,6 +221,40 @@ ephyr_glamor_damage_redisplay(struct ephyr_glamor *glamor,
     glDisableVertexAttribArray(glamor->texture_shader_texcoord_loc);
 
     glXSwapBuffers(dpy, glamor->glx_win);
+}
+
+/**
+ * Xlib-based handling of xcb events for glamor.
+ *
+ * We need to let the Xlib event filtering run on the event so that
+ * Mesa's dri2_glx.c userspace event mangling gets run, and we
+ * correctly get our invalidate events propagated into the driver.
+ */
+void
+ephyr_glamor_process_event(xcb_generic_event_t *xev)
+{
+
+    uint32_t response_type = xev->response_type & 0x7f;
+    /* Note the types on wire_to_event: there's an Xlib XEvent (with
+     * the broken types) that it returns, and a protocol xEvent that
+     * it inspects.
+     */
+    Bool (*wire_to_event)(Display *dpy, XEvent *ret, xEvent *event);
+
+    XLockDisplay(dpy);
+    /* Set the event handler to NULL to get access to the current one. */
+    wire_to_event = XESetWireToEvent(dpy, response_type, NULL);
+    if (wire_to_event) {
+        XEvent processed_event;
+
+        /* OK they had an event handler.  Plug it back in, and call
+         * through to it.
+         */
+        XESetWireToEvent(dpy, response_type, wire_to_event);
+        xev->sequence = LastKnownRequestProcessed(dpy);
+        wire_to_event(dpy, &processed_event, (xEvent *)xev);
+    }
+    XUnlockDisplay(dpy);
 }
 
 struct ephyr_glamor *
