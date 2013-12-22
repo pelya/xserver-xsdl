@@ -1820,13 +1820,13 @@ if test "x$XORG" = xyes; then
 		save_CFLAGS="$CFLAGS"
 		proto_inc=`$PKG_CONFIG --cflags xproto`
 		CFLAGS="$CFLAGS $VISIBILITY_CFLAGS $proto_inc"
-		AC_TRY_COMPILE(
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 		    [#include <X11/Xfuncproto.h>
 		     extern _X_HIDDEN int hidden_int;
 		     extern _X_EXPORT int public_int;
 		     extern _X_HIDDEN int hidden_int_func(void);
-		     extern _X_EXPORT int public_int_func(void);],
-		    [],
+		     extern _X_EXPORT int public_int_func(void);]],
+		    [])],
 		    have_visibility=yes,
 		    have_visibility=no)
 		CFLAGS=$save_CFLAGS
@@ -2386,12 +2386,12 @@ dnl though, thanks to the passing of some significant amount of time, the
 dnl above is probably a complete fallacy, and you should not rely on it.
 dnl but this is still actually better than imake, honest. -daniels
 
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <features.h>
 #ifndef __GLIBC__
 #error not glibc
 #endif
-], [], [AC_DEFINE(_GNU_SOURCE, 1,
+]], [])], [AC_DEFINE(_GNU_SOURCE, 1,
 	[ Enable GNU and other extensions to the C environment for glibc])])
 
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
