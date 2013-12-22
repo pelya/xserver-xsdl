@@ -437,8 +437,6 @@ VENDOR_NAME="The X.Org Foundation"
 VENDOR_NAME_SHORT="X.Org"
 VENDOR_WEB="http://wiki.x.org"
 
-m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
-
 dnl Build options.
 AC_ARG_ENABLE(werror,        AS_HELP_STRING([--enable-werror],
 		  [Obsolete - use --enable-strict-compilation instead]),
@@ -565,7 +563,7 @@ AC_ARG_ENABLE(install-libxf86config,
 				[Install libxf86config (default: disabled)]),
 				[INSTALL_LIBXF86CONFIG=$enableval],
 				[INSTALL_LIBXF86CONFIG=no])
-AC_ARG_ENABLE(visibility,     AC_HELP_STRING([--enable-visibility], [Enable symbol visibility (default: auto)]),
+AC_ARG_ENABLE(visibility,     AS_HELP_STRING([--enable-visibility], [Enable symbol visibility (default: auto)]),
 				[SYMBOL_VISIBILITY=$enableval],
 				[SYMBOL_VISIBILITY=auto])
 
@@ -627,8 +625,8 @@ AC_ARG_ENABLE(windowswm,      AS_HELP_STRING([--enable-windowswm], [Build XWin w
 AC_ARG_ENABLE(libdrm,         AS_HELP_STRING([--enable-libdrm], [Build Xorg with libdrm support (default: enabled)]), [DRM=$enableval],[DRM=yes])
 AC_ARG_ENABLE(clientids,      AS_HELP_STRING([--disable-clientids], [Build Xorg with client ID tracking (default: enabled)]), [CLIENTIDS=$enableval], [CLIENTIDS=yes])
 AC_ARG_ENABLE(pciaccess, AS_HELP_STRING([--enable-pciaccess], [Build Xorg with pciaccess library (default: enabled)]), [PCI=$enableval], [PCI=yes])
-AC_ARG_ENABLE(linux_acpi, AC_HELP_STRING([--disable-linux-acpi], [Disable building ACPI support on Linux (if available).]), [enable_linux_acpi=$enableval], [enable_linux_acpi=yes])
-AC_ARG_ENABLE(linux_apm, AC_HELP_STRING([--disable-linux-apm], [Disable building APM support on Linux (if available).]), [enable_linux_apm=$enableval], [enable_linux_apm=yes])
+AC_ARG_ENABLE(linux_acpi, AS_HELP_STRING([--disable-linux-acpi], [Disable building ACPI support on Linux (if available).]), [enable_linux_acpi=$enableval], [enable_linux_acpi=yes])
+AC_ARG_ENABLE(linux_apm, AS_HELP_STRING([--disable-linux-apm], [Disable building APM support on Linux (if available).]), [enable_linux_apm=$enableval], [enable_linux_apm=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -645,8 +643,8 @@ AC_ARG_ENABLE(xfake,          AS_HELP_STRING([--enable-xfake], [Build the kdrive
 AC_ARG_ENABLE(xfbdev,         AS_HELP_STRING([--enable-xfbdev], [Build the kdrive framebuffer device server (default: auto)]), [XFBDEV=$enableval], [XFBDEV=auto])
 dnl kdrive options
 AC_ARG_ENABLE(kdrive-kbd,     AS_HELP_STRING([--enable-kdrive-kbd], [Build kbd driver for kdrive (default: auto)]), [KDRIVE_KBD=$enableval], [KDRIVE_KBD=auto])
-AC_ARG_ENABLE(kdrive-mouse,   AC_HELP_STRING([--enable-kdrive-mouse], [Build mouse driver for kdrive (default: auto)]), [KDRIVE_MOUSE=$enableval], [KDRIVE_MOUSE=auto])
-AC_ARG_ENABLE(kdrive-evdev,   AC_HELP_STRING([--enable-kdrive-evdev], [Build evdev driver for kdrive (default: auto)]), [KDRIVE_EVDEV=$enableval], [KDRIVE_EVDEV=auto])
+AC_ARG_ENABLE(kdrive-mouse,   AS_HELP_STRING([--enable-kdrive-mouse], [Build mouse driver for kdrive (default: auto)]), [KDRIVE_MOUSE=$enableval], [KDRIVE_MOUSE=auto])
+AC_ARG_ENABLE(kdrive-evdev,   AS_HELP_STRING([--enable-kdrive-evdev], [Build evdev driver for kdrive (default: auto)]), [KDRIVE_EVDEV=$enableval], [KDRIVE_EVDEV=auto])
 AC_ARG_ENABLE(libunwind,      AS_HELP_STRING([--enable-libunwind], [Use libunwind for backtracing (default: auto)]), [LIBUNWIND="$enableval"], [LIBUNWIND="auto"])
 
 
