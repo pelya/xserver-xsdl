@@ -2413,7 +2413,7 @@ AC_SUBST([prefix])
 AC_CONFIG_COMMANDS([sdksyms], [touch hw/xfree86/sdksyms.dep])
 
 if test "x$CONFIG_HAL" = xno && test "x$CONFIG_UDEV" = xno; then
-    AC_WARN([
+    AC_MSG_WARN([
              ***********************************************
              Neither HAL nor udev backend will be enabled.
              Input device hotplugging will not be available!
