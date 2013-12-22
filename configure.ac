@@ -265,20 +265,20 @@ AM_CONDITIONAL(FREEBSD_KLDLOAD, [test "x$ac_cv_sys_linker_h" = xyes])
 
 AC_CACHE_CHECK([for SYSV IPC],
 		ac_cv_sysv_ipc,
-		[AC_TRY_LINK([
+               [AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
-],[
+]],[[
 { 
     int id;
     id = shmget(IPC_PRIVATE, 512, S_IRUSR | S_IWUSR);
     if (id < 0) return -1;
     return shmctl(id, IPC_RMID, 0);
-}],
-	[ac_cv_sysv_ipc=yes],
-	[ac_cv_sysv_ipc=no])])
+}]])],
+       [ac_cv_sysv_ipc=yes],
+       [ac_cv_sysv_ipc=no])])
 if test "x$ac_cv_sysv_ipc" = xyes; then
 	AC_DEFINE(HAVE_SYSV_IPC, 1, [Define to 1 if SYSV IPC is available])
 fi
