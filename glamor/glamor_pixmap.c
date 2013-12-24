@@ -538,18 +538,12 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-#ifndef GLAMOR_GLES2
-    glEnable(GL_TEXTURE_2D);
-#endif
     glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
     glUniform1i(glamor_priv->finish_access_revert[no_alpha], revert);
     glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha], swap_rb);
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-#ifndef GLAMOR_GLES2
-    glDisable(GL_TEXTURE_2D);
-#endif
     glUseProgram(0);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);

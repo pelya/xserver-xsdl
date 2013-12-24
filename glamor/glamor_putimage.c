@@ -170,7 +170,6 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 
     glGenTextures(1, &tex);
     glActiveTexture(GL_TEXTURE0);
-    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -220,7 +219,6 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);
     glDeleteTextures(1, &tex);
-    glDisable(GL_TEXTURE_2D);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     return;

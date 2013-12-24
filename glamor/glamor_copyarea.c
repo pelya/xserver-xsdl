@@ -171,7 +171,6 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->base.fbo->tex);
 #ifndef GLAMOR_GLES2
-    glEnable(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 #endif
@@ -208,9 +207,6 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-#ifndef GLAMOR_GLES2
-    glDisable(GL_TEXTURE_2D);
-#endif
     glUseProgram(0);
     /* The source texture is bound to a fbo, we have to flush it here. */
     glamor_put_context(glamor_priv);

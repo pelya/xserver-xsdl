@@ -976,12 +976,6 @@ _glamor_trapezoids_with_shader(CARD8 op,
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glDisableVertexAttribArray(GLAMOR_VERTEX_MASK);
     glDisable(GL_BLEND);
-#ifndef GLAMOR_GLES2
-    glActiveTexture(GL_TEXTURE0);
-    glDisable(GL_TEXTURE_2D);
-    glActiveTexture(GL_TEXTURE1);
-    glDisable(GL_TEXTURE_2D);
-#endif
     glUseProgram(0);
     glamor_put_context(glamor_priv);
 
