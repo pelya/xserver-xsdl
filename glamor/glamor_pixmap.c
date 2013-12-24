@@ -697,7 +697,6 @@ glamor_color_convert_to_bits(void *src_bits, void *dst_bits, int w, int h,
  * Upload pixmap to a specified texture.
  * This texture may not be the one attached to it.
  **/
-int in_restore = 0;
 static void
 __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, unsigned int *tex,
                                   GLenum format,
