@@ -151,7 +151,8 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
         "void main()\n"
         "{\n"
         "	gl_Position = v_position;\n"
-        "	source_texture = v_texcoord0.xy;\n" "}\n";
+        "	source_texture = v_texcoord0.xy;\n"
+        "}\n";
 
     const char *common_source =
         GLAMOR_DEFAULT_PRECISION
@@ -186,7 +187,8 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
         "	  	gl_FragColor = texture2D(sampler, source_texture).gbar;\n"
         "     else if (swap_rb == SWAP_NONE_UPLOADING)\n"
         "	  	gl_FragColor = texture2D(sampler, source_texture).abgr;\n"
-        "    } \n" "}\n";
+        "    } \n"
+        "}\n";
 
     const char *set_alpha_source =
         "void main()\n"
@@ -208,7 +210,8 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
         "	  	gl_FragColor = vec4(texture2D(sampler, source_texture).gba, 1);\n"
         "     else if (swap_rb == SWAP_NONE_UPLOADING)\n"
         "	  	gl_FragColor = vec4(texture2D(sampler, source_texture).abg, 1);\n"
-        "    } \n" "}\n";
+        "    } \n"
+        "}\n";
     GLint fs_prog, vs_prog, avs_prog, set_alpha_prog;
     GLint sampler_uniform_location;
     char *source;

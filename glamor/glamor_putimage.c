@@ -38,20 +38,29 @@ glamor_init_putimage_shaders(ScreenPtr screen)
 #if 0
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     const char *xybitmap_vs =
-        "uniform float x_bias;\n" "uniform float x_scale;\n"
-        "uniform float y_bias;\n" "uniform float y_scale;\n"
-        "varying vec2 bitmap_coords;\n" "void main()\n" "{\n"
+        "uniform float x_bias;\n"
+        "uniform float x_scale;\n"
+        "uniform float y_bias;\n"
+        "uniform float y_scale;\n"
+        "varying vec2 bitmap_coords;\n"
+        "void main()\n"
+        "{\n"
         "	gl_Position = vec4((gl_Vertex.x + x_bias) * x_scale,\n"
         "			   (gl_Vertex.y + y_bias) * y_scale,\n"
         "			   0,\n"
         "			   1);\n"
-        "	bitmap_coords = gl_MultiTexCoord0.xy;\n" "}\n";
+        "	bitmap_coords = gl_MultiTexCoord0.xy;\n"
+        "}\n";
     const char *xybitmap_fs =
-        "uniform vec4 fg, bg;\n" "varying vec2 bitmap_coords;\n"
-        "uniform sampler2D bitmap_sampler;\n" "void main()\n" "{\n"
+        "uniform vec4 fg, bg;\n"
+        "varying vec2 bitmap_coords;\n"
+        "uniform sampler2D bitmap_sampler;\n"
+        "void main()\n"
+        "{\n"
         "	float bitmap_value = texture2D(bitmap_sampler,\n"
         "				       bitmap_coords).x;\n"
-        "	gl_FragColor = mix(bg, fg, bitmap_value);\n" "}\n";
+        "	gl_FragColor = mix(bg, fg, bitmap_value);\n"
+        "}\n";
     GLint fs_prog, vs_prog, prog;
     GLint sampler_uniform_location;
 

@@ -99,7 +99,9 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
         "			rel_tex.y = 2.0 - (1.0 - fract(rel_tex.y))/wh.y;\n"
         "		else \n"
         "			rel_tex.y = fract(rel_tex.y)/wh.y;\n"
-        "    } \n" "   return rel_tex; \n" "}\n";
+        "    } \n"
+        "   return rel_tex; \n"
+        "}\n";
     /* The texture and the pixmap size is not match eaxctly, so can't sample it directly.
      * rel_sampler will recalculate the texture coords.*/
     const char *rel_sampler =
@@ -121,7 +123,10 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
     const char *source_solid_fetch =
         GLAMOR_DEFAULT_PRECISION
         "uniform vec4 source;\n"
-        "vec4 get_source()\n" "{\n" "	return source;\n" "}\n";
+        "vec4 get_source()\n"
+        "{\n"
+        "	return source;\n"
+        "}\n";
     const char *source_alpha_pixmap_fetch =
         GLAMOR_DEFAULT_PRECISION
         "varying vec2 source_texture;\n"
@@ -136,7 +141,8 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
         "				   source_wh, source_repeat_mode, 0);\n"
         "}\n";
     const char *source_pixmap_fetch =
-        GLAMOR_DEFAULT_PRECISION "varying vec2 source_texture;\n"
+        GLAMOR_DEFAULT_PRECISION
+        "varying vec2 source_texture;\n"
         "uniform sampler2D source_sampler;\n"
         "uniform vec4 source_wh;\n"
         "vec4 get_source()\n"
@@ -148,10 +154,15 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
         "				   source_wh, source_repeat_mode, 1);\n"
         "}\n";
     const char *mask_solid_fetch =
-        GLAMOR_DEFAULT_PRECISION "uniform vec4 mask;\n"
-        "vec4 get_mask()\n" "{\n" "	return mask;\n" "}\n";
+        GLAMOR_DEFAULT_PRECISION
+        "uniform vec4 mask;\n"
+        "vec4 get_mask()\n"
+        "{\n"
+        "	return mask;\n"
+        "}\n";
     const char *mask_alpha_pixmap_fetch =
-        GLAMOR_DEFAULT_PRECISION "varying vec2 mask_texture;\n"
+        GLAMOR_DEFAULT_PRECISION
+        "varying vec2 mask_texture;\n"
         "uniform sampler2D mask_sampler;\n"
         "uniform vec4 mask_wh;\n"
         "vec4 get_mask()\n"
@@ -163,7 +174,8 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
         "				   mask_wh, mask_repeat_mode, 0);\n"
         "}\n";
     const char *mask_pixmap_fetch =
-        GLAMOR_DEFAULT_PRECISION "varying vec2 mask_texture;\n"
+        GLAMOR_DEFAULT_PRECISION
+        "varying vec2 mask_texture;\n"
         "uniform sampler2D mask_sampler;\n"
         "uniform vec4 mask_wh;\n"
         "vec4 get_mask()\n"
@@ -175,17 +187,29 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
         "				   mask_wh, mask_repeat_mode, 1);\n"
         "}\n";
     const char *in_source_only =
-        GLAMOR_DEFAULT_PRECISION "void main()\n" "{\n"
-        "	gl_FragColor = get_source();\n" "}\n";
+        GLAMOR_DEFAULT_PRECISION
+        "void main()\n"
+        "{\n"
+        "	gl_FragColor = get_source();\n"
+        "}\n";
     const char *in_normal =
-        GLAMOR_DEFAULT_PRECISION "void main()\n" "{\n"
-        "	gl_FragColor = get_source() * get_mask().a;\n" "}\n";
+        GLAMOR_DEFAULT_PRECISION
+        "void main()\n"
+        "{\n"
+        "	gl_FragColor = get_source() * get_mask().a;\n"
+        "}\n";
     const char *in_ca_source =
-        GLAMOR_DEFAULT_PRECISION "void main()\n" "{\n"
-        "	gl_FragColor = get_source() * get_mask();\n" "}\n";
+        GLAMOR_DEFAULT_PRECISION
+        "void main()\n"
+        "{\n"
+        "	gl_FragColor = get_source() * get_mask();\n"
+        "}\n";
     const char *in_ca_alpha =
-        GLAMOR_DEFAULT_PRECISION "void main()\n" "{\n"
-        "	gl_FragColor = get_source().a * get_mask();\n" "}\n";
+        GLAMOR_DEFAULT_PRECISION
+        "void main()\n"
+        "{\n"
+        "	gl_FragColor = get_source().a * get_mask();\n"
+        "}\n";
     char *source;
     const char *source_fetch;
     const char *mask_fetch = "";
@@ -258,7 +282,9 @@ glamor_create_composite_vs(glamor_gl_dispatch * dispatch,
         "attribute vec4 v_texcoord1;\n"
         "varying vec2 source_texture;\n"
         "varying vec2 mask_texture;\n"
-        "void main()\n" "{\n" "	gl_Position = v_position;\n";
+        "void main()\n"
+        "{\n"
+        "	gl_Position = v_position;\n";
     const char *source_coords = "	source_texture = v_texcoord0.xy;\n";
     const char *mask_coords = "	mask_texture = v_texcoord1.xy;\n";
     const char *main_closing = "}\n";
@@ -1165,7 +1191,7 @@ glamor_composite_choose_shader(CARD8 op,
 
     *shader = glamor_lookup_composite_shader(screen, &key);
     if ((*shader)->prog == 0) {
-        glamor_fallback("no shader program for this" "render acccel mode\n");
+        glamor_fallback("no shader program for this render acccel mode\n");
         goto fail;
     }
 

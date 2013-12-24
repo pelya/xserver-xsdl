@@ -85,7 +85,84 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count,
 
     /* Because the array access for shader is very slow, the performance is very low
        if use array. So use global uniform to replace for it if the number of n_stops is small. */
-    const char *gradient_fs_getcolor_no_array = GLAMOR_DEFAULT_PRECISION "uniform int n_stop;\n" "uniform float stop0;\n" "uniform float stop1;\n" "uniform float stop2;\n" "uniform float stop3;\n" "uniform float stop4;\n" "uniform float stop5;\n" "uniform float stop6;\n" "uniform float stop7;\n" "uniform vec4 stop_color0;\n" "uniform vec4 stop_color1;\n" "uniform vec4 stop_color2;\n" "uniform vec4 stop_color3;\n" "uniform vec4 stop_color4;\n" "uniform vec4 stop_color5;\n" "uniform vec4 stop_color6;\n" "uniform vec4 stop_color7;\n" "\n" "vec4 get_color(float stop_len)\n" "{\n" "    float stop_after;\n" "    float stop_before;\n" "    vec4 stop_color_before;\n" "    vec4 stop_color_after;\n" "    float new_alpha; \n" "    vec4 gradient_color;\n" "    float percentage; \n" "    \n" "    if((stop_len < stop0) && (n_stop >= 1)) {\n" "        stop_color_before = stop_color0;\n" "        stop_color_after = stop_color0;\n" "        stop_after = stop0;\n" "        stop_before = stop0;\n" "    } else if((stop_len < stop1) && (n_stop >= 2)) {\n" "        stop_color_before = stop_color0;\n" "        stop_color_after = stop_color1;\n" "        stop_after = stop1;\n" "        stop_before = stop0;\n" "    } else if((stop_len < stop2) && (n_stop >= 3)) {\n" "        stop_color_before = stop_color1;\n" "        stop_color_after = stop_color2;\n" "        stop_after = stop2;\n" "        stop_before = stop1;\n" "    } else if((stop_len < stop3) && (n_stop >= 4)){\n" "        stop_color_before = stop_color2;\n" "        stop_color_after = stop_color3;\n" "        stop_after = stop3;\n" "        stop_before = stop2;\n" "    } else if((stop_len < stop4) && (n_stop >= 5)){\n" "        stop_color_before = stop_color3;\n" "        stop_color_after = stop_color4;\n" "        stop_after = stop4;\n" "        stop_before = stop3;\n" "    } else if((stop_len < stop5) && (n_stop >= 6)){\n" "        stop_color_before = stop_color4;\n" "        stop_color_after = stop_color5;\n" "        stop_after = stop5;\n" "        stop_before = stop4;\n" "    } else if((stop_len < stop6) && (n_stop >= 7)){\n" "        stop_color_before = stop_color5;\n" "        stop_color_after = stop_color6;\n" "        stop_after = stop6;\n" "        stop_before = stop5;\n" "    } else if((stop_len < stop7) && (n_stop >= 8)){\n" "        stop_color_before = stop_color6;\n" "        stop_color_after = stop_color7;\n" "        stop_after = stop7;\n" "        stop_before = stop6;\n" "    } else {\n" "        stop_color_before = stop_color7;\n" "        stop_color_after = stop_color7;\n" "        stop_after = stop7;\n" "        stop_before = stop7;\n" "    }\n" "    if(stop_after - stop_before > 2.0)\n" "        percentage = 0.0;\n" //For comply with pixman, walker->stepper overflow.
+    const char *gradient_fs_getcolor_no_array =
+        GLAMOR_DEFAULT_PRECISION
+        "uniform int n_stop;\n"
+        "uniform float stop0;\n"
+        "uniform float stop1;\n"
+        "uniform float stop2;\n"
+        "uniform float stop3;\n"
+        "uniform float stop4;\n"
+        "uniform float stop5;\n"
+        "uniform float stop6;\n"
+        "uniform float stop7;\n"
+        "uniform vec4 stop_color0;\n"
+        "uniform vec4 stop_color1;\n"
+        "uniform vec4 stop_color2;\n"
+        "uniform vec4 stop_color3;\n"
+        "uniform vec4 stop_color4;\n"
+        "uniform vec4 stop_color5;\n"
+        "uniform vec4 stop_color6;\n"
+        "uniform vec4 stop_color7;\n"
+        "\n"
+        "vec4 get_color(float stop_len)\n"
+        "{\n"
+        "    float stop_after;\n"
+        "    float stop_before;\n"
+        "    vec4 stop_color_before;\n"
+        "    vec4 stop_color_after;\n"
+        "    float new_alpha; \n"
+        "    vec4 gradient_color;\n"
+        "    float percentage; \n"
+        "    \n"
+        "    if((stop_len < stop0) && (n_stop >= 1)) {\n"
+        "        stop_color_before = stop_color0;\n"
+        "        stop_color_after = stop_color0;\n"
+        "        stop_after = stop0;\n"
+        "        stop_before = stop0;\n"
+        "    } else if((stop_len < stop1) && (n_stop >= 2)) {\n"
+        "        stop_color_before = stop_color0;\n"
+        "        stop_color_after = stop_color1;\n"
+        "        stop_after = stop1;\n"
+        "        stop_before = stop0;\n"
+        "    } else if((stop_len < stop2) && (n_stop >= 3)) {\n"
+        "        stop_color_before = stop_color1;\n"
+        "        stop_color_after = stop_color2;\n"
+        "        stop_after = stop2;\n"
+        "        stop_before = stop1;\n"
+        "    } else if((stop_len < stop3) && (n_stop >= 4)){\n"
+        "        stop_color_before = stop_color2;\n"
+        "        stop_color_after = stop_color3;\n"
+        "        stop_after = stop3;\n"
+        "        stop_before = stop2;\n"
+        "    } else if((stop_len < stop4) && (n_stop >= 5)){\n"
+        "        stop_color_before = stop_color3;\n"
+        "        stop_color_after = stop_color4;\n"
+        "        stop_after = stop4;\n"
+        "        stop_before = stop3;\n"
+        "    } else if((stop_len < stop5) && (n_stop >= 6)){\n"
+        "        stop_color_before = stop_color4;\n"
+        "        stop_color_after = stop_color5;\n"
+        "        stop_after = stop5;\n"
+        "        stop_before = stop4;\n"
+        "    } else if((stop_len < stop6) && (n_stop >= 7)){\n"
+        "        stop_color_before = stop_color5;\n"
+        "        stop_color_after = stop_color6;\n"
+        "        stop_after = stop6;\n"
+        "        stop_before = stop5;\n"
+        "    } else if((stop_len < stop7) && (n_stop >= 8)){\n"
+        "        stop_color_before = stop_color6;\n"
+        "        stop_color_after = stop_color7;\n"
+        "        stop_after = stop7;\n"
+        "        stop_before = stop6;\n"
+        "    } else {\n"
+        "        stop_color_before = stop_color7;\n"
+        "        stop_color_after = stop_color7;\n"
+        "        stop_after = stop7;\n"
+        "        stop_before = stop7;\n"
+        "    }\n"
+        "    if(stop_after - stop_before > 2.0)\n"
+        "        percentage = 0.0;\n" //For comply with pixman, walker->stepper overflow.
         "    else if(stop_after - stop_before < 0.000001)\n"
         "        percentage = 0.0;\n"
         "    else \n"
@@ -95,7 +172,9 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count,
         "    gradient_color = vec4((percentage * stop_color_after.rgb \n"
         "                          + (1.0-percentage) * stop_color_before.rgb)*new_alpha, \n"
         "                          new_alpha);\n"
-        "    \n" "    return gradient_color;\n" "}\n";
+        "    \n"
+        "    return gradient_color;\n"
+        "}\n";
 
     glamor_priv = glamor_get_screen_private(screen);
     dispatch = glamor_get_dispatch(glamor_priv);
@@ -137,7 +216,8 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
         "void main()\n"
         "{\n"
         "    gl_Position = v_position;\n"
-        "    source_texture = v_texcoord.xy;\n" "}\n";
+        "    source_texture = v_texcoord.xy;\n"
+        "}\n";
 
     /*
      *     Refer to pixman radial gradient.
@@ -375,7 +455,8 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
         "void main()\n"
         "{\n"
         "    gl_Position = v_position;\n"
-        "    source_texture = v_texcoord.xy;\n" "}\n";
+        "    source_texture = v_texcoord.xy;\n"
+        "}\n";
 
     /*
      *                                      |

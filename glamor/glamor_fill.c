@@ -140,10 +140,17 @@ glamor_init_solid_shader(ScreenPtr screen)
     glamor_gl_dispatch *dispatch;
     const char *solid_vs =
         "attribute vec4 v_position;"
-        "void main()\n" "{\n" "       gl_Position = v_position;\n" "}\n";
+        "void main()\n"
+        "{\n"
+        "       gl_Position = v_position;\n"
+        "}\n";
     const char *solid_fs =
-        GLAMOR_DEFAULT_PRECISION "uniform vec4 color;\n"
-        "void main()\n" "{\n" "	gl_FragColor = color;\n" "}\n";
+        GLAMOR_DEFAULT_PRECISION
+        "uniform vec4 color;\n"
+        "void main()\n"
+        "{\n"
+        "	gl_FragColor = color;\n"
+        "}\n";
     GLint fs_prog, vs_prog;
 
     glamor_priv = glamor_get_screen_private(screen);

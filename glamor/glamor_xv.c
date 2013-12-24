@@ -58,8 +58,11 @@ typedef struct tagREF_TRANSFORM {
 static const char *xv_vs = "attribute vec4 v_position;\n"
     "attribute vec4 v_texcoord0;\n"
     "varying vec2 tcs;\n"
-    "void main()\n" "{\n" "     gl_Position = v_position;\n"
-    "tcs = v_texcoord0.xy;\n" "}\n";
+    "void main()\n"
+    "{\n"
+    "     gl_Position = v_position;\n"
+    "tcs = v_texcoord0.xy;\n"
+    "}\n";
 
 static const char *xv_ps = GLAMOR_DEFAULT_PRECISION
     "uniform sampler2D y_sampler;\n"
@@ -71,14 +74,17 @@ static const char *xv_ps = GLAMOR_DEFAULT_PRECISION
     "varying vec2 tcs;\n"
     "float sample;\n"
     "vec4 temp1;\n"
-    "void main()\n" "{\n"
+    "void main()\n"
+    "{\n"
     "sample = texture2D(y_sampler, tcs).w;\n"
     "temp1.xyz = offsetyco.www * vec3(sample) + offsetyco.xyz;\n"
     "sample = texture2D(u_sampler, tcs).w;\n"
     "temp1.xyz = ucogamma.xyz * vec3(sample) + temp1.xyz;\n"
     "sample = texture2D(v_sampler, tcs).w;\n"
     "temp1.xyz = clamp(vco.xyz * vec3(sample) + temp1.xyz, 0.0, 1.0);\n"
-    "temp1.w = 1.0;\n" "gl_FragColor = temp1;\n" "}\n";
+    "temp1.w = 1.0;\n"
+    "gl_FragColor = temp1;\n"
+    "}\n";
 
 void
 glamor_init_xv_shader(ScreenPtr screen)

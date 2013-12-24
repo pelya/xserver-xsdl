@@ -1018,7 +1018,8 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
 
     const char *trapezoid_vs =
         GLAMOR_DEFAULT_PRECISION
-        "attribute vec4 v_position;\n" "attribute vec2 v_texcoord;\n"
+        "attribute vec4 v_position;\n"
+        "attribute vec2 v_texcoord;\n"
         /* v_top_bottom, v_left_param and v_right_param contain the
            constant value for all the vertex of one rect. Using uniform
            is more suitable but we need to reset the uniform variables
@@ -1056,7 +1057,8 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
         "    trap_right_x = v_right_param.x;\n"
         "    trap_right_y = v_right_param.y;\n"
         "    trap_right_slope = v_right_param.z;\n"
-        "    trap_right_vertical_f = v_right_param.w;\n" "}\n";
+        "    trap_right_vertical_f = v_right_param.w;\n"
+        "}\n";
 
     /*
      * Because some GL fill function do not support the MultSample
@@ -1158,7 +1160,9 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
         "            || (x_up_cut_left > source_texture.x + x_per_pix/2.0  &&  \n"
         "                   x_bottom_cut_left > source_texture.x + x_per_pix/2.0)) {  \n"
         //            The complete outside. At Left or Right of the trapezoide.
-        "             return 0.0;  \n" "        }  \n" "    }  \n"
+        "             return 0.0;  \n"
+        "        }  \n"
+        "    }  \n"
         //   Get here, the pix is partly inside the trapezoid.
         "    {  \n"
         "        float percent = 0.0;  \n"
@@ -1336,7 +1340,8 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
         "void main()  \n"
         "{  \n"
         "    float alpha_val = get_alpha_val();  \n"
-        "    gl_FragColor = vec4(0.0, 0.0, 0.0, alpha_val);  \n" "}\n";
+        "    gl_FragColor = vec4(0.0, 0.0, 0.0, alpha_val);  \n"
+        "}\n";
 
     glamor_priv = glamor_get_screen_private(screen);
     dispatch = glamor_get_dispatch(glamor_priv);

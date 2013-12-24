@@ -45,7 +45,8 @@ glamor_init_tile_shader(ScreenPtr screen)
         "void main()\n"
         "{\n"
         "       gl_Position = v_position;\n"
-        "       tile_texture = v_texcoord0.xy;\n" "}\n";
+        "       tile_texture = v_texcoord0.xy;\n"
+        "}\n";
     const char *tile_fs =
         GLAMOR_DEFAULT_PRECISION
         "varying vec2 tile_texture;\n"
@@ -56,7 +57,8 @@ glamor_init_tile_shader(ScreenPtr screen)
         "   vec2 rel_tex;"
         "   rel_tex = tile_texture * wh; \n"
         "   rel_tex = floor(rel_tex) + (fract(rel_tex) / wh); \n"
-        "	gl_FragColor = texture2D(sampler, rel_tex);\n" "}\n";
+        "	gl_FragColor = texture2D(sampler, rel_tex);\n"
+        "}\n";
     GLint fs_prog, vs_prog;
     GLint sampler_uniform_location;
 
