@@ -69,12 +69,6 @@ glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *fbo, int x0, int y0,
     glamor_get_context(fbo->glamor_priv);
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
-#ifndef GLAMOR_GLES2
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-#endif
     glViewport(x0, y0, width, height);
 
     glamor_put_context(fbo->glamor_priv);
