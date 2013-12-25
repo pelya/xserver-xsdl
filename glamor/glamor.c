@@ -301,26 +301,29 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         goto fail;;
     }
 
+    if (epoxy_is_desktop_gl())
+        glamor_priv->gl_flavor = GLAMOR_GL_DESKTOP;
+    else
+        glamor_priv->gl_flavor = GLAMOR_GL_ES2;
+
     gl_version = glamor_gl_get_version();
 
-#ifndef GLAMOR_GLES2
-    if (gl_version < GLAMOR_GL_VERSION_ENCODE(1, 3)) {
-        ErrorF("Require OpenGL version 1.3 or latter.\n");
-        goto fail;
-    }
-#else
-    if (gl_version < GLAMOR_GL_VERSION_ENCODE(2, 0)) {
-        ErrorF("Require Open GLES2.0 or latter.\n");
-        goto fail;
-    }
-#endif
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+        if (gl_version < GLAMOR_GL_VERSION_ENCODE(1, 3)) {
+            ErrorF("Require OpenGL version 1.3 or later.\n");
+            goto fail;
+        }
+    } else {
+        if (gl_version < GLAMOR_GL_VERSION_ENCODE(2, 0)) {
+            ErrorF("Require Open GLES2.0 or later.\n");
+            goto fail;
+        }
 
-#ifdef GLAMOR_GLES2
-    if (!glamor_gl_has_extension("GL_EXT_texture_format_BGRA8888")) {
-        ErrorF("GL_EXT_texture_format_BGRA8888 required\n");
-        goto fail;
+        if (!glamor_gl_has_extension("GL_EXT_texture_format_BGRA8888")) {
+            ErrorF("GL_EXT_texture_format_BGRA8888 required\n");
+            goto fail;
+        }
     }
-#endif
 
     glamor_priv->has_pack_invert =
         glamor_gl_has_extension("GL_MESA_pack_invert");
@@ -333,11 +336,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glamor_set_debug_level(&glamor_debug_level);
 
-#ifdef GLAMOR_GLES2
-    glamor_priv->gl_flavor = GLAMOR_GL_ES2;
-#else
-    glamor_priv->gl_flavor = GLAMOR_GL_DESKTOP;
-#endif
     /* If we are using egl screen, call egl screen init to
      * register correct close screen function. */
     if (flags & GLAMOR_USE_EGL_SCREEN) {

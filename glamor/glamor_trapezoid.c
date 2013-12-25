@@ -1554,16 +1554,16 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
                          glamor_priv->vb, GL_DYNAMIC_DRAW);
         }
 
-#ifndef GLAMOR_GLES2
-        glDrawRangeElements(GL_TRIANGLES, 0,
-                            glamor_priv->render_nr_verts,
-                            (glamor_priv->render_nr_verts * 3) / 2,
-                            GL_UNSIGNED_SHORT, NULL);
-#else
-        glDrawElements(GL_TRIANGLES,
-                       (glamor_priv->render_nr_verts * 3) / 2,
-                       GL_UNSIGNED_SHORT, NULL);
-#endif
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            glDrawRangeElements(GL_TRIANGLES, 0,
+                                glamor_priv->render_nr_verts,
+                                (glamor_priv->render_nr_verts * 3) / 2,
+                                GL_UNSIGNED_SHORT, NULL);
+        } else {
+            glDrawElements(GL_TRIANGLES,
+                           (glamor_priv->render_nr_verts * 3) / 2,
+                           GL_UNSIGNED_SHORT, NULL);
+        }
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);

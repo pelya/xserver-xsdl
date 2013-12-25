@@ -31,7 +31,6 @@
  *
  * GC CopyArea implementation
  */
-#ifndef GLAMOR_GLES2
 static Bool
 glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
                             DrawablePtr dst,
@@ -117,7 +116,6 @@ glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
     glamor_priv->state = BLIT_STATE;
     return TRUE;
 }
-#endif
 
 static Bool
 glamor_copy_n_to_n_textured(DrawablePtr src,
@@ -170,10 +168,10 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->base.fbo->tex);
-#ifndef GLAMOR_GLES2
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-#endif
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -266,15 +264,14 @@ __glamor_copy_n_to_n(DrawablePtr src,
            box[0].x1, box[0].y1,
            box[0].x2 - box[0].x1, box[0].y2 - box[0].y1,
            dx, dy, src_pixmap, dst_pixmap);
-#ifndef GLAMOR_GLES2
-    if (!overlaped &&
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP &&
+        !overlaped &&
         (glamor_priv->state != RENDER_STATE
          || !src_pixmap_priv->base.gl_tex || !dst_pixmap_priv->base.gl_tex)
         && glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx, dy)) {
         ret = TRUE;
         goto done;
     }
-#endif
     glamor_calculate_boxes_bound(&bound, box, nbox);
 
     /*  Overlaped indicate the src and dst are the same pixmap. */

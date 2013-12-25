@@ -535,14 +535,16 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
     repeat_type = picture->repeatType;
     switch (picture->repeatType) {
     case RepeatNone:
-#ifndef GLAMOR_GLES2
-        /* XXX  GLES2 doesn't support GL_CLAMP_TO_BORDER. */
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-#else
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-#endif
+        if (glamor_priv->gl_flavor != GLAMOR_GL_ES2) {
+            /* XXX  GLES2 doesn't support GL_CLAMP_TO_BORDER. */
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                            GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                            GL_CLAMP_TO_BORDER);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
         break;
     case RepeatNormal:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -807,14 +809,14 @@ glamor_flush_composite_rects(ScreenPtr screen)
     if (!glamor_priv->render_nr_verts)
         return;
 
-#ifndef GLAMOR_GLES2
-    glDrawRangeElements(GL_TRIANGLES, 0, glamor_priv->render_nr_verts,
-                        (glamor_priv->render_nr_verts * 3) / 2,
-                        GL_UNSIGNED_SHORT, NULL);
-#else
-    glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
-                   GL_UNSIGNED_SHORT, NULL);
-#endif
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+        glDrawRangeElements(GL_TRIANGLES, 0, glamor_priv->render_nr_verts,
+                            (glamor_priv->render_nr_verts * 3) / 2,
+                            GL_UNSIGNED_SHORT, NULL);
+    } else {
+        glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
+                       GL_UNSIGNED_SHORT, NULL);
+    }
     glamor_put_context(glamor_priv);
 }
 
