@@ -1528,7 +1528,7 @@ glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv)
 
     drawable = &pixmap_priv->base.pixmap->drawable;
 
-    if (!GLAMOR_PIXMAP_FBO_NOT_EAXCT_SIZE(pixmap_priv))
+    if (!GLAMOR_PIXMAP_FBO_NOT_EXACT_SIZE(pixmap_priv))
         return TRUE;
 
     old_fbo = pixmap_priv->base.fbo;
