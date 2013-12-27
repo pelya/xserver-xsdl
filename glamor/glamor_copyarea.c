@@ -338,6 +338,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
                     Bool upsidedown, Pixel bitplane,
                     void *closure, Bool fallback)
 {
+    ScreenPtr screen = dst->pScreen;
     PixmapPtr dst_pixmap, src_pixmap;
     glamor_pixmap_private *dst_pixmap_priv, *src_pixmap_priv;
     glamor_screen_private *glamor_priv;
@@ -354,7 +355,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
     src_pixmap = glamor_get_drawable_pixmap(src);
     src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 
-    glamor_priv = glamor_get_screen_private(dst->pScreen);
+    glamor_priv = glamor_get_screen_private(screen);
 
     DEBUGF("Copy %d %d %dx%d dx %d dy %d from %p to %p \n",
            box[0].x1, box[0].y1,
@@ -368,7 +369,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
         if (!glamor_set_planemask(dst_pixmap, gc->planemask))
             goto fall_back;
         glamor_get_context(glamor_priv);
-        if (!glamor_set_alu(gc->alu)) {
+        if (!glamor_set_alu(screen, gc->alu)) {
             glamor_put_context(glamor_priv);
             goto fail;
         }
@@ -546,7 +547,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
 
  fail:
     glamor_get_context(glamor_priv);
-    glamor_set_alu(GXcopy);
+    glamor_set_alu(screen, GXcopy);
     glamor_put_context(glamor_priv);
 
     if (ok)

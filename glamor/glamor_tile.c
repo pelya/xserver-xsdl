@@ -196,7 +196,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     }
 
     glamor_get_context(glamor_priv);
-    if (!glamor_set_alu(alu)) {
+    if (!glamor_set_alu(screen, alu)) {
         glamor_fallback("unsupported alu %x\n", alu);
         glamor_put_context(glamor_priv);
         goto fail;
@@ -291,7 +291,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     else
         _glamor_tile(pixmap, tile, x, y, width, height, tile_x, tile_y);
 
-    glamor_set_alu(GXcopy);
+    glamor_set_alu(screen, GXcopy);
     glamor_put_context(glamor_priv);
     return TRUE;
  fail:

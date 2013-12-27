@@ -599,7 +599,7 @@ glamor_pixmap_fbo *glamor_es2_pixmap_read_prepare(PixmapPtr source, int x,
                                                   int no_alpha, int revert,
                                                   int swap_rb);
 
-Bool glamor_set_alu(unsigned char alu);
+Bool glamor_set_alu(ScreenPtr screen, unsigned char alu);
 Bool glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask);
 Bool glamor_change_window_attributes(WindowPtr pWin, unsigned long mask);
 RegionPtr glamor_bitmap_to_region(PixmapPtr pixmap);

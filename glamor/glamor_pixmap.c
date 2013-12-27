@@ -115,9 +115,17 @@ glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask)
 }
 
 Bool
-glamor_set_alu(unsigned char alu)
+glamor_set_alu(ScreenPtr screen, unsigned char alu)
 {
-#ifndef GLAMOR_GLES2
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+
+    if (glamor_priv->gl_flavor == GLAMOR_GL_ES2) {
+        if (alu != GXcopy)
+            return FALSE;
+        else
+            return TRUE;
+    }
+
     if (alu == GXcopy) {
         glDisable(GL_COLOR_LOGIC_OP);
         return TRUE;
@@ -173,10 +181,7 @@ glamor_set_alu(unsigned char alu)
         glamor_fallback("unsupported alu %x\n", alu);
         return FALSE;
     }
-#else
-    if (alu != GXcopy)
-        return FALSE;
-#endif
+
     return TRUE;
 }
 

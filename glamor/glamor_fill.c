@@ -330,7 +330,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     }
 
     glamor_get_context(glamor_priv);
-    if (!glamor_set_alu(alu)) {
+    if (!glamor_set_alu(screen, alu)) {
         if (alu == GXclear)
             fg_pixel = 0;
         else {
@@ -345,7 +345,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     box.y2 = y + height;
     glamor_solid_boxes(pixmap, &box, 1, fg_pixel);
 
-    glamor_set_alu(GXcopy);
+    glamor_set_alu(screen, GXcopy);
     glamor_put_context(glamor_priv);
 
     return TRUE;
