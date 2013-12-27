@@ -37,11 +37,10 @@
 
 #include <epoxy/gl.h>
 
-#ifdef GLAMOR_GLES2
-#define GLAMOR_DEFAULT_PRECISION   "precision mediump float;\n"
-#else
-#define GLAMOR_DEFAULT_PRECISION
-#endif
+#define GLAMOR_DEFAULT_PRECISION  \
+    "#ifdef GL_ES\n"              \
+    "precision mediump float;\n"  \
+    "#endif\n"
 
 #ifdef RENDER
 #include "glyphstr.h"
