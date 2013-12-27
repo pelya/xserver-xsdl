@@ -190,7 +190,7 @@ glamor_egl_create_argb8888_based_texture(ScreenPtr screen, int w, int h)
     EGLImageKHR image;
     GLuint texture;
 
-#ifdef GLAMOR_HAS_DRI3_SUPPORT
+#ifdef GLAMOR_HAS_GBM
     struct gbm_bo *bo;
     EGLNativePixmapType native_pixmap;
 
@@ -356,7 +356,7 @@ glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap, void *bo)
     return ret;
 }
 
-#ifdef GLAMOR_HAS_DRI3_SUPPORT
+#ifdef GLAMOR_HAS_GBM
 int glamor_get_fd_from_bo(int gbm_fd, struct gbm_bo *bo, int *fd);
 void glamor_get_name_from_bo(int gbm_fd, struct gbm_bo *bo, int *name);
 int
@@ -391,7 +391,7 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
                                  unsigned int tex,
                                  Bool want_name, CARD16 *stride, CARD32 *size)
 {
-#ifdef GLAMOR_HAS_DRI3_SUPPORT
+#ifdef GLAMOR_HAS_GBM
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     struct glamor_screen_private *glamor_priv =
         glamor_get_screen_private(screen);
@@ -460,7 +460,7 @@ glamor_egl_dri3_pixmap_from_fd(ScreenPtr screen,
                                CARD16 height,
                                CARD16 stride, CARD8 depth, CARD8 bpp)
 {
-#ifdef GLAMOR_HAS_DRI3_SUPPORT
+#ifdef GLAMOR_HAS_GBM
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     struct glamor_egl_screen_private *glamor_egl;
     struct gbm_bo *bo;
@@ -735,7 +735,7 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
                                 KHR_surfaceless_opengl);
 #endif
 
-#ifdef GLAMOR_HAS_DRI3_SUPPORT
+#ifdef GLAMOR_HAS_GBM
     if (glamor_egl_has_extension(glamor_egl, "EGL_KHR_gl_texture_2D_image") &&
         glamor_egl_has_extension(glamor_egl, "EGL_EXT_image_dma_buf_import"))
         glamor_egl->dri3_capable = TRUE;
