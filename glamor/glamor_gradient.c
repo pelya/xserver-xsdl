@@ -395,7 +395,7 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
     glAttachShader(gradient_prog, fs_getcolor_prog);
     glAttachShader(gradient_prog, fs_main_prog);
 
-    glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS, "v_positionsition");
+    glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS, "v_position");
     glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE, "v_texcoord");
 
     glamor_link_glsl_prog(gradient_prog);
