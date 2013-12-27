@@ -197,11 +197,7 @@ struct glamor_saved_procs {
     SetWindowPixmapProcPtr set_window_pixmap;
 };
 
-#ifdef GLAMOR_GLES2
 #define CACHE_FORMAT_COUNT 3
-#else
-#define CACHE_FORMAT_COUNT 2
-#endif
 
 #define CACHE_BUCKET_WCOUNT 4
 #define CACHE_BUCKET_HCOUNT 4
