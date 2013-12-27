@@ -194,14 +194,13 @@ glamor_set_alu(ScreenPtr screen, unsigned char alu)
  *
  * Return 0 if find a matched texture type. Otherwise return -1.
  **/
-#ifndef GLAMOR_GLES2
 static int
-glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
-                                           GLenum *tex_format,
-                                           GLenum *tex_type,
-                                           int *no_alpha,
-                                           int *revert,
-                                           int *swap_rb, int is_upload)
+glamor_get_tex_format_type_from_pictformat_gl(PictFormatShort format,
+                                              GLenum *tex_format,
+                                              GLenum *tex_type,
+                                              int *no_alpha,
+                                              int *revert,
+                                              int *swap_rb, int is_upload)
 {
     *no_alpha = 0;
     *revert = REVERT_NONE;
@@ -291,16 +290,15 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
     return 0;
 }
 
-#else
 #define IS_LITTLE_ENDIAN  (IMAGE_BYTE_ORDER == LSBFirst)
 
 static int
-glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
-                                           GLenum *tex_format,
-                                           GLenum *tex_type,
-                                           int *no_alpha,
-                                           int *revert,
-                                           int *swap_rb, int is_upload)
+glamor_get_tex_format_type_from_pictformat_gles2(PictFormatShort format,
+                                                 GLenum *tex_format,
+                                                 GLenum *tex_type,
+                                                 int *no_alpha,
+                                                 int *revert,
+                                                 int *swap_rb, int is_upload)
 {
     int need_swap_rb = 0;
 
@@ -463,8 +461,6 @@ glamor_get_tex_format_type_from_pictformat(PictFormatShort format,
     return 0;
 }
 
-#endif
-
 static int
 glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
                                        GLenum *format,
@@ -474,6 +470,8 @@ glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
 {
     glamor_pixmap_private *pixmap_priv;
     PictFormatShort pict_format;
+    glamor_screen_private *glamor_priv =
+        glamor_get_screen_private(pixmap->drawable.pScreen);
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
     if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv))
@@ -481,11 +479,21 @@ glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
     else
         pict_format = format_for_depth(pixmap->drawable.depth);
 
-    return glamor_get_tex_format_type_from_pictformat(pict_format,
-                                                      format, type,
-                                                      no_alpha,
-                                                      revert,
-                                                      swap_rb, is_upload);
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+        return glamor_get_tex_format_type_from_pictformat_gl(pict_format,
+                                                             format, type,
+                                                             no_alpha,
+                                                             revert,
+                                                             swap_rb,
+                                                             is_upload);
+    } else {
+        return glamor_get_tex_format_type_from_pictformat_gles2(pict_format,
+                                                                format, type,
+                                                                no_alpha,
+                                                                revert,
+                                                                swap_rb,
+                                                                is_upload);
+    }
 }
 
 static void *
