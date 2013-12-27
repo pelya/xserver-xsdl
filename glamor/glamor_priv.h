@@ -141,13 +141,6 @@ enum gradient_shader {
     SHADER_GRADIENT_COUNT,
 };
 
-enum gradient_shader_prog {
-    SHADER_GRADIENT_VS_PROG,
-    SHADER_GRADIENT_FS_MAIN_PROG,
-    SHADER_GRADIENT_FS_GETCOLOR_PROG,
-    SHADER_GRADIENT_PROG_COUNT,
-};
-
 struct glamor_screen_private;
 struct glamor_pixmap_private;
 
@@ -251,9 +244,7 @@ typedef struct glamor_screen_private {
     /* glamor gradient, 0 for small nstops, 1 for
        large nstops and 2 for dynamic generate. */
     GLint gradient_prog[SHADER_GRADIENT_COUNT][3];
-    GLint linear_gradient_shaders[SHADER_GRADIENT_PROG_COUNT][3];
     int linear_max_nstops;
-    GLint radial_gradient_shaders[SHADER_GRADIENT_PROG_COUNT][3];
     int radial_max_nstops;
 
     /* glamor trapezoid shader. */
