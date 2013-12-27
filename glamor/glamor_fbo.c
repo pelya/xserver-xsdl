@@ -71,7 +71,7 @@ cache_hbucket(int size)
 }
 
 static glamor_pixmap_fbo *
-glamor_pixmap_fbo_cache_get(glamor_screen_private * glamor_priv,
+glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
                             int w, int h, GLenum format, int flag)
 {
     struct xorg_list *cache;
@@ -127,7 +127,7 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private * glamor_priv,
 }
 
 void
-glamor_purge_fbo(glamor_pixmap_fbo * fbo)
+glamor_purge_fbo(glamor_pixmap_fbo *fbo)
 {
     glamor_gl_dispatch *dispatch = glamor_get_dispatch(fbo->glamor_priv);
 
@@ -143,7 +143,7 @@ glamor_purge_fbo(glamor_pixmap_fbo * fbo)
 }
 
 static void
-glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo * fbo)
+glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 {
     struct xorg_list *cache;
     int n_format;
@@ -176,7 +176,7 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo * fbo)
 }
 
 static void
-glamor_pixmap_ensure_fb(glamor_pixmap_fbo * fbo)
+glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 {
     glamor_gl_dispatch *dispatch;
     int status;
@@ -225,7 +225,7 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo * fbo)
 }
 
 glamor_pixmap_fbo *
-glamor_create_fbo_from_tex(glamor_screen_private * glamor_priv,
+glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
                            int w, int h, GLenum format, GLint tex, int flag)
 {
     glamor_pixmap_fbo *fbo;
@@ -259,7 +259,7 @@ glamor_create_fbo_from_tex(glamor_screen_private * glamor_priv,
 }
 
 void
-glamor_fbo_expire(glamor_screen_private * glamor_priv)
+glamor_fbo_expire(glamor_screen_private *glamor_priv)
 {
     struct xorg_list *cache;
     glamor_pixmap_fbo *fbo_entry, *tmp;
@@ -323,7 +323,7 @@ glamor_fini_pixmap_fbo(ScreenPtr screen)
 }
 
 void
-glamor_destroy_fbo(glamor_pixmap_fbo * fbo)
+glamor_destroy_fbo(glamor_pixmap_fbo *fbo)
 {
     xorg_list_del(&fbo->list);
     glamor_pixmap_fbo_cache_put(fbo);
@@ -331,7 +331,7 @@ glamor_destroy_fbo(glamor_pixmap_fbo * fbo)
 }
 
 static int
-_glamor_create_tex(glamor_screen_private * glamor_priv,
+_glamor_create_tex(glamor_screen_private *glamor_priv,
                    int w, int h, GLenum format)
 {
     glamor_gl_dispatch *dispatch;
@@ -361,7 +361,7 @@ _glamor_create_tex(glamor_screen_private * glamor_priv,
 }
 
 glamor_pixmap_fbo *
-glamor_create_fbo(glamor_screen_private * glamor_priv,
+glamor_create_fbo(glamor_screen_private *glamor_priv,
                   int w, int h, GLenum format, int flag)
 {
     glamor_pixmap_fbo *fbo;
@@ -394,10 +394,10 @@ glamor_create_fbo(glamor_screen_private * glamor_priv,
 }
 
 static glamor_pixmap_fbo *
-_glamor_create_fbo_array(glamor_screen_private * glamor_priv,
+_glamor_create_fbo_array(glamor_screen_private *glamor_priv,
                          int w, int h, GLenum format, int flag,
                          int block_w, int block_h,
-                         glamor_pixmap_private * pixmap_priv, int has_fbo)
+                         glamor_pixmap_private *pixmap_priv, int has_fbo)
 {
     int block_wcnt;
     int block_hcnt;
@@ -468,10 +468,10 @@ _glamor_create_fbo_array(glamor_screen_private * glamor_priv,
 /* Create a fbo array to cover the w*h region, by using block_w*block_h
  * block.*/
 glamor_pixmap_fbo *
-glamor_create_fbo_array(glamor_screen_private * glamor_priv,
+glamor_create_fbo_array(glamor_screen_private *glamor_priv,
                         int w, int h, GLenum format, int flag,
                         int block_w, int block_h,
-                        glamor_pixmap_private * pixmap_priv)
+                        glamor_pixmap_private *pixmap_priv)
 {
     pixmap_priv->large.block_w = block_w;
     pixmap_priv->large.block_h = block_h;
@@ -480,7 +480,7 @@ glamor_create_fbo_array(glamor_screen_private * glamor_priv,
 }
 
 glamor_pixmap_fbo *
-glamor_pixmap_detach_fbo(glamor_pixmap_private * pixmap_priv)
+glamor_pixmap_detach_fbo(glamor_pixmap_private *pixmap_priv)
 {
     glamor_pixmap_fbo *fbo;
 
@@ -497,7 +497,7 @@ glamor_pixmap_detach_fbo(glamor_pixmap_private * pixmap_priv)
 
 /* The pixmap must not be attached to another fbo. */
 void
-glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo * fbo)
+glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
 {
     glamor_pixmap_private *pixmap_priv;
 
@@ -528,7 +528,7 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo * fbo)
 }
 
 void
-glamor_pixmap_destroy_fbo(glamor_pixmap_private * priv)
+glamor_pixmap_destroy_fbo(glamor_pixmap_private *priv)
 {
     glamor_pixmap_fbo *fbo;
 

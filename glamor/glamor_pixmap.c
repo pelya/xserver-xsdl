@@ -63,7 +63,7 @@ glamor_pixmap_fini(ScreenPtr screen)
 }
 
 void
-glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo * fbo, int x0, int y0,
+glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *fbo, int x0, int y0,
                                   int width, int height)
 {
     glamor_gl_dispatch *dispatch = glamor_get_dispatch(fbo->glamor_priv);
@@ -81,7 +81,7 @@ glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo * fbo, int x0, int y0,
 }
 
 void
-glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private * pixmap_priv)
+glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv)
 {
     int w, h;
 
@@ -90,7 +90,7 @@ glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private * pixmap_priv)
 }
 
 int
-glamor_set_destination_pixmap_priv(glamor_pixmap_private * pixmap_priv)
+glamor_set_destination_pixmap_priv(glamor_pixmap_private *pixmap_priv)
 {
     if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
         return -1;
@@ -1226,7 +1226,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 /* fixup a fbo to the exact size as the pixmap. */
 /* XXX LARGE pixmap? */
 Bool
-glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private * pixmap_priv)
+glamor_fixup_pixmap_priv(ScreenPtr screen, glamor_pixmap_private *pixmap_priv)
 {
     glamor_pixmap_fbo *old_fbo;
     glamor_pixmap_fbo *new_fbo = NULL;

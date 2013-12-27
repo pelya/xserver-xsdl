@@ -765,7 +765,7 @@ glamor_fini_gradient_shader(ScreenPtr screen)
 }
 
 static void
-_glamor_gradient_convert_trans_matrix(PictTransform * from, float to[3][3],
+_glamor_gradient_convert_trans_matrix(PictTransform *from, float to[3][3],
                                       int width, int height, int normalize)
 {
     /*
@@ -825,9 +825,9 @@ _glamor_gradient_convert_trans_matrix(PictTransform * from, float to[3][3],
 
 static int
 _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
-                                        glamor_screen_private * glamor_priv,
+                                        glamor_screen_private *glamor_priv,
                                         PicturePtr dst_picture,
-                                        GLfloat * xscale, GLfloat * yscale,
+                                        GLfloat *xscale, GLfloat *yscale,
                                         int x_source, int y_source,
                                         float vertices[8],
                                         float tex_vertices[8],
@@ -909,8 +909,8 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
 }
 
 static int
-_glamor_gradient_set_stops(PicturePtr src_picture, PictGradient * pgradient,
-                           GLfloat * stop_colors, GLfloat * n_stops)
+_glamor_gradient_set_stops(PicturePtr src_picture, PictGradient *pgradient,
+                           GLfloat *stop_colors, GLfloat *n_stops)
 {
     int i;
     int count = 1;

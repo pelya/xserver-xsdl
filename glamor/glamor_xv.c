@@ -271,7 +271,7 @@ static REF_TRANSFORM trans[2] = {
 };
 
 static void
-glamor_display_textured_video(glamor_port_private * port_priv)
+glamor_display_textured_video(glamor_port_private *port_priv)
 {
     ScreenPtr screen = port_priv->pPixmap->drawable.pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);

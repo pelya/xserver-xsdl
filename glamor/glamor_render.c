@@ -62,7 +62,7 @@ static struct blendinfo composite_op_info[] = {
 
 #define RepeatFix			10
 static GLuint
-glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
+glamor_create_composite_fs(glamor_gl_dispatch *dispatch,
                            struct shader_key *key)
 {
     const char *repeat_define =
@@ -273,7 +273,7 @@ glamor_create_composite_fs(glamor_gl_dispatch * dispatch,
 }
 
 static GLuint
-glamor_create_composite_vs(glamor_gl_dispatch * dispatch,
+glamor_create_composite_vs(glamor_gl_dispatch *dispatch,
                            struct shader_key *key)
 {
     const char *main_opening =
@@ -312,7 +312,7 @@ glamor_create_composite_vs(glamor_gl_dispatch * dispatch,
 
 static void
 glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
-                               glamor_composite_shader * shader)
+                               glamor_composite_shader *shader)
 {
     GLuint vs, fs, prog;
     GLint source_sampler_uniform_location, mask_sampler_uniform_location;
@@ -530,9 +530,9 @@ glamor_set_composite_op(ScreenPtr screen,
 }
 
 static void
-glamor_set_composite_texture(glamor_screen_private * glamor_priv, int unit,
+glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
                              PicturePtr picture,
-                             glamor_pixmap_private * pixmap_priv,
+                             glamor_pixmap_private *pixmap_priv,
                              GLuint wh_location, GLuint repeat_location)
 {
     glamor_gl_dispatch *dispatch;
@@ -624,7 +624,7 @@ glamor_set_composite_texture(glamor_screen_private * glamor_priv, int unit,
 }
 
 static void
-glamor_set_composite_solid(glamor_gl_dispatch * dispatch, float *color,
+glamor_set_composite_solid(glamor_gl_dispatch *dispatch, float *color,
                            GLint uniform_location)
 {
     dispatch->glUniform4fv(uniform_location, 1, color);
@@ -924,7 +924,7 @@ combine_pict_format(PictFormatShort * des, const PictFormatShort src,
 }
 
 static void
-glamor_set_normalize_tcoords_generic(glamor_pixmap_private * priv,
+glamor_set_normalize_tcoords_generic(glamor_pixmap_private *priv,
                                      int repeat_type,
                                      float *matrix,
                                      float xscale, float yscale,
@@ -961,13 +961,13 @@ glamor_composite_choose_shader(CARD8 op,
                                PicturePtr source,
                                PicturePtr mask,
                                PicturePtr dest,
-                               glamor_pixmap_private * source_pixmap_priv,
-                               glamor_pixmap_private * mask_pixmap_priv,
-                               glamor_pixmap_private * dest_pixmap_priv,
+                               glamor_pixmap_private *source_pixmap_priv,
+                               glamor_pixmap_private *mask_pixmap_priv,
+                               glamor_pixmap_private *dest_pixmap_priv,
                                struct shader_key *s_key,
                                glamor_composite_shader ** shader,
                                struct blendinfo *op_info,
-                               PictFormatShort * psaved_source_format)
+                               PictFormatShort *psaved_source_format)
 {
     ScreenPtr screen = dest->pDrawable->pScreen;
     PixmapPtr dest_pixmap = dest_pixmap_priv->base.pixmap;
@@ -1224,9 +1224,9 @@ glamor_composite_choose_shader(CARD8 op,
 }
 
 void
-glamor_composite_set_shader_blend(glamor_pixmap_private * dest_priv,
+glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
                                   struct shader_key *key,
-                                  glamor_composite_shader * shader,
+                                  glamor_composite_shader *shader,
                                   struct blendinfo *op_info)
 {
     glamor_gl_dispatch *dispatch;
@@ -1279,10 +1279,10 @@ glamor_composite_with_shader(CARD8 op,
                              PicturePtr source,
                              PicturePtr mask,
                              PicturePtr dest,
-                             glamor_pixmap_private * source_pixmap_priv,
-                             glamor_pixmap_private * mask_pixmap_priv,
-                             glamor_pixmap_private * dest_pixmap_priv,
-                             int nrect, glamor_composite_rect_t * rects,
+                             glamor_pixmap_private *source_pixmap_priv,
+                             glamor_pixmap_private *mask_pixmap_priv,
+                             glamor_pixmap_private *dest_pixmap_priv,
+                             int nrect, glamor_composite_rect_t *rects,
                              Bool two_pass_ca)
 {
     ScreenPtr screen = dest->pDrawable->pScreen;
@@ -1540,9 +1540,9 @@ glamor_composite_clipped_region(CARD8 op,
                                 PicturePtr source,
                                 PicturePtr mask,
                                 PicturePtr dest,
-                                glamor_pixmap_private * source_pixmap_priv,
-                                glamor_pixmap_private * mask_pixmap_priv,
-                                glamor_pixmap_private * dest_pixmap_priv,
+                                glamor_pixmap_private *source_pixmap_priv,
+                                glamor_pixmap_private *mask_pixmap_priv,
+                                glamor_pixmap_private *dest_pixmap_priv,
                                 RegionPtr region,
                                 int x_source,
                                 int y_source,
@@ -1981,7 +1981,7 @@ glamor_composite_nf(CARD8 op,
 
 static void
 glamor_get_src_rect_extent(int nrect,
-                           glamor_composite_rect_t * rects, BoxPtr extent)
+                           glamor_composite_rect_t *rects, BoxPtr extent)
 {
     extent->x1 = MAXSHORT;
     extent->y1 = MAXSHORT;
@@ -2003,7 +2003,7 @@ glamor_get_src_rect_extent(int nrect,
 
 static void
 glamor_composite_src_rect_translate(int nrect,
-                                    glamor_composite_rect_t * rects,
+                                    glamor_composite_rect_t *rects,
                                     int x, int y)
 {
     while (nrect--) {
@@ -2016,7 +2016,7 @@ glamor_composite_src_rect_translate(int nrect,
 void
 glamor_composite_glyph_rects(CARD8 op,
                              PicturePtr src, PicturePtr mask, PicturePtr dst,
-                             int nrect, glamor_composite_rect_t * rects)
+                             int nrect, glamor_composite_rect_t *rects)
 {
     int n;
     PicturePtr temp_src = NULL;
@@ -2108,7 +2108,7 @@ glamor_composite_glyph_rects(CARD8 op,
 static Bool
 _glamor_composite_rects(CARD8 op,
                         PicturePtr pDst,
-                        xRenderColor * color,
+                        xRenderColor *color,
                         int nRect, xRectangle *rects, Bool fallback)
 {
     miCompositeRects(op, pDst, color, nRect, rects);
@@ -2118,7 +2118,7 @@ _glamor_composite_rects(CARD8 op,
 void
 glamor_composite_rects(CARD8 op,
                        PicturePtr pDst,
-                       xRenderColor * color, int nRect, xRectangle *rects)
+                       xRenderColor *color, int nRect, xRectangle *rects)
 {
     _glamor_composite_rects(op, pDst, color, nRect, rects, TRUE);
 }
@@ -2126,7 +2126,7 @@ glamor_composite_rects(CARD8 op,
 Bool
 glamor_composite_rects_nf(CARD8 op,
                           PicturePtr pDst,
-                          xRenderColor * color, int nRect, xRectangle *rects)
+                          xRenderColor *color, int nRect, xRectangle *rects)
 {
     return _glamor_composite_rects(op, pDst, color, nRect, rects, FALSE);
 }

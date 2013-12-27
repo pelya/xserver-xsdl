@@ -31,7 +31,7 @@
 static Bool
 _glamor_add_traps(PicturePtr pPicture,
                   INT16 x_off,
-                  INT16 y_off, int ntrap, xTrap * traps, Bool fallback)
+                  INT16 y_off, int ntrap, xTrap *traps, Bool fallback)
 {
     if (!fallback
         && (!pPicture->pDrawable
@@ -48,14 +48,14 @@ _glamor_add_traps(PicturePtr pPicture,
 
 void
 glamor_add_traps(PicturePtr pPicture,
-                 INT16 x_off, INT16 y_off, int ntrap, xTrap * traps)
+                 INT16 x_off, INT16 y_off, int ntrap, xTrap *traps)
 {
     _glamor_add_traps(pPicture, x_off, y_off, ntrap, traps, TRUE);
 }
 
 Bool
 glamor_add_traps_nf(PicturePtr pPicture,
-                    INT16 x_off, INT16 y_off, int ntrap, xTrap * traps)
+                    INT16 x_off, INT16 y_off, int ntrap, xTrap *traps)
 {
     return _glamor_add_traps(pPicture, x_off, y_off, ntrap, traps, FALSE);
 }

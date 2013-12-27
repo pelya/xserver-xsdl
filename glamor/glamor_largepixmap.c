@@ -144,7 +144,7 @@ __glamor_compute_clipped_regions(int block_w,
  */
 
 glamor_pixmap_clipped_regions *
-glamor_compute_clipped_regions_ext(glamor_pixmap_private * pixmap_priv,
+glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
                                    RegionPtr region,
                                    int *n_region,
                                    int inner_block_w, int inner_block_h,
@@ -325,7 +325,7 @@ _glamor_largepixmap_reflect_fixup(short *xy1, short *xy2, int wh)
  *
  */
 static glamor_pixmap_clipped_regions *
-_glamor_compute_clipped_regions(glamor_pixmap_private * pixmap_priv,
+_glamor_compute_clipped_regions(glamor_pixmap_private *pixmap_priv,
                                 RegionPtr region, int *n_region,
                                 int repeat_type, int is_transform,
                                 int reverse, int upsidedown)
@@ -659,7 +659,7 @@ _glamor_compute_clipped_regions(glamor_pixmap_private * pixmap_priv,
 }
 
 glamor_pixmap_clipped_regions *
-glamor_compute_clipped_regions(glamor_pixmap_private * priv, RegionPtr region,
+glamor_compute_clipped_regions(glamor_pixmap_private *priv, RegionPtr region,
                                int *n_region, int repeat_type,
                                int reverse, int upsidedown)
 {
@@ -671,8 +671,8 @@ glamor_compute_clipped_regions(glamor_pixmap_private * priv, RegionPtr region,
  * by default. Or just use region32 for repeat cases?
  **/
 glamor_pixmap_clipped_regions *
-glamor_compute_transform_clipped_regions(glamor_pixmap_private * priv,
-                                         struct pixman_transform * transform,
+glamor_compute_transform_clipped_regions(glamor_pixmap_private *priv,
+                                         struct pixman_transform *transform,
                                          RegionPtr region, int *n_region,
                                          int dx, int dy, int repeat_type,
                                          int reverse, int upsidedown)
@@ -736,9 +736,9 @@ glamor_compute_transform_clipped_regions(glamor_pixmap_private * priv,
  * if the clipped result cross the region boundary.
  */
 static void
-glamor_merge_clipped_regions(glamor_pixmap_private * pixmap_priv,
+glamor_merge_clipped_regions(glamor_pixmap_private *pixmap_priv,
                              int repeat_type,
-                             glamor_pixmap_clipped_regions * clipped_regions,
+                             glamor_pixmap_clipped_regions *clipped_regions,
                              int *n_regions, int *need_clean_fbo)
 {
     BoxPtr temp_extent;
@@ -954,7 +954,7 @@ glamor_get_transform_extent_from_box(struct pixman_box32 *box,
 }
 
 static void
-_glamor_process_transformed_clipped_region(glamor_pixmap_private * priv,
+_glamor_process_transformed_clipped_region(glamor_pixmap_private *priv,
                                            int repeat_type,
                                            glamor_pixmap_clipped_regions *
                                            clipped_regions, int *n_regions,
@@ -1004,9 +1004,9 @@ glamor_composite_largepixmap_region(CARD8 op,
                                     PicturePtr source,
                                     PicturePtr mask,
                                     PicturePtr dest,
-                                    glamor_pixmap_private * source_pixmap_priv,
-                                    glamor_pixmap_private * mask_pixmap_priv,
-                                    glamor_pixmap_private * dest_pixmap_priv,
+                                    glamor_pixmap_private *source_pixmap_priv,
+                                    glamor_pixmap_private *mask_pixmap_priv,
+                                    glamor_pixmap_private *dest_pixmap_priv,
                                     RegionPtr region, Bool force_clip,
                                     INT16 x_source,
                                     INT16 y_source,

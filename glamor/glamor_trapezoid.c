@@ -37,7 +37,7 @@
 #include "fbpict.h"
 
 static xFixed
-_glamor_linefixedX(xLineFixed * l, xFixed y, Bool ceil)
+_glamor_linefixedX(xLineFixed *l, xFixed y, Bool ceil)
 {
     xFixed dx = l->p2.x - l->p1.x;
     xFixed_32_32 ex = (xFixed_32_32) (y - l->p1.y) * dx;
@@ -49,7 +49,7 @@ _glamor_linefixedX(xLineFixed * l, xFixed y, Bool ceil)
 }
 
 static xFixed
-_glamor_linefixedY(xLineFixed * l, xFixed x, Bool ceil)
+_glamor_linefixedY(xLineFixed *l, xFixed x, Bool ceil)
 {
     xFixed dy = l->p2.y - l->p1.y;
     xFixed_32_32 ey = (xFixed_32_32) (x - l->p1.x) * dy;
@@ -75,7 +75,7 @@ _glamor_linefixedY(xLineFixed * l, xFixed x, Bool ceil)
      && point[1] <= IntToxFixed(rect->y2))
 
 static xFixed
-_glamor_lines_crossfixedY(xLineFixed * l, xLineFixed * r)
+_glamor_lines_crossfixedY(xLineFixed *l, xLineFixed *r)
 {
     xFixed dx1 = l->p2.x - l->p1.x;
     xFixed dx2 = r->p2.x - r->p1.x;
@@ -103,7 +103,7 @@ _glamor_lines_crossfixedY(xLineFixed * l, xLineFixed * r)
 }
 
 static Bool
-point_inside_trapezoid(int point[2], xTrapezoid * trap, xFixed cut_y)
+point_inside_trapezoid(int point[2], xTrapezoid *trap, xFixed cut_y)
 {
     int ret = TRUE;
     int tmp;
@@ -225,7 +225,7 @@ glamor_flush_composite_triangles(ScreenPtr screen)
 }
 
 static Bool
-_glamor_clip_trapezoid_vertex(xTrapezoid * trap, BoxPtr pbox,
+_glamor_clip_trapezoid_vertex(xTrapezoid *trap, BoxPtr pbox,
                               int vertex[6], int *num)
 {
     xFixed edge_cross_y = 0xFFFFFFFF;
@@ -1388,8 +1388,8 @@ glamor_fini_trapezoid_shader(ScreenPtr screen)
 
 static Bool
 _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
-                                       xTrapezoid * traps, int ntrap,
-                                       BoxRec * bounds)
+                                       xTrapezoid *traps, int ntrap,
+                                       BoxRec *bounds)
 {
     glamor_screen_private *glamor_priv;
     glamor_gl_dispatch *dispatch;
@@ -1642,7 +1642,7 @@ glamor_create_mask_picture(ScreenPtr screen,
 }
 
 static int
-_glamor_trapezoid_bounds(int ntrap, xTrapezoid * traps, BoxPtr box)
+_glamor_trapezoid_bounds(int ntrap, xTrapezoid *traps, BoxPtr box)
 {
     int has_large_trapezoid = 0;
 
@@ -1695,7 +1695,7 @@ static Bool
 _glamor_trapezoids(CARD8 op,
                    PicturePtr src, PicturePtr dst,
                    PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
-                   int ntrap, xTrapezoid * traps, Bool fallback)
+                   int ntrap, xTrapezoid *traps, Bool fallback)
 {
     ScreenPtr screen = dst->pDrawable->pScreen;
     BoxRec bounds;
@@ -1834,7 +1834,7 @@ void
 glamor_trapezoids(CARD8 op,
                   PicturePtr src, PicturePtr dst,
                   PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
-                  int ntrap, xTrapezoid * traps)
+                  int ntrap, xTrapezoid *traps)
 {
     DEBUGF("x_src = %d, y_src = %d, ntrap = %d\n", x_src, y_src, ntrap);
 
@@ -1846,7 +1846,7 @@ Bool
 glamor_trapezoids_nf(CARD8 op,
                      PicturePtr src, PicturePtr dst,
                      PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
-                     int ntrap, xTrapezoid * traps)
+                     int ntrap, xTrapezoid *traps)
 {
     DEBUGF("x_src = %d, y_src = %d, ntrap = %d\n", x_src, y_src, ntrap);
 

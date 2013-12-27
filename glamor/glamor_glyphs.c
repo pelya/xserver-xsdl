@@ -387,7 +387,7 @@ glamor_glyphs_init(ScreenPtr pScreen)
  */
 static void
 glamor_glyph_cache_upload_glyph(ScreenPtr screen,
-                                glamor_glyph_cache_t * cache,
+                                glamor_glyph_cache_t *cache,
                                 GlyphPtr glyph, int x, int y)
 {
     PicturePtr pGlyphPicture = GlyphPicture(glyph)[screen->myNum];
@@ -465,7 +465,7 @@ glamor_glyph_unrealize(ScreenPtr screen, GlyphPtr glyph)
 /* Cut and paste from render/glyph.c - probably should export it instead */
 static void
 glamor_glyph_extents(int nlist,
-                     GlyphListPtr list, GlyphPtr * glyphs, BoxPtr extents)
+                     GlyphListPtr list, GlyphPtr *glyphs, BoxPtr extents)
 {
     int x1, x2, y1, y2;
     int x, y, n;
@@ -610,12 +610,12 @@ struct glamor_glyph_list {
 
 static Bool
 glyph_new_fixed_list(struct glamor_glyph_list *fixed_list,
-                     GlyphPtr * cur_glyphs,
+                     GlyphPtr *cur_glyphs,
                      GlyphPtr ** head_glyphs,
                      GlyphListPtr cur_list,
                      int cur_pos, int cur_x, int cur_y,
                      int x1, int y1, int x2, int y2,
-                     GlyphListPtr * head_list,
+                     GlyphListPtr *head_list,
                      int *head_pos,
                      int *head_x,
                      int *head_y, int *fixed_cnt, int type, BoxPtr prev_extents)
@@ -695,7 +695,7 @@ glyph_new_fixed_list(struct glamor_glyph_list *fixed_list,
  **/
 
 static int
-glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr * glyphs,
+glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs,
                         PictFormatShort mask_format,
                         ScreenPtr screen, Bool check_fake_overlap,
                         struct glamor_glyph_list *fixed_list, int fixed_size)
@@ -1053,7 +1053,7 @@ glamor_glyph_size_to_mask(int size)
 }
 
 static PicturePtr
-glamor_glyph_cache(glamor_screen_private * glamor, GlyphPtr glyph, int *out_x,
+glamor_glyph_cache(glamor_screen_private *glamor, GlyphPtr glyph, int *out_x,
                    int *out_y)
 {
     ScreenPtr screen = glamor->screen;
@@ -1219,8 +1219,8 @@ glamor_glyphs_flush_dst(struct glyphs_flush_dst_arg *arg)
 }
 
 static glamor_glyph_cache_result_t
-glamor_buffer_glyph(glamor_screen_private * glamor_priv,
-                    glamor_glyph_buffer_t * buffer,
+glamor_buffer_glyph(glamor_screen_private *glamor_priv,
+                    glamor_glyph_buffer_t *buffer,
                     PictFormatShort format,
                     GlyphPtr glyph, struct glamor_glyph *priv,
                     int x_glyph, int y_glyph,
@@ -1318,7 +1318,7 @@ glamor_buffer_glyph(glamor_screen_private * glamor_priv,
 }
 
 static void
-glamor_buffer_glyph_clip(glamor_screen_private * glamor_priv,
+glamor_buffer_glyph_clip(glamor_screen_private *glamor_priv,
                          BoxPtr rects,
                          int nrect, PictFormatShort format,
                          GlyphPtr glyph, struct glamor_glyph *priv,
@@ -1373,7 +1373,7 @@ glamor_glyphs_via_mask(CARD8 op,
                        PictFormatPtr mask_format,
                        INT16 x_src,
                        INT16 y_src,
-                       int nlist, GlyphListPtr list, GlyphPtr * glyphs,
+                       int nlist, GlyphListPtr list, GlyphPtr *glyphs,
                        Bool use_mask_cache)
 {
     PixmapPtr mask_pixmap = 0;
@@ -1591,7 +1591,7 @@ glamor_glyphs_to_dst(CARD8 op,
                      PicturePtr dst,
                      INT16 x_src,
                      INT16 y_src,
-                     int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+                     int nlist, GlyphListPtr list, GlyphPtr *glyphs)
 {
     ScreenPtr screen = dst->pDrawable->pScreen;
     int x = 0, y = 0;
@@ -1653,7 +1653,7 @@ glamor_glyphs_to_dst(CARD8 op,
 
 #define MAX_FIXED_SIZE
 static void
-glamor_glyphs_reset_buffer(glamor_glyph_buffer_t * buffer)
+glamor_glyphs_reset_buffer(glamor_glyph_buffer_t *buffer)
 {
     buffer->count = 0;
     buffer->source = NULL;
@@ -1666,7 +1666,7 @@ _glamor_glyphs(CARD8 op,
                PictFormatPtr mask_format,
                INT16 x_src,
                INT16 y_src, int nlist, GlyphListPtr list,
-               GlyphPtr * glyphs, Bool fallback)
+               GlyphPtr *glyphs, Bool fallback)
 {
     PictFormatShort format;
     int fixed_size, fixed_cnt = 0;
@@ -1784,7 +1784,7 @@ glamor_glyphs(CARD8 op,
               PicturePtr dst,
               PictFormatPtr mask_format,
               INT16 x_src,
-              INT16 y_src, int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+              INT16 y_src, int nlist, GlyphListPtr list, GlyphPtr *glyphs)
 {
     _glamor_glyphs(op, src, dst, mask_format, x_src,
                    y_src, nlist, list, glyphs, TRUE);
@@ -1796,7 +1796,7 @@ glamor_glyphs_nf(CARD8 op,
                  PicturePtr dst,
                  PictFormatPtr mask_format,
                  INT16 x_src,
-                 INT16 y_src, int nlist, GlyphListPtr list, GlyphPtr * glyphs)
+                 INT16 y_src, int nlist, GlyphListPtr list, GlyphPtr *glyphs)
 {
     return _glamor_glyphs(op, src, dst, mask_format, x_src,
                           y_src, nlist, list, glyphs, FALSE);

@@ -57,7 +57,7 @@ glamor_poly_point_nf(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 
 static Bool
 _glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
-                     xSegment * pSeg, Bool fallback)
+                     xSegment *pSeg, Bool fallback)
 {
     if (!fallback && glamor_ddx_fallback_check_gc(pGC)
         && glamor_ddx_fallback_check_pixmap(pDrawable))
@@ -69,14 +69,14 @@ _glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
 }
 
 void
-glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg, xSegment * pSeg)
+glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg, xSegment *pSeg)
 {
     _glamor_poly_segment(pDrawable, pGC, nseg, pSeg, TRUE);
 }
 
 Bool
 glamor_poly_segment_nf(DrawablePtr pDrawable, GCPtr pGC, int nseg,
-                       xSegment * pSeg)
+                       xSegment *pSeg)
 {
     return _glamor_poly_segment(pDrawable, pGC, nseg, pSeg, FALSE);
 }

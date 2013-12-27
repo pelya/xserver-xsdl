@@ -366,7 +366,7 @@ extern _X_EXPORT Bool glamor_trapezoids_nf(CARD8 op,
                                            PicturePtr src, PicturePtr dst,
                                            PictFormatPtr mask_format,
                                            INT16 x_src, INT16 y_src,
-                                           int ntrap, xTrapezoid * traps);
+                                           int ntrap, xTrapezoid *traps);
 
 extern _X_EXPORT Bool glamor_glyphs_nf(CARD8 op,
                                        PicturePtr src,
@@ -374,14 +374,14 @@ extern _X_EXPORT Bool glamor_glyphs_nf(CARD8 op,
                                        PictFormatPtr mask_format,
                                        INT16 x_src,
                                        INT16 y_src, int nlist,
-                                       GlyphListPtr list, GlyphPtr * glyphs);
+                                       GlyphListPtr list, GlyphPtr *glyphs);
 
 extern _X_EXPORT Bool glamor_triangles_nf(CARD8 op,
                                           PicturePtr pSrc,
                                           PicturePtr pDst,
                                           PictFormatPtr maskFormat,
                                           INT16 xSrc, INT16 ySrc,
-                                          int ntris, xTriangle * tris);
+                                          int ntris, xTriangle *tris);
 
 extern _X_EXPORT void glamor_glyph_unrealize(ScreenPtr screen, GlyphPtr glyph);
 
@@ -395,7 +395,7 @@ extern _X_EXPORT Bool glamor_get_spans_nf(DrawablePtr drawable, int wmax,
 
 extern _X_EXPORT Bool glamor_composite_rects_nf(CARD8 op,
                                                 PicturePtr pDst,
-                                                xRenderColor * color,
+                                                xRenderColor *color,
                                                 int nRect, xRectangle *rects);
 
 extern _X_EXPORT Bool glamor_get_image_nf(DrawablePtr pDrawable, int x, int y,
@@ -405,7 +405,7 @@ extern _X_EXPORT Bool glamor_get_image_nf(DrawablePtr pDrawable, int x, int y,
 extern _X_EXPORT Bool glamor_add_traps_nf(PicturePtr pPicture,
                                           INT16 x_off,
                                           INT16 y_off, int ntrap,
-                                          xTrap * traps);
+                                          xTrap *traps);
 
 extern _X_EXPORT Bool glamor_copy_plane_nf(DrawablePtr pSrc, DrawablePtr pDst,
                                            GCPtr pGC, int srcx, int srcy, int w,
@@ -416,13 +416,13 @@ extern _X_EXPORT Bool glamor_copy_plane_nf(DrawablePtr pSrc, DrawablePtr pDst,
 extern _X_EXPORT Bool glamor_image_glyph_blt_nf(DrawablePtr pDrawable,
                                                 GCPtr pGC, int x, int y,
                                                 unsigned int nglyph,
-                                                CharInfoPtr * ppci,
+                                                CharInfoPtr *ppci,
                                                 pointer pglyphBase);
 
 extern _X_EXPORT Bool glamor_poly_glyph_blt_nf(DrawablePtr pDrawable, GCPtr pGC,
                                                int x, int y,
                                                unsigned int nglyph,
-                                               CharInfoPtr * ppci,
+                                               CharInfoPtr *ppci,
                                                pointer pglyphBase);
 
 extern _X_EXPORT Bool glamor_push_pixels_nf(GCPtr pGC, PixmapPtr pBitmap,
@@ -433,7 +433,7 @@ extern _X_EXPORT Bool glamor_poly_point_nf(DrawablePtr pDrawable, GCPtr pGC,
                                            int mode, int npt, DDXPointPtr ppt);
 
 extern _X_EXPORT Bool glamor_poly_segment_nf(DrawablePtr pDrawable, GCPtr pGC,
-                                             int nseg, xSegment * pSeg);
+                                             int nseg, xSegment *pSeg);
 
 extern _X_EXPORT Bool glamor_poly_line_nf(DrawablePtr pDrawable, GCPtr pGC,
                                           int mode, int npt, DDXPointPtr ppt);

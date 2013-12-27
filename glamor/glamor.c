@@ -206,7 +206,7 @@ Bool
 glamor_destroy_pixmap(PixmapPtr pixmap)
 {
     glamor_screen_private
-        * glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
+        *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
     if (glamor_priv->dri3_enabled)
         glamor_egl_destroy_textured_pixmap(pixmap);
     else
@@ -473,7 +473,7 @@ glamor_release_screen_priv(ScreenPtr screen)
 }
 
 _X_EXPORT void
-glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private * priv)
+glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
 {
     glamor_pixmap_private *old_priv;
     glamor_pixmap_fbo *fbo;

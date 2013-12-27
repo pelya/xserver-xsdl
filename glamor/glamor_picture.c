@@ -126,7 +126,7 @@ glamor_destroy_picture(PicturePtr picture)
 
 void
 glamor_picture_format_fixup(PicturePtr picture,
-                            glamor_pixmap_private * pixmap_priv)
+                            glamor_pixmap_private *pixmap_priv)
 {
     pixmap_priv->base.picture = picture;
 }
