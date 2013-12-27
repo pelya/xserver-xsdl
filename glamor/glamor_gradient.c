@@ -42,14 +42,13 @@
 
 #ifdef GLAMOR_GRADIENT_SHADER
 
-static GLint
-_glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count,
-                                   int use_array)
+static const char *
+_glamor_create_getcolor_fs_source(ScreenPtr screen, int stops_count,
+                                  int use_array)
 {
     glamor_screen_private *glamor_priv;
 
     char *gradient_fs = NULL;
-    GLint fs_getcolor_prog;
 
 #define gradient_fs_getcolor\
 	    GLAMOR_DEFAULT_PRECISION\
@@ -181,17 +180,11 @@ _glamor_create_getcolor_fs_program(ScreenPtr screen, int stops_count,
     if (use_array) {
         XNFasprintf(&gradient_fs,
                     gradient_fs_getcolor, stops_count, stops_count);
-        fs_getcolor_prog =
-            glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, gradient_fs);
-        free(gradient_fs);
+        return gradient_fs;
     }
     else {
-        fs_getcolor_prog =
-            glamor_compile_glsl_prog(GL_FRAGMENT_SHADER,
-                                     gradient_fs_getcolor_no_array);
+        return XNFstrdup(gradient_fs_getcolor_no_array);
     }
-
-    return fs_getcolor_prog;
 }
 
 static void
@@ -203,7 +196,7 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
 
     GLint gradient_prog = 0;
     char *gradient_fs = NULL;
-    GLint fs_main_prog, fs_getcolor_prog, vs_prog;
+    GLint fs_prog, vs_prog;
 
     const char *gradient_vs =
         GLAMOR_DEFAULT_PRECISION
@@ -344,7 +337,10 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
 	    "    } else {\n"\
 	    "        gl_FragColor = get_color(stop_len);\n"\
 	    "    }\n"\
-	    "}\n"
+	    "}\n"\
+	    "\n"\
+            "%s\n" /* fs_getcolor_source */
+    const char *fs_getcolor_source;
 
     glamor_priv = glamor_get_screen_private(screen);
 
@@ -364,25 +360,24 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
 
     vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, gradient_vs);
 
+    fs_getcolor_source =
+        _glamor_create_getcolor_fs_source(screen, stops_count,
+                                          (stops_count > 0));
+
     XNFasprintf(&gradient_fs,
                 gradient_radial_fs_template,
                 PIXMAN_REPEAT_NONE, PIXMAN_REPEAT_NORMAL,
-                PIXMAN_REPEAT_REFLECT);
+                PIXMAN_REPEAT_REFLECT,
+                fs_getcolor_source);
 
-    fs_main_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, gradient_fs);
+    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, gradient_fs);
 
     free(gradient_fs);
 
-    fs_getcolor_prog =
-        _glamor_create_getcolor_fs_program(screen, stops_count,
-                                           (stops_count > 0));
-
     glAttachShader(gradient_prog, vs_prog);
-    glAttachShader(gradient_prog, fs_getcolor_prog);
-    glAttachShader(gradient_prog, fs_main_prog);
+    glAttachShader(gradient_prog, fs_prog);
     glDeleteShader(vs_prog);
-    glDeleteShader(fs_getcolor_prog);
-    glDeleteShader(fs_main_prog);
+    glDeleteShader(fs_prog);
 
     glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS, "v_position");
     glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE, "v_texcoord");
@@ -416,7 +411,7 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
     int index = 0;
     GLint gradient_prog = 0;
     char *gradient_fs = NULL;
-    GLint fs_main_prog, fs_getcolor_prog, vs_prog;
+    GLint fs_prog, vs_prog;
 
     const char *gradient_vs =
         GLAMOR_DEFAULT_PRECISION
@@ -559,7 +554,10 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
 	    "{\n"\
 	    "    float stop_len = get_stop_len();\n"\
 	    "    gl_FragColor = get_color(stop_len);\n"\
-	    "}\n"
+	    "}\n"\
+	    "\n"\
+            "%s" /* fs_getcolor_source */
+    const char *fs_getcolor_source;
 
     glamor_priv = glamor_get_screen_private(screen);
 
@@ -578,23 +576,21 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
 
     vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER, gradient_vs);
 
+    fs_getcolor_source =
+        _glamor_create_getcolor_fs_source(screen, stops_count, stops_count > 0);
+
     XNFasprintf(&gradient_fs,
                 gradient_fs_template,
-                PIXMAN_REPEAT_NORMAL, PIXMAN_REPEAT_REFLECT);
+                PIXMAN_REPEAT_NORMAL, PIXMAN_REPEAT_REFLECT,
+                fs_getcolor_source);
 
-    fs_main_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, gradient_fs);
+    fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, gradient_fs);
     free(gradient_fs);
 
-    fs_getcolor_prog =
-        _glamor_create_getcolor_fs_program(screen, stops_count,
-                                           (stops_count > 0));
-
     glAttachShader(gradient_prog, vs_prog);
-    glAttachShader(gradient_prog, fs_getcolor_prog);
-    glAttachShader(gradient_prog, fs_main_prog);
+    glAttachShader(gradient_prog, fs_prog);
     glDeleteShader(vs_prog);
-    glDeleteShader(fs_getcolor_prog);
-    glDeleteShader(fs_main_prog);
+    glDeleteShader(fs_prog);
 
     glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS, "v_position");
     glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE, "v_texcoord");
