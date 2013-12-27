@@ -95,7 +95,7 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, unsigned int tex)
         glamor_destroy_fbo(fbo);
     }
 
-    gl_iformat_for_depth(pixmap->drawable.depth, &format);
+    format = gl_iformat_for_pixmap(pixmap);
     fbo = glamor_create_fbo_from_tex(glamor_priv, pixmap->drawable.width,
                                      pixmap->drawable.height, format, tex, 0);
 
@@ -162,7 +162,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     pixmap_priv->base.pixmap = pixmap;
     pixmap_priv->base.glamor_priv = glamor_priv;
 
-    gl_iformat_for_depth(depth, &format);
+    format = gl_iformat_for_pixmap(pixmap);
 
     pitch = (((w * pixmap->drawable.bitsPerPixel + 7) / 8) + 3) & ~3;
     screen->ModifyPixmapHeader(pixmap, w, h, 0, 0, pitch, NULL);
