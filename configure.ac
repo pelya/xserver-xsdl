@@ -806,6 +806,8 @@ LIBAPPLEWM="applewm >= 1.4"
 LIBDMX="dmx >= 1.0.99.1"
 LIBDRI="dri >= 7.8.0"
 LIBDRM="libdrm >= 2.3.0"
+LIBEGL="egl"
+LIBGBM="gbm >= 9"
 LIBGL="gl >= 7.1.0"
 LIBXEXT="xext >= 1.0.99.4"
 LIBXFONT="xfont >= 1.4.2"
@@ -2070,7 +2072,15 @@ AM_CONDITIONAL([GLAMOR], [test "x$GLAMOR" = xyes])
 if test "x$GLAMOR" = xyes; then
 	AC_DEFINE(GLAMOR, 1, [Build glamor])
 	PKG_CHECK_MODULES([GLAMOR], [epoxy])
+
+	PKG_CHECK_MODULES(GBM, "$LIBGBM", [GBM=yes], [GBM=no])
+	if test "x$GBM" = xyes; then
+		AC_DEFINE(GLAMOR_HAS_GBM, 1,
+			  [Build glamor with GBM-based EGL support])
+	fi
+
 fi
+AM_CONDITIONAL([GLAMOR_EGL], [test "x$GBM" = xyes])
 
 dnl XWin DDX
 
@@ -2479,6 +2489,7 @@ hw/xfree86/exa/Makefile
 hw/xfree86/exa/man/Makefile
 hw/xfree86/fbdevhw/Makefile
 hw/xfree86/fbdevhw/man/Makefile
+hw/xfree86/glamor_egl/Makefile
 hw/xfree86/i2c/Makefile
 hw/xfree86/int10/Makefile
 hw/xfree86/loader/Makefile
