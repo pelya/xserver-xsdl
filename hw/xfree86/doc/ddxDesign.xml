@@ -4558,16 +4558,6 @@ as follows:
 		</varlistentry>
 
 		<varlistentry>
-		  <term><constant>VIDEO_INVERT_CLIPLIST</constant></term>
-		  <listitem><para>
-	   This indicates that the video driver requires the clip
-	   list to contain the regions which are obscured rather
-	   than the regions which are are visible.
-		    </para></listitem>
-
-		</varlistentry>
-
-		<varlistentry>
 		  <term><constant>VIDEO_OVERLAID_STILLS</constant></term>
 		  <listitem><para>
 	   Implementing PutStill for hardware that does video as an
@@ -4733,9 +4723,6 @@ as follows:
 	<literal remap="tt">drw_w</literal> and <literal remap="tt">drw_h</literal> in the Get/Put
 	function.  The boxes are in screen coordinates, are guaranteed
 	not to overlap and an empty region will never be passed.
-	If the driver has specified <constant>VIDEO_INVERT_CLIPLIST</constant>,
-	<literal remap="tt">clipBoxes</literal> will indicate the areas of the primitive
-	which are obscured rather than the areas visible.
 
 	    </para></listitem></varlistentry>
       </variablelist>

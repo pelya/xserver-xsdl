@@ -588,10 +588,6 @@ KdXVRegetVideo(XvPortRecPrivatePtr portPriv)
         goto CLIP_VIDEO_BAILOUT;
     }
 
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
-    }
-
     ret = (*portPriv->AdaptorRec->GetVideo) (portPriv->screen, portPriv->pDraw,
                                              portPriv->vid_x, portPriv->vid_y,
                                              WinBox.x1, WinBox.y1,
@@ -680,10 +676,6 @@ KdXVReputVideo(XvPortRecPrivatePtr portPriv)
         }
     }
 
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
-    }
-
     ret = (*portPriv->AdaptorRec->PutVideo) (portPriv->screen, portPriv->pDraw,
                                              portPriv->vid_x, portPriv->vid_y,
                                              WinBox.x1, WinBox.y1,
@@ -770,10 +762,6 @@ KdXVReputImage(XvPortRecPrivatePtr portPriv)
             clippedAway = TRUE;
             goto CLIP_VIDEO_BAILOUT;
         }
-    }
-
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
     }
 
     ret =
@@ -1274,10 +1262,6 @@ KdXVPutStill(ClientPtr client,
         }
     }
 
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
-    }
-
     ret = (*portPriv->AdaptorRec->PutStill) (portPriv->screen, pDraw,
                                              vid_x, vid_y, WinBox.x1, WinBox.y1,
                                              vid_w, vid_h, drw_w, drw_h,
@@ -1408,10 +1392,6 @@ KdXVGetStill(ClientPtr client,
     if (!RegionNotEmpty(&ClipRegion)) {
         clippedAway = TRUE;
         goto GET_STILL_BAILOUT;
-    }
-
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
     }
 
     ret = (*portPriv->AdaptorRec->GetStill) (portPriv->screen, pDraw,
@@ -1570,10 +1550,6 @@ KdXVPutImage(ClientPtr client,
             clippedAway = TRUE;
             goto PUT_IMAGE_BAILOUT;
         }
-    }
-
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
     }
 
     ret = (*portPriv->AdaptorRec->PutImage) (portPriv->screen, pDraw,

@@ -712,10 +712,6 @@ xf86XVRegetVideo(XvPortRecPrivatePtr portPriv)
         goto CLIP_VIDEO_BAILOUT;
     }
 
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
-    }
-
     ret = (*portPriv->AdaptorRec->GetVideo) (portPriv->pScrn,
                                              portPriv->vid_x, portPriv->vid_y,
                                              WinBox.x1, WinBox.y1,
@@ -798,10 +794,6 @@ xf86XVReputVideo(XvPortRecPrivatePtr portPriv)
             clippedAway = TRUE;
             goto CLIP_VIDEO_BAILOUT;
         }
-    }
-
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
     }
 
     ret = (*portPriv->AdaptorRec->PutVideo) (portPriv->pScrn,
@@ -892,10 +884,6 @@ xf86XVReputImage(XvPortRecPrivatePtr portPriv)
             clippedAway = TRUE;
             goto CLIP_VIDEO_BAILOUT;
         }
-    }
-
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
     }
 
     ret = (*portPriv->AdaptorRec->ReputImage) (portPriv->pScrn,
@@ -1491,10 +1479,6 @@ xf86XVPutStill(ClientPtr client,
         }
     }
 
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
-    }
-
     ret = (*portPriv->AdaptorRec->PutStill) (portPriv->pScrn,
                                              vid_x, vid_y, WinBox.x1, WinBox.y1,
                                              vid_w, vid_h, drw_w, drw_h,
@@ -1626,10 +1610,6 @@ xf86XVGetStill(ClientPtr client,
     if (!RegionNotEmpty(&ClipRegion)) {
         clippedAway = TRUE;
         goto GET_STILL_BAILOUT;
-    }
-
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
     }
 
     ret = (*portPriv->AdaptorRec->GetStill) (portPriv->pScrn,
@@ -1789,10 +1769,6 @@ xf86XVPutImage(ClientPtr client,
             clippedAway = TRUE;
             goto PUT_IMAGE_BAILOUT;
         }
-    }
-
-    if (portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-        RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
     }
 
     ret = (*portPriv->AdaptorRec->PutImage) (portPriv->pScrn,
