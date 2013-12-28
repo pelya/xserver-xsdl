@@ -36,6 +36,10 @@
 #include "glamor.h"
 
 #include <epoxy/gl.h>
+#if GLAMOR_HAS_GBM
+#define MESA_EGL_NO_X11_HEADERS
+#include <epoxy/egl.h>
+#endif
 
 #define GLAMOR_DEFAULT_PRECISION  \
     "#ifdef GL_ES\n"              \
@@ -406,6 +410,9 @@ typedef struct glamor_pixmap_private_base {
     int drm_stride;
     glamor_screen_private *glamor_priv;
     PicturePtr picture;
+#if GLAMOR_HAS_GBM
+    EGLImageKHR image;
+#endif
 } glamor_pixmap_private_base_t;
 
 /*
