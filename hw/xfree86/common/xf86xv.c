@@ -784,18 +784,6 @@ xf86XVReputVideo(XvPortRecPrivatePtr portPriv)
         goto CLIP_VIDEO_BAILOUT;
     }
 
-    /* bailout if we have to clip but the hardware doesn't support it */
-    if (portPriv->AdaptorRec->flags & VIDEO_NO_CLIPPING) {
-        BoxPtr clipBox = RegionRects(&ClipRegion);
-
-        if ((RegionNumRects(&ClipRegion) != 1) ||
-            (clipBox->x1 != WinBox.x1) || (clipBox->x2 != WinBox.x2) ||
-            (clipBox->y1 != WinBox.y1) || (clipBox->y2 != WinBox.y2)) {
-            clippedAway = TRUE;
-            goto CLIP_VIDEO_BAILOUT;
-        }
-    }
-
     ret = (*portPriv->AdaptorRec->PutVideo) (portPriv->pScrn,
                                              portPriv->vid_x, portPriv->vid_y,
                                              WinBox.x1, WinBox.y1,
@@ -872,18 +860,6 @@ xf86XVReputImage(XvPortRecPrivatePtr portPriv)
     if (!RegionNotEmpty(&ClipRegion)) {
         clippedAway = TRUE;
         goto CLIP_VIDEO_BAILOUT;
-    }
-
-    /* bailout if we have to clip but the hardware doesn't support it */
-    if (portPriv->AdaptorRec->flags & VIDEO_NO_CLIPPING) {
-        BoxPtr clipBox = RegionRects(&ClipRegion);
-
-        if ((RegionNumRects(&ClipRegion) != 1) ||
-            (clipBox->x1 != WinBox.x1) || (clipBox->x2 != WinBox.x2) ||
-            (clipBox->y1 != WinBox.y1) || (clipBox->y2 != WinBox.y2)) {
-            clippedAway = TRUE;
-            goto CLIP_VIDEO_BAILOUT;
-        }
     }
 
     ret = (*portPriv->AdaptorRec->ReputImage) (portPriv->pScrn,
@@ -1468,17 +1444,6 @@ xf86XVPutStill(ClientPtr client,
         goto PUT_STILL_BAILOUT;
     }
 
-    if (portPriv->AdaptorRec->flags & VIDEO_NO_CLIPPING) {
-        BoxPtr clipBox = RegionRects(&ClipRegion);
-
-        if ((RegionNumRects(&ClipRegion) != 1) ||
-            (clipBox->x1 != WinBox.x1) || (clipBox->x2 != WinBox.x2) ||
-            (clipBox->y1 != WinBox.y1) || (clipBox->y2 != WinBox.y2)) {
-            clippedAway = TRUE;
-            goto PUT_STILL_BAILOUT;
-        }
-    }
-
     ret = (*portPriv->AdaptorRec->PutStill) (portPriv->pScrn,
                                              vid_x, vid_y, WinBox.x1, WinBox.y1,
                                              vid_w, vid_h, drw_w, drw_h,
@@ -1758,17 +1723,6 @@ xf86XVPutImage(ClientPtr client,
     if (!RegionNotEmpty(&ClipRegion)) {
         clippedAway = TRUE;
         goto PUT_IMAGE_BAILOUT;
-    }
-
-    if (portPriv->AdaptorRec->flags & VIDEO_NO_CLIPPING) {
-        BoxPtr clipBox = RegionRects(&ClipRegion);
-
-        if ((RegionNumRects(&ClipRegion) != 1) ||
-            (clipBox->x1 != WinBox.x1) || (clipBox->x2 != WinBox.x2) ||
-            (clipBox->y1 != WinBox.y1) || (clipBox->y2 != WinBox.y2)) {
-            clippedAway = TRUE;
-            goto PUT_IMAGE_BAILOUT;
-        }
     }
 
     ret = (*portPriv->AdaptorRec->PutImage) (portPriv->pScrn,

@@ -50,7 +50,6 @@ of the copyright holder.
 
 #include "../../Xext/xvdix.h"
 
-#define VIDEO_NO_CLIPPING			0x00000001
 #define VIDEO_OVERLAID_IMAGES			0x00000004
 #define VIDEO_OVERLAID_STILLS			0x00000008
 #define VIDEO_CLIP_TO_VIEWPORT			0x00000010
