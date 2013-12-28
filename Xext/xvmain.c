@@ -1091,3 +1091,42 @@ WriteSwappedPortNotifyEvent(xvEvent * from, xvEvent * to)
     cpswapl(from->u.portNotify.value, to->u.portNotify.value);
 
 }
+
+void
+XvFreeAdaptor(XvAdaptorPtr pAdaptor)
+{
+    int i;
+
+    free(pAdaptor->name);
+    pAdaptor->name = NULL;
+
+    if (pAdaptor->pEncodings) {
+        XvEncodingPtr pEncode = pAdaptor->pEncodings;
+
+        for (i = 0; i < pAdaptor->nEncodings; i++, pEncode++)
+            free(pEncode->name);
+        free(pAdaptor->pEncodings);
+        pAdaptor->pEncodings = NULL;
+    }
+
+    free(pAdaptor->pFormats);
+    pAdaptor->pFormats = NULL;
+
+    free(pAdaptor->pPorts);
+    pAdaptor->pPorts = NULL;
+
+    if (pAdaptor->pAttributes) {
+        XvAttributePtr pAttribute = pAdaptor->pAttributes;
+
+        for (i = 0; i < pAdaptor->nAttributes; i++, pAttribute++)
+            free(pAttribute->name);
+        free(pAdaptor->pAttributes);
+        pAdaptor->pAttributes = NULL;
+    }
+
+    free(pAdaptor->pImages);
+    pAdaptor->pImages = NULL;
+
+    free(pAdaptor->devPriv.ptr);
+    pAdaptor->devPriv.ptr = NULL;
+}

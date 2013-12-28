@@ -193,19 +193,6 @@ KdXVFreeAdaptor(XvAdaptorPtr pAdaptor)
 {
     int i;
 
-    free(pAdaptor->name);
-
-    if (pAdaptor->pEncodings) {
-        XvEncodingPtr pEncode = pAdaptor->pEncodings;
-
-        for (i = 0; i < pAdaptor->nEncodings; i++, pEncode++) {
-            free(pEncode->name);
-        }
-        free(pAdaptor->pEncodings);
-    }
-
-    free(pAdaptor->pFormats);
-
     if (pAdaptor->pPorts) {
         XvPortPtr pPort = pAdaptor->pPorts;
         XvPortRecPrivatePtr pPriv;
@@ -220,22 +207,9 @@ KdXVFreeAdaptor(XvAdaptorPtr pAdaptor)
                 free(pPriv);
             }
         }
-        free(pAdaptor->pPorts);
     }
 
-    if (pAdaptor->nAttributes) {
-        XvAttributePtr pAttribute = pAdaptor->pAttributes;
-
-        for (i = 0; i < pAdaptor->nAttributes; i++, pAttribute++) {
-            free(pAttribute->name);
-        }
-
-        free(pAdaptor->pAttributes);
-    }
-
-    free(pAdaptor->pImages);
-
-    free(pAdaptor->devPriv.ptr);
+    XvFreeAdaptor(pAdaptor);
 }
 
 static Bool

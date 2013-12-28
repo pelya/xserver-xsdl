@@ -235,6 +235,7 @@ extern _X_EXPORT int SProcXvDispatch(ClientPtr);
 extern _X_EXPORT int XvScreenInit(ScreenPtr);
 extern _X_EXPORT DevPrivateKey XvGetScreenKey(void);
 extern _X_EXPORT unsigned long XvGetRTPort(void);
+extern _X_EXPORT void XvFreeAdaptor(XvAdaptorPtr pAdaptor);
 extern _X_EXPORT int XvdiSendPortNotify(XvPortPtr, Atom, INT32);
 extern _X_EXPORT int XvdiVideoStopped(XvPortPtr, int);
 
