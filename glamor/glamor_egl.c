@@ -610,25 +610,6 @@ glamor_egl_close_screen(ScreenPtr screen)
     return screen->CloseScreen(screen);
 }
 
-static Bool
-glamor_egl_has_extension(struct glamor_egl_screen_private *glamor_egl,
-                         const char *extension)
-{
-    const char *pext;
-    int ext_len;
-
-    ext_len = strlen(extension);
-    pext = (const char *) eglQueryString(glamor_egl->display, EGL_EXTENSIONS);
-    if (pext == NULL || extension == NULL)
-        return FALSE;
-    while ((pext = strstr(pext, extension)) != NULL) {
-        if (pext[ext_len] == ' ' || pext[ext_len] == '\0')
-            return TRUE;
-        pext += ext_len;
-    }
-    return FALSE;
-}
-
 static int
 glamor_dri3_open(ScreenPtr screen,
                  RRProviderPtr provider,
@@ -799,14 +780,14 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
     xf86Msg(X_INFO, "%s: EGL version %s:\n", glamor_name, version);
 
 #define GLAMOR_CHECK_EGL_EXTENSION(EXT)  \
-	if (!glamor_egl_has_extension(glamor_egl, "EGL_" #EXT)) {  \
+	if (!epoxy_has_egl_extension(glamor_egl->display, "EGL_" #EXT)) {  \
 		ErrorF("EGL_" #EXT " required.\n");  \
 		return FALSE;  \
 	}
 
 #define GLAMOR_CHECK_EGL_EXTENSIONS(EXT1, EXT2)	 \
-	if (!glamor_egl_has_extension(glamor_egl, "EGL_" #EXT1) &&  \
-	    !glamor_egl_has_extension(glamor_egl, "EGL_" #EXT2)) {  \
+	if (!epoxy_has_egl_extension(glamor_egl->display, "EGL_" #EXT1) &&  \
+	    !epoxy_has_egl_extension(glamor_egl->display, "EGL_" #EXT2)) {  \
 		ErrorF("EGL_" #EXT1 " or EGL_" #EXT2 " required.\n");  \
 		return FALSE;  \
 	}
@@ -821,8 +802,10 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 #endif
 
 #ifdef GLAMOR_HAS_GBM
-    if (glamor_egl_has_extension(glamor_egl, "EGL_KHR_gl_texture_2D_image") &&
-        glamor_egl_has_extension(glamor_egl, "EGL_EXT_image_dma_buf_import"))
+    if (epoxy_has_egl_extension(glamor_egl->display,
+                                "EGL_KHR_gl_texture_2D_image") &&
+        epoxy_has_egl_extension(glamor_egl->display,
+                                "EGL_EXT_image_dma_buf_import"))
         glamor_egl->dri3_capable = TRUE;
 #endif
 
