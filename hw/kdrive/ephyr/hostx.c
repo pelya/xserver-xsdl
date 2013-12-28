@@ -1243,9 +1243,6 @@ ephyr_glamor_create_screen_resources(ScreenPtr pScreen)
     if (!ephyr_glamor)
         return TRUE;
 
-    if (!glamor_glyphs_init(pScreen))
-        return FALSE;
-
     /* kdrive's fbSetupScreen() told mi to have
      * miCreateScreenResources() (which is called before this) make a
      * scratch pixmap wrapping ephyr-glamor's NULL

@@ -271,6 +271,29 @@ glamor_set_debug_level(int *debug_level)
 
 int glamor_debug_level;
 
+/**
+ * Creates any pixmaps used internally by glamor, since those can't be
+ * allocated at ScreenInit time.
+ */
+static Bool
+glamor_create_screen_resources(ScreenPtr screen)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    Bool ret = TRUE;
+
+    screen->CreateScreenResources =
+        glamor_priv->saved_procs.create_screen_resources;
+    if (screen->CreateScreenResources)
+        ret = screen->CreateScreenResources(screen);
+    screen->CreateScreenResources = glamor_create_screen_resources;
+
+    if (!glamor_realize_glyph_caches(screen)) {
+        ErrorF("Failed to initialize glyph cache\n");
+        ret = FALSE;
+    }
+
+    return ret;
+}
 
 /** Set up glamor for an already-configured GL context. */
 Bool
@@ -374,6 +397,10 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_priv->saved_procs.close_screen = screen->CloseScreen;
     screen->CloseScreen = glamor_close_screen;
 
+    glamor_priv->saved_procs.create_screen_resources =
+        screen->CreateScreenResources;
+    screen->CreateScreenResources = glamor_create_screen_resources;
+
     if (flags & GLAMOR_USE_SCREEN) {
         if (!RegisterBlockAndWakeupHandlers(_glamor_block_handler,
                                             _glamor_wakeup_handler,
@@ -457,6 +484,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_init_xv_shader(screen);
 #endif
     glamor_pixmap_init(screen);
+    glamor_glyphs_init(screen);
 
     glamor_priv->flags = flags;
     glamor_priv->screen = screen;
@@ -535,6 +563,8 @@ glamor_close_screen(ScreenPtr screen)
     flags = glamor_priv->flags;
     glamor_glyphs_fini(screen);
     screen->CloseScreen = glamor_priv->saved_procs.close_screen;
+    screen->CreateScreenResources =
+        glamor_priv->saved_procs.create_screen_resources;
     if (flags & GLAMOR_USE_SCREEN) {
 
         screen->CreateGC = glamor_priv->saved_procs.create_gc;

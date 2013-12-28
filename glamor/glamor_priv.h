@@ -173,6 +173,7 @@ typedef struct {
 
 struct glamor_saved_procs {
     CloseScreenProcPtr close_screen;
+    CreateScreenResourcesProcPtr create_screen_resources;
     CreateGCProcPtr create_gc;
     CreatePixmapProcPtr create_pixmap;
     DestroyPixmapProcPtr destroy_pixmap;
@@ -634,6 +635,7 @@ void glamor_get_spans(DrawablePtr drawable,
                       int nspans, char *dst_start);
 
 /* glamor_glyphs.c */
+Bool glamor_realize_glyph_caches(ScreenPtr screen);
 void glamor_glyphs_fini(ScreenPtr screen);
 void glamor_glyphs(CARD8 op,
                    PicturePtr pSrc,
