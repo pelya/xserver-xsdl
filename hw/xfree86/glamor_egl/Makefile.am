@@ -24,6 +24,7 @@ module_LTLIBRARIES = libglamoregl.la
 libglamoregl_la_SOURCES = \
 	$(top_srcdir)/glamor/glamor_egl.c \
 	$(top_srcdir)/glamor/glamor_eglmodule.c \
+	$(top_srcdir)/glamor/glamor_xv.c \
 	$()
 
 libglamoregl_la_LDFLAGS = \

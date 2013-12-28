@@ -41,7 +41,7 @@ static XF86ModuleVersionInfo VersRec = {
     MODINFOSTRING1,
     MODINFOSTRING2,
     XORG_VERSION_CURRENT,
-    0, 5, 1, /* version */
+    1, 0, 0, /* version */
     ABI_CLASS_ANSIC,            /* Only need the ansic layer */
     ABI_ANSIC_VERSION,
     MOD_CLASS_NONE,
