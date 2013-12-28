@@ -61,6 +61,11 @@
 
 #include "driver.h"
 
+#ifdef GLAMOR
+#define GLAMOR_FOR_XORG 1
+#include "glamor.h"
+#endif
+
 static void AdjustFrame(ScrnInfoPtr pScrn, int x, int y);
 static Bool CloseScreen(ScreenPtr pScreen);
 static Bool EnterVT(ScrnInfoPtr pScrn);
@@ -122,12 +127,14 @@ typedef enum {
     OPTION_SW_CURSOR,
     OPTION_DEVICE_PATH,
     OPTION_SHADOW_FB,
+    OPTION_ACCEL_METHOD,
 } modesettingOpts;
 
 static const OptionInfoRec Options[] = {
     {OPTION_SW_CURSOR, "SWcursor", OPTV_BOOLEAN, {0}, FALSE},
     {OPTION_DEVICE_PATH, "kmsdev", OPTV_STRING, {0}, FALSE},
     {OPTION_SHADOW_FB, "ShadowFB", OPTV_BOOLEAN, {0}, FALSE},
+    {OPTION_ACCEL_METHOD, "AccelMethod", OPTV_STRING, {0}, FALSE},
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
@@ -577,6 +584,43 @@ FreeRec(ScrnInfoPtr pScrn)
 
 }
 
+static void
+try_enable_glamor(ScrnInfoPtr pScrn)
+{
+    modesettingPtr ms = modesettingPTR(pScrn);
+    const char *accel_method_str = xf86GetOptValString(ms->Options,
+                                                       OPTION_ACCEL_METHOD);
+    Bool do_glamor = (!accel_method_str ||
+                      strcmp(accel_method_str, "glamor") == 0);
+
+    ms->glamor = FALSE;
+
+#ifdef GLAMOR
+    if (!do_glamor) {
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "glamor disabled\n");
+        return;
+    }
+
+    if (xf86LoadSubModule(pScrn, GLAMOR_EGL_MODULE_NAME)) {
+        if (glamor_egl_init(pScrn, ms->fd)) {
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO, "glamor initialized\n");
+            ms->glamor = TRUE;
+        } else {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                       "glamor initialization failed\n");
+        }
+    } else {
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                   "Failed to load glamor module.\n");
+    }
+#else
+    if (do_glamor) {
+        xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                   "No glamor support in the X Server\n");
+    }
+#endif
+}
+
 #ifndef DRM_CAP_CURSOR_WIDTH
 #define DRM_CAP_CURSOR_WIDTH 0x8
 #endif
@@ -594,7 +638,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     EntPtr msEnt = NULL;
     char *BusID = NULL;
     const char *devicename;
-    Bool prefer_shadow = TRUE;
     uint64_t value = 0;
     int ret;
     int bppflags;
@@ -732,11 +775,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
         ms->drmmode.sw_cursor = TRUE;
     }
 
-    ret = drmGetCap(ms->fd, DRM_CAP_DUMB_PREFER_SHADOW, &value);
-    if (!ret) {
-        prefer_shadow = ! !value;
-    }
-
     ms->cursor_width = 64;
     ms->cursor_height = 64;
     ret = drmGetCap(ms->fd, DRM_CAP_CURSOR_WIDTH, &value);
@@ -748,12 +786,26 @@ PreInit(ScrnInfoPtr pScrn, int flags)
         ms->cursor_height = value;
     }
 
-    ms->drmmode.shadow_enable =
-        xf86ReturnOptValBool(ms->Options, OPTION_SHADOW_FB, prefer_shadow);
+    try_enable_glamor(pScrn);
 
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "ShadowFB: preferred %s, enabled %s\n",
-               prefer_shadow ? "YES" : "NO",
-               ms->drmmode.shadow_enable ? "YES" : "NO");
+    if (!ms->glamor) {
+        Bool prefer_shadow = TRUE;
+
+        ret = drmGetCap(ms->fd, DRM_CAP_DUMB_PREFER_SHADOW, &value);
+        if (!ret) {
+            prefer_shadow = !!value;
+        }
+
+        ms->drmmode.shadow_enable = xf86ReturnOptValBool(ms->Options,
+                                                         OPTION_SHADOW_FB,
+                                                         prefer_shadow);
+
+        xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+                   "ShadowFB: preferred %s, enabled %s\n",
+                   prefer_shadow ? "YES" : "NO",
+                   ms->drmmode.shadow_enable ? "YES" : "NO");
+    }
+
     if (drmmode_pre_init(pScrn, &ms->drmmode, pScrn->bitsPerPixel / 8) == FALSE) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "KMS setup failed\n");
         goto fail;
@@ -831,6 +883,20 @@ CreateScreenResources(ScreenPtr pScreen)
 
     if (!drmmode_set_desired_modes(pScrn, &ms->drmmode))
         return FALSE;
+
+#ifdef GLAMOR
+    if (ms->glamor) {
+        if (!glamor_egl_create_textured_screen_ext(pScreen,
+                                                   ms->drmmode.front_bo->handle,
+                                                   pScrn->displayWidth *
+                                                   pScrn->bitsPerPixel / 8,
+                                                   NULL)) {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                       "glamor_egl_create_textured_screen_ext() failed\n");
+            return FALSE;
+        }
+    }
+#endif
 
     drmmode_uevent_init(pScrn, &ms->drmmode);
 
@@ -983,6 +1049,19 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
     }
 
     fbPictureInit(pScreen, NULL, 0);
+
+#ifdef GLAMOR
+    if (ms->glamor) {
+        if (!glamor_init(pScreen,
+                         GLAMOR_USE_EGL_SCREEN |
+                         GLAMOR_USE_SCREEN |
+                         GLAMOR_USE_PICTURE_SCREEN)) {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                       "Failed to initialize glamor at ScreenInit() time.\n");
+            return FALSE;
+        }
+    }
+#endif
 
     if (ms->drmmode.shadow_enable && !msShadowInit(pScreen)) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "shadow fb init failed\n");

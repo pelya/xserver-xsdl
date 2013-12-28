@@ -74,6 +74,7 @@ typedef struct _modesettingRec {
     Bool dirty_enabled;
 
     uint32_t cursor_width, cursor_height;
+    Bool glamor;
 } modesettingRec, *modesettingPtr;
 
 #define modesettingPTR(p) ((modesettingPtr)((p)->driverPrivate))
