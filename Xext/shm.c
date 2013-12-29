@@ -99,14 +99,10 @@ typedef struct _ShmScrPrivateRec {
 } ShmScrPrivateRec;
 
 static PixmapPtr fbShmCreatePixmap(XSHM_CREATE_PIXMAP_ARGS);
-static int ShmDetachSegment(void */* value */ ,
-                            XID /* shmseg */
-    );
-static void ShmResetProc(ExtensionEntry *       /* extEntry */
-    );
-static void SShmCompletionEvent(xShmCompletionEvent * /* from */ ,
-                                xShmCompletionEvent *   /* to */
-    );
+static int ShmDetachSegment(void *value, XID shmseg);
+static void ShmResetProc(ExtensionEntry *extEntry);
+static void SShmCompletionEvent(xShmCompletionEvent *from,
+                                xShmCompletionEvent *to);
 
 static Bool ShmDestroyPixmap(PixmapPtr pPixmap);
 

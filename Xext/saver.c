@@ -107,9 +107,7 @@ typedef struct _ScreenSaverSuspension {
     int count;
 } ScreenSaverSuspensionRec;
 
-static int ScreenSaverFreeSuspend(void */*value */ ,
-                                  XID   /* id */
-    );
+static int ScreenSaverFreeSuspend(void *value, XID id);
 
 /*
  * each screen has a list of clients requesting
@@ -131,18 +129,14 @@ typedef struct _ScreenSaverEvent {
     CARD32 mask;
 } ScreenSaverEventRec;
 
-static int ScreenSaverFreeEvents(void * /* value */ ,
-                                 XID    /* id */
-    );
+static int ScreenSaverFreeEvents(void * value, XID id);
 
-static Bool setEventMask(ScreenPtr /* pScreen */ ,
-                         ClientPtr /* client */ ,
-                         unsigned long  /* mask */
-    );
+static Bool setEventMask(ScreenPtr      pScreen,
+                         ClientPtr      client,
+                         unsigned long  mask);
 
-static unsigned long getEventMask(ScreenPtr /* pScreen */ ,
-                                  ClientPtr     /* client */
-    );
+static unsigned long getEventMask(ScreenPtr     pScreen,
+                                  ClientPtr     client);
 
 /*
  * when a client sets the screen saver attributes, a resource is
@@ -168,21 +162,16 @@ typedef struct _ScreenSaverAttr {
     unsigned long *values;
 } ScreenSaverAttrRec, *ScreenSaverAttrPtr;
 
-static int ScreenSaverFreeAttr(void */* value */ ,
-                               XID      /* id */
-    );
+static int ScreenSaverFreeAttr(void *value, XID id);
 
-static void FreeAttrs(ScreenSaverAttrPtr        /* pAttr */
-    );
+static void FreeAttrs(ScreenSaverAttrPtr pAttr);
 
-static void FreeScreenAttr(ScreenSaverAttrPtr   /* pAttr */
-    );
+static void FreeScreenAttr(ScreenSaverAttrPtr pAttr);
 
 static void
- SendScreenSaverNotify(ScreenPtr /* pScreen */ ,
-                       int /* state */ ,
-                       Bool     /* forced */
-    );
+SendScreenSaverNotify(ScreenPtr pScreen,
+                      int       state,
+                      Bool      forced);
 
 typedef struct _ScreenSaverScreenPrivate {
     ScreenSaverEventPtr events;
@@ -191,8 +180,7 @@ typedef struct _ScreenSaverScreenPrivate {
     Colormap installedMap;
 } ScreenSaverScreenPrivateRec, *ScreenSaverScreenPrivatePtr;
 
-static ScreenSaverScreenPrivatePtr MakeScreenPrivate(ScreenPtr  /* pScreen */
-    );
+static ScreenSaverScreenPrivatePtr MakeScreenPrivate(ScreenPtr pScreen);
 
 static DevPrivateKeyRec ScreenPrivateKeyRec;
 

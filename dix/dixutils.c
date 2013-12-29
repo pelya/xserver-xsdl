@@ -556,8 +556,7 @@ ProcessWorkQueueZombies(void)
 }
 
 Bool
-QueueWorkProc(Bool (*function)
-              (ClientPtr /* pClient */ , void */* closure */ ),
+QueueWorkProc(Bool (*function) (ClientPtr pClient, void *closure),
               ClientPtr client, void *closure)
 {
     WorkQueuePtr q;

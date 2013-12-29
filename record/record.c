@@ -136,9 +136,8 @@ static int numEnabledRCAPs;
 	return rc; \
 }
 
-static int RecordDeleteContext(void */*value */ ,
-                               XID      /*id */
-    );
+static int RecordDeleteContext(void     *value,
+                               XID      id);
 
 /***************************************************************************/
 
