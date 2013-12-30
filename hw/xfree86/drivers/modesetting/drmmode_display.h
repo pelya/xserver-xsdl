@@ -121,6 +121,9 @@ Bool drmmode_map_cursor_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 void drmmode_free_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 void drmmode_get_default_bpp(ScrnInfoPtr pScrn, drmmode_ptr drmmmode,
                              int *depth, int *bpp);
+struct dumb_bo *dumb_get_bo_from_fd(int drm_fd, int fd, int pitch, int size);
+int dumb_bo_destroy(int fd, struct dumb_bo *bo);
+
 
 #ifndef DRM_CAP_DUMB_PREFERRED_DEPTH
 #define DRM_CAP_DUMB_PREFERRED_DEPTH 3

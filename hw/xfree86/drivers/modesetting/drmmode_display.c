@@ -116,7 +116,7 @@ dumb_bo_unmap(int fd, struct dumb_bo *bo)
 }
 #endif
 
-static int
+int
 dumb_bo_destroy(int fd, struct dumb_bo *bo)
 {
     struct drm_mode_destroy_dumb arg;
@@ -137,8 +137,8 @@ dumb_bo_destroy(int fd, struct dumb_bo *bo)
     return 0;
 }
 
-static struct dumb_bo *
-dumb_get_bo_from_handle(int fd, int handle, int pitch, int size)
+struct dumb_bo *
+dumb_get_bo_from_fd(int fd, int handle, int pitch, int size)
 {
     struct dumb_bo *bo;
     int ret;
@@ -164,7 +164,7 @@ drmmode_SetSlaveBO(PixmapPtr ppix,
     msPixmapPrivPtr ppriv = msGetPixmapPriv(drmmode, ppix);
 
     ppriv->backing_bo =
-        dumb_get_bo_from_handle(drmmode->fd, fd_handle, pitch, size);
+        dumb_get_bo_from_fd(drmmode->fd, fd_handle, pitch, size);
     if (!ppriv->backing_bo)
         return FALSE;
 
