@@ -247,14 +247,6 @@ extern _X_EXPORT PixmapPtr glamor_pixmap_from_fd(ScreenPtr screen,
  * */
 extern _X_EXPORT Bool glamor_egl_init(ScrnInfoPtr scrn, int fd);
 
-/* @glamor_egl_init_textured_pixmap: Initialization for textured pixmap allocation.
- *
- * @screen: Current screen pointer.
- *
- * This function must be called before any textured pixmap's creation including
- * the screen pixmap. Could be called from DDX's screenInit function after the calling
- * to glamor_init..
- */
 extern _X_EXPORT Bool glamor_egl_init_textured_pixmap(ScreenPtr screen);
 
 /* @glamor_egl_create_textured_screen: Create textured screen pixmap.

@@ -831,14 +831,9 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
     return TRUE;
 }
 
+/** Stub to retain compatibility with pre-server-1.16 ABI. */
 Bool
 glamor_egl_init_textured_pixmap(ScreenPtr screen)
 {
-    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
-    struct glamor_egl_screen_private *glamor_egl =
-        glamor_egl_get_screen_private(scrn);
-
-    if (glamor_egl->dri3_capable)
-        glamor_enable_dri3(screen);
     return TRUE;
 }
