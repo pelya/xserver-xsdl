@@ -453,12 +453,12 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
 #endif
 }
 
-PixmapPtr
-glamor_egl_dri3_pixmap_from_fd(ScreenPtr screen,
-                               int fd,
-                               CARD16 width,
-                               CARD16 height,
-                               CARD16 stride, CARD8 depth, CARD8 bpp)
+_X_EXPORT PixmapPtr
+glamor_pixmap_from_fd(ScreenPtr screen,
+                      int fd,
+                      CARD16 width,
+                      CARD16 height,
+                      CARD16 stride, CARD8 depth, CARD8 bpp)
 {
 #ifdef GLAMOR_HAS_GBM
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
