@@ -67,10 +67,12 @@ typedef enum glamor_pixmap_type {
 #define GLAMOR_USE_SCREEN		(1 << 1)
 #define GLAMOR_USE_PICTURE_SCREEN 	(1 << 2)
 #define GLAMOR_USE_EGL_SCREEN		(1 << 3)
+#define GLAMOR_NO_DRI3			(1 << 4)
 #define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS  		\
 				 | GLAMOR_USE_SCREEN 			\
                                  | GLAMOR_USE_PICTURE_SCREEN		\
-				 | GLAMOR_USE_EGL_SCREEN)
+				 | GLAMOR_USE_EGL_SCREEN                \
+                                 | GLAMOR_NO_DRI3)
 
 /* @glamor_init: Initialize glamor internal data structure.
  *

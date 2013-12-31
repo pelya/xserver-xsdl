@@ -36,5 +36,8 @@ libglamoregl_la_LIBADD = \
 	$(top_builddir)/glamor/libglamor.la \
 	$()
 
-AM_CPPFLAGS = $(XORG_INCS)
+AM_CPPFLAGS = $(XORG_INCS) \
+	-I$(top_srcdir)/dri3 \
+	$()
+
 AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS) $(GLAMOR_CFLAGS) $(GBM_CFLAGS)
