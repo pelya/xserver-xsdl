@@ -210,7 +210,8 @@ extern _X_EXPORT int glamor_fd_from_pixmap(ScreenPtr screen,
  *
  * Returns the name on success, -1 on error.
  * */
-extern _X_EXPORT int glamor_name_from_pixmap(PixmapPtr pixmap);
+extern _X_EXPORT int glamor_name_from_pixmap(PixmapPtr pixmap,
+                                             CARD16 *stride, CARD32 *size);
 
 /* @glamor_pixmap_from_fd: Creates a pixmap to wrap a dma-buf fd.
  *

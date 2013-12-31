@@ -441,10 +441,10 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
     }
     else {
         if (glamor_get_fd_from_bo(glamor_egl->fd, bo, &fd)) {
-            *stride = pixmap->devKind;
-            *size = pixmap->devKind * gbm_bo_get_height(bo);
         }
     }
+    *stride = pixmap->devKind;
+    *size = pixmap->devKind * gbm_bo_get_height(bo);
 
     gbm_bo_destroy(bo);
  failure:

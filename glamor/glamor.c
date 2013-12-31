@@ -647,7 +647,7 @@ glamor_fd_from_pixmap(ScreenPtr screen,
 }
 
 int
-glamor_name_from_pixmap(PixmapPtr pixmap)
+glamor_name_from_pixmap(PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
 {
     glamor_pixmap_private *pixmap_priv;
     glamor_screen_private *glamor_priv =
@@ -663,7 +663,7 @@ glamor_name_from_pixmap(PixmapPtr pixmap)
         return glamor_egl_dri3_fd_name_from_tex(pixmap->drawable.pScreen,
                                                 pixmap,
                                                 pixmap_priv->base.fbo->tex,
-                                                TRUE, NULL, NULL);
+                                                TRUE, stride, size);
     default:
         break;
     }
