@@ -398,6 +398,15 @@ ProcAppleWMSetWindowMenu(register ClientPtr client)
                 break;
         }
     }
+
+    /* Check if we bailed out of the above loop due to a request that was too long */
+    if (j < nitems) {
+        free(items);
+        free(shortcuts);
+
+        return BadRequest;
+    }
+
     X11ApplicationSetWindowMenu(nitems, items, shortcuts);
     free(items);
     free(shortcuts);
