@@ -378,6 +378,13 @@ ProcAppleWMSetWindowMenu(register ClientPtr client)
     items = malloc(sizeof(char *) * nitems);
     shortcuts = malloc(sizeof(char) * nitems);
 
+    if (!items || !shortcuts) {
+        free(items);
+        free(shortcuts);
+
+        return BadAlloc;
+    }
+
     max_len = (stuff->length << 2) - sizeof(xAppleWMSetWindowMenuReq);
     bytes = (char *)&stuff[1];
 
