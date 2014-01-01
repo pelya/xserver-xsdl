@@ -123,6 +123,10 @@ ProcAppleDRIQueryDirectRenderingCapable(register ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
+    if (stuff->screen >= screenInfo.numScreens) {
+        return BadValue;
+    }
+
     if (!DRIQueryDirectRenderingCapable(screenInfo.screens[stuff->screen],
                                         &isCapable)) {
         return BadValue;
