@@ -1,0 +1,10 @@
+X11
+hw
+include
+xcb
+xhost
+xkbcomp
+xli
+xli-1.16
+xproto-7.0.24
+lib*
