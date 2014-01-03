@@ -1,14 +1,15 @@
 /*
  * Copyright © 2004 PillowElephantBadgerBankPond 
- 
+ * Copyright © 2014 Sergii Pylypenko
+ *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
  * the above copyright notice appear in all copies and that both that
  * copyright notice and this permission notice appear in supporting
  * documentation, and that the name of PillowElephantBadgerBankPond not be used in
  * advertising or publicity pertaining to distribution of the software without
- * specific, written prior permission.  PillowElephantBadgerBankPond makes no
- * representations about the suitability of this software for any purpose.  It
+ * specific, written prior permission.	PillowElephantBadgerBankPond makes no
+ * representations about the suitability of this software for any purpose.	It
  * is provided "as is" without express or implied warranty.
  *
  * PillowElephantBadgerBankPond DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
@@ -20,7 +21,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  * It's really not my fault - see it was the elephants!!
- * 	- jaymz
+ *	- jaymz
  *
  */
 #ifdef HAVE_CONFIG_H
@@ -56,37 +57,32 @@ static void sdlMouseFini(KdPointerInfo *pi);
 static Status sdlMouseEnable (KdPointerInfo *pi);
 static void sdlMouseDisable (KdPointerInfo *pi);
 
-void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, CARD32 *size, void *closure);
-void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf);
-
-void sdlPollInput(void);
-
 KdKeyboardInfo *sdlKeyboard = NULL;
 KdPointerInfo *sdlPointer = NULL;
 
 KdKeyboardDriver sdlKeyboardDriver = {
-    .name = "keyboard",
-    .Init = sdlKeyboardInit,
-    .Fini = sdlKeyboardFini,
-    .Enable = sdlKeyboardEnable,
-    .Disable = sdlKeyboardDisable,
-    .Leds = sdlKeyboardLeds,
-    .Bell = sdlKeyboardBell,
+	.name = "keyboard",
+	.Init = sdlKeyboardInit,
+	.Fini = sdlKeyboardFini,
+	.Enable = sdlKeyboardEnable,
+	.Disable = sdlKeyboardDisable,
+	.Leds = sdlKeyboardLeds,
+	.Bell = sdlKeyboardBell,
 };
 
 KdPointerDriver sdlMouseDriver = {
-    .name = "mouse",
-    .Init = sdlMouseInit,
-    .Fini = sdlMouseFini,
-    .Enable = sdlMouseEnable,
-    .Disable = sdlMouseDisable,
+	.name = "mouse",
+	.Init = sdlMouseInit,
+	.Fini = sdlMouseFini,
+	.Enable = sdlMouseEnable,
+	.Disable = sdlMouseDisable,
 };
 
 
 KdCardFuncs sdlFuncs = {
-    .scrinit = sdlScreenInit,	/* scrinit */
-    .finishInitScreen = sdlFinishInitScreen, /* finishInitScreen */
-    .createRes = sdlCreateRes,	/* createRes */
+	.scrinit = sdlScreenInit,	/* scrinit */
+	.finishInitScreen = sdlFinishInitScreen, /* finishInitScreen */
+	.createRes = sdlCreateRes,	/* createRes */
 };
 
 int mouseState = 0;
@@ -94,14 +90,84 @@ int mouseState = 0;
 enum { NUMRECTS = 32, FULLSCREEN_REFRESH_TIME = 1000 };
 //Uint32 nextFullScreenRefresh = 0;
 
-struct SdlDriver
+typedef struct
 {
 	SDL_Surface *screen;
-};
+	Rotation randr;
+	Bool shadow;
+} SdlDriver;
+
+Bool
+sdlMapFramebuffer (KdScreenInfo *screen)
+{
+	SdlDriver			*driver = screen->driver;
+	KdPointerMatrix		m;
+
+	printf("%s", __func__);
+
+	if (driver->randr != RR_Rotate_0)
+		driver->shadow = TRUE;
+	else
+		driver->shadow = FALSE;
+
+	KdComputePointerMatrix (&m, driver->randr, screen->width, screen->height);
+
+	KdSetPointerMatrix (&m);
+
+	screen->width = driver->screen->w;
+	screen->height = driver->screen->h;
+
+	if (driver->shadow)
+	{
+		if (!KdShadowFbAlloc (screen,
+							  driver->randr & (RR_Rotate_90|RR_Rotate_270)))
+			return FALSE;
+	}
+	else
+	{
+		screen->fb.byteStride = driver->screen->pitch;
+		screen->fb.pixelStride = driver->screen->w;
+		screen->fb.frameBuffer = (CARD8 *) (driver->screen->pixels);
+	}
+
+	printf("%s: shadow %d\n", __func__, driver->shadow);
+
+	return TRUE;
+}
+
+static void
+sdlSetScreenSizes (ScreenPtr pScreen)
+{
+	KdScreenPriv(pScreen);
+	KdScreenInfo		*screen = pScreenPriv->screen;
+	SdlDriver			*driver = screen->driver;
+
+	if (driver->randr & (RR_Rotate_0|RR_Rotate_180))
+	{
+		pScreen->width = driver->screen->w;
+		pScreen->height = driver->screen->h;
+		pScreen->mmWidth = screen->width_mm;
+		pScreen->mmHeight = screen->height_mm;
+	}
+	else
+	{
+		pScreen->width = driver->screen->h;
+		pScreen->height = driver->screen->w;
+		pScreen->mmWidth = screen->height_mm;
+		pScreen->mmHeight = screen->width_mm;
+	}
+}
+
+static Bool
+sdlUnmapFramebuffer (KdScreenInfo *screen)
+{
+	KdShadowFbFree (screen);
+	return TRUE;
+}
 
 static Bool sdlScreenInit(KdScreenInfo *screen)
 {
-	struct SdlDriver *sdlDriver=calloc(1, sizeof(struct SdlDriver));
+	SdlDriver *driver=calloc(1, sizeof(SdlDriver));
 	printf("sdlScreenInit()\n");
 	if (!screen->width || !screen->height)
 	{
@@ -111,51 +177,77 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 	if (!screen->fb.depth)
 		screen->fb.depth = 4;
 	printf("Attempting for %dx%d/%dbpp mode\n", screen->width, screen->height, screen->fb.depth);
-	sdlDriver->screen=SDL_SetVideoMode(screen->width, screen->height, screen->fb.depth, 0);
-	if(sdlDriver->screen==NULL)
+	driver->screen=SDL_SetVideoMode(screen->width, screen->height, screen->fb.depth, 0);
+	if(driver->screen==NULL)
 		return FALSE;
-	printf("Set %dx%d/%dbpp mode\n", sdlDriver->screen->w, sdlDriver->screen->h, sdlDriver->screen->format->BitsPerPixel);
-	screen->width=sdlDriver->screen->w;
-	screen->height=sdlDriver->screen->h;
-	screen->fb.depth=sdlDriver->screen->format->BitsPerPixel;
+	driver->randr = screen->randr;
+	screen->driver=driver;
+	printf("Set %dx%d/%dbpp mode\n", driver->screen->w, driver->screen->h, driver->screen->format->BitsPerPixel);
+	screen->width=driver->screen->w;
+	screen->height=driver->screen->h;
+	screen->fb.depth=driver->screen->format->BitsPerPixel;
 	screen->fb.visuals=(1<<TrueColor);
-	screen->fb.redMask=sdlDriver->screen->format->Rmask;
-	screen->fb.greenMask=sdlDriver->screen->format->Gmask;
-	screen->fb.blueMask=sdlDriver->screen->format->Bmask;
-	screen->fb.bitsPerPixel=sdlDriver->screen->format->BitsPerPixel;
+	screen->fb.redMask=driver->screen->format->Rmask;
+	screen->fb.greenMask=driver->screen->format->Gmask;
+	screen->fb.blueMask=driver->screen->format->Bmask;
+	screen->fb.bitsPerPixel=driver->screen->format->BitsPerPixel;
 	screen->rate=30; // 60 is too intense for CPU
-	screen->driver=sdlDriver;
-	screen->fb.byteStride=sdlDriver->screen->pitch;
-	screen->fb.pixelStride=sdlDriver->screen->w;
-	screen->fb.frameBuffer=(CARD8 *)sdlDriver->screen->pixels;
+
 	SDL_WM_SetCaption("Freedesktop.org X server (SDL)", NULL);
 
-	return TRUE;
+	return sdlMapFramebuffer (screen);
 }
 
-void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
+static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 {
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
-	struct SdlDriver *sdlDriver=screen->driver;
+	SdlDriver *driver=screen->driver;
 	pixman_box16_t * rects;
 	int amount, i;
 	int updateRectsPixelCount = 0;
-	
-	/*
+	ShadowUpdateProc update;
+
+#ifndef __ANDROID__
 	// Not needed on Android
-	if(SDL_MUSTLOCK(sdlDriver->screen))
+	if(SDL_MUSTLOCK(driver->screen))
 	{
-		if(SDL_LockSurface(sdlDriver->screen)<0)
+		if(SDL_LockSurface(driver->screen)<0)
 		{
 			printf("Couldn't lock SDL surface - d'oh!\n");
 			return;
 		}
 	}
 	
-	if(SDL_MUSTLOCK(sdlDriver->screen))
-		SDL_UnlockSurface(sdlDriver->screen);
-	*/
+	if(SDL_MUSTLOCK(driver->screen))
+		SDL_UnlockSurface(driver->screen);
+#endif
+
+	if (driver->randr)
+	{
+		if (driver->screen->format->BitsPerPixel == 16)
+		{
+			switch (driver->randr) {
+			case RR_Rotate_90:
+				update = shadowUpdateRotate16_90YX;
+				break;
+			case RR_Rotate_180:
+				update = shadowUpdateRotate16_180;
+				break;
+			case RR_Rotate_270:
+				update = shadowUpdateRotate16_270YX;
+				break;
+			default:
+				update = shadowUpdateRotate16;
+				break;
+			}
+		} else
+			update = shadowUpdateRotatePacked;
+	}
+	else
+		update = shadowUpdatePacked;
+
+	update(pScreen, pBuf);
 
 	rects = pixman_region_rectangles(&pBuf->pDamage->damage, &amount);
 	for ( i = 0; i < amount; i++ )
@@ -166,12 +258,12 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 	// Each subrect is copied into temp buffer before uploading to OpenGL texture,
 	// so if total area of pixels copied is more than 1/3 of the whole screen area,
 	// there will be performance hit instead of optimization.
-	//printf("sdlShadowUpdate: time %d", SDL_GetTicks());
+	printf("sdlShadowUpdate: time %d", SDL_GetTicks());
 
-	if ( amount > NUMRECTS || updateRectsPixelCount * 3 > sdlDriver->screen->w * sdlDriver->screen->h )
+	if ( amount > NUMRECTS || updateRectsPixelCount * 3 > driver->screen->w * driver->screen->h )
 	{
 		//printf("SDL_Flip");
-		SDL_Flip(sdlDriver->screen);
+		SDL_Flip(driver->screen);
 		//nextFullScreenRefresh = 0;
 	}
 	else
@@ -188,20 +280,24 @@ void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 			//printf("sdlShadowUpdate: rect %d: %04d:%04d:%04d:%04d", i, rects[i].x1, rects[i].y1, rects[i].x2, rects[i].y2);
 		}
 		//printf("SDL_UpdateRects %d %d", SDL_GetTicks(), amount);
-		SDL_UpdateRects(sdlDriver->screen, amount, updateRects);
+		SDL_UpdateRects(driver->screen, amount, updateRects);
 	}
-	SDL_Flip(sdlDriver->screen);
+	SDL_Flip(driver->screen);
 }
 
 
-void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, CARD32 *size, void *closure)
+static void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, CARD32 *size, void *closure)
 {
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
-	struct SdlDriver *sdlDriver = screen->driver;
-	*size = sdlDriver->screen->pitch;
+	SdlDriver *driver = screen->driver;
+
+	if (!pScreenPriv->enabled)
+		return 0;
+
+	*size = driver->screen->pitch;
 	//printf("Shadow window()\n");
-	return (void *)((CARD8 *)sdlDriver->screen->pixels + row * (*size) + offset);
+	return (void *)((CARD8 *)driver->screen->pixels + row * (*size) + offset);
 }
 
 
@@ -209,44 +305,169 @@ static Bool sdlCreateRes(ScreenPtr pScreen)
 {
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
-	KdShadowFbAlloc(screen, 0);
-	KdShadowSet(pScreen, RR_Rotate_0, sdlShadowUpdate, sdlShadowWindow);
+	SdlDriver *driver = screen->driver;
+
+	return KdShadowSet (pScreen, driver->randr, sdlShadowUpdate, sdlShadowWindow);
+}
+
+
+#ifdef RANDR
+static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
+{
+	KdScreenPriv(pScreen);
+	KdScreenInfo			*screen = pScreenPriv->screen;
+	SdlDriver				*driver = screen->driver;
+	RRScreenSizePtr			pSize;
+	Rotation				randr;
+	int						n;
+
+	printf("%s", __func__);
+
+	*rotations = RR_Rotate_All|RR_Reflect_All;
+
+	for (n = 0; n < pScreen->numDepths; n++)
+		if (pScreen->allowedDepths[n].numVids)
+			break;
+	if (n == pScreen->numDepths)
+		return FALSE;
+
+	pSize = RRRegisterSize (pScreen,
+							screen->width,
+							screen->height,
+							screen->width_mm,
+							screen->height_mm);
+
+	randr = KdSubRotation (driver->randr, screen->randr);
+
+	RRSetCurrentConfig (pScreen, randr, 0, pSize);
+
 	return TRUE;
 }
+
+static Bool sdlRandRSetConfig (ScreenPtr			pScreen,
+					 Rotation			randr,
+					 int				rate,
+					 RRScreenSizePtr	pSize)
+{
+	KdScreenPriv(pScreen);
+	KdScreenInfo		*screen = pScreenPriv->screen;
+	SdlDriver			*driver = screen->driver;
+	Bool				wasEnabled = pScreenPriv->enabled;
+	SdlDriver			oldDriver;
+	int					oldwidth;
+	int					oldheight;
+	int					oldmmwidth;
+	int					oldmmheight;
+
+	printf("%s", __func__);
+
+	if (wasEnabled)
+		KdDisableScreen (pScreen);
+
+	oldDriver = *driver;
+
+	oldwidth = screen->width;
+	oldheight = screen->height;
+	oldmmwidth = pScreen->mmWidth;
+	oldmmheight = pScreen->mmHeight;
+
+	/*
+	 * Set new configuration
+	 */
+
+	driver->randr = KdAddRotation (screen->randr, randr);
+
+	sdlUnmapFramebuffer (screen);
+
+	if (!sdlMapFramebuffer (screen))
+		goto bail4;
+
+	KdShadowUnset (screen->pScreen);
+
+	if (!sdlCreateRes (screen->pScreen))
+		goto bail4;
+
+	sdlSetScreenSizes (screen->pScreen);
+
+	/*
+	 * Set frame buffer mapping
+	 */
+	(*pScreen->ModifyPixmapHeader) (fbGetScreenPixmap (pScreen),
+									pScreen->width,
+									pScreen->height,
+									screen->fb.depth,
+									screen->fb.bitsPerPixel,
+									screen->fb.byteStride,
+									screen->fb.frameBuffer);
+
+	/* set the subpixel order */
+
+	KdSetSubpixelOrder (pScreen, driver->randr);
+	if (wasEnabled)
+		KdEnableScreen (pScreen);
+
+	return TRUE;
+
+bail4:
+	sdlUnmapFramebuffer (screen);
+	*driver = oldDriver;
+	(void) sdlMapFramebuffer (screen);
+	pScreen->width = oldwidth;
+	pScreen->height = oldheight;
+	pScreen->mmWidth = oldmmwidth;
+	pScreen->mmHeight = oldmmheight;
+
+	if (wasEnabled)
+		KdEnableScreen (pScreen);
+	return FALSE;
+}
+
+static Bool sdlRandRInit (ScreenPtr pScreen)
+{
+	rrScrPrivPtr	pScrPriv;
+
+	if (!RRScreenInit (pScreen))
+		return FALSE;
+
+	pScrPriv = rrGetScrPriv(pScreen);
+	pScrPriv->rrGetInfo = sdlRandRGetInfo;
+	pScrPriv->rrSetConfig = sdlRandRSetConfig;
+	return TRUE;
+}
+#endif
+
 
 static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 {
 	if (!shadowSetup (pScreen))
 		return FALSE;
-		
-/*
+
 #ifdef RANDR
 	if (!sdlRandRInit (pScreen))
 		return FALSE;
 #endif
-*/
 	return TRUE;
 }
 
 static void sdlKeyboardFini(KdKeyboardInfo *ki)
 {
-    printf("sdlKeyboardFini() %p\n", ki);
-    sdlKeyboard = NULL;
+	printf("sdlKeyboardFini() %p\n", ki);
+	sdlKeyboard = NULL;
 }
 
 static Status sdlKeyboardInit(KdKeyboardInfo *ki)
 {
-        ki->minScanCode = 8;
-        ki->maxScanCode = 255;
+		ki->minScanCode = 8;
+		ki->maxScanCode = 255;
 
 	sdlKeyboard = ki;
-    printf("sdlKeyboardInit() %p\n", ki);
-        return Success;
+	printf("sdlKeyboardInit() %p\n", ki);
+		return Success;
 }
 
 static Status sdlKeyboardEnable (KdKeyboardInfo *ki)
 {
-    return Success;
+	return Success;
 }
 
 static void sdlKeyboardDisable (KdKeyboardInfo *ki)
@@ -263,31 +484,31 @@ static void sdlKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int 
 
 static Status sdlMouseInit (KdPointerInfo *pi)
 {
-    sdlPointer = pi;
-    printf("sdlMouseInit() %p\n", pi);
-    return Success;
+	sdlPointer = pi;
+	printf("sdlMouseInit() %p\n", pi);
+	return Success;
 }
 
 static void sdlMouseFini(KdPointerInfo *pi)
 {
-    printf("sdlMouseFini() %p\n", pi);
-    sdlPointer = NULL;
+	printf("sdlMouseFini() %p\n", pi);
+	sdlPointer = NULL;
 }
 
 static Status sdlMouseEnable (KdPointerInfo *pi)
 {
-    return Success;
+	return Success;
 }
 
 static void sdlMouseDisable (KdPointerInfo *pi)
 {
-    return;
+	return;
 }
 
 
 void InitCard(char *name)
 {
-        KdCardInfoAdd (&sdlFuncs,  0);
+		KdCardInfoAdd (&sdlFuncs,  0);
 	printf("InitCard: %s\n", name);
 }
 
@@ -299,18 +520,18 @@ void InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 
 void InitInput(int argc, char **argv)
 {
-        KdPointerInfo *pi;
-        KdKeyboardInfo *ki;
+		KdPointerInfo *pi;
+		KdKeyboardInfo *ki;
 
-        KdAddKeyboardDriver(&sdlKeyboardDriver);
-        KdAddPointerDriver(&sdlMouseDriver);
-        
-        ki = KdParseKeyboard("keyboard");
-        KdAddKeyboard(ki);
-        pi = KdParsePointer("mouse");
-        KdAddPointer(pi);
+		KdAddKeyboardDriver(&sdlKeyboardDriver);
+		KdAddPointerDriver(&sdlMouseDriver);
+		
+		ki = KdParseKeyboard("keyboard");
+		KdAddKeyboard(ki);
+		pi = KdParsePointer("mouse");
+		KdAddPointer(pi);
 
-        KdInitInput();
+		KdInitInput();
 }
 
 #ifdef DDXBEFORERESET
@@ -329,7 +550,7 @@ int ddxProcessArgument(int argc, char **argv, int i)
 	return KdProcessArgument(argc, argv, i);
 }
 
-void sdlPollInput(void)
+static void sdlPollInput(void)
 {
 	static int buttonState=0;
 	static int pressure = 0;
@@ -437,7 +658,7 @@ static void xsdlFini(void)
 void
 CloseInput (void)
 {
-    KdCloseInput ();
+	KdCloseInput ();
 }
 
 KdOsFuncs sdlOsFuncs={
@@ -448,5 +669,5 @@ KdOsFuncs sdlOsFuncs={
 
 void OsVendorInit (void)
 {
-    KdOsInit (&sdlOsFuncs);
+	KdOsInit (&sdlOsFuncs);
 }
