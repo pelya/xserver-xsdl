@@ -203,13 +203,12 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 {
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
-	SdlDriver *driver=screen->driver;
+	SdlDriver *driver = screen->driver;
 	pixman_box16_t * rects;
 	int amount, i;
 	int updateRectsPixelCount = 0;
-	ShadowUpdateProc update;
 
-	printf("sdlShadowUpdate: time %d", SDL_GetTicks());
+	//printf("sdlShadowUpdate: time %d", SDL_GetTicks());
 
 #ifndef __ANDROID__
 	// Not needed on Android
@@ -226,33 +225,37 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 		SDL_UnlockSurface(driver->screen);
 #endif
 
-	if (driver->randr)
+	if (driver->shadow)
 	{
-		/*
-		if (driver->screen->format->BitsPerPixel == 16)
+		ShadowUpdateProc update;
+		if (driver->randr)
 		{
-			switch (driver->randr) {
-			case RR_Rotate_90:
-				update = shadowUpdateRotate16_90YX;
-				break;
-			case RR_Rotate_180:
-				update = shadowUpdateRotate16_180;
-				break;
-			case RR_Rotate_270:
-				update = shadowUpdateRotate16_270YX;
-				break;
-			default:
-				update = shadowUpdateRotate16;
-				break;
-			}
-		} else
-		*/
-			update = shadowUpdateRotatePacked;
-	}
-	else
-		update = shadowUpdatePacked;
+			/*
+			if (driver->screen->format->BitsPerPixel == 16)
+			{
+				switch (driver->randr) {
+				case RR_Rotate_90:
+					update = shadowUpdateRotate16_90YX;
+					break;
+				case RR_Rotate_180:
+					update = shadowUpdateRotate16_180;
+					break;
+				case RR_Rotate_270:
+					update = shadowUpdateRotate16_270YX;
+					break;
+				default:
+					update = shadowUpdateRotate16;
+					break;
+				}
+			} else
+			*/
+				update = shadowUpdateRotatePacked;
+		}
+		else
+			update = shadowUpdatePacked;
 
-	update(pScreen, pBuf);
+		update(pScreen, pBuf);
+	}
 
 	rects = pixman_region_rectangles(&pBuf->pDamage->damage, &amount);
 	for ( i = 0; i < amount; i++ )
@@ -266,7 +269,7 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 
 	if ( amount > NUMRECTS || updateRectsPixelCount * 3 > driver->screen->w * driver->screen->h )
 	{
-		printf("SDL_Flip\n");
+		//printf("SDL_Flip\n");
 		SDL_Flip(driver->screen);
 		//nextFullScreenRefresh = 0;
 	}
@@ -283,7 +286,7 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 			updateRects[i].h = rects[i].y2 - rects[i].y1;
 			//printf("sdlShadowUpdate: rect %d: %04d:%04d:%04d:%04d", i, rects[i].x1, rects[i].y1, rects[i].x2, rects[i].y2);
 		}
-		printf("SDL_UpdateRects %d\n", amount);
+		//printf("SDL_UpdateRects %d\n", amount);
 		SDL_UpdateRects(driver->screen, amount, updateRects);
 	}
 	SDL_Flip(driver->screen);
@@ -312,10 +315,17 @@ static Bool sdlCreateRes(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
 	SdlDriver *driver = screen->driver;
+	Bool oldShadow = screen->fb.shadow;
 
 	printf("%s\n", __func__);
 
-	return KdShadowSet (pScreen, driver->randr, sdlShadowUpdate, sdlShadowWindow);
+	// Hack: Kdrive assumes we have dumb videobuffer, which updates automatically,
+	// and does not call update callback if shadow flag is not set.
+	screen->fb.shadow = TRUE;
+	KdShadowSet (pScreen, driver->randr, sdlShadowUpdate, sdlShadowWindow);
+	screen->fb.shadow = oldShadow;
+
+	return TRUE;
 }
 
 
