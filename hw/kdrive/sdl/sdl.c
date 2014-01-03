@@ -28,13 +28,16 @@
 #endif
 #include "kdrive.h"
 #include <SDL/SDL.h>
-#include <SDL/SDL_screenkeyboard.h>
 #include <X11/keysym.h>
+
+#ifdef __ANDROID__
+#include <SDL/SDL_screenkeyboard.h>
 #include <android/log.h>
 
 // DEBUG
 //#define printf(...)
 #define printf(...) __android_log_print(ANDROID_LOG_INFO, "XSDL", __VA_ARGS__)
+#endif
 
 static void xsdlFini(void);
 static Bool sdlScreenInit(KdScreenInfo *screen);
@@ -375,12 +378,14 @@ void sdlPollInput(void)
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
+#ifdef __ANDROID__
 				if (event.key.keysym.sym == SDLK_HELP)
 				{
 					if(event.type == SDL_KEYUP)
 						SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
 				}
 				else
+#endif
 				if (event.key.keysym.sym == SDLK_UNDO)
 				{
 					if(event.type == SDL_KEYUP)
