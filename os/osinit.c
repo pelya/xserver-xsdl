@@ -173,12 +173,14 @@ OsInit(void)
         act.sa_handler = OsSigHandler;
         act.sa_flags = 0;
 #endif
+#ifndef __ANDROID__ /* No signal handling on Android, let it crash and print backtrace */
 	for (i = 0; siglist[i] != 0; i++) {
 	    if (sigaction(siglist[i], &act, &oact)) {
 		ErrorF("failed to install signal handler for signal %d: %s\n",
 		       siglist[i], strerror(errno));
 	    }
 	}
+#endif
 #ifdef HAVE_BACKTRACE
 	/*
 	 * initialize the backtracer, since the ctor calls dlopen(), which
