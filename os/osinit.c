@@ -170,7 +170,7 @@ OsInit(void)
 #endif
 
     if (!been_here) {
-#if !defined(WIN32) || defined(__CYGWIN__)
+#if !defined(WIN32) || defined(__CYGWIN__) || defined(__ANDROID__)
         struct sigaction act, oact;
         int i;
 

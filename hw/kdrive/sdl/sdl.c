@@ -105,7 +105,7 @@ sdlMapFramebuffer (KdScreenInfo *screen)
 	SdlDriver			*driver = screen->driver;
 	KdPointerMatrix		m;
 
-	if (driver->randr != RR_Rotate_0 && !driver->randr)
+	if (driver->randr != RR_Rotate_0)
 		driver->shadow = TRUE;
 	else
 		driver->shadow = FALSE;
@@ -116,6 +116,8 @@ sdlMapFramebuffer (KdScreenInfo *screen)
 
 	screen->width = driver->screen->w;
 	screen->height = driver->screen->h;
+
+	printf("%s: shadow %d\n", __func__, driver->shadow);
 
 	if (driver->shadow)
 	{
@@ -129,8 +131,6 @@ sdlMapFramebuffer (KdScreenInfo *screen)
 		screen->fb.pixelStride = driver->screen->w;
 		screen->fb.frameBuffer = (CARD8 *) (driver->screen->pixels);
 	}
-
-	printf("%s: shadow %d\n", __func__, driver->shadow);
 
 	return TRUE;
 }
@@ -377,8 +377,6 @@ static Bool sdlRandRSetConfig (ScreenPtr			pScreen,
 	int					oldmmwidth;
 	int					oldmmheight;
 
-	printf("%s", __func__);
-
 	if (wasEnabled)
 		KdDisableScreen (pScreen);
 
@@ -394,6 +392,8 @@ static Bool sdlRandRSetConfig (ScreenPtr			pScreen,
 	 */
 
 	driver->randr = KdAddRotation (screen->randr, randr);
+
+	printf("%s driver->randr %d", __func__, driver->randr);
 
 	sdlUnmapFramebuffer (screen);
 
