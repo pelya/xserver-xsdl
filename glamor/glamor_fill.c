@@ -27,9 +27,13 @@
 
 #include "glamor_priv.h"
 
-/** @file glamor_fillspans.c
+/** @file glamor_fill.c
  *
  * GC fill implementation, based loosely on fb_fill.c
+ */
+
+/**
+ * Fills the given rectangle of a drawable with the GC's fill style.
  */
 Bool
 glamor_fill(DrawablePtr drawable,
@@ -261,6 +265,12 @@ _glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
     glamor_priv->render_idle_cnt = 0;
 }
 
+/**
+ * Fills the given rectangles of pixmap with an X pixel value.
+ *
+ * This is a helper used by other code after clipping and translation
+ * of coordinates to a glamor backing pixmap.
+ */
 Bool
 glamor_solid_boxes(PixmapPtr pixmap,
                    BoxPtr box, int nbox, unsigned long fg_pixel)
@@ -308,6 +318,12 @@ glamor_solid_boxes(PixmapPtr pixmap,
     return TRUE;
 }
 
+/**
+ * Fills a rectangle of a pixmap with an X pixel value.
+ *
+ * This is a helper used by other glamor code mostly for clearing of
+ * buffers to 0.
+ */
 Bool
 glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
              unsigned char alu, unsigned long planemask, unsigned long fg_pixel)
