@@ -641,10 +641,15 @@ static void sdlPollInput(void)
 					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
 				break;
 			case SDL_JOYAXISMOTION:
-				if(event.jaxis.which == 0 && event.jaxis.axis == 4)
+				if (event.jaxis.which == 0 && event.jaxis.axis == 4)
 					pressure = event.jaxis.value;
 				break;
-
+			case SDL_ACTIVEEVENT:
+				// We need this to re-init OpenGL and redraw screen
+				// And we need to also call this when OpenGL context was destroyed
+				// Oherwise SDL will stuck and we will get a permanent black screen
+				SDL_Flip(SDL_GetVideoSurface());
+				break;
 			//case SDL_QUIT:
 				/* this should never happen */
 				//SDL_Quit(); // SDL_Quit() on Android is buggy
