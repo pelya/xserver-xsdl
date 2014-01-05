@@ -226,17 +226,17 @@ _glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
 
     while (nbox) {
         int box_cnt, i;
-        float *valid_vertices;
+        float *next_box;
 
-        valid_vertices = pvertices;
+        next_box = pvertices;
         box_cnt = nbox > valid_nbox ? valid_nbox : nbox;
         for (i = 0; i < box_cnt; i++) {
             glamor_set_normalize_vcoords(pixmap_priv, xscale, yscale,
                                          box[i].x1, box[i].y1,
                                          box[i].x2, box[i].y2,
                                          glamor_priv->yInverted,
-                                         valid_vertices);
-            valid_vertices += 4 * 2;
+                                         next_box);
+            next_box += 4 * 2;
         }
         if (box_cnt == 1)
             glDrawArrays(GL_TRIANGLE_FAN, 0, box_cnt * 4);
