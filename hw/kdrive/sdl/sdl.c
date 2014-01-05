@@ -289,7 +289,6 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 		//printf("SDL_UpdateRects %d\n", amount);
 		SDL_UpdateRects(driver->screen, amount, updateRects);
 	}
-	SDL_Flip(driver->screen);
 }
 
 
