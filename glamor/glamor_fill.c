@@ -189,7 +189,7 @@ _glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
     GLfloat xscale, yscale;
     float vertices[32];
     float *pvertices = vertices;
-    int valid_nbox = ARRAY_SIZE(vertices);
+    int valid_nbox = ARRAY_SIZE(vertices) / (4 * 2);
 
     glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 
