@@ -220,8 +220,15 @@ typedef struct glamor_screen_private {
 
     /* vertext/elment_index buffer object for render */
     GLuint vbo, ebo;
+    /** Next offset within the VBO that glamor_get_vbo_space() will use. */
     int vbo_offset;
     int vbo_size;
+    /**
+     * Pointer to glamor_get_vbo_space()'s current VBO mapping.
+     *
+     * Note that this is not necessarily equal to the pointer returned
+     * by glamor_get_vbo_space(), so it can't be used in place of that.
+     */
     char *vb;
     int vb_stride;
     Bool has_source_coords, has_mask_coords;
@@ -743,6 +750,17 @@ void glamor_triangles(CARD8 op,
 
 void glamor_pixmap_init(ScreenPtr screen);
 void glamor_pixmap_fini(ScreenPtr screen);
+
+/* glamor_vbo.c */
+
+void glamor_init_vbo(ScreenPtr screen);
+void glamor_fini_vbo(ScreenPtr screen);
+
+void *
+glamor_get_vbo_space(ScreenPtr screen, unsigned size, char **vbo_offset);
+
+void
+glamor_put_vbo_space(ScreenPtr screen);
 
 /** 
  * Download a pixmap's texture to cpu memory. If success,

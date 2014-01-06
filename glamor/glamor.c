@@ -439,6 +439,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     ps->DestroyPicture = glamor_destroy_picture;
     glamor_init_composite_shaders(screen);
 #endif
+    glamor_init_vbo(screen);
     glamor_init_pixmap_fbo(screen);
     glamor_init_solid_shader(screen);
     glamor_init_tile_shader(screen);
@@ -478,6 +479,7 @@ glamor_release_screen_priv(ScreenPtr screen)
 #ifdef RENDER
     glamor_fini_composite_shaders(screen);
 #endif
+    glamor_fini_vbo(screen);
     glamor_fini_pixmap_fbo(screen);
     glamor_fini_solid_shader(screen);
     glamor_fini_tile_shader(screen);
