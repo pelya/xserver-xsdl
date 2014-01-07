@@ -3956,6 +3956,8 @@ CheckPassiveGrabsOnWindow(WindowPtr pWin,
         return NULL;
 
     tempGrab = AllocGrab(NULL);
+    if (tempGrab == NULL)
+        return NULL;
 
     /* Fill out the grab details, but leave the type for later before
      * comparing */
