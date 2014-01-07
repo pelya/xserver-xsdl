@@ -5051,7 +5051,7 @@ ProcUngrabPointer(ClientPtr client)
  * @param other_mode GrabModeSync or GrabModeAsync
  * @param status Return code to be returned to the caller.
  *
- * @returns Success or BadValue.
+ * @returns Success or BadValue or BadAlloc.
  */
 int
 GrabDevice(ClientPtr client, DeviceIntPtr dev,
@@ -5132,6 +5132,8 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
         GrabPtr tempGrab;
 
         tempGrab = AllocGrab(NULL);
+        if (tempGrab == NULL)
+            return BadAlloc;
 
         tempGrab->next = NULL;
         tempGrab->window = pWin;
