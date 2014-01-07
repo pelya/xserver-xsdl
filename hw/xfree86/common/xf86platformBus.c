@@ -52,7 +52,7 @@ int platformSlotClaimed;
 
 int xf86_num_platform_devices;
 
-static struct xf86_platform_device *xf86_platform_devices;
+struct xf86_platform_device *xf86_platform_devices;
 
 int
 xf86_add_platform_device(struct OdevAttributes *attribs, Bool unowned)
