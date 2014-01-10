@@ -291,8 +291,21 @@ typedef enum glamor_access {
     GLAMOR_ACCESS_WO,
 } glamor_access_t;
 
-#define GLAMOR_FBO_NORMAL     1
-#define GLAMOR_FBO_DOWNLOADED 2
+enum glamor_fbo_state {
+    /** There is no storage attached to the pixmap. */
+    GLAMOR_FBO_UNATTACHED,
+    /**
+     * The pixmap has FBO storage attached, but devPrivate.ptr doesn't
+     * point at anything.
+     */
+    GLAMOR_FBO_NORMAL,
+    /**
+     * The FBO is present and can be accessed as a linear memory
+     * mapping through devPrivate.ptr.
+     */
+    GLAMOR_FBO_DOWNLOADED,
+};
+
 /* glamor_pixmap_fbo:
  * @list:    to be used to link to the cache pool list.
  * @expire:  when push to cache pool list, set a expire count.
@@ -324,12 +337,6 @@ typedef struct glamor_pixmap_fbo {
 
 /*
  * glamor_pixmap_private - glamor pixmap's private structure.
- * @gl_fbo:
- * 	0 		  	- The pixmap doesn't has a fbo attached to it.
- * 	GLAMOR_FBO_NORMAL 	- The pixmap has a fbo and can be accessed normally.
- * 	GLAMOR_FBO_DOWNLOADED 	- The pixmap has a fbo and already downloaded to
- * 				  CPU, so it can only be treated as a in-memory pixmap
- * 				  if this bit is set.
  * @gl_tex:  The pixmap is in a gl texture originally.
  * @is_picture: The drawable is attached to a picture.
  * @pict_format: the corresponding picture's format.
@@ -403,7 +410,7 @@ typedef struct glamor_pixmap_clipped_regions {
 
 typedef struct glamor_pixmap_private_base {
     glamor_pixmap_type_t type;
-    unsigned char gl_fbo:2;
+    enum glamor_fbo_state gl_fbo;
     unsigned char is_picture:1;
     unsigned char gl_tex:1;
     glamor_pixmap_fbo *fbo;
@@ -777,7 +784,7 @@ glamor_put_vbo_space(ScreenPtr screen);
  * One copy of current pixmap's texture will be put into
  * the pixmap->devPrivate.ptr. Will use pbo to map to 
  * the pointer if possible.
- * The pixmap must be a gl texture pixmap. gl_fbo and
+ * The pixmap must be a gl texture pixmap. gl_fbo must be GLAMOR_FBO_NORMAL and
  * gl_tex must be 1. Used by glamor_prepare_access.
  *
  */
@@ -792,9 +799,8 @@ void *glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w,
  * glamor_download_pixmap_to_cpu to its original 
  * gl texture. Used by glamor_finish_access. 
  *
- * The pixmap must be
- * in texture originally. In other word, the gl_fbo
- * must be 1.
+ * The pixmap must originally be a texture -- gl_fbo must be
+ * GLAMOR_FBO_NORMAL.
  **/
 void glamor_restore_pixmap_to_texture(PixmapPtr pixmap);
 

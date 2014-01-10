@@ -886,7 +886,7 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha,
     pixmap_priv = glamor_get_pixmap_private(pixmap);
     glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 
-    if (pixmap_priv->base.gl_fbo)
+    if (pixmap_priv->base.gl_fbo != GLAMOR_FBO_UNATTACHED)
         return 0;
 
     if (pixmap_priv->base.fbo

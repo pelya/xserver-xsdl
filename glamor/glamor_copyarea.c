@@ -137,7 +137,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
     dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
 
-    if (!src_pixmap_priv->base.gl_fbo) {
+    if (src_pixmap_priv->base.gl_fbo == GLAMOR_FBO_UNATTACHED) {
 #ifndef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
         glamor_delayed_fallback(dst->pScreen, "src has no fbo.\n");
         return FALSE;
