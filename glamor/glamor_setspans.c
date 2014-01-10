@@ -48,7 +48,11 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
         goto fail;
     }
 
-    /* XXX Shall we set alu here? */
+    if (gc->alu != GXcopy) {
+        glamor_fallback("SetSpans with non-copy ALU.\n");
+        goto fail;
+    }
+
     if (!glamor_set_planemask(dest_pixmap, gc->planemask))
         goto fail;
 
