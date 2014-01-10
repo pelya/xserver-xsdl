@@ -288,7 +288,6 @@ typedef struct glamor_screen_private {
 typedef enum glamor_access {
     GLAMOR_ACCESS_RO,
     GLAMOR_ACCESS_RW,
-    GLAMOR_ACCESS_WO,
 } glamor_access_t;
 
 enum glamor_fbo_state {

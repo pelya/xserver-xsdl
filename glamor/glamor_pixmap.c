@@ -1216,8 +1216,6 @@ _glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, GLenum format,
         gl_access = GL_READ_ONLY;
         gl_usage = GL_STREAM_READ;
         break;
-    case GLAMOR_ACCESS_WO:
-        return bits;
     case GLAMOR_ACCESS_RW:
         gl_access = GL_READ_WRITE;
         gl_usage = GL_DYNAMIC_DRAW;
@@ -1472,8 +1470,7 @@ glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access)
 
     stride = pixmap->devKind;
 
-    if (access == GLAMOR_ACCESS_WO
-        || glamor_priv->gl_flavor == GLAMOR_GL_ES2
+    if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
         || (!glamor_priv->has_pack_invert && !glamor_priv->yInverted)
         || pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
         data = malloc(stride * pixmap->drawable.height);
@@ -1603,12 +1600,6 @@ glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y, int w, int h,
         return NULL;
     w = (x + w) > pixmap->drawable.width ? (pixmap->drawable.width - x) : w;
     h = (y + h) > pixmap->drawable.height ? (pixmap->drawable.height - y) : h;
-    if (access == GLAMOR_ACCESS_WO) {
-        sub_pixmap = glamor_create_pixmap(pixmap->drawable.pScreen, w, h,
-                                          pixmap->drawable.depth,
-                                          GLAMOR_CREATE_PIXMAP_CPU);
-        return sub_pixmap;
-    }
 
     glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
     pixmap_priv = glamor_get_pixmap_private(pixmap);
