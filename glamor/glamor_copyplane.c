@@ -39,10 +39,12 @@ _glamor_copy_plane(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
         goto fail;
 
     if (glamor_prepare_access(pDst, GLAMOR_ACCESS_RW) &&
-        glamor_prepare_access(pSrc, GLAMOR_ACCESS_RO)) {
+        glamor_prepare_access(pSrc, GLAMOR_ACCESS_RO) &&
+        glamor_prepare_access_gc(pGC)) {
         *pRegion = fbCopyPlane(pSrc, pDst, pGC, srcx, srcy, w, h,
                                dstx, dsty, bitPlane);
     }
+    glamor_finish_access_gc(pGC);
     glamor_finish_access(pSrc);
     glamor_finish_access(pDst);
     return TRUE;
