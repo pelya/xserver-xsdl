@@ -570,15 +570,13 @@ _glamor_copy_n_to_n(DrawablePtr src,
                     glamor_get_drawable_location(src),
                     glamor_get_drawable_location(dst));
 
-    if (glamor_prepare_access(dst, GLAMOR_ACCESS_RW)) {
-        if (dst == src || glamor_prepare_access(src, GLAMOR_ACCESS_RO)) {
-            fbCopyNtoN(src, dst, gc, box, nbox,
-                       dx, dy, reverse, upsidedown, bitplane, closure);
-            if (dst != src)
-                glamor_finish_access(src, GLAMOR_ACCESS_RO);
-        }
-        glamor_finish_access(dst, GLAMOR_ACCESS_RW);
+    if (glamor_prepare_access(dst, GLAMOR_ACCESS_RW) &&
+        glamor_prepare_access(src, GLAMOR_ACCESS_RO)) {
+        fbCopyNtoN(src, dst, gc, box, nbox,
+                   dx, dy, reverse, upsidedown, bitplane, closure);
     }
+    glamor_finish_access(src);
+    glamor_finish_access(dst);
     ok = TRUE;
 
  done:

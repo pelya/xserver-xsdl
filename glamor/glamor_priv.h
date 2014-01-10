@@ -578,7 +578,7 @@ void glamor_copy_window(WindowPtr win, DDXPointRec old_origin,
 
 /* glamor_core.c */
 Bool glamor_prepare_access(DrawablePtr drawable, glamor_access_t access);
-void glamor_finish_access(DrawablePtr drawable, glamor_access_t access);
+void glamor_finish_access(DrawablePtr drawable);
 Bool glamor_prepare_access_window(WindowPtr window);
 void glamor_finish_access_window(WindowPtr window);
 Bool glamor_prepare_access_gc(GCPtr gc);
@@ -904,7 +904,7 @@ void glamor_set_window_pixmap(WindowPtr pWindow, PixmapPtr pPixmap);
 
 Bool glamor_prepare_access_picture(PicturePtr picture, glamor_access_t access);
 
-void glamor_finish_access_picture(PicturePtr picture, glamor_access_t access);
+void glamor_finish_access_picture(PicturePtr picture);
 
 void glamor_destroy_picture(PicturePtr picture);
 

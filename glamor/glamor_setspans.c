@@ -88,8 +88,8 @@ _glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
                     drawable, glamor_get_drawable_location(drawable));
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
         fbSetSpans(drawable, gc, src, points, widths, numPoints, sorted);
-        glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
     }
+    glamor_finish_access(drawable);
     ret = TRUE;
 
  done:

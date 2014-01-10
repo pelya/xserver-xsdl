@@ -105,13 +105,12 @@ _glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
         return FALSE;
 
     if (gc->lineWidth == 0) {
-        if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
-            if (glamor_prepare_access_gc(gc)) {
-                fbPolyLine(drawable, gc, mode, n, points);
-                glamor_finish_access_gc(gc);
-            }
-            glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
+        if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW) &&
+            glamor_prepare_access_gc(gc)) {
+            fbPolyLine(drawable, gc, mode, n, points);
         }
+        glamor_finish_access_gc(gc);
+        glamor_finish_access(drawable);
     }
     else {
  wide_line:

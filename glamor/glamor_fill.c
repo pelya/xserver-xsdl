@@ -112,13 +112,12 @@ glamor_fill(DrawablePtr drawable,
         x = 0;
         y = 0;
     }
-    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
-        if (glamor_prepare_access_gc(gc)) {
-            fbFill(drawable, gc, x, y, width, height);
-            glamor_finish_access_gc(gc);
-        }
-        glamor_finish_access(drawable, GLAMOR_ACCESS_RW);
+    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW) &&
+        glamor_prepare_access_gc(gc)) {
+        fbFill(drawable, gc, x, y, width, height);
     }
+    glamor_finish_access_gc(gc);
+    glamor_finish_access(drawable);
 
     if (sub_pixmap != NULL) {
         if (gc->fillStyle != FillSolid) {

@@ -304,7 +304,7 @@ glamor_fini_finish_access_shaders(ScreenPtr screen)
 }
 
 void
-glamor_finish_access(DrawablePtr drawable, glamor_access_t access_mode)
+glamor_finish_access(DrawablePtr drawable)
 {
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -370,7 +370,7 @@ glamor_prepare_access_gc(GCPtr gc)
         if (!glamor_prepare_access(&gc->tile.pixmap->drawable,
                                    GLAMOR_ACCESS_RO)) {
             if (gc->stipple)
-                glamor_finish_access(&gc->stipple->drawable, GLAMOR_ACCESS_RO);
+                glamor_finish_access(&gc->stipple->drawable);
             return FALSE;
         }
     }
@@ -384,9 +384,9 @@ void
 glamor_finish_access_gc(GCPtr gc)
 {
     if (gc->fillStyle == FillTiled)
-        glamor_finish_access(&gc->tile.pixmap->drawable, GLAMOR_ACCESS_RO);
+        glamor_finish_access(&gc->tile.pixmap->drawable);
     if (gc->stipple)
-        glamor_finish_access(&gc->stipple->drawable, GLAMOR_ACCESS_RO);
+        glamor_finish_access(&gc->stipple->drawable);
 }
 
 Bool
@@ -460,7 +460,7 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
                     (&old_tile->drawable, GLAMOR_ACCESS_RO)) {
                     new_tile =
                         fb24_32ReformatTile(old_tile, drawable->bitsPerPixel);
-                    glamor_finish_access(&old_tile->drawable, GLAMOR_ACCESS_RO);
+                    glamor_finish_access(&old_tile->drawable);
                 }
             }
             if (new_tile) {
@@ -483,8 +483,7 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
                 if (glamor_prepare_access
                     (&gc->tile.pixmap->drawable, GLAMOR_ACCESS_RW)) {
                     fbPadPixmap(gc->tile.pixmap);
-                    glamor_finish_access
-                        (&gc->tile.pixmap->drawable, GLAMOR_ACCESS_RW);
+                    glamor_finish_access(&gc->tile.pixmap->drawable);
                 }
             }
         }
@@ -500,7 +499,7 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
          */
         if (glamor_prepare_access(&gc->stipple->drawable, GLAMOR_ACCESS_RW)) {
             fbValidateGC(gc, changes, drawable);
-            glamor_finish_access(&gc->stipple->drawable, GLAMOR_ACCESS_RW);
+            glamor_finish_access(&gc->stipple->drawable);
         }
     }
     else {
@@ -544,7 +543,7 @@ glamor_bitmap_to_region(PixmapPtr pixmap)
     if (!glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RO))
         return NULL;
     ret = fbPixmapToRegion(pixmap);
-    glamor_finish_access(&pixmap->drawable, GLAMOR_ACCESS_RO);
+    glamor_finish_access(&pixmap->drawable);
     return ret;
 }
 
