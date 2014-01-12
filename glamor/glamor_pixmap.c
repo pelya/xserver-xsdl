@@ -726,8 +726,10 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, unsigned int *tex,
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
     assert(pbo || bits != 0);
-    if (bits == NULL)
+    if (bits == NULL) {
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+    }
     if (non_sub)
         glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, bits);
     else
