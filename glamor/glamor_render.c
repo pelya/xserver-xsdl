@@ -1189,7 +1189,6 @@ glamor_composite_with_shader(CARD8 op,
     PictFormatShort saved_source_format = 0;
     float src_matrix[9], mask_matrix[9];
     float *psrc_matrix = NULL, *pmask_matrix = NULL;
-    int vert_stride = 4;
     int nrect_max;
     Bool ret = FALSE;
     glamor_composite_shader *shader = NULL, *shader_ca = NULL;
@@ -1238,7 +1237,6 @@ glamor_composite_with_shader(CARD8 op,
             psrc_matrix = src_matrix;
             glamor_picture_get_matrixf(source, psrc_matrix);
         }
-        vert_stride += 4;
     }
 
     if (glamor_priv->has_mask_coords) {
@@ -1250,11 +1248,9 @@ glamor_composite_with_shader(CARD8 op,
             pmask_matrix = mask_matrix;
             glamor_picture_get_matrixf(mask, pmask_matrix);
         }
-        vert_stride += 4;
     }
 
-    nrect_max = (vert_stride * nrect) > GLAMOR_COMPOSITE_VBO_VERT_CNT ?
-        (GLAMOR_COMPOSITE_VBO_VERT_CNT / vert_stride) : nrect;
+    nrect_max = MIN(nrect, GLAMOR_COMPOSITE_VBO_VERT_CNT / 4);
 
     while (nrect) {
         int mrect, rect_processed;
@@ -1262,7 +1258,7 @@ glamor_composite_with_shader(CARD8 op,
         float *vertices;
 
         mrect = nrect > nrect_max ? nrect_max : nrect;
-        vertices = glamor_setup_composite_vbo(screen, mrect * vert_stride);
+        vertices = glamor_setup_composite_vbo(screen, mrect * 4);
         rect_processed = mrect;
         vb_stride = glamor_priv->vb_stride / sizeof(float);
         while (mrect--) {
