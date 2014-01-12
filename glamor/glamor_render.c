@@ -793,30 +793,29 @@ glamor_set_normalize_tcoords_generic(glamor_pixmap_private *priv,
                                      float *matrix,
                                      float xscale, float yscale,
                                      int x1, int y1, int x2, int y2,
-                                     int yInverted, float *texcoords,
+                                     float *texcoords,
                                      int stride)
 {
     if (!matrix && repeat_type == RepeatNone)
         glamor_set_normalize_tcoords_ext(priv, xscale, yscale,
                                          x1, y1,
-                                         x2, y2, yInverted, texcoords, stride);
+                                         x2, y2, texcoords, stride);
     else if (matrix && repeat_type == RepeatNone)
         glamor_set_transformed_normalize_tcoords_ext(priv, matrix, xscale,
                                                      yscale, x1, y1,
                                                      x2, y2,
-                                                     yInverted,
                                                      texcoords, stride);
     else if (!matrix && repeat_type != RepeatNone)
         glamor_set_repeat_normalize_tcoords_ext(priv, repeat_type,
                                                 xscale, yscale,
                                                 x1, y1,
                                                 x2, y2,
-                                                yInverted, texcoords, stride);
+                                                texcoords, stride);
     else if (matrix && repeat_type != RepeatNone)
         glamor_set_repeat_transformed_normalize_tcoords_ext(priv, repeat_type,
                                                             matrix, xscale,
                                                             yscale, x1, y1, x2,
-                                                            y2, yInverted,
+                                                            y2,
                                                             texcoords, stride);
 }
 
@@ -1266,7 +1265,7 @@ glamor_composite_with_shader(CARD8 op,
             glamor_set_normalize_vcoords_ext(dest_pixmap_priv, dst_xscale,
                                              dst_yscale, x_dest, y_dest,
                                              x_dest + width, y_dest + height,
-                                             glamor_priv->yInverted, vertices,
+                                             vertices,
                                              vb_stride);
             vertices += 2;
             if (key.source != SHADER_SOURCE_SOLID) {
@@ -1276,7 +1275,6 @@ glamor_composite_with_shader(CARD8 op,
                                                      src_yscale, x_source,
                                                      y_source, x_source + width,
                                                      y_source + height,
-                                                     glamor_priv->yInverted,
                                                      vertices, vb_stride);
                 vertices += 2;
             }
@@ -1288,7 +1286,6 @@ glamor_composite_with_shader(CARD8 op,
                                                      mask_yscale, x_mask,
                                                      y_mask, x_mask + width,
                                                      y_mask + height,
-                                                     glamor_priv->yInverted,
                                                      vertices, vb_stride);
                 vertices += 2;
             }

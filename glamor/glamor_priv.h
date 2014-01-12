@@ -200,7 +200,6 @@ struct glamor_saved_procs {
 #define RENDER_IDEL_MAX 32
 
 typedef struct glamor_screen_private {
-    Bool yInverted;
     unsigned int tick;
     enum glamor_gl_flavor gl_flavor;
     int glsl_version;

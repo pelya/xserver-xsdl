@@ -328,11 +328,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         return FALSE;
 
     glamor_priv->flags = flags;
-    if (flags & GLAMOR_INVERTED_Y_AXIS) {
-        glamor_priv->yInverted = TRUE;
-    }
-    else
-        glamor_priv->yInverted = FALSE;
 
     if (!dixRegisterPrivateKey(&glamor_screen_private_key, PRIVATE_SCREEN, 0)) {
         LogMessage(X_WARNING,

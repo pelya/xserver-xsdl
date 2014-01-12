@@ -360,7 +360,7 @@ glamor_xv_render(glamor_port_private *port_priv)
                                      dsty,
                                      dstx + dstw,
                                      dsty + dsth,
-                                     glamor_priv->yInverted, vertices);
+                                     vertices);
 
         glamor_set_normalize_tcoords(src_pixmap_priv[0],
                                      src_xscale[0],
@@ -369,7 +369,7 @@ glamor_xv_render(glamor_port_private *port_priv)
                                      srcy,
                                      srcx + srcw,
                                      srcy + srch,
-                                     glamor_priv->yInverted, texcoords);
+                                     texcoords);
 
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }

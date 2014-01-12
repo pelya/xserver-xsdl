@@ -1245,8 +1245,7 @@ ephyr_glamor_init(ScreenPtr screen)
 
     glamor_init(screen,
                 GLAMOR_USE_SCREEN |
-                GLAMOR_USE_PICTURE_SCREEN |
-                GLAMOR_INVERTED_Y_AXIS);
+                GLAMOR_USE_PICTURE_SCREEN);
 
     return TRUE;
 }

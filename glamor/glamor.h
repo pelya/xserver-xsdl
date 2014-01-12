@@ -63,7 +63,7 @@ typedef enum glamor_pixmap_type {
 } glamor_pixmap_type_t;
 
 #define GLAMOR_EGL_EXTERNAL_BUFFER 3
-#define GLAMOR_INVERTED_Y_AXIS  	1
+#define GLAMOR_INVERTED_Y_AXIS         1 /* compat stub */
 #define GLAMOR_USE_SCREEN		(1 << 1)
 #define GLAMOR_USE_PICTURE_SCREEN 	(1 << 2)
 #define GLAMOR_USE_EGL_SCREEN		(1 << 3)
@@ -78,12 +78,6 @@ typedef enum glamor_pixmap_type {
  *
  * @screen: Current screen pointer.
  * @flags:  Please refer the flags description above.
- *
- * 	@GLAMOR_INVERTED_Y_AXIS:
- * 	set 1 means the GL env's origin (0,0) is at top-left.
- * 	EGL/DRM platform is an example need to set this bit.
- * 	glx platform's origin is at bottom-left thus need to
- * 	clear this bit.
  *
  * 	@GLAMOR_USE_SCREEN:
  *	If running in an pre-existing X environment, and the
