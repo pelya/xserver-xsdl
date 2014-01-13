@@ -64,6 +64,10 @@
 /* 0x08 is reserved for legacy XI86_SEND_DRAG_EVENTS, do not use for now */
 /* server-internal only */
 #define XI86_DEVICE_DISABLED    0x10    /* device was disabled before vt switch */
+#define XI86_SERVER_FD		0x20	/* fd is managed by xserver */
+
+/* Input device driver capabilities */
+#define XI86_DRV_CAP_SERVER_FD	0x01
 
 /* This holds the input driver entry and module information. */
 typedef struct _InputDriverRec {
@@ -76,6 +80,7 @@ typedef struct _InputDriverRec {
                     struct _InputInfoRec * pInfo, int flags);
     void *module;
     const char **default_options;
+    int capabilities;
 } InputDriverRec, *InputDriverPtr;
 
 /* This is to input devices what the ScrnInfoRec is to screens. */
@@ -96,6 +101,8 @@ typedef struct _InputInfoRec {
       int *valuators, int first_valuator, int num_valuators);
 
     int fd;
+    int major;
+    int minor;
     DeviceIntPtr dev;
     void *private;
     const char *type_name;

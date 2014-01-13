@@ -949,6 +949,12 @@ NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
                 goto unwind;
             }
         }
+
+        if (strcmp(key, "major") == 0)
+            pInfo->major = atoi(value);
+
+        if (strcmp(key, "minor") == 0)
+            pInfo->minor = atoi(value);
     }
 
     nt_list_for_each_entry(option, options, list.next) {
