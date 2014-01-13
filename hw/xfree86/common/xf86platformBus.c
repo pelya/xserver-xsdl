@@ -128,6 +128,20 @@ xf86_get_platform_device_unowned(int index)
         TRUE : FALSE;
 }
 
+struct xf86_platform_device *
+xf86_find_platform_device_by_devnum(int major, int minor)
+{
+    int i, attr_major, attr_minor;
+
+    for (i = 0; i < xf86_num_platform_devices; i++) {
+        attr_major = xf86_get_platform_int_attrib(i, ODEV_ATTRIB_MAJOR, 0);
+        attr_minor = xf86_get_platform_int_attrib(i, ODEV_ATTRIB_MINOR, 0);
+        if (attr_major == major && attr_minor == minor)
+            return &xf86_platform_devices[i];
+    }
+    return NULL;
+}
+
 /*
  * xf86IsPrimaryPlatform() -- return TRUE if primary device
  * is a platform device and it matches this one.

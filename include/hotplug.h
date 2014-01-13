@@ -78,6 +78,12 @@ config_odev_free_attributes(struct OdevAttributes *attribs);
 #define ODEV_ATTRIB_SYSPATH 2
 /* DRI-style bus id */
 #define ODEV_ATTRIB_BUSID 3
+/* Server managed FD */
+#define ODEV_ATTRIB_FD 4
+/* Major number of the device node pointed to by ODEV_ATTRIB_PATH */
+#define ODEV_ATTRIB_MAJOR 5
+/* Minor number of the device node pointed to by ODEV_ATTRIB_PATH */
+#define ODEV_ATTRIB_MINOR 6
 
 typedef void (*config_odev_probe_proc_ptr)(struct OdevAttributes *attribs);
 void config_odev_probe(config_odev_probe_proc_ptr probe_callback);
@@ -88,4 +94,8 @@ void DeleteGPUDeviceRequest(struct OdevAttributes *attribs);
 #endif
 
 #define ServerIsNotSeat0() (SeatId && strcmp(SeatId, "seat0"))
+
+struct xf86_platform_device *
+xf86_find_platform_device_by_devnum(int major, int minor);
+
 #endif                          /* HOTPLUG_H */

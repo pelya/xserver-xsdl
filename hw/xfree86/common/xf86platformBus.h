@@ -35,6 +35,7 @@ struct xf86_platform_device {
 
 /* xf86_platform_device flags */
 #define XF86_PDEV_UNOWNED       0x01
+#define XF86_PDEV_SERVER_FD     0x02
 
 #ifdef XSERVER_PLATFORM_BUS
 int xf86platformProbe(void);
