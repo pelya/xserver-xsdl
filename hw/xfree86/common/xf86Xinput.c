@@ -63,6 +63,7 @@
 #include "mipointer.h"
 #include "extinit.h"
 #include "loaderProcs.h"
+#include "systemd-logind.h"
 
 #include "exevents.h"           /* AddInputDevice */
 #include "exglobals.h"
@@ -80,6 +81,7 @@
 
 #include <stdarg.h>
 #include <stdint.h>             /* for int64_t */
+#include <unistd.h>
 
 #include "mi.h"
 
@@ -773,6 +775,11 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
         /* Else the entry wasn't in the xf86InputDevs list (ignore this). */
     }
 
+    if (pInp->flags & XI86_SERVER_FD) {
+        systemd_logind_release_fd(pInp->major, pInp->minor);
+        close(pInp->fd);
+    }
+
     free((void *) pInp->driver);
     free((void *) pInp->name);
     xf86optionListFree(pInp->options);
@@ -816,6 +823,7 @@ xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL enable)
 {
     InputDriverPtr drv = NULL;
     DeviceIntPtr dev = NULL;
+    Bool paused;
     int rval;
 
     /* Memory leak for every attached device if we don't
@@ -828,6 +836,16 @@ xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL enable)
         xf86Msg(X_ERROR, "No input driver matching `%s'\n", pInfo->driver);
         rval = BadName;
         goto unwind;
+    }
+
+    if (drv->capabilities & XI86_DRV_CAP_SERVER_FD) {
+        pInfo->fd = systemd_logind_take_fd(pInfo->major, pInfo->minor,
+                                           pInfo->attrs->device, &paused);
+        if (pInfo->fd != -1) {
+            /* FIXME handle paused */
+            pInfo->flags |= XI86_SERVER_FD;
+            pInfo->options = xf86ReplaceIntOption(pInfo->options, "fd", fd);
+        }
     }
 
     xf86Msg(X_INFO, "Using input driver '%s' for '%s'\n", drv->driverName,

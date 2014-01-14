@@ -27,10 +27,12 @@
 #include <dix-config.h>
 #endif
 
+#include <unistd.h>
 #include "os.h"
 #include "inputstr.h"
 #include "hotplug.h"
 #include "config-backends.h"
+#include "systemd-logind.h"
 
 void
 config_pre_init(void)
@@ -235,10 +237,21 @@ void
 config_odev_free_attributes(struct OdevAttributes *attribs)
 {
     struct OdevAttribute *iter, *safe;
+    int major = 0, minor = 0, fd = -1;
 
     xorg_list_for_each_entry_safe(iter, safe, &attribs->list, member) {
+        switch (iter->attrib_id) {
+        case ODEV_ATTRIB_MAJOR: major = iter->attrib_value; break;
+        case ODEV_ATTRIB_MINOR: minor = iter->attrib_value; break;
+        case ODEV_ATTRIB_FD: fd = iter->attrib_value; break;
+        }
         xorg_list_del(&iter->member);
         free(iter->attrib_name);
         free(iter);
+    }
+
+    if (fd != -1) {
+        systemd_logind_release_fd(major, minor);
+        close(fd);
     }
 }

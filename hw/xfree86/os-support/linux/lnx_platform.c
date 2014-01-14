@@ -18,16 +18,38 @@
 #include "xf86Bus.h"
 
 #include "hotplug.h"
+#include "systemd-logind.h"
 
 static Bool
 get_drm_info(struct OdevAttributes *attribs, char *path, int delayed_index)
 {
     drmSetVersion sv;
     char *buf;
-    int fd;
+    int major, minor, fd;
     int err = 0;
+    Bool paused, server_fd = FALSE;
 
-    fd = open(path, O_RDWR, O_CLOEXEC);
+    major = config_odev_get_int_attribute(attribs, ODEV_ATTRIB_MAJOR, 0);
+    minor = config_odev_get_int_attribute(attribs, ODEV_ATTRIB_MINOR, 0);
+
+    fd = systemd_logind_take_fd(major, minor, path, &paused);
+    if (fd != -1) {
+        if (paused) {
+            LogMessage(X_ERROR,
+                    "Error systemd-logind returned paused fd for drm node\n");
+            systemd_logind_release_fd(major, minor);
+            return FALSE;
+        }
+        if (!config_odev_add_int_attribute(attribs, ODEV_ATTRIB_FD, fd)) {
+            systemd_logind_release_fd(major, minor);
+            return FALSE;
+        }
+        server_fd = TRUE;
+    }
+
+    if (fd == -1)
+        fd = open(path, O_RDWR, O_CLOEXEC);
+
     if (fd == -1)
         return FALSE;
 
@@ -48,12 +70,16 @@ get_drm_info(struct OdevAttributes *attribs, char *path, int delayed_index)
             delayed_index = xf86_num_platform_devices - 1;
     }
 
+    if (server_fd)
+        xf86_platform_devices[delayed_index].flags |= XF86_PDEV_SERVER_FD;
+
     buf = drmGetBusid(fd);
     xf86_add_platform_device_attrib(delayed_index,
                                     ODEV_ATTRIB_BUSID, buf);
     drmFreeBusid(buf);
 out:
-    close(fd);
+    if (!server_fd)
+        close(fd);
     return (err == 0);
 }
 
