@@ -112,6 +112,10 @@ device_added(struct udev_device *udev_device)
         if (strncmp(sysname, "card", 4) != 0)
             return;
 
+        /* Check for devices already added through xf86platformProbe() */
+        if (xf86_find_platform_device_by_devnum(major(devnum), minor(devnum)))
+            return;
+
         LogMessage(X_INFO, "config/udev: Adding drm device (%s)\n", path);
 
         config_udev_odev_setup_attribs(path, syspath, major(devnum),
