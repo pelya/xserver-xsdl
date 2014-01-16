@@ -87,12 +87,6 @@ xf86OpenConsole(void)
     const char *vcs[] = { "/dev/vc/%d", "/dev/tty%d", NULL };
 
     if (serverGeneration == 1) {
-
-        /* when KeepTty check if we're run with euid==0 */
-        if (KeepTty && geteuid() != 0)
-            FatalError("xf86OpenConsole:"
-                       " Server must be suid root for option \"KeepTTY\"\n");
-
         /*
          * setup the virtual terminal manager
          */
