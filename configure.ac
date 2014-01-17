@@ -491,17 +491,14 @@ XORG_FONTSUBDIR(FONTTYPE1DIR, fonttype1dir, Type1)
 XORG_FONTSUBDIR(FONT75DPIDIR, font75dpidir, 75dpi)
 XORG_FONTSUBDIR(FONT100DPIDIR, font100dpidir, 100dpi)
 
-dnl Uses --default-font-path if set, otherwise checks for /etc/X11/fontpath.d,
-dnl otherwise uses standard subdirectories of FONTROOTDIR. When cross
-dnl compiling, assume default font path uses standard FONTROOTDIR directories.
+dnl Uses --with-default-font-path if set, otherwise uses standard
+dnl subdirectories of FONTROOTDIR. Some distros set the default font path to
+dnl "catalogue:/etc/X11/fontpath.d,built-ins"
 DEFAULT_FONT_PATH="${FONTMISCDIR}/,${FONTTTFDIR}/,${FONTOTFDIR}/,${FONTTYPE1DIR}/,${FONT100DPIDIR}/,${FONT75DPIDIR}/"
-if test "$cross_compiling" != yes; then
-	AC_CHECK_FILE([${sysconfdir}/X11/fontpath.d],
-		[DEFAULT_FONT_PATH='catalogue:${sysconfdir}/X11/fontpath.d'],
-		[case $host_os in
-			darwin*) DEFAULT_FONT_PATH="${DEFAULT_FONT_PATH},/Library/Fonts,/System/Library/Fonts" ;;
-		esac])
-fi
+case $host_os in
+    darwin*) DEFAULT_FONT_PATH="${DEFAULT_FONT_PATH},/Library/Fonts,/System/Library/Fonts" ;;
+esac
+
 AC_ARG_WITH(default-font-path, AS_HELP_STRING([--with-default-font-path=PATH], [Comma separated list of font dirs]),
 				[ FONTPATH="$withval" ],
 				[ FONTPATH="${DEFAULT_FONT_PATH}" ])
