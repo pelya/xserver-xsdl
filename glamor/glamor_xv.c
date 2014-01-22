@@ -154,7 +154,7 @@ static XF86ImageRec Images[NUM_IMAGES] = {
 };
 
 static void
-glamor_xv_stop_video(ScrnInfoPtr pScrn, pointer data, Bool cleanup)
+glamor_xv_stop_video(ScrnInfoPtr pScrn, void *data, Bool cleanup)
 {
     glamor_port_private *port_priv = (glamor_port_private *) data;
     int i;
@@ -172,7 +172,7 @@ glamor_xv_stop_video(ScrnInfoPtr pScrn, pointer data, Bool cleanup)
 
 static int
 glamor_xv_set_port_attribute(ScrnInfoPtr pScrn,
-                             Atom attribute, INT32 value, pointer data)
+                             Atom attribute, INT32 value, void *data)
 {
     glamor_port_private *port_priv = (glamor_port_private *) data;
 
@@ -195,7 +195,7 @@ glamor_xv_set_port_attribute(ScrnInfoPtr pScrn,
 
 static int
 glamor_xv_get_port_attribute(ScrnInfoPtr pScrn,
-                             Atom attribute, INT32 *value, pointer data)
+                             Atom attribute, INT32 *value, void *data)
 {
     glamor_port_private *port_priv = (glamor_port_private *) data;
 
@@ -222,7 +222,7 @@ glamor_xv_query_best_size(ScrnInfoPtr pScrn,
                           Bool motion,
                           short vid_w, short vid_h,
                           short drw_w, short drw_h,
-                          unsigned int *p_w, unsigned int *p_h, pointer data)
+                          unsigned int *p_w, unsigned int *p_h, void *data)
 {
     *p_w = drw_w;
     *p_h = drw_h;
@@ -440,7 +440,7 @@ glamor_xv_put_image(ScrnInfoPtr pScrn,
                     short width,
                     short height,
                     Bool sync,
-                    RegionPtr clipBoxes, pointer data, DrawablePtr pDrawable)
+                    RegionPtr clipBoxes, void *data, DrawablePtr pDrawable)
 {
     ScreenPtr screen = xf86ScrnToScreen(pScrn);
     glamor_port_private *port_priv = (glamor_port_private *) data;
@@ -622,7 +622,7 @@ glamor_xv_init(ScreenPtr screen, int num_texture_ports)
 
         REGION_NULL(pScreen, &pPriv->clip);
 
-        adapt->pPortPrivates[i].ptr = (pointer) (pPriv);
+        adapt->pPortPrivates[i].ptr = (void *) (pPriv);
     }
     return adapt;
 }

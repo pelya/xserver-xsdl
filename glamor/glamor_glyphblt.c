@@ -31,7 +31,7 @@
 static Bool
 _glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                         int x, int y, unsigned int nglyph,
-                        CharInfoPtr *ppci, pointer pglyphBase, Bool fallback)
+                        CharInfoPtr *ppci, void *pglyphBase, Bool fallback)
 {
     if (!fallback && glamor_ddx_fallback_check_pixmap(pDrawable)
         && glamor_ddx_fallback_check_gc(pGC))
@@ -44,7 +44,7 @@ _glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
 void
 glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                        int x, int y, unsigned int nglyph,
-                       CharInfoPtr *ppci, pointer pglyphBase)
+                       CharInfoPtr *ppci, void *pglyphBase)
 {
     _glamor_image_glyph_blt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase,
                             TRUE);
@@ -53,7 +53,7 @@ glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
 Bool
 glamor_image_glyph_blt_nf(DrawablePtr pDrawable, GCPtr pGC,
                           int x, int y, unsigned int nglyph,
-                          CharInfoPtr *ppci, pointer pglyphBase)
+                          CharInfoPtr *ppci, void *pglyphBase)
 {
     return _glamor_image_glyph_blt(pDrawable, pGC, x, y, nglyph, ppci,
                                    pglyphBase, FALSE);
@@ -62,7 +62,7 @@ glamor_image_glyph_blt_nf(DrawablePtr pDrawable, GCPtr pGC,
 static Bool
 _glamor_poly_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                        int x, int y, unsigned int nglyph,
-                       CharInfoPtr *ppci, pointer pglyphBase, Bool fallback)
+                       CharInfoPtr *ppci, void *pglyphBase, Bool fallback)
 {
     if (!fallback && glamor_ddx_fallback_check_pixmap(pDrawable)
         && glamor_ddx_fallback_check_gc(pGC))
@@ -75,7 +75,7 @@ _glamor_poly_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
 void
 glamor_poly_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                       int x, int y, unsigned int nglyph,
-                      CharInfoPtr *ppci, pointer pglyphBase)
+                      CharInfoPtr *ppci, void *pglyphBase)
 {
     _glamor_poly_glyph_blt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase,
                            TRUE);
@@ -84,7 +84,7 @@ glamor_poly_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
 Bool
 glamor_poly_glyph_blt_nf(DrawablePtr pDrawable, GCPtr pGC,
                          int x, int y, unsigned int nglyph,
-                         CharInfoPtr *ppci, pointer pglyphBase)
+                         CharInfoPtr *ppci, void *pglyphBase)
 {
     return _glamor_poly_glyph_blt(pDrawable, pGC, x, y, nglyph, ppci,
                                   pglyphBase, FALSE);

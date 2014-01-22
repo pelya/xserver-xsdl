@@ -411,13 +411,13 @@ extern _X_EXPORT Bool glamor_image_glyph_blt_nf(DrawablePtr pDrawable,
                                                 GCPtr pGC, int x, int y,
                                                 unsigned int nglyph,
                                                 CharInfoPtr *ppci,
-                                                pointer pglyphBase);
+                                                void *pglyphBase);
 
 extern _X_EXPORT Bool glamor_poly_glyph_blt_nf(DrawablePtr pDrawable, GCPtr pGC,
                                                int x, int y,
                                                unsigned int nglyph,
                                                CharInfoPtr *ppci,
-                                               pointer pglyphBase);
+                                               void *pglyphBase);
 
 extern _X_EXPORT Bool glamor_push_pixels_nf(GCPtr pGC, PixmapPtr pBitmap,
                                             DrawablePtr pDrawable, int w, int h,

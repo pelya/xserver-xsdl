@@ -925,11 +925,11 @@ RegionPtr glamor_copy_plane(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 
 void glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                             int x, int y, unsigned int nglyph,
-                            CharInfoPtr *ppci, pointer pglyphBase);
+                            CharInfoPtr *ppci, void *pglyphBase);
 
 void glamor_poly_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
                            int x, int y, unsigned int nglyph,
-                           CharInfoPtr *ppci, pointer pglyphBase);
+                           CharInfoPtr *ppci, void *pglyphBase);
 
 void glamor_push_pixels(GCPtr pGC, PixmapPtr pBitmap,
                         DrawablePtr pDrawable, int w, int h, int x, int y);
