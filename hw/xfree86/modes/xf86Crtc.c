@@ -1673,6 +1673,7 @@ xf86ProbeOutputModes(ScrnInfoPtr scrn, int maxX, int maxY)
         if (edid_monitor) {
             struct det_monrec_parameter p;
             struct disp_features *features = &edid_monitor->features;
+            struct cea_data_block *hdmi_db;
 
             /* if display is not continuous-frequency, don't add default modes */
             if (!GTF_SUPPORTED(features->msc))
@@ -1685,6 +1686,16 @@ xf86ProbeOutputModes(ScrnInfoPtr scrn, int maxX, int maxY)
             p.sync_source = &sync_source;
 
             xf86ForEachDetailedBlock(edid_monitor, handle_detailed_monrec, &p);
+
+            /* Look at the CEA HDMI vendor block for the max TMDS freq */
+            hdmi_db = xf86MonitorFindHDMIBlock(edid_monitor);
+            if (hdmi_db && hdmi_db->len >= 7) {
+                int tmds_freq = hdmi_db->u.vendor.hdmi.max_tmds_clock * 5000;
+                xf86DrvMsg(scrn->scrnIndex, X_PROBED,
+                           "HDMI max TMDS frequency %dKHz\n", tmds_freq);
+                if (tmds_freq > max_clock)
+                    max_clock = tmds_freq;
+            }
         }
 
         if (xf86GetOptValFreq(output->options, OPTION_MIN_CLOCK,
