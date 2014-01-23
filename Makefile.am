@@ -27,6 +27,10 @@ if PRESENT
 PRESENT_DIR=present
 endif
 
+if PSEUDORAMIX
+PSEUDORAMIX_DIR=pseudoramiX
+endif
+
 SUBDIRS = \
 	doc \
 	man \
@@ -37,11 +41,11 @@ SUBDIRS = \
 	Xext \
 	miext \
 	os \
-	pseudoramiX \
 	randr \
 	render  \
 	Xi \
 	xkb \
+	$(PSEUDORAMIX_DIR) \
 	$(DBE_DIR) \
 	$(RECORD_DIR) \
 	xfixes \
