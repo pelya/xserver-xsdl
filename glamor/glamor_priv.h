@@ -35,8 +35,6 @@
 #endif
 #include "glamor.h"
 
-#define GL_GLEXT_PROTOTYPES
-
 #ifdef GLAMOR_GLES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
