@@ -95,8 +95,8 @@ SOFTWARE.
 
 #define NO_AXIS_LIMITS -1
 
-#define MAP_LENGTH	256
-#define DOWN_LENGTH	32      /* 256/8 => number of bytes to hold 256 bits */
+#define MAP_LENGTH	MAX_BUTTONS
+#define DOWN_LENGTH	(MAX_BUTTONS/8)      /* 256/8 => number of bytes to hold 256 bits */
 #define NullGrab ((GrabPtr)NULL)
 #define PointerRootWin ((WindowPtr)PointerRoot)
 #define NoneWin ((WindowPtr)None)
