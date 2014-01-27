@@ -31,6 +31,10 @@ if PSEUDORAMIX
 PSEUDORAMIX_DIR=pseudoramiX
 endif
 
+if GLAMOR
+GLAMOR_DIR=glamor
+endif
+
 SUBDIRS = \
 	doc \
 	man \
@@ -55,6 +59,7 @@ SUBDIRS = \
 	$(PRESENT_DIR) \
 	$(DRI3_DIR) \
 	exa \
+	$(GLAMOR_DIR) \
 	config \
 	hw \
 	test
@@ -106,6 +111,7 @@ DIST_SUBDIRS = \
 	composite \
 	glx \
 	exa \
+	$(GLAMOR_DIR) \
 	config \
 	dri3 \
 	present \

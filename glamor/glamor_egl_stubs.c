@@ -1,6 +1,5 @@
 /*
- * Copyright © 2009 Intel Corporation
- * Copyright © 1998 Keith Packard
+ * Copyright © 2013 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,42 +19,46 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
+ */
+
+/** @file glamor_egl_stubs.c
  *
- * Authors:
- *    Zhigang Gong <zhigang.gong@gmail.com>
- *
+ * Stubbed out glamor_egl.c functions for servers other than Xorg.
  */
 
 #include "glamor_priv.h"
 
-static Bool
-_glamor_add_traps(PicturePtr pPicture,
-                  INT16 x_off,
-                  INT16 y_off, int ntrap, xTrap *traps, Bool fallback)
+void
+glamor_egl_screen_init(ScreenPtr screen)
 {
-    if (!fallback
-        && (!pPicture->pDrawable
-            || glamor_ddx_fallback_check_pixmap(pPicture->pDrawable)))
-        return FALSE;
-
-    if (glamor_prepare_access_picture(pPicture, GLAMOR_ACCESS_RW)) {
-        fbAddTraps(pPicture, x_off, y_off, ntrap, traps);
-        glamor_finish_access_picture(pPicture, GLAMOR_ACCESS_RW);
-    }
-
-    return TRUE;
 }
 
 void
-glamor_add_traps(PicturePtr pPicture,
-                 INT16 x_off, INT16 y_off, int ntrap, xTrap *traps)
+glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap)
 {
-    _glamor_add_traps(pPicture, x_off, y_off, ntrap, traps, TRUE);
 }
 
-Bool
-glamor_add_traps_nf(PicturePtr pPicture,
-                    INT16 x_off, INT16 y_off, int ntrap, xTrap *traps)
+void
+glamor_egl_make_current(ScreenPtr screen)
 {
-    return _glamor_add_traps(pPicture, x_off, y_off, ntrap, traps, FALSE);
+}
+
+void
+glamor_egl_restore_context(ScreenPtr screen)
+{
+}
+
+int
+glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
+                                 PixmapPtr pixmap,
+                                 unsigned int tex,
+                                 Bool want_name, CARD16 *stride, CARD32 *size)
+{
+    return 0;
+}
+
+unsigned int
+glamor_egl_create_argb8888_based_texture(ScreenPtr screen, int w, int h)
+{
+    return 0;
 }
