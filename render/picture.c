@@ -1398,6 +1398,7 @@ FreePicture(void *value, XID pid)
 
     if (--pPicture->refcnt == 0) {
         free(pPicture->transform);
+        free(pPicture->filter_params);
 
         if (pPicture->pSourcePict) {
             if (pPicture->pSourcePict->type != SourcePictTypeSolidFill)
