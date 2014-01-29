@@ -955,7 +955,7 @@ CloseDevice(DeviceIntPtr dev)
     while (dev->xkb_interest)
         XkbRemoveResourceClient((DevicePtr) dev, dev->xkb_interest->resource);
 
-    free((void *) dev->name);
+    free(dev->name);
 
     classes = (ClassesPtr) &dev->key;
     FreeAllDeviceClasses(classes);
