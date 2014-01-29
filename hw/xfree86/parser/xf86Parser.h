@@ -299,7 +299,7 @@ typedef struct {
 
 typedef struct {
     struct xorg_list entry;
-    const char **values;
+    char **values;
 } xf86MatchGroup;
 
 typedef struct {
