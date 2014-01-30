@@ -388,6 +388,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 || exit 1
 
 cp -f `which libtool` ./
+#sed -i 's/pic_flag=.*/pic_flag=""/g' libtool
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
