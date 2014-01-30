@@ -11,29 +11,32 @@ NDK=`which ndk-build`
 NDK=`dirname $NDK`
 NDK=`readlink -f $NDK`
 
+[ -z "$TARGET_ARCH" ] && TARGET_ARCH=armeabi-v7a
+[ -z "$TARGET_HOST" ] && TARGET_HOST=arm-linux-androideabi
+
 # =========== android-shmem ===========
 
 [ -e libandroid-shmem.a ] || {
 
-[ -e android-shmem/LICENSE ] || {
-	cd ..
+[ -e ../android-shmem/LICENSE ] || {
+	cd ../..
 	git submodule update --init android/android-shmem || exit 1
 	cd $BUILDDIR
 } || exit 1
-[ -e android-shmem/libancillary/ancillary.h ] || {
-	cd android-shmem
+[ -e ../android-shmem/libancillary/ancillary.h ] || {
+	cd ../android-shmem
 	git submodule update --init libancillary || exit 1
-	cd ..
+	cd $BUILDDIR
 } || exit 1
 
-cd android-shmem
 $BUILDDIR/setCrossEnvironment.sh \
 env NDK=$NDK \
 sh -c '$CC $CFLAGS \
-	-I . \
-	-I libancillary \
-	-c *.c && \
-	ar rcs ../libandroid-shmem.a *.o' \
+	-I ../android-shmem \
+	-I ../android-shmem/libancillary \
+	-c ../android-shmem/*.c && \
+	ar rcs libandroid-shmem.a *.o && \
+	rm -f *.o' \
 || exit 1
 cd $BUILDDIR
 } || exit 1
@@ -44,9 +47,9 @@ cd $BUILDDIR
 curl http://cgit.freedesktop.org/xorg/proto/x11proto/snapshot/xproto-7.0.24.tar.gz | tar xvz || exit 1
 ln -sf xproto-7.0.24 X11
 cd X11
-patch -p0 < ../xproto.diff || exit 1
+patch -p0 < ../../xproto.diff || exit 1
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 } || exit 1
@@ -58,7 +61,7 @@ curl http://cgit.freedesktop.org/xorg/proto/fontsproto/snapshot/fontsproto-2.1.2
 ln -sf ../fontsproto-2.1.2 X11/fonts
 cd X11/fonts
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 } || exit 1
@@ -77,7 +80,7 @@ autoreconf -v --install \
 env CFLAGS="-isystem$BUILDDIR -include strings.h" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 || exit 1
 
 cd $BUILDDIR
@@ -91,7 +94,7 @@ curl http://cgit.freedesktop.org/xorg/proto/xextproto/snapshot/xextproto-7.2.1.t
 ln -sf ../xextproto-7.2.1 X11/extensions
 cd X11/extensions
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 } || exit 1
@@ -102,7 +105,7 @@ cd $BUILDDIR
 curl http://cgit.freedesktop.org/xorg/proto/inputproto/snapshot/inputproto-2.3.tar.gz | tar xvz || exit 1
 cd inputproto-2.3
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in inputproto-2.3/*.h ; do
@@ -116,7 +119,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/kbproto/snapshot/kbproto-1.0.6.tar.gz | tar xvz || exit 1
 cd kbproto-1.0.6
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in kbproto-1.0.6/*.h ; do
@@ -130,7 +133,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/xineramaproto/snapshot/xineramaproto-1.2.1.tar.gz | tar xvz || exit 1
 cd xineramaproto-1.2.1
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in xineramaproto-1.2.1/*.h ; do
@@ -144,7 +147,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/renderproto/snapshot/renderproto-0.11.1.tar.gz | tar xvz || exit 1
 cd renderproto-0.11.1
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in renderproto-0.11.1/*.h ; do
@@ -158,7 +161,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/fixesproto/snapshot/fixesproto-5.0.tar.gz | tar xvz || exit 1
 cd fixesproto-5.0
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in fixesproto-5.0/*.h ; do
@@ -172,7 +175,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/damageproto/snapshot/damageproto-1.2.1.tar.gz | tar xvz || exit 1
 cd damageproto-1.2.1
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in damageproto-1.2.1/*.h ; do
@@ -186,7 +189,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/compositeproto/snapshot/compositeproto-0.4.2.tar.gz | tar xvz || exit 1
 cd compositeproto-0.4.2
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in compositeproto-0.4.2/*.h ; do
@@ -200,7 +203,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/bigreqsproto/snapshot/bigreqsproto-1.1.2.tar.gz | tar xvz || exit 1
 cd bigreqsproto-1.1.2
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in bigreqsproto-1.1.2/*.h ; do
@@ -214,7 +217,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/scrnsaverproto/snapshot/scrnsaverproto-1.2.2.tar.gz | tar xvz || exit 1
 cd scrnsaverproto-1.2.2
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in scrnsaverproto-1.2.2/*.h ; do
@@ -228,7 +231,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/videoproto/snapshot/videoproto-2.3.2.tar.gz | tar xvz || exit 1
 cd videoproto-2.3.2
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in videoproto-2.3.2/*.h ; do
@@ -242,7 +245,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/resourceproto/snapshot/resourceproto-1.2.0.tar.gz | tar xvz || exit 1
 cd resourceproto-1.2.0
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in resourceproto-1.2.0/*.h ; do
@@ -256,7 +259,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/xcmiscproto/snapshot/xcmiscproto-1.2.2.tar.gz | tar xvz || exit 1
 cd xcmiscproto-1.2.2
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in xcmiscproto-1.2.2/*.h ; do
@@ -270,7 +273,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/randrproto/snapshot/randrproto-1.4.0.tar.gz | tar xvz || exit 1
 cd randrproto-1.4.0
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in randrproto-1.4.0/*.h ; do
@@ -284,7 +287,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/xf86bigfontproto/snapshot/xf86bigfontproto-1.2.0.tar.gz | tar xvz || exit 1
 cd xf86bigfontproto-1.2.0
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in xf86bigfontproto-1.2.0/*.h ; do
@@ -298,7 +301,7 @@ done
 curl http://cgit.freedesktop.org/xorg/proto/recordproto/snapshot/recordproto-1.14.2.tar.gz | tar xvz || exit 1
 cd recordproto-1.14.2
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
 for F in recordproto-1.14.2/*.h ; do
@@ -313,10 +316,10 @@ curl http://cairographics.org/releases/pixman-0.30.2.tar.gz | tar xvz || exit 1
 cd pixman-0.30.2
 
 env CFLAGS="-I$NDK/sources/android/cpufeatures" \
-LDFLAGS="-L$NDK/sources/android/libportable/libs/armeabi -lportable" \
+LDFLAGS="-L$NDK/sources/android/libportable/libs/$TARGET_ARCH -lportable" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --disable-arm-iwmmxt
 
 cd pixman
@@ -342,7 +345,7 @@ autoreconf -v --install \
 env CFLAGS="-isystem$BUILDDIR -include strings.h" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -362,7 +365,7 @@ ln -sf libfontenc-1.1.2/src/.libs/libfontenc.a ./
 
 # =========== libXfont.a ===========
 
-ln -sf $BUILDDIR/../../../../../obj/local/armeabi-v7a/libfreetype.a $BUILDDIR/
+ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libfreetype.a $BUILDDIR/
 
 [ -e libXfont.a ] || {
 curl http://cgit.freedesktop.org/xorg/lib/libXfont/snapshot/libXfont-1.4.6.tar.gz | tar xvz || exit 1
@@ -375,12 +378,12 @@ autoreconf -v --install \
 
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h \
--I$BUILDDIR/../../../../../jni/freetype/include \
+-I$BUILDDIR/../../../../../../jni/freetype/include \
 -DNO_LOCALE" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -416,7 +419,7 @@ env CFLAGS="-isystem$BUILDDIR \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -450,7 +453,7 @@ env CFLAGS="-isystem$BUILDDIR \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -473,7 +476,7 @@ ln -sf ../libXdmcp-1.1.1/include/X11/Xdmcp.h X11/
 curl http://cgit.freedesktop.org/xcb/proto/snapshot/proto-1.8.tar.gz | tar xvz || exit 1
 cd proto-1.8
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=arm-linux-androideabi \
+./autogen.sh --host=$TARGET_HOST \
 || exit 1
 $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
@@ -496,7 +499,7 @@ env CFLAGS="-isystem$BUILDDIR \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -542,13 +545,13 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
-			-isystem$BUILDDIR/android-shmem \
+			-isystem$BUILDDIR/../android-shmem \
 			-include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 LIBS="-lXau -lXdmcp -landroid_support -landroid-shmem" \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -592,7 +595,7 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -632,7 +635,7 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -672,7 +675,7 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -709,7 +712,7 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -746,7 +749,7 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -785,7 +788,7 @@ env CFLAGS="-isystem$BUILDDIR \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -824,7 +827,7 @@ env CFLAGS="-isystem$BUILDDIR \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -861,7 +864,7 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -904,7 +907,7 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lSM -lICE" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -943,7 +946,7 @@ LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
---host=arm-linux-androideabi \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
@@ -1004,27 +1007,27 @@ sh -c '$STRIP xli'
 
 # =========== xsdl ==========
 
-ln -sf $BUILDDIR/../../../../../libs/armeabi-v7a/libsdl-1.2.so $BUILDDIR/libSDL.so
-ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR/libpthread.a # dummy
-ln -sf $NDK/sources/android/libportable/libs/armeabi-v7a/libportable.a $BUILDDIR/libts.a # dummy
+ln -sf $BUILDDIR/../../../../../../libs/$TARGET_ARCH/libsdl-1.2.so $BUILDDIR/libSDL.so
+ln -sf $NDK/sources/android/libportable/libs/$TARGET_ARCH/libportable.a $BUILDDIR/libpthread.a # dummy
+ln -sf $NDK/sources/android/libportable/libs/$TARGET_ARCH/libportable.a $BUILDDIR/libts.a # dummy
 
 [ -z "$PACKAGE_NAME" ] && PACKAGE_NAME=X.org.server
 
 [ -e Makefile ] && grep "`pwd`" Makefile > /dev/null || \
 env CFLAGS=" -DDEBUG \
 	-isystem$BUILDDIR \
-	-isystem$BUILDDIR/android-shmem \
+	-isystem$BUILDDIR/../android-shmem \
 	-include strings.h\
 	-include linux/time.h \
 	-DFNONBLOCK=O_NONBLOCK \
 	-DFNDELAY=O_NDELAY \
 	-I$BUILDDIR/pixman-0.30.2/pixman \
-	-I$BUILDDIR/../../../../../jni/sdl-1.2/include" \
+	-I$BUILDDIR/../../../../../../jni/sdl-1.2/include" \
 LDFLAGS="-L$BUILDDIR" \
 ./setCrossEnvironment.sh \
-LIBS="-lfontenc -lfreetype -llog -lSDL -landroid-shmem" \
-../configure \
---host=arm-linux-androideabi \
+LIBS="-lfontenc -lfreetype -llog -lSDL -lGLESv1_CM -landroid-shmem" \
+../../configure \
+--host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 --with-xkb-output=$TARGET_DIR/tmp \
 --disable-xorg --disable-dmx --disable-xvfb --disable-xnest --disable-xquartz --disable-xwin \
@@ -1035,7 +1038,5 @@ LIBS="-lfontenc -lfreetype -llog -lSDL -landroid-shmem" \
 || exit 1
 
 ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1
-
-
 
 exit 0
