@@ -21,7 +21,7 @@ NDK=`readlink -f $NDK`
 grep "64.bit" "$NDK/RELEASE.TXT" >/dev/null 2>&1 && MYARCH="${MYARCH}_64"
 
 [ -z "$NDK" ] && { echo "You need Andorid NDK r8 or newer installed to run this script" ; exit 1 ; }
-GCCPREFIX=arm-linux-androideabi
+GCCPREFIX=i686-linux-android
 GCCVER=4.6
 PLATFORMVER=android-14
 LOCAL_PATH=`dirname $0`
@@ -30,14 +30,15 @@ if which realpath > /dev/null ; then
 else
 	LOCAL_PATH=`cd $LOCAL_PATH && pwd`
 fi
-ARCH=armeabi-v7a
+ARCH=x86
 
 CFLAGS="\
--fpic -ffunction-sections -funwind-tables -fstack-protector \
--no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -mthumb \
--fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -marm -fno-omit-frame-pointer \
--DANDROID -DNDEBUG -O2 -g -finline-functions -Wa,--noexecstack -Wformat -Werror=format-security \
--isystem$NDK/platforms/$PLATFORMVER/arch-arm/usr/include \
+-ffunction-sections -funwind-tables -no-canonical-prefixes \
+-fstack-protector -O2 -g -DNDEBUG \
+-fomit-frame-pointer -fstrict-aliasing -funswitch-loops \
+-finline-limit=300 \
+-DANDROID -Wall -Wno-unused -Wa,--noexecstack -Wformat -Werror=format-security \
+-isystem$NDK/platforms/$PLATFORMVER/arch-x86/usr/include \
 -isystem$NDK/sources/cxx-stl/gnu-libstdc++/$GCCVER/include \
 -isystem$NDK/sources/cxx-stl/gnu-libstdc++/$GCCVER/libs/$ARCH/include \
 $CFLAGS"
@@ -54,12 +55,11 @@ fi
 
 LDFLAGS="\
 $SHARED \
---sysroot=$NDK/platforms/$PLATFORMVER/arch-arm \
--L$NDK/platforms/$PLATFORMVER/arch-arm/usr/lib \
+--sysroot=$NDK/platforms/$PLATFORMVER/arch-x86 \
+-L$NDK/platforms/$PLATFORMVER/arch-x86/usr/lib \
 -lc -lm -ldl -lz \
 -L$NDK/sources/cxx-stl/gnu-libstdc++/$GCCVER/libs/$ARCH \
 -lgnustl_static \
--march=armv7-a -Wl,--fix-cortex-a8 \
 -no-canonical-prefixes $UNRESOLVED -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now \
 -lsupc++ \
 $LDFLAGS"
