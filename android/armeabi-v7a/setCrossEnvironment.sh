@@ -1,0 +1,1 @@
+../setCrossEnvironment-armeabi-v7a.sh
