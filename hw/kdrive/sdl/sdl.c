@@ -586,14 +586,23 @@ static void sdlPollInput(void)
 			case SDL_MOUSEBUTTONDOWN:
 				switch(event.button.button)
 				{
-					case 1:
-						buttonState=KD_BUTTON_1;
+					case SDL_BUTTON_LEFT:
+						buttonState = KD_BUTTON_1;
 						break;
-					case 2:
-						buttonState=KD_BUTTON_2;
+					case SDL_BUTTON_MIDDLE:
+						buttonState = KD_BUTTON_2;
 						break;
-					case 3:
-						buttonState=KD_BUTTON_3;
+					case SDL_BUTTON_RIGHT:
+						buttonState = KD_BUTTON_3;
+						break;
+					case SDL_BUTTON_WHEELUP:
+						buttonState = KD_BUTTON_4;
+						break;
+					case SDL_BUTTON_WHEELDOWN:
+						buttonState = KD_BUTTON_5;
+						break;
+					default:
+						buttonState = 1 << (event.button.button - 1);
 						break;
 				}
 				mouseState|=buttonState;
@@ -602,15 +611,24 @@ static void sdlPollInput(void)
 			case SDL_MOUSEBUTTONUP:
 				switch(event.button.button)
 				{
-					case 1:
-						buttonState=KD_BUTTON_1;
+					case SDL_BUTTON_LEFT:
+						buttonState = KD_BUTTON_1;
 						pressure = 0;
 						break;
-					case 2:
-						buttonState=KD_BUTTON_2;
+					case SDL_BUTTON_MIDDLE:
+						buttonState = KD_BUTTON_2;
 						break;
-					case 3:
-						buttonState=KD_BUTTON_3;
+					case SDL_BUTTON_RIGHT:
+						buttonState = KD_BUTTON_3;
+						break;
+					case SDL_BUTTON_WHEELUP:
+						buttonState = KD_BUTTON_4;
+						break;
+					case SDL_BUTTON_WHEELDOWN:
+						buttonState = KD_BUTTON_5;
+						break;
+					default:
+						buttonState = 1 << (event.button.button - 1);
 						break;
 				}
 				mouseState &= ~buttonState;
