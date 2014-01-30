@@ -602,12 +602,14 @@ static void sdlPollInput(void)
 					case SDL_BUTTON_WHEELDOWN:
 						buttonState = KD_BUTTON_5;
 						break;
+					/*
 					case SDL_BUTTON_X1:
 						buttonState = KD_BUTTON_6;
 						break;
 					case SDL_BUTTON_X2:
 						buttonState = KD_BUTTON_7;
 						break;
+					*/
 					default:
 						buttonState = 1 << (event.button.button - 1);
 						break;
@@ -634,12 +636,14 @@ static void sdlPollInput(void)
 					case SDL_BUTTON_WHEELDOWN:
 						buttonState = KD_BUTTON_5;
 						break;
+					/*
 					case SDL_BUTTON_X1:
 						buttonState = KD_BUTTON_6;
 						break;
 					case SDL_BUTTON_X2:
 						buttonState = KD_BUTTON_7;
 						break;
+					*/
 					default:
 						buttonState = 1 << (event.button.button - 1);
 						break;
