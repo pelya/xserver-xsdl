@@ -198,6 +198,9 @@ systemd_logind_vtenter(void)
     for (pInfo = xf86InputDevs; pInfo; pInfo = pInfo->next)
         if ((pInfo->flags & XI86_SERVER_FD) && pInfo->fd != -1)
             xf86EnableInputDeviceForVTSwitch(pInfo);
+
+    /* Do delayed input probing, this must be done after the above enabling */
+    xf86InputEnableVTProbe();
 }
 
 static InputInfoPtr
