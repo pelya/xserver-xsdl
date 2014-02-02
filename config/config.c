@@ -145,6 +145,18 @@ config_odev_free_attribute_list(struct OdevAttributes *attribs)
     free(attribs);
 }
 
+static struct OdevAttribute *
+config_odev_find_attribute(struct OdevAttributes *attribs, int attrib_id)
+{
+    struct OdevAttribute *oa;
+
+    xorg_list_for_each_entry(oa, &attribs->list, member) {
+        if (oa->attrib_id == attrib_id)
+          return oa;
+    }
+    return NULL;
+}
+
 Bool
 config_odev_add_attribute(struct OdevAttributes *attribs, int attrib,
                           const char *attrib_name)
@@ -159,6 +171,18 @@ config_odev_add_attribute(struct OdevAttributes *attribs, int attrib,
     oa->attrib_name = strdup(attrib_name);
     xorg_list_append(&oa->member, &attribs->list);
     return TRUE;
+}
+
+char *
+config_odev_get_attribute(struct OdevAttributes *attribs, int attrib_id)
+{
+    struct OdevAttribute *oa;
+
+    oa = config_odev_find_attribute(attribs, attrib_id);
+    if (!oa)
+        return NULL;
+
+    return oa->attrib_name;
 }
 
 void

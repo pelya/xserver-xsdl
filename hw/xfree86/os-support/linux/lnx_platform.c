@@ -118,17 +118,11 @@ xf86PlatformReprobeDevice(int index, struct OdevAttributes *attribs)
 void
 xf86PlatformDeviceProbe(struct OdevAttributes *attribs)
 {
-    struct OdevAttribute *attrib;
     int i;
     char *path = NULL;
     Bool ret;
 
-    xorg_list_for_each_entry(attrib, &attribs->list, member) {
-        if (attrib->attrib_id == ODEV_ATTRIB_PATH) {
-            path = attrib->attrib_name;
-            break;
-        }
-    }
+    path = config_odev_get_attribute(attribs, ODEV_ATTRIB_PATH);
     if (!path)
         goto out_free;
 

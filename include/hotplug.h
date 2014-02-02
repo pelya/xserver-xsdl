@@ -53,6 +53,9 @@ Bool
 config_odev_add_attribute(struct OdevAttributes *attribs, int attrib,
                           const char *attrib_name);
 
+char *
+config_odev_get_attribute(struct OdevAttributes *attribs, int attrib_id);
+
 void
 config_odev_free_attributes(struct OdevAttributes *attribs);
 
