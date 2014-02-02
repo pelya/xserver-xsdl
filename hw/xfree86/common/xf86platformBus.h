@@ -41,11 +41,15 @@ extern int xf86_num_platform_devices;
 extern char *
 xf86_get_platform_attrib(int index, int attrib_id);
 extern int
+xf86_get_platform_int_attrib(int index, int attrib_id, int def);
+extern int
 xf86_add_platform_device(struct OdevAttributes *attribs);
 extern int
 xf86_remove_platform_device(int dev_index);
 extern Bool
 xf86_add_platform_device_attrib(int index, int attrib_id, char *attrib_str);
+extern Bool
+xf86_add_platform_device_int_attrib(int index, int attrib_id, int attrib_value);
 extern Bool
 xf86_get_platform_device_unowned(int index);
 
@@ -56,6 +60,8 @@ xf86platformRemoveDevice(int index);
 
 extern _X_EXPORT char *
 xf86_get_platform_device_attrib(struct xf86_platform_device *device, int attrib_id);
+extern _X_EXPORT int
+xf86_get_platform_device_int_attrib(struct xf86_platform_device *device, int attrib_id, int def);
 extern _X_EXPORT Bool
 xf86PlatformDeviceCheckBusID(struct xf86_platform_device *device, const char *busid);
 

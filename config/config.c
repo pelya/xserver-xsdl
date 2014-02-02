@@ -172,6 +172,26 @@ config_odev_add_attribute(struct OdevAttributes *attribs, int attrib,
     oa->attrib_id = attrib;
     free(oa->attrib_name);
     oa->attrib_name = strdup(attrib_name);
+    oa->attrib_type = ODEV_ATTRIB_STRING;
+    xorg_list_append(&oa->member, &attribs->list);
+    return TRUE;
+}
+
+Bool
+config_odev_add_int_attribute(struct OdevAttributes *attribs, int attrib,
+                              int attrib_value)
+{
+    struct OdevAttribute *oa;
+
+    oa = config_odev_find_attribute(attribs, attrib);
+    if (!oa)
+        oa = calloc(1, sizeof(struct OdevAttribute));
+    if (!oa)
+        return FALSE;
+
+    oa->attrib_id = attrib;
+    oa->attrib_value = attrib_value;
+    oa->attrib_type = ODEV_ATTRIB_INT;
     xorg_list_append(&oa->member, &attribs->list);
     return TRUE;
 }
@@ -185,7 +205,30 @@ config_odev_get_attribute(struct OdevAttributes *attribs, int attrib_id)
     if (!oa)
         return NULL;
 
+    if (oa->attrib_type != ODEV_ATTRIB_STRING) {
+        LogMessage(X_ERROR, "Error %s called for non string attrib %d\n",
+                   __func__, attrib_id);
+        return NULL;
+    }
     return oa->attrib_name;
+}
+
+int
+config_odev_get_int_attribute(struct OdevAttributes *attribs, int attrib_id, int def)
+{
+    struct OdevAttribute *oa;
+
+    oa = config_odev_find_attribute(attribs, attrib_id);
+    if (!oa)
+        return def;
+
+    if (oa->attrib_type != ODEV_ATTRIB_INT) {
+        LogMessage(X_ERROR, "Error %s called for non integer attrib %d\n",
+                   __func__, attrib_id);
+        return def;
+    }
+
+    return oa->attrib_value;
 }
 
 void

@@ -32,10 +32,16 @@ extern _X_EXPORT void config_pre_init(void);
 extern _X_EXPORT void config_init(void);
 extern _X_EXPORT void config_fini(void);
 
+enum { ODEV_ATTRIB_STRING, ODEV_ATTRIB_INT };
+
 struct OdevAttribute {
     struct xorg_list member;
     int attrib_id;
-    char *attrib_name;
+    union {
+        char *attrib_name;
+        int attrib_value;
+    };
+    int attrib_type;
 };
 
 struct OdevAttributes {
@@ -55,6 +61,14 @@ config_odev_add_attribute(struct OdevAttributes *attribs, int attrib,
 
 char *
 config_odev_get_attribute(struct OdevAttributes *attribs, int attrib_id);
+
+Bool
+config_odev_add_int_attribute(struct OdevAttributes *attribs, int attrib,
+                              int attrib_value);
+
+int
+config_odev_get_int_attribute(struct OdevAttributes *attribs, int attrib,
+                              int def);
 
 void
 config_odev_free_attributes(struct OdevAttributes *attribs);

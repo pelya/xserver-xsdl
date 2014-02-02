@@ -89,6 +89,12 @@ xf86_add_platform_device_attrib(int index, int attrib_id, char *attrib_name)
     return config_odev_add_attribute(device->attribs, attrib_id, attrib_name);
 }
 
+Bool
+xf86_add_platform_device_int_attrib(int index, int attrib_id, int attrib_value)
+{
+    return config_odev_add_int_attribute(xf86_platform_devices[index].attribs, attrib_id, attrib_value);
+}
+
 char *
 xf86_get_platform_attrib(int index, int attrib_id)
 {
@@ -99,6 +105,18 @@ char *
 xf86_get_platform_device_attrib(struct xf86_platform_device *device, int attrib_id)
 {
     return config_odev_get_attribute(device->attribs, attrib_id);
+}
+
+int
+xf86_get_platform_int_attrib(int index, int attrib_id, int def)
+{
+    return config_odev_get_int_attribute(xf86_platform_devices[index].attribs, attrib_id, def);
+}
+
+int
+xf86_get_platform_device_int_attrib(struct xf86_platform_device *device, int attrib_id, int def)
+{
+    return config_odev_get_int_attribute(device->attribs, attrib_id, def);
 }
 
 Bool
