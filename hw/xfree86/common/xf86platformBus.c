@@ -55,7 +55,7 @@ int xf86_num_platform_devices;
 static struct xf86_platform_device *xf86_platform_devices;
 
 int
-xf86_add_platform_device(struct OdevAttributes *attribs)
+xf86_add_platform_device(struct OdevAttributes *attribs, Bool unowned)
 {
     xf86_platform_devices = xnfrealloc(xf86_platform_devices,
                                    (sizeof(struct xf86_platform_device)
@@ -63,6 +63,8 @@ xf86_add_platform_device(struct OdevAttributes *attribs)
 
     xf86_platform_devices[xf86_num_platform_devices].attribs = attribs;
     xf86_platform_devices[xf86_num_platform_devices].pdev = NULL;
+    xf86_platform_devices[xf86_num_platform_devices].flags =
+        unowned ? XF86_PDEV_UNOWNED : 0;
 
     xf86_num_platform_devices++;
     return 0;
@@ -122,7 +124,8 @@ xf86_get_platform_device_int_attrib(struct xf86_platform_device *device, int att
 Bool
 xf86_get_platform_device_unowned(int index)
 {
-    return xf86_platform_devices[index].attribs->unowned;
+    return (xf86_platform_devices[index].flags & XF86_PDEV_UNOWNED) ?
+        TRUE : FALSE;
 }
 
 /*
@@ -529,10 +532,10 @@ void xf86platformVTProbe(void)
     int i;
 
     for (i = 0; i < xf86_num_platform_devices; i++) {
-        if (xf86_platform_devices[i].attribs->unowned == FALSE)
+        if (!(xf86_platform_devices[i].flags & XF86_PDEV_UNOWNED))
             continue;
 
-        xf86_platform_devices[i].attribs->unowned = FALSE;
+        xf86_platform_devices[i].flags &= ~XF86_PDEV_UNOWNED;
         xf86PlatformReprobeDevice(i, xf86_platform_devices[i].attribs);
     }
 }

@@ -44,7 +44,7 @@ get_drm_info(struct OdevAttributes *attribs, char *path, int delayed_index)
 
     /* for a delayed probe we've already added the device */
     if (delayed_index == -1) {
-            xf86_add_platform_device(attribs);
+            xf86_add_platform_device(attribs, FALSE);
             delayed_index = xf86_num_platform_devices - 1;
     }
 
@@ -142,8 +142,7 @@ xf86PlatformDeviceProbe(struct OdevAttributes *attribs)
     if (!xf86VTOwner()) {
             /* if we don't currently own the VT then don't probe the device,
                just mark it as unowned for later use */
-            attribs->unowned = TRUE;
-            xf86_add_platform_device(attribs);
+            xf86_add_platform_device(attribs, TRUE);
             return;
     }
 
