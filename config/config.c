@@ -163,11 +163,14 @@ config_odev_add_attribute(struct OdevAttributes *attribs, int attrib,
 {
     struct OdevAttribute *oa;
 
-    oa = malloc(sizeof(struct OdevAttribute));
+    oa = config_odev_find_attribute(attribs, attrib);
+    if (!oa)
+        oa = calloc(1, sizeof(struct OdevAttribute));
     if (!oa)
         return FALSE;
 
     oa->attrib_id = attrib;
+    free(oa->attrib_name);
     oa->attrib_name = strdup(attrib_name);
     xorg_list_append(&oa->member, &attribs->list);
     return TRUE;
