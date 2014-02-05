@@ -279,8 +279,8 @@ typedef struct {
 
 typedef struct {
     GenericListRec list;
-    const char *inp_identifier;
-    const char *inp_driver;
+    char *inp_identifier;
+    char *inp_driver;
     XF86OptionPtr inp_option_lst;
     char *inp_comment;
 } XF86ConfInputRec, *XF86ConfInputPtr;

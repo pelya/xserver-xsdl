@@ -159,8 +159,8 @@ configureInputSection(void)
 
     parsePrologue(XF86ConfInputPtr, XF86ConfInputRec)
 
-        ptr->inp_identifier = "Keyboard0";
-    ptr->inp_driver = "kbd";
+    ptr->inp_identifier = strdup("Keyboard0");
+    ptr->inp_driver = strdup("kbd");
     ptr->list.next = NULL;
 
     /* Crude mechanism to auto-detect mouse (os dependent) */
@@ -175,8 +175,8 @@ configureInputSection(void)
     }
 
     mouse = calloc(1, sizeof(XF86ConfInputRec));
-    mouse->inp_identifier = "Mouse0";
-    mouse->inp_driver = "mouse";
+    mouse->inp_identifier = strdup("Mouse0");
+    mouse->inp_driver = strdup("mouse");
     mouse->inp_option_lst =
         xf86addNewOption(mouse->inp_option_lst, strdup("Protocol"),
                          strdup(DFLT_MOUSE_PROTO));
