@@ -305,7 +305,7 @@ typedef struct {
 typedef struct {
     GenericListRec list;
     char *identifier;
-    const char *driver;
+    char *driver;
     struct xorg_list match_product;
     struct xorg_list match_vendor;
     struct xorg_list match_device;
