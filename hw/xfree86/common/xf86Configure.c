@@ -337,7 +337,7 @@ configureLayoutSection(void)
         iptr = malloc(sizeof(XF86ConfInputrefRec));
         iptr->list.next = NULL;
         iptr->iref_option_lst = NULL;
-        iptr->iref_inputdev_str = "Mouse0";
+        iptr->iref_inputdev_str = strdup("Mouse0");
         iptr->iref_option_lst =
             xf86addNewOption(iptr->iref_option_lst, strdup("CorePointer"),
                              NULL);
@@ -351,7 +351,7 @@ configureLayoutSection(void)
         iptr = malloc(sizeof(XF86ConfInputrefRec));
         iptr->list.next = NULL;
         iptr->iref_option_lst = NULL;
-        iptr->iref_inputdev_str = "Keyboard0";
+        iptr->iref_inputdev_str = strdup("Keyboard0");
         iptr->iref_option_lst =
             xf86addNewOption(iptr->iref_option_lst, strdup("CoreKeyboard"),
                              NULL);
