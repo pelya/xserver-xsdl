@@ -1,4 +1,4 @@
-noinst_LTLIBRARIES = libxf86config_internal.la
+noinst_LTLIBRARIES = libxf86config.la
 
 INTERNAL_SOURCES= \
 	Device.c \
@@ -20,7 +20,7 @@ INTERNAL_SOURCES= \
 	DRI.c \
 	Extensions.c
 
-libxf86config_internal_la_SOURCES = \
+libxf86config_la_SOURCES = \
 	$(INTERNAL_SOURCES)
 
 AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS) \
