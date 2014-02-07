@@ -841,7 +841,7 @@ if test "x$WITH_SYSTEMD_DAEMON" = xauto; then
 	WITH_SYSTEMD_DAEMON="$HAVE_SYSTEMD_DAEMON"
 fi
 if test "x$WITH_SYSTEMD_DAEMON" = xyes; then
-	if "x$HAVE_SYSTEMD_DAEMON" = xno; then
+	if test "x$HAVE_SYSTEMD_DAEMON" = xno; then
 		AC_MSG_ERROR([systemd support requested but no library has been found])
 	fi
 	AC_DEFINE(HAVE_SYSTEMD_DAEMON, 1, [Define to 1 if libsystemd-daemon is available])
