@@ -566,6 +566,14 @@ FreeRec(ScrnInfoPtr pScrn)
 
 }
 
+#ifndef DRM_CAP_CURSOR_WIDTH
+#define DRM_CAP_CURSOR_WIDTH 0x8
+#endif
+
+#ifndef DRM_CAP_CURSOR_HEIGHT
+#define DRM_CAP_CURSOR_HEIGHT 0x9
+#endif
+
 static Bool
 PreInit(ScrnInfoPtr pScrn, int flags)
 {
@@ -704,6 +712,17 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     ret = drmGetCap(ms->fd, DRM_CAP_DUMB_PREFER_SHADOW, &value);
     if (!ret) {
 	prefer_shadow = !!value;
+    }
+
+    ms->cursor_width = 64;
+    ms->cursor_height = 64;
+    ret = drmGetCap(ms->fd, DRM_CAP_CURSOR_WIDTH, &value);
+    if (!ret) {
+	ms->cursor_width = value;
+    }
+    ret = drmGetCap(ms->fd, DRM_CAP_CURSOR_HEIGHT, &value);
+    if (!ret) {
+	ms->cursor_height = value;
     }
 
     ms->drmmode.shadow_enable = xf86ReturnOptValBool(ms->Options, OPTION_SHADOW_FB, prefer_shadow);
@@ -933,7 +952,7 @@ ScreenInit(SCREEN_INIT_ARGS_DECL)
 
     /* Need to extend HWcursor support to handle mask interleave */
     if (!ms->drmmode.sw_cursor)
-	xf86_cursors_init(pScreen, 64, 64,
+	xf86_cursors_init(pScreen, ms->cursor_width, ms->cursor_height,
 			  HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64 |
 			  HARDWARE_CURSOR_ARGB);
 

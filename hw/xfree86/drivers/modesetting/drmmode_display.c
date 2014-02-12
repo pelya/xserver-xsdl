@@ -52,6 +52,8 @@
 #endif
 #include "compat-api.h"
 
+#include "driver.h"
+
 static struct dumb_bo *dumb_bo_create(int fd,
 			  const unsigned width, const unsigned height,
 			  const unsigned bpp)
@@ -445,6 +447,7 @@ drmmode_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
 static void
 drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 {
+	modesettingPtr ms = modesettingPTR(crtc->scrn);
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	int i;
 	uint32_t *ptr;
@@ -453,10 +456,11 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 	/* cursor should be mapped already */
 	ptr = (uint32_t *)(drmmode_crtc->cursor_bo->ptr);
 
-	for (i = 0; i < 64 * 64; i++)
+	for (i = 0; i < ms->cursor_width * ms->cursor_height; i++)
 		ptr[i] = image[i];// cpu_to_le32(image[i]);
 
-	ret = drmModeSetCursor(drmmode_crtc->drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, handle, 64, 64);
+	ret = drmModeSetCursor(drmmode_crtc->drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, handle,
+			       ms->cursor_width, ms->cursor_height);
 	if (ret) {
 		xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
 		xf86CursorInfoPtr	cursor_info = xf86_config->cursor_info;
@@ -471,21 +475,25 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 static void
 drmmode_hide_cursor (xf86CrtcPtr crtc)
 {
+	modesettingPtr ms = modesettingPTR(crtc->scrn);
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	drmmode_ptr drmmode = drmmode_crtc->drmmode;
 
-	drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, 0, 64, 64);
+	drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, 0,
+			 ms->cursor_width, ms->cursor_height);
 
 }
 
 static void
 drmmode_show_cursor (xf86CrtcPtr crtc)
 {
+	modesettingPtr ms = modesettingPTR(crtc->scrn);
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	drmmode_ptr drmmode = drmmode_crtc->drmmode;
 	uint32_t handle = drmmode_crtc->cursor_bo->handle;
 
-	drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, handle, 64, 64);
+	drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, handle,
+			 ms->cursor_width, ms->cursor_height);
 }
 
 static void
@@ -1485,6 +1493,7 @@ void drmmode_uevent_fini(ScrnInfoPtr scrn, drmmode_ptr drmmode)
 /* create front and cursor BOs */
 Bool drmmode_create_initial_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 {
+	modesettingPtr ms = modesettingPTR(pScrn);
 	xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
 	int width;
 	int height;
@@ -1500,7 +1509,8 @@ Bool drmmode_create_initial_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 		return FALSE;
 	pScrn->displayWidth = drmmode->front_bo->pitch / cpp;
 
-	width = height = 64;
+	width = ms->cursor_width;
+	height = ms->cursor_height;
 	bpp = 32;
 	for (i = 0; i < xf86_config->num_crtc; i++) {
 		xf86CrtcPtr crtc = xf86_config->crtc[i];
