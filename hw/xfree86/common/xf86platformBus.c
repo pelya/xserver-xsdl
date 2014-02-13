@@ -594,4 +594,19 @@ void xf86platformVTProbe(void)
         xf86PlatformReprobeDevice(i, xf86_platform_devices[i].attribs);
     }
 }
+
+void xf86platformPrimary(void)
+{
+    /* use the first platform device as a fallback */
+    if (primaryBus.type == BUS_NONE) {
+        xf86Msg(X_INFO, "no primary bus or device found\n");
+
+        if (xf86_num_platform_devices > 0) {
+            primaryBus.id.plat = &xf86_platform_devices[0];
+            primaryBus.type = BUS_PLATFORM;
+
+            xf86Msg(X_NONE, "\tfalling back to %s\n", primaryBus.id.plat->attribs->syspath);
+        }
+    }
+}
 #endif
