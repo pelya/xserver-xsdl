@@ -58,8 +58,9 @@ get_drm_info(struct OdevAttributes *attribs, char *path, int delayed_index)
 
     err = drmSetInterfaceVersion(fd, &sv);
     if (err) {
-        ErrorF("setversion 1.4 failed: %s\n", strerror(-err));
-	goto out;
+        xf86Msg(X_ERROR, "%s: failed to set DRM interface version 1.4: %s\n",
+                path, strerror(-err));
+        goto out;
     }
 
     /* for a delayed probe we've already added the device */
