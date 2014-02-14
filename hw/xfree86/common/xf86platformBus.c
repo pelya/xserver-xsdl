@@ -221,12 +221,9 @@ xf86PlatformMatchDriver(char *matches[], int nmatches)
             info = xf86_platform_devices[i].pdev;
 #ifdef __linux__
             if (info)
-                xf86MatchDriverFromFiles(matches, info->vendor_id, info->device_id);
+                j += xf86MatchDriverFromFiles(info->vendor_id, info->device_id,
+                                              &matches[j], nmatches - j);
 #endif
-
-            for (j = 0; (j < nmatches) && (matches[j]); j++) {
-                /* find end of matches list */
-            }
 
             if ((info != NULL) && (j < nmatches)) {
                 j += xf86VideoPtrToDriverList(info, &(matches[j]), nmatches - j);
