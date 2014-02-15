@@ -181,6 +181,7 @@ _XkbFilterSetState(XkbSrvInfoPtr xkbi,
                    XkbFilterPtr filter, unsigned keycode, XkbAction *pAction)
 {
     if (filter->keycode == 0) { /* initial press */
+        AccessXCancelRepeatKey(xkbi, keycode);
         filter->keycode = keycode;
         filter->active = 1;
         filter->filterOthers = ((pAction->mods.mask & XkbSA_ClearLocks) != 0);
@@ -354,6 +355,9 @@ static int
 _XkbFilterLockState(XkbSrvInfoPtr xkbi,
                     XkbFilterPtr filter, unsigned keycode, XkbAction *pAction)
 {
+    if (filter->keycode == 0) /* initial press */
+        AccessXCancelRepeatKey(xkbi, keycode);
+
     if (pAction && (pAction->type == XkbSA_LockGroup)) {
         if (pAction->group.flags & XkbSA_GroupAbsolute)
             xkbi->state.locked_group = XkbSAGroup(&pAction->group);
@@ -678,6 +682,7 @@ _XkbFilterControls(XkbSrvInfoPtr xkbi,
     ctrls = xkbi->desc->ctrls;
     old = *ctrls;
     if (filter->keycode == 0) { /* initial press */
+        AccessXCancelRepeatKey(xkbi, keycode);
         filter->keycode = keycode;
         filter->active = 1;
         filter->filterOthers = 0;
