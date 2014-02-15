@@ -639,6 +639,7 @@ _XkbFilterPointerBtn(XkbSrvInfoPtr xkbi,
         }
             break;
         }
+        return 0;
     }
     else if (filter->keycode == keycode) {
         int button = filter->upAction.btn.button;
@@ -664,8 +665,9 @@ _XkbFilterPointerBtn(XkbSrvInfoPtr xkbi,
             break;
         }
         filter->active = 0;
+        return 0;
     }
-    return 0;
+    return 1;
 }
 
 static int
