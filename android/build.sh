@@ -14,6 +14,8 @@ NDK=`readlink -f $NDK`
 [ -z "$TARGET_ARCH" ] && TARGET_ARCH=armeabi-v7a
 [ -z "$TARGET_HOST" ] && TARGET_HOST=arm-linux-androideabi
 
+export enable_malloc0returnsnull=true # Workaround for buggy autotools
+
 # =========== android-shmem ===========
 
 [ -e libandroid-shmem.a ] || {
@@ -487,9 +489,9 @@ cd $BUILDDIR
 # =========== libxcb.a ==========
 
 [ -e libxcb.a ] || {
-curl http://cgit.freedesktop.org/xcb/libxcb/snapshot/libxcb-1.9.1.tar.gz | tar xvz || exit 1
+curl http://cgit.freedesktop.org/xcb/libxcb/snapshot/libxcb-1.10.tar.gz | tar xvz || exit 1
 
-cd libxcb-1.9.1
+cd libxcb-1.10
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -514,11 +516,11 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf libxcb-1.9.1/src/.libs/libxcb.a ./
+ln -sf libxcb-1.10/src/.libs/libxcb.a ./
 mkdir -p xcb
-ln -sf ../libxcb-1.9.1/src/xcb.h xcb/
-ln -sf ../libxcb-1.9.1/src/xproto.h xcb/
-ln -sf ../libxcb-1.9.1/src/xcbext.h xcb/
+ln -sf ../libxcb-1.10/src/xcb.h xcb/
+ln -sf ../libxcb-1.10/src/xproto.h xcb/
+ln -sf ../libxcb-1.10/src/xcbext.h xcb/
 } || exit 1
 
 [ -e libandroid_support.a ] || {
