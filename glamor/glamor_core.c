@@ -83,9 +83,10 @@ glamor_compile_glsl_prog(GLenum type, const char *source)
 }
 
 void
-glamor_link_glsl_prog(GLint prog)
+glamor_link_glsl_prog(ScreenPtr screen, GLint prog, const char *format, ...)
 {
     GLint ok;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
     glLinkProgram(prog);
     glGetProgramiv(prog, GL_LINK_STATUS, &ok);
@@ -99,6 +100,17 @@ glamor_link_glsl_prog(GLint prog)
         glGetProgramInfoLog(prog, size, NULL, info);
         ErrorF("Failed to link: %s\n", info);
         FatalError("GLSL link failure\n");
+    }
+
+    if (glamor_priv->has_khr_debug) {
+        char *label;
+        va_list va;
+
+        va_start(va, format);
+        XNFvasprintf(&label, format, va);
+        glObjectLabel(GL_PROGRAM, prog, -1, label);
+        free(label);
+        va_end(va);
     }
 }
 
@@ -256,13 +268,15 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
                          GLAMOR_VERTEX_POS, "v_position");
     glBindAttribLocation(glamor_priv->finish_access_prog[0],
                          GLAMOR_VERTEX_SOURCE, "v_texcoord0");
-    glamor_link_glsl_prog(glamor_priv->finish_access_prog[0]);
+    glamor_link_glsl_prog(screen, glamor_priv->finish_access_prog[0],
+                          "finish access 0");
 
     glBindAttribLocation(glamor_priv->finish_access_prog[1],
                          GLAMOR_VERTEX_POS, "v_position");
     glBindAttribLocation(glamor_priv->finish_access_prog[1],
                          GLAMOR_VERTEX_SOURCE, "v_texcoord0");
-    glamor_link_glsl_prog(glamor_priv->finish_access_prog[1]);
+    glamor_link_glsl_prog(screen, glamor_priv->finish_access_prog[1],
+                          "finish access 1");
 
     glamor_priv->finish_access_revert[0] =
         glGetUniformLocation(glamor_priv->finish_access_prog[0], "revert");

@@ -372,6 +372,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         }
     }
 
+    glamor_priv->has_khr_debug = glamor_gl_has_extension("GL_KHR_debug");
     glamor_priv->has_pack_invert =
         glamor_gl_has_extension("GL_MESA_pack_invert");
     glamor_priv->has_fbo_blit =

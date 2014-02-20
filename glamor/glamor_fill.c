@@ -165,7 +165,7 @@ glamor_init_solid_shader(ScreenPtr screen)
 
     glBindAttribLocation(glamor_priv->solid_prog,
                          GLAMOR_VERTEX_POS, "v_position");
-    glamor_link_glsl_prog(glamor_priv->solid_prog);
+    glamor_link_glsl_prog(screen, glamor_priv->solid_prog, "solid");
 
     glamor_priv->solid_color_uniform_location =
         glGetUniformLocation(glamor_priv->solid_prog, "color");

@@ -332,7 +332,7 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
     glBindAttribLocation(prog, GLAMOR_VERTEX_SOURCE, "v_texcoord0");
     glBindAttribLocation(prog, GLAMOR_VERTEX_MASK, "v_texcoord1");
 
-    glamor_link_glsl_prog(prog);
+    glamor_link_glsl_prog(screen, prog, "composite");
 
     shader->prog = prog;
 

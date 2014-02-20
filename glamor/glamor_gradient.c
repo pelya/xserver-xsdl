@@ -377,7 +377,7 @@ _glamor_create_radial_gradient_program(ScreenPtr screen, int stops_count,
     glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS, "v_position");
     glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE, "v_texcoord");
 
-    glamor_link_glsl_prog(gradient_prog);
+    glamor_link_glsl_prog(screen, gradient_prog, "radial gradient");
 
     glUseProgram(0);
 
@@ -590,7 +590,7 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
     glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_POS, "v_position");
     glBindAttribLocation(gradient_prog, GLAMOR_VERTEX_SOURCE, "v_texcoord");
 
-    glamor_link_glsl_prog(gradient_prog);
+    glamor_link_glsl_prog(screen, gradient_prog, "linear gradient");
 
     glUseProgram(0);
 

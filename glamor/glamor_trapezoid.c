@@ -1357,7 +1357,7 @@ glamor_init_trapezoid_shader(ScreenPtr screen)
     glBindAttribLocation(glamor_priv->trapezoid_prog,
                          GLAMOR_VERTEX_RIGHT_PARAM, "v_right_param");
 
-    glamor_link_glsl_prog(glamor_priv->trapezoid_prog);
+    glamor_link_glsl_prog(screen, glamor_priv->trapezoid_prog, "trapezoid");
 
     glUseProgram(0);
 

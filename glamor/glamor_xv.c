@@ -109,7 +109,7 @@ glamor_init_xv_shader(ScreenPtr screen)
                          GLAMOR_VERTEX_POS, "v_position");
     glBindAttribLocation(glamor_priv->xv_prog,
                          GLAMOR_VERTEX_SOURCE, "v_texcoord0");
-    glamor_link_glsl_prog(glamor_priv->xv_prog);
+    glamor_link_glsl_prog(screen, glamor_priv->xv_prog, "xv");
 
     glamor_put_context(glamor_priv);
 }

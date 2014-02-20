@@ -214,6 +214,7 @@ typedef struct glamor_screen_private {
     int has_pack_invert;
     int has_fbo_blit;
     int has_buffer_storage;
+    int has_khr_debug;
     int max_fbo_size;
 
     struct xorg_list
@@ -594,7 +595,8 @@ Bool glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
                     unsigned long fg_pixel, unsigned long bg_pixel,
                     int stipple_x, int stipple_y);
 GLint glamor_compile_glsl_prog(GLenum type, const char *source);
-void glamor_link_glsl_prog(GLint prog);
+void glamor_link_glsl_prog(ScreenPtr screen, GLint prog,
+                           const char *format, ...) _X_ATTRIBUTE_PRINTF(3,4);
 void glamor_get_color_4f_from_pixel(PixmapPtr pixmap,
                                     unsigned long fg_pixel, GLfloat *color);
 
