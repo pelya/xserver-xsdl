@@ -258,11 +258,11 @@ static Bool probe_hw_pci(const char *dev, struct pci_device *pdev)
 
     id = drmGetBusid(fd);
     devid = ms_DRICreatePCIBusID(pdev);
-    close(fd);
 
     if (id && devid && !strcmp(id, devid))
         ret = check_outputs(fd);
 
+    close(fd);
     free(id);
     free(devid);
     return ret;
