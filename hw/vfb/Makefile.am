@@ -9,7 +9,6 @@ AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
 
 SRCS =	InitInput.c \
 	InitOutput.c \
-	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c
 
 libfbcmap_a_CFLAGS = $(AM_CFLAGS)
@@ -22,7 +21,8 @@ XVFB_LIBS = \
 	libfbcmap.a \
 	$(MAIN_LIB) \
 	$(XSERVER_LIBS) \
-	$(top_builddir)/Xext/libXextdpmsstubs.la
+	$(top_builddir)/Xext/libXextdpmsstubs.la \
+	$(top_builddir)/Xi/libXistubs.la
 
 Xvfb_LDADD = $(XVFB_LIBS) $(XVFB_SYS_LIBS) $(XSERVER_SYS_LIBS)
 Xvfb_DEPENDENCIES = $(XVFB_LIBS)
