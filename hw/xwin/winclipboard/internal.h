@@ -44,6 +44,7 @@
 #define WIN_XEVENTS_NOTIFY_TARGETS		4
 
 #define WM_WM_REINIT                           (WM_USER + 1)
+#define WM_WM_QUIT                             (WM_USER + 2)
 
 /*
  * References to external symbols

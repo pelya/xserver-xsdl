@@ -154,6 +154,12 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         ChangeClipboardChain(hwnd, s_hwndNextViewer);
 
         s_hwndNextViewer = NULL;
+    }
+        return 0;
+
+    case WM_WM_QUIT:
+    {
+        winDebug("winClipboardWindowProc - WM_WM_QUIT\n");
 
         PostQuitMessage(0);
     }
