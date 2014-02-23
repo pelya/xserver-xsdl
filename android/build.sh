@@ -1011,11 +1011,10 @@ sh -c '$STRIP xli'
 # =========== xsel binary ==========
 
 [ -e xsel ] || {
-PKGURL=https://github.com/kfish/xsel.git
-PKGDIR=xsel.git
+PKGURL=https://github.com/kfish/xsel/archive/master.tar.gz
+PKGDIR=xsel-master
 echo $PKGDIR: $PKGURL
-rm -rf $PKGDIR
-git clone $PKGURL $PKGDIR || exit 1
+curl -L $PKGURL | tar xvz || exit 1
 cd $PKGDIR
 
 env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc" \
