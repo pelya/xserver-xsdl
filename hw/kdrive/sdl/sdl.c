@@ -30,6 +30,8 @@
 #include "kdrive.h"
 #include <SDL/SDL.h>
 #include <X11/keysym.h>
+#include <sys/wait.h>
+#include <pthread.h>
 
 #ifdef __ANDROID__
 #include <SDL/SDL_screenkeyboard.h>
@@ -56,8 +58,9 @@ static Bool sdlMouseInit(KdPointerInfo *pi);
 static void sdlMouseFini(KdPointerInfo *pi);
 static Status sdlMouseEnable (KdPointerInfo *pi);
 static void sdlMouseDisable (KdPointerInfo *pi);
-static void execute_command_write_stdin(const char * command, const char * input);
+static int execute_command(const char * command, const char *mode, char * data, int datalen);
 static int UnicodeToUtf8(int src, char * dest);
+static void send_unicode(int unicode);
 
 KdKeyboardInfo *sdlKeyboard = NULL;
 KdPointerInfo *sdlPointer = NULL;
@@ -657,6 +660,7 @@ static void sdlPollInput(void)
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
+				//printf("Key sym %d scancode %d unicode %d", event.key.keysym.sym, event.key.keysym.scancode, event.key.keysym.unicode);
 #ifdef __ANDROID__
 				if (event.key.keysym.sym == SDLK_HELP)
 				{
@@ -678,14 +682,7 @@ static void sdlPollInput(void)
 				}
 				else if((event.key.keysym.unicode & 0xFF80) != 0)
 				{
-					// International text input - copy symbol to clipboard, and send copypaste key
-					char c[5];
-					UnicodeToUtf8 (event.key.keysym.unicode, c);
-					execute_command_write_stdin ("$APPDIR/usr/bin/xsel -b -i", c);
-					KdEnqueueKeyboardEvent (sdlKeyboard, 50, 0);  // LSHIFT
-					KdEnqueueKeyboardEvent (sdlKeyboard, 118, 0); // INSERT
-					KdEnqueueKeyboardEvent (sdlKeyboard, 118, 1); // INSERT
-					KdEnqueueKeyboardEvent (sdlKeyboard, 50, 1);  // LSHIFT
+					send_unicode (event.key.keysym.unicode);
 				}
 				else
 					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
@@ -746,21 +743,65 @@ void OsVendorInit (void)
 	KdOsInit (&sdlOsFuncs);
 }
 
-void execute_command_write_stdin(const char * command, const char * input)
+static void *send_unicode_thread(void *param)
+{
+	// International text input - copy symbol to clipboard, and send copypaste key
+	int unicode = (int)param;
+	char cmd[1024] = "";
+	sprintf (cmd, "127.0.0.1:%s", display);
+	setenv ("DISPLAY", cmd, 1);
+	char c[5] = "";
+	UnicodeToUtf8 (unicode, c);
+	//sprintf(cmd, "echo '%s' | %s/usr/bin/xsel -b -i >/dev/null 2>&1", c, getenv("APPDIR"));
+	//sprintf(cmd, "echo '%s' >/dev/null 2>&1", c);
+	//sprintf(cmd, "%s/usr/bin/xsel -b", getenv("APPDIR"));
+	//printf("Launching cmd: %s", cmd);
+	//int ret = system(cmd);
+	//printf("Cmd ret: %d", ret);
+	sprintf(cmd, "%s/usr/bin/xsel -b -i >/dev/null 2>&1", getenv("APPDIR"));
+	execute_command(cmd, "w", c, 5);
+	KdEnqueueKeyboardEvent (sdlKeyboard, 37, 0); // LCTRL
+	KdEnqueueKeyboardEvent (sdlKeyboard, 55, 0); // V
+	KdEnqueueKeyboardEvent (sdlKeyboard, 55, 1); // V
+	KdEnqueueKeyboardEvent (sdlKeyboard, 37, 1); // LCTRL
+	return NULL;
+}
+
+void send_unicode(int unicode)
+{
+	pthread_t thread_id;
+	pthread_attr_t attr;
+	pthread_attr_init (&attr);
+	pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
+	pthread_create (&thread_id, &attr, &send_unicode_thread, (void *)unicode);
+	pthread_attr_destroy (&attr);
+}
+
+int execute_command(const char * command, const char *mode, char * data, int datalen)
 {
 	FILE *cmd;
-	char buf[512];
-	sprintf (buf, ":%s", display);
-	setenv ("DISPLAY", buf, 1);
-	//printf ("setenv DISPLAY=%s", buf);
-	//printf ("Starting child command: %s", kdExecuteCommand);
-	cmd = popen (command, "w");
+	//printf ("Starting child command: %s, mode %s data: '%s'", command, mode, data);
+	cmd = popen (command, mode);
 	if (!cmd) {
 		printf ("Error while starting child command: %s", command);
-		return;
+		return -1;
 	}
-	fputs(input, cmd);
-	pclose (cmd);
+	if (mode[0] == 'w')
+		fputs (data, cmd);
+	else
+	{
+		datalen--;
+		while (datalen > 0 && fgets (data, datalen, cmd))
+		{
+			int count = strlen (data);
+			data += count;
+			datalen -= count;
+		}
+		data[0] = 0;
+	}
+	int ret = WEXITSTATUS (pclose (cmd));
+	//printf ("Child command returned %d", ret);
+	return ret;
 }
 
 int UnicodeToUtf8(int src, char * dest)
