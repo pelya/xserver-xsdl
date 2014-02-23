@@ -56,6 +56,8 @@ static Bool sdlMouseInit(KdPointerInfo *pi);
 static void sdlMouseFini(KdPointerInfo *pi);
 static Status sdlMouseEnable (KdPointerInfo *pi);
 static void sdlMouseDisable (KdPointerInfo *pi);
+static void execute_command_write_stdin(const char * command, const char * input);
+static int UnicodeToUtf8(int src, char * dest);
 
 KdKeyboardInfo *sdlKeyboard = NULL;
 KdPointerInfo *sdlPointer = NULL;
@@ -195,6 +197,8 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 	screen->rate=30; // 60 is too intense for CPU
 
 	SDL_WM_SetCaption("Freedesktop.org X server (SDL)", NULL);
+
+	SDL_EnableUNICODE(1);
 
 	return sdlMapFramebuffer (screen);
 }
@@ -672,6 +676,17 @@ static void sdlPollInput(void)
 						KdEnqueueKeyboardEvent (sdlKeyboard, 37, 1); // LCTRL
 					}
 				}
+				else if((event.key.keysym.unicode & 0xFF80) != 0)
+				{
+					// International text input - copy symbol to clipboard, and send copypaste key
+					char c[5];
+					UnicodeToUtf8 (event.key.keysym.unicode, c);
+					execute_command_write_stdin ("$APPDIR/usr/bin/xsel -b -i", c);
+					KdEnqueueKeyboardEvent (sdlKeyboard, 50, 0);  // LSHIFT
+					KdEnqueueKeyboardEvent (sdlKeyboard, 118, 0); // INSERT
+					KdEnqueueKeyboardEvent (sdlKeyboard, 118, 1); // INSERT
+					KdEnqueueKeyboardEvent (sdlKeyboard, 50, 1);  // LSHIFT
+				}
 				else
 					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
 				break;
@@ -729,4 +744,53 @@ KdOsFuncs sdlOsFuncs={
 void OsVendorInit (void)
 {
 	KdOsInit (&sdlOsFuncs);
+}
+
+void execute_command_write_stdin(const char * command, const char * input)
+{
+	FILE *cmd;
+	char buf[512];
+	sprintf (buf, ":%s", display);
+	setenv ("DISPLAY", buf, 1);
+	//printf ("setenv DISPLAY=%s", buf);
+	//printf ("Starting child command: %s", kdExecuteCommand);
+	cmd = popen (command, "w");
+	if (!cmd) {
+		printf ("Error while starting child command: %s", command);
+		return;
+	}
+	fputs(input, cmd);
+	pclose (cmd);
+}
+
+int UnicodeToUtf8(int src, char * dest)
+{
+    int len = 0;
+    if ( src <= 0x007f) {
+        *dest++ = (char)src;
+        len = 1;
+    } else if (src <= 0x07ff) {
+        *dest++ = (char)0xc0 | (src >> 6);
+        *dest++ = (char)0x80 | (src & 0x003f);
+        len = 2;
+    } else if (src == 0xFEFF) {
+        // nop -- zap the BOM
+    } else if (src >= 0xD800 && src <= 0xDFFF) {
+        // surrogates not supported
+    } else if (src <= 0xffff) {
+        *dest++ = (char)0xe0 | (src >> 12);
+        *dest++ = (char)0x80 | ((src >> 6) & 0x003f);
+        *dest++ = (char)0x80 | (src & 0x003f);
+        len = 3;
+    } else if (src <= 0xffff) {
+        *dest++ = (char)0xf0 | (src >> 18);
+        *dest++ = (char)0x80 | ((src >> 12) & 0x3f);
+        *dest++ = (char)0x80 | ((src >> 6) & 0x3f);
+        *dest++ = (char)0x80 | (src & 0x3f);
+        len = 4;
+    } else {
+        // out of Unicode range
+    }
+    *dest = 0;
+    return len;
 }

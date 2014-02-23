@@ -1008,6 +1008,32 @@ $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xli'
 } || exit 1
 
+# =========== xsel binary ==========
+
+[ -e xsel ] || {
+PKGURL=https://github.com/kfish/xsel.git
+PKGDIR=xsel.git
+echo $PKGDIR: $PKGURL
+rm -rf $PKGDIR
+git clone $PKGURL $PKGDIR || exit 1
+cd $PKGDIR
+
+env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc" \
+LDFLAGS="-L$BUILDDIR" \
+LIBS="-lX11 -lxcb -lXau -lXdmcp -landroid_support" \
+$BUILDDIR/setCrossEnvironment.sh \
+./autogen.sh --host=$TARGET_HOST \
+|| exit 1
+
+$BUILDDIR/setCrossEnvironment.sh \
+make V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+cp -f $PKGDIR/xsel ./ || exit 1
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP xsel'
+} || exit 1
+
 # =========== xsdl ==========
 
 ln -sf $BUILDDIR/../../../../../../libs/$TARGET_ARCH/libsdl-1.2.so $BUILDDIR/libSDL.so
