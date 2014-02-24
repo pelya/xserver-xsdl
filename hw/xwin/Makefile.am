@@ -128,7 +128,6 @@ SRCS =	InitInput.c \
 	winwindow.h \
 	XWin.rc \
 	$(top_srcdir)/mi/miinitext.c \
-	$(top_srcdir)/fb/fbcmap_mi.c \
 	$(SRCS_CLIPBOARD) \
 	$(SRCS_MULTIWINDOW) \
 	$(SRCS_MULTIWINDOWEXTWM) \

@@ -1,7 +1,6 @@
 SUBDIRS = man
 
 bin_PROGRAMS = Xvfb
-noinst_LIBRARIES = libfbcmap.a
 
 AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
             $(XVFBMODULES_CFLAGS) \
@@ -11,14 +10,10 @@ SRCS =	InitInput.c \
 	InitOutput.c \
 	$(top_srcdir)/mi/miinitext.c
 
-libfbcmap_a_CFLAGS = $(AM_CFLAGS)
-libfbcmap_a_SOURCES = $(top_srcdir)/fb/fbcmap_mi.c
-
 Xvfb_SOURCES = $(SRCS)
 
 XVFB_LIBS = \
         @XVFB_LIBS@ \
-	libfbcmap.a \
 	$(MAIN_LIB) \
 	$(XSERVER_LIBS) \
 	$(top_builddir)/Xext/libXextdpmsstubs.la \

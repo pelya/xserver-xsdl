@@ -1,7 +1,6 @@
 SUBDIRS = man
 
 bin_PROGRAMS = Xnest
-noinst_LIBRARIES = libfbcmap.a
 
 AM_CFLAGS = -DHAVE_XNEST_CONFIG_H \
             $(DIX_CFLAGS) \
@@ -44,12 +43,8 @@ SRCS =	Args.c \
 	xnest-config.h \
 	$(top_srcdir)/mi/miinitext.c
 
-libfbcmap_a_SOURCES = $(top_srcdir)/fb/fbcmap_mi.c
-libfbcmap_a_CFLAGS = $(AM_CFLAGS)
-
 XNEST_LIBS = \
         @XNEST_LIBS@ \
-	libfbcmap.a \
 	$(top_builddir)/Xext/libXextdpmsstubs.la \
 	$(top_builddir)/Xi/libXistubs.la
 
