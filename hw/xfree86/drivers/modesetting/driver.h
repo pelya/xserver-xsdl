@@ -59,7 +59,6 @@ typedef struct _modesettingRec
 #endif
 
     Bool noAccel;
-    Bool SWCursor;
     CloseScreenProcPtr CloseScreen;
 
     /* Broken-out options. */
