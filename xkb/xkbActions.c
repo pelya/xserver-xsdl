@@ -1174,6 +1174,25 @@ _XkbApplyState(DeviceIntPtr dev, Bool genStateNotify, int evtype, int key)
 }
 
 void
+XkbPushLockedStateToSlaves(DeviceIntPtr master, int evtype, int key)
+{
+    DeviceIntPtr dev;
+    Bool genStateNotify;
+
+    nt_list_for_each_entry(dev, inputInfo.devices, next) {
+        if (!dev->key || GetMaster(dev, MASTER_KEYBOARD) != master)
+            continue;
+
+        genStateNotify = _XkbEnsureStateChange(dev->key->xkbInfo);
+
+        dev->key->xkbInfo->state.locked_mods =
+            master->key->xkbInfo->state.locked_mods;
+
+        _XkbApplyState(dev, genStateNotify, evtype, key);
+    }
+}
+
+void
 XkbHandleActions(DeviceIntPtr dev, DeviceIntPtr kbd, DeviceEvent *event)
 {
     int key, bit, i;
@@ -1327,6 +1346,7 @@ XkbHandleActions(DeviceIntPtr dev, DeviceIntPtr kbd, DeviceEvent *event)
     }
 
     _XkbApplyState(dev, genStateNotify, event->type, key);
+    XkbPushLockedStateToSlaves(dev, event->type, key);
 }
 
 int
