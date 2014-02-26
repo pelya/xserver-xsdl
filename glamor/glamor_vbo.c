@@ -52,7 +52,51 @@ glamor_get_vbo_space(ScreenPtr screen, unsigned size, char **vbo_offset)
 
     glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
 
-    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+    if (glamor_priv->has_buffer_storage) {
+        if (glamor_priv->vbo_size < glamor_priv->vbo_offset + size) {
+            if (glamor_priv->vbo_size)
+                glUnmapBuffer(GL_ARRAY_BUFFER);
+
+            if (size > glamor_priv->vbo_size) {
+                glamor_priv->vbo_size = MAX(GLAMOR_VBO_SIZE, size);
+
+                /* We aren't allowed to resize glBufferStorage()
+                 * buffers, so we need to gen a new one.
+                 */
+                glDeleteBuffers(1, &glamor_priv->vbo);
+                glGenBuffers(1, &glamor_priv->vbo);
+                glBindBuffer(GL_ARRAY_BUFFER, glamor_priv->vbo);
+
+                assert(glGetError() == GL_NO_ERROR);
+                glBufferStorage(GL_ARRAY_BUFFER, glamor_priv->vbo_size, NULL,
+                                GL_MAP_WRITE_BIT |
+                                GL_MAP_PERSISTENT_BIT |
+                                GL_MAP_COHERENT_BIT);
+
+                if (glGetError() != GL_NO_ERROR) {
+                    /* If the driver failed our coherent mapping, fall
+                     * back to the ARB_mbr path.
+                     */
+                    glamor_priv->has_buffer_storage = false;
+                    glamor_priv->vbo_size = 0;
+                    glamor_put_context(glamor_priv);
+
+                    return glamor_get_vbo_space(screen, size, vbo_offset);
+                }
+            }
+
+            glamor_priv->vbo_offset = 0;
+            glamor_priv->vb = glMapBufferRange(GL_ARRAY_BUFFER,
+                                               0, glamor_priv->vbo_size,
+                                               GL_MAP_WRITE_BIT |
+                                               GL_MAP_INVALIDATE_BUFFER_BIT |
+                                               GL_MAP_PERSISTENT_BIT |
+                                               GL_MAP_COHERENT_BIT);
+        }
+        *vbo_offset = (void *)(uintptr_t)glamor_priv->vbo_offset;
+        data = glamor_priv->vb + glamor_priv->vbo_offset;
+        glamor_priv->vbo_offset += size;
+    } else if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
         if (glamor_priv->vbo_size < glamor_priv->vbo_offset + size) {
             glamor_priv->vbo_size = MAX(GLAMOR_VBO_SIZE, size);
             glamor_priv->vbo_offset = 0;
@@ -98,7 +142,12 @@ glamor_put_vbo_space(ScreenPtr screen)
 
     glamor_get_context(glamor_priv);
 
-    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+    if (glamor_priv->has_buffer_storage) {
+        /* If we're in the ARB_buffer_storage path, we have a
+         * persistent mapping, so we can leave it around until we
+         * reach the end of the buffer.
+         */
+    } else if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
         glUnmapBuffer(GL_ARRAY_BUFFER);
     } else {
         glBufferData(GL_ARRAY_BUFFER, glamor_priv->vbo_offset,

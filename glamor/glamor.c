@@ -353,6 +353,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         glamor_gl_has_extension("GL_MESA_pack_invert");
     glamor_priv->has_fbo_blit =
         glamor_gl_has_extension("GL_EXT_framebuffer_blit");
+    glamor_priv->has_buffer_storage =
+        glamor_gl_has_extension("GL_ARB_buffer_storage");
     glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size);
 #ifdef MAX_FBO_SIZE
     glamor_priv->max_fbo_size = MAX_FBO_SIZE;
