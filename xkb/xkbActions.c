@@ -1127,6 +1127,22 @@ _XkbApplyFilters(XkbSrvInfoPtr xkbi, unsigned kc, XkbAction *pAction)
     return send;
 }
 
+static int
+_XkbEnsureStateChange(XkbSrvInfoPtr xkbi)
+{
+    Bool genStateNotify = FALSE;
+
+    /* The state may change, so if we're not in the middle of sending a state
+     * notify, prepare for it */
+    if ((xkbi->flags & _XkbStateNotifyInProgress) == 0) {
+        xkbi->prev_state = xkbi->state;
+        xkbi->flags |= _XkbStateNotifyInProgress;
+        genStateNotify = TRUE;
+    }
+
+    return genStateNotify;
+}
+
 void
 XkbHandleActions(DeviceIntPtr dev, DeviceIntPtr kbd, DeviceEvent *event)
 {
@@ -1146,15 +1162,8 @@ XkbHandleActions(DeviceIntPtr dev, DeviceIntPtr kbd, DeviceEvent *event)
     keyc = kbd->key;
     xkbi = keyc->xkbInfo;
     key = event->detail.key;
-    /* The state may change, so if we're not in the middle of sending a state
-     * notify, prepare for it */
-    if ((xkbi->flags & _XkbStateNotifyInProgress) == 0) {
-        xkbi->prev_state = xkbi->state;
-        xkbi->flags |= _XkbStateNotifyInProgress;
-        genStateNotify = TRUE;
-    }
-    else
-        genStateNotify = FALSE;
+
+    genStateNotify = _XkbEnsureStateChange(xkbi);
 
     xkbi->clearMods = xkbi->setMods = 0;
     xkbi->groupChange = 0;
