@@ -621,8 +621,8 @@ static void sdlPollInput(void)
 						buttonState = 1 << (event.button.button - 1);
 						break;
 				}
-				mouseState|=buttonState;
-				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, 0);
+				mouseState |= buttonState;
+				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
 				break;
 			case SDL_MOUSEBUTTONUP:
 				switch(event.button.button)
@@ -656,7 +656,7 @@ static void sdlPollInput(void)
 						break;
 				}
 				mouseState &= ~buttonState;
-				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, 0);
+				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
@@ -688,8 +688,12 @@ static void sdlPollInput(void)
 					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
 				break;
 			case SDL_JOYAXISMOTION:
-				if (event.jaxis.which == 0 && event.jaxis.axis == 4)
+				if (event.jaxis.which == 0 && event.jaxis.axis == 4 && pressure != event.jaxis.value)
+				{
 					pressure = event.jaxis.value;
+					if (mouseState & KD_BUTTON_1)
+						KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
+				}
 				break;
 			case SDL_ACTIVEEVENT:
 				// We need this to re-init OpenGL and redraw screen
