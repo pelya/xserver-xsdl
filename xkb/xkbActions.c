@@ -1143,13 +1143,43 @@ _XkbEnsureStateChange(XkbSrvInfoPtr xkbi)
     return genStateNotify;
 }
 
+static void
+_XkbApplyState(DeviceIntPtr dev, Bool genStateNotify, int evtype, int key)
+{
+    XkbSrvInfoPtr xkbi = dev->key->xkbInfo;
+    int changed;
+
+    XkbComputeDerivedState(xkbi);
+
+    changed = XkbStateChangedFlags(&xkbi->prev_state, &xkbi->state);
+    if (genStateNotify) {
+        if (changed) {
+            xkbStateNotify sn;
+
+            sn.keycode = key;
+            sn.eventType = evtype;
+            sn.requestMajor = sn.requestMinor = 0;
+            sn.changed = changed;
+            XkbSendStateNotify(dev, &sn);
+        }
+        xkbi->flags &= ~_XkbStateNotifyInProgress;
+    }
+
+    changed = XkbIndicatorsToUpdate(dev, changed, FALSE);
+    if (changed) {
+        XkbEventCauseRec cause;
+        XkbSetCauseKey(&cause, key, evtype);
+        XkbUpdateIndicators(dev, changed, FALSE, NULL, &cause);
+    }
+}
+
 void
 XkbHandleActions(DeviceIntPtr dev, DeviceIntPtr kbd, DeviceEvent *event)
 {
     int key, bit, i;
     XkbSrvInfoPtr xkbi;
     KeyClassPtr keyc;
-    int changed, sendEvent;
+    int sendEvent;
     Bool genStateNotify;
     XkbAction act;
     XkbFilterPtr filter;
@@ -1296,28 +1326,7 @@ XkbHandleActions(DeviceIntPtr dev, DeviceIntPtr kbd, DeviceEvent *event)
         FixKeyState(event, dev);
     }
 
-    XkbComputeDerivedState(xkbi);
-    changed = XkbStateChangedFlags(&xkbi->prev_state, &xkbi->state);
-    if (genStateNotify) {
-        if (changed) {
-            xkbStateNotify sn;
-
-            sn.keycode = key;
-            sn.eventType = event->type;
-            sn.requestMajor = sn.requestMinor = 0;
-            sn.changed = changed;
-            XkbSendStateNotify(dev, &sn);
-        }
-        xkbi->flags &= ~_XkbStateNotifyInProgress;
-    }
-    changed = XkbIndicatorsToUpdate(dev, changed, FALSE);
-    if (changed) {
-        XkbEventCauseRec cause;
-
-        XkbSetCauseKey(&cause, key, event->type);
-        XkbUpdateIndicators(dev, changed, FALSE, NULL, &cause);
-    }
-    return;
+    _XkbApplyState(dev, genStateNotify, event->type, key);
 }
 
 int
