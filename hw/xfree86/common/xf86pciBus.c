@@ -1061,33 +1061,6 @@ xf86ConfigPciEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
     return pScrn;
 }
 
-/*
- *  OBSOLETE ! xf86ConfigActivePciEntity() is an obsolete function.
- *             It is likely to be removed. Don't use!
- */
-Bool
-xf86ConfigActivePciEntity(ScrnInfoPtr pScrn, int entityIndex,
-                          PciChipsets * p_chip, void *dummy, EntityProc init,
-                          EntityProc enter, EntityProc leave, void *private)
-{
-    EntityInfoPtr pEnt = xf86GetEntityInfo(entityIndex);
-
-    if (!pEnt)
-        return FALSE;
-
-    if (!pEnt->active || !(pEnt->location.type == BUS_PCI)) {
-        free(pEnt);
-        return FALSE;
-    }
-    xf86AddEntityToScreen(pScrn, entityIndex);
-
-    free(pEnt);
-    if (!xf86SetEntityFuncs(entityIndex, init, enter, leave, private))
-        return FALSE;
-
-    return TRUE;
-}
-
 int
 xf86VideoPtrToDriverList(struct pci_device *dev,
                      char *returnList[], int returnListMax)
