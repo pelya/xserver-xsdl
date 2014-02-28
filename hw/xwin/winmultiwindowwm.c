@@ -405,7 +405,7 @@ Xutf8TextPropertyToString(Display * pDisplay, XTextProperty * xtp)
 
         for (i = 0; i < nNum; i++)
             iLen += strlen(ppList[i]);
-        pszReturnData = (char *) malloc(iLen + 1);
+        pszReturnData = malloc(iLen + 1);
         pszReturnData[0] = '\0';
         for (i = 0; i < nNum; i++)
             strcat(pszReturnData, ppList[i]);
@@ -413,7 +413,7 @@ Xutf8TextPropertyToString(Display * pDisplay, XTextProperty * xtp)
             XFreeStringList(ppList);
     }
     else {
-        pszReturnData = (char *) malloc(1);
+        pszReturnData = malloc(1);
         pszReturnData[0] = '\0';
     }
 
@@ -537,7 +537,7 @@ UpdateName(WMInfoPtr pWMInfo, Window iWindow)
             int iLen =
                 MultiByteToWideChar(CP_UTF8, 0, pszWindowName, -1, NULL, 0);
             wchar_t *pwszWideWindowName =
-                (wchar_t *) malloc(sizeof(wchar_t) * (iLen + 1));
+                malloc(sizeof(wchar_t)*(iLen + 1));
             MultiByteToWideChar(CP_UTF8, 0, pszWindowName, -1,
                                 pwszWideWindowName, iLen);
 
@@ -1237,9 +1237,9 @@ winInitWM(void **ppWMInfo,
           pthread_mutex_t * ppmServerStarted,
           int dwScreen, HWND hwndScreen, BOOL allowOtherWM)
 {
-    WMProcArgPtr pArg = (WMProcArgPtr) malloc(sizeof(WMProcArgRec));
-    WMInfoPtr pWMInfo = (WMInfoPtr) malloc(sizeof(WMInfoRec));
-    XMsgProcArgPtr pXMsgArg = (XMsgProcArgPtr) malloc(sizeof(XMsgProcArgRec));
+    WMProcArgPtr pArg = malloc(sizeof(WMProcArgRec));
+    WMInfoPtr pWMInfo = malloc(sizeof(WMInfoRec));
+    XMsgProcArgPtr pXMsgArg = malloc(sizeof(XMsgProcArgRec));
 
     /* Bail if the input parameters are bad */
     if (pArg == NULL || pWMInfo == NULL || pXMsgArg == NULL) {
@@ -1432,7 +1432,7 @@ winSendMessageToWM(void *pWMInfo, winWMMessagePtr pMsg)
     ErrorF("winSendMessageToWM ()\n");
 #endif
 
-    pNode = (WMMsgNodePtr) malloc(sizeof(WMMsgNodeRec));
+    pNode = malloc(sizeof(WMMsgNodeRec));
     if (pNode != NULL) {
         memcpy(&pNode->msg, pMsg, sizeof(winWMMessageRec));
         PushMessage(&((WMInfoPtr) pWMInfo)->wmMsgQueue, pNode);
