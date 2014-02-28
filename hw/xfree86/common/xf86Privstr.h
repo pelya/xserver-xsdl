@@ -81,8 +81,6 @@ typedef struct {
                                  * changed */
     Bool miscModInDevAllowNonLocal;
     Bool useSIGIO;              /* Use SIGIO for handling DRI1 swaps */
-    Pix24Flags pixmap24;
-    MessageType pix24From;
     Bool pmFlag;
     Bool disableRandR;
     MessageType randRFrom;

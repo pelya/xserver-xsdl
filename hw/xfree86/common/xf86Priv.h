@@ -67,7 +67,6 @@ extern _X_EXPORT char *xf86PointerName;
 extern _X_EXPORT char *xf86KeyboardName;
 extern _X_EXPORT int xf86FbBpp;
 extern _X_EXPORT int xf86Depth;
-extern _X_EXPORT Pix24Flags xf86Pix24;
 extern _X_EXPORT rgb xf86Weight;
 extern _X_EXPORT Bool xf86FlipPixels;
 extern _X_EXPORT Gamma xf86Gamma;

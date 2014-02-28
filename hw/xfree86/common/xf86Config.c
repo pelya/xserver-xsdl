@@ -628,7 +628,6 @@ typedef enum {
     FLAG_DPMS_STANDBYTIME,
     FLAG_DPMS_SUSPENDTIME,
     FLAG_DPMS_OFFTIME,
-    FLAG_PIXMAP,
     FLAG_NOPM,
     FLAG_XINERAMA,
     FLAG_LOG,
@@ -674,8 +673,6 @@ static OptionInfoRec FlagOptions[] = {
      {0}, FALSE},
     {FLAG_DPMS_OFFTIME, "OffTime", OPTV_INTEGER,
      {0}, FALSE},
-    {FLAG_PIXMAP, "Pixmap", OPTV_INTEGER,
-     {0}, FALSE},
     {FLAG_NOPM, "NoPM", OPTV_BOOLEAN,
      {0}, FALSE},
     {FLAG_XINERAMA, "Xinerama", OPTV_BOOLEAN,
@@ -715,7 +712,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 {
     XF86OptionPtr optp, tmp;
     int i;
-    Pix24Flags pix24 = Pix24DontCare;
     Bool value;
     MessageType from;
     const char *s;
@@ -921,34 +917,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
         ErrorF("OffTime value %d outside legal range of 0 - %d minutes\n",
                i, MAX_TIME_IN_MIN);
 #endif
-
-    i = -1;
-    xf86GetOptValInteger(FlagOptions, FLAG_PIXMAP, &i);
-    switch (i) {
-    case 24:
-        pix24 = Pix24Use24;
-        break;
-    case 32:
-        pix24 = Pix24Use32;
-        break;
-    case -1:
-        break;
-    default:
-        ErrorF("Pixmap option's value (%d) must be 24 or 32\n", i);
-        break;
-    }
-    if (xf86Pix24 != Pix24DontCare) {
-        xf86Info.pixmap24 = xf86Pix24;
-        xf86Info.pix24From = X_CMDLINE;
-    }
-    else if (pix24 != Pix24DontCare) {
-        xf86Info.pixmap24 = pix24;
-        xf86Info.pix24From = X_CONFIG;
-    }
-    else {
-        xf86Info.pixmap24 = Pix24DontCare;
-        xf86Info.pix24From = X_DEFAULT;
-    }
 
 #ifdef PANORAMIX
     from = X_DEFAULT;
