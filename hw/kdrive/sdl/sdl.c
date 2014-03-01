@@ -686,6 +686,11 @@ static void sdlPollInput(void)
 				}
 				else
 					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
+				// Force SDL screen update, so SDL virtual on-screen buttons will change their images
+				{
+					SDL_Rect r = {0, 0, 1, 1};
+					SDL_UpdateRects(SDL_GetVideoSurface(), 1, &r);
+				}
 				break;
 			case SDL_JOYAXISMOTION:
 				if (event.jaxis.which == 0 && event.jaxis.axis == 4 && pressure != event.jaxis.value)
