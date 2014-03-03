@@ -38,6 +38,7 @@
 #include <unistd.h>
 #include "os.h"
 #include "hotplug.h"
+#include "systemd-logind.h"
 
 #include "xf86.h"
 #include "xf86_OSproc.h"
@@ -310,7 +311,7 @@ static Bool doPlatformProbe(struct xf86_platform_device *dev, DriverPtr drvp,
                             GDevPtr gdev, int flags, intptr_t match_data)
 {
     Bool foundScreen = FALSE;
-    int entity;
+    int entity, fd, major, minor;
 
     if (gdev && gdev->screen == 0 && !xf86_check_platform_slot(dev))
         return FALSE;
@@ -334,6 +335,17 @@ static Bool doPlatformProbe(struct xf86_platform_device *dev, DriverPtr drvp,
         }
     }
     if (entity != -1) {
+        if ((dev->flags & XF86_PDEV_SERVER_FD) && (!drvp->driverFunc ||
+                !drvp->driverFunc(NULL, SUPPORTS_SERVER_FDS, NULL))) {
+            fd = xf86_get_platform_device_int_attrib(dev, ODEV_ATTRIB_FD, -1);
+            major = xf86_get_platform_device_int_attrib(dev, ODEV_ATTRIB_MAJOR, 0);
+            minor = xf86_get_platform_device_int_attrib(dev, ODEV_ATTRIB_MINOR, 0);
+            systemd_logind_release_fd(major, minor);
+            close(fd);
+            config_odev_add_int_attribute(dev->attribs, ODEV_ATTRIB_FD, -1);
+            dev->flags &= ~XF86_PDEV_SERVER_FD;
+        }
+
         if (drvp->platformProbe(drvp, entity, flags, dev, match_data))
             foundScreen = TRUE;
         else
