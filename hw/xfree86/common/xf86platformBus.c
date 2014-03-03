@@ -312,13 +312,13 @@ static Bool doPlatformProbe(struct xf86_platform_device *dev, DriverPtr drvp,
     Bool foundScreen = FALSE;
     int entity;
 
-    if (gdev->screen == 0 && !xf86_check_platform_slot(dev))
+    if (gdev && gdev->screen == 0 && !xf86_check_platform_slot(dev))
         return FALSE;
 
     entity = xf86ClaimPlatformSlot(dev, drvp, 0,
-                                   gdev, gdev->active);
+                                   gdev, gdev ? gdev->active : 0);
 
-    if ((entity == -1) && (gdev->screen > 0)) {
+    if ((entity == -1) && gdev && (gdev->screen > 0)) {
         unsigned nent;
 
         for (nent = 0; nent < xf86NumEntities; nent++) {
@@ -420,7 +420,6 @@ xf86platformAddDevice(int index)
 {
     int i, old_screens, scr_index;
     DriverPtr drvp = NULL;
-    int entity;
     screenLayoutPtr layout;
     static const char *hotplug_driver_name = "modesetting";
 
@@ -440,11 +439,8 @@ xf86platformAddDevice(int index)
         return -1;
 
     old_screens = xf86NumGPUScreens;
-    entity = xf86ClaimPlatformSlot(&xf86_platform_devices[index],
-                                   drvp, 0, 0, 0);
-    if (!drvp->platformProbe(drvp, entity, PLATFORM_PROBE_GPU_SCREEN, &xf86_platform_devices[index], 0)) {
-        xf86UnclaimPlatformSlot(&xf86_platform_devices[index], NULL);
-    }
+    doPlatformProbe(&xf86_platform_devices[index], drvp, NULL,
+                    PLATFORM_PROBE_GPU_SCREEN, 0);
     if (old_screens == xf86NumGPUScreens)
         return -1;
     i = old_screens;
