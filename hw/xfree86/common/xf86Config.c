@@ -2168,7 +2168,6 @@ configDevice(GDevPtr devicep, XF86ConfDevicePtr conf_device, Bool active)
     devicep->IOBase = conf_device->dev_io_base;
     devicep->clockchip = conf_device->dev_clockchip;
     devicep->busID = conf_device->dev_busid;
-    devicep->textClockFreq = conf_device->dev_textclockfreq;
     devicep->chipID = conf_device->dev_chipid;
     devicep->chipRev = conf_device->dev_chiprev;
     devicep->options = conf_device->dev_option_lst;
