@@ -627,6 +627,7 @@ AC_ARG_ENABLE(pciaccess, AS_HELP_STRING([--enable-pciaccess], [Build Xorg with p
 AC_ARG_ENABLE(linux_acpi, AS_HELP_STRING([--disable-linux-acpi], [Disable building ACPI support on Linux (if available).]), [enable_linux_acpi=$enableval], [enable_linux_acpi=yes])
 AC_ARG_ENABLE(linux_apm, AS_HELP_STRING([--disable-linux-apm], [Disable building APM support on Linux (if available).]), [enable_linux_apm=$enableval], [enable_linux_apm=yes])
 AC_ARG_ENABLE(systemd-logind, AC_HELP_STRING([--enable-systemd-logind], [Build systemd-logind support (default: auto)]), [SYSTEMD_LOGIND=$enableval], [SYSTEMD_LOGIND=auto])
+AC_ARG_ENABLE(suid-wrapper, AC_HELP_STRING([--enable-suid-wrapper], [Build suid-root wrapper for legacy driver support on rootless xserver systems (default: no)]), [SUID_WRAPPER=$enableval], [SUID_WRAPPER=no])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -923,6 +924,16 @@ if test "x$SYSTEMD_LOGIND" = xyes; then
         NEED_DBUS="yes"
 fi
 AM_CONDITIONAL(SYSTEMD_LOGIND, [test "x$SYSTEMD_LOGIND" = xyes])
+
+if test "x$SUID_WRAPPER" = xyes; then
+        dnl The wrapper uses libdrm headers, so ensure they are available
+        PKG_CHECK_MODULES([LIBDRM], $LIBDRM)
+        dnl This is a define so that if some platforms want to put the wrapper
+        dnl somewhere else this can be easily changed
+        AC_DEFINE_DIR(SUID_WRAPPER_DIR, libexecdir, [Where to install Xorg.bin and Xorg.wrap])
+        SETUID="no"
+fi
+AM_CONDITIONAL(SUID_WRAPPER, [test "x$SUID_WRAPPER" = xyes])
 
 if test "x$NEED_DBUS" = xyes; then
         AC_DEFINE(NEED_DBUS, 1, [Enable D-Bus core])
@@ -2116,7 +2127,6 @@ fi
 AC_MSG_RESULT([$XWIN])
 
 if test "x$XWIN" = xyes; then
-	AC_DEFINE_DIR(SYSCONFDIR, sysconfdir, [Location of system.XWinrc])
 	AC_DEFINE_DIR(DEFAULT_LOGDIR, logdir, [Default log location])
 	AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
 	AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
@@ -2440,6 +2450,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 	[ Enable GNU and other extensions to the C environment for glibc])])
 
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
+AC_DEFINE_DIR(SYSCONFDIR, sysconfdir, [sysconfdir])
 
 AC_SUBST([RELEASE_DATE])
 BUILD_DATE="`date +'%Y%m%d'`"
@@ -2499,6 +2510,7 @@ dri3/Makefile
 present/Makefile
 hw/Makefile
 hw/xfree86/Makefile
+hw/xfree86/Xorg.sh
 hw/xfree86/common/Makefile
 hw/xfree86/common/xf86Build.h
 hw/xfree86/ddc/Makefile
