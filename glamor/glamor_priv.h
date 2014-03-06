@@ -703,10 +703,6 @@ void glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
                                        struct blendinfo *op_info);
 
 void glamor_setup_composite_vbo(ScreenPtr screen, int n_verts);
-void glamor_emit_composite_vert(ScreenPtr screen,
-                                const float *src_coords,
-                                const float *mask_coords,
-                                const float *dst_coords, int i);
 
 /* glamor_trapezoid.c */
 void glamor_trapezoids(CARD8 op,

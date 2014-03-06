@@ -767,31 +767,6 @@ glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
     glamor_put_context(glamor_priv);
 }
 
-void
-glamor_emit_composite_vert(ScreenPtr screen,
-                           const float *src_coords,
-                           const float *mask_coords,
-                           const float *dst_coords, int i)
-{
-    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-    float *vb = (float *) (glamor_priv->vb + glamor_priv->vbo_offset);
-    int j = 0;
-
-    vb[j++] = dst_coords[i * 2 + 0];
-    vb[j++] = dst_coords[i * 2 + 1];
-    if (glamor_priv->has_source_coords) {
-        vb[j++] = src_coords[i * 2 + 0];
-        vb[j++] = src_coords[i * 2 + 1];
-    }
-    if (glamor_priv->has_mask_coords) {
-        vb[j++] = mask_coords[i * 2 + 0];
-        vb[j++] = mask_coords[i * 2 + 1];
-    }
-
-    glamor_priv->render_nr_verts++;
-    glamor_priv->vbo_offset += glamor_priv->vb_stride;
-}
-
 static void
 glamor_flush_composite_rects(ScreenPtr screen)
 {
