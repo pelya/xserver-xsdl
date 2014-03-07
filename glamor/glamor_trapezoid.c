@@ -191,13 +191,15 @@ point_inside_trapezoid(int point[2], xTrapezoid *trap, xFixed cut_y)
 
 static void
 glamor_emit_composite_vert(ScreenPtr screen,
+                           float *vb,
                            const float *src_coords,
                            const float *mask_coords,
                            const float *dst_coords, int i)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-    float *vb = (float *) (glamor_priv->vb + glamor_priv->vbo_offset);
     int j = 0;
+
+    vb += i * glamor_priv->vb_stride / sizeof(float);
 
     vb[j++] = dst_coords[i * 2 + 0];
     vb[j++] = dst_coords[i * 2 + 1];
@@ -216,13 +218,17 @@ glamor_emit_composite_vert(ScreenPtr screen,
 
 static void
 glamor_emit_composite_triangle(ScreenPtr screen,
+                               float *vb,
                                const float *src_coords,
                                const float *mask_coords,
                                const float *dst_coords)
 {
-    glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 0);
-    glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 1);
-    glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 2);
+    glamor_emit_composite_vert(screen, vb,
+                               src_coords, mask_coords, dst_coords, 0);
+    glamor_emit_composite_vert(screen, vb,
+                               src_coords, mask_coords, dst_coords, 1);
+    glamor_emit_composite_vert(screen, vb,
+                               src_coords, mask_coords, dst_coords, 2);
 }
 
 static void
@@ -887,6 +893,8 @@ _glamor_trapezoids_with_shader(CARD8 op,
 
     nclip_rect = nbox;
     while (nclip_rect) {
+        float *vb;
+
         mclip_rect = (nclip_rect * ntrap * 4) > ntriangle_per_loop ?
             (ntriangle_per_loop / (4 * ntrap)) : nclip_rect;
 
@@ -904,8 +912,9 @@ _glamor_trapezoids_with_shader(CARD8 op,
 
  NTRAPS_LOOP_AGAIN:
 
-        glamor_setup_composite_vbo(screen,
-                                   mclip_rect * traps_count * 4 * vert_stride);
+        vb = glamor_setup_composite_vbo(screen,
+                                        (mclip_rect * traps_count *
+                                         4 * vert_stride));
         clip_processed = mclip_rect;
 
         while (mclip_rect--) {
@@ -963,8 +972,10 @@ _glamor_trapezoids_with_shader(CARD8 op,
                                    source_texcoords[4], source_texcoords[5]);
                         }
 
-                        glamor_emit_composite_triangle(screen, source_texcoords,
+                        glamor_emit_composite_triangle(screen, vb,
+                                                       source_texcoords,
                                                        NULL, vertices);
+                        vb += 3 * glamor_priv->vb_stride / sizeof(float);
                     }
                 }
 
