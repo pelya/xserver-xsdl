@@ -607,7 +607,7 @@ _glamor_clip_trapezoid_vertex(xTrapezoid *trap, BoxPtr pbox,
     return TRUE;
 }
 
-static void
+static void *
 glamor_setup_composite_vbo_for_trapezoid(ScreenPtr screen, int n_verts)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
@@ -701,6 +701,8 @@ glamor_setup_composite_vbo_for_trapezoid(ScreenPtr screen, int n_verts)
     glEnableVertexAttribArray(GLAMOR_VERTEX_RIGHT_PARAM);
 
     glamor_put_context(glamor_priv);
+
+    return glamor_priv->vb + glamor_priv->vbo_offset;
 }
 
 static Bool
@@ -1420,7 +1422,6 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
     BoxRec one_trap_bound;
     int nrect_max;
     int i, j;
-    float *vertices;
     float params[4];
 
     glamor_priv = glamor_get_screen_private(screen);
@@ -1461,11 +1462,12 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
     nrect_max = GLAMOR_COMPOSITE_VBO_VERT_CNT / (4 * GLAMOR_VERTEX_RIGHT_PARAM);
 
     for (i = 0; i < ntrap;) {
+        float *vertices;
         int mrect;
         int stride;
 
         mrect = (ntrap - i) > nrect_max ? nrect_max : (ntrap - i);
-        glamor_setup_composite_vbo_for_trapezoid(screen, 4 * mrect);
+        vertices = glamor_setup_composite_vbo_for_trapezoid(screen, 4 * mrect);
         stride = glamor_priv->vb_stride / sizeof(float);
 
         for (j = 0; j < mrect; j++) {
@@ -1488,8 +1490,7 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 
             miTrapezoidBounds(1, ptrap, &one_trap_bound);
 
-            vertices =
-                (float *) (glamor_priv->vb + glamor_priv->vbo_offset) + 2;
+            vertices += 2;
             glamor_set_tcoords_ext((pixmap_priv->base.pixmap->drawable.width),
                                    (pixmap_priv->base.pixmap->drawable.height),
                                    (one_trap_bound.x1), (one_trap_bound.y1),
@@ -1561,6 +1562,7 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
             }
             params[2] = right_slope;
             glamor_set_const_ext(params, 4, vertices, 4, stride);
+            vertices += 4;
 
             DEBUGF("trap_top = %f, trap_bottom = %f, "
                    "trap_left_x = %f, trap_left_y = %f, left_slope = %f, "
@@ -1574,6 +1576,8 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
 
             glamor_priv->render_nr_verts += 4;
             glamor_priv->vbo_offset += glamor_priv->vb_stride * 4;
+
+            vertices += 3 * stride;
         }
 
         i += mrect;
