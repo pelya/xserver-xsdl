@@ -2090,3 +2090,26 @@ XkbMergeLockedPtrBtns(DeviceIntPtr master)
         xkbi->lockedPtrButtons |= d->key->xkbInfo->lockedPtrButtons;
     }
 }
+
+void
+XkbCopyControls(XkbDescPtr dst, XkbDescPtr src)
+{
+    int i, nG, nTG;
+
+    if (!dst || !src)
+        return;
+
+    *dst->ctrls = *src->ctrls;
+
+    for (nG = nTG = 0, i = dst->min_key_code; i <= dst->max_key_code; i++) {
+        nG = XkbKeyNumGroups(dst, i);
+        if (nG >= XkbNumKbdGroups) {
+            nTG = XkbNumKbdGroups;
+            break;
+        }
+        if (nG > nTG) {
+            nTG = nG;
+        }
+    }
+    dst->ctrls->num_groups = nTG;
+}

@@ -841,6 +841,9 @@ extern void XkbFakeDeviceButton(DeviceIntPtr /* dev */ ,
                                 int /* press */ ,
                                 int /* button */ );
 
+extern _X_EXPORT void XkbCopyControls(XkbDescPtr /* dst */ ,
+                                      XkbDescPtr /* src */ );
+
 #include "xkbfile.h"
 #include "xkbrules.h"
 
