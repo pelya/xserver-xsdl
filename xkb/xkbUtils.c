@@ -1999,28 +1999,28 @@ XkbCopyKeymap(XkbDescPtr dst, XkbDescPtr src)
 }
 
 Bool
-XkbCopyDeviceKeymap(DeviceIntPtr dst, DeviceIntPtr src)
+XkbDeviceApplyKeymap(DeviceIntPtr dst, XkbDescPtr desc)
 {
     xkbNewKeyboardNotify nkn;
     Bool ret;
 
-    if (!dst->key || !src->key)
+    if (!dst->key || !desc)
         return FALSE;
 
     memset(&nkn, 0, sizeof(xkbNewKeyboardNotify));
     nkn.oldMinKeyCode = dst->key->xkbInfo->desc->min_key_code;
     nkn.oldMaxKeyCode = dst->key->xkbInfo->desc->max_key_code;
     nkn.deviceID = dst->id;
-    nkn.oldDeviceID = dst->id;  /* maybe src->id? */
-    nkn.minKeyCode = src->key->xkbInfo->desc->min_key_code;
-    nkn.maxKeyCode = src->key->xkbInfo->desc->max_key_code;
+    nkn.oldDeviceID = dst->id;
+    nkn.minKeyCode = desc->min_key_code;
+    nkn.maxKeyCode = desc->max_key_code;
     nkn.requestMajor = XkbReqCode;
     nkn.requestMinor = X_kbSetMap;      /* Near enough's good enough. */
     nkn.changed = XkbNKN_KeycodesMask;
-    if (src->key->xkbInfo->desc->geom)
+    if (desc->geom)
         nkn.changed |= XkbNKN_GeometryMask;
 
-    ret = XkbCopyKeymap(dst->key->xkbInfo->desc, src->key->xkbInfo->desc);
+    ret = XkbCopyKeymap(dst->key->xkbInfo->desc, desc);
     if (ret)
         XkbSendNewKeyboardNotify(dst, &nkn);
 

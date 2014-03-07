@@ -5979,7 +5979,7 @@ ProcXkbGetKbdByName(ClientPtr client)
                 continue;
 
             if (tmpd != dev)
-                XkbCopyDeviceKeymap(tmpd, dev);
+                XkbDeviceApplyKeymap(tmpd, xkb);
 
             if (tmpd->kbdfeed && tmpd->kbdfeed->xkb_sli) {
                 old_sli = tmpd->kbdfeed->xkb_sli;
