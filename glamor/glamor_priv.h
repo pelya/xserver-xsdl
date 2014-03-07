@@ -702,7 +702,7 @@ void glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
                                        glamor_composite_shader *shader,
                                        struct blendinfo *op_info);
 
-void glamor_setup_composite_vbo(ScreenPtr screen, int n_verts);
+void *glamor_setup_composite_vbo(ScreenPtr screen, int n_verts);
 
 /* glamor_trapezoid.c */
 void glamor_trapezoids(CARD8 op,

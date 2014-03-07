@@ -701,7 +701,7 @@ glamor_composite_with_copy(CARD8 op,
     return ret;
 }
 
-void
+void *
 glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
@@ -765,6 +765,8 @@ glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
         glEnableVertexAttribArray(GLAMOR_VERTEX_MASK);
     }
     glamor_put_context(glamor_priv);
+
+    return glamor_priv->vb + glamor_priv->vbo_offset;
 }
 
 static void
@@ -1226,7 +1228,6 @@ glamor_composite_with_shader(CARD8 op,
     GLfloat dst_xscale, dst_yscale;
     GLfloat mask_xscale = 1, mask_yscale = 1, src_xscale = 1, src_yscale = 1;
     struct shader_key key, key_ca;
-    float *vertices;
     int dest_x_off, dest_y_off;
     int source_x_off, source_y_off;
     int mask_x_off, mask_y_off;
@@ -1303,9 +1304,10 @@ glamor_composite_with_shader(CARD8 op,
     while (nrect) {
         int mrect, rect_processed;
         int vb_stride;
+        float *vertices;
 
         mrect = nrect > nrect_max ? nrect_max : nrect;
-        glamor_setup_composite_vbo(screen, mrect * vert_stride);
+        vertices = glamor_setup_composite_vbo(screen, mrect * vert_stride);
         rect_processed = mrect;
         vb_stride = glamor_priv->vb_stride / sizeof(float);
         while (mrect--) {
@@ -1331,7 +1333,7 @@ glamor_composite_with_shader(CARD8 op,
                 ("dest(%d,%d) source(%d %d) mask (%d %d), width %d height %d \n",
                  x_dest, y_dest, x_source, y_source, x_mask, y_mask, width,
                  height);
-            vertices = (float *) (glamor_priv->vb + glamor_priv->vbo_offset);
+
             assert(glamor_priv->vbo_offset <
                    glamor_priv->vbo_size - glamor_priv->vb_stride);
             glamor_set_normalize_vcoords_ext(dest_pixmap_priv, dst_xscale,
@@ -1361,10 +1363,14 @@ glamor_composite_with_shader(CARD8 op,
                                                      y_mask + height,
                                                      glamor_priv->yInverted,
                                                      vertices, vb_stride);
+                vertices += 2;
             }
             glamor_priv->render_nr_verts += 4;
             glamor_priv->vbo_offset += glamor_priv->vb_stride * 4;
             rects++;
+
+            /* We've incremented by one of our 4 verts, now do the other 3. */
+            vertices += 3 * vb_stride;
         }
         glamor_flush_composite_rects(screen);
         nrect -= rect_processed;
