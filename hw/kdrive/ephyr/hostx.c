@@ -309,9 +309,11 @@ hostx_init(void)
         | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
     EPHYR_DBG("mark");
+#ifdef GLAMOR
     if (ephyr_glamor)
         HostX.conn = ephyr_glamor_connect();
     else
+#endif
         HostX.conn = xcb_connect(NULL, &HostX.screen);
     if (xcb_connection_has_error(HostX.conn)) {
         fprintf(stderr, "\nXephyr cannot open host display. Is DISPLAY set?\n");
@@ -322,11 +324,12 @@ hostx_init(void)
     HostX.winroot = xscreen->root;
     HostX.gc = xcb_generate_id(HostX.conn);
     HostX.depth = xscreen->root_depth;
-    if (ephyr_glamor) {
+#ifdef GLAMOR
+    if (ephyr_glamor)
         HostX.visual = ephyr_glamor_get_visual();
-    } else {
+    else
+#endif
         HostX.visual = xcb_aux_find_visual_by_id(xscreen,xscreen->root_visual);
-    }
 
     xcb_create_gc(HostX.conn, HostX.gc, HostX.winroot, 0, NULL);
     cookie_WINDOW_STATE = xcb_intern_atom(HostX.conn, FALSE,
@@ -760,6 +763,7 @@ hostx_paint_rect(KdScreenInfo *screen,
 
     EPHYR_DBG("painting in screen %d\n", scrpriv->mynum);
 
+#ifdef GLAMOR
     if (ephyr_glamor) {
         BoxRec box;
         RegionRec region;
@@ -774,6 +778,7 @@ hostx_paint_rect(KdScreenInfo *screen,
         RegionUninit(&region);
         return;
     }
+#endif
 
     /*
      *  Copy the image data updated by the shadow layer
