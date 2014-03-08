@@ -626,6 +626,7 @@ AC_ARG_ENABLE(clientids,      AS_HELP_STRING([--disable-clientids], [Build Xorg 
 AC_ARG_ENABLE(pciaccess, AS_HELP_STRING([--enable-pciaccess], [Build Xorg with pciaccess library (default: enabled)]), [PCI=$enableval], [PCI=yes])
 AC_ARG_ENABLE(linux_acpi, AS_HELP_STRING([--disable-linux-acpi], [Disable building ACPI support on Linux (if available).]), [enable_linux_acpi=$enableval], [enable_linux_acpi=yes])
 AC_ARG_ENABLE(linux_apm, AS_HELP_STRING([--disable-linux-apm], [Disable building APM support on Linux (if available).]), [enable_linux_apm=$enableval], [enable_linux_apm=yes])
+AC_ARG_ENABLE(systemd-logind, AC_HELP_STRING([--enable-systemd-logind], [Build systemd-logind support (default: auto)]), [SYSTEMD_LOGIND=$enableval], [SYSTEMD_LOGIND=auto])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -902,6 +903,26 @@ if test "x$CONFIG_HAL" = xyes; then
 	NEED_DBUS="yes"
 fi
 AM_CONDITIONAL(CONFIG_HAL, [test "x$CONFIG_HAL" = xyes])
+
+if test "x$SYSTEMD_LOGIND" = xauto; then
+        if test "x$HAVE_DBUS" = xyes -a "x$CONFIG_UDEV" = xyes ; then
+                SYSTEMD_LOGIND=yes
+        else
+                SYSTEMD_LOGIND=no
+        fi
+fi
+if test "x$SYSTEMD_LOGIND" = xyes; then
+        if ! test "x$HAVE_DBUS" = xyes; then
+                AC_MSG_ERROR([systemd-logind requested, but D-Bus is not installed.])
+        fi
+        if ! test "x$CONFIG_UDEV" = xyes ; then
+                AC_MSG_ERROR([systemd-logind is only supported in combination with udev configuration.])
+        fi
+
+        AC_DEFINE(SYSTEMD_LOGIND, 1, [Enable systemd-logind integration])
+        NEED_DBUS="yes"
+fi
+AM_CONDITIONAL(SYSTEMD_LOGIND, [test "x$SYSTEMD_LOGIND" = xyes])
 
 if test "x$NEED_DBUS" = xyes; then
         AC_DEFINE(NEED_DBUS, 1, [Enable D-Bus core])
