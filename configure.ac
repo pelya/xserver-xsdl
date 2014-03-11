@@ -633,6 +633,7 @@ AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx], [Build DMX server (d
 AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server (default: yes)]), [XVFB=$enableval], [XVFB=yes])
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
+AC_ARG_ENABLE(xwayland,       AS_HELP_STRING([--enable-xwayland], [Build Xwayland server (default: auto)]), [XWAYLAND=$enableval], [XWAYLAND=auto])
 AC_ARG_ENABLE(standalone-xpbproxy, AS_HELP_STRING([--enable-standalone-xpbproxy], [Build a standalone xpbproxy (in addition to the one integrated into Xquartz as a separate thread) (default: no)]), [STANDALONE_XPBPROXY=$enableval], [STANDALONE_XPBPROXY=no])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 AC_ARG_ENABLE(glamor,         AS_HELP_STRING([--enable-glamor], [Build glamor dix module (default: no)]), [GLAMOR=$enableval], [GLAMOR=no])
@@ -751,6 +752,7 @@ case $host_os in
 			XQUARTZ=yes
 			XVFB=no
 			XNEST=no
+			XWAYLAND=no
 
 			COMPOSITE=no
 			DGA=no
@@ -2432,6 +2434,29 @@ AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
 AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 
+dnl Xwayland DDX
+
+PKG_CHECK_MODULES(XWAYLANDMODULES, [wayland-client libdrm epoxy], [have_xwayland=yes], [have_xwayland=no])
+AC_MSG_CHECKING([whether to build Xwayland DDX])
+if test "x$XWAYLAND" = xauto; then
+   XWAYLAND="$have_xwayland"
+fi
+AC_MSG_RESULT([$XWAYLAND])
+AM_CONDITIONAL(XWAYLAND, [test "x$XWAYLAND" = xyes])
+
+if test "x$XWAYLAND" = xyes; then
+	if test "x$have_xwayland" = xno; then
+		AC_MSG_ERROR([Xwayland build explicitly requested, but required modules not found.])
+	fi
+
+	XWAYLAND_LIBS="$FB_LIB $FIXES_LIB $MI_LIB $XEXT_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB $DIX_LIB $OS_LIB"
+	XWAYLAND_SYS_LIBS="$XWAYLANDMODULES_LIBS $GLX_SYS_LIBS"
+	AC_SUBST([XWAYLAND_LIBS])
+	AC_SUBST([XWAYLAND_SYS_LIBS])
+	WAYLAND_SCANNER_RULES(['$(top_srcdir)/hw/xwayland'])
+fi
+
+
 dnl and the rest of these are generic, so they're in config.h
 dnl 
 dnl though, thanks to the passing of some significant amount of time, the
@@ -2574,6 +2599,7 @@ hw/kdrive/fake/Makefile
 hw/kdrive/fbdev/Makefile
 hw/kdrive/linux/Makefile
 hw/kdrive/src/Makefile
+hw/xwayland/Makefile
 test/Makefile
 test/xi2/Makefile
 xserver.ent
