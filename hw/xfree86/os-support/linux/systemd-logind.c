@@ -204,11 +204,12 @@ systemd_logind_vtenter(void)
 }
 
 static InputInfoPtr
-systemd_logind_find_info_ptr_by_devnum(int major, int minor)
+systemd_logind_find_info_ptr_by_devnum(InputInfoPtr start,
+                                       int major, int minor)
 {
     InputInfoPtr pInfo;
 
-    for (pInfo = xf86InputDevs; pInfo; pInfo = pInfo->next)
+    for (pInfo = start; pInfo; pInfo = pInfo->next)
         if (pInfo->major == major && pInfo->minor == minor &&
                 (pInfo->flags & XI86_SERVER_FD))
             return pInfo;
@@ -320,7 +321,8 @@ message_filter(DBusConnection * connection, DBusMessage * message, void *data)
 
     pdev = xf86_find_platform_device_by_devnum(major, minor);        
     if (!pdev)
-        pInfo = systemd_logind_find_info_ptr_by_devnum(major, minor);
+        pInfo = systemd_logind_find_info_ptr_by_devnum(xf86InputDevs,
+                                                       major, minor);
     if (!pdev && !pInfo) {
         LogMessage(X_WARNING, "systemd-logind: could not find dev %u:%u\n",
                    major, minor);
