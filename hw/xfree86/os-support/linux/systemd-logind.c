@@ -51,6 +51,20 @@ struct systemd_logind_info {
 
 static struct systemd_logind_info logind_info;
 
+static InputInfoPtr
+systemd_logind_find_info_ptr_by_devnum(InputInfoPtr start,
+                                       int major, int minor)
+{
+    InputInfoPtr pInfo;
+
+    for (pInfo = start; pInfo; pInfo = pInfo->next)
+        if (pInfo->major == major && pInfo->minor == minor &&
+                (pInfo->flags & XI86_SERVER_FD))
+            return pInfo;
+
+    return NULL;
+}
+
 int
 systemd_logind_take_fd(int _major, int _minor, const char *path,
                        Bool *paused_ret)
@@ -201,20 +215,6 @@ systemd_logind_vtenter(void)
 
     /* Do delayed input probing, this must be done after the above enabling */
     xf86InputEnableVTProbe();
-}
-
-static InputInfoPtr
-systemd_logind_find_info_ptr_by_devnum(InputInfoPtr start,
-                                       int major, int minor)
-{
-    InputInfoPtr pInfo;
-
-    for (pInfo = start; pInfo; pInfo = pInfo->next)
-        if (pInfo->major == major && pInfo->minor == minor &&
-                (pInfo->flags & XI86_SERVER_FD))
-            return pInfo;
-
-    return NULL;
 }
 
 static void
