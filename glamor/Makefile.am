@@ -32,7 +32,7 @@ libglamor_la_SOURCES = \
 	glamor_getimage.c\
 	glamor_copyplane.c\
 	glamor_glyphblt.c\
-	glamor_polyops.c\
+	glamor_points.c\
 	glamor_priv.h\
 	glamor_pixmap.c\
 	glamor_largepixmap.c\

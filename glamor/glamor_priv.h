@@ -220,6 +220,9 @@ typedef struct glamor_screen_private {
     GLint solid_prog;
     GLint solid_color_uniform_location;
 
+    /* glamor point shader */
+    glamor_program point_prog;
+
     /* vertext/elment_index buffer object for render */
     GLuint vbo, ebo;
     /** Next offset within the VBO that glamor_get_vbo_space() will use. */
