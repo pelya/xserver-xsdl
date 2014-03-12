@@ -291,37 +291,14 @@ XkbDDXOpenConfigFile(const char *mapName, char *fileNameRtrn, int fileNameRtrnLe
     return file;
 }
 
-unsigned
-XkbDDXLoadKeymapByNames(DeviceIntPtr keybd,
-                        XkbComponentNamesPtr names,
-                        unsigned want,
-                        unsigned need,
-                        XkbDescPtr *xkbRtrn, char *nameRtrn, int nameRtrnLen)
+static unsigned
+LoadXKM(unsigned want, unsigned need, const char *keymap, XkbDescPtr *xkbRtrn)
 {
-    XkbDescPtr xkb;
     FILE *file;
     char fileName[PATH_MAX];
     unsigned missing;
 
-    *xkbRtrn = NULL;
-    if ((keybd == NULL) || (keybd->key == NULL) ||
-        (keybd->key->xkbInfo == NULL))
-        xkb = NULL;
-    else
-        xkb = keybd->key->xkbInfo->desc;
-    if ((names->keycodes == NULL) && (names->types == NULL) &&
-        (names->compat == NULL) && (names->symbols == NULL) &&
-        (names->geometry == NULL)) {
-        LogMessage(X_ERROR, "XKB: No components provided for device %s\n",
-                   keybd->name ? keybd->name : "(unnamed keyboard)");
-        return 0;
-    }
-    else if (!XkbDDXCompileKeymapByNames(xkb, names, want, need,
-                                         nameRtrn, nameRtrnLen)) {
-        LogMessage(X_ERROR, "XKB: Couldn't compile keymap\n");
-        return 0;
-    }
-    file = XkbDDXOpenConfigFile(nameRtrn, fileName, PATH_MAX);
+    file = XkbDDXOpenConfigFile(keymap, fileName, PATH_MAX);
     if (file == NULL) {
         LogMessage(X_ERROR, "Couldn't open compiled keymap file %s\n",
                    fileName);
@@ -341,6 +318,37 @@ XkbDDXLoadKeymapByNames(DeviceIntPtr keybd,
     fclose(file);
     (void) unlink(fileName);
     return (need | want) & (~missing);
+}
+
+unsigned
+XkbDDXLoadKeymapByNames(DeviceIntPtr keybd,
+                        XkbComponentNamesPtr names,
+                        unsigned want,
+                        unsigned need,
+                        XkbDescPtr *xkbRtrn, char *nameRtrn, int nameRtrnLen)
+{
+    XkbDescPtr xkb;
+
+    *xkbRtrn = NULL;
+    if ((keybd == NULL) || (keybd->key == NULL) ||
+        (keybd->key->xkbInfo == NULL))
+        xkb = NULL;
+    else
+        xkb = keybd->key->xkbInfo->desc;
+    if ((names->keycodes == NULL) && (names->types == NULL) &&
+        (names->compat == NULL) && (names->symbols == NULL) &&
+        (names->geometry == NULL)) {
+        LogMessage(X_ERROR, "XKB: No components provided for device %s\n",
+                   keybd->name ? keybd->name : "(unnamed keyboard)");
+        return 0;
+    }
+    else if (!XkbDDXCompileKeymapByNames(xkb, names, want, need,
+                                         nameRtrn, nameRtrnLen)) {
+        LogMessage(X_ERROR, "XKB: Couldn't compile keymap\n");
+        return 0;
+    }
+
+    return LoadXKM(want, need, nameRtrn, xkbRtrn);
 }
 
 Bool
