@@ -983,8 +983,6 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
                                                         "repeat_type");
     n_stop_uniform_location = glGetUniformLocation(gradient_prog, "n_stop");
     A_value_uniform_location = glGetUniformLocation(gradient_prog, "A_value");
-    repeat_type_uniform_location =glGetUniformLocation(gradient_prog,
-                                                       "repeat_type");
     c1_uniform_location = glGetUniformLocation(gradient_prog, "c1");
     r1_uniform_location = glGetUniformLocation(gradient_prog, "r1");
     c2_uniform_location = glGetUniformLocation(gradient_prog, "c2");
