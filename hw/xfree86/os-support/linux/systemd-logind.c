@@ -65,6 +65,23 @@ systemd_logind_find_info_ptr_by_devnum(InputInfoPtr start,
     return NULL;
 }
 
+static void
+systemd_logind_set_input_fd_for_all_devs(int major, int minor, int fd,
+                                         Bool enable)
+{
+    InputInfoPtr pInfo;
+
+    pInfo = systemd_logind_find_info_ptr_by_devnum(xf86InputDevs, major, minor);
+    while (pInfo) {
+        pInfo->fd = fd;
+        pInfo->options = xf86ReplaceIntOption(pInfo->options, "fd", fd);
+        if (enable)
+            xf86EnableInputDeviceForVTSwitch(pInfo);
+
+        pInfo = systemd_logind_find_info_ptr_by_devnum(pInfo->next, major, minor);
+    }
+}
+
 int
 systemd_logind_take_fd(int _major, int _minor, const char *path,
                        Bool *paused_ret)
@@ -337,8 +354,7 @@ message_filter(DBusConnection * connection, DBusMessage * message, void *data)
             pdev->flags |= XF86_PDEV_PAUSED;
         else {
             close(pInfo->fd);
-            pInfo->fd = -1;
-            pInfo->options = xf86ReplaceIntOption(pInfo->options, "fd", -1);
+            systemd_logind_set_input_fd_for_all_devs(major, minor, -1, FALSE);
         }
         if (ack)
             systemd_logind_ack_pause(info, major, minor);
@@ -347,15 +363,12 @@ message_filter(DBusConnection * connection, DBusMessage * message, void *data)
         /* info->vt_active gets set by systemd_logind_vtenter() */
         info->active = TRUE;
 
-        if (pdev) {
+        if (pdev)
             pdev->flags &= ~XF86_PDEV_PAUSED;
-        }
-        else {
-            pInfo->fd = fd;
-            pInfo->options = xf86ReplaceIntOption(pInfo->options, "fd", fd);
-            if (info->vt_active)
-                xf86EnableInputDeviceForVTSwitch(pInfo);
-        }
+        else
+            systemd_logind_set_input_fd_for_all_devs(major, minor, fd,
+                                                     info->vt_active);
+
         /* Always call vtenter(), in case there are only legacy video devs */
         systemd_logind_vtenter();
     }
