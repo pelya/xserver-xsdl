@@ -257,7 +257,8 @@ config_odev_free_attributes(struct OdevAttributes *attribs)
         case ODEV_ATTRIB_FD: fd = iter->attrib_value; break;
         }
         xorg_list_del(&iter->member);
-        free(iter->attrib_name);
+        if (iter->attrib_type == ODEV_ATTRIB_STRING)
+            free(iter->attrib_name);
         free(iter);
     }
 
