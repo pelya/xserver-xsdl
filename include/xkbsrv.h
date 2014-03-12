@@ -876,4 +876,8 @@ extern _X_EXPORT XkbDescPtr XkbCompileKeymap(DeviceIntPtr /* dev */ ,
                                              XkbRMLVOSet *      /* rmlvo */
     );
 
+extern _X_EXPORT XkbDescPtr XkbCompileKeymapFromString(DeviceIntPtr dev,
+						       const char *keymap,
+						       int keymap_length);
+
 #endif                          /* _XKBSRV_H_ */

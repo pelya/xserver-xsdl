@@ -68,6 +68,9 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define PATHSEPARATOR "/"
 #endif
 
+static unsigned
+LoadXKM(unsigned want, unsigned need, const char *keymap, XkbDescPtr *xkbRtrn);
+
 static void
 OutputDirectory(char *outdir, size_t size)
 {
@@ -253,6 +256,46 @@ XkbDDXCompileKeymapByNames(XkbDescPtr xkb,
         *nameRtrn = '\0';
 
     return rc;
+}
+
+typedef struct {
+    const char *keymap;
+    size_t len;
+} XkbKeymapString;
+
+static void
+xkb_write_keymap_string_cb(FILE *out, void *userdata)
+{
+    XkbKeymapString *s = userdata;
+    fwrite(s->keymap, s->len, 1, out);
+}
+
+static unsigned int
+XkbDDXLoadKeymapFromString(DeviceIntPtr keybd,
+                          const char *keymap, int keymap_length,
+                          unsigned int want,
+                          unsigned int need,
+                          XkbDescPtr *xkbRtrn)
+{
+    unsigned int have;
+    char *map_name;
+    XkbKeymapString map = {
+        .keymap = keymap,
+        .len = keymap_length
+    };
+
+    *xkbRtrn = NULL;
+
+    map_name = RunXkbComp(xkb_write_keymap_string_cb, &map);
+    if (!map_name) {
+        LogMessage(X_ERROR, "XKB: Couldn't compile keymap\n");
+        return 0;
+    }
+
+    have = LoadXKM(want, need, map_name, xkbRtrn);
+    free(map_name);
+
+    return have;
 }
 
 static FILE *
@@ -483,6 +526,35 @@ XkbCompileKeymap(DeviceIntPtr dev, XkbRMLVOSet * rmlvo)
         XkmKeyNamesMask | XkmVirtualModsMask;
 
     xkb = XkbCompileKeymapForDevice(dev, rmlvo, need);
+
+    return KeymapOrDefaults(dev, xkb);
+}
+
+XkbDescPtr
+XkbCompileKeymapFromString(DeviceIntPtr dev,
+                           const char *keymap, int keymap_length)
+{
+    XkbDescPtr xkb;
+    unsigned int need, provided;
+
+    if (!dev || !keymap) {
+        LogMessage(X_ERROR, "XKB: No device or keymap specified\n");
+        return NULL;
+    }
+
+    /* These are the components we really really need */
+    need = XkmSymbolsMask | XkmCompatMapMask | XkmTypesMask |
+           XkmKeyNamesMask | XkmVirtualModsMask;
+
+    provided =
+        XkbDDXLoadKeymapFromString(dev, keymap, keymap_length,
+                                   XkmAllIndicesMask, need, &xkb);
+    if ((need & provided) != need) {
+        if (xkb) {
+            XkbFreeKeyboard(xkb, 0, TRUE);
+            xkb = NULL;
+        }
+    }
 
     return KeymapOrDefaults(dev, xkb);
 }
