@@ -210,7 +210,7 @@ XkbDDXCompileKeymapByNames(XkbDescPtr xkb,
 }
 
 static FILE *
-XkbDDXOpenConfigFile(char *mapName, char *fileNameRtrn, int fileNameRtrnLen)
+XkbDDXOpenConfigFile(const char *mapName, char *fileNameRtrn, int fileNameRtrnLen)
 {
     char buf[PATH_MAX], xkm_output_dir[PATH_MAX];
     FILE *file;
