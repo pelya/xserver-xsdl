@@ -87,6 +87,7 @@ systemd_logind_take_fd(int _major, int _minor, const char *path,
                        Bool *paused_ret)
 {
     struct systemd_logind_info *info = &logind_info;
+    InputInfoPtr pInfo;
     DBusError error;
     DBusMessage *msg = NULL;
     DBusMessage *reply = NULL;
@@ -101,6 +102,16 @@ systemd_logind_take_fd(int _major, int _minor, const char *path,
     /* logind does not support mouse devs (with evdev we don't need them) */
     if (strstr(path, "mouse"))
         return -1;
+
+    /* Check if we already have an InputInfo entry with this major, minor
+     * (shared device-nodes happen ie with Wacom tablets). */
+    pInfo = systemd_logind_find_info_ptr_by_devnum(xf86InputDevs, major, minor);
+    if (pInfo) {
+        LogMessage(X_INFO, "systemd-logind: returning pre-existing fd for %s %u:%u\n",
+               path, major, minor);
+        *paused_ret = FALSE;
+        return pInfo->fd;
+    }
 
     dbus_error_init(&error);
 
@@ -154,14 +165,30 @@ void
 systemd_logind_release_fd(int _major, int _minor)
 {
     struct systemd_logind_info *info = &logind_info;
+    InputInfoPtr pInfo;
     DBusError error;
     DBusMessage *msg = NULL;
     DBusMessage *reply = NULL;
     dbus_int32_t major = _major;
     dbus_int32_t minor = _minor;
+    int matches = 0;
 
     if (!info->session || major == 0)
         return;
+
+    /* Only release the fd if there is only 1 InputInfo left for this major
+     * and minor, otherwise other InputInfo's are still referencing the fd. */
+    pInfo = systemd_logind_find_info_ptr_by_devnum(xf86InputDevs, major, minor);
+    while (pInfo) {
+        matches++;
+        pInfo = systemd_logind_find_info_ptr_by_devnum(pInfo->next, major, minor);
+    }
+    if (matches > 1) {
+        LogMessage(X_INFO, "systemd-logind: not releasing fd for %u:%u, still in use\n", major, minor);
+        return;
+    }
+
+    LogMessage(X_INFO, "systemd-logind: releasing fd for %u:%u\n", major, minor);
 
     dbus_error_init(&error);
 
