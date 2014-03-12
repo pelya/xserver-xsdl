@@ -52,6 +52,7 @@
 
 #include "glamor_debug.h"
 #include "glamor_context.h"
+#include "glamor_program.h"
 
 #include <list.h>
 
