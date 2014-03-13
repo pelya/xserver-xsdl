@@ -962,10 +962,6 @@ glamor_composite_choose_shader(CARD8 op,
             glamor_fallback("source == dest\n");
         }
         if (source_pixmap_priv->base.gl_fbo == GLAMOR_FBO_UNATTACHED) {
-            /* XXX in Xephyr, we may have gl_fbo equal to 1 but gl_tex
-             * equal to zero when the pixmap is screen pixmap. Then we may
-             * refer the tex zero directly latter in the composition.
-             * It seems that it works fine, but it may have potential problem*/
 #ifdef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
             source_status = GLAMOR_UPLOAD_PENDING;
 #else
