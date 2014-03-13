@@ -258,7 +258,6 @@ _glamor_solid_boxes(PixmapPtr pixmap, BoxPtr box, int nbox, float *color)
         free(vertices);
 
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    glUseProgram(0);
     glamor_put_context(glamor_priv);
     glamor_priv->state = RENDER_STATE;
     glamor_priv->render_idle_cnt = 0;

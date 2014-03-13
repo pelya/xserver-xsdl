@@ -289,7 +289,6 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     glUniform1i(sampler_uniform_location, 0);
     glUniform1i(glamor_priv->finish_access_revert[0], 0);
     glUniform1i(glamor_priv->finish_access_swap_rb[0], 0);
-    glUseProgram(0);
 
     glamor_priv->finish_access_revert[1] =
         glGetUniformLocation(glamor_priv->finish_access_prog[1], "revert");
@@ -301,7 +300,6 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     glUniform1i(glamor_priv->finish_access_revert[1], 0);
     glUniform1i(sampler_uniform_location, 0);
     glUniform1i(glamor_priv->finish_access_swap_rb[1], 0);
-    glUseProgram(0);
     glamor_put_context(glamor_priv);
 }
 

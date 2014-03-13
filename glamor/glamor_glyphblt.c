@@ -156,7 +156,6 @@ glamor_poly_glyph_blt_pixels(DrawablePtr drawable, GCPtr gc,
     }
 
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    glUseProgram(0);
 
     glamor_put_context(glamor_priv);
 
@@ -328,7 +327,6 @@ glamor_push_pixels_points(GCPtr gc, PixmapPtr bitmap,
     glDrawArrays(GL_POINTS, 0, num_points);
 
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    glUseProgram(0);
 
     glamor_put_context(glamor_priv);
 

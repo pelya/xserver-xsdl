@@ -416,7 +416,6 @@ glamor_display_textured_video(glamor_port_private *port_priv)
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
-    glUseProgram(0);
     glamor_put_context(glamor_priv);
     DamageDamageRegion(port_priv->pDraw, &port_priv->clip);
 }

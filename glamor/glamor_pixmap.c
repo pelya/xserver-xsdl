@@ -856,7 +856,6 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-    glUseProgram(0);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glDeleteTextures(1, &tex);
@@ -1181,7 +1180,6 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h,
 
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-    glUseProgram(0);
     glamor_put_context(glamor_priv);
     return temp_fbo;
 }

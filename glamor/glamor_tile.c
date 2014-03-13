@@ -82,7 +82,6 @@ glamor_init_tile_shader(ScreenPtr screen)
 
     glamor_priv->tile_wh =
         glGetUniformLocation(glamor_priv->tile_prog, "wh");
-    glUseProgram(0);
     glamor_put_context(glamor_priv);
 }
 
@@ -156,7 +155,6 @@ _glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    glUseProgram(0);
     glamor_put_context(glamor_priv);
 
     glamor_priv->state = RENDER_STATE;
