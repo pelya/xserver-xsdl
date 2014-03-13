@@ -1471,6 +1471,7 @@ winInitMultiWindowWM(WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
                     pWMInfo->ewmh._NET_CLOSE_WINDOW,
                     pWMInfo->ewmh._NET_WM_WINDOW_TYPE,
                     pWMInfo->ewmh._NET_WM_WINDOW_TYPE_DOCK,
+                    pWMInfo->ewmh._NET_WM_WINDOW_TYPE_SPLASH,
                     pWMInfo->ewmh._NET_WM_STATE,
                     pWMInfo->ewmh._NET_WM_STATE_HIDDEN,
                     pWMInfo->ewmh._NET_WM_STATE_ABOVE,
@@ -1613,10 +1614,12 @@ winDeinitMultiWindowWM(void)
 static void
 winApplyHints(WMInfoPtr pWMInfo, xcb_window_t iWindow, HWND hWnd, HWND * zstyle)
 {
+
     xcb_connection_t *conn = pWMInfo->conn;
     static xcb_atom_t windowState, motif_wm_hints;
     static xcb_atom_t hiddenState, fullscreenState, belowState, aboveState,
         skiptaskbarState;
+    static xcb_atom_t splashType;
     static int generation;
 
     unsigned long hint = 0, maxmin = 0;
@@ -1636,6 +1639,7 @@ winApplyHints(WMInfoPtr pWMInfo, xcb_window_t iWindow, HWND hWnd, HWND * zstyle)
         belowState = intern_atom(conn, "_NET_WM_STATE_BELOW");
         aboveState = intern_atom(conn, "_NET_WM_STATE_ABOVE");
         skiptaskbarState = intern_atom(conn, "_NET_WM_STATE_SKIP_TASKBAR");
+        splashType = intern_atom(conn, "_NET_WM_WINDOW_TYPE_SPLASHSCREEN");
     }
 
     {
@@ -1706,6 +1710,11 @@ winApplyHints(WMInfoPtr pWMInfo, xcb_window_t iWindow, HWND hWnd, HWND * zstyle)
         for (i = 0; i < type.atoms_len; i++) {
             if (type.atoms[i] ==  pWMInfo->ewmh._NET_WM_WINDOW_TYPE_DOCK) {
                 hint = (hint & ~HINT_NOFRAME) | HINT_SKIPTASKBAR | HINT_SIZEBOX;
+                *zstyle = HWND_TOPMOST;
+            }
+            else if ((type.atoms[i] == pWMInfo->ewmh._NET_WM_WINDOW_TYPE_SPLASH)
+                     || (type.atoms[i] == splashType)) {
+                hint |= (HINT_SKIPTASKBAR | HINT_NOSYSMENU | HINT_NOMINIMIZE | HINT_NOMAXIMIZE);
                 *zstyle = HWND_TOPMOST;
             }
         }
