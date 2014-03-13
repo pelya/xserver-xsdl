@@ -1738,7 +1738,7 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
         if (mwm_hint && nitems == PropMwmHintsElements &&
             (mwm_hint->flags & MwmHintsDecorations)) {
             if (!mwm_hint->decorations)
-                hint |= HINT_NOFRAME;
+                hint |= (HINT_NOFRAME | HINT_NOSYSMENU | HINT_NOMINIMIZE | HINT_NOMAXIMIZE);
             else if (!(mwm_hint->decorations & MwmDecorAll)) {
                 if (mwm_hint->decorations & MwmDecorBorder)
                     hint |= HINT_BORDER;
