@@ -76,6 +76,10 @@ glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
         pixmap_priv->base.glamor_priv = glamor_priv;
     }
     pixmap_priv->type = type;
+    pixmap_priv->base.box.x1 = 0;
+    pixmap_priv->base.box.x2 = pixmap->drawable.width;
+    pixmap_priv->base.box.y1 = 0;
+    pixmap_priv->base.box.y2 = pixmap->drawable.height;
 }
 
 _X_EXPORT void
@@ -182,6 +186,10 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
         glamor_check_fbo_size(glamor_priv, w, h))
     {
         pixmap_priv->type = type;
+        pixmap_priv->base.box.x1 = 0;
+        pixmap_priv->base.box.y1 = 0;
+        pixmap_priv->base.box.x2 = w;
+        pixmap_priv->base.box.y2 = h;
         fbo = glamor_create_fbo(glamor_priv, w, h, format, usage);
     }
     else {

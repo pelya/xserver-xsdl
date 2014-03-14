@@ -415,6 +415,7 @@ typedef struct glamor_pixmap_private_base {
     unsigned char gl_tex:1;
     glamor_pixmap_fbo *fbo;
     PixmapPtr pixmap;
+    BoxRec box;
     int drm_stride;
     glamor_screen_private *glamor_priv;
     PicturePtr picture;
