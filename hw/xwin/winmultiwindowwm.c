@@ -1618,10 +1618,10 @@ winDeinitMultiWindowWM(void)
 }
 
 /* Windows window styles */
-#define HINT_NOFRAME	(1l<<0)
+#define HINT_NOFRAME	(1L<<0)
 #define HINT_BORDER	(1L<<1)
-#define HINT_SIZEBOX	(1l<<2)
-#define HINT_CAPTION	(1l<<3)
+#define HINT_SIZEBOX	(1L<<2)
+#define HINT_CAPTION	(1L<<3)
 #define HINT_NOMAXIMIZE (1L<<4)
 #define HINT_NOMINIMIZE (1L<<5)
 #define HINT_NOSYSMENU  (1L<<6)
