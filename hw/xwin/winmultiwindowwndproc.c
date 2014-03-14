@@ -837,7 +837,7 @@ winTopLevelWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_CLOSE:
-        /* Removep AppUserModelID property */
+        /* Remove AppUserModelID property */
         winSetAppUserModelID(hwnd, NULL);
         /* Branch on if the window was killed in X already */
         if (pWinPriv->fXKilled) {
