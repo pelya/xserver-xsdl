@@ -471,6 +471,52 @@ typedef struct glamor_pixmap_private {
     };
 } glamor_pixmap_private;
 
+static inline glamor_pixmap_fbo *
+glamor_pixmap_fbo_at(glamor_pixmap_private *priv, int x, int y)
+{
+    if (priv->type == GLAMOR_TEXTURE_LARGE) {
+        assert(x < priv->large.block_wcnt);
+        assert(y < priv->large.block_hcnt);
+        return priv->large.fbo_array[y * priv->large.block_wcnt + x];
+    }
+    assert (x == 0);
+    assert (y == 0);
+    return priv->base.fbo;
+}
+
+static inline BoxPtr
+glamor_pixmap_box_at(glamor_pixmap_private *priv, int x, int y)
+{
+    if (priv->type == GLAMOR_TEXTURE_LARGE) {
+        assert(x < priv->large.block_wcnt);
+        assert(y < priv->large.block_hcnt);
+        return &priv->large.box_array[y * priv->large.block_wcnt + x];
+    }
+    assert (x == 0);
+    assert (y == 0);
+    return &priv->base.box;
+}
+
+static inline int
+glamor_pixmap_wcnt(glamor_pixmap_private *priv)
+{
+    if (priv->type == GLAMOR_TEXTURE_LARGE)
+        return priv->large.block_wcnt;
+    return 1;
+}
+
+static inline int
+glamor_pixmap_hcnt(glamor_pixmap_private *priv)
+{
+    if (priv->type == GLAMOR_TEXTURE_LARGE)
+        return priv->large.block_hcnt;
+    return 1;
+}
+
+#define glamor_pixmap_loop(priv, x, y)                  \
+    for (y = 0; y < glamor_pixmap_hcnt(priv); y++)      \
+        for (x = 0; x < glamor_pixmap_wcnt(priv); x++)
+
 /* 
  * Pixmap dynamic status, used by dynamic upload feature.
  *
