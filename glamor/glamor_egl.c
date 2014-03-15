@@ -100,14 +100,12 @@ glamor_egl_get_context(struct glamor_context *glamor_ctx)
     if (glamor_ctx->get_count++)
         return;
 
-    if (glamor_ctx->ctx != eglGetCurrentContext()) {
-        eglMakeCurrent(glamor_ctx->display, EGL_NO_SURFACE,
-                       EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (!eglMakeCurrent(glamor_ctx->display,
-                            EGL_NO_SURFACE, EGL_NO_SURFACE,
-                            glamor_ctx->ctx)) {
-            FatalError("Failed to make EGL context current\n");
-        }
+    eglMakeCurrent(glamor_ctx->display, EGL_NO_SURFACE,
+                   EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (!eglMakeCurrent(glamor_ctx->display,
+                        EGL_NO_SURFACE, EGL_NO_SURFACE,
+                        glamor_ctx->ctx)) {
+        FatalError("Failed to make EGL context current\n");
     }
 }
 

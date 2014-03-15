@@ -1501,7 +1501,10 @@ __fls(unsigned long x)
 static inline void
 glamor_get_context(glamor_screen_private * glamor_priv)
 {
-    glamor_priv->ctx.get_context(&glamor_priv->ctx);
+    if (lastGLContext != &glamor_priv->ctx) {
+        lastGLContext = &glamor_priv->ctx;
+        glamor_priv->ctx.get_context(&glamor_priv->ctx);
+    }
 }
 
 static inline void

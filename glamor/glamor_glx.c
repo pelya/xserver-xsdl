@@ -36,13 +36,7 @@
 static void
 glamor_glx_get_context(struct glamor_context *glamor_ctx)
 {
-    GLXContext old_ctx;
-
     if (glamor_ctx->get_count++)
-        return;
-
-    old_ctx = glXGetCurrentContext();
-    if (old_ctx == glamor_ctx->ctx)
         return;
 
     glXMakeCurrent(glamor_ctx->display, glamor_ctx->drawable_xid,
