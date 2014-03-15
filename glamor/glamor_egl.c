@@ -112,11 +112,7 @@ glamor_egl_get_context(struct glamor_context *glamor_ctx)
 static void
 glamor_egl_put_context(struct glamor_context *glamor_ctx)
 {
-    if (--glamor_ctx->get_count)
-        return;
-
-    eglMakeCurrent(glamor_ctx->display, EGL_NO_SURFACE,
-                   EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    --glamor_ctx->get_count;
 }
 
 static EGLImageKHR
