@@ -21,6 +21,8 @@ libglamor_la_SOURCES = \
 	glamor_image.c \
 	glamor_render.c \
 	glamor_gradient.c \
+	glamor_prepare.c \
+	glamor_prepare.h \
 	glamor_program.c \
 	glamor_program.h \
 	glamor_rects.c \

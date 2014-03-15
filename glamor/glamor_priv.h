@@ -209,6 +209,7 @@ typedef struct glamor_screen_private {
     int has_buffer_storage;
     int has_khr_debug;
     int max_fbo_size;
+    int has_rw_pbo;
 
     struct xorg_list
         fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
@@ -430,6 +431,9 @@ typedef struct glamor_pixmap_private_base {
     int drm_stride;
     glamor_screen_private *glamor_priv;
     PicturePtr picture;
+    GLuint pbo;
+    RegionRec prepare_region;
+    Bool prepared;
 #if GLAMOR_HAS_GBM
     EGLImageKHR image;
 #endif
@@ -624,14 +628,9 @@ void glamor_copy_n_to_n(DrawablePtr src, DrawablePtr dst, GCPtr gc,
                         Bool upsidedown, Pixel bitplane, void *closure);
 
 /* glamor_core.c */
-Bool glamor_prepare_access(DrawablePtr drawable, glamor_access_t access);
-void glamor_finish_access(DrawablePtr drawable);
-Bool glamor_prepare_access_window(WindowPtr window);
-void glamor_finish_access_window(WindowPtr window);
-Bool glamor_prepare_access_gc(GCPtr gc);
-void glamor_finish_access_gc(GCPtr gc);
 void glamor_init_finish_access_shaders(ScreenPtr screen);
 void glamor_fini_finish_access_shaders(ScreenPtr screen);
+
 const Bool glamor_get_drawable_location(const DrawablePtr drawable);
 void glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
                                 int *x, int *y);
@@ -918,10 +917,6 @@ void glamor_destroy_upload_pixmap(PixmapPtr pixmap);
 int glamor_create_picture(PicturePtr picture);
 
 void glamor_set_window_pixmap(WindowPtr pWindow, PixmapPtr pPixmap);
-
-Bool glamor_prepare_access_picture(PicturePtr picture, glamor_access_t access);
-
-void glamor_finish_access_picture(PicturePtr picture);
 
 void glamor_destroy_picture(PicturePtr picture);
 

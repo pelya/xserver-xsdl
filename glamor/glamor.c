@@ -397,6 +397,10 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         }
     }
 
+    glamor_priv->has_rw_pbo = FALSE;
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
+        glamor_priv->has_rw_pbo = TRUE;
+
     glamor_priv->has_khr_debug = epoxy_has_gl_extension("GL_KHR_debug");
     glamor_priv->has_pack_invert =
         epoxy_has_gl_extension("GL_MESA_pack_invert");

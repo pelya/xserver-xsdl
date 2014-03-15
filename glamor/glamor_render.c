@@ -1586,15 +1586,6 @@ _glamor_composite(CARD8 op,
     RegionRec region;
     BoxPtr extent;
     int nbox, ok = FALSE;
-    PixmapPtr sub_dest_pixmap = NULL;
-    PixmapPtr sub_source_pixmap = NULL;
-    PixmapPtr sub_mask_pixmap = NULL;
-    int dest_x_off, dest_y_off, saved_dest_x, saved_dest_y;
-    int source_x_off, source_y_off, saved_source_x, saved_source_y;
-    int mask_x_off, mask_y_off, saved_mask_x, saved_mask_y;
-    DrawablePtr saved_dest_drawable;
-    DrawablePtr saved_source_drawable;
-    DrawablePtr saved_mask_drawable;
     int force_clip = 0;
 
     dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
@@ -1737,34 +1728,13 @@ _glamor_composite(CARD8 op,
          dest->pDrawable->width, dest->pDrawable->height,
          glamor_get_picture_location(dest));
 
-#define GET_SUB_PICTURE(p, access)		do {					\
-	glamor_get_drawable_deltas(p->pDrawable, p ##_pixmap,				\
-				   & p ##_x_off, & p ##_y_off);				\
-	sub_ ##p ##_pixmap = glamor_get_sub_pixmap(p ##_pixmap,				\
-					      x_ ##p + p ##_x_off + p->pDrawable->x,	\
-					      y_ ##p + p ##_y_off + p->pDrawable->y,	\
-					      width, height, access);			\
-	if (sub_ ##p ##_pixmap != NULL) {						\
-		saved_ ##p ##_drawable = p->pDrawable;					\
-		saved_ ##p ##_x = x_ ##p;						\
-		saved_ ##p ##_y = y_ ##p;						\
-		if (p->pCompositeClip)							\
-			pixman_region_translate (p->pCompositeClip,			\
-						 -p->pDrawable->x - x_ ##p,		\
-						 -p->pDrawable->y - y_ ##p);		\
-		p->pDrawable = &sub_ ##p ##_pixmap->drawable;				\
-		x_ ##p = 0;								\
-		y_ ##p = 0;								\
-	} } while(0)
-    GET_SUB_PICTURE(dest, GLAMOR_ACCESS_RW);
-    if (source->pDrawable && !source->transform)
-        GET_SUB_PICTURE(source, GLAMOR_ACCESS_RO);
-    if (mask && mask->pDrawable && !mask->transform)
-        GET_SUB_PICTURE(mask, GLAMOR_ACCESS_RO);
-
-    if (glamor_prepare_access_picture(dest, GLAMOR_ACCESS_RW) &&
-        glamor_prepare_access_picture(source, GLAMOR_ACCESS_RO) &&
-        glamor_prepare_access_picture(mask, GLAMOR_ACCESS_RO)) {
+    if (glamor_prepare_access_picture_box(dest, GLAMOR_ACCESS_RW,
+                                          x_dest, y_dest, width, height) &&
+        glamor_prepare_access_picture_box(source, GLAMOR_ACCESS_RO,
+                                          x_source, y_source, width, height) &&
+        glamor_prepare_access_picture_box(mask, GLAMOR_ACCESS_RO,
+                                          x_mask, y_mask, width, height))
+    {
         fbComposite(op,
                     source, mask, dest,
                     x_source, y_source,
@@ -1774,25 +1744,6 @@ _glamor_composite(CARD8 op,
     glamor_finish_access_picture(source);
     glamor_finish_access_picture(dest);
 
-#define PUT_SUB_PICTURE(p, access)		do {				\
-	if (sub_ ##p ##_pixmap != NULL) {					\
-		x_ ##p = saved_ ##p ##_x;					\
-		y_ ##p = saved_ ##p ##_y;					\
-		p->pDrawable = saved_ ##p ##_drawable;				\
-		if (p->pCompositeClip)						\
-			pixman_region_translate (p->pCompositeClip,		\
-						 p->pDrawable->x + x_ ##p,	\
-						 p->pDrawable->y + y_ ##p);	\
-		glamor_put_sub_pixmap(sub_ ##p ##_pixmap, p ##_pixmap,		\
-				      x_ ##p + p ##_x_off + p->pDrawable->x,	\
-				      y_ ##p + p ##_y_off + p->pDrawable->y,	\
-				      width, height, access);			\
-	}} while(0)
-    if (mask && mask->pDrawable)
-        PUT_SUB_PICTURE(mask, GLAMOR_ACCESS_RO);
-    if (source->pDrawable)
-        PUT_SUB_PICTURE(source, GLAMOR_ACCESS_RO);
-    PUT_SUB_PICTURE(dest, GLAMOR_ACCESS_RW);
  done:
     return ret;
 }
