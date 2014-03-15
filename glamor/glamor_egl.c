@@ -95,11 +95,8 @@ glamor_egl_get_screen_private(ScrnInfoPtr scrn)
 }
 
 static void
-glamor_egl_get_context(struct glamor_context *glamor_ctx)
+glamor_egl_make_current(struct glamor_context *glamor_ctx)
 {
-    if (glamor_ctx->get_count++)
-        return;
-
     eglMakeCurrent(glamor_ctx->display, EGL_NO_SURFACE,
                    EGL_NO_SURFACE, EGL_NO_CONTEXT);
     if (!eglMakeCurrent(glamor_ctx->display,
@@ -107,12 +104,6 @@ glamor_egl_get_context(struct glamor_context *glamor_ctx)
                         glamor_ctx->ctx)) {
         FatalError("Failed to make EGL context current\n");
     }
-}
-
-static void
-glamor_egl_put_context(struct glamor_context *glamor_ctx)
-{
-    --glamor_ctx->get_count;
 }
 
 static EGLImageKHR
@@ -166,7 +157,7 @@ glamor_create_texture_from_image(ScreenPtr screen,
     struct glamor_screen_private *glamor_priv =
         glamor_get_screen_private(screen);
 
-    glamor_get_context(glamor_priv);
+    glamor_make_current(glamor_priv);
 
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture);
@@ -175,8 +166,6 @@ glamor_create_texture_from_image(ScreenPtr screen,
 
     glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, image);
     glBindTexture(GL_TEXTURE_2D, 0);
-
-    glamor_put_context(glamor_priv);
 
     return TRUE;
 }
@@ -290,7 +279,7 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 
     glamor_egl = glamor_egl_get_screen_private(scrn);
 
-    glamor_get_context(glamor_priv);
+    glamor_make_current(glamor_priv);
     if (glamor_egl->has_gem) {
         if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
             xf86DrvMsg(scrn->scrnIndex, X_ERROR,
@@ -320,7 +309,6 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
     ret = TRUE;
 
  done:
-    glamor_put_context(glamor_priv);
     return ret;
 }
 
@@ -340,7 +328,7 @@ glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap, void *bo)
 
     glamor_egl = glamor_egl_get_screen_private(scrn);
 
-    glamor_get_context(glamor_priv);
+    glamor_make_current(glamor_priv);
 
     image = eglCreateImageKHR(glamor_egl->display,
                               glamor_egl->context,
@@ -356,7 +344,6 @@ glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap, void *bo)
     ret = TRUE;
 
  done:
-    glamor_put_context(glamor_priv);
     return ret;
 }
 
@@ -414,7 +401,7 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
 
     glamor_egl = glamor_egl_get_screen_private(scrn);
 
-    glamor_get_context(glamor_priv);
+    glamor_make_current(glamor_priv);
 
     image = pixmap_priv->base.image;
     if (!image) {
@@ -449,7 +436,6 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
 
     gbm_bo_destroy(bo);
  failure:
-    glamor_put_context(glamor_priv);
     return fd;
 #else
     return -1;
@@ -679,8 +665,7 @@ glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
     glamor_ctx->ctx = glamor_egl->context;
     glamor_ctx->display = glamor_egl->display;
 
-    glamor_ctx->get_context = glamor_egl_get_context;
-    glamor_ctx->put_context = glamor_egl_put_context;
+    glamor_ctx->make_current = glamor_egl_make_current;
 
     if (glamor_egl->dri3_capable) {
         /* Tell the core that we have the interfaces for import/export

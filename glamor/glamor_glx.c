@@ -34,21 +34,12 @@
  */
 
 static void
-glamor_glx_get_context(struct glamor_context *glamor_ctx)
+glamor_glx_make_current(struct glamor_context *glamor_ctx)
 {
-    if (glamor_ctx->get_count++)
-        return;
-
     glXMakeCurrent(glamor_ctx->display, glamor_ctx->drawable_xid,
                    glamor_ctx->ctx);
 }
 
-
-static void
-glamor_glx_put_context(struct glamor_context *glamor_ctx)
-{
-    --glamor_ctx->get_count;
-}
 
 Bool
 glamor_glx_screen_init(struct glamor_context *glamor_ctx)
@@ -63,8 +54,7 @@ glamor_glx_screen_init(struct glamor_context *glamor_ctx)
 
     glamor_ctx->drawable_xid = glXGetCurrentDrawable();
 
-    glamor_ctx->get_context = glamor_glx_get_context;
-    glamor_ctx->put_context = glamor_glx_put_context;
+    glamor_ctx->make_current = glamor_glx_make_current;
 
     return True;
 }

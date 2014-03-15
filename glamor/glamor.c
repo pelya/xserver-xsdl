@@ -248,11 +248,10 @@ glamor_block_handler(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
-    glamor_get_context(glamor_priv);
+    glamor_make_current(glamor_priv);
     glamor_priv->tick++;
     glFlush();
     glamor_fbo_expire(glamor_priv);
-    glamor_put_context(glamor_priv);
     if (glamor_priv->state == RENDER_STATE
         && glamor_priv->render_idle_cnt++ > RENDER_IDEL_MAX) {
         glamor_priv->state = IDLE_STATE;
@@ -265,9 +264,8 @@ _glamor_block_handler(void *data, OSTimePtr timeout, void *last_select_mask)
 {
     glamor_screen_private *glamor_priv = data;
 
-    glamor_get_context(glamor_priv);
+    glamor_make_current(glamor_priv);
     glFlush();
-    glamor_put_context(glamor_priv);
 }
 
 static void

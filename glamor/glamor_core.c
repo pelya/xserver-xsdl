@@ -241,7 +241,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     char *source;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_context(glamor_priv);
+    glamor_make_current(glamor_priv);
     glamor_priv->finish_access_prog[0] = glCreateProgram();
     glamor_priv->finish_access_prog[1] = glCreateProgram();
 
@@ -300,7 +300,6 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     glUniform1i(glamor_priv->finish_access_revert[1], 0);
     glUniform1i(sampler_uniform_location, 0);
     glUniform1i(glamor_priv->finish_access_swap_rb[1], 0);
-    glamor_put_context(glamor_priv);
 }
 
 void
@@ -309,10 +308,9 @@ glamor_fini_finish_access_shaders(ScreenPtr screen)
     glamor_screen_private *glamor_priv;
 
     glamor_priv = glamor_get_screen_private(screen);
-    glamor_get_context(glamor_priv);
+    glamor_make_current(glamor_priv);
     glDeleteProgram(glamor_priv->finish_access_prog[0]);
     glDeleteProgram(glamor_priv->finish_access_prog[1]);
-    glamor_put_context(glamor_priv);
 }
 
 void
@@ -341,11 +339,10 @@ glamor_finish_access(DrawablePtr drawable)
     if (pixmap_priv->base.fbo->pbo != 0 && pixmap_priv->base.fbo->pbo_valid) {
         assert(glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
 
-        glamor_get_context(glamor_priv);
+        glamor_make_current(glamor_priv);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         glDeleteBuffers(1, &pixmap_priv->base.fbo->pbo);
-        glamor_put_context(glamor_priv);
 
         pixmap_priv->base.fbo->pbo_valid = FALSE;
         pixmap_priv->base.fbo->pbo = 0;
