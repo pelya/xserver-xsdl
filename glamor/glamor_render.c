@@ -651,11 +651,12 @@ glamor_composite_with_copy(CARD8 op,
         if (region->extents.y2 + y_source - y_dest > source->pDrawable->height)
             goto cleanup_region;
     }
-    ret = glamor_copy_n_to_n_nf(source->pDrawable,
-                                dest->pDrawable, NULL,
-                                RegionRects(region), RegionNumRects(region),
-                                x_source - x_dest, y_source - y_dest,
-                                FALSE, FALSE, 0, NULL);
+    glamor_copy(source->pDrawable,
+                dest->pDrawable, NULL,
+                RegionRects(region), RegionNumRects(region),
+                x_source - x_dest, y_source - y_dest,
+                FALSE, FALSE, 0, NULL);
+    ret = TRUE;
  cleanup_region:
     return ret;
 }

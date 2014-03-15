@@ -354,6 +354,17 @@ extern _X_EXPORT Bool glamor_copy_n_to_n_nf(DrawablePtr src,
                                             Bool upsidedown, Pixel bitplane,
                                             void *closure);
 
+extern _X_EXPORT Bool glamor_copy_nf(DrawablePtr src,
+                                     DrawablePtr dst,
+                                     GCPtr gc,
+                                     BoxPtr box,
+                                     int nbox,
+                                     int dx,
+                                     int dy,
+                                     Bool reverse,
+                                     Bool upsidedown, Pixel bitplane,
+                                     void *closure);
+
 extern _X_EXPORT Bool glamor_composite_nf(CARD8 op,
                                           PicturePtr source,
                                           PicturePtr mask,

@@ -7,8 +7,7 @@ AM_CFLAGS = $(CWARNFLAGS) $(DIX_CFLAGS) $(GLAMOR_CFLAGS)
 libglamor_la_SOURCES = \
 	glamor.c \
 	glamor_context.h \
-	glamor_copyarea.c \
-	glamor_copywindow.c \
+	glamor_copy.c \
 	glamor_core.c \
 	glamor_debug.h \
 	glamor_fill.c \
@@ -36,7 +35,6 @@ libglamor_la_SOURCES = \
 	glamor_tile.c \
 	glamor_triangles.c\
 	glamor_addtraps.c\
-	glamor_copyplane.c\
 	glamor_glyphblt.c\
 	glamor_points.c\
 	glamor_priv.h\

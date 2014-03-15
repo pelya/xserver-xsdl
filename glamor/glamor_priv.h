@@ -208,6 +208,7 @@ typedef struct glamor_screen_private {
     int has_map_buffer_range;
     int has_buffer_storage;
     int has_khr_debug;
+    int has_nv_texture_barrier;
     int max_fbo_size;
     int has_rw_pbo;
 
@@ -235,6 +236,10 @@ typedef struct glamor_screen_private {
     glamor_program_fill poly_text_progs;
     glamor_program      te_text_prog;
     glamor_program      image_text_prog;
+
+    /* glamor copy shaders */
+    glamor_program      copy_area_prog;
+    glamor_program      copy_plane_prog;
 
     /* vertext/elment_index buffer object for render */
     GLuint vbo, ebo;
@@ -619,15 +624,6 @@ glamor_pixmap_fbo *glamor_create_fbo_array(glamor_screen_private *glamor_priv,
                                            int flag, int block_w, int block_h,
                                            glamor_pixmap_private *);
 
-/* glamor_copyarea.c */
-RegionPtr
-
-glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
-                 int srcx, int srcy, int width, int height, int dstx, int dsty);
-void glamor_copy_n_to_n(DrawablePtr src, DrawablePtr dst, GCPtr gc,
-                        BoxPtr box, int nbox, int dx, int dy, Bool reverse,
-                        Bool upsidedown, Pixel bitplane, void *closure);
-
 /* glamor_core.c */
 void glamor_init_finish_access_shaders(ScreenPtr screen);
 void glamor_fini_finish_access_shaders(ScreenPtr screen);
@@ -931,11 +927,6 @@ void glamor_picture_format_fixup(PicturePtr picture,
 void glamor_add_traps(PicturePtr pPicture,
                       INT16 x_off, INT16 y_off, int ntrap, xTrap *traps);
 
-RegionPtr glamor_copy_plane(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
-                            int srcx, int srcy, int w, int h,
-                            int dstx, int dsty,
-                            unsigned long bitPlane);
-
 /* glamor_text.c */
 int glamor_poly_text8(DrawablePtr pDrawable, GCPtr pGC,
                       int x, int y, int count, char *chars);
@@ -976,6 +967,29 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 void
 glamor_get_image(DrawablePtr pDrawable, int x, int y, int w, int h,
                  unsigned int format, unsigned long planeMask, char *d);
+
+/* glamor_copy.c */
+void
+glamor_copy(DrawablePtr src,
+            DrawablePtr dst,
+            GCPtr gc,
+            BoxPtr box,
+            int nbox,
+            int dx,
+            int dy,
+            Bool reverse,
+            Bool upsidedown,
+            Pixel bitplane,
+            void *closure);
+
+RegionPtr
+glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
+                 int srcx, int srcy, int width, int height, int dstx, int dsty);
+
+RegionPtr
+glamor_copy_plane(DrawablePtr src, DrawablePtr dst, GCPtr gc,
+                  int srcx, int srcy, int width, int height, int dstx, int dsty,
+                  unsigned long bitplane);
 
 /* glamor_glyphblt.c */
 void glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,

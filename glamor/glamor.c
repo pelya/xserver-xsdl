@@ -408,6 +408,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         epoxy_has_gl_extension("GL_ARB_map_buffer_range");
     glamor_priv->has_buffer_storage =
         epoxy_has_gl_extension("GL_ARB_buffer_storage");
+    glamor_priv->has_nv_texture_barrier =
+        epoxy_has_gl_extension("GL_NV_texture_barrier");
     glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size);
 #ifdef MAX_FBO_SIZE
     glamor_priv->max_fbo_size = MAX_FBO_SIZE;

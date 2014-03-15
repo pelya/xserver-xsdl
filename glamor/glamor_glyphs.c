@@ -448,9 +448,9 @@ glamor_glyph_cache_upload_glyph(ScreenPtr screen,
     box.y1 = y;
     box.x2 = x + glyph->info.width;
     box.y2 = y + glyph->info.height;
-    glamor_copy_n_to_n_nf(&scratch->drawable,
-                          &pCachePixmap->drawable, NULL,
-                          &box, 1, -x, -y, FALSE, FALSE, 0, NULL);
+    glamor_copy(&scratch->drawable,
+                &pCachePixmap->drawable, NULL,
+                &box, 1, -x, -y, FALSE, FALSE, 0, NULL);
     if (scratch != pGlyphPixmap)
         screen->DestroyPixmap(scratch);
 

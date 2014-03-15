@@ -117,6 +117,11 @@ static glamor_location_var location_vars[] = {
         .location = glamor_program_location_font,
         .fs_vars = "uniform usampler2D font;\n",
     },
+    {
+        .location = glamor_program_location_bitplane,
+        .fs_vars = ("uniform uvec4 bitplane;\n"
+                    "uniform vec4 bitmul;\n"),
+    },
 };
 
 #define NUM_LOCATION_VARS       (sizeof location_vars / sizeof location_vars[0])
@@ -195,6 +200,8 @@ str(const char *s)
 static const glamor_facet facet_null_fill = {
     .name = ""
 };
+
+#define DBG 0
 
 static GLint
 glamor_get_uniform(glamor_program               *prog,
@@ -281,7 +288,6 @@ glamor_build_program(ScreenPtr          screen,
     if (!vs_prog_string || !fs_prog_string)
         goto fail;
 
-#define DBG 0
 #if DBG
     ErrorF("\nPrograms for %s %s\nVertex shader:\n\n%s\n\nFragment Shader:\n\n%s",
            prim->name, fill->name, vs_prog_string, fs_prog_string);
@@ -318,6 +324,8 @@ glamor_build_program(ScreenPtr          screen,
     prog->fill_offset_uniform = glamor_get_uniform(prog, glamor_program_location_fill, "fill_offset");
     prog->fill_size_uniform = glamor_get_uniform(prog, glamor_program_location_fill, "fill_size");
     prog->font_uniform = glamor_get_uniform(prog, glamor_program_location_font, "font");
+    prog->bitplane_uniform = glamor_get_uniform(prog, glamor_program_location_bitplane, "bitplane");
+    prog->bitmul_uniform = glamor_get_uniform(prog, glamor_program_location_bitplane, "bitmul");
 
     if (glGetError() != GL_NO_ERROR)
         goto fail;
