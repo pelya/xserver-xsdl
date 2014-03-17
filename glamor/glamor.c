@@ -313,6 +313,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     if (glamor_priv == NULL)
         return FALSE;
 
+    glamor_priv->flags = flags;
     if (flags & GLAMOR_INVERTED_Y_AXIS) {
         glamor_priv->yInverted = TRUE;
     }
@@ -487,7 +488,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_pixmap_init(screen);
     glamor_glyphs_init(screen);
 
-    glamor_priv->flags = flags;
     glamor_priv->screen = screen;
 
     return TRUE;
