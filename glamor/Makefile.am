@@ -11,7 +11,6 @@ libglamor_la_SOURCES = \
 	glamor_core.c \
 	glamor_dash.c \
 	glamor_debug.h \
-	glamor_fill.c \
 	glamor_font.c \
 	glamor_font.h \
 	glamor_glx.c \
@@ -46,6 +45,7 @@ libglamor_la_SOURCES = \
 	glamor_window.c\
 	glamor_fbo.c\
 	glamor_compositerects.c\
+	glamor_utils.c\
 	glamor_utils.h\
 	glamor.h
 

@@ -1392,12 +1392,9 @@ _glamor_generate_trapezoid_with_shader(ScreenPtr screen, PicturePtr picture,
     }
 
     /* First, clear all to zero */
-    if (!glamor_solid(pixmap, 0, 0, pixmap_priv->base.pixmap->drawable.width,
-                      pixmap_priv->base.pixmap->drawable.height,
-                      GXclear, 0xFFFFFFFF, 0)) {
-        DEBUGF("glamor_solid failed, fallback\n");
-        return FALSE;
-    }
+    glamor_solid(pixmap, 0, 0, pixmap_priv->base.pixmap->drawable.width,
+                 pixmap_priv->base.pixmap->drawable.height,
+                 GXclear, 0xFFFFFFFF, 0);
 
     glamor_make_current(glamor_priv);
 

@@ -216,10 +216,6 @@ typedef struct glamor_screen_private {
         fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
     unsigned long fbo_cache_watermark;
 
-    /* glamor_solid */
-    GLint solid_prog;
-    GLint solid_color_uniform_location;
-
     /* glamor point shader */
     glamor_program point_prog;
 
@@ -547,7 +543,7 @@ glamor_pixmap_hcnt(glamor_pixmap_private *priv)
     for (y = 0; y < glamor_pixmap_hcnt(priv); y++)      \
         for (x = 0; x < glamor_pixmap_wcnt(priv); x++)
 
-/* 
+/*
  * Pixmap dynamic status, used by dynamic upload feature.
  *
  * GLAMOR_NONE:  initial status, don't need to do anything.
@@ -672,7 +668,7 @@ int glamor_set_destination_pixmap_priv(glamor_pixmap_private *pixmap_priv);
 void glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *, int, int, int, int);
 
 /* nc means no check. caller must ensure this pixmap has valid fbo.
- * usually use the GLAMOR_PIXMAP_PRIV_HAS_FBO firstly. 
+ * usually use the GLAMOR_PIXMAP_PRIV_HAS_FBO firstly.
  * */
 void glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv);
 
@@ -688,18 +684,6 @@ RegionPtr glamor_bitmap_to_region(PixmapPtr pixmap);
 
 void
 glamor_track_stipple(GCPtr gc);
-
-/* glamor_fill.c */
-Bool glamor_fill(DrawablePtr drawable,
-                 GCPtr gc, int x, int y, int width, int height, Bool fallback);
-Bool glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
-                  unsigned char alu, unsigned long planemask,
-                  unsigned long fg_pixel);
-Bool glamor_solid_boxes(PixmapPtr pixmap,
-                        BoxPtr box, int nbox, unsigned long fg_pixel);
-
-void glamor_init_solid_shader(ScreenPtr screen);
-void glamor_fini_solid_shader(ScreenPtr screen);
 
 /* glamor_glyphs.c */
 Bool glamor_realize_glyph_caches(ScreenPtr screen);
@@ -821,10 +805,10 @@ glamor_get_vbo_space(ScreenPtr screen, unsigned size, char **vbo_offset);
 void
 glamor_put_vbo_space(ScreenPtr screen);
 
-/** 
+/**
  * Download a pixmap's texture to cpu memory. If success,
  * One copy of current pixmap's texture will be put into
- * the pixmap->devPrivate.ptr. Will use pbo to map to 
+ * the pixmap->devPrivate.ptr. Will use pbo to map to
  * the pointer if possible.
  * The pixmap must be a gl texture pixmap. gl_fbo must be GLAMOR_FBO_NORMAL and
  * gl_tex must be 1. Used by glamor_prepare_access.
@@ -837,9 +821,9 @@ void *glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w,
                                         glamor_access_t access);
 
 /**
- * Restore a pixmap's data which is downloaded by 
- * glamor_download_pixmap_to_cpu to its original 
- * gl texture. Used by glamor_finish_access. 
+ * Restore a pixmap's data which is downloaded by
+ * glamor_download_pixmap_to_cpu to its original
+ * gl texture. Used by glamor_finish_access.
  *
  * The pixmap must originally be a texture -- gl_fbo must be
  * GLAMOR_FBO_NORMAL.
@@ -1054,6 +1038,17 @@ void glamor_composite_rectangles(CARD8 op,
                                  xRenderColor *color,
                                  int num_rects, xRectangle *rects);
 
+/* glamor_util.c */
+void
+glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
+             unsigned char alu, unsigned long planemask,
+             unsigned long fg_pixel);
+
+void
+glamor_solid_boxes(PixmapPtr pixmap,
+                   BoxPtr box, int nbox, unsigned long fg_pixel);
+
+
 /* glamor_xv */
 typedef struct {
     uint32_t transform_index;
@@ -1080,10 +1075,10 @@ void glamor_fini_xv_shader(ScreenPtr screen);
 
 #include"glamor_utils.h"
 
-/* Dynamic pixmap upload to texture if needed. 
+/* Dynamic pixmap upload to texture if needed.
  * Sometimes, the target is a gl texture pixmap/picture,
  * but the source or mask is in cpu memory. In that case,
- * upload the source/mask to gl texture and then avoid 
+ * upload the source/mask to gl texture and then avoid
  * fallback the whole process to cpu. Most of the time,
  * this will increase performance obviously. */
 

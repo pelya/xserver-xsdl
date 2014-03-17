@@ -514,7 +514,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glamor_init_vbo(screen);
     glamor_init_pixmap_fbo(screen);
-    glamor_init_solid_shader(screen);
     glamor_init_tile_shader(screen);
 #ifdef GLAMOR_TRAPEZOID_SHADER
     glamor_init_trapezoid_shader(screen);
@@ -547,7 +546,6 @@ glamor_release_screen_priv(ScreenPtr screen)
 #endif
     glamor_fini_vbo(screen);
     glamor_fini_pixmap_fbo(screen);
-    glamor_fini_solid_shader(screen);
     glamor_fini_tile_shader(screen);
 #ifdef GLAMOR_TRAPEZOID_SHADER
     glamor_fini_trapezoid_shader(screen);
