@@ -17,8 +17,8 @@ libglamor_la_SOURCES = \
 	glamor_glx.c \
 	glamor_glyphs.c \
 	glamor_polylines.c \
-	glamor_putimage.c \
 	glamor_segment.c \
+	glamor_image.c \
 	glamor_render.c \
 	glamor_gradient.c \
 	glamor_program.c \
@@ -34,7 +34,6 @@ libglamor_la_SOURCES = \
 	glamor_tile.c \
 	glamor_triangles.c\
 	glamor_addtraps.c\
-	glamor_getimage.c\
 	glamor_copyplane.c\
 	glamor_glyphblt.c\
 	glamor_points.c\

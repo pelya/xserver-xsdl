@@ -507,7 +507,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 #ifdef GLAMOR_TRAPEZOID_SHADER
     glamor_init_trapezoid_shader(screen);
 #endif
-    glamor_init_putimage_shaders(screen);
     glamor_init_finish_access_shaders(screen);
 #ifdef GLAMOR_GRADIENT_SHADER
     glamor_init_gradient_shader(screen);
@@ -541,7 +540,6 @@ glamor_release_screen_priv(ScreenPtr screen)
 #ifdef GLAMOR_TRAPEZOID_SHADER
     glamor_fini_trapezoid_shader(screen);
 #endif
-    glamor_fini_putimage_shaders(screen);
     glamor_fini_finish_access_shaders(screen);
 #ifdef GLAMOR_GRADIENT_SHADER
     glamor_fini_gradient_shader(screen);
