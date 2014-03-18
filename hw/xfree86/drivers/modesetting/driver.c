@@ -213,9 +213,20 @@ static int check_outputs(int fd)
     return ret;
 }
 
-static Bool probe_hw(const char *dev)
+static Bool probe_hw(const char *dev, struct xf86_platform_device *platform_dev)
 {
-    int fd = open_hw(dev);
+    int fd;
+
+#if XSERVER_PLATFORM_BUS
+    if (platform_dev && (platform_dev->flags & XF86_PDEV_SERVER_FD)) {
+        fd = xf86_get_platform_device_int_attrib(platform_dev, ODEV_ATTRIB_FD, -1);
+        if (fd == -1)
+            return FALSE;
+        return check_outputs(fd);
+    }
+#endif
+
+    fd = open_hw(dev);
     if (fd != -1) {
         int ret = check_outputs(fd);
         close(fd);
@@ -283,6 +294,10 @@ ms_driver_func(ScrnInfoPtr scrn, xorgDriverFuncOp op, void *data)
 	    flag = (CARD32 *)data;
 	    (*flag) = 0;
 	    return TRUE;
+#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,15,99,902,0)
+        case SUPPORTS_SERVER_FDS:
+            return TRUE;
+#endif
 	default:
 	    return FALSE;
     }
@@ -341,7 +356,7 @@ ms_platform_probe(DriverPtr driver,
     if (flags & PLATFORM_PROBE_GPU_SCREEN)
             scr_flags = XF86_ALLOCATE_GPU_SCREEN;
 
-    if (probe_hw(path)) {
+    if (probe_hw(path, dev)) {
         scrn = xf86AllocateScreen(driver, scr_flags);
         xf86AddEntityToScreen(scrn, entity_num);
 
@@ -387,7 +402,7 @@ Probe(DriverPtr drv, int flags)
     for (i = 0; i < numDevSections; i++) {
 
 	dev = xf86FindOptionValue(devSections[i]->options,"kmsdev");
-	if (probe_hw(dev)) {
+	if (probe_hw(dev, NULL)) {
 	    int entity;
 	    entity = xf86ClaimFbSlot(drv, 0, devSections[i], TRUE);
 	    scrn = xf86ConfigFbEntity(scrn, 0, entity,
@@ -558,6 +573,10 @@ FreeRec(ScrnInfoPtr pScrn)
         if (ms->pEnt->location.type == BUS_PCI)
             ret = drmClose(ms->fd);
         else
+#ifdef XF86_PDEV_SERVER_FD
+        if (!(ms->pEnt->location.type == BUS_PLATFORM &&
+              (ms->pEnt->location.id.plat->flags & XF86_PDEV_SERVER_FD)))
+#endif
             ret = close(ms->fd);
         (void) ret;
     }
@@ -630,8 +649,15 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
 #if XSERVER_PLATFORM_BUS
     if (pEnt->location.type == BUS_PLATFORM) {
-        char *path = xf86_get_platform_device_attrib(pEnt->location.id.plat, ODEV_ATTRIB_PATH);
-        ms->fd = open_hw(path);
+#ifdef XF86_PDEV_SERVER_FD
+        if (pEnt->location.id.plat->flags & XF86_PDEV_SERVER_FD)
+            ms->fd = xf86_get_platform_device_int_attrib(pEnt->location.id.plat, ODEV_ATTRIB_FD, -1);
+        else
+#endif
+        {
+            char *path = xf86_get_platform_device_attrib(pEnt->location.id.plat, ODEV_ATTRIB_PATH);
+            ms->fd = open_hw(path);
+        }
     }
     else 
 #endif
@@ -865,21 +891,37 @@ msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
 #endif
 
 static Bool
+SetMaster(ScrnInfoPtr pScrn)
+{
+    modesettingPtr ms = modesettingPTR(pScrn);
+    int ret;
+
+#ifdef XF86_PDEV_SERVER_FD
+    if (ms->pEnt->location.type == BUS_PLATFORM &&
+            (ms->pEnt->location.id.plat->flags & XF86_PDEV_SERVER_FD))
+        return TRUE;
+#endif
+
+    ret = drmSetMaster(ms->fd);
+    if (ret)
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "drmSetMaster failed: %s\n",
+                   strerror(errno));
+
+    return ret == 0;
+}
+
+static Bool
 ScreenInit(SCREEN_INIT_ARGS_DECL)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     modesettingPtr ms = modesettingPTR(pScrn);
     VisualPtr visual;
-    int ret;
 
     pScrn->pScreen = pScreen;
 
-    ret = drmSetMaster(ms->fd);
-    if (ret) {
-        ErrorF("Unable to set master\n");
+    if (!SetMaster(pScrn))
         return FALSE;
-    }
-      
+
     /* HW dependent - FIXME */
     pScrn->displayWidth = pScrn->virtualX;
     if (!drmmode_create_initial_bos(pScrn, &ms->drmmode))
@@ -1010,6 +1052,12 @@ LeaveVT(VT_FUNC_ARGS_DECL)
 
     pScrn->vtSema = FALSE;
 
+#ifdef XF86_PDEV_SERVER_FD
+    if (ms->pEnt->location.type == BUS_PLATFORM &&
+            (ms->pEnt->location.id.plat->flags & XF86_PDEV_SERVER_FD))
+        return;
+#endif
+
     drmDropMaster(ms->fd);
 }
 
@@ -1024,10 +1072,7 @@ EnterVT(VT_FUNC_ARGS_DECL)
 
     pScrn->vtSema = TRUE;
 
-    if (drmSetMaster(ms->fd)) {
-        xf86DrvMsg(pScrn->scrnIndex, X_WARNING, "drmSetMaster failed: %s\n",
-                   strerror(errno));
-    }
+    SetMaster(pScrn);
 
     if (!drmmode_set_desired_modes(pScrn, &ms->drmmode))
 	return FALSE;
