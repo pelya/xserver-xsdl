@@ -559,28 +559,6 @@ glamor_bitmap_to_region(PixmapPtr pixmap)
     return ret;
 }
 
-/* Borrow from cairo. */
-Bool
-glamor_gl_has_extension(const char *extension)
-{
-    const char *pext;
-    int ext_len;
-
-    ext_len = strlen(extension);
-
-    pext = (const char *) glGetString(GL_EXTENSIONS);
-
-    if (pext == NULL || extension == NULL)
-        return FALSE;
-
-    while ((pext = strstr(pext, extension)) != NULL) {
-        if (pext[ext_len] == ' ' || pext[ext_len] == '\0')
-            return TRUE;
-        pext += ext_len;
-    }
-    return FALSE;
-}
-
 int
 glamor_gl_get_version(void)
 {

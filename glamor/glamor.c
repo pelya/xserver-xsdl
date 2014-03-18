@@ -367,19 +367,19 @@ glamor_init(ScreenPtr screen, unsigned int flags)
             goto fail;
         }
 
-        if (!glamor_gl_has_extension("GL_EXT_texture_format_BGRA8888")) {
+        if (!epoxy_has_gl_extension("GL_EXT_texture_format_BGRA8888")) {
             ErrorF("GL_EXT_texture_format_BGRA8888 required\n");
             goto fail;
         }
     }
 
-    glamor_priv->has_khr_debug = glamor_gl_has_extension("GL_KHR_debug");
+    glamor_priv->has_khr_debug = epoxy_has_gl_extension("GL_KHR_debug");
     glamor_priv->has_pack_invert =
-        glamor_gl_has_extension("GL_MESA_pack_invert");
+        epoxy_has_gl_extension("GL_MESA_pack_invert");
     glamor_priv->has_fbo_blit =
-        glamor_gl_has_extension("GL_EXT_framebuffer_blit");
+        epoxy_has_gl_extension("GL_EXT_framebuffer_blit");
     glamor_priv->has_buffer_storage =
-        glamor_gl_has_extension("GL_ARB_buffer_storage");
+        epoxy_has_gl_extension("GL_ARB_buffer_storage");
     glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size);
 #ifdef MAX_FBO_SIZE
     glamor_priv->max_fbo_size = MAX_FBO_SIZE;

@@ -619,7 +619,6 @@ Bool glamor_set_alu(ScreenPtr screen, unsigned char alu);
 Bool glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask);
 Bool glamor_change_window_attributes(WindowPtr pWin, unsigned long mask);
 RegionPtr glamor_bitmap_to_region(PixmapPtr pixmap);
-Bool glamor_gl_has_extension(const char *extension);
 int glamor_gl_get_version(void);
 
 #define GLAMOR_GL_VERSION_ENCODE(major, minor) ( \
