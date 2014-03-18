@@ -378,6 +378,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         epoxy_has_gl_extension("GL_MESA_pack_invert");
     glamor_priv->has_fbo_blit =
         epoxy_has_gl_extension("GL_EXT_framebuffer_blit");
+    glamor_priv->has_map_buffer_range =
+        epoxy_has_gl_extension("GL_ARB_map_buffer_range");
     glamor_priv->has_buffer_storage =
         epoxy_has_gl_extension("GL_ARB_buffer_storage");
     glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size);

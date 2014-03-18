@@ -213,6 +213,7 @@ typedef struct glamor_screen_private {
     enum glamor_gl_flavor gl_flavor;
     int has_pack_invert;
     int has_fbo_blit;
+    int has_map_buffer_range;
     int has_buffer_storage;
     int has_khr_debug;
     int max_fbo_size;
