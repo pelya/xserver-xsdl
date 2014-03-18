@@ -412,27 +412,10 @@ glamor_init_composite_shaders(ScreenPtr screen)
 
     eb_size = GLAMOR_COMPOSITE_VBO_VERT_CNT * sizeof(short) * 2;
 
-    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, eb_size, NULL, GL_STATIC_DRAW);
-        eb = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-    }
-    else {
-        eb = malloc(eb_size);
-    }
-
-    if (eb == NULL)
-        FatalError
-            ("fatal error, fail to get element buffer. GL context may be not created correctly.\n");
+    eb = XNFalloc(eb_size);
     glamor_init_eb(eb, GLAMOR_COMPOSITE_VBO_VERT_CNT);
-
-    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-    }
-    else {
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, eb_size, eb, GL_STATIC_DRAW);
-
-        free(eb);
-    }
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, eb_size, eb, GL_STATIC_DRAW);
+    free(eb);
 
     glamor_put_context(glamor_priv);
 }
