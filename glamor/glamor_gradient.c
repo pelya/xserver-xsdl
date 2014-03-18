@@ -1120,8 +1120,6 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
         free(stop_colors);
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
@@ -1139,8 +1137,6 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
         if (stop_colors)
             free(stop_colors);
     }
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
@@ -1469,8 +1465,6 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
         free(stop_colors);
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
@@ -1488,8 +1482,6 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
         if (stop_colors)
             free(stop_colors);
     }
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
