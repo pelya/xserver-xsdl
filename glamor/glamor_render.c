@@ -427,11 +427,9 @@ glamor_init_composite_shaders(ScreenPtr screen)
 
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
         glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
     else {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, eb_size, eb, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
         free(eb);
     }
@@ -448,6 +446,7 @@ glamor_fini_composite_shaders(ScreenPtr screen)
 
     glamor_priv = glamor_get_screen_private(screen);
     glamor_get_context(glamor_priv);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &glamor_priv->ebo);
 
     for (i = 0; i < SHADER_SOURCE_COUNT; i++)
@@ -705,8 +704,6 @@ glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
 
     glamor_get_context(glamor_priv);
     vb = glamor_get_vbo_space(screen, vert_size, &vbo_offset);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
 
     glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT, GL_FALSE,
                           glamor_priv->vb_stride, vbo_offset);
@@ -1329,7 +1326,6 @@ glamor_composite_with_shader(CARD8 op,
         }
     }
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glDisableVertexAttribArray(GLAMOR_VERTEX_MASK);
