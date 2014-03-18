@@ -357,8 +357,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
      * Windows with Intel 4-series (G45) graphics or older.
      */
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-        if (gl_version < 13) {
-            ErrorF("Require OpenGL version 1.3 or later.\n");
+        if (gl_version < 21) {
+            ErrorF("Require OpenGL version 2.1 or later.\n");
             goto fail;
         }
     } else {
