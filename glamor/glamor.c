@@ -341,7 +341,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     else
         glamor_priv->gl_flavor = GLAMOR_GL_ES2;
 
-    gl_version = glamor_gl_get_version();
+    gl_version = epoxy_gl_version();
 
     /* We'd like to require GL_ARB_map_buffer_range or
      * GL_OES_map_buffer_range, since it offers more information to
@@ -357,12 +357,12 @@ glamor_init(ScreenPtr screen, unsigned int flags)
      * Windows with Intel 4-series (G45) graphics or older.
      */
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-        if (gl_version < GLAMOR_GL_VERSION_ENCODE(1, 3)) {
+        if (gl_version < 13) {
             ErrorF("Require OpenGL version 1.3 or later.\n");
             goto fail;
         }
     } else {
-        if (gl_version < GLAMOR_GL_VERSION_ENCODE(2, 0)) {
+        if (gl_version < 20) {
             ErrorF("Require Open GLES2.0 or later.\n");
             goto fail;
         }

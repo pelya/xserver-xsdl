@@ -559,26 +559,3 @@ glamor_bitmap_to_region(PixmapPtr pixmap)
     return ret;
 }
 
-int
-glamor_gl_get_version(void)
-{
-    int major, minor;
-    const char *version = (const char *) glGetString(GL_VERSION);
-    const char *dot = version == NULL ? NULL : strchr(version, '.');
-    const char *major_start = dot;
-
-    /* Sanity check */
-    if (dot == NULL || dot == version || *(dot + 1) == '\0') {
-        major = 0;
-        minor = 0;
-    }
-    else {
-        /* Find the start of the major version in the string */
-        while (major_start > version && *major_start != ' ')
-            --major_start;
-        major = strtol(major_start, NULL, 10);
-        minor = strtol(dot + 1, NULL, 10);
-    }
-
-    return GLAMOR_GL_VERSION_ENCODE(major, minor);
-}
