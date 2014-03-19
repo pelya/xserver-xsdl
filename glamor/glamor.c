@@ -178,7 +178,9 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     pitch = (((w * pixmap->drawable.bitsPerPixel + 7) / 8) + 3) & ~3;
     screen->ModifyPixmapHeader(pixmap, w, h, 0, 0, pitch, NULL);
 
-    if (type == GLAMOR_MEMORY_MAP || glamor_check_fbo_size(glamor_priv, w, h)) {
+    if (type == GLAMOR_MEMORY_MAP || usage == GLAMOR_CREATE_NO_LARGE ||
+        glamor_check_fbo_size(glamor_priv, w, h))
+    {
         pixmap_priv->type = type;
         fbo = glamor_create_fbo(glamor_priv, w, h, format, usage);
     }
