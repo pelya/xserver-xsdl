@@ -1253,8 +1253,7 @@ MakeClientGrabPervious(ClientPtr client)
     }
 }
 
-#ifdef XQUARTZ
-/* Add a fd (from launchd) to our listeners */
+/* Add a fd (from launchd or similar) to our listeners */
 void
 ListenOnOpenFD(int fd, int noxauth)
 {
@@ -1276,7 +1275,7 @@ ListenOnOpenFD(int fd, int noxauth)
      */
     ciptr = _XSERVTransReopenCOTSServer(5, fd, port);
     if (ciptr == NULL) {
-        ErrorF("Got NULL while trying to Reopen launchd port.\n");
+        ErrorF("Got NULL while trying to Reopen listen port.\n");
         return;
     }
 
@@ -1308,5 +1307,3 @@ ListenOnOpenFD(int fd, int noxauth)
     XdmcpReset();
 #endif
 }
-
-#endif
