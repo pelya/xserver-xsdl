@@ -138,6 +138,7 @@ fd_set OutputPending;           /* clients with reply/event data ready to go */
 int MaxClients = 0;
 Bool NewOutputPending;          /* not yet attempted to write some new output */
 Bool AnyClientsWriteBlocked;    /* true if some client blocked on write */
+Bool NoListenAll;               /* Don't establish any listening sockets */
 
 static Bool RunFromSmartParent; /* send SIGUSR1 to parent process */
 Bool RunFromSigStopParent;      /* send SIGSTOP to our own process; Upstart (or
@@ -406,7 +407,10 @@ CreateWellKnownSockets(void)
     /* display is initialized to "0" by main(). It is then set to the display
      * number if specified on the command line, or to NULL when the -displayfd
      * option is used. */
-    if (display) {
+    if (NoListenAll) {
+        ListenTransCount = 0;
+    }
+    else if (display) {
         if (TryCreateSocket(atoi(display), &partial) &&
             ListenTransCount >= 1)
             if (!PartialNetwork && partial)
@@ -440,9 +444,10 @@ CreateWellKnownSockets(void)
             DefineSelf (fd);
     }
 
-    if (!XFD_ANYSET(&WellKnownConnections))
+    if (!XFD_ANYSET(&WellKnownConnections) && !NoListenAll)
         FatalError
             ("Cannot establish any listening sockets - Make sure an X server isn't already running");
+
 #if !defined(WIN32)
     OsSignal(SIGPIPE, SIG_IGN);
     OsSignal(SIGHUP, AutoResetServer);
