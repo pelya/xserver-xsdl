@@ -1312,3 +1312,30 @@ ListenOnOpenFD(int fd, int noxauth)
     XdmcpReset();
 #endif
 }
+
+/* based on TRANS(SocketUNIXAccept) (XtransConnInfo ciptr, int *status) */
+Bool
+AddClientOnOpenFD(int fd)
+{
+    XtransConnInfo ciptr;
+    CARD32 connect_time;
+    char port[20];
+
+    snprintf(port, sizeof(port), ":%d", atoi(display));
+    ciptr = _XSERVTransReopenCOTSServer(5, fd, port);
+    if (ciptr == NULL)
+        return FALSE;
+
+    _XSERVTransSetOption(ciptr, TRANS_NONBLOCKING, 1);
+    ciptr->flags |= TRANS_NOXAUTH;
+
+    connect_time = GetTimeInMillis();
+
+    if (!AllocNewConnection(ciptr, fd, connect_time)) {
+        ErrorConnMax(ciptr);
+        _XSERVTransClose(ciptr);
+        return FALSE;
+    }
+
+    return TRUE;
+}
