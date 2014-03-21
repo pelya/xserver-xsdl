@@ -32,7 +32,6 @@ libglamor_la_SOURCES = \
 	glamor_transform.c \
 	glamor_transform.h \
 	glamor_trapezoid.c \
-	glamor_tile.c \
 	glamor_triangles.c\
 	glamor_addtraps.c\
 	glamor_glyphblt.c\

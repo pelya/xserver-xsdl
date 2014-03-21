@@ -273,10 +273,6 @@ typedef struct glamor_screen_private {
     GLint finish_access_revert[2];
     GLint finish_access_swap_rb[2];
 
-    /* glamor_tile */
-    GLint tile_prog;
-    GLint tile_wh;
-
     /* glamor gradient, 0 for small nstops, 1 for
        large nstops and 2 for dynamic generate. */
     GLint gradient_prog[SHADER_GRADIENT_COUNT][3];
@@ -759,14 +755,6 @@ void glamor_trapezoids(CARD8 op,
                        PicturePtr src, PicturePtr dst,
                        PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
                        int ntrap, xTrapezoid *traps);
-
-/* glamor_tile.c */
-Bool glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
-                 int x, int y, int width, int height,
-                 unsigned char alu, unsigned long planemask,
-                 int tile_x, int tile_y);
-void glamor_init_tile_shader(ScreenPtr screen);
-void glamor_fini_tile_shader(ScreenPtr screen);
 
 /* glamor_gradient.c */
 void glamor_init_gradient_shader(ScreenPtr screen);
