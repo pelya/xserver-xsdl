@@ -648,11 +648,6 @@ void glamor_fini_finish_access_shaders(ScreenPtr screen);
 const Bool glamor_get_drawable_location(const DrawablePtr drawable);
 void glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
                                 int *x, int *y);
-Bool glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
-                    int x, int y, int width, int height,
-                    unsigned char alu, unsigned long planemask,
-                    unsigned long fg_pixel, unsigned long bg_pixel,
-                    int stipple_x, int stipple_y);
 GLint glamor_compile_glsl_prog(GLenum type, const char *source);
 void glamor_link_glsl_prog(ScreenPtr screen, GLint prog,
                            const char *format, ...) _X_ATTRIBUTE_PRINTF(3,4);

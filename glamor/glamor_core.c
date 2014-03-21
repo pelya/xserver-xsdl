@@ -292,17 +292,6 @@ glamor_fini_finish_access_shaders(ScreenPtr screen)
     glDeleteProgram(glamor_priv->finish_access_prog[1]);
 }
 
-Bool
-glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
-               int x, int y, int width, int height,
-               unsigned char alu, unsigned long planemask,
-               unsigned long fg_pixel, unsigned long bg_pixel,
-               int stipple_x, int stipple_y)
-{
-    glamor_fallback("stubbed out stipple depth %d\n", pixmap->drawable.depth);
-    return FALSE;
-}
-
 GCOps glamor_gc_ops = {
     .FillSpans = glamor_fill_spans,
     .SetSpans = glamor_set_spans,
