@@ -20,6 +20,7 @@ libglamor_la_SOURCES = \
 	glamor_polylines.c \
 	glamor_putimage.c \
 	glamor_setspans.c \
+	glamor_segment.c \
 	glamor_render.c \
 	glamor_gradient.c \
 	glamor_program.c \
