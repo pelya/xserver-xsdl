@@ -241,6 +241,12 @@ typedef struct glamor_screen_private {
     glamor_program      copy_area_prog;
     glamor_program      copy_plane_prog;
 
+    /* glamor line shader */
+    glamor_program_fill poly_line_program;
+
+    /* glamor segment shaders */
+    glamor_program_fill poly_segment_program;
+
     /* vertext/elment_index buffer object for render */
     GLuint vbo, ebo;
     /** Next offset within the VBO that glamor_get_vbo_space() will use. */
@@ -683,10 +689,6 @@ void glamor_glyphs(CARD8 op,
                    INT16 xSrc,
                    INT16 ySrc, int nlist, GlyphListPtr list, GlyphPtr *glyphs);
 
-/* glamor_polylines.c */
-void glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
-                       DDXPointPtr points);
-
 /* glamor_render.c */
 Bool glamor_composite_clipped_region(CARD8 op,
                                      PicturePtr source,
@@ -967,6 +969,15 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 void
 glamor_get_image(DrawablePtr pDrawable, int x, int y, int w, int h,
                  unsigned int format, unsigned long planeMask, char *d);
+/*  glamor_lines.c */
+void
+glamor_poly_lines(DrawablePtr drawable, GCPtr gc,
+                  int mode, int n, DDXPointPtr points);
+
+/*  glamor_segs.c */
+void
+glamor_poly_segment(DrawablePtr drawable, GCPtr gc,
+                    int nseg, xSegment *segs);
 
 /* glamor_copy.c */
 void
@@ -1005,12 +1016,6 @@ void glamor_push_pixels(GCPtr pGC, PixmapPtr pBitmap,
 
 void glamor_poly_point(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
                        DDXPointPtr ppt);
-
-void glamor_poly_segment(DrawablePtr pDrawable, GCPtr pGC, int nseg,
-                         xSegment *pSeg);
-
-void glamor_poly_line(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
-                      DDXPointPtr ppt);
 
 void glamor_composite_rectangles(CARD8 op,
                                  PicturePtr dst,
