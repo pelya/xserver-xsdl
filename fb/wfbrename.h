@@ -1,4 +1,3 @@
-#define fb16Lane wfb16Lane
 #define fb24_32CopyMtoN wfb24_32CopyMtoN
 #define fb24_32CreateScreenResources wfb24_32CreateScreenResources
 #define fb24_32GetImage wfb24_32GetImage
@@ -7,8 +6,6 @@
 #define fb24_32PutZImage wfb24_32PutZImage
 #define fb24_32ReformatTile wfb24_32ReformatTile
 #define fb24_32SetSpans wfb24_32SetSpans
-#define fb32Lane wfb32Lane
-#define fb8Lane wfb8Lane
 #define fbAddTraps wfbAddTraps
 #define fbAddTriangles wfbAddTriangles
 #define fbAllocatePrivates wfbAllocatePrivates
@@ -85,8 +82,6 @@
 #define fbIn wfbIn
 #define fbInitializeColormap wfbInitializeColormap
 #define fbInitVisuals wfbInitVisuals
-#define fbInstallColormap wfbInstallColormap
-#define fbLaneTable wfbLaneTable
 #define fbListInstalledColormaps wfbListInstalledColormaps
 #define FbMergeRopBits wFbMergeRopBits
 #define fbOddStipple wfbOddStipple

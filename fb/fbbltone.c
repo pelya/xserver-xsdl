@@ -81,7 +81,7 @@
 #endif
 
 #if FB_SHIFT == 6
-CARD8 fb8Lane[256] = {
+static const CARD8 fb8Lane[256] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
         21,
     22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
@@ -107,39 +107,31 @@ CARD8 fb8Lane[256] = {
     242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255,
 };
 
-CARD8 fb16Lane[256] = {
+static const CARD8 fb16Lane[256] = {
     0x00, 0x03, 0x0c, 0x0f,
     0x30, 0x33, 0x3c, 0x3f,
     0xc0, 0xc3, 0xcc, 0xcf,
     0xf0, 0xf3, 0xfc, 0xff,
 };
 
-CARD8 fb32Lane[16] = {
+static const CARD8 fb32Lane[16] = {
     0x00, 0x0f, 0xf0, 0xff,
 };
 #endif
 
 #if FB_SHIFT == 5
-CARD8 fb8Lane[16] = {
+static const CARD8 fb8Lane[16] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
 };
 
-CARD8 fb16Lane[16] = {
+static const CARD8 fb16Lane[16] = {
     0, 3, 12, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-CARD8 fb32Lane[16] = {
+static const CARD8 fb32Lane[16] = {
     0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 #endif
-
-CARD8 *fbLaneTable[33] = {
-    0, 0, 0, 0, 0, 0, 0, 0,
-    fb8Lane, 0, 0, 0, 0, 0, 0, 0,
-    fb16Lane, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
-    fb32Lane
-};
 
 void
 fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
@@ -169,7 +161,7 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
     Bool transparent;           /* accelerate 0 nop */
     int srcinc;                 /* source units consumed */
     Bool endNeedsLoad = FALSE;  /* need load for endmask */
-    CARD8 *fbLane;
+    const CARD8 *fbLane;
     int startbyte, endbyte;
 
     if (dstBpp == 24) {
@@ -236,8 +228,14 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
     if (pixelsPerDst <= 8)
         fbBits = fbStippleTable[pixelsPerDst];
     fbLane = 0;
-    if (transparent && fgand == 0 && dstBpp >= 8)
-        fbLane = fbLaneTable[dstBpp];
+    if (transparent && fgand == 0) {
+        if (dstBpp == 8)
+            fbLane = fb8Lane;
+        if (dstBpp == 16)
+            fbLane = fb16Lane;
+        if (dstBpp == 32)
+            fbLane = fb32Lane;
+    }
 
     /*
      * Compute total number of destination words written, but 
