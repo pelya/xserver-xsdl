@@ -11,3 +11,5 @@ xfree86
 xkb
 xtest
 signal-logging
+*.log
+*.trs
