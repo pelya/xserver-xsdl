@@ -89,7 +89,7 @@ endif
 
 BUILT_SOURCES = xorg.conf.example
 DISTCLEANFILES = xorg.conf.example
-EXTRA_DIST = xorgconf.cpp Xorg.sh.in
+EXTRA_DIST = xorgconf.cpp
 
 # Without logdir, X will post an error on the terminal and will not start
 install-data-local:
