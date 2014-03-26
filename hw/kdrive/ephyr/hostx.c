@@ -710,6 +710,12 @@ hostx_screen_init(KdScreenInfo *screen,
             malloc(scrpriv->ximg->stride * buffer_height);
     }
 
+    {
+        uint32_t mask = XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT;
+        uint32_t values[2] = {width, height};
+        xcb_configure_window(HostX.conn, scrpriv->win, mask, values);
+    }
+
     if (scrpriv->win_pre_existing == None && !EphyrWantResize) {
         /* Ask the WM to keep our size static */
         xcb_size_hints_t size_hints = {0};
