@@ -2042,7 +2042,7 @@ if test "x$XORG" = xyes; then
 	XF86CONFIGDIR="xorg.conf.d"
 	AC_SUBST(XF86CONFIGDIR)
 	CONFIGFILE="$sysconfdir/$XF86CONFIGFILE"
-	LOGPREFIX="$logdir/Xorg."
+	LOGPREFIX="Xorg."
 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
 	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
 	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
@@ -2055,7 +2055,8 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE_DIR(__XCONFIGDIR__, XF86CONFIGDIR, [Name of configuration directory])
 	AC_DEFINE_DIR(DEFAULT_MODULE_PATH, moduledir, [Default module search path])
 	AC_DEFINE_DIR(DEFAULT_LIBRARY_PATH, libdir, [Default library install path])
-	AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default log location])
+	AC_DEFINE_DIR(DEFAULT_LOGDIR, logdir, [Default log location])
+	AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default logfile prefix])
 	AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
 	if test "x$VGAHW" = xyes; then
 		AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])

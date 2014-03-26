@@ -45,7 +45,10 @@
 /* Path to installed libraries. */
 #undef DEFAULT_LIBRARY_PATH
 
-/* Path to server log file. */
+/* Default log location */
+#undef DEFAULT_LOGDIR
+
+/* Default logfile prefix */
 #undef DEFAULT_LOGPREFIX
 
 /* Building DRI-capable DDX. */
