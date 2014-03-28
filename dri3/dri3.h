@@ -32,7 +32,8 @@
 
 #define DRI3_SCREEN_INFO_VERSION        0
 
-typedef int (*dri3_open_proc)(ScreenPtr screen,
+typedef int (*dri3_open_proc)(ClientPtr client,
+                              ScreenPtr screen,
                               RRProviderPtr provider,
                               int *fd);
 
@@ -59,6 +60,9 @@ typedef struct dri3_screen_info {
 
 extern _X_EXPORT Bool
 dri3_screen_init(ScreenPtr screen, dri3_screen_info_ptr info);
+
+extern _X_EXPORT int
+dri3_send_open_reply(ClientPtr client, int fd);
 
 #endif
 

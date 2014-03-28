@@ -608,7 +608,8 @@ glamor_egl_close_screen(ScreenPtr screen)
 }
 
 static int
-glamor_dri3_open(ScreenPtr screen,
+glamor_dri3_open(ClientPtr client,
+                 ScreenPtr screen,
                  RRProviderPtr provider,
                  int *fdp)
 {

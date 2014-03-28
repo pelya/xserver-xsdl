@@ -40,7 +40,7 @@ dri3_open(ClientPtr client, ScreenPtr screen, RRProviderPtr provider, int *fd)
     if (!info || !info->open)
         return BadMatch;
 
-    rc = (*info->open) (screen, provider, fd);
+    rc = (*info->open) (client, screen, provider, fd);
     if (rc != Success)
         return rc;
 
