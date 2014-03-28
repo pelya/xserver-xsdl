@@ -1785,8 +1785,7 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
         long supplied;
 
         if (normal_hint &&
-            (XGetWMNormalHints(pDisplay, iWindow, normal_hint, &supplied) ==
-             Success)) {
+            XGetWMNormalHints(pDisplay, iWindow, normal_hint, &supplied)) {
             if (normal_hint->flags & PMaxSize) {
                 /* Not maximizable if a maximum size is specified */
                 hint |= HINT_NOMAXIMIZE;
