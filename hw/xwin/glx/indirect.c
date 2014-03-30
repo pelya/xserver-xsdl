@@ -738,9 +738,6 @@ glxWinScreenProbe(ScreenPtr pScreen)
 
         __glXScreenInit(&screen->base, pScreen);
 
-        // Override the GL extensions string set by __glXScreenInit()
-        screen->base.GLextensions = strdup(gl_extensions);
-
         // Generate the GLX extensions string (overrides that set by __glXScreenInit())
         {
             unsigned int buffer_size =
