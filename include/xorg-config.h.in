@@ -51,6 +51,12 @@
 /* Default logfile prefix */
 #undef DEFAULT_LOGPREFIX
 
+/* Default XDG_DATA dir under HOME */
+#undef DEFAULT_XDG_DATA_HOME
+
+/* Default log dir under XDG_DATA_HOME */
+#undef DEFAULT_XDG_DATA_HOME_LOGDIR
+
 /* Building DRI-capable DDX. */
 #undef XF86DRI
 
