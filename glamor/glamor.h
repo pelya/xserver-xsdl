@@ -143,6 +143,7 @@ extern _X_EXPORT void glamor_block_handler(ScreenPtr screen);
 
 extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h,
                                                 int depth, unsigned int usage);
+extern _X_EXPORT Bool glamor_destroy_pixmap(PixmapPtr pixmap);
 
 #define GLAMOR_CREATE_PIXMAP_CPU        0x100
 #define GLAMOR_CREATE_PIXMAP_FIXUP      0x101

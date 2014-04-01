@@ -584,8 +584,6 @@ extern int glamor_debug_level;
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
-Bool glamor_destroy_pixmap(PixmapPtr pixmap);
-
 glamor_pixmap_fbo *glamor_pixmap_detach_fbo(glamor_pixmap_private *
                                             pixmap_priv);
 void glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo);
