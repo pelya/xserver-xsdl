@@ -992,9 +992,6 @@ void glamor_composite_rectangles(CARD8 op,
                                  xRenderColor *color,
                                  int num_rects, xRectangle *rects);
 
-extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen,
-                                             struct glamor_context *glamor_ctx);
-
 /* glamor_xv */
 typedef struct {
     uint32_t transform_index;
