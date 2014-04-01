@@ -353,6 +353,9 @@ typedef Bool (*StopPixmapTrackingProcPtr)(PixmapPtr, PixmapPtr);
 
 typedef Bool (*ReplaceScanoutPixmapProcPtr)(DrawablePtr, PixmapPtr, Bool);
 
+typedef WindowPtr (*XYToWindowProcPtr)(ScreenPtr pScreen,
+                                       SpritePtr pSprite, int x, int y);
+
 typedef struct _Screen {
     int myNum;                  /* index of this instance in Screens[] */
     ATOM id;
@@ -513,6 +516,7 @@ typedef struct _Screen {
     struct xorg_list offload_head;
 
     ReplaceScanoutPixmapProcPtr ReplaceScanoutPixmap;
+    XYToWindowProcPtr XYToWindow;
 } ScreenRec;
 
 static inline RegionPtr
