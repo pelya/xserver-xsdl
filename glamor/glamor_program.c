@@ -240,16 +240,8 @@ glamor_build_program(ScreenPtr          screen,
     flags |= fill->flags;
     version = MAX(version, fill->version);
 
-    if (version >= 130) {
-
-        /* Would be nice to have a cleaner test for GLSL 1.30 support,
-         * but for now this should suffice
-         */
-        if (glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP ||
-            epoxy_gl_version() < 30) {
-            goto fail;
-        }
-    }
+    if (version > glamor_priv->glsl_version)
+        goto fail;
 
     vs_vars = vs_location_vars(locations);
     fs_vars = fs_location_vars(locations);

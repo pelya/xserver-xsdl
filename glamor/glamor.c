@@ -353,6 +353,15 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     gl_version = epoxy_gl_version();
 
+    /* Would be nice to have a cleaner test for GLSL 1.30 support,
+     * but for now this should suffice
+     */
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP && gl_version >= 30)
+        glamor_priv->glsl_version = 130;
+    else
+        glamor_priv->glsl_version = 120;
+
+
     /* We'd like to require GL_ARB_map_buffer_range or
      * GL_OES_map_buffer_range, since it offers more information to
      * the driver than plain old glMapBuffer() or glBufferSubData().

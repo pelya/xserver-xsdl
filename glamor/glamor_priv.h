@@ -205,6 +205,7 @@ typedef struct glamor_screen_private {
     Bool yInverted;
     unsigned int tick;
     enum glamor_gl_flavor gl_flavor;
+    int glsl_version;
     int has_pack_invert;
     int has_fbo_blit;
     int has_map_buffer_range;
