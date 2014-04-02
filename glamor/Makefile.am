@@ -12,6 +12,7 @@ libglamor_la_SOURCES = \
 	glamor_core.c \
 	glamor_debug.h \
 	glamor_fill.c \
+	glamor_font.c \
 	glamor_glx.c \
 	glamor_glyphs.c \
 	glamor_polylines.c \
@@ -22,6 +23,7 @@ libglamor_la_SOURCES = \
 	glamor_program.c \
 	glamor_rects.c \
 	glamor_spans.c \
+	glamor_text.c \
 	glamor_transfer.c \
 	glamor_transfer.h \
 	glamor_transform.c \

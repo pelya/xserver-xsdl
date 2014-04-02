@@ -434,6 +434,20 @@ extern _X_EXPORT Bool glamor_poly_segment_nf(DrawablePtr pDrawable, GCPtr pGC,
 extern _X_EXPORT Bool glamor_poly_lines_nf(DrawablePtr drawable, GCPtr gc,
                                            int mode, int n, DDXPointPtr points);
 
+extern _X_EXPORT Bool glamor_poly_text8_nf(DrawablePtr drawable, GCPtr gc,
+                                           int x, int y, int count, char *chars, int *final_pos);
+
+extern _X_EXPORT Bool glamor_poly_text16_nf(DrawablePtr drawable, GCPtr gc,
+                                            int x, int y, int count, unsigned short *chars, int *final_pos);
+
+extern _X_EXPORT Bool glamor_image_text8_nf(DrawablePtr drawable, GCPtr gc,
+                                            int x, int y, int count, char *chars);
+
+extern _X_EXPORT Bool glamor_image_text16_nf(DrawablePtr drawable, GCPtr gc,
+                                             int x, int y, int count, unsigned short *chars);
+
+#define HAS_GLAMOR_TEXT 1
+
 #ifdef GLAMOR_FOR_XORG
 extern _X_EXPORT XF86VideoAdaptorPtr glamor_xv_init(ScreenPtr pScreen,
                                                     int num_texture_ports);

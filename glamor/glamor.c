@@ -424,6 +424,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         screen->CreateScreenResources;
     screen->CreateScreenResources = glamor_create_screen_resources;
 
+    if (!glamor_font_init(screen))
+        goto fail;
+
     if (flags & GLAMOR_USE_SCREEN) {
         if (!RegisterBlockAndWakeupHandlers(_glamor_block_handler,
                                             _glamor_wakeup_handler,

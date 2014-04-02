@@ -233,6 +233,11 @@ typedef struct glamor_screen_private {
     /* glamor glyphblt shaders */
     glamor_program_fill poly_glyph_blt_progs;
 
+    /* glamor text shaders */
+    glamor_program_fill poly_text_progs;
+    glamor_program      te_text_prog;
+    glamor_program      image_text_prog;
+
     /* vertext/elment_index buffer object for render */
     GLuint vbo, ebo;
     /** Next offset within the VBO that glamor_get_vbo_space() will use. */
@@ -959,6 +964,19 @@ RegionPtr glamor_copy_plane(DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
                             int dstx, int dsty,
                             unsigned long bitPlane);
 
+/* glamor_text.c */
+int glamor_poly_text8(DrawablePtr pDrawable, GCPtr pGC,
+                      int x, int y, int count, char *chars);
+
+int glamor_poly_text16(DrawablePtr pDrawable, GCPtr pGC,
+                       int x, int y, int count, unsigned short *chars);
+
+void glamor_image_text8(DrawablePtr pDrawable, GCPtr pGC,
+                        int x, int y, int count, char *chars);
+
+void glamor_image_text16(DrawablePtr pDrawable, GCPtr pGC,
+                         int x, int y, int count, unsigned short *chars);
+
 /* glamor_spans.c */
 void
 glamor_fill_spans(DrawablePtr drawable,
@@ -1050,5 +1068,7 @@ void glamor_fini_xv_shader(ScreenPtr screen);
 #endif
 //#define GLYPHS_NO_EDEGEMAP_OVERLAP_CHECK
 #define GLYPHS_EDEGE_OVERLAP_LOOSE_CHECK
+
+#include "glamor_font.h"
 
 #endif                          /* GLAMOR_PRIV_H */
