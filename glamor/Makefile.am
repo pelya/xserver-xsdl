@@ -14,13 +14,13 @@ libglamor_la_SOURCES = \
 	glamor_fill.c \
 	glamor_glx.c \
 	glamor_glyphs.c \
-	glamor_polyfillrect.c \
 	glamor_polylines.c \
 	glamor_putimage.c \
 	glamor_segment.c \
 	glamor_render.c \
 	glamor_gradient.c \
 	glamor_program.c \
+	glamor_rects.c \
 	glamor_spans.c \
 	glamor_transfer.c \
 	glamor_transfer.h \

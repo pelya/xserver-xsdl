@@ -227,6 +227,9 @@ typedef struct glamor_screen_private {
     /* glamor spans shaders */
     glamor_program_fill fill_spans_program;
 
+    /* glamor rect shaders */
+    glamor_program_fill poly_fill_rect_program;
+
     /* vertext/elment_index buffer object for render */
     GLuint vbo, ebo;
     /** Next offset within the VBO that glamor_get_vbo_space() will use. */
@@ -691,10 +694,6 @@ void glamor_glyphs(CARD8 op,
                    INT16 xSrc,
                    INT16 ySrc, int nlist, GlyphListPtr list, GlyphPtr *glyphs);
 
-/* glamor_polyfillrect.c */
-void glamor_poly_fill_rect(DrawablePtr drawable,
-                           GCPtr gc, int nrect, xRectangle *prect);
-
 /* glamor_polylines.c */
 void glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
                        DDXPointPtr points);
@@ -970,6 +969,11 @@ glamor_get_spans(DrawablePtr drawable, int wmax,
 void
 glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
                  DDXPointPtr points, int *widths, int numPoints, int sorted);
+
+/* glamor_rects.c */
+void
+glamor_poly_fill_rect(DrawablePtr drawable,
+                      GCPtr gc, int nrect, xRectangle *prect);
 
 /* glamor_glyphblt.c */
 void glamor_image_glyph_blt(DrawablePtr pDrawable, GCPtr pGC,
