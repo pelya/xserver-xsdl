@@ -283,8 +283,6 @@ glamor_get_tex_format_type_from_pictformat_gl(PictFormatShort format,
         break;
 
     default:
-        LogMessageVerb(X_INFO, 0,
-                       "fail to get matched format for %x \n", format);
         return -1;
     }
     return 0;
