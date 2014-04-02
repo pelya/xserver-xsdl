@@ -122,6 +122,11 @@ static glamor_location_var location_vars[] = {
         .fs_vars = ("uniform uvec4 bitplane;\n"
                     "uniform vec4 bitmul;\n"),
     },
+    {
+        .location = glamor_program_location_dash,
+        .vs_vars = "uniform float dash_length;\n",
+        .fs_vars = "uniform sampler2D dash;\n",
+    },
 };
 
 #define NUM_LOCATION_VARS       (sizeof location_vars / sizeof location_vars[0])
@@ -326,6 +331,8 @@ glamor_build_program(ScreenPtr          screen,
     prog->font_uniform = glamor_get_uniform(prog, glamor_program_location_font, "font");
     prog->bitplane_uniform = glamor_get_uniform(prog, glamor_program_location_bitplane, "bitplane");
     prog->bitmul_uniform = glamor_get_uniform(prog, glamor_program_location_bitplane, "bitmul");
+    prog->dash_uniform = glamor_get_uniform(prog, glamor_program_location_dash, "dash");
+    prog->dash_length_uniform = glamor_get_uniform(prog, glamor_program_location_dash, "dash_length");
 
     if (glGetError() != GL_NO_ERROR)
         goto fail;

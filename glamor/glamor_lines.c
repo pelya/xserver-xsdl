@@ -33,8 +33,8 @@ static const glamor_facet glamor_facet_poly_lines = {
 };
 
 static Bool
-glamor_poly_lines_gl(DrawablePtr drawable, GCPtr gc,
-                     int mode, int n, DDXPointPtr points)
+glamor_poly_lines_solid_gl(DrawablePtr drawable, GCPtr gc,
+                           int mode, int n, DDXPointPtr points)
 {
     ScreenPtr screen = drawable->pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
@@ -49,12 +49,6 @@ glamor_poly_lines_gl(DrawablePtr drawable, GCPtr gc,
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
     if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
-        goto bail;
-
-    if (gc->lineWidth != 0)
-        goto bail;
-
-    if (gc->lineStyle != LineSolid)
         goto bail;
 
     add_last = 0;
@@ -131,6 +125,28 @@ bail_ctx:
     glDisable(GL_COLOR_LOGIC_OP);
 bail:
     return FALSE;
+}
+
+static Bool
+glamor_poly_lines_gl(DrawablePtr drawable, GCPtr gc,
+                     int mode, int n, DDXPointPtr points)
+{
+    if (gc->lineWidth != 0)
+        return FALSE;
+
+    switch (gc->lineStyle) {
+    case LineSolid:
+        return glamor_poly_lines_solid_gl(drawable, gc, mode, n, points);
+    case LineOnOffDash:
+        return glamor_poly_lines_dash_gl(drawable, gc, mode, n, points);
+    case LineDoubleDash:
+        if (gc->fillStyle == FillTiled)
+            return glamor_poly_lines_solid_gl(drawable, gc, mode, n, points);
+        else
+            return glamor_poly_lines_dash_gl(drawable, gc, mode, n, points);
+    default:
+        return FALSE;
+    }
 }
 
 static void

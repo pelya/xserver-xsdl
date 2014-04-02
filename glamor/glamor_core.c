@@ -409,14 +409,35 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
         fbValidateGC(gc, changes, drawable);
     }
 
+    if (changes & GCDashList) {
+        glamor_gc_private *gc_priv = glamor_get_gc_private(gc);
+
+        if (gc_priv->dash) {
+            glamor_destroy_pixmap(gc_priv->dash);
+            gc_priv->dash = NULL;
+        }
+    }
+
     gc->ops = &glamor_gc_ops;
+}
+
+void
+glamor_destroy_gc(GCPtr gc)
+{
+    glamor_gc_private *gc_priv = glamor_get_gc_private(gc);
+
+    if (gc_priv->dash) {
+        glamor_destroy_pixmap(gc_priv->dash);
+        gc_priv->dash = NULL;
+    }
+    miDestroyGC(gc);
 }
 
 static GCFuncs glamor_gc_funcs = {
     glamor_validate_gc,
     miChangeGC,
     miCopyGC,
-    miDestroyGC,
+    glamor_destroy_gc,
     miChangeClip,
     miDestroyClip,
     miCopyClip
@@ -429,6 +450,9 @@ static GCFuncs glamor_gc_funcs = {
 int
 glamor_create_gc(GCPtr gc)
 {
+    glamor_gc_private *gc_priv = glamor_get_gc_private(gc);
+
+    gc_priv->dash = NULL;
     if (!fbCreateGC(gc))
         return FALSE;
 

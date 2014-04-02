@@ -9,6 +9,7 @@ libglamor_la_SOURCES = \
 	glamor_context.h \
 	glamor_copy.c \
 	glamor_core.c \
+	glamor_dash.c \
 	glamor_debug.h \
 	glamor_fill.c \
 	glamor_font.c \

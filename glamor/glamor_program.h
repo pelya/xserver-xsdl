@@ -30,6 +30,7 @@ typedef enum {
     glamor_program_location_fill = 4,
     glamor_program_location_font = 8,
     glamor_program_location_bitplane = 16,
+    glamor_program_location_dash = 32,
 } glamor_program_location;
 
 typedef enum {
@@ -64,6 +65,8 @@ struct _glamor_program {
     GLint                       font_uniform;
     GLint                       bitplane_uniform;
     GLint                       bitmul_uniform;
+    GLint                       dash_uniform;
+    GLint                       dash_length_uniform;
     glamor_program_location     locations;
     glamor_program_flag         flags;
     glamor_use                  prim_use;

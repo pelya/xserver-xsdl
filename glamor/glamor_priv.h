@@ -247,6 +247,10 @@ typedef struct glamor_screen_private {
     /* glamor segment shaders */
     glamor_program_fill poly_segment_program;
 
+    /*  glamor dash line shader */
+    glamor_program_fill on_off_dash_line_progs;
+    glamor_program      double_dash_line_prog;
+
     /* vertext/elment_index buffer object for render */
     GLuint vbo, ebo;
     /** Next offset within the VBO that glamor_get_vbo_space() will use. */
@@ -559,6 +563,13 @@ typedef enum glamor_pixmap_status {
     GLAMOR_UPLOAD_FAILED
 } glamor_pixmap_status_t;
 
+/* GC private structure. Currently holds only any computed dash pixmap */
+
+typedef struct {
+    PixmapPtr   dash;
+} glamor_gc_private;
+
+extern DevPrivateKeyRec glamor_gc_private_key;
 extern DevPrivateKeyRec glamor_screen_private_key;
 extern DevPrivateKeyRec glamor_pixmap_private_key;
 
@@ -590,6 +601,12 @@ glamor_get_pixmap_private(PixmapPtr pixmap)
 }
 
 void glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv);
+
+static inline glamor_gc_private *
+glamor_get_gc_private(GCPtr gc)
+{
+    return dixLookupPrivate(&gc->devPrivates, &glamor_gc_private_key);
+}
 
 /**
  * Returns TRUE if the given planemask covers all the significant bits in the
@@ -969,7 +986,17 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 void
 glamor_get_image(DrawablePtr pDrawable, int x, int y, int w, int h,
                  unsigned int format, unsigned long planeMask, char *d);
-/*  glamor_lines.c */
+
+/* glamor_dash.c */
+Bool
+glamor_poly_lines_dash_gl(DrawablePtr drawable, GCPtr gc,
+                          int mode, int n, DDXPointPtr points);
+
+Bool
+glamor_poly_segment_dash_gl(DrawablePtr drawable, GCPtr gc,
+                            int nseg, xSegment *segs);
+
+/* glamor_lines.c */
 void
 glamor_poly_lines(DrawablePtr drawable, GCPtr gc,
                   int mode, int n, DDXPointPtr points);

@@ -37,6 +37,7 @@
 
 DevPrivateKeyRec glamor_screen_private_key;
 DevPrivateKeyRec glamor_pixmap_private_key;
+DevPrivateKeyRec glamor_gc_private_key;
 
 /**
  * glamor_get_drawable_pixmap() returns a backing pixmap for a given drawable.
@@ -346,7 +347,15 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         LogMessage(X_WARNING,
                    "glamor%d: Failed to allocate pixmap private\n",
                    screen->myNum);
-        goto fail;;
+        goto fail;
+    }
+
+    if (!dixRegisterPrivateKey(&glamor_gc_private_key, PRIVATE_GC,
+                               sizeof (glamor_gc_private))) {
+        LogMessage(X_WARNING,
+                   "glamor%d: Failed to allocate gc private\n",
+                   screen->myNum);
+        goto fail;
     }
 
     if (epoxy_is_desktop_gl())
