@@ -45,9 +45,8 @@ use_tile(PixmapPtr pixmap, GCPtr gc, glamor_program *prog, void *arg)
 
 static const glamor_facet glamor_fill_tile = {
     .name = "tile",
-    .version = 130,
-    .vs_exec =  "       fill_pos = fill_offset + primitive.xy + pos;\n",
-    .fs_exec =  "       gl_FragColor = texelFetch(sampler, ivec2(mod(fill_pos,fill_size)), 0);\n",
+    .vs_exec =  "       fill_pos = (fill_offset + primitive.xy + pos) / fill_size;\n",
+    .fs_exec =  "       gl_FragColor = texture2D(sampler, fill_pos);\n",
     .locations = glamor_program_location_fill,
     .use = use_tile,
 };
@@ -108,6 +107,7 @@ static glamor_location_var location_vars[] = {
     {
         .location = glamor_program_location_fill,
         .vs_vars = ("uniform vec2 fill_offset;\n"
+                    "uniform vec2 fill_size;\n"
                     "varying vec2 fill_pos;\n"),
         .fs_vars = ("uniform sampler2D sampler;\n"
                     "uniform vec2 fill_size;\n"
