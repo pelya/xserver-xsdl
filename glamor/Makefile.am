@@ -24,6 +24,8 @@ libglamor_la_SOURCES = \
 	glamor_render.c \
 	glamor_gradient.c \
 	glamor_program.c \
+	glamor_transfer.c \
+	glamor_transfer.h \
 	glamor_transform.c \
 	glamor_trapezoid.c \
 	glamor_tile.c \
