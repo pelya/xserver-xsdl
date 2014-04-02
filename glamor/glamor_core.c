@@ -430,9 +430,9 @@ GCOps glamor_gc_ops = {
     .PolyText16 = miPolyText16,
     .ImageText8 = miImageText8,
     .ImageText16 = miImageText16,
-    .ImageGlyphBlt = glamor_image_glyph_blt,    //miImageGlyphBlt,
-    .PolyGlyphBlt = glamor_poly_glyph_blt,      //miPolyGlyphBlt,
-    .PushPixels = glamor_push_pixels,   //miPushPixels,
+    .ImageGlyphBlt = miImageGlyphBlt,
+    .PolyGlyphBlt = glamor_poly_glyph_blt,
+    .PushPixels = glamor_push_pixels,
 };
 
 /**

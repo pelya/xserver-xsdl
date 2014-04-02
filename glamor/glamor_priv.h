@@ -230,6 +230,9 @@ typedef struct glamor_screen_private {
     /* glamor rect shaders */
     glamor_program_fill poly_fill_rect_program;
 
+    /* glamor glyphblt shaders */
+    glamor_program_fill poly_glyph_blt_progs;
+
     /* vertext/elment_index buffer object for render */
     GLuint vbo, ebo;
     /** Next offset within the VBO that glamor_get_vbo_space() will use. */
