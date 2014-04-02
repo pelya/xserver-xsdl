@@ -548,19 +548,20 @@ typedef enum glamor_pixmap_status {
     GLAMOR_UPLOAD_FAILED
 } glamor_pixmap_status_t;
 
-extern DevPrivateKey glamor_screen_private_key;
-extern DevPrivateKey glamor_pixmap_private_key;
+extern DevPrivateKeyRec glamor_screen_private_key;
+extern DevPrivateKeyRec glamor_pixmap_private_key;
+
 static inline glamor_screen_private *
 glamor_get_screen_private(ScreenPtr screen)
 {
     return (glamor_screen_private *)
-        dixLookupPrivate(&screen->devPrivates, glamor_screen_private_key);
+        dixLookupPrivate(&screen->devPrivates, &glamor_screen_private_key);
 }
 
 static inline void
 glamor_set_screen_private(ScreenPtr screen, glamor_screen_private *priv)
 {
-    dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, priv);
+    dixSetPrivate(&screen->devPrivates, &glamor_screen_private_key, priv);
 }
 
 static inline glamor_pixmap_private *
@@ -568,11 +569,11 @@ glamor_get_pixmap_private(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv;
 
-    priv = dixLookupPrivate(&pixmap->devPrivates, glamor_pixmap_private_key);
+    priv = dixLookupPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key);
     if (!priv) {
         glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
         priv = dixLookupPrivate(&pixmap->devPrivates,
-                                glamor_pixmap_private_key);
+                                &glamor_pixmap_private_key);
     }
     return priv;
 }

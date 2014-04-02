@@ -35,10 +35,8 @@
 
 #include "glamor_priv.h"
 
-static DevPrivateKeyRec glamor_screen_private_key_index;
-DevPrivateKey glamor_screen_private_key = &glamor_screen_private_key_index;
-static DevPrivateKeyRec glamor_pixmap_private_key_index;
-DevPrivateKey glamor_pixmap_private_key = &glamor_pixmap_private_key_index;
+DevPrivateKeyRec glamor_screen_private_key;
+DevPrivateKeyRec glamor_pixmap_private_key;
 
 /**
  * glamor_get_drawable_pixmap() returns a backing pixmap for a given drawable.
@@ -68,7 +66,7 @@ glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
         glamor_get_screen_private(pixmap->drawable.pScreen);
 
     pixmap_priv = dixLookupPrivate(&pixmap->devPrivates,
-                                   glamor_pixmap_private_key);
+                                   &glamor_pixmap_private_key);
     if (pixmap_priv == NULL) {
         pixmap_priv = calloc(sizeof(*pixmap_priv), 1);
         glamor_set_pixmap_private(pixmap, pixmap_priv);
@@ -335,7 +333,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     else
         glamor_priv->yInverted = FALSE;
 
-    if (!dixRegisterPrivateKey(glamor_screen_private_key, PRIVATE_SCREEN, 0)) {
+    if (!dixRegisterPrivateKey(&glamor_screen_private_key, PRIVATE_SCREEN, 0)) {
         LogMessage(X_WARNING,
                    "glamor%d: Failed to allocate screen private\n",
                    screen->myNum);
@@ -344,7 +342,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glamor_set_screen_private(screen, glamor_priv);
 
-    if (!dixRegisterPrivateKey(glamor_pixmap_private_key, PRIVATE_PIXMAP, 0)) {
+    if (!dixRegisterPrivateKey(&glamor_pixmap_private_key, PRIVATE_PIXMAP, 0)) {
         LogMessage(X_WARNING,
                    "glamor%d: Failed to allocate pixmap private\n",
                    screen->myNum);
@@ -559,7 +557,7 @@ glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
     glamor_pixmap_private *old_priv;
     glamor_pixmap_fbo *fbo;
 
-    old_priv = dixGetPrivate(&pixmap->devPrivates, glamor_pixmap_private_key);
+    old_priv = dixGetPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key);
 
     if (priv) {
         assert(old_priv == NULL);
@@ -572,7 +570,7 @@ glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
         free(old_priv);
     }
 
-    dixSetPrivate(&pixmap->devPrivates, glamor_pixmap_private_key, priv);
+    dixSetPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key, priv);
 }
 
 Bool
