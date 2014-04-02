@@ -431,9 +431,6 @@ extern _X_EXPORT Bool glamor_poly_point_nf(DrawablePtr pDrawable, GCPtr pGC,
 extern _X_EXPORT Bool glamor_poly_segment_nf(DrawablePtr pDrawable, GCPtr pGC,
                                              int nseg, xSegment *pSeg);
 
-extern _X_EXPORT Bool glamor_poly_line_nf(DrawablePtr pDrawable, GCPtr pGC,
-                                          int mode, int npt, DDXPointPtr ppt);
-
 extern _X_EXPORT Bool glamor_poly_lines_nf(DrawablePtr drawable, GCPtr gc,
                                            int mode, int n, DDXPointPtr points);
 
