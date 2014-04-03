@@ -356,6 +356,8 @@ typedef Bool (*ReplaceScanoutPixmapProcPtr)(DrawablePtr, PixmapPtr, Bool);
 typedef WindowPtr (*XYToWindowProcPtr)(ScreenPtr pScreen,
                                        SpritePtr pSprite, int x, int y);
 
+typedef int (*NameWindowPixmapProcPtr)(WindowPtr, PixmapPtr, CARD32);
+
 typedef struct _Screen {
     int myNum;                  /* index of this instance in Screens[] */
     ATOM id;
@@ -466,6 +468,7 @@ typedef struct _Screen {
     SetWindowPixmapProcPtr SetWindowPixmap;
     GetScreenPixmapProcPtr GetScreenPixmap;
     SetScreenPixmapProcPtr SetScreenPixmap;
+    NameWindowPixmapProcPtr NameWindowPixmap;
 
     PixmapPtr pScratchPixmap;   /* scratch pixmap "pool" */
 
