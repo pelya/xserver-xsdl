@@ -51,42 +51,51 @@ static const glamor_facet glamor_fill_tile = {
     .use = use_tile,
 };
 
-#if 0
 static Bool
-use_stipple(PixmapPtr pixmap, GCPtr gc, glamor_program *prog)
+use_stipple(PixmapPtr pixmap, GCPtr gc, glamor_program *prog, void *arg)
 {
-    return glamor_set_stippled(pixmap, gc, prog->fg_uniform, prog->fill_offset_uniform, prog->fill_size_uniform);
+    return glamor_set_stippled(pixmap, gc, prog->fg_uniform,
+                               prog->fill_offset_uniform,
+                               prog->fill_size_uniform);
 }
 
 static const glamor_facet glamor_fill_stipple = {
     .name = "stipple",
-    .version = 130,
-    .vs_exec =  "       fill_pos = fill_offset + primitive.xy + pos;\n";
-    .fs_exec = ("       if (texelFetch(sampler, ivec2(mod(fill_pos,fill_size)), 0).x == 0)\n"
+    .vs_exec =  "       fill_pos = (fill_offset + primitive.xy + pos) / fill_size;\n",
+    .fs_exec = ("       float a = texture2D(sampler, fill_pos).w;\n"
+                "       if (a == 0.0)\n"
                 "               discard;\n"
-                "       gl_FragColor = fg;\n")
-    .locations = glamor_program_location_fg | glamor_program_location_fill
+                "       gl_FragColor = fg;\n"),
+    .locations = glamor_program_location_fg | glamor_program_location_fill,
     .use = use_stipple,
 };
 
+static Bool
+use_opaque_stipple(PixmapPtr pixmap, GCPtr gc, glamor_program *prog, void *arg)
+{
+    if (!use_stipple(pixmap, gc, prog, arg))
+        return FALSE;
+    glamor_set_color(pixmap, gc->bgPixel, prog->bg_uniform);
+    return TRUE;
+}
+
 static const glamor_facet glamor_fill_opaque_stipple = {
     .name = "opaque_stipple",
-    .version = 130,
-    .vs_exec =  "       fill_pos = fill_offset + primitive.xy + pos;\n";
-    .fs_exec = ("       if (texelFetch(sampler, ivec2(mod(fill_pos,fill_size)), 0).x == 0)\n"
+    .vs_exec =  "       fill_pos = (fill_offset + primitive.xy + pos) / fill_size;\n",
+    .fs_exec = ("       float a = texture2D(sampler, fill_pos).w;\n"
+                "       if (a == 0.0)\n"
                 "               gl_FragColor = bg;\n"
                 "       else\n"
                 "               gl_FragColor = fg;\n"),
-    .locations = glamor_program_location_fg | glamor_program_location_bg | glamor_program_location_fill
+    .locations = glamor_program_location_fg | glamor_program_location_bg | glamor_program_location_fill,
     .use = use_opaque_stipple
 };
-#endif
 
 static const glamor_facet *glamor_facet_fill[4] = {
     &glamor_fill_solid,
     &glamor_fill_tile,
-    NULL,
-    NULL,
+    &glamor_fill_stipple,
+    &glamor_fill_opaque_stipple,
 };
 
 typedef struct {

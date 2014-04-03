@@ -326,6 +326,58 @@ GCOps glamor_gc_ops = {
     .PushPixels = glamor_push_pixels,
 };
 
+/*
+ * When the stipple is changed or drawn to, invalidate any
+ * cached copy
+ */
+static void
+glamor_invalidate_stipple(GCPtr gc)
+{
+    glamor_gc_private *gc_priv = glamor_get_gc_private(gc);
+
+    if (gc_priv->stipple) {
+        if (gc_priv->stipple_damage)
+            DamageUnregister(gc_priv->stipple_damage);
+        glamor_destroy_pixmap(gc_priv->stipple);
+        gc_priv->stipple = NULL;
+    }
+}
+
+static void
+glamor_stipple_damage_report(DamagePtr damage, RegionPtr region,
+                             void *closure)
+{
+    GCPtr       gc = closure;
+
+    glamor_invalidate_stipple(gc);
+}
+
+static void
+glamor_stipple_damage_destroy(DamagePtr damage, void *closure)
+{
+    GCPtr               gc = closure;
+    glamor_gc_private   *gc_priv = glamor_get_gc_private(gc);
+
+    gc_priv->stipple_damage = NULL;
+    glamor_invalidate_stipple(gc);
+}
+
+void
+glamor_track_stipple(GCPtr gc)
+{
+    if (gc->stipple) {
+        glamor_gc_private *gc_priv = glamor_get_gc_private(gc);
+
+        if (!gc_priv->stipple_damage)
+            gc_priv->stipple_damage = DamageCreate(glamor_stipple_damage_report,
+                                                   glamor_stipple_damage_destroy,
+                                                   DamageReportNonEmpty,
+                                                   TRUE, gc->pScreen, gc);
+        if (gc_priv->stipple_damage)
+            DamageRegister(&gc->stipple->drawable, gc_priv->stipple_damage);
+    }
+}
+
 /**
  * uxa_validate_gc() sets the ops to glamor's implementations, which may be
  * accelerated or may sync the card and fall back to fb.
@@ -396,6 +448,9 @@ glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
         changes &= ~GCTile;
     }
 
+    if (changes & GCStipple)
+        glamor_invalidate_stipple(gc);
+
     if (changes & GCStipple && gc->stipple) {
         /* We can't inline stipple handling like we do for GCTile because
          * it sets fbgc privates.
@@ -430,6 +485,9 @@ glamor_destroy_gc(GCPtr gc)
         glamor_destroy_pixmap(gc_priv->dash);
         gc_priv->dash = NULL;
     }
+    glamor_invalidate_stipple(gc);
+    if (gc_priv->stipple_damage)
+        DamageDestroy(gc_priv->stipple_damage);
     miDestroyGC(gc);
 }
 
@@ -453,6 +511,7 @@ glamor_create_gc(GCPtr gc)
     glamor_gc_private *gc_priv = glamor_get_gc_private(gc);
 
     gc_priv->dash = NULL;
+    gc_priv->stipple = NULL;
     if (!fbCreateGC(gc))
         return FALSE;
 

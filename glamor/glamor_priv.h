@@ -567,6 +567,8 @@ typedef enum glamor_pixmap_status {
 
 typedef struct {
     PixmapPtr   dash;
+    PixmapPtr   stipple;
+    DamagePtr   stipple_damage;
 } glamor_gc_private;
 
 extern DevPrivateKeyRec glamor_gc_private_key;
@@ -683,6 +685,9 @@ glamor_pixmap_fbo *glamor_es2_pixmap_read_prepare(PixmapPtr source, int x,
 Bool glamor_set_alu(ScreenPtr screen, unsigned char alu);
 Bool glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask);
 RegionPtr glamor_bitmap_to_region(PixmapPtr pixmap);
+
+void
+glamor_track_stipple(GCPtr gc);
 
 /* glamor_fill.c */
 Bool glamor_fill(DrawablePtr drawable,
