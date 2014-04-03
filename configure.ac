@@ -624,8 +624,8 @@ AC_ARG_ENABLE(clientids,      AS_HELP_STRING([--disable-clientids], [Build Xorg 
 AC_ARG_ENABLE(pciaccess, AS_HELP_STRING([--enable-pciaccess], [Build Xorg with pciaccess library (default: enabled)]), [PCI=$enableval], [PCI=yes])
 AC_ARG_ENABLE(linux_acpi, AS_HELP_STRING([--disable-linux-acpi], [Disable building ACPI support on Linux (if available).]), [enable_linux_acpi=$enableval], [enable_linux_acpi=yes])
 AC_ARG_ENABLE(linux_apm, AS_HELP_STRING([--disable-linux-apm], [Disable building APM support on Linux (if available).]), [enable_linux_apm=$enableval], [enable_linux_apm=yes])
-AC_ARG_ENABLE(systemd-logind, AC_HELP_STRING([--enable-systemd-logind], [Build systemd-logind support (default: auto)]), [SYSTEMD_LOGIND=$enableval], [SYSTEMD_LOGIND=auto])
-AC_ARG_ENABLE(suid-wrapper, AC_HELP_STRING([--enable-suid-wrapper], [Build suid-root wrapper for legacy driver support on rootless xserver systems (default: no)]), [SUID_WRAPPER=$enableval], [SUID_WRAPPER=no])
+AC_ARG_ENABLE(systemd-logind, AS_HELP_STRING([--enable-systemd-logind], [Build systemd-logind support (default: auto)]), [SYSTEMD_LOGIND=$enableval], [SYSTEMD_LOGIND=auto])
+AC_ARG_ENABLE(suid-wrapper, AS_HELP_STRING([--enable-suid-wrapper], [Build suid-root wrapper for legacy driver support on rootless xserver systems (default: no)]), [SUID_WRAPPER=$enableval], [SUID_WRAPPER=no])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -2042,7 +2042,9 @@ if test "x$XORG" = xyes; then
 	XF86CONFIGDIR="xorg.conf.d"
 	AC_SUBST(XF86CONFIGDIR)
 	CONFIGFILE="$sysconfdir/$XF86CONFIGFILE"
-	LOGPREFIX="$logdir/Xorg."
+	LOGPREFIX="Xorg."
+	XDG_DATA_HOME=".local/share"
+	XDG_DATA_HOME_LOGDIR="xorg"
 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
 	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
 	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
@@ -2055,7 +2057,10 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE_DIR(__XCONFIGDIR__, XF86CONFIGDIR, [Name of configuration directory])
 	AC_DEFINE_DIR(DEFAULT_MODULE_PATH, moduledir, [Default module search path])
 	AC_DEFINE_DIR(DEFAULT_LIBRARY_PATH, libdir, [Default library install path])
-	AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default log location])
+	AC_DEFINE_DIR(DEFAULT_LOGDIR, logdir, [Default log location])
+	AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default logfile prefix])
+	AC_DEFINE_DIR(DEFAULT_XDG_DATA_HOME, XDG_DATA_HOME, [Default XDG_DATA dir under HOME])
+	AC_DEFINE_DIR(DEFAULT_XDG_DATA_HOME_LOGDIR, XDG_DATA_HOME_LOGDIR, [Default log dir under XDG_DATA_HOME])
 	AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
 	if test "x$VGAHW" = xyes; then
 		AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])
