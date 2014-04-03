@@ -182,7 +182,15 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     pitch = (((w * pixmap->drawable.bitsPerPixel + 7) / 8) + 3) & ~3;
     screen->ModifyPixmapHeader(pixmap, w, h, 0, 0, pitch, NULL);
 
-    if (type == GLAMOR_MEMORY_MAP || usage == GLAMOR_CREATE_NO_LARGE ||
+    if (usage == GLAMOR_CREATE_PIXMAP_NO_TEXTURE) {
+        pixmap_priv->type = GLAMOR_TEXTURE_ONLY;
+        pixmap_priv->base.box.x1 = 0;
+        pixmap_priv->base.box.y1 = 0;
+        pixmap_priv->base.box.x2 = w;
+        pixmap_priv->base.box.y2 = h;
+        return pixmap;
+    }
+    else if (type == GLAMOR_MEMORY_MAP || usage == GLAMOR_CREATE_NO_LARGE ||
         glamor_check_fbo_size(glamor_priv, w, h))
     {
         pixmap_priv->type = type;

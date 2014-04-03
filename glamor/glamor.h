@@ -143,12 +143,14 @@ extern _X_EXPORT void glamor_block_handler(ScreenPtr screen);
 
 extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h,
                                                 int depth, unsigned int usage);
+extern _X_EXPORT Bool glamor_destroy_pixmap(PixmapPtr pixmap);
 
 #define GLAMOR_CREATE_PIXMAP_CPU        0x100
 #define GLAMOR_CREATE_PIXMAP_FIXUP      0x101
 #define GLAMOR_CREATE_FBO_NO_FBO        0x103
 #define GLAMOR_CREATE_PIXMAP_MAP        0x104
 #define GLAMOR_CREATE_NO_LARGE          0x105
+#define GLAMOR_CREATE_PIXMAP_NO_TEXTURE 0x106
 
 /* @glamor_egl_exchange_buffers: Exchange the underlying buffers(KHR image,fbo).
  *
@@ -310,6 +312,8 @@ extern _X_EXPORT Bool
 
 #endif
 
+extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen,
+                                             struct glamor_context *glamor_ctx);
 extern _X_EXPORT void glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap);
 
 extern _X_EXPORT int glamor_create_gc(GCPtr gc);

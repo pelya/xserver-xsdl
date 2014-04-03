@@ -599,8 +599,6 @@ extern int glamor_debug_level;
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
-Bool glamor_destroy_pixmap(PixmapPtr pixmap);
-
 glamor_pixmap_fbo *glamor_pixmap_detach_fbo(glamor_pixmap_private *
                                             pixmap_priv);
 void glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo);
@@ -1021,9 +1019,6 @@ void glamor_composite_rectangles(CARD8 op,
                                  PicturePtr dst,
                                  xRenderColor *color,
                                  int num_rects, xRectangle *rects);
-
-extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen,
-                                             struct glamor_context *glamor_ctx);
 
 /* glamor_xv */
 typedef struct {
