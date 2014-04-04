@@ -214,7 +214,6 @@ typedef struct {
     DestroyPixmapProcPtr DestroyPixmap;
     CloseScreenProcPtr CloseScreen;
     Bool (*ddCloseScreen) (ScreenPtr);
-    DevUnion devPriv;
 } XvScreenRec, *XvScreenPtr;
 
 #define SCREEN_PROLOGUE(pScreen, field) ((pScreen)->field = ((XvScreenPtr) \

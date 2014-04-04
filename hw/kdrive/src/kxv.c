@@ -103,6 +103,7 @@ static DevPrivateKeyRec KdXVWindowKeyRec;
 
 #define KdXVWindowKey (&KdXVWindowKeyRec)
 static DevPrivateKey KdXvScreenKey;
+static DevPrivateKeyRec KdXVScreenPrivateKey;
 static unsigned long KdXVGeneration = 0;
 static unsigned long PortResource = 0;
 
@@ -110,7 +111,7 @@ static unsigned long PortResource = 0;
     dixLookupPrivate(&(pScreen)->devPrivates, KdXvScreenKey))
 
 #define GET_KDXV_SCREEN(pScreen) \
-  	((KdXVScreenPtr)(GET_XV_SCREEN(pScreen)->devPriv.ptr))
+    ((KdXVScreenPtr)(dixGetPrivate(&pScreen->devPrivates, &KdXVScreenPrivateKey)))
 
 #define GET_KDXV_WINDOW(pWin) ((KdXVWindowPtr) \
     dixLookupPrivate(&(pWin)->devPrivates, KdXVWindowKey))
@@ -143,6 +144,8 @@ KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
 
     if (!dixRegisterPrivateKey(&KdXVWindowKeyRec, PRIVATE_WINDOW, 0))
         return FALSE;
+    if (!dixRegisterPrivateKey(&KdXVScreenPrivateKey, PRIVATE_SCREEN, 0))
+        return FALSE;
 
     if (Success != XvScreenInit(pScreen))
         return FALSE;
@@ -157,13 +160,8 @@ KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
 
     pxvs->ddCloseScreen = KdXVCloseScreen;
 
-    /* The Xv di layer provides us with a private hook so that we don't
-       have to allocate our own screen private.  They also provide
-       a CloseScreen hook so that we don't have to wrap it.  I'm not
-       sure that I appreciate that.  */
-
     ScreenPriv = malloc(sizeof(KdXVScreenRec));
-    pxvs->devPriv.ptr = (void *) ScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, &KdXVScreenPrivateKey, ScreenPriv);
 
     if (!ScreenPriv)
         return FALSE;

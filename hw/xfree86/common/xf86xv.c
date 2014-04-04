@@ -112,7 +112,10 @@ static DevPrivateKeyRec XF86XVWindowKeyRec;
 
 #define XF86XVWindowKey (&XF86XVWindowKeyRec)
 
+/* dixmain.c XvScreenPtr screen private */
 DevPrivateKey XF86XvScreenKey;
+/** xf86xv.c XF86XVScreenPtr screen private */
+static DevPrivateKeyRec XF86XVScreenPrivateKey;
 
 static unsigned long PortResource = 0;
 
@@ -120,7 +123,7 @@ static unsigned long PortResource = 0;
     ((XvScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, XF86XvScreenKey))
 
 #define GET_XF86XV_SCREEN(pScreen) \
-    ((XF86XVScreenPtr)(GET_XV_SCREEN(pScreen)->devPriv.ptr))
+    ((XF86XVScreenPtr)(dixGetPrivate(&pScreen->devPrivates, &XF86XVScreenPrivateKey)))
 
 #define GET_XF86XV_WINDOW(pWin) \
     ((XF86XVWindowPtr)dixLookupPrivate(&(pWin)->devPrivates, XF86XVWindowKey))
@@ -241,6 +244,8 @@ xf86XVScreenInit(ScreenPtr pScreen, XF86VideoAdaptorPtr * adaptors, int num)
 
     if (!dixRegisterPrivateKey(&XF86XVWindowKeyRec, PRIVATE_WINDOW, 0))
         return FALSE;
+    if (!dixRegisterPrivateKey(&XF86XVScreenPrivateKey, PRIVATE_SCREEN, 0))
+        return FALSE;
 
     XF86XvScreenKey = XvGetScreenKey();
 
@@ -253,13 +258,8 @@ xf86XVScreenInit(ScreenPtr pScreen, XF86VideoAdaptorPtr * adaptors, int num)
 
     pxvs->ddCloseScreen = xf86XVCloseScreen;
 
-    /* The Xv di layer provides us with a private hook so that we don't
-       have to allocate our own screen private.  They also provide
-       a CloseScreen hook so that we don't have to wrap it.  I'm not
-       sure that I appreciate that.  */
-
     ScreenPriv = malloc(sizeof(XF86XVScreenRec));
-    pxvs->devPriv.ptr = (void *) ScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, &XF86XVScreenPrivateKey, ScreenPriv);
 
     if (!ScreenPriv)
         return FALSE;
