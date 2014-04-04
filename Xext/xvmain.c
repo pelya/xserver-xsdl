@@ -425,30 +425,6 @@ XvDestroyWindow(WindowPtr pWin)
 
 }
 
-/* The XvdiVideoStopped procedure is a hook for the device dependent layer.
-   It provides a way for the dd layer to inform the di layer that video has
-   stopped in a port for reasons that the di layer had no control over; note
-   that it doesn't call back into the dd layer */
-
-int
-XvdiVideoStopped(XvPortPtr pPort, int reason)
-{
-
-    /* IF PORT ISN'T ACTIVE THEN WE'RE DONE */
-
-    if (!pPort->pDraw)
-        return Success;
-
-    XvdiSendVideoNotify(pPort, pPort->pDraw, reason);
-
-    pPort->pDraw = NULL;
-    pPort->client = NULL;
-    pPort->time = currentTime;
-
-    return Success;
-
-}
-
 static int
 XvdiDestroyPort(void *pPort, XID id)
 {
