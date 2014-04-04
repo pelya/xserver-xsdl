@@ -59,7 +59,6 @@ of the copyright holder.
 /* XvScreenRec fields */
 
 static Bool KdXVCloseScreen(ScreenPtr);
-static int KdXVQueryAdaptors(ScreenPtr, XvAdaptorPtr *, int *);
 
 /* XvAdaptorRec fields */
 
@@ -153,11 +152,10 @@ KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
 
     pxvs = GET_XV_SCREEN(pScreen);
 
-    /* Anyone initializing the Xv layer must provide these two.
-       The Xv di layer calls them without even checking if they exist! */
+    /* Anyone initializing the Xv layer must provide this.
+       The Xv di layer calls it without even checking if it exists! */
 
     pxvs->ddCloseScreen = KdXVCloseScreen;
-    pxvs->ddQueryAdaptors = KdXVQueryAdaptors;
 
     /* The Xv di layer provides us with a private hook so that we don't
        have to allocate our own screen private.  They also provide
@@ -1005,18 +1003,6 @@ KdXVCloseScreen(ScreenPtr pScreen)
     free(ScreenPriv);
 
     return TRUE;
-}
-
-static int
-KdXVQueryAdaptors(ScreenPtr pScreen,
-                  XvAdaptorPtr * p_pAdaptors, int *p_nAdaptors)
-{
-    XvScreenPtr pxvs = GET_XV_SCREEN(pScreen);
-
-    *p_nAdaptors = pxvs->nAdaptors;
-    *p_pAdaptors = pxvs->pAdaptors;
-
-    return Success;
 }
 
 static Bool

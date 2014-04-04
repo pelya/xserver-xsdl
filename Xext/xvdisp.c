@@ -356,8 +356,6 @@ ProcXvQueryAdaptors(ClientPtr client)
         return Success;
     }
 
-    (*pxvs->ddQueryAdaptors) (pScreen, &pxvs->pAdaptors, &pxvs->nAdaptors);
-
     rep = (xvQueryAdaptorsReply) {
         .type = X_Reply,
         .sequenceNumber = client->sequence,

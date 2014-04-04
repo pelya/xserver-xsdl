@@ -57,7 +57,6 @@
 /* XvScreenRec fields */
 
 static Bool xf86XVCloseScreen(ScreenPtr);
-static int xf86XVQueryAdaptors(ScreenPtr, XvAdaptorPtr *, int *);
 
 /* XvAdaptorRec fields */
 
@@ -249,11 +248,10 @@ xf86XVScreenInit(ScreenPtr pScreen, XF86VideoAdaptorPtr * adaptors, int num)
 
     pxvs = GET_XV_SCREEN(pScreen);
 
-    /* Anyone initializing the Xv layer must provide these two.
-       The Xv di layer calls them without even checking if they exist! */
+    /* Anyone initializing the Xv layer must provide this.
+       The Xv di layer calls it without even checking if it exists! */
 
     pxvs->ddCloseScreen = xf86XVCloseScreen;
-    pxvs->ddQueryAdaptors = xf86XVQueryAdaptors;
 
     /* The Xv di layer provides us with a private hook so that we don't
        have to allocate our own screen private.  They also provide
@@ -1183,18 +1181,6 @@ xf86XVCloseScreen(ScreenPtr pScreen)
     free(pxvs->pAdaptors);
     free(ScreenPriv);
     return TRUE;
-}
-
-static int
-xf86XVQueryAdaptors(ScreenPtr pScreen,
-                    XvAdaptorPtr * p_pAdaptors, int *p_nAdaptors)
-{
-    XvScreenPtr pxvs = GET_XV_SCREEN(pScreen);
-
-    *p_nAdaptors = pxvs->nAdaptors;
-    *p_pAdaptors = pxvs->pAdaptors;
-
-    return Success;
 }
 
 /**** ScrnInfoRec fields ****/
