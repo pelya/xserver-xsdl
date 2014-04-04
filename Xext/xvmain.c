@@ -992,28 +992,6 @@ XvdiStopVideo(ClientPtr client, XvPortPtr pPort, DrawablePtr pDraw)
 }
 
 int
-XvdiPreemptVideo(ClientPtr client, XvPortPtr pPort, DrawablePtr pDraw)
-{
-    int status;
-
-    /* IF PORT ISN'T ACTIVE THEN WE'RE DONE */
-
-    if (!pPort->pDraw || (pPort->pDraw != pDraw))
-        return Success;
-
-    XvdiSendVideoNotify(pPort, pPort->pDraw, XvPreempted);
-
-    status = (*pPort->pAdaptor->ddStopVideo) (client, pPort, pPort->pDraw);
-
-    pPort->pDraw = NULL;
-    pPort->client = (ClientPtr) client;
-    pPort->time = currentTime;
-
-    return status;
-
-}
-
-int
 XvdiMatchPort(XvPortPtr pPort, DrawablePtr pDraw)
 {
 

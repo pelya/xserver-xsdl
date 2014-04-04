@@ -259,7 +259,6 @@ extern _X_EXPORT int XvdiSelectPortNotify(ClientPtr, XvPortPtr, BOOL);
 extern _X_EXPORT int XvdiSetPortAttribute(ClientPtr, XvPortPtr, Atom, INT32);
 extern _X_EXPORT int XvdiGetPortAttribute(ClientPtr, XvPortPtr, Atom, INT32 *);
 extern _X_EXPORT int XvdiStopVideo(ClientPtr, XvPortPtr, DrawablePtr);
-extern _X_EXPORT int XvdiPreemptVideo(ClientPtr, XvPortPtr, DrawablePtr);
 extern _X_EXPORT int XvdiMatchPort(XvPortPtr, DrawablePtr);
 extern _X_EXPORT int XvdiGrabPort(ClientPtr, XvPortPtr, Time, int *);
 extern _X_EXPORT int XvdiUngrabPort(ClientPtr, XvPortPtr, Time);
