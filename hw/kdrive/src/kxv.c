@@ -116,49 +116,6 @@ static unsigned long PortResource = 0;
 #define GET_KDXV_WINDOW(pWin) ((KdXVWindowPtr) \
     dixLookupPrivate(&(pWin)->devPrivates, KdXVWindowKey))
 
-static KdXVInitGenericAdaptorPtr *GenDrivers = NULL;
-static int NumGenDrivers = 0;
-
-int
-KdXVRegisterGenericAdaptorDriver(KdXVInitGenericAdaptorPtr InitFunc)
-{
-    KdXVInitGenericAdaptorPtr *newdrivers;
-
-/*   fprintf(stderr,"KdXVRegisterGenericAdaptorDriver\n"); */
-
-    newdrivers = realloc(GenDrivers, sizeof(KdXVInitGenericAdaptorPtr) *
-                         (1 + NumGenDrivers));
-    if (!newdrivers)
-        return 0;
-    GenDrivers = newdrivers;
-
-    GenDrivers[NumGenDrivers++] = InitFunc;
-
-    return 1;
-}
-
-int
-KdXVListGenericAdaptors(KdScreenInfo * screen, KdVideoAdaptorPtr ** adaptors)
-{
-    int i, j, n, num;
-    KdVideoAdaptorPtr *DrivAdap, *new;
-
-    num = 0;
-    *adaptors = NULL;
-    for (i = 0; i < NumGenDrivers; i++) {
-        n = GenDrivers[i] (screen, &DrivAdap);
-        if (0 == n)
-            continue;
-        new = realloc(*adaptors, sizeof(KdVideoAdaptorPtr) * (num + n));
-        if (NULL == new)
-            continue;
-        *adaptors = new;
-        for (j = 0; j < n; j++, num++)
-            (*adaptors)[num] = DrivAdap[j];
-    }
-    return num;
-}
-
 KdVideoAdaptorPtr
 KdXVAllocateVideoAdaptorRec(KdScreenInfo * screen)
 {

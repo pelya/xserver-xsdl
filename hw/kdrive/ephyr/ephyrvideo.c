@@ -612,8 +612,6 @@ ephyrXVPrivSetAdaptorsHooks(EphyrXVPriv * a_this)
 static Bool
 ephyrXVPrivRegisterAdaptors(EphyrXVPriv * a_this, ScreenPtr a_screen)
 {
-    KdScreenPriv(a_screen);
-    KdScreenInfo *screen = pScreenPriv->screen;
     Bool is_ok = FALSE;
     KdVideoAdaptorPtr *adaptors = NULL, *registered_adaptors = NULL;
     int num_registered_adaptors = 0, i = 0, num_adaptors = 0;
@@ -624,10 +622,8 @@ ephyrXVPrivRegisterAdaptors(EphyrXVPriv * a_this, ScreenPtr a_screen)
 
     if (!a_this->num_adaptors)
         goto out;
-    num_registered_adaptors =
-        KdXVListGenericAdaptors(screen, &registered_adaptors);
 
-    num_adaptors = num_registered_adaptors + a_this->num_adaptors;
+    num_adaptors = a_this->num_adaptors;
     adaptors = calloc(num_adaptors, sizeof(KdVideoAdaptorPtr));
     if (!adaptors) {
         EPHYR_LOG_ERROR("failed to allocate adaptors tab\n");

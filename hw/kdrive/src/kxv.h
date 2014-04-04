@@ -159,15 +159,6 @@ typedef struct {
 Bool
  KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr * Adaptors, int num);
 
-typedef int (*KdXVInitGenericAdaptorPtr) (KdScreenInfo * screen,
-                                          KdVideoAdaptorPtr ** Adaptors);
-
-int
- KdXVRegisterGenericAdaptorDriver(KdXVInitGenericAdaptorPtr InitFunc);
-
-int
- KdXVListGenericAdaptors(KdScreenInfo * screen, KdVideoAdaptorPtr ** Adaptors);
-
 void
 
 KdXVCopyPackedData(KdScreenInfo * screen, CARD8 *src, CARD8 *dst, int randr,
