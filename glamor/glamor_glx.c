@@ -36,6 +36,14 @@
 static void
 glamor_glx_make_current(struct glamor_context *glamor_ctx)
 {
+    /* There's only a single global dispatch table in Mesa.  EGL, GLX,
+     * and AIGLX's direct dispatch table manipulation don't talk to
+     * each other.  We need to set the context to NULL first to avoid
+     * GLX's no-op context change fast path when switching back to
+     * GLX.
+     */
+    glXMakeCurrent(glamor_ctx->display, None, None);
+
     glXMakeCurrent(glamor_ctx->display, glamor_ctx->drawable_xid,
                    glamor_ctx->ctx);
 }
