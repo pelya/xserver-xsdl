@@ -54,10 +54,6 @@
 
 #include "xf86xvpriv.h"
 
-/* XvScreenRec fields */
-
-static Bool xf86XVCloseScreen(ScreenPtr);
-
 /* XvAdaptorRec fields */
 
 static int xf86XVAllocatePort(unsigned long, XvPortPtr, XvPortPtr *);
@@ -94,6 +90,7 @@ static void xf86XVWindowExposures(WindowPtr pWin, RegionPtr r1, RegionPtr r2);
 static void xf86XVPostValidateTree(WindowPtr pWin, WindowPtr pLayerWin,
                                    VTKind kind);
 static void xf86XVClipNotify(WindowPtr pWin, int dx, int dy);
+static Bool xf86XVCloseScreen(ScreenPtr);
 
 #define PostValidateTreeUndefined ((PostValidateTreeProcPtr)-1)
 
@@ -234,7 +231,6 @@ xf86XVScreenInit(ScreenPtr pScreen, XF86VideoAdaptorPtr * adaptors, int num)
 {
     ScrnInfoPtr pScrn;
     XF86XVScreenPtr ScreenPriv;
-    XvScreenPtr pxvs;
 
     if (num <= 0 || noXvExtension)
         return FALSE;
@@ -251,13 +247,6 @@ xf86XVScreenInit(ScreenPtr pScreen, XF86VideoAdaptorPtr * adaptors, int num)
 
     PortResource = XvGetRTPort();
 
-    pxvs = GET_XV_SCREEN(pScreen);
-
-    /* Anyone initializing the Xv layer must provide this.
-       The Xv di layer calls it without even checking if it exists! */
-
-    pxvs->ddCloseScreen = xf86XVCloseScreen;
-
     ScreenPriv = malloc(sizeof(XF86XVScreenRec));
     dixSetPrivate(&pScreen->devPrivates, &XF86XVScreenPrivateKey, ScreenPriv);
 
@@ -270,6 +259,7 @@ xf86XVScreenInit(ScreenPtr pScreen, XF86VideoAdaptorPtr * adaptors, int num)
     ScreenPriv->WindowExposures = pScreen->WindowExposures;
     ScreenPriv->PostValidateTree = PostValidateTreeUndefined;
     ScreenPriv->ClipNotify = pScreen->ClipNotify;
+    ScreenPriv->CloseScreen = pScreen->CloseScreen;
     ScreenPriv->EnterVT = pScrn->EnterVT;
     ScreenPriv->LeaveVT = pScrn->LeaveVT;
     ScreenPriv->AdjustFrame = pScrn->AdjustFrame;
@@ -278,6 +268,7 @@ xf86XVScreenInit(ScreenPtr pScreen, XF86VideoAdaptorPtr * adaptors, int num)
     pScreen->DestroyWindow = xf86XVDestroyWindow;
     pScreen->WindowExposures = xf86XVWindowExposures;
     pScreen->ClipNotify = xf86XVClipNotify;
+    pScreen->CloseScreen = xf86XVCloseScreen;
     pScrn->EnterVT = xf86XVEnterVT;
     pScrn->LeaveVT = xf86XVLeaveVT;
     if (pScrn->AdjustFrame)
@@ -1168,6 +1159,7 @@ xf86XVCloseScreen(ScreenPtr pScreen)
     pScreen->DestroyWindow = ScreenPriv->DestroyWindow;
     pScreen->WindowExposures = ScreenPriv->WindowExposures;
     pScreen->ClipNotify = ScreenPriv->ClipNotify;
+    pScreen->CloseScreen = ScreenPriv->CloseScreen;
 
     pScrn->EnterVT = ScreenPriv->EnterVT;
     pScrn->LeaveVT = ScreenPriv->LeaveVT;
@@ -1180,7 +1172,8 @@ xf86XVCloseScreen(ScreenPtr pScreen)
 
     free(pxvs->pAdaptors);
     free(ScreenPriv);
-    return TRUE;
+
+    return pScreen->CloseScreen(pScreen);
 }
 
 /**** ScrnInfoRec fields ****/

@@ -56,10 +56,6 @@ of the copyright holder.
 #include "kxv.h"
 #include "fourcc.h"
 
-/* XvScreenRec fields */
-
-static Bool KdXVCloseScreen(ScreenPtr);
-
 /* XvAdaptorRec fields */
 
 static int KdXVAllocatePort(unsigned long, XvPortPtr, XvPortPtr *);
@@ -95,6 +91,7 @@ static Bool KdXVCreateWindow(WindowPtr pWin);
 static Bool KdXVDestroyWindow(WindowPtr pWin);
 static void KdXVWindowExposures(WindowPtr pWin, RegionPtr r1, RegionPtr r2);
 static void KdXVClipNotify(WindowPtr pWin, int dx, int dy);
+static Bool KdXVCloseScreen(ScreenPtr);
 
 /* misc */
 static Bool KdXVInitAdaptors(ScreenPtr, KdVideoAdaptorPtr, int);
@@ -132,7 +129,6 @@ Bool
 KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
 {
     KdXVScreenPtr ScreenPriv;
-    XvScreenPtr pxvs;
 
 /*   fprintf(stderr,"KdXVScreenInit initializing %d adaptors\n",num); */
 
@@ -153,13 +149,6 @@ KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
     KdXvScreenKey = XvGetScreenKey();
     PortResource = XvGetRTPort();
 
-    pxvs = GET_XV_SCREEN(pScreen);
-
-    /* Anyone initializing the Xv layer must provide this.
-       The Xv di layer calls it without even checking if it exists! */
-
-    pxvs->ddCloseScreen = KdXVCloseScreen;
-
     ScreenPriv = malloc(sizeof(KdXVScreenRec));
     dixSetPrivate(&pScreen->devPrivates, &KdXVScreenPrivateKey, ScreenPriv);
 
@@ -170,6 +159,7 @@ KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
     ScreenPriv->DestroyWindow = pScreen->DestroyWindow;
     ScreenPriv->WindowExposures = pScreen->WindowExposures;
     ScreenPriv->ClipNotify = pScreen->ClipNotify;
+    ScreenPriv->CloseScreen = pScreen->CloseScreen;
 
 /*   fprintf(stderr,"XV: Wrapping screen funcs\n"); */
 
@@ -177,6 +167,7 @@ KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
     pScreen->DestroyWindow = KdXVDestroyWindow;
     pScreen->WindowExposures = KdXVWindowExposures;
     pScreen->ClipNotify = KdXVClipNotify;
+    pScreen->CloseScreen = KdXVCloseScreen;
 
     if (!KdXVInitAdaptors(pScreen, adaptors, num))
         return FALSE;
@@ -990,6 +981,7 @@ KdXVCloseScreen(ScreenPtr pScreen)
     pScreen->DestroyWindow = ScreenPriv->DestroyWindow;
     pScreen->WindowExposures = ScreenPriv->WindowExposures;
     pScreen->ClipNotify = ScreenPriv->ClipNotify;
+    pScreen->CloseScreen = ScreenPriv->CloseScreen;
 
 /*   fprintf(stderr,"XV: Unwrapping screen funcs\n"); */
 
@@ -1000,7 +992,7 @@ KdXVCloseScreen(ScreenPtr pScreen)
     free(pxvs->pAdaptors);
     free(ScreenPriv);
 
-    return TRUE;
+    return pScreen->CloseScreen(pScreen);
 }
 
 static Bool

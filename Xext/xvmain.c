@@ -302,8 +302,6 @@ XvCloseScreen(ScreenPtr pScreen)
     pScreen->DestroyWindow = pxvs->DestroyWindow;
     pScreen->CloseScreen = pxvs->CloseScreen;
 
-    (*pxvs->ddCloseScreen) (pScreen);
-
     free(pxvs);
 
     dixSetPrivate(&pScreen->devPrivates, XvScreenKey, NULL);
