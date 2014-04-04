@@ -4,6 +4,7 @@ input
 list
 misc
 os
+sdksyms.c
 string
 touch
 xfree86
