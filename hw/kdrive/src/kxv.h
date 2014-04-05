@@ -170,9 +170,6 @@ KdXVCopyPlanarData(KdScreenInfo * screen, CARD8 *src, CARD8 *dst, int randr,
                    int srcH, int height, int top, int left, int h, int w,
                    int id);
 
-void
- KXVPaintRegion(DrawablePtr pDraw, RegionPtr pRgn, Pixel fg);
-
 KdVideoAdaptorPtr KdXVAllocateVideoAdaptorRec(KdScreenInfo * screen);
 
 void KdXVFreeVideoAdaptorRec(KdVideoAdaptorPtr ptr);
