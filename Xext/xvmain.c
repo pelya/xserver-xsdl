@@ -1082,3 +1082,34 @@ XvFreeAdaptor(XvAdaptorPtr pAdaptor)
     free(pAdaptor->devPriv.ptr);
     pAdaptor->devPriv.ptr = NULL;
 }
+
+void
+XvFillColorKey(DrawablePtr pDraw, CARD32 key, RegionPtr region)
+{
+    ScreenPtr pScreen = pDraw->pScreen;
+    ChangeGCVal pval[2];
+    BoxPtr pbox = RegionRects(region);
+    int i, nbox = RegionNumRects(region);
+    xRectangle *rects;
+    GCPtr gc;
+
+    gc = GetScratchGC(pDraw->depth, pScreen);
+    pval[0].val = key;
+    pval[1].val = IncludeInferiors;
+    (void) ChangeGC(NullClient, gc, GCForeground | GCSubwindowMode, pval);
+    ValidateGC(pDraw, gc);
+
+    rects = malloc(nbox * sizeof(xRectangle));
+
+    for (i = 0; i < nbox; i++, pbox++) {
+        rects[i].x = pbox->x1 - pDraw->x;
+        rects[i].y = pbox->y1 - pDraw->y;
+        rects[i].width = pbox->x2 - pbox->x1;
+        rects[i].height = pbox->y2 - pbox->y1;
+    }
+
+    (*gc->ops->PolyFillRect) (pDraw, gc, nbox, rects);
+
+    free(rects);
+    FreeScratchGC(gc);
+}
