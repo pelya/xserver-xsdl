@@ -87,7 +87,6 @@ static int KdXVQueryImageAttributes(ClientPtr, XvPortPtr, XvImagePtr,
 
 /* ScreenRec fields */
 
-static Bool KdXVCreateWindow(WindowPtr pWin);
 static Bool KdXVDestroyWindow(WindowPtr pWin);
 static void KdXVWindowExposures(WindowPtr pWin, RegionPtr r1, RegionPtr r2);
 static void KdXVClipNotify(WindowPtr pWin, int dx, int dy);
@@ -155,7 +154,6 @@ KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
     if (!ScreenPriv)
         return FALSE;
 
-    ScreenPriv->CreateWindow = pScreen->CreateWindow;
     ScreenPriv->DestroyWindow = pScreen->DestroyWindow;
     ScreenPriv->WindowExposures = pScreen->WindowExposures;
     ScreenPriv->ClipNotify = pScreen->ClipNotify;
@@ -163,7 +161,6 @@ KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
 
 /*   fprintf(stderr,"XV: Wrapping screen funcs\n"); */
 
-    pScreen->CreateWindow = KdXVCreateWindow;
     pScreen->DestroyWindow = KdXVDestroyWindow;
     pScreen->WindowExposures = KdXVWindowExposures;
     pScreen->ClipNotify = KdXVClipNotify;
@@ -797,23 +794,6 @@ KdXVRemovePortFromWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
 /****  ScreenRec fields ****/
 
 static Bool
-KdXVCreateWindow(WindowPtr pWin)
-{
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    KdXVScreenPtr ScreenPriv = GET_KDXV_SCREEN(pScreen);
-    int ret;
-
-    pScreen->CreateWindow = ScreenPriv->CreateWindow;
-    ret = (*pScreen->CreateWindow) (pWin);
-    pScreen->CreateWindow = KdXVCreateWindow;
-
-    if (ret)
-        dixSetPrivate(&pWin->devPrivates, KdXVWindowKey, NULL);
-
-    return ret;
-}
-
-static Bool
 KdXVDestroyWindow(WindowPtr pWin)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -977,7 +957,6 @@ KdXVCloseScreen(ScreenPtr pScreen)
     if (!ScreenPriv)
         return TRUE;
 
-    pScreen->CreateWindow = ScreenPriv->CreateWindow;
     pScreen->DestroyWindow = ScreenPriv->DestroyWindow;
     pScreen->WindowExposures = ScreenPriv->WindowExposures;
     pScreen->ClipNotify = ScreenPriv->ClipNotify;

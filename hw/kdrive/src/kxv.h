@@ -181,7 +181,6 @@ void KdXVDisable(ScreenPtr);
 /*** These are DDX layer privates ***/
 
 typedef struct {
-    CreateWindowProcPtr CreateWindow;
     DestroyWindowProcPtr DestroyWindow;
     ClipNotifyProcPtr ClipNotify;
     WindowExposuresProcPtr WindowExposures;
