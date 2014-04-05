@@ -426,7 +426,7 @@ XvDestroyWindow(WindowPtr pWin)
 static int
 XvdiDestroyPort(void *pPort, XID id)
 {
-    return (*((XvPortPtr) pPort)->pAdaptor->ddFreePort) (pPort);
+    return Success;
 }
 
 static int

@@ -157,9 +157,6 @@ typedef struct {
     int nPorts;
     struct _XvPortRec *pPorts;
     ScreenPtr pScreen;
-    int (*ddAllocatePort) (unsigned long, struct _XvPortRec *,
-                           struct _XvPortRec **);
-    int (*ddFreePort) (struct _XvPortRec *);
     int (*ddPutVideo) (ClientPtr, DrawablePtr, struct _XvPortRec *, GCPtr,
                        INT16, INT16, CARD16, CARD16,
                        INT16, INT16, CARD16, CARD16);

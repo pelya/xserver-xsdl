@@ -58,8 +58,6 @@ of the copyright holder.
 
 /* XvAdaptorRec fields */
 
-static int KdXVAllocatePort(unsigned long, XvPortPtr, XvPortPtr *);
-static int KdXVFreePort(XvPortPtr);
 static int KdXVPutVideo(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
                         INT16, INT16, CARD16, CARD16,
                         INT16, INT16, CARD16, CARD16);
@@ -260,8 +258,6 @@ KdXVInitAdaptors(ScreenPtr pScreen, KdVideoAdaptorPtr infoPtr, int number)
             continue;
 
         pa->pScreen = pScreen;
-        pa->ddAllocatePort = KdXVAllocatePort;
-        pa->ddFreePort = KdXVFreePort;
         pa->ddPutVideo = KdXVPutVideo;
         pa->ddPutStill = KdXVPutStill;
         pa->ddGetVideo = KdXVGetVideo;
@@ -1030,19 +1026,6 @@ KdXVDisable(ScreenPtr pScreen)
 }
 
 /**** XvAdaptorRec fields ****/
-
-static int
-KdXVAllocatePort(unsigned long port, XvPortPtr pPort, XvPortPtr * ppPort)
-{
-    *ppPort = pPort;
-    return Success;
-}
-
-static int
-KdXVFreePort(XvPortPtr pPort)
-{
-    return Success;
-}
 
 static int
 KdXVPutVideo(ClientPtr client,

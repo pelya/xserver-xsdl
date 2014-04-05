@@ -56,8 +56,6 @@
 
 /* XvAdaptorRec fields */
 
-static int xf86XVAllocatePort(unsigned long, XvPortPtr, XvPortPtr *);
-static int xf86XVFreePort(XvPortPtr);
 static int xf86XVPutVideo(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
                           INT16, INT16, CARD16, CARD16,
                           INT16, INT16, CARD16, CARD16);
@@ -369,8 +367,6 @@ xf86XVInitAdaptors(ScreenPtr pScreen, XF86VideoAdaptorPtr * infoPtr, int number)
             continue;
 
         pa->pScreen = pScreen;
-        pa->ddAllocatePort = xf86XVAllocatePort;
-        pa->ddFreePort = xf86XVFreePort;
         pa->ddPutVideo = xf86XVPutVideo;
         pa->ddPutStill = xf86XVPutStill;
         pa->ddGetVideo = xf86XVGetVideo;
@@ -1273,19 +1269,6 @@ xf86XVModeSet(ScrnInfoPtr pScrn)
 }
 
 /**** XvAdaptorRec fields ****/
-
-static int
-xf86XVAllocatePort(unsigned long port, XvPortPtr pPort, XvPortPtr * ppPort)
-{
-    *ppPort = pPort;
-    return Success;
-}
-
-static int
-xf86XVFreePort(XvPortPtr pPort)
-{
-    return Success;
-}
 
 static int
 xf86XVPutVideo(ClientPtr client,
