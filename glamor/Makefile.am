@@ -46,6 +46,7 @@ libglamor_la_SOURCES = \
 	glamor_compositerects.c\
 	glamor_utils.c\
 	glamor_utils.h\
+	glamor_xv.c \
 	glamor.h
 
 libglamor_egl_stubs_la_SOURCES = glamor_egl_stubs.c

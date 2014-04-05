@@ -31,6 +31,7 @@
 
 #include <xorg-server.h>
 #include "glamor.h"
+#include "xvdix.h"
 
 #include <epoxy/gl.h>
 #if GLAMOR_HAS_GBM
@@ -1053,8 +1054,22 @@ typedef struct {
     int src_pix_w, src_pix_h;
 } glamor_port_private;
 
-void glamor_init_xv_shader(ScreenPtr screen);
-void glamor_fini_xv_shader(ScreenPtr screen);
+extern XvAttributeRec glamor_xv_attributes[];
+extern int glamor_xv_num_attributes;
+extern XvImageRec glamor_xv_images[];
+extern int glamor_xv_num_images;
+
+void glamor_xv_init_port(glamor_port_private *port_priv);
+void glamor_xv_stop_video(glamor_port_private *port_priv);
+int glamor_xv_set_port_attribute(glamor_port_private *port_priv,
+                                 Atom attribute, INT32 value);
+int glamor_xv_get_port_attribute(glamor_port_private *port_priv,
+                                 Atom attribute, INT32 *value);
+int glamor_xv_query_image_attributes(int id,
+                                     unsigned short *w, unsigned short *h,
+                                     int *pitches, int *offsets);
+void glamor_xv_core_init(ScreenPtr screen);
+void glamor_xv_render(glamor_port_private *port_priv);
 
 #include"glamor_utils.h"
 
