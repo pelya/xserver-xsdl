@@ -613,8 +613,6 @@ static Bool
 ephyrXVPrivRegisterAdaptors(EphyrXVPriv * a_this, ScreenPtr a_screen)
 {
     Bool is_ok = FALSE;
-    KdVideoAdaptorPtr *adaptors = NULL, *registered_adaptors = NULL;
-    int num_registered_adaptors = 0, i = 0, num_adaptors = 0;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_this && a_screen, FALSE);
 
@@ -623,28 +621,14 @@ ephyrXVPrivRegisterAdaptors(EphyrXVPriv * a_this, ScreenPtr a_screen)
     if (!a_this->num_adaptors)
         goto out;
 
-    num_adaptors = a_this->num_adaptors;
-    adaptors = calloc(num_adaptors, sizeof(KdVideoAdaptorPtr));
-    if (!adaptors) {
-        EPHYR_LOG_ERROR("failed to allocate adaptors tab\n");
-        goto out;
-    }
-    memmove(adaptors, registered_adaptors, num_registered_adaptors);
-    for (i = 0; i < a_this->num_adaptors; i++) {
-        *(adaptors + num_registered_adaptors + i) = &a_this->adaptors[i];
-    }
-    if (!KdXVScreenInit(a_screen, adaptors, num_adaptors)) {
+    if (!KdXVScreenInit(a_screen, a_this->adaptors, a_this->num_adaptors)) {
         EPHYR_LOG_ERROR("failed to register adaptors\n");
         goto out;
     }
-    EPHYR_LOG("there are  %d registered adaptors\n", num_adaptors);
+    EPHYR_LOG("there are  %d registered adaptors\n", a_this->num_adaptors);
     is_ok = TRUE;
 
  out:
-    free(registered_adaptors);
-    registered_adaptors = NULL;
-    free(adaptors);
-    adaptors = NULL;
 
     EPHYR_LOG("leave\n");
     return is_ok;

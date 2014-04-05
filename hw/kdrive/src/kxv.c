@@ -98,7 +98,7 @@ static void KdXVWindowExposures(WindowPtr pWin, RegionPtr r1, RegionPtr r2);
 static void KdXVClipNotify(WindowPtr pWin, int dx, int dy);
 
 /* misc */
-static Bool KdXVInitAdaptors(ScreenPtr, KdVideoAdaptorPtr *, int);
+static Bool KdXVInitAdaptors(ScreenPtr, KdVideoAdaptorPtr, int);
 
 static DevPrivateKeyRec KdXVWindowKeyRec;
 
@@ -129,7 +129,7 @@ KdXVFreeVideoAdaptorRec(KdVideoAdaptorPtr ptr)
 }
 
 Bool
-KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr * adaptors, int num)
+KdXVScreenInit(ScreenPtr pScreen, KdVideoAdaptorPtr adaptors, int num)
 {
     KdXVScreenPtr ScreenPriv;
     XvScreenPtr pxvs;
@@ -239,7 +239,7 @@ KdXVFreeAdaptor(XvAdaptorPtr pAdaptor)
 }
 
 static Bool
-KdXVInitAdaptors(ScreenPtr pScreen, KdVideoAdaptorPtr * infoPtr, int number)
+KdXVInitAdaptors(ScreenPtr pScreen, KdVideoAdaptorPtr infoPtr, int number)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo *screen = pScreenPriv->screen;
@@ -268,7 +268,7 @@ KdXVInitAdaptors(ScreenPtr pScreen, KdVideoAdaptorPtr * infoPtr, int number)
         return FALSE;
 
     for (pa = pAdaptor, na = 0, numAdaptor = 0; na < number; na++, adaptorPtr++) {
-        adaptorPtr = infoPtr[na];
+        adaptorPtr = &infoPtr[na];
 
         if (!adaptorPtr->StopVideo || !adaptorPtr->SetPortAttribute ||
             !adaptorPtr->GetPortAttribute || !adaptorPtr->QueryBestSize)
