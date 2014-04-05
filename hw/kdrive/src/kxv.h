@@ -119,7 +119,7 @@ typedef enum {
 
 typedef struct {
     int id;
-    char *name;
+    const char *name;
     unsigned short width, height;
     XvRationalRec rate;
 } KdVideoEncodingRec, *KdVideoEncodingPtr;
@@ -132,7 +132,7 @@ typedef struct {
 typedef struct {
     unsigned int type;
     int flags;
-    char *name;
+    const char *name;
     int nEncodings;
     KdVideoEncodingPtr pEncodings;
     int nFormats;
