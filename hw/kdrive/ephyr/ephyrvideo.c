@@ -69,7 +69,7 @@ static Bool ephyrXVPrivSetAdaptorsHooks(EphyrXVPriv * a_this);
 static Bool ephyrXVPrivRegisterAdaptors(EphyrXVPriv * a_this,
                                         ScreenPtr a_screen);
 
-static Bool ephyrXVPrivIsAttrValueValid(KdAttributePtr a_attrs,
+static Bool ephyrXVPrivIsAttrValueValid(XvAttributePtr a_attrs,
                                         int a_attrs_len,
                                         const char *a_attr_name,
                                         int a_attr_value, Bool *a_is_valid);
@@ -363,7 +363,7 @@ translate_xv_attributes(KdVideoAdaptorPtr adaptor,
 
     it = xcb_xv_query_port_attributes_attributes_iterator(reply);
     for (i = 0; i < reply->num_attributes; i++) {
-        KdAttributePtr attribute = &adaptor->pAttributes[i];
+        XvAttributePtr attribute = &adaptor->pAttributes[i];
 
         attribute->flags = it.data->flags;
         attribute->min_value = it.data->min;
@@ -397,7 +397,7 @@ translate_xv_image_formats(KdVideoAdaptorPtr adaptor,
         return FALSE;
 
     adaptor->nImages = reply->num_formats;
-    adaptor->pImages = calloc(reply->num_formats, sizeof(KdImageRec));
+    adaptor->pImages = calloc(reply->num_formats, sizeof(XvImageRec));
     if (!adaptor->pImages) {
         free(reply);
         return FALSE;
@@ -405,7 +405,7 @@ translate_xv_image_formats(KdVideoAdaptorPtr adaptor,
 
     formats = xcb_xv_list_image_formats_format(reply);
     for (i = 0; i < reply->num_formats; i++) {
-        KdImagePtr image = &adaptor->pImages[i];
+        XvImagePtr image = &adaptor->pImages[i];
 
         image->id = formats[i].id;
         image->type = formats[i].type;
@@ -655,7 +655,7 @@ ephyrXVPrivRegisterAdaptors(EphyrXVPriv * a_this, ScreenPtr a_screen)
 }
 
 static Bool
-ephyrXVPrivIsAttrValueValid(KdAttributePtr a_attrs,
+ephyrXVPrivIsAttrValueValid(XvAttributePtr a_attrs,
                             int a_attrs_len,
                             const char *a_attr_name,
                             int a_attr_value, Bool *a_is_valid)

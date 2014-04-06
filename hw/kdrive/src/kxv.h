@@ -56,8 +56,6 @@ of the copyright holder.
 #define VIDEO_OVERLAID_STILLS			0x00000008
 #define VIDEO_CLIP_TO_VIEWPORT			0x00000010
 
-typedef XvImageRec KdImageRec, *KdImagePtr;
-
 typedef struct {
     KdScreenInfo *screen;
     int id;
@@ -131,8 +129,6 @@ typedef struct {
     short class;
 } KdVideoFormatRec, *KdVideoFormatPtr;
 
-typedef XvAttributeRec KdAttributeRec, *KdAttributePtr;
-
 typedef struct {
     unsigned int type;
     int flags;
@@ -144,9 +140,9 @@ typedef struct {
     int nPorts;
     DevUnion *pPortPrivates;
     int nAttributes;
-    KdAttributePtr pAttributes;
+    XvAttributePtr pAttributes;
     int nImages;
-    KdImagePtr pImages;
+    XvImagePtr pImages;
     PutVideoFuncPtr PutVideo;
     PutStillFuncPtr PutStill;
     GetVideoFuncPtr GetVideo;

@@ -295,15 +295,11 @@ KdXVInitAdaptors(ScreenPtr pScreen, KdVideoAdaptorPtr * infoPtr, int number)
     XvPortRecPrivatePtr portPriv;
     XvPortPtr pPort, pp;
     int numPort;
-    KdAttributePtr attributePtr;
-    XvAttributePtr pAttribute, pat;
     KdVideoFormatPtr formatPtr;
     XvFormatPtr pFormat, pf;
     int numFormat, totFormat;
     KdVideoEncodingPtr encodingPtr;
     XvEncodingPtr pEncode, pe;
-    KdImagePtr imagePtr;
-    XvImagePtr pImage, pi;
     int numVisuals;
     VisualPtr pVisual;
     int i;
@@ -381,26 +377,24 @@ KdXVInitAdaptors(ScreenPtr pScreen, KdVideoAdaptorPtr * infoPtr, int number)
         }
 
         if (adaptorPtr->nImages &&
-            (pImage = calloc(adaptorPtr->nImages, sizeof(XvImageRec)))) {
-
-            for (i = 0, pi = pImage, imagePtr = adaptorPtr->pImages;
-                 i < adaptorPtr->nImages; i++, pi++, imagePtr++) {
-                memcpy(pi, imagePtr, sizeof(*pi));
-            }
+            (pa->pImages = calloc(adaptorPtr->nImages, sizeof(XvImageRec)))) {
+            memcpy(pa->pImages, adaptorPtr->pImages,
+                   adaptorPtr->nImages * sizeof(XvImageRec));
             pa->nImages = adaptorPtr->nImages;
-            pa->pImages = pImage;
         }
 
         if (adaptorPtr->nAttributes &&
-            (pAttribute =
-             calloc(adaptorPtr->nAttributes, sizeof(XvAttributeRec)))) {
-            for (pat = pAttribute, attributePtr = adaptorPtr->pAttributes, i =
-                 0; i < adaptorPtr->nAttributes; pat++, i++, attributePtr++) {
-                memcpy(pat, attributePtr, sizeof(*pat));
-                pat->name = strdup(attributePtr->name);
+            (pa->pAttributes = calloc(adaptorPtr->nAttributes,
+                                      sizeof(XvAttributeRec)))) {
+            memcpy(pa->pAttributes, adaptorPtr->pAttributes,
+                   adaptorPtr->nAttributes * sizeof(XvAttributeRec));
+
+            for (i = 0; i < adaptorPtr->nAttributes; i++) {
+                pa->pAttributes[i].name =
+                    strdup(adaptorPtr->pAttributes[i].name);
             }
+
             pa->nAttributes = adaptorPtr->nAttributes;
-            pa->pAttributes = pAttribute;
         }
 
         totFormat = adaptorPtr->nFormats;
