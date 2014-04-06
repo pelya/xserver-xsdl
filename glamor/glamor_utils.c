@@ -56,21 +56,18 @@ glamor_solid_boxes(PixmapPtr pixmap,
 
 void
 glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
-             unsigned char alu, unsigned long planemask,
              unsigned long fg_pixel)
 {
     DrawablePtr drawable = &pixmap->drawable;
     GCPtr gc;
-    ChangeGCVal vals[3];
+    ChangeGCVal vals[1];
     xRectangle rect;
 
-    vals[0].val = alu;
-    vals[1].val = planemask;
-    vals[2].val = fg_pixel;
+    vals[0].val = fg_pixel;
     gc = GetScratchGC(drawable->depth, drawable->pScreen);
     if (!gc)
         return;
-    ChangeGC(NullClient, gc, GCFunction|GCPlaneMask|GCForeground, vals);
+    ChangeGC(NullClient, gc, GCForeground, vals);
     ValidateGC(drawable, gc);
     rect.x = x;
     rect.y = y;

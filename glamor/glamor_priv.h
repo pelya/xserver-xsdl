@@ -1025,7 +1025,6 @@ void glamor_composite_rectangles(CARD8 op,
 /* glamor_util.c */
 void
 glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
-             unsigned char alu, unsigned long planemask,
              unsigned long fg_pixel);
 
 void
