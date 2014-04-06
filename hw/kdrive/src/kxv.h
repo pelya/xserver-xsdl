@@ -54,15 +54,6 @@ of the copyright holder.
 #define VIDEO_OVERLAID_STILLS			0x00000008
 #define VIDEO_CLIP_TO_VIEWPORT			0x00000010
 
-typedef struct {
-    KdScreenInfo *screen;
-    int id;
-    unsigned short width, height;
-    int *pitches;               /* bytes */
-    int *offsets;               /* in bytes from start of framebuffer */
-    DevUnion devPrivate;
-} KdSurfaceRec, *KdSurfacePtr;
-
 typedef int (*PutVideoFuncPtr) (KdScreenInfo * screen, DrawablePtr pDraw,
                                 short vid_x, short vid_y, short drw_x,
                                 short drw_y, short vid_w, short vid_h,
