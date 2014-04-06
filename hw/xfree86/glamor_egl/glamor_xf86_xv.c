@@ -106,114 +106,12 @@ glamor_xf86_xv_put_image(ScrnInfoPtr pScrn,
                     Bool sync,
                     RegionPtr clipBoxes, void *data, DrawablePtr pDrawable)
 {
-    ScreenPtr screen = pDrawable->pScreen;
-    glamor_port_private *port_priv = (glamor_port_private *) data;
-    INT32 x1, x2, y1, y2;
-    int srcPitch, srcPitch2;
-    BoxRec dstBox;
-    int top, nlines;
-    int s2offset, s3offset, tmp;
-
-    s2offset = s3offset = srcPitch2 = 0;
-
-    /* Clip */
-    x1 = src_x;
-    x2 = src_x + src_w;
-    y1 = src_y;
-    y2 = src_y + src_h;
-
-    dstBox.x1 = drw_x;
-    dstBox.x2 = drw_x + drw_w;
-    dstBox.y1 = drw_y;
-    dstBox.y2 = drw_y + drw_h;
-    if (!xf86XVClipVideoHelper
-        (&dstBox, &x1, &x2, &y1, &y2, clipBoxes, width, height))
-        return Success;
-
-    if ((x1 >= x2) || (y1 >= y2))
-        return Success;
-
-    srcPitch = width;
-    srcPitch2 = width >> 1;
-
-    if (!port_priv->src_pix[0] ||
-        (width != port_priv->src_pix_w || height != port_priv->src_pix_h)) {
-        int i;
-
-        for (i = 0; i < 3; i++)
-            if (port_priv->src_pix[i])
-                glamor_destroy_pixmap(port_priv->src_pix[i]);
-
-        port_priv->src_pix[0] =
-            glamor_create_pixmap(screen, width, height, 8, 0);
-        port_priv->src_pix[1] =
-            glamor_create_pixmap(screen, width >> 1, height >> 1, 8, 0);
-        port_priv->src_pix[2] =
-            glamor_create_pixmap(screen, width >> 1, height >> 1, 8, 0);
-        port_priv->src_pix_w = width;
-        port_priv->src_pix_h = height;
-
-        if (!port_priv->src_pix[0] || !port_priv->src_pix[1] ||
-            !port_priv->src_pix[2])
-            return BadAlloc;
-    }
-
-    top = (y1 >> 16) & ~1;
-    nlines = ((y2 + 0xffff) >> 16) - top;
-
-    switch (id) {
-    case FOURCC_YV12:
-    case FOURCC_I420:
-        s2offset = srcPitch * height;
-        s3offset = s2offset + (srcPitch2 * ((height + 1) >> 1));
-        s2offset += ((top >> 1) * srcPitch2);
-        s3offset += ((top >> 1) * srcPitch2);
-        if (id == FOURCC_YV12) {
-            tmp = s2offset;
-            s2offset = s3offset;
-            s3offset = tmp;
-        }
-        glamor_upload_sub_pixmap_to_texture(port_priv->src_pix[0],
-                                            0, 0, srcPitch, nlines,
-                                            port_priv->src_pix[0]->devKind,
-                                            buf + (top * srcPitch), 0);
-
-        glamor_upload_sub_pixmap_to_texture(port_priv->src_pix[1],
-                                            0, 0, srcPitch2, (nlines + 1) >> 1,
-                                            port_priv->src_pix[1]->devKind,
-                                            buf + s2offset, 0);
-
-        glamor_upload_sub_pixmap_to_texture(port_priv->src_pix[2],
-                                            0, 0, srcPitch2, (nlines + 1) >> 1,
-                                            port_priv->src_pix[2]->devKind,
-                                            buf + s3offset, 0);
-        break;
-    default:
-        return BadMatch;
-    }
-
-    if (pDrawable->type == DRAWABLE_WINDOW)
-        port_priv->pPixmap = (*screen->GetWindowPixmap) ((WindowPtr) pDrawable);
-    else
-        port_priv->pPixmap = (PixmapPtr) pDrawable;
-
-    if (!RegionEqual(&port_priv->clip, clipBoxes)) {
-        RegionCopy(&port_priv->clip, clipBoxes);
-    }
-
-    port_priv->src_x = src_x;
-    port_priv->src_y = src_y;
-    port_priv->src_w = src_w;
-    port_priv->src_h = src_h;
-    port_priv->dst_w = drw_w;
-    port_priv->dst_h = drw_h;
-    port_priv->drw_x = drw_x;
-    port_priv->drw_y = drw_y;
-    port_priv->w = width;
-    port_priv->h = height;
-    port_priv->pDraw = pDrawable;
-    glamor_xv_render(port_priv);
-    return Success;
+    return glamor_xv_put_image(data, pDrawable,
+                               src_x, src_y,
+                               drw_x, drw_y,
+                               src_w, src_h,
+                               drw_w, drw_h,
+                               id, buf, width, height, sync, clipBoxes);
 }
 
 static XF86VideoEncodingRec DummyEncodingGLAMOR[1] = {

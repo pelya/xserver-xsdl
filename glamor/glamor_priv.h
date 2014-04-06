@@ -1068,6 +1068,18 @@ int glamor_xv_get_port_attribute(glamor_port_private *port_priv,
 int glamor_xv_query_image_attributes(int id,
                                      unsigned short *w, unsigned short *h,
                                      int *pitches, int *offsets);
+int glamor_xv_put_image(glamor_port_private *port_priv,
+                        DrawablePtr pDrawable,
+                        short src_x, short src_y,
+                        short drw_x, short drw_y,
+                        short src_w, short src_h,
+                        short drw_w, short drw_h,
+                        int id,
+                        unsigned char *buf,
+                        short width,
+                        short height,
+                        Bool sync,
+                        RegionPtr clipBoxes);
 void glamor_xv_core_init(ScreenPtr screen);
 void glamor_xv_render(glamor_port_private *port_priv);
 
