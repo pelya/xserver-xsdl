@@ -616,8 +616,10 @@ xwl_log_handler(const char *format, va_list args)
     FatalError("%s", msg);
 }
 
-static const ExtensionModule glx_extension[] = {
+static const ExtensionModule xwayland_extensions[] = {
+#ifdef GLXEXT
     { GlxExtensionInit, "GLX", &noGlxExtension },
+#endif
 };
 
 void
@@ -639,7 +641,8 @@ InitOutput(ScreenInfo * screen_info, int argc, char **argv)
     screen_info->bitmapBitOrder = BITMAP_BIT_ORDER;
     screen_info->numPixmapFormats = ARRAY_SIZE(depths);
 
-    LoadExtensionList(glx_extension, ARRAY_SIZE(glx_extension), FALSE);
+    LoadExtensionList(xwayland_extensions,
+                      ARRAY_SIZE(xwayland_extensions), FALSE);
 
     /* Cast away warning from missing printf annotation for
      * wl_log_func_t.  Wayland 1.5 will have the annotation, so we can
