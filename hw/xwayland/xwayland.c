@@ -573,8 +573,10 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
 
     fbPictureInit(pScreen, 0, 0);
 
+#ifdef HAVE_XSHMFENCE
     if (!miSyncShmScreenInit(pScreen))
         return FALSE;
+#endif
 
     xwl_screen->wayland_fd = wl_display_get_fd(xwl_screen->display);
     AddGeneralSocket(xwl_screen->wayland_fd);
