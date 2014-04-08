@@ -367,10 +367,11 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
     if (flag == GLAMOR_CREATE_PIXMAP_MAP)
         goto no_tex;
 
-    if (flag == GLAMOR_CREATE_PIXMAP_FIXUP)
-        cache_flag = GLAMOR_CACHE_EXACT_SIZE;
-    else
-        cache_flag = 0;
+    /* Tiling from textures requires exact pixmap sizes. As we don't
+     * know which pixmaps will be used as tiles, just allocate
+     * everything at the requested size
+     */
+    cache_flag = GLAMOR_CACHE_EXACT_SIZE;
 
     fbo = glamor_pixmap_fbo_cache_get(glamor_priv, w, h, format, cache_flag);
     if (fbo)
