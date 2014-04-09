@@ -115,55 +115,49 @@ __glXDRIdrawableDestroy(__GLXdrawable * drawable)
 }
 
 static void
-__glXDRIdrawableCopySubBuffer(__GLXdrawable * drawable,
-                              int x, int y, int w, int h)
+copy_box(__GLXdrawable * drawable,
+         int dst, int src,
+         int x, int y, int w, int h)
 {
-    __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
     BoxRec box;
     RegionRec region;
 
     box.x1 = x;
-    box.y1 = private->height - y - h;
+    box.y1 = y;
     box.x2 = x + w;
-    box.y2 = private->height - y;
+    box.y2 = y + h;
     RegionInit(&region, &box, 0);
 
-    DRI2CopyRegion(drawable->pDraw, &region,
-                   DRI2BufferFrontLeft, DRI2BufferBackLeft);
+    DRI2CopyRegion(drawable->pDraw, &region, dst, src);
+}
+
+static void
+__glXDRIdrawableCopySubBuffer(__GLXdrawable * drawable,
+                              int x, int y, int w, int h)
+{
+    __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
+
+    copy_box(drawable, x, private->height - y - h,
+             w, h,
+             DRI2BufferFrontLeft, DRI2BufferBackLeft);
 }
 
 static void
 __glXDRIdrawableWaitX(__GLXdrawable * drawable)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
-    BoxRec box;
-    RegionRec region;
 
-    box.x1 = 0;
-    box.y1 = 0;
-    box.x2 = private->width;
-    box.y2 = private->height;
-    RegionInit(&region, &box, 0);
-
-    DRI2CopyRegion(drawable->pDraw, &region,
-                   DRI2BufferFakeFrontLeft, DRI2BufferFrontLeft);
+    copy_box(drawable, DRI2BufferFakeFrontLeft, DRI2BufferFrontLeft,
+             0, 0, private->width, private->height);
 }
 
 static void
 __glXDRIdrawableWaitGL(__GLXdrawable * drawable)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
-    BoxRec box;
-    RegionRec region;
 
-    box.x1 = 0;
-    box.y1 = 0;
-    box.x2 = private->width;
-    box.y2 = private->height;
-    RegionInit(&region, &box, 0);
-
-    DRI2CopyRegion(drawable->pDraw, &region,
-                   DRI2BufferFrontLeft, DRI2BufferFakeFrontLeft);
+    copy_box(drawable, DRI2BufferFrontLeft, DRI2BufferFakeFrontLeft,
+             0, 0, private->width, private->height);
 }
 
 static void
