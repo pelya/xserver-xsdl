@@ -35,6 +35,9 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#include <sys/consio.h>
+#endif
 #include <unistd.h>
 #include <drm.h>
 #include <xf86drm.h> /* For DRM_DEV_NAME */
@@ -150,10 +153,37 @@ static void parse_config(int *allowed, int *needs_root_rights)
     fclose(f);
 }
 
+static int on_console(int fd)
+{
+#if defined(__linux__)
+    struct stat st;
+    int r;
+
+    r = fstat(fd, &st);
+    if (r == 0 && S_ISCHR(st.st_mode) && major(st.st_rdev) == 4)
+      return 1;
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+    int idx;
+
+    if (ioctl(fd, VT_GETINDEX, &idx) != -1)
+        return 1;
+#else
+#warning This program needs porting to your kernel.
+    static int seen;
+
+    if (!seen) {
+        fprintf(stderr, "%s: Unable to determine if running on a console\n",
+            progname);
+        seen = 1;
+    }
+#endif
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     struct drm_mode_card_res res;
-    struct stat st;
     char buf[PATH_MAX];
     int i, r, fd;
     int kms_cards = 0;
@@ -176,8 +206,7 @@ int main(int argc, char *argv[])
         case CONSOLE_ONLY:
             /* Some of stdin / stdout / stderr maybe redirected to a file */
             for (i = STDIN_FILENO; i <= STDERR_FILENO; i++) {
-                r = fstat(i, &st);
-                if (r == 0 && S_ISCHR(st.st_mode) && major(st.st_rdev) == 4)
+                if (on_console(i))
                     break;
             }
             if (i > STDERR_FILENO) {
