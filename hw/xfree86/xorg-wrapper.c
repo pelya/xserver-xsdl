@@ -35,7 +35,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <drm/drm.h>
+#include <drm.h>
 #include <xf86drm.h> /* For DRM_DEV_NAME */
 
 #define CONFIG_FILE SYSCONFDIR "/X11/Xwrapper.config"
