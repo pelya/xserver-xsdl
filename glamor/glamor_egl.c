@@ -166,10 +166,14 @@ glamor_get_flink_name(int fd, int handle, int *name)
 }
 
 static Bool
-glamor_create_texture_from_image(struct glamor_egl_screen_private
-                                 *glamor_egl,
+glamor_create_texture_from_image(ScreenPtr screen,
                                  EGLImageKHR image, GLuint * texture)
 {
+    struct glamor_screen_private *glamor_priv =
+        glamor_get_screen_private(screen);
+
+    glamor_get_context(glamor_priv);
+
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -177,6 +181,9 @@ glamor_create_texture_from_image(struct glamor_egl_screen_private
 
     glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, image);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    glamor_put_context(glamor_priv);
+
     return TRUE;
 }
 
@@ -211,7 +218,7 @@ glamor_egl_create_argb8888_based_texture(ScreenPtr screen, int w, int h)
     gbm_bo_destroy(bo);
     if (image == EGL_NO_IMAGE_KHR)
         return 0;
-    glamor_create_texture_from_image(glamor_egl, image, &texture);
+    glamor_create_texture_from_image(screen, image, &texture);
     eglDestroyImageKHR(glamor_egl->display, image);
 
     return texture;
@@ -312,7 +319,7 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
         glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
         goto done;
     }
-    glamor_create_texture_from_image(glamor_egl, image, &texture);
+    glamor_create_texture_from_image(screen, image, &texture);
     glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
     glamor_set_pixmap_texture(pixmap, texture);
     pixmap_priv->base.image = image;
@@ -348,7 +355,7 @@ glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap, void *bo)
         glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
         goto done;
     }
-    glamor_create_texture_from_image(glamor_egl, image, &texture);
+    glamor_create_texture_from_image(screen, image, &texture);
     glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
     glamor_set_pixmap_texture(pixmap, texture);
     pixmap_priv->base.image = image;
