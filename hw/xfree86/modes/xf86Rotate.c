@@ -234,8 +234,14 @@ xf86RotateBlockHandler(ScreenPtr pScreen,
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
 
-    xf86RotateRedisplay(pScreen);
+    /* Unwrap before redisplay in case the software
+     * cursor layer wants to add its block handler to the
+     * chain
+     */
     pScreen->BlockHandler = xf86_config->BlockHandler;
+
+    xf86RotateRedisplay(pScreen);
+
     (*pScreen->BlockHandler) (pScreen, pTimeout, pReadmask);
     /* cannot avoid re-wrapping until all wrapping is audited */
     xf86_config->BlockHandler = pScreen->BlockHandler;
