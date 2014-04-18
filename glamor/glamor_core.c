@@ -127,7 +127,7 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
          */
         assert(!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv) ||
                access == GLAMOR_ACCESS_RO ||
-               pixmap_priv->base.mapped_for_write);
+               pixmap_priv->base.map_access == GLAMOR_ACCESS_RW);
         return TRUE;
     }
     pixmap_priv->base.map_access = access;
