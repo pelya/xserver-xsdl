@@ -1217,6 +1217,7 @@ _glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, GLenum format,
         assert(0);
     }
 
+    glamor_make_current(glamor_priv);
     glamor_set_destination_pixmap_priv_nc(pixmap_priv);
 
     need_post_conversion = (revert > REVERT_NORMAL);
@@ -1249,7 +1250,6 @@ _glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, GLenum format,
         fbo_y_off = 0;
     }
 
-    glamor_make_current(glamor_priv);
     glPixelStorei(GL_PACK_ALIGNMENT, 4);
 
     if (glamor_priv->has_pack_invert || glamor_priv->yInverted) {
