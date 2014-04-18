@@ -434,9 +434,6 @@ static void
 StopUsingContext(__GLXcontext * glxc)
 {
     if (glxc) {
-        if (glxc == lastGLContext) {
-            lastGLContext = NULL;
-        }
         glxc->currentClient = NULL;
         if (!glxc->idExists) {
             FreeResourceByType(glxc->id, __glXContextRes, FALSE);
@@ -447,7 +444,6 @@ StopUsingContext(__GLXcontext * glxc)
 static void
 StartUsingContext(__GLXclientState * cl, __GLXcontext * glxc)
 {
-    lastGLContext = glxc;
     glxc->currentClient = cl->client;
 }
 
@@ -639,7 +635,9 @@ DoMakeCurrent(__GLXclientState * cl,
         glxc->readPriv = readPriv;
 
         /* make the context current */
+        lastGLContext = glxc;
         if (!(*glxc->makeCurrent) (glxc)) {
+            lastGLContext = NULL;
             glxc->drawPriv = NULL;
             glxc->readPriv = NULL;
             return __glXError(GLXBadContext);

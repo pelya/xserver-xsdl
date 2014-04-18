@@ -444,14 +444,15 @@ __glXForceCurrent(__GLXclientState * cl, GLXContextTag tag, int *error)
 
     /* Make this context the current one for the GL. */
     if (!cx->isDirect) {
+        lastGLContext = cx;
         if (!(*cx->makeCurrent) (cx)) {
             /* Bind failed, and set the error code.  Bummer */
+            lastGLContext = NULL;
             cl->client->errorValue = cx->id;
             *error = __glXError(GLXBadContextState);
             return 0;
         }
     }
-    lastGLContext = cx;
     return cx;
 }
 
