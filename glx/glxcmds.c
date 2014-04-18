@@ -188,7 +188,7 @@ validGlxDrawable(ClientPtr client, XID id, int type, int access_mode,
 void
 __glXContextDestroy(__GLXcontext * context)
 {
-    __glXFlushContextCache();
+    lastGLContext = NULL;
 }
 
 static void
@@ -434,9 +434,8 @@ static void
 StopUsingContext(__GLXcontext * glxc)
 {
     if (glxc) {
-        if (glxc == __glXLastContext) {
-            /* Tell server GL library */
-            __glXLastContext = 0;
+        if (glxc == lastGLContext) {
+            lastGLContext = NULL;
         }
         glxc->currentClient = NULL;
         if (!glxc->idExists) {
@@ -448,7 +447,7 @@ StopUsingContext(__GLXcontext * glxc)
 static void
 StartUsingContext(__GLXclientState * cl, __GLXcontext * glxc)
 {
-    __glXLastContext = glxc;
+    lastGLContext = glxc;
     glxc->currentClient = cl->client;
 }
 
@@ -627,7 +626,7 @@ DoMakeCurrent(__GLXclientState * cl,
         if (!(*prevglxc->loseCurrent) (prevglxc)) {
             return __glXError(GLXBadContext);
         }
-        __glXFlushContextCache();
+        lastGLContext = NULL;
         if (!prevglxc->isDirect) {
             prevglxc->drawPriv = NULL;
             prevglxc->readPriv = NULL;
