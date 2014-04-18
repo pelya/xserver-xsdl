@@ -1092,6 +1092,14 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
         return BadDrawable;
     }
 
+    /* According to spec, return expected swapbuffers count SBC after this swap
+     * will complete. This is ignored unless we return Success, but it must be
+     * initialized on every path where we return Success or the caller will send
+     * an uninitialized value off the stack to the client. So let's initialize
+     * it as early as possible, just to be sure.
+     */
+    *swap_target = pPriv->swap_count + pPriv->swapsPending + 1;
+
     for (i = 0; i < pPriv->bufferCount; i++) {
         if (pPriv->buffers[i]->attachment == DRI2BufferFrontLeft)
             pDestBuffer = (DRI2BufferPtr) pPriv->buffers[i];
@@ -1164,11 +1172,6 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
     }
 
     pPriv->last_swap_target = target_msc;
-
-    /* According to spec, return expected swapbuffers count SBC after this swap
-     * will complete.
-     */
-    *swap_target = pPriv->swap_count + pPriv->swapsPending;
 
     DRI2InvalidateDrawableAll(pDraw);
 
