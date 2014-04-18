@@ -1149,17 +1149,13 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
          * we have to account for the current swap count, interval, and the
          * number of pending swaps.
          */
-        *swap_target = pPriv->last_swap_target + pPriv->swap_interval;
+        target_msc = pPriv->last_swap_target + pPriv->swap_interval;
 
-    }
-    else {
-        /* glXSwapBuffersMscOML could have a 0 target_msc, honor it */
-        *swap_target = target_msc;
     }
 
     pPriv->swapsPending++;
     ret = (*ds->ScheduleSwap) (client, pDraw, pDestBuffer, pSrcBuffer,
-                               swap_target, divisor, remainder, func, data);
+                               &target_msc, divisor, remainder, func, data);
     if (!ret) {
         pPriv->swapsPending--;  /* didn't schedule */
         xf86DrvMsg(pScreen->myNum, X_ERROR,
@@ -1167,7 +1163,7 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
         return BadDrawable;
     }
 
-    pPriv->last_swap_target = *swap_target;
+    pPriv->last_swap_target = target_msc;
 
     /* According to spec, return expected swapbuffers count SBC after this swap
      * will complete.
