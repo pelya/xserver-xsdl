@@ -356,6 +356,7 @@ NotifyParentProcess(void)
         write(displayfd, display, strlen(display));
         write(displayfd, "\n", 1);
         close(displayfd);
+        displayfd = -1;
     }
     if (RunFromSmartParent) {
         if (ParentProcess > 1) {
