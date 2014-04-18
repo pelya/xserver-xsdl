@@ -135,8 +135,7 @@ DrawableGone(__GLXdrawable * glxPriv, XID xid)
 		(c->drawPriv == glxPriv || c->readPriv == glxPriv)) {
             /* just force a re-bind the next time through */
             (*c->loseCurrent) (c);
-            if (c == lastGLContext)
-                lastGLContext = NULL;
+            lastGLContext = NULL;
         }
         if (c->drawPriv == glxPriv)
             c->drawPriv = NULL;
@@ -290,6 +289,7 @@ glxClientCallback(CallbackListPtr *list, void *closure, void *data)
             next = c->next;
             if (c->currentClient == pClient) {
                 c->loseCurrent(c);
+                lastGLContext = NULL;
                 c->currentClient = NULL;
                 __glXFreeContext(c);
             }
