@@ -218,7 +218,6 @@ xwl_realize_window(WindowPtr window)
     screen->RealizeWindow = xwl_realize_window;
 
     if (xwl_screen->rootless && !window->parent) {
-        ErrorF("Clearing root clip\n");
         RegionNull(&window->clipList);
         RegionNull(&window->borderClip);
         RegionNull(&window->winSize);
