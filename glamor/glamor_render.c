@@ -1038,6 +1038,16 @@ glamor_composite_choose_shader(CARD8 op,
     }
 #endif
 
+    /* If the source and mask are two differently-formatted views of
+     * the same pixmap bits, and the pixmap was already uploaded (so
+     * the dynamic code above doesn't apply), then fall back to
+     * software.  We should use texture views to fix this properly.
+     */
+    if (source_pixmap && source_pixmap == mask_pixmap &&
+        source->format != mask->format) {
+        goto fail;
+    }
+
     /*Before enter the rendering stage, we need to fixup
      * transformed source and mask, if the transform is not int translate. */
     if (key.source != SHADER_SOURCE_SOLID
