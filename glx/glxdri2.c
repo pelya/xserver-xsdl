@@ -676,6 +676,13 @@ dri2GetBuffers(__DRIdrawable * driDrawable,
     if (cx != lastGLContext) {
         lastGLContext = cx;
         cx->makeCurrent(cx);
+
+        /* If DRI2GetBuffers() changed the GL context, it may also have
+         * invalidated the DRI2 buffers, so let's get them again
+         */
+        buffers = DRI2GetBuffers(private->base.pDraw,
+                                 width, height, attachments, count, out_count);
+        assert(lastGLContext == cx);
     }
 
     if (*out_count > MAX_DRAWABLE_BUFFERS) {
@@ -727,6 +734,14 @@ dri2GetBuffersWithFormat(__DRIdrawable * driDrawable,
     if (cx != lastGLContext) {
         lastGLContext = cx;
         cx->makeCurrent(cx);
+
+        /* If DRI2GetBuffersWithFormat() changed the GL context, it may also have
+         * invalidated the DRI2 buffers, so let's get them again
+         */
+        buffers = DRI2GetBuffersWithFormat(private->base.pDraw,
+                                           width, height, attachments, count,
+                                           out_count);
+        assert(lastGLContext == cx);
     }
 
     if (*out_count > MAX_DRAWABLE_BUFFERS) {
