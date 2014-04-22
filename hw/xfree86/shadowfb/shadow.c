@@ -36,6 +36,7 @@ typedef struct {
     RefreshAreaFuncPtr preRefresh;
     RefreshAreaFuncPtr postRefresh;
     CloseScreenProcPtr CloseScreen;
+    CreateScreenResourcesProcPtr CreateScreenResources;
 } ShadowScreenRec, *ShadowScreenPtr;
 
 static DevPrivateKeyRec ShadowScreenKeyRec;
@@ -43,7 +44,7 @@ static DevPrivateKeyRec ShadowScreenKeyRec;
 static ShadowScreenPtr
 shadowfbGetScreenPrivate(ScreenPtr pScreen)
 {
-    return dixLookupPrivate(&(pScreen)->devPrivates, &ShadowScreenKeyRec)
+    return dixLookupPrivate(&(pScreen)->devPrivates, &ShadowScreenKeyRec);
 }
 
 Bool
@@ -53,7 +54,6 @@ ShadowFBInit2(ScreenPtr pScreen,
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     ShadowScreenPtr pPriv;
-    PictureScreenPtr ps = GetPictureScreenIfSet(pScreen);
 
     if (!preRefreshArea && !postRefreshArea)
         return FALSE;
@@ -69,7 +69,6 @@ ShadowFBInit2(ScreenPtr pScreen,
     pPriv->pScrn = pScrn;
     pPriv->preRefresh = preRefreshArea;
     pPriv->postRefresh = postRefreshArea;
-    pPriv->vtSema = TRUE;
 
     pPriv->CloseScreen = pScreen->CloseScreen;
     pPriv->CreateScreenResources = pScreen->CreateScreenResources;
@@ -125,7 +124,7 @@ ShadowCreateScreenResources(ScreenPtr pScreen)
     ShadowScreenPtr pPriv = shadowfbGetScreenPrivate(pScreen);
 
     pScreen->CreateScreenResources = pPriv->CreateScreenResources;
-    ret = pScreen->CreateScreenResources(pWin);
+    ret = pScreen->CreateScreenResources(pScreen);
     pPriv->CreateScreenResources = pScreen->CreateScreenResources;
     pScreen->CreateScreenResources = ShadowCreateScreenResources;
 
@@ -162,7 +161,7 @@ ShadowCloseScreen(ScreenPtr pScreen)
     pScreen->CloseScreen = pPriv->CloseScreen;
     pScreen->CreateScreenResources = pPriv->CreateScreenResources;
 
-    free((pointer) pPriv);
+    free(pPriv);
 
     return (*pScreen->CloseScreen) (pScreen);
 }
