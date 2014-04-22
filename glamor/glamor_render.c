@@ -870,7 +870,10 @@ glamor_composite_choose_shader(CARD8 op,
             goto fail;
     }
     else {
-        key.source = SHADER_SOURCE_TEXTURE_ALPHA;
+        if (PICT_FORMAT_A(source->format))
+            key.source = SHADER_SOURCE_TEXTURE_ALPHA;
+        else
+            key.source = SHADER_SOURCE_TEXTURE;
     }
 
     if (mask) {
