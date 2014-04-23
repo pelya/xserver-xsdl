@@ -174,10 +174,10 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
 #endif
 }
 
-static void
+static int
 glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
 {
-    int status;
+    int status, err = 0;
 
     glamor_make_current(fbo->glamor_priv);
 
@@ -215,9 +215,11 @@ glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
             break;
         }
 
-        FatalError("destination is framebuffer incomplete: %s [%x]\n",
-                   str, status);
+        glamor_fallback("glamor: Failed to create fbo, %s\n", str);
+        err = -1;
     }
+
+    return err;
 }
 
 glamor_pixmap_fbo *
@@ -244,8 +246,12 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
         goto done;
     }
 
-    if (flag != GLAMOR_CREATE_FBO_NO_FBO)
-        glamor_pixmap_ensure_fb(fbo);
+    if (flag != GLAMOR_CREATE_FBO_NO_FBO) {
+        if (glamor_pixmap_ensure_fb(fbo) != 0) {
+            glamor_purge_fbo(fbo);
+            fbo = NULL;
+        }
+    }
 
  done:
     return fbo;
@@ -562,7 +568,8 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
                                    pixmap->drawable.height, format);
 
         if (flag != GLAMOR_CREATE_FBO_NO_FBO && pixmap_priv->base.fbo->fb == 0)
-            glamor_pixmap_ensure_fb(pixmap_priv->base.fbo);
+            if (glamor_pixmap_ensure_fb(pixmap_priv->base.fbo) != 0)
+                return FALSE;
     }
 
     return TRUE;
