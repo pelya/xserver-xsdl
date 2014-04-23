@@ -367,7 +367,7 @@ _glamor_copy_n_to_n(DrawablePtr src,
             goto fall_back;
         glamor_make_current(glamor_priv);
         if (!glamor_set_alu(screen, gc->alu)) {
-            goto fail;
+            goto fail_noregion;
         }
     }
 
@@ -533,7 +533,6 @@ _glamor_copy_n_to_n(DrawablePtr src,
         if (n_dst_region == 0)
             ok = TRUE;
         free(clipped_dst_regions);
-        RegionUninit(&region);
     }
     else {
         ok = __glamor_copy_n_to_n(src, dst, gc, box, nbox, dx, dy,
@@ -541,6 +540,8 @@ _glamor_copy_n_to_n(DrawablePtr src,
     }
 
  fail:
+    RegionUninit(&region);
+ fail_noregion:
     glamor_make_current(glamor_priv);
     glamor_set_alu(screen, GXcopy);
 
