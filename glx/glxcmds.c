@@ -275,6 +275,17 @@ DoCreateContext(__GLXclientState * cl, GLXContextID gcId,
      ** Allocate memory for the new context
      */
     if (!isDirect) {
+        /* Only allow creating indirect GLX contexts if allowed by
+         * server command line.  Indirect GLX is of limited use (since
+         * it's only GL 1.4), it's slower than direct contexts, and
+         * it's a massive attack surface for buffer overflow type
+         * errors.
+         */
+        if (!enableIndirectGLX) {
+            client->errorValue = isDirect;
+            return BadValue;
+        }
+
         /* Without any attributes, the only error that the driver should be
          * able to generate is BadAlloc.  As result, just drop the error
          * returned from the driver on the floor.
