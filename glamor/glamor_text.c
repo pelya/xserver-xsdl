@@ -508,7 +508,7 @@ Bool
 glamor_image_text16_nf(DrawablePtr drawable, GCPtr gc,
                        int x, int y, int count, unsigned short *chars)
 {
-    return glamor_image_text(drawable, gc, x, y, count, (char *) chars, FALSE);
+    return glamor_image_text(drawable, gc, x, y, count, (char *) chars, TRUE);
 }
 
 void
