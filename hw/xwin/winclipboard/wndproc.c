@@ -143,6 +143,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     static Display *pDisplay;
     static Window iWindow;
     static ClipboardAtoms *atoms;
+    static Bool fRunning;
 
     /* Branch on message type */
     switch (message) {
@@ -160,7 +161,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_WM_QUIT:
     {
         winDebug("winClipboardWindowProc - WM_WM_QUIT\n");
-
+        fRunning = FALSE;
         PostQuitMessage(0);
     }
         return 0;
@@ -176,6 +177,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         pDisplay = cwcp->pClipboardDisplay;
         iWindow = cwcp->iClipboardWindow;
         atoms = cwcp->atoms;
+        fRunning = TRUE;
 
         first = GetClipboardViewer();   /* Get handle to first viewer in chain. */
         if (first == hwnd)
@@ -308,6 +310,10 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 0;
         }
 
+        /* Bail when shutting down */
+        if (!fRunning)
+            return 0;
+
         /*
          * Do not take ownership of the X11 selections when something
          * other than CF_TEXT or CF_UNICODETEXT has been copied
@@ -411,8 +417,21 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         winDebug("winClipboardWindowProc - WM_DESTROYCLIPBOARD - Ignored.\n");
         return 0;
 
-    case WM_RENDERFORMAT:
     case WM_RENDERALLFORMATS:
+        winDebug("winClipboardWindowProc - WM_RENDERALLFORMATS - Hello.\n");
+
+        /*
+          WM_RENDERALLFORMATS is sent as we are shutting down, to render the
+          clipboard so it's contents remains available to other applications.
+
+          Unfortunately, this can't work without major changes. The server is
+          already waiting for us to stop, so we can't ask for the rendering of
+          clipboard text now.
+        */
+
+        return 0;
+
+    case WM_RENDERFORMAT:
     {
         int iReturn;
         Bool fConvertToUnicode;
@@ -421,13 +440,11 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         ClipboardConversionData data;
         int best_target = 0;
 
-        winDebug("winClipboardWindowProc - WM_RENDER*FORMAT - Hello.\n");
+        winDebug("winClipboardWindowProc - WM_RENDERFORMAT %d - Hello.\n",
+                 wParam);
 
         /* Flag whether to convert to Unicode or not */
-        if (message == WM_RENDERALLFORMATS)
-            fConvertToUnicode = FALSE;
-        else
-            fConvertToUnicode = (CF_UNICODETEXT == wParam);
+        fConvertToUnicode = (CF_UNICODETEXT == wParam);
 
         selection = winClipboardGetLastOwnedSelectionAtom(atoms);
         if (selection == None) {
@@ -511,28 +528,6 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                           atoms->atomLocalProperty,
                           iWindow, CurrentTime);
 
-        /* Special handling for WM_RENDERALLFORMATS */
-        if (message == WM_RENDERALLFORMATS) {
-            /* We must open and empty the clipboard */
-
-            /* Close clipboard if we have it open already */
-            if (GetOpenClipboardWindow() == hwnd) {
-                CloseClipboard();
-            }
-
-            if (!OpenClipboard(hwnd)) {
-                ErrorF("winClipboardWindowProc - WM_RENDER*FORMATS - "
-                       "OpenClipboard () failed: %08x\n",
-                       GetLastError());
-            }
-
-            if (!EmptyClipboard()) {
-                ErrorF("winClipboardWindowProc - WM_RENDER*FORMATS - "
-                       "EmptyClipboard () failed: %08x\n",
-                       GetLastError());
-            }
-        }
-
         /* Process X events */
         iReturn = winProcessXEventsTimeout(hwnd,
                                            iWindow,
@@ -566,18 +561,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetClipboardData(CF_TEXT, NULL);
           }
 
-        /* Special handling for WM_RENDERALLFORMATS */
-        if (message == WM_RENDERALLFORMATS) {
-            /* We must close the clipboard */
-
-            if (!CloseClipboard()) {
-                ErrorF("winClipboardWindowProc - WM_RENDERALLFORMATS - "
-                       "CloseClipboard () failed: %08x\n",
-                       GetLastError());
-            }
-        }
-
-        winDebug("winClipboardWindowProc - WM_RENDER*FORMAT - Returning.\n");
+        winDebug("winClipboardWindowProc - WM_RENDERFORMAT - Returning.\n");
         return 0;
     }
     }
