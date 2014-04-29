@@ -153,14 +153,17 @@ static ShmFuncs fbFuncs = {fbShmCreatePixmap, NULL};
 	client->errorValue = offset; \
 	return BadValue; \
     } \
-    if (needwrite && !shmdesc->writable) \
+    if (needwrite && !shmdesc->writable) { \
+	LogWrite(0, "VERIFY_SHMPTR: BadAccess from %s:%d", __FILE__, __LINE__); \
 	return BadAccess; \
+	} \
 }
 
 #define VERIFY_SHMSIZE(shmdesc,offset,len,client) \
 { \
     if ((offset + len) > shmdesc->size) \
     { \
+	LogWrite(0, "VERIFY_SHMSIZE: BadAccess from %s:%d: offset + len %d shmdesc->size %d", __FILE__, __LINE__, (offset + len), shmdesc->size); \
 	return BadAccess; \
     } \
 }
@@ -337,6 +340,8 @@ shm_access(ClientPtr client, SHMPERM_TYPE *perm, int readonly)
 	    gidset = 1;
 	}
 
+	//LogWrite(0, "shm_access: readonly %d perm mode 0%o uidset %d uid %d gidset %d gid %d", readonly, SHMPERM_MODE(perm), uidset, uid, gidset, gid);
+
 #if defined(HAVE_GETZONEID) && defined(SHMPERM_ZONEID)
 	if ( ((lcc->fieldsSet & LCC_ZID_SET) == 0) || (lcc->zoneid == -1)
 	     || (lcc->zoneid != SHMPERM_ZONEID(perm))) {
@@ -357,6 +362,7 @@ shm_access(ClientPtr client, SHMPERM_TYPE *perm, int readonly)
 		if (!readonly) {
 		    mask |= S_IWUSR;
 		}
+		//LogWrite(0, "shm_access: S_IWUSR %d", (SHMPERM_MODE(perm) & mask) == mask ? 0 : -1);
 		return (SHMPERM_MODE(perm) & mask) == mask ? 0 : -1;
 	    }
 	}
@@ -368,6 +374,7 @@ shm_access(ClientPtr client, SHMPERM_TYPE *perm, int readonly)
 		if (!readonly) {
 		    mask |= S_IWGRP;
 		}
+		//LogWrite(0, "shm_access: S_IWGRP %d", (SHMPERM_MODE(perm) & mask) == mask ? 0 : -1);
 		return (SHMPERM_MODE(perm) & mask) == mask ? 0 : -1;
 	    }
 	}
@@ -377,6 +384,7 @@ shm_access(ClientPtr client, SHMPERM_TYPE *perm, int readonly)
     if (!readonly) {
 	mask |= S_IWOTH;
     }
+    //LogWrite(0, "shm_access: S_IWOTH %d", (SHMPERM_MODE(perm) & mask) == mask ? 0 : -1);
     return (SHMPERM_MODE(perm) & mask) == mask ? 0 : -1;
 }
 
@@ -400,8 +408,10 @@ ProcShmAttach(ClientPtr client)
 	;
     if (shmdesc)
     {
-	if (!stuff->readOnly && !shmdesc->writable)
+	if (!stuff->readOnly && !shmdesc->writable) {
+	    LogWrite(0, "ProcShmAttach: BadAccess from %s:%d", __FILE__, __LINE__); \
 	    return BadAccess;
+	}
 	shmdesc->refcnt++;
     }
     else
@@ -415,6 +425,7 @@ ProcShmAttach(ClientPtr client)
 	    SHMSTAT(stuff->shmid, &buf))
 	{
 	    free(shmdesc);
+	    LogWrite(0, "ProcShmAttach: BadAccess from %s:%d", __FILE__, __LINE__); \
 	    return BadAccess;
 	}
 
@@ -425,6 +436,7 @@ ProcShmAttach(ClientPtr client)
 	if (shm_access(client, &(SHM_PERM(buf)), stuff->readOnly) == -1) {
 	    shmdt(shmdesc->addr);
 	    free(shmdesc);
+	    LogWrite(0, "ProcShmAttach: BadAccess from %s:%d", __FILE__, __LINE__); \
 	    return BadAccess;
 	}
 
