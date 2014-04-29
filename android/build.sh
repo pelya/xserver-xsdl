@@ -1049,6 +1049,8 @@ env CFLAGS=" -DDEBUG \
 	-include linux/time.h \
 	-DFNONBLOCK=O_NONBLOCK \
 	-DFNDELAY=O_NDELAY \
+	-D_LINUX_IPC_H \
+	-Dipc_perm=debian_ipc_perm \
 	-I$BUILDDIR/pixman-0.30.2/pixman \
 	-I$BUILDDIR/../../../../../../jni/sdl-1.2/include" \
 LDFLAGS="-L$BUILDDIR" \
