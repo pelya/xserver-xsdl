@@ -283,13 +283,6 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 	}
 }
 
-static void sdlScreenBlit(void)
-{
-	// Redraw screen to force touch events processing
-	SDL_Rect rect = {0, 0, 4, 4};
-	SDL_UpdateRects(SDL_GetVideoSurface(), 1, &rect);
-}
-
 static void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, CARD32 *size, void *closure)
 {
 	KdScreenPriv(pScreen);
@@ -614,7 +607,6 @@ static void sdlPollInput(void)
 				}
 				mouseState |= buttonState;
 				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
-				sdlScreenBlit(); // Redraw screen to force touch events processing
 				break;
 			case SDL_MOUSEBUTTONUP:
 				switch(event.button.button)
@@ -649,7 +641,6 @@ static void sdlPollInput(void)
 				}
 				mouseState &= ~buttonState;
 				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
-				sdlScreenBlit(); // Redraw screen to force touch events processing
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
