@@ -94,7 +94,6 @@ static unsigned long bus_base;
 void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
-    pVidMem->linearSupported = TRUE;
 #ifdef __alpha__
     if (axpSystem == -1) {
         axpSystem = lnxGetAXP();

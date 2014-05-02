@@ -110,11 +110,6 @@ solOpenAperture(void)
 _X_HIDDEN void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
-    pVidMem->linearSupported = solOpenAperture();
-    if (!pVidMem->linearSupported) {
-        xf86MsgVerb(X_WARNING, 0,
-                    "xf86OSInitVidMem: linear memory access disabled\n");
-    }
     pVidMem->initialised = TRUE;
 }
 

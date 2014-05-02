@@ -134,10 +134,3 @@ xf86CheckMTRR(int ScreenNum)
 
     return FALSE;
 }
-
-Bool
-xf86LinearVidMem(void)
-{
-    xf86InitVidMem();
-    return vidMemInfo.linearSupported;
-}

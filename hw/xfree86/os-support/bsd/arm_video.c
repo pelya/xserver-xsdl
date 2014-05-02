@@ -79,7 +79,6 @@
 /* Video Memory Mapping section                                            */
 /***************************************************************************/
 
-static Bool useDevMem = FALSE;
 static int devMemFd = -1;
 
 /*
@@ -105,7 +104,6 @@ checkDevMem(Bool warn)
         if (base != MAP_FAILED) {
             munmap((caddr_t) base, 4096);
             devMemFd = fd;
-            useDevMem = TRUE;
             return;
         }
         else {
@@ -114,7 +112,6 @@ checkDevMem(Bool warn)
                 xf86Msg(X_WARNING, "checkDevMem: failed to mmap %s (%s)\n",
                         DEV_MEM, strerror(errno));
             }
-            useDevMem = FALSE;
             return;
         }
     }
@@ -122,16 +119,13 @@ checkDevMem(Bool warn)
         xf86Msg(X_WARNING, "checkDevMem: failed to open %s (%s)\n",
                 DEV_MEM, strerror(errno));
     }
-    useDevMem = FALSE;
     return;
 }
 
 void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
-
     checkDevMem(TRUE);
-    pVidMem->linearSupported = useDevMem;
 
     pVidMem->initialised = TRUE;
 }

@@ -34,7 +34,6 @@
 
 typedef struct {
     Bool initialised;
-    Bool linearSupported;
 } VidMemInfo, *VidMemInfoPtr;
 
 void xf86OSInitVidMem(VidMemInfoPtr);

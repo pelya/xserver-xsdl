@@ -132,7 +132,6 @@ dense_base(void)
                   "\trefer to xf86(4) for details"
 #endif
 
-static Bool useDevMem = FALSE;
 static int devMemFd = -1;
 
 #ifdef HAS_APERTURE_DRV
@@ -164,7 +163,6 @@ checkDevMem(Bool warn)
         if (base != MAP_FAILED) {
             munmap((caddr_t) base, 4096);
             devMemFd = fd;
-            useDevMem = TRUE;
             xf86Msg(X_INFO, "checkDevMem: using aperture driver %s\n",
                     DEV_APERTURE);
             return;
@@ -185,7 +183,6 @@ checkDevMem(Bool warn)
         if (base != MAP_FAILED) {
             munmap((caddr_t) base, 4096);
             devMemFd = fd;
-            useDevMem = TRUE;
             return;
         }
         else {
@@ -211,7 +208,6 @@ checkDevMem(Bool warn)
 #endif
         xf86ErrorF("\tlinear framebuffer access unavailable\n");
     }
-    useDevMem = FALSE;
     return;
 }
 
@@ -219,7 +215,6 @@ void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
     checkDevMem(TRUE);
-    pVidMem->linearSupported = useDevMem;
 
     if (has_bwx()) {
         xf86Msg(X_PROBED, "Machine type has 8/16 bit access\n");

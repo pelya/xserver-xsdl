@@ -178,15 +178,11 @@ void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
     checkDevMem(TRUE);
-    pVidMem->linearSupported = useDevMem;
 
-    if (useDevMem)
-        pci_system_init_dev_mem(devMemFd);
+    pci_system_init_dev_mem(devMemFd);
 
 #ifdef HAS_MTRR_SUPPORT
-    if (useDevMem) {
-        cleanMTRR();
-    }
+    cleanMTRR();
 #endif
     pVidMem->initialised = TRUE;
 }

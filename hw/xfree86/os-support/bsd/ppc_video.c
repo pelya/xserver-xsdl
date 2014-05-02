@@ -50,7 +50,6 @@ void xf86DisableIO(void);
 void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
-    pVidMem->linearSupported = TRUE;
     pVidMem->initialised = TRUE;
     xf86EnableIO();
 }
