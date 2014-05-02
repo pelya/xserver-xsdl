@@ -217,7 +217,7 @@ static Bool probe_hw(const char *dev, struct xf86_platform_device *platform_dev)
 {
     int fd;
 
-#if XSERVER_PLATFORM_BUS
+#if XF86_PDEV_SERVER_FD
     if (platform_dev && (platform_dev->flags & XF86_PDEV_SERVER_FD)) {
         fd = xf86_get_platform_device_int_attrib(platform_dev, ODEV_ATTRIB_FD, -1);
         if (fd == -1)
