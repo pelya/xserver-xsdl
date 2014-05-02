@@ -42,72 +42,7 @@
  * This file contains the common part of the video memory mapping functions
  */
 
-/*
- * Get a piece of the ScrnInfoRec.  At the moment, this is only used to hold
- * the MTRR option information, but it is likely to be expanded if we do
- * auto unmapping of memory at VT switch.
- *
- */
-
-typedef struct {
-    Bool mtrrEnabled;
-    MessageType mtrrFrom;
-    Bool mtrrOptChecked;
-    ScrnInfoPtr pScrn;
-} VidMapRec, *VidMapPtr;
-
-static int vidMapIndex = -1;
-
-#define VIDMAPPTR(p) ((VidMapPtr)((p)->privates[vidMapIndex].ptr))
-
 static VidMemInfo vidMemInfo = { FALSE, };
-static VidMapRec vidMapRec = { TRUE, X_DEFAULT, FALSE, NULL };
-
-static VidMapPtr
-getVidMapRec(int scrnIndex)
-{
-    VidMapPtr vp;
-    ScrnInfoPtr pScrn;
-
-    if ((scrnIndex < 0) || !(pScrn = xf86Screens[scrnIndex]))
-        return &vidMapRec;
-
-    if (vidMapIndex < 0)
-        vidMapIndex = xf86AllocateScrnInfoPrivateIndex();
-
-    if (VIDMAPPTR(pScrn) != NULL)
-        return VIDMAPPTR(pScrn);
-
-    vp = pScrn->privates[vidMapIndex].ptr = xnfcalloc(sizeof(VidMapRec), 1);
-    vp->mtrrEnabled = TRUE;     /* default to enabled */
-    vp->mtrrFrom = X_DEFAULT;
-    vp->mtrrOptChecked = FALSE;
-    vp->pScrn = pScrn;
-    return vp;
-}
-
-enum { OPTION_MTRR };
-
-static const OptionInfoRec opts[] = {
-    {OPTION_MTRR, "mtrr", OPTV_BOOLEAN, {0}, FALSE},
-    {-1, NULL, OPTV_NONE, {0}, FALSE}
-};
-
-static void
-checkMtrrOption(VidMapPtr vp)
-{
-    if (!vp->mtrrOptChecked && vp->pScrn && vp->pScrn->options != NULL) {
-        OptionInfoPtr options;
-
-        options = xnfalloc(sizeof(opts));
-        (void) memcpy(options, opts, sizeof(opts));
-        xf86ProcessOptions(vp->pScrn->scrnIndex, vp->pScrn->options, options);
-        if (xf86GetOptValBool(options, OPTION_MTRR, &vp->mtrrEnabled))
-            vp->mtrrFrom = X_CONFIG;
-        free(options);
-        vp->mtrrOptChecked = TRUE;
-    }
-}
 
 void
 xf86InitVidMem(void)
@@ -116,21 +51,4 @@ xf86InitVidMem(void)
         memset(&vidMemInfo, 0, sizeof(VidMemInfo));
         xf86OSInitVidMem(&vidMemInfo);
     }
-}
-
-Bool
-xf86CheckMTRR(int ScreenNum)
-{
-    VidMapPtr vp = getVidMapRec(ScreenNum);
-
-    /*
-     * Check the "mtrr" option even when MTRR isn't supported to avoid
-     * warnings about unrecognised options.
-     */
-    checkMtrrOption(vp);
-
-    if (vp->mtrrEnabled)
-        return TRUE;
-
-    return FALSE;
 }

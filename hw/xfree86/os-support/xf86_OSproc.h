@@ -112,7 +112,6 @@
 _XFUNCPROTOBEGIN
 
 /* public functions */
-extern _X_EXPORT _X_DEPRECATED Bool xf86CheckMTRR(int);
 extern _X_EXPORT Bool xf86EnableIO(void);
 extern _X_EXPORT void xf86DisableIO(void);
 
