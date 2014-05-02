@@ -107,62 +107,11 @@ solOpenAperture(void)
     return TRUE;
 }
 
-static void *
-solMapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int Flags)
-{
-    void *base;
-    int fd;
-    int prot;
-
-    if (Flags & VIDMEM_READONLY) {
-        fd = apertureDevFD_ro;
-        prot = PROT_READ;
-    }
-    else {
-        fd = apertureDevFD_rw;
-        prot = PROT_READ | PROT_WRITE;
-    }
-
-    if (fd < 0) {
-        xf86DrvMsg(ScreenNum, X_ERROR,
-                   "solMapVidMem: failed to open %s (%s)\n",
-                   apertureDevName, strerror(errno));
-        return NULL;
-    }
-
-    base = mmap(NULL, Size, prot, MAP_SHARED, fd, (off_t) Base);
-
-    if (base == MAP_FAILED) {
-        xf86DrvMsg(ScreenNum, X_ERROR,
-                   "solMapVidMem: failed to mmap %s (0x%08lx,0x%lx) (%s)\n",
-                   apertureDevName, Base, Size, strerror(errno));
-        return NULL;
-    }
-
-    return base;
-}
-
-/* ARGSUSED */
-static void
-solUnMapVidMem(int ScreenNum, void *Base, unsigned long Size)
-{
-    if (munmap(Base, Size) != 0) {
-        xf86DrvMsgVerb(ScreenNum, X_WARNING, 0,
-                       "solUnMapVidMem: failed to unmap %s"
-                       " (0x%p,0x%lx) (%s)\n",
-                       apertureDevName, Base, Size, strerror(errno));
-    }
-}
-
 _X_HIDDEN void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
     pVidMem->linearSupported = solOpenAperture();
-    if (pVidMem->linearSupported) {
-        pVidMem->mapMem = solMapVidMem;
-        pVidMem->unmapMem = solUnMapVidMem;
-    }
-    else {
+    if (!pVidMem->linearSupported) {
         xf86MsgVerb(X_WARNING, 0,
                     "xf86OSInitVidMem: linear memory access disabled\n");
     }

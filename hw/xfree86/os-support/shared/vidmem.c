@@ -50,14 +50,6 @@
  */
 
 typedef struct {
-    unsigned long size;
-    void *virtBase;
-    void *mtrrInfo;
-} MappingRec, *MappingPtr;
-
-typedef struct {
-    int numMappings;
-    MappingPtr *mappings;
     Bool mtrrEnabled;
     MessageType mtrrFrom;
     Bool mtrrOptChecked;
@@ -69,7 +61,7 @@ static int vidMapIndex = -1;
 #define VIDMAPPTR(p) ((VidMapPtr)((p)->privates[vidMapIndex].ptr))
 
 static VidMemInfo vidMemInfo = { FALSE, };
-static VidMapRec vidMapRec = { 0, NULL, TRUE, X_DEFAULT, FALSE, NULL };
+static VidMapRec vidMapRec = { TRUE, X_DEFAULT, FALSE, NULL };
 
 static VidMapPtr
 getVidMapRec(int scrnIndex)
@@ -92,45 +84,6 @@ getVidMapRec(int scrnIndex)
     vp->mtrrOptChecked = FALSE;
     vp->pScrn = pScrn;
     return vp;
-}
-
-static MappingPtr
-newMapping(VidMapPtr vp)
-{
-    vp->mappings = xnfrealloc(vp->mappings, sizeof(MappingPtr) *
-                              (vp->numMappings + 1));
-    vp->mappings[vp->numMappings] = xnfcalloc(sizeof(MappingRec), 1);
-    return vp->mappings[vp->numMappings++];
-}
-
-static MappingPtr
-findMapping(VidMapPtr vp, void *vbase, unsigned long size)
-{
-    int i;
-
-    for (i = 0; i < vp->numMappings; i++) {
-        if (vp->mappings[i]->virtBase == vbase && vp->mappings[i]->size == size)
-            return vp->mappings[i];
-    }
-    return NULL;
-}
-
-static void
-removeMapping(VidMapPtr vp, MappingPtr mp)
-{
-    int i, found = 0;
-
-    for (i = 0; i < vp->numMappings; i++) {
-        if (vp->mappings[i] == mp) {
-            found = 1;
-            free(vp->mappings[i]);
-        }
-        else if (found) {
-            vp->mappings[i - 1] = vp->mappings[i];
-        }
-    }
-    vp->numMappings--;
-    vp->mappings[vp->numMappings] = NULL;
 }
 
 enum { OPTION_MTRR };
@@ -163,75 +116,6 @@ xf86InitVidMem(void)
         memset(&vidMemInfo, 0, sizeof(VidMemInfo));
         xf86OSInitVidMem(&vidMemInfo);
     }
-}
-
-void *
-xf86MapVidMem(int ScreenNum, int Flags, unsigned long Base, unsigned long Size)
-{
-    void *vbase = NULL;
-    VidMapPtr vp;
-    MappingPtr mp;
-
-    if (((Flags & VIDMEM_FRAMEBUFFER) &&
-         (Flags & (VIDMEM_MMIO | VIDMEM_MMIO_32BIT))))
-        FatalError("Mapping memory with more than one type\n");
-
-    xf86InitVidMem();
-    if (!vidMemInfo.initialised || !vidMemInfo.mapMem)
-        return NULL;
-
-    vbase = vidMemInfo.mapMem(ScreenNum, Base, Size, Flags);
-
-    if (!vbase || vbase == (void *) -1)
-        return NULL;
-
-    vp = getVidMapRec(ScreenNum);
-    mp = newMapping(vp);
-    mp->size = Size;
-    mp->virtBase = vbase;
-
-    /*
-     * Check the "mtrr" option even when MTRR isn't supported to avoid
-     * warnings about unrecognised options.
-     */
-    checkMtrrOption(vp);
-
-    if (vp->mtrrEnabled && vidMemInfo.setWC) {
-        if (Flags & (VIDMEM_MMIO | VIDMEM_MMIO_32BIT))
-            mp->mtrrInfo =
-                vidMemInfo.setWC(ScreenNum, Base, Size, FALSE, vp->mtrrFrom);
-        else if (Flags & VIDMEM_FRAMEBUFFER)
-            mp->mtrrInfo =
-                vidMemInfo.setWC(ScreenNum, Base, Size, TRUE, vp->mtrrFrom);
-    }
-    return vbase;
-}
-
-void
-xf86UnMapVidMem(int ScreenNum, void *Base, unsigned long Size)
-{
-    VidMapPtr vp;
-    MappingPtr mp;
-
-    if (!vidMemInfo.initialised || !vidMemInfo.unmapMem) {
-        xf86DrvMsg(ScreenNum, X_WARNING,
-                   "xf86UnMapVidMem() called before xf86MapVidMem()\n");
-        return;
-    }
-
-    vp = getVidMapRec(ScreenNum);
-    mp = findMapping(vp, Base, Size);
-    if (!mp) {
-        xf86DrvMsg(ScreenNum, X_WARNING,
-                   "xf86UnMapVidMem: cannot find region for [%p,0x%lx]\n",
-                   Base, Size);
-        return;
-    }
-    if (vp->mtrrEnabled && vidMemInfo.undoWC && mp)
-        vidMemInfo.undoWC(ScreenNum, mp->mtrrInfo);
-
-    vidMemInfo.unmapMem(ScreenNum, Base, Size);
-    removeMapping(vp, mp);
 }
 
 Bool

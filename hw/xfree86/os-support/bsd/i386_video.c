@@ -85,9 +85,6 @@ static int devMemFd = -1;
 #define DEV_APERTURE "/dev/xf86"
 #endif
 
-static void *mapVidMem(int, unsigned long, unsigned long, int);
-static void unmapVidMem(int, void *, unsigned long);
-
 #ifdef HAS_MTRR_SUPPORT
 static void *setWC(int, unsigned long, unsigned long, Bool, MessageType);
 static void undoWC(int, void *);
@@ -189,8 +186,6 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
     checkDevMem(TRUE);
     pVidMem->linearSupported = useDevMem;
-    pVidMem->mapMem = mapVidMem;
-    pVidMem->unmapMem = unmapVidMem;
 
     if (useDevMem)
         pci_system_init_dev_mem(devMemFd);
@@ -208,51 +203,6 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
     pVidMem->undoWC = NetBSDundoWC;
 #endif
     pVidMem->initialised = TRUE;
-}
-
-static void *
-mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
-{
-    void *base;
-
-    checkDevMem(FALSE);
-
-    if (useDevMem) {
-        if (devMemFd < 0) {
-            FatalError("xf86MapVidMem: failed to open %s (%s)",
-                       DEV_MEM, strerror(errno));
-        }
-        base = mmap((caddr_t) 0, Size,
-                    (flags & VIDMEM_READONLY) ?
-                    PROT_READ : (PROT_READ | PROT_WRITE),
-                    MAP_FLAGS, devMemFd, (off_t) Base);
-        if (base == MAP_FAILED) {
-            FatalError("%s: could not mmap %s [s=%lx,a=%lx] (%s)",
-                       "xf86MapVidMem", DEV_MEM, Size, Base, strerror(errno));
-        }
-        return base;
-    }
-
-    /* else, mmap /dev/vga */
-    if ((unsigned long) Base < 0xA0000 || (unsigned long) Base >= 0xC0000) {
-        FatalError("%s: Address 0x%lx outside allowable range",
-                   "xf86MapVidMem", Base);
-    }
-    base = mmap(0, Size,
-                (flags & VIDMEM_READONLY) ?
-                PROT_READ : (PROT_READ | PROT_WRITE),
-                MAP_FLAGS, xf86Info.consoleFd, (unsigned long) Base - 0xA0000);
-    if (base == MAP_FAILED) {
-        FatalError("xf86MapVidMem: Could not mmap /dev/vga (%s)",
-                   strerror(errno));
-    }
-    return base;
-}
-
-static void
-unmapVidMem(int ScreenNum, void *Base, unsigned long Size)
-{
-    munmap((caddr_t) Base, Size);
 }
 
 /*

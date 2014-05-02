@@ -82,17 +82,12 @@ extern int iopl(int __level);
 /* Video Memory Mapping section                                            */
 /***************************************************************************/
 
-static void *mapVidMem(int, unsigned long, unsigned long, int);
-static void unmapVidMem(int, void *, unsigned long);
-
 #if defined (__alpha__)
 extern void sethae(unsigned long hae);
 extern unsigned long _bus_base __P((void)) __attribute__ ((const));
 extern unsigned long _bus_base_sparse __P((void)) __attribute__ ((const));
 
-static void *mapVidMemSparse(int, unsigned long, unsigned long, int);
 extern axpDevice lnxGetAXP(void);
-static void unmapVidMemSparse(int, void *, unsigned long);
 static axpDevice axpSystem = -1;
 static Bool needSparse;
 static unsigned long hae_thresh;
@@ -374,17 +369,10 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
     }
     if (needSparse) {
         xf86Msg(X_INFO, "Machine needs sparse mapping\n");
-        pVidMem->mapMem = mapVidMemSparse;
-        pVidMem->unmapMem = unmapVidMemSparse;
     }
     else {
         xf86Msg(X_INFO, "Machine type has 8/16 bit access\n");
-        pVidMem->mapMem = mapVidMem;
-        pVidMem->unmapMem = unmapVidMem;
     }
-#else
-    pVidMem->mapMem = mapVidMem;
-    pVidMem->unmapMem = unmapVidMem;
 #endif                          /* __alpha__ */
 
 #ifdef HAS_MTRR_SUPPORT
@@ -392,83 +380,6 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
     pVidMem->undoWC = undoWC;
 #endif
     pVidMem->initialised = TRUE;
-}
-
-#ifdef __sparc__
-/* Basically, you simply cannot do this on Sparc.  You have to do something portable
- * like use /dev/fb* or mmap() on /proc/bus/pci/X/Y nodes. -DaveM
- */
-static void *
-mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
-{
-    return NULL;
-}
-#else
-static void *
-mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
-{
-    void *base;
-    int fd;
-    int mapflags = MAP_SHARED;
-    int prot;
-    memType realBase, alignOff;
-
-    realBase = Base & ~(getpagesize() - 1);
-    alignOff = Base - realBase;
-    DebugF("base: %lx, realBase: %lx, alignOff: %lx \n",
-           Base, realBase, alignOff);
-
-#if defined(__ia64__) || defined(__arm__) || defined(__s390__)
-#ifndef MAP_WRITECOMBINED
-#define MAP_WRITECOMBINED 0x00010000
-#endif
-#ifndef MAP_NONCACHED
-#define MAP_NONCACHED 0x00020000
-#endif
-    if (flags & VIDMEM_FRAMEBUFFER)
-        mapflags |= MAP_WRITECOMBINED;
-    else
-        mapflags |= MAP_NONCACHED;
-#endif
-
-#if 0
-    /* this will disappear when people upgrade their kernels */
-    fd = open(DEV_MEM,
-              ((flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR) | O_SYNC);
-#else
-    fd = open(DEV_MEM, (flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR);
-#endif
-    if (fd < 0) {
-        FatalError("xf86MapVidMem: failed to open " DEV_MEM " (%s)\n",
-                   strerror(errno));
-    }
-
-    if (flags & VIDMEM_READONLY)
-        prot = PROT_READ;
-    else
-        prot = PROT_READ | PROT_WRITE;
-
-    /* This requires linux-0.99.pl10 or above */
-    base = mmap((caddr_t) 0, Size + alignOff, prot, mapflags, fd,
-                (off_t) realBase + BUS_BASE);
-    close(fd);
-    if (base == MAP_FAILED) {
-        FatalError("xf86MapVidMem: Could not mmap framebuffer"
-                   " (0x%08lx,0x%lx) (%s)\n", Base, Size, strerror(errno));
-    }
-    DebugF("base: %lx aligned base: %lx\n", base, (char *) base + alignOff);
-    return (char *) base + alignOff;
-}
-#endif                          /* !(__sparc__) */
-
-static void
-unmapVidMem(int ScreenNum, void *Base, unsigned long Size)
-{
-    uintptr_t alignOff = (uintptr_t) Base
-        - ((uintptr_t) Base & ~(getpagesize() - 1));
-
-    DebugF("alignment offset: %lx\n", (unsigned long) alignOff);
-    munmap((void *) ((uintptr_t) Base - alignOff), (Size + alignOff));
 }
 
 /***************************************************************************/
@@ -565,8 +476,6 @@ xf86DisableIO(void)
 
 #if defined (__alpha__)
 
-#define vuip    volatile unsigned int *
-
 extern int readDense8(void *Base, register unsigned long Offset);
 extern int readDense16(void *Base, register unsigned long Offset);
 extern int readDense32(void *Base, register unsigned long Offset);
@@ -576,284 +485,6 @@ extern void
  writeDense16(int Value, void *Base, register unsigned long Offset);
 extern void
  writeDense32(int Value, void *Base, register unsigned long Offset);
-
-static int readSparse8(void *Base, register unsigned long Offset);
-static int readSparse16(void *Base, register unsigned long Offset);
-static int readSparse32(void *Base, register unsigned long Offset);
-static void
- writeSparseNB8(int Value, void *Base, register unsigned long Offset);
-static void
- writeSparseNB16(int Value, void *Base, register unsigned long Offset);
-static void
- writeSparseNB32(int Value, void *Base, register unsigned long Offset);
-static void
- writeSparse8(int Value, void *Base, register unsigned long Offset);
-static void
- writeSparse16(int Value, void *Base, register unsigned long Offset);
-static void
- writeSparse32(int Value, void *Base, register unsigned long Offset);
-
-#define DENSE_BASE	0x2ff00000000UL
-#define SPARSE_BASE	0x30000000000UL
-
-static unsigned long msb_set = 0;
-
-static void *
-mapVidMemSparse(int ScreenNum, unsigned long Base, unsigned long Size,
-                int flags)
-{
-    int fd, prot;
-    unsigned long ret, rets = 0;
-
-    static Bool was_here = FALSE;
-
-    if (!was_here) {
-        was_here = TRUE;
-
-        xf86WriteMmio8 = writeSparse8;
-        xf86WriteMmio16 = writeSparse16;
-        xf86WriteMmio32 = writeSparse32;
-        xf86WriteMmioNB8 = writeSparseNB8;
-        xf86WriteMmioNB16 = writeSparseNB16;
-        xf86WriteMmioNB32 = writeSparseNB32;
-        xf86ReadMmio8 = readSparse8;
-        xf86ReadMmio16 = readSparse16;
-        xf86ReadMmio32 = readSparse32;
-    }
-
-    fd = open(DEV_MEM, (flags & VIDMEM_READONLY) ? O_RDONLY : O_RDWR);
-    if (fd < 0) {
-        FatalError("xf86MapVidMem: failed to open " DEV_MEM " (%s)\n",
-                   strerror(errno));
-    }
-
-#if 0
-    xf86Msg(X_INFO, "mapVidMemSparse: try Base 0x%lx size 0x%lx flags 0x%x\n",
-            Base, Size, flags);
-#endif
-
-    if (flags & VIDMEM_READONLY)
-        prot = PROT_READ;
-    else
-        prot = PROT_READ | PROT_WRITE;
-
-    /* This requirers linux-0.99.pl10 or above */
-
-    /*
-     * Always do DENSE mmap, since read32/write32 currently require it.
-     */
-    ret = (unsigned long) mmap((caddr_t) (DENSE_BASE + Base), Size,
-                               prot, MAP_SHARED, fd, (off_t) (bus_base + Base));
-
-    /*
-     * Do SPARSE mmap only when MMIO and not MMIO_32BIT, or FRAMEBUFFER
-     * and SPARSE (which should require the use of read/write macros).
-     *
-     * By not SPARSE mmapping an 8MB framebuffer, we can save approx. 256K
-     * bytes worth of pagetable (32 pages).
-     */
-    if (((flags & VIDMEM_MMIO) && !(flags & VIDMEM_MMIO_32BIT)) ||
-        ((flags & VIDMEM_FRAMEBUFFER) && (flags & VIDMEM_SPARSE))) {
-        rets = (unsigned long) mmap((caddr_t) (SPARSE_BASE + (Base << 5)),
-                                    Size << 5, prot, MAP_SHARED, fd,
-                                    (off_t) _bus_base_sparse() + (Base << 5));
-    }
-
-    close(fd);
-
-    if (ret == (unsigned long) MAP_FAILED) {
-        FatalError("xf86MapVidMemSparse: Could not (dense) mmap fb (%s)\n",
-                   strerror(errno));
-    }
-
-    if (((flags & VIDMEM_MMIO) && !(flags & VIDMEM_MMIO_32BIT)) ||
-        ((flags & VIDMEM_FRAMEBUFFER) && (flags & VIDMEM_SPARSE))) {
-        if (rets == (unsigned long) MAP_FAILED ||
-            rets != (SPARSE_BASE + (Base << 5))) {
-            FatalError("mapVidMemSparse: Could not (sparse) mmap fb (%s)\n",
-                       strerror(errno));
-        }
-    }
-
-#if 1
-    if (rets)
-        xf86Msg(X_INFO, "mapVidMemSparse: mapped Base 0x%lx size 0x%lx"
-                " to DENSE at 0x%lx and SPARSE at 0x%lx\n",
-                Base, Size, ret, rets);
-    else
-        xf86Msg(X_INFO, "mapVidMemSparse: mapped Base 0x%lx size 0x%lx"
-                " to DENSE only at 0x%lx\n", Base, Size, ret);
-
-#endif
-    return (void *) ret;
-}
-
-static void
-unmapVidMemSparse(int ScreenNum, void *Base, unsigned long Size)
-{
-    unsigned long Offset = (unsigned long) Base - DENSE_BASE;
-
-#if 1
-    xf86Msg(X_INFO, "unmapVidMemSparse: unmapping Base 0x%lx Size 0x%lx\n",
-            Base, Size);
-#endif
-    /* Unmap DENSE always. */
-    munmap((caddr_t) Base, Size);
-
-    /* Unmap SPARSE always, and ignore error in case we did not map it. */
-    munmap((caddr_t) (SPARSE_BASE + (Offset << 5)), Size << 5);
-}
-
-static int
-readSparse8(void *Base, register unsigned long Offset)
-{
-    register unsigned long result, shift;
-    register unsigned long msb;
-
-    mem_barrier();
-    Offset += (unsigned long) Base - DENSE_BASE;
-    shift = (Offset & 0x3) << 3;
-    if (Offset >= (hae_thresh)) {
-        msb = Offset & hae_mask;
-        Offset -= msb;
-        if (msb_set != msb) {
-            sethae(msb);
-            msb_set = msb;
-        }
-    }
-
-    mem_barrier();
-    result = *(vuip) (SPARSE_BASE + (Offset << 5));
-    result >>= shift;
-    return 0xffUL & result;
-}
-
-static int
-readSparse16(void *Base, register unsigned long Offset)
-{
-    register unsigned long result, shift;
-    register unsigned long msb;
-
-    mem_barrier();
-    Offset += (unsigned long) Base - DENSE_BASE;
-    shift = (Offset & 0x2) << 3;
-    if (Offset >= hae_thresh) {
-        msb = Offset & hae_mask;
-        Offset -= msb;
-        if (msb_set != msb) {
-            sethae(msb);
-            msb_set = msb;
-        }
-    }
-
-    mem_barrier();
-    result = *(vuip) (SPARSE_BASE + (Offset << 5) + (1 << (5 - 2)));
-    result >>= shift;
-    return 0xffffUL & result;
-}
-
-static int
-readSparse32(void *Base, register unsigned long Offset)
-{
-    /* NOTE: this is really using DENSE. */
-    mem_barrier();
-    return *(vuip) ((unsigned long) Base + (Offset));
-}
-
-static void
-writeSparse8(int Value, void *Base, register unsigned long Offset)
-{
-    register unsigned long msb;
-    register unsigned int b = Value & 0xffU;
-
-    write_mem_barrier();
-    Offset += (unsigned long) Base - DENSE_BASE;
-    if (Offset >= hae_thresh) {
-        msb = Offset & hae_mask;
-        Offset -= msb;
-        if (msb_set != msb) {
-            sethae(msb);
-            msb_set = msb;
-        }
-    }
-
-    write_mem_barrier();
-    *(vuip) (SPARSE_BASE + (Offset << 5)) = b * 0x01010101;
-}
-
-static void
-writeSparse16(int Value, void *Base, register unsigned long Offset)
-{
-    register unsigned long msb;
-    register unsigned int w = Value & 0xffffU;
-
-    write_mem_barrier();
-    Offset += (unsigned long) Base - DENSE_BASE;
-    if (Offset >= hae_thresh) {
-        msb = Offset & hae_mask;
-        Offset -= msb;
-        if (msb_set != msb) {
-            sethae(msb);
-            msb_set = msb;
-        }
-    }
-
-    write_mem_barrier();
-    *(vuip) (SPARSE_BASE + (Offset << 5) + (1 << (5 - 2))) = w * 0x00010001;
-}
-
-static void
-writeSparse32(int Value, void *Base, register unsigned long Offset)
-{
-    /* NOTE: this is really using DENSE. */
-    write_mem_barrier();
-    *(vuip) ((unsigned long) Base + (Offset)) = Value;
-    return;
-}
-
-static void
-writeSparseNB8(int Value, void *Base, register unsigned long Offset)
-{
-    register unsigned long msb;
-    register unsigned int b = Value & 0xffU;
-
-    Offset += (unsigned long) Base - DENSE_BASE;
-    if (Offset >= hae_thresh) {
-        msb = Offset & hae_mask;
-        Offset -= msb;
-        if (msb_set != msb) {
-            sethae(msb);
-            msb_set = msb;
-        }
-    }
-    *(vuip) (SPARSE_BASE + (Offset << 5)) = b * 0x01010101;
-}
-
-static void
-writeSparseNB16(int Value, void *Base, register unsigned long Offset)
-{
-    register unsigned long msb;
-    register unsigned int w = Value & 0xffffU;
-
-    Offset += (unsigned long) Base - DENSE_BASE;
-    if (Offset >= hae_thresh) {
-        msb = Offset & hae_mask;
-        Offset -= msb;
-        if (msb_set != msb) {
-            sethae(msb);
-            msb_set = msb;
-        }
-    }
-    *(vuip) (SPARSE_BASE + (Offset << 5) + (1 << (5 - 2))) = w * 0x00010001;
-}
-
-static void
-writeSparseNB32(int Value, void *Base, register unsigned long Offset)
-{
-    /* NOTE: this is really using DENSE. */
-    *(vuip) ((unsigned long) Base + (Offset)) = Value;
-    return;
-}
 
 void (*xf86WriteMmio8) (int Value, void *Base, unsigned long Offset)
     = writeDense8;
