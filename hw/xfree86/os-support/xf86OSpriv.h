@@ -32,14 +32,8 @@
 #ifndef _XF86OSPRIV_H
 #define _XF86OSPRIV_H
 
-typedef void *(*SetWCProcPtr) (int, unsigned long, unsigned long, Bool,
-                                 MessageType);
-typedef void (*UndoWCProcPtr) (int, void *);
-
 typedef struct {
     Bool initialised;
-    SetWCProcPtr setWC;
-    UndoWCProcPtr undoWC;
     Bool linearSupported;
 } VidMemInfo, *VidMemInfoPtr;
 

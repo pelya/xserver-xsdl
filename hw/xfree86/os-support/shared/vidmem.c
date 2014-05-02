@@ -129,7 +129,7 @@ xf86CheckMTRR(int ScreenNum)
      */
     checkMtrrOption(vp);
 
-    if (vp->mtrrEnabled && vidMemInfo.setWC)
+    if (vp->mtrrEnabled)
         return TRUE;
 
     return FALSE;
