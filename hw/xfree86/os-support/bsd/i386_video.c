@@ -34,27 +34,6 @@
 #include <errno.h>
 #include <sys/mman.h>
 
-#ifdef HAS_MTRR_SUPPORT
-#ifndef __NetBSD__
-#include <sys/types.h>
-#include <sys/memrange.h>
-#else
-#include "memrange.h"
-#endif
-#define X_MTRR_ID "XFree86"
-#endif
-
-#if defined(HAS_MTRR_BUILTIN) && defined(__NetBSD__)
-#include <machine/mtrr.h>
-#include <machine/sysarch.h>
-#include <sys/queue.h>
-#ifdef __x86_64__
-#define i386_set_mtrr x86_64_set_mtrr
-#define i386_get_mtrr x86_64_get_mtrr
-#define i386_iopl x86_64_iopl
-#endif
-#endif
-
 #include "xf86_OSlib.h"
 #include "xf86OSpriv.h"
 
@@ -83,10 +62,6 @@ static int devMemFd = -1;
 
 #ifdef HAS_APERTURE_DRV
 #define DEV_APERTURE "/dev/xf86"
-#endif
-
-#ifdef HAS_MTRR_SUPPORT
-static Bool cleanMTRR(void);
 #endif
 
 /*
@@ -181,9 +156,6 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 
     pci_system_init_dev_mem(devMemFd);
 
-#ifdef HAS_MTRR_SUPPORT
-    cleanMTRR();
-#endif
     pVidMem->initialised = TRUE;
 }
 
@@ -354,87 +326,3 @@ xf86SetRGBOut()
     return;
 }
 #endif
-
-#ifdef HAS_MTRR_SUPPORT
-/* memory range (MTRR) support for FreeBSD */
-
-/*
- * This code is experimental.  Some parts may be overkill, and other parts
- * may be incomplete.
- */
-
-/*
- * getAllRanges returns the full list of memory ranges with attributes set.
- */
-
-static struct mem_range_desc *
-getAllRanges(int *nmr)
-{
-    struct mem_range_desc *mrd;
-    struct mem_range_op mro;
-
-    /*
-     * Find how many ranges there are.  If this fails, then the kernel
-     * probably doesn't have MTRR support.
-     */
-    mro.mo_arg[0] = 0;
-    if (ioctl(devMemFd, MEMRANGE_GET, &mro))
-        return NULL;
-    *nmr = mro.mo_arg[0];
-    mrd = xnfalloc(*nmr * sizeof(struct mem_range_desc));
-    mro.mo_arg[0] = *nmr;
-    mro.mo_desc = mrd;
-    if (ioctl(devMemFd, MEMRANGE_GET, &mro)) {
-        free(mrd);
-        return NULL;
-    }
-    return mrd;
-}
-
-/*
- * cleanMTRR removes any memory attribute that may be left by a previous
- * X server.  Normally there won't be any, but this takes care of the
- * case where a server crashed without being able finish cleaning up.
- */
-
-static Bool
-cleanMTRR()
-{
-    struct mem_range_desc *mrd;
-    struct mem_range_op mro;
-    int nmr, i;
-
-    /* This shouldn't happen */
-    if (devMemFd < 0)
-        return FALSE;
-
-    if (!(mrd = getAllRanges(&nmr)))
-        return FALSE;
-
-    for (i = 0; i < nmr; i++) {
-        if (strcmp(mrd[i].mr_owner, X_MTRR_ID) == 0 &&
-            (mrd[i].mr_flags & MDF_ACTIVE)) {
-#ifdef DEBUG
-            ErrorF("Clean for (0x%lx,0x%lx)\n",
-                   (unsigned long) mrd[i].mr_base,
-                   (unsigned long) mrd[i].mr_len);
-#endif
-            if (mrd[i].mr_flags & MDF_FIXACTIVE) {
-                mro.mo_arg[0] = MEMRANGE_SET_UPDATE;
-                mrd[i].mr_flags = MDF_UNCACHEABLE;
-            }
-            else {
-                mro.mo_arg[0] = MEMRANGE_SET_REMOVE;
-            }
-            mro.mo_desc = mrd + i;
-            ioctl(devMemFd, MEMRANGE_SET, &mro);
-        }
-    }
-#ifdef DEBUG
-    sleep(10);
-#endif
-    free(mrd);
-    return TRUE;
-}
-
-#endif                          /* HAS_MTRR_SUPPORT */
