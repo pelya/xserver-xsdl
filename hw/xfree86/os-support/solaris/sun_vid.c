@@ -63,94 +63,10 @@
 /* Video Memory Mapping section 					   */
 /***************************************************************************/
 
-static char *apertureDevName = NULL;
-static int apertureDevFD_ro = -1;
-static int apertureDevFD_rw = -1;
-
-static Bool
-solOpenAperture(void)
-{
-    if (apertureDevName == NULL) {
-        apertureDevName = "/dev/xsvc";
-        if ((apertureDevFD_rw = open(apertureDevName, O_RDWR)) < 0) {
-            xf86MsgVerb(X_WARNING, 0,
-                        "solOpenAperture: failed to open %s (%s)\n",
-                        apertureDevName, strerror(errno));
-            apertureDevName = "/dev/fbs/aperture";
-            apertureDevFD_rw = open(apertureDevName, O_RDWR);
-        }
-        apertureDevFD_ro = open(apertureDevName, O_RDONLY);
-
-        if ((apertureDevFD_rw < 0) || (apertureDevFD_ro < 0)) {
-            xf86MsgVerb(X_WARNING, 0,
-                        "solOpenAperture: failed to open %s (%s)\n",
-                        apertureDevName, strerror(errno));
-            xf86MsgVerb(X_WARNING, 0,
-                        "solOpenAperture: either /dev/fbs/aperture"
-                        " or /dev/xsvc required\n");
-
-            apertureDevName = NULL;
-
-            if (apertureDevFD_rw >= 0) {
-                close(apertureDevFD_rw);
-            }
-            apertureDevFD_rw = -1;
-
-            if (apertureDevFD_ro >= 0) {
-                close(apertureDevFD_ro);
-            }
-            apertureDevFD_ro = -1;
-
-            return FALSE;
-        }
-    }
-    return TRUE;
-}
-
 _X_HIDDEN void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
     pVidMem->initialised = TRUE;
-}
-
-/*
- * Read BIOS via mmap()ing physical memory.
- */
-int
-xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
-             int Len)
-{
-    unsigned char *ptr;
-    int psize;
-    int mlen;
-
-    psize = getpagesize();
-    Offset += Base & (psize - 1);
-    Base &= ~(psize - 1);
-    mlen = (Offset + Len + psize - 1) & ~(psize - 1);
-
-    if (solOpenAperture() == FALSE) {
-        xf86Msg(X_WARNING,
-                "xf86ReadBIOS: Failed to open aperture to read BIOS\n");
-        return -1;
-    }
-
-    ptr = (unsigned char *) mmap(NULL, mlen, PROT_READ,
-                                 MAP_SHARED, apertureDevFD_ro, (off_t) Base);
-    if (ptr == MAP_FAILED) {
-        xf86Msg(X_WARNING, "xf86ReadBIOS: %s mmap failed [0x%08lx, 0x%04x]\n",
-                apertureDevName, Base, mlen);
-        return -1;
-    }
-
-    (void) memcpy(Buf, (void *) (ptr + Offset), Len);
-    if (munmap((caddr_t) ptr, mlen) != 0) {
-        xf86MsgVerb(X_WARNING, 0,
-                    "xf86ReadBIOS: failed to unmap %s (0x%p,0x%x) (%s)\n",
-                    apertureDevName, ptr, mlen, strerror(errno));
-    }
-
-    return Len;
 }
 
 /***************************************************************************/

@@ -56,30 +56,6 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 
 volatile unsigned char *ioBase = MAP_FAILED;
 
-int
-xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
-             int Len)
-{
-    int rv;
-    static int kmem = -1;
-
-    if (kmem == -1) {
-        kmem = open(DEV_MEM, 2);
-        if (kmem == -1) {
-            FatalError("xf86ReadBIOS: open %s", DEV_MEM);
-        }
-    }
-
-#ifdef DEBUG
-    xf86MsgVerb(X_INFO, 3, "xf86ReadBIOS() %lx %lx, %x\n", Base, Offset, Len);
-#endif
-
-    lseek(kmem, Base + Offset, 0);
-    rv = read(kmem, Buf, Len);
-
-    return rv;
-}
-
 Bool
 xf86EnableIO()
 {

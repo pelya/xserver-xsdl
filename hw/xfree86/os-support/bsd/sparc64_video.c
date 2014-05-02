@@ -43,11 +43,3 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
     pVidMem->initialised = TRUE;
 }
-
-int
-xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
-             int Len)
-{
-
-    return 0;
-}

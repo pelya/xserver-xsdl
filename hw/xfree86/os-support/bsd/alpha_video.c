@@ -231,50 +231,6 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
     pVidMem->initialised = TRUE;
 }
 
-/*
- * Read BIOS via mmap()ing DEV_MEM
- */
-
-int
-xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
-             int Len)
-{
-    unsigned char *ptr;
-    int psize;
-    int mlen;
-
-    checkDevMem(TRUE);
-    if (devMemFd == -1) {
-        return -1;
-    }
-
-    psize = getpagesize();
-    Offset += Base & (psize - 1);
-    Base &= ~(psize - 1);
-    mlen = (Offset + Len + psize - 1) & ~(psize - 1);
-    ptr = (unsigned char *) mmap((caddr_t) 0, mlen, PROT_READ,
-                                 MAP_SHARED, devMemFd, (off_t) Base + BUS_BASE);
-    if ((long) ptr == -1) {
-        xf86Msg(X_WARNING,
-                "xf86ReadBIOS: %s mmap[s=%x,a=%lx,o=%lx] failed (%s)\n",
-                DEV_MEM, Len, Base, Offset, strerror(errno));
-        return -1;
-    }
-#ifdef DEBUG
-    xf86MsgVerb(X_INFO, 3,
-                "xf86ReadBIOS: BIOS at 0x%08x has signature 0x%04x\n", Base,
-                ptr[0] | (ptr[1] << 8));
-#endif
-    (void) memcpy(Buf, (void *) (ptr + Offset), Len);
-    (void) munmap((caddr_t) ptr, mlen);
-#ifdef DEBUG
-    xf86MsgVerb(X_INFO, 3, "xf86ReadBIOS(%x, %x, Buf, %x)"
-                "-> %02x %02x %02x %02x...\n",
-                Base, Offset, Len, Buf[0], Buf[1], Buf[2], Buf[3]);
-#endif
-    return Len;
-}
-
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__)
 
 extern int ioperm(unsigned long from, unsigned long num, int on);
