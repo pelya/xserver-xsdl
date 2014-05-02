@@ -1473,15 +1473,3 @@ xf86PciConfigureNewDev(void *busData, struct pci_device *pVideo,
     if (*chipset < 0)
         *chipset = (pVideo->vendor_id << 16) | pVideo->device_id;
 }
-
-struct pci_io_handle *
-xf86MapLegacyIO(struct pci_device *dev)
-{
-    return pci_legacy_open_io(dev, 0, 64 * 1024);
-}
-
-void
-xf86UnmapLegacyIO(struct pci_device *dev, struct pci_io_handle *handle)
-{
-    pci_device_close_io(dev, handle);
-}
