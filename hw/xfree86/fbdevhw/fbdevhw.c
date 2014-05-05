@@ -122,7 +122,7 @@ fbdevHWGetFD(ScrnInfoPtr pScrn)
 
 #if DEBUG
 static void
-print_fbdev_mode(char *txt, struct fb_var_screeninfo *var)
+print_fbdev_mode(const char *txt, struct fb_var_screeninfo *var)
 {
     ErrorF("fbdev %s mode:\t%d   %d %d %d %d   %d %d %d %d   %d %d:%d:%d\n",
            txt, var->pixclock,
@@ -133,7 +133,7 @@ print_fbdev_mode(char *txt, struct fb_var_screeninfo *var)
 }
 
 static void
-print_xfree_mode(char *txt, DisplayModePtr mode)
+print_xfree_mode(const char *txt, DisplayModePtr mode)
 {
     ErrorF("xfree %s mode:\t%d   %d %d %d %d   %d %d %d %d\n",
            txt, mode->Clock,
