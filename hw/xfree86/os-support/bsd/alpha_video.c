@@ -36,8 +36,6 @@
 #include <sys/sysctl.h>
 #endif
 
-#include "xf86Axp.h"
-
 #include "xf86_OSlib.h"
 #include "xf86OSpriv.h"
 
@@ -47,43 +45,9 @@
 #define MAP_FLAGS (MAP_FILE | MAP_SHARED)
 #endif
 
-axpDevice bsdGetAXP(void);
-
 #ifndef __NetBSD__
 extern unsigned long dense_base(void);
-
-static int axpSystem = -1;
-static unsigned long hae_thresh;
-static unsigned long hae_mask;
-
-static int
-has_bwx(void)
-{
-    static int bwx = 0;
-    size_t len = sizeof(bwx);
-    int error;
-
-#ifdef __OpenBSD__
-    int mib[3];
-
-    mib[0] = CTL_MACHDEP;
-    mib[1] = CPU_CHIPSET;
-    mib[2] = CPU_CHIPSET_BWX;
-
-    if ((error = sysctl(mib, 3, &bwx, &len, NULL, 0)) < 0)
-        return FALSE;
-    else
-        return bwx;
-#else
-    if ((error = sysctlbyname("hw.chipset.bwx", &bwx, &len, 0, 0)) < 0)
-        return FALSE;
-    else
-        return bwx;
-#endif
-}
 #else                           /* __NetBSD__ */
-static unsigned long hae_thresh = (1UL << 24);
-static unsigned long hae_mask = 0xf8000000UL;   /* XXX - should use xf86AXP.c */
 static struct alpha_bus_window *abw;
 static int abw_count = -1;
 
@@ -95,16 +59,6 @@ init_abw(void)
         if (abw_count <= 0)
             FatalError("init_abw: alpha_bus_getwindows failed\n");
     }
-}
-
-static int
-has_bwx(void)
-{
-    if (abw_count < 0)
-        init_abw();
-
-    xf86Msg(X_INFO, "has_bwx = %d\n", abw[0].abw_abst.abst_flags & ABST_BWX ? 1 : 0);   /* XXXX */
-    return abw[0].abw_abst.abst_flags & ABST_BWX;
 }
 
 static unsigned long
@@ -216,18 +170,6 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
     checkDevMem(TRUE);
 
-    if (has_bwx()) {
-        xf86Msg(X_PROBED, "Machine type has 8/16 bit access\n");
-    }
-    else {
-        xf86Msg(X_PROBED, "Machine needs sparse mapping\n");
-#ifndef __NetBSD__
-        if (axpSystem == -1)
-            axpSystem = bsdGetAXP();
-        hae_thresh = xf86AXPParams[axpSystem].hae_thresh;
-        hae_mask = xf86AXPParams[axpSystem].hae_mask;
-#endif                          /* __NetBSD__ */
-    }
     pVidMem->initialised = TRUE;
 }
 

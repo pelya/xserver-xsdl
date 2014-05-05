@@ -38,9 +38,6 @@
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 #include "xf86OSpriv.h"
-#ifdef __alpha__
-#include "shared/xf86Axp.h"
-#endif
 
 static Bool ExtendedEnabled = FALSE;
 
@@ -68,49 +65,13 @@ extern int iopl(int __level);
 
 #endif
 
-#ifdef __alpha__
-#define BUS_BASE bus_base
-#else
-#define BUS_BASE (0)
-#endif                          /*  __alpha__ */
-
 /***************************************************************************/
 /* Video Memory Mapping section                                            */
 /***************************************************************************/
 
-#if defined (__alpha__)
-extern void sethae(unsigned long hae);
-extern unsigned long _bus_base __P((void)) __attribute__ ((const));
-extern unsigned long _bus_base_sparse __P((void)) __attribute__ ((const));
-
-extern axpDevice lnxGetAXP(void);
-static axpDevice axpSystem = -1;
-static Bool needSparse;
-static unsigned long hae_thresh;
-static unsigned long hae_mask;
-static unsigned long bus_base;
-#endif
-
 void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
-#ifdef __alpha__
-    if (axpSystem == -1) {
-        axpSystem = lnxGetAXP();
-        if ((needSparse = (_bus_base_sparse() > 0))) {
-            hae_thresh = xf86AXPParams[axpSystem].hae_thresh;
-            hae_mask = xf86AXPParams[axpSystem].hae_mask;
-        }
-        bus_base = _bus_base();
-    }
-    if (needSparse) {
-        xf86Msg(X_INFO, "Machine needs sparse mapping\n");
-    }
-    else {
-        xf86Msg(X_INFO, "Machine type has 8/16 bit access\n");
-    }
-#endif                          /* __alpha__ */
-
     pVidMem->initialised = TRUE;
 }
 
