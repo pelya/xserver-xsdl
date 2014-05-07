@@ -452,6 +452,12 @@ extern _X_EXPORT void miWideDash(DrawablePtr /*pDrawable */ ,
                                  DDXPointPtr    /*pPts */
     );
 
+extern _X_EXPORT void miPolylines(DrawablePtr pDrawable,
+                                  GCPtr pGC,
+                                  int mode,
+                                  int npt,
+                                  DDXPointPtr pPts);
+
 /* miwindow.c */
 
 extern _X_EXPORT void miClearToBackground(WindowPtr /*pWin */ ,
