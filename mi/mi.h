@@ -67,6 +67,11 @@ typedef struct _miDash *miDashPtr;
 
 /* miarc.c */
 
+extern _X_EXPORT void miWideArc(DrawablePtr pDraw,
+                                GCPtr pGC,
+                                int narcs,
+                                xArc * parcs);
+
 extern _X_EXPORT void miPolyArc(DrawablePtr /*pDraw */ ,
                                 GCPtr /*pGC */ ,
                                 int /*narcs */ ,
