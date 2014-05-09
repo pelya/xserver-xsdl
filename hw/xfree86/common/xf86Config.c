@@ -232,16 +232,17 @@ xf86ValidateFontPath(char *path)
     return tmp_path;
 }
 
-#define FIND_SUITABLE(pointertype, listhead, ptr)                               \
-    {                                                                           \
-        pointertype l, p;                                                       \
-                                                                                \
-        for (l = listhead, p = NULL; !p && l; l = (pointertype) l->list.next) { \
-            if (! l->match_seat || SeatId && xf86nameCompare(l->match_seat, SeatId) == 0) \
-                p = l;                                                          \
-        }                                                                       \
-        ptr = p;                                                                \
-    }
+#define FIND_SUITABLE(pointertype, listhead, ptr)                                            \
+    do {                                                                                     \
+        pointertype _l, _p;                                                                  \
+                                                                                             \
+        for (_l = (listhead), _p = NULL; !_p && _l; _l = (pointertype)_l->list.next) {       \
+            if (!_l->match_seat || (SeatId && xf86nameCompare(_l->match_seat, SeatId) == 0)) \
+                _p = _l;                                                                     \
+        }                                                                                    \
+                                                                                             \
+        (ptr) = _p;                                                                          \
+    } while(0)
 
 /*
  * use the datastructure that the parser provides and pick out the parts
@@ -2368,6 +2369,7 @@ xf86HandleConfigFile(Bool autoconfig)
     const char *scanptr;
     Bool singlecard = 0;
     Bool implicit_layout = FALSE;
+    XF86ConfLayoutPtr layout;
 
     if (!autoconfig) {
         char *filename, *dirname, *sysdirname;
@@ -2443,8 +2445,6 @@ xf86HandleConfigFile(Bool autoconfig)
      */
 
     /* First check if a layout section is present, and if it is valid. */
-    XF86ConfLayoutPtr layout;
-
     FIND_SUITABLE(XF86ConfLayoutPtr, xf86configptr->conf_layout_lst, layout);
     if (layout == NULL || xf86ScreenName != NULL) {
         XF86ConfScreenPtr screen;
