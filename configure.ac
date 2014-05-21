@@ -2442,7 +2442,7 @@ AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 
 dnl Xwayland DDX
 
-PKG_CHECK_MODULES(XWAYLANDMODULES, [wayland-client libdrm epoxy], [have_xwayland=yes], [have_xwayland=no])
+PKG_CHECK_MODULES(XWAYLANDMODULES, [wayland-client >= 1.3.0 libdrm epoxy], [have_xwayland=yes], [have_xwayland=no])
 AC_MSG_CHECKING([whether to build Xwayland DDX])
 if test "x$XWAYLAND" = xauto; then
    XWAYLAND="$have_xwayland"
