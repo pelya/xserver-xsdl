@@ -196,23 +196,3 @@ shadowRemove(ScreenPtr pScreen, PixmapPtr pPixmap)
     RemoveBlockAndWakeupHandlers(shadowBlockHandler, shadowWakeupHandler,
                                  (void *) pScreen);
 }
-
-Bool
-shadowInit(ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc window)
-{
-    PixmapPtr pPixmap;
-
-    pPixmap = pScreen->CreatePixmap(pScreen, pScreen->width, pScreen->height,
-                                    pScreen->rootDepth, 0);
-    if (!pPixmap)
-        return FALSE;
-
-    if (!shadowSetup(pScreen)) {
-        pScreen->DestroyPixmap(pPixmap);
-        return FALSE;
-    }
-
-    shadowAdd(pScreen, pPixmap, update, window, SHADOW_ROTATE_0, 0);
-
-    return TRUE;
-}
