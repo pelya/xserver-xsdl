@@ -89,14 +89,13 @@ typedef struct _SppArc {
 
 /* mifpolycon.c */
 
-extern _X_EXPORT void miFillSppPoly(DrawablePtr /*dst */ ,
-                                    GCPtr /*pgc */ ,
-                                    int /*count */ ,
-                                    SppPointPtr /*ptsIn */ ,
-                                    int /*xTrans */ ,
-                                    int /*yTrans */ ,
-                                    double /*xFtrans */ ,
-                                    double      /*yFtrans */
-    );
+extern void miFillSppPoly(DrawablePtr /*dst */ ,
+                          GCPtr /*pgc */ ,
+                          int /*count */ ,
+                          SppPointPtr /*ptsIn */ ,
+                          int /*xTrans */ ,
+                          int /*yTrans */ ,
+                          double /*xFtrans */ ,
+                          double      /*yFtrans */);
 
 #endif                          /* __MIFPOLY_H__ */
