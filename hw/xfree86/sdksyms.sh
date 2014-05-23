@@ -295,8 +295,6 @@ cat > sdksyms.c << EOF
 #include "selection.h"
 #include "servermd.h"
 #include "site.h"
-#include "swaprep.h"
-#include "swapreq.h"
 #include "validate.h"
 #include "window.h"
 #include "windowstr.h"
