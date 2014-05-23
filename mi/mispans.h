@@ -61,24 +61,20 @@ typedef struct {
 } SpanGroup;
 
 /* Initialize SpanGroup.  MUST BE DONE before use. */
-extern _X_EXPORT void miInitSpanGroup(SpanGroup *       /*spanGroup */
-    );
+extern void miInitSpanGroup(SpanGroup *       /*spanGroup */);
 
 /* Add a Spans to a SpanGroup. The spans MUST BE in y-sorted order */
-extern _X_EXPORT void miAppendSpans(SpanGroup * /*spanGroup */ ,
-                                    SpanGroup * /*otherGroup */ ,
-                                    Spans *     /*spans */
-    );
+extern void miAppendSpans(SpanGroup * /*spanGroup */ ,
+                          SpanGroup * /*otherGroup */ ,
+                          Spans *     /*spans */);
 
 /* Paint a span group, insuring that each pixel is painted at most once */
-extern _X_EXPORT void miFillUniqueSpanGroup(DrawablePtr /*pDraw */ ,
-                                            GCPtr /*pGC */ ,
-                                            SpanGroup * /*spanGroup */
-    );
+extern void miFillUniqueSpanGroup(DrawablePtr /*pDraw */ ,
+                                  GCPtr /*pGC */ ,
+                                  SpanGroup * /*spanGroup */);
 
 /* Free up data in a span group.  MUST BE DONE or you'll suffer memory leaks */
-extern _X_EXPORT void miFreeSpanGroup(SpanGroup *       /*spanGroup */
-    );
+extern void miFreeSpanGroup(SpanGroup *       /*spanGroup */);
 
 /* Rops which must use span groups */
 #define miSpansCarefulRop(rop)	(((rop) & 0xc) == 0x8 || ((rop) & 0x3) == 0x2)
