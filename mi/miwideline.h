@@ -92,28 +92,3 @@ typedef struct _LineFace {
 	ValidateGC (pDrawable, pGC); \
     } \
 }
-
-extern _X_EXPORT void miRoundJoinClip(LineFacePtr /*pLeft */ ,
-                                      LineFacePtr /*pRight */ ,
-                                      PolyEdgePtr /*edge1 */ ,
-                                      PolyEdgePtr /*edge2 */ ,
-                                      int * /*y1 */ ,
-                                      int * /*y2 */ ,
-                                      Bool * /*left1 */ ,
-                                      Bool *    /*left2 */
-    );
-
-extern _X_EXPORT int miRoundCapClip(LineFacePtr /*face */ ,
-                                    Bool /*isInt */ ,
-                                    PolyEdgePtr /*edge */ ,
-                                    Bool *      /*leftEdge */
-    );
-
-extern _X_EXPORT int miPolyBuildEdge(double x0, double y0, double k, int dx,
-                                     int dy, int xi, int yi, int left,
-                                     PolyEdgePtr edge);
-extern _X_EXPORT int miPolyBuildPoly(PolyVertexPtr vertices,
-                                     PolySlopePtr slopes, int count, int xi,
-                                     int yi, PolyEdgePtr left,
-                                     PolyEdgePtr right, int *pnleft,
-                                     int *pnright, int *h);

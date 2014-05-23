@@ -273,7 +273,7 @@ miFillRectPolyHelper(DrawablePtr pDrawable,
     }
 }
 
-/* static */ int
+static int
 miPolyBuildEdge(double x0, double y0, double k, /* x0 * dy - y0 * dx */
                 int dx, int dy, int xi, int yi, int left, PolyEdgePtr edge)
 {
@@ -325,7 +325,7 @@ miPolyBuildEdge(double x0, double y0, double k, /* x0 * dy - y0 * dx */
 
 #define StepAround(v, incr, max) (((v) + (incr) < 0) ? (max - 1) : ((v) + (incr) == max) ? 0 : ((v) + (incr)))
 
-/* static */ int
+static int
 miPolyBuildPoly(PolyVertexPtr vertices,
                 PolySlopePtr slopes,
                 int count,
@@ -865,7 +865,7 @@ miRoundJoinFace(LineFacePtr face, PolyEdgePtr edge, Bool *leftEdge)
     return y;
 }
 
-void
+static void
 miRoundJoinClip(LineFacePtr pLeft, LineFacePtr pRight,
                 PolyEdgePtr edge1, PolyEdgePtr edge2,
                 int *y1, int *y2, Bool *left1, Bool *left2)
@@ -886,7 +886,7 @@ miRoundJoinClip(LineFacePtr pLeft, LineFacePtr pRight,
     *y2 = miRoundJoinFace(pRight, edge2, left2);
 }
 
-int
+static int
 miRoundCapClip(LineFacePtr face, Bool isInt, PolyEdgePtr edge, Bool *leftEdge)
 {
     int y;
