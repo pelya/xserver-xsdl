@@ -841,6 +841,9 @@ static const char *compiled_in_modules[] = {
 #if DRI3
     "dri3",
 #endif
+#if PRESENT
+    "present",
+#endif
     NULL
 };
 
