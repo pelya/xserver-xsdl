@@ -325,6 +325,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --disable-arm-iwmmxt
 
 cd pixman
+touch *.S
 
 $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
