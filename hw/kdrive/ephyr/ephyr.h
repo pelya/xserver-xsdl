@@ -131,6 +131,9 @@ void
  ephyrScreenFini(KdScreenInfo * screen);
 
 void
+ephyrCloseScreen(ScreenPtr pScreen);
+
+void
  ephyrCardFini(KdCardInfo * card);
 
 void
