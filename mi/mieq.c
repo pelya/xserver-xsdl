@@ -517,7 +517,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev, InternalEvent *event, ScreenPtr screen)
 
     /* refuse events from disabled devices */
     if (!dev->enabled)
-        return 0;
+        return;
 
     /* Custom event handler */
     handler = miEventQueue.handlers[event->any.type];
