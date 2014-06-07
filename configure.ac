@@ -1424,7 +1424,7 @@ AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 
 AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
 AC_ARG_WITH(xkb-bin-directory,
-				AS_HELP_STRING([--with-xkb-bin-directory=DIR], [Directory containing xkbcomp program]),
+				AS_HELP_STRING([--with-xkb-bin-directory=DIR], [Directory containing xkbcomp program (default: ${bindir})]),
 				[XKB_BIN_DIRECTORY="$withval"],
 				[XKB_BIN_DIRECTORY="$bindir"])
 
