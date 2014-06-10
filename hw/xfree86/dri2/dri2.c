@@ -130,6 +130,7 @@ typedef struct _DRI2Screen {
     HandleExposuresProcPtr HandleExposures;
 
     ConfigNotifyProcPtr ConfigNotify;
+    SetWindowPixmapProcPtr SetWindowPixmap;
     DRI2CreateBuffer2ProcPtr CreateBuffer2;
     DRI2DestroyBuffer2ProcPtr DestroyBuffer2;
     DRI2CopyRegion2ProcPtr CopyRegion2;
@@ -1378,6 +1379,21 @@ DRI2ConfigNotify(WindowPtr pWin, int x, int y, int w, int h, int bw,
     return Success;
 }
 
+static void
+DRI2SetWindowPixmap(WindowPtr pWin, PixmapPtr pPix)
+{
+    DrawablePtr pDraw = (DrawablePtr) pWin;
+    ScreenPtr pScreen = pDraw->pScreen;
+    DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
+
+    pScreen->SetWindowPixmap = ds->SetWindowPixmap;
+    (*pScreen->SetWindowPixmap) (pWin, pPix);
+    ds->SetWindowPixmap = pScreen->SetWindowPixmap;
+    pScreen->SetWindowPixmap = DRI2SetWindowPixmap;
+
+    DRI2InvalidateDrawableAll(pDraw);
+}
+
 #define MAX_PRIME DRI2DriverPrimeMask
 static int
 get_prime_id(void)
@@ -1524,6 +1540,9 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     ds->ConfigNotify = pScreen->ConfigNotify;
     pScreen->ConfigNotify = DRI2ConfigNotify;
 
+    ds->SetWindowPixmap = pScreen->SetWindowPixmap;
+    pScreen->SetWindowPixmap = DRI2SetWindowPixmap;
+
     xf86DrvMsg(pScreen->myNum, X_INFO, "[DRI2] Setup complete\n");
     for (i = 0; i < sizeof(driverTypeNames) / sizeof(driverTypeNames[0]); i++) {
         if (i < ds->numDrivers && ds->driverNames[i]) {
@@ -1548,6 +1567,7 @@ DRI2CloseScreen(ScreenPtr pScreen)
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
 
     pScreen->ConfigNotify = ds->ConfigNotify;
+    pScreen->SetWindowPixmap = ds->SetWindowPixmap;
 
     if (ds->prime_id)
         prime_id_allocate_bitmask &= ~(1 << ds->prime_id);
