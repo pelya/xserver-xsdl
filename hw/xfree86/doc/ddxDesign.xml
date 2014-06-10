@@ -9094,8 +9094,7 @@ ZZZScreenInit(ScreenPtr pScreen, int argc, char **argv)
     xf86SetBlackWhitePixels(pScreen);
 
     /*
-     * Install colourmap functions.  If using the vgahw module,
-     * vgaHandleColormaps would usually be called here.
+     * Install colourmap functions.
      */
 
     ...
