@@ -743,9 +743,9 @@ static void *send_unicode_thread(void *param)
 	// International text input - copy symbol to clipboard, and send copypaste key
 	int unicode = (int)param;
 	char cmd[1024] = "";
+	char c[5] = "";
 	sprintf (cmd, "127.0.0.1:%s", display);
 	setenv ("DISPLAY", cmd, 1);
-	char c[5] = "";
 	UnicodeToUtf8 (unicode, c);
 	//sprintf(cmd, "echo '%s' | %s/usr/bin/xsel -b -i >/dev/null 2>&1", c, getenv("APPDIR"));
 	//sprintf(cmd, "echo '%s' >/dev/null 2>&1", c);
@@ -775,6 +775,7 @@ void send_unicode(int unicode)
 int execute_command(const char * command, const char *mode, char * data, int datalen)
 {
 	FILE *cmd;
+	int ret;
 	//printf ("Starting child command: %s, mode %s data: '%s'", command, mode, data);
 	cmd = popen (command, mode);
 	if (!cmd) {
@@ -794,7 +795,7 @@ int execute_command(const char * command, const char *mode, char * data, int dat
 		}
 		data[0] = 0;
 	}
-	int ret = WEXITSTATUS (pclose (cmd));
+	ret = WEXITSTATUS (pclose (cmd));
 	//printf ("Child command returned %d", ret);
 	return ret;
 }
