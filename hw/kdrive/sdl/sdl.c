@@ -467,8 +467,9 @@ static void sdlKeyboardFini(KdKeyboardInfo *ki)
 
 static Status sdlKeyboardInit(KdKeyboardInfo *ki)
 {
-		ki->minScanCode = 8;
-		ki->maxScanCode = 255;
+	ki->minScanCode = 8;
+	ki->maxScanCode = 255;
+	ki->name = strdup("Android keyboard");
 
 	sdlKeyboard = ki;
 	printf("sdlKeyboardInit() %p\n", ki);
@@ -495,6 +496,7 @@ static void sdlKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int 
 static Status sdlMouseInit (KdPointerInfo *pi)
 {
 	pi->nButtons = 7;
+	pi->name = strdup("Android mouse");
 	sdlPointer = pi;
 	printf("sdlMouseInit() %p\n", pi);
 	return Success;
