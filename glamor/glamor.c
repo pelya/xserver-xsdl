@@ -250,11 +250,6 @@ glamor_block_handler(ScreenPtr screen)
     glamor_priv->tick++;
     glFlush();
     glamor_fbo_expire(glamor_priv);
-    if (glamor_priv->state == RENDER_STATE
-        && glamor_priv->render_idle_cnt++ > RENDER_IDEL_MAX) {
-        glamor_priv->state = IDLE_STATE;
-        glamor_priv->render_idle_cnt = 0;
-    }
 }
 
 static void
