@@ -866,12 +866,6 @@ Bool glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
                                           GLenum type, int no_alpha, int revert,
                                           int swap_rb, void *bits);
 
-/**
- * Destroy all the resources allocated on the uploading
- * phase, includs the tex and fbo.
- **/
-void glamor_destroy_upload_pixmap(PixmapPtr pixmap);
-
 int glamor_create_picture(PicturePtr picture);
 
 void glamor_set_window_pixmap(WindowPtr pWindow, PixmapPtr pPixmap);
