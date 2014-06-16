@@ -789,21 +789,6 @@ void
 glamor_put_vbo_space(ScreenPtr screen);
 
 /**
- * Download a pixmap's texture to cpu memory. If success,
- * One copy of current pixmap's texture will be put into
- * the pixmap->devPrivate.ptr. Will use pbo to map to
- * the pointer if possible.
- * The pixmap must be a gl texture pixmap. gl_fbo must be GLAMOR_FBO_NORMAL and
- * gl_tex must be 1. Used by glamor_prepare_access.
- *
- */
-Bool glamor_download_pixmap_to_cpu(PixmapPtr pixmap, glamor_access_t access);
-
-void *glamor_download_sub_pixmap_to_cpu(PixmapPtr pixmap, int x, int y, int w,
-                                        int h, int stride, void *bits, int pbo,
-                                        glamor_access_t access);
-
-/**
  * Restore a pixmap's data which is downloaded by
  * glamor_download_pixmap_to_cpu to its original
  * gl texture. Used by glamor_finish_access.
