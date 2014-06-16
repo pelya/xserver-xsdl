@@ -833,11 +833,6 @@ Bool glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
                                          int h, int stride, void *bits,
                                          int pbo);
 
-PixmapPtr glamor_get_sub_pixmap(PixmapPtr pixmap, int x, int y,
-                                int w, int h, glamor_access_t access);
-void glamor_put_sub_pixmap(PixmapPtr sub_pixmap, PixmapPtr pixmap, int x, int y,
-                           int w, int h, glamor_access_t access);
-
 glamor_pixmap_clipped_regions *
 glamor_compute_clipped_regions(glamor_pixmap_private *priv,
                                RegionPtr region, int *clipped_nbox,
