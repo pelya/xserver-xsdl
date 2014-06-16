@@ -1064,13 +1064,6 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
     return ret;
 }
 
-void
-glamor_restore_pixmap_to_texture(PixmapPtr pixmap)
-{
-    if (glamor_upload_pixmap_to_texture(pixmap) != GLAMOR_UPLOAD_DONE)
-        LogMessage(X_WARNING, "Failed to restore pixmap to texture.\n");
-}
-
 /*
  * as gles2 only support a very small set of color format and
  * type when do glReadPixel,

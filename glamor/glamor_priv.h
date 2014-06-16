@@ -789,16 +789,6 @@ void
 glamor_put_vbo_space(ScreenPtr screen);
 
 /**
- * Restore a pixmap's data which is downloaded by
- * glamor_download_pixmap_to_cpu to its original
- * gl texture. Used by glamor_finish_access.
- *
- * The pixmap must originally be a texture -- gl_fbo must be
- * GLAMOR_FBO_NORMAL.
- **/
-void glamor_restore_pixmap_to_texture(PixmapPtr pixmap);
-
-/**
  * According to the flag,
  * if the flag is GLAMOR_CREATE_FBO_NO_FBO then just ensure
  * the fbo has a valid texture. Otherwise, it will ensure
