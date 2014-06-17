@@ -309,17 +309,9 @@ create_bits_picture(PicturePtr pict, Bool has_clip, int *xoff, int *yoff)
         return NULL;
 
 #ifdef FB_ACCESS_WRAPPER
-#if FB_SHIFT==5
-
     pixman_image_set_accessors(image,
                                (pixman_read_memory_func_t) wfbReadMemory,
                                (pixman_write_memory_func_t) wfbWriteMemory);
-
-#else
-
-#error The pixman library only works when FbBits is 32 bits wide
-
-#endif
 #endif
 
     /* pCompositeClip is undefined for source pictures, so

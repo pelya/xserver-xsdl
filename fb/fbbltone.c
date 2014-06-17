@@ -67,59 +67,9 @@
 #define LaneCases4(n,a)	    LaneCases2(n,a); LaneCases2(n+2,a)
 #define LaneCases8(n,a)	    LaneCases4(n,a); LaneCases4(n+4,a)
 #define LaneCases16(n,a)    LaneCases8(n,a); LaneCases8(n+8,a)
-#define LaneCases32(n,a)    LaneCases16(n,a); LaneCases16(n+16,a)
-#define LaneCases64(n,a)    LaneCases32(n,a); LaneCases32(n+32,a)
-#define LaneCases128(n,a)   LaneCases64(n,a); LaneCases64(n+64,a)
-#define LaneCases256(n,a)   LaneCases128(n,a); LaneCases128(n+128,a)
 
-#if FB_SHIFT == 6
-#define LaneCases(a)	    LaneCases256(0,a)
-#endif
-
-#if FB_SHIFT == 5
 #define LaneCases(a)	    LaneCases16(0,a)
-#endif
 
-#if FB_SHIFT == 6
-static const CARD8 fb8Lane[256] = {
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-        21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
-    79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97,
-    98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112,
-        113, 114, 115,
-    116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
-        131, 132, 133,
-    134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148,
-        149, 150, 151,
-    152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166,
-        167, 168, 169,
-    170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184,
-        185, 186, 187,
-    188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202,
-        203, 204, 205,
-    206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220,
-        221, 222, 223,
-    224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238,
-        239, 240, 241,
-    242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255,
-};
-
-static const CARD8 fb16Lane[256] = {
-    0x00, 0x03, 0x0c, 0x0f,
-    0x30, 0x33, 0x3c, 0x3f,
-    0xc0, 0xc3, 0xcc, 0xcf,
-    0xf0, 0xf3, 0xfc, 0xff,
-};
-
-static const CARD8 fb32Lane[16] = {
-    0x00, 0x0f, 0xf0, 0xff,
-};
-#endif
-
-#if FB_SHIFT == 5
 static const CARD8 fb8Lane[16] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
 };
@@ -131,7 +81,6 @@ static const CARD8 fb16Lane[16] = {
 static const CARD8 fb32Lane[16] = {
     0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
-#endif
 
 void
 fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
@@ -285,12 +234,7 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
              * Consume stipple bits for startmask
              */
             if (startmask) {
-#if FB_UNIT > 32
-                if (pixelsPerDst == 16)
-                    mask = FbStipple16Bits(FbLeftStipBits(bits, 16));
-                else
-#endif
-                    mask = fbBits[FbLeftStipBits(bits, pixelsPerDst)];
+                mask = fbBits[FbLeftStipBits(bits, pixelsPerDst)];
                 if (fbLane) {
                     fbTransparentSpan(dst, mask & startmask, fgxor, 1);
                 }
@@ -312,12 +256,7 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
                 w -= n;
                 if (copy) {
                     while (n--) {
-#if FB_UNIT > 32
-                        if (pixelsPerDst == 16)
-                            mask = FbStipple16Bits(FbLeftStipBits(bits, 16));
-                        else
-#endif
-                            mask = fbBits[FbLeftStipBits(bits, pixelsPerDst)];
+                        mask = fbBits[FbLeftStipBits(bits, pixelsPerDst)];
                         WRITE(dst, FbOpaqueStipple(mask, fgxor, bgxor));
                         dst++;
                         bits = FbStipLeft(bits, pixelsPerDst);
@@ -367,12 +306,7 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
             if (endNeedsLoad) {
                 LoadBits;
             }
-#if FB_UNIT > 32
-            if (pixelsPerDst == 16)
-                mask = FbStipple16Bits(FbLeftStipBits(bits, 16));
-            else
-#endif
-                mask = fbBits[FbLeftStipBits(bits, pixelsPerDst)];
+            mask = fbBits[FbLeftStipBits(bits, pixelsPerDst)];
             if (fbLane) {
                 fbTransparentSpan(dst, mask & endmask, fgxor, 1);
             }
@@ -410,47 +344,6 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
 
 #define SelMask24(b,n,r)	((((b) >> n) & 1) * Mask24(n,r))
 
-/*
- * Untested for MSBFirst or FB_UNIT == 32
- */
-
-#if FB_UNIT == 64
-#define C4_24(b,r) \
-    (SelMask24(b,0,r) | \
-     SelMask24(b,1,r) | \
-     SelMask24(b,2,r) | \
-     SelMask24(b,3,r))
-
-#define FbStip24New(rot)    (2 + (rot != 0))
-#define FbStip24Len	    4
-
-const FbBits fbStipple24Bits[3][1 << FbStip24Len] = {
-    /* rotate 0 */
-    {
-     C4_24(0, 0), C4_24(1, 0), C4_24(2, 0), C4_24(3, 0),
-     C4_24(4, 0), C4_24(5, 0), C4_24(6, 0), C4_24(7, 0),
-     C4_24(8, 0), C4_24(9, 0), C4_24(10, 0), C4_24(11, 0),
-     C4_24(12, 0), C4_24(13, 0), C4_24(14, 0), C4_24(15, 0),
-     },
-    /* rotate 8 */
-    {
-     C4_24(0, 8), C4_24(1, 8), C4_24(2, 8), C4_24(3, 8),
-     C4_24(4, 8), C4_24(5, 8), C4_24(6, 8), C4_24(7, 8),
-     C4_24(8, 8), C4_24(9, 8), C4_24(10, 8), C4_24(11, 8),
-     C4_24(12, 8), C4_24(13, 8), C4_24(14, 8), C4_24(15, 8),
-     },
-    /* rotate 16 */
-    {
-     C4_24(0, 16), C4_24(1, 16), C4_24(2, 16), C4_24(3, 16),
-     C4_24(4, 16), C4_24(5, 16), C4_24(6, 16), C4_24(7, 16),
-     C4_24(8, 16), C4_24(9, 16), C4_24(10, 16), C4_24(11, 16),
-     C4_24(12, 16), C4_24(13, 16), C4_24(14, 16), C4_24(15, 16),
-     }
-};
-
-#endif
-
-#if FB_UNIT == 32
 #define C2_24(b,r)  \
     (SelMask24(b,0,r) | \
      SelMask24(b,1,r))
@@ -476,7 +369,6 @@ const FbBits fbStipple24Bits[3][1 << FbStip24Len] = {
      C2_24(0, 16), C2_24(1, 16), C2_24(2, 16), C2_24(3, 16),
      }
 };
-#endif
 
 #if BITMAP_BIT_ORDER == LSBFirst
 

@@ -95,10 +95,6 @@ extern _X_EXPORT const FbMergeRopRec FbMergeRopBits[16];
  * Stippling operations; 
  */
 
-extern _X_EXPORT const FbBits fbStipple16Bits[256];     /* half of table */
-
-#define FbStipple16Bits(b) \
-    (fbStipple16Bits[(b)&0xff] | fbStipple16Bits[(b) >> 8] << FB_HALFUNIT)
 extern _X_EXPORT const FbBits fbStipple8Bits[256];
 extern _X_EXPORT const FbBits fbStipple4Bits[16];
 extern _X_EXPORT const FbBits fbStipple2Bits[4];

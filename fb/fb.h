@@ -83,11 +83,7 @@
 #define FB_SHIFT    LOG2_BITMAP_PAD
 #endif
 
-#if FB_SHIFT < LOG2_BITMAP_PAD
-error FB_SHIFT must be >= LOG2_BITMAP_PAD
-#endif
 #define FB_UNIT	    (1 << FB_SHIFT)
-#define FB_HALFUNIT (1 << (FB_SHIFT-1))
 #define FB_MASK	    (FB_UNIT - 1)
 #define FB_ALLONES  ((FbBits) -1)
 #if GLYPHPADBYTES != 4
@@ -105,37 +101,15 @@ error FB_SHIFT must be >= LOG2_BITMAP_PAD
 #define FbStipStrideToBitsStride(s) (((s) >> (FB_SHIFT - FB_STIP_SHIFT)))
 #define FbBitsStrideToStipStride(s) (((s) << (FB_SHIFT - FB_STIP_SHIFT)))
 #define FbFullMask(n)   ((n) == FB_UNIT ? FB_ALLONES : ((((FbBits) 1) << n) - 1))
-#if FB_SHIFT == 6
-#ifdef WIN32
-typedef unsigned __int64 FbBits;
-#else
-#if defined(__alpha__) || defined(__alpha) || \
-      defined(ia64) || defined(__ia64__) || \
-      defined(__sparc64__) || defined(_LP64) || \
-      defined(__s390x__) || \
-      defined(amd64) || defined (__amd64__) || \
-      defined (__powerpc64__)
-typedef unsigned long FbBits;
-#else
-typedef unsigned long long FbBits;
-#endif
-#endif
-#endif
 
 #if FB_SHIFT == 5
 typedef CARD32 FbBits;
-#endif
-
-#if FB_SHIFT == 4
-typedef CARD16 FbBits;
+#else
+#error "Unsupported FB_SHIFT"
 #endif
 
 #if LOG2_BITMAP_PAD == FB_SHIFT
 typedef FbBits FbStip;
-#else
-#if LOG2_BITMAP_PAD == 5
-typedef CARD32 FbStip;
-#endif
 #endif
 
 typedef int FbStride;
@@ -264,122 +238,8 @@ extern _X_EXPORT void fbSetBits(FbStip * bits, int stride, FbStip data);
     n >>= FB_SHIFT; \
 }
 
-#if FB_SHIFT == 6
-#define FbDoLeftMaskByteRRop6Cases(dst,xor) \
-    case (sizeof (FbBits) - 7) | (1 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 7,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 7) | (2 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 7,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 7) | (3 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 7,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	break; \
-    case (sizeof (FbBits) - 7) | (4 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 7,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 7) | (5 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 7,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD16,xor); \
-	break; \
-    case (sizeof (FbBits) - 7) | (6 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 7,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 2,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 7): \
-	FbStorePart(dst,sizeof (FbBits) - 7,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD32,xor); \
-	break; \
-    case (sizeof (FbBits) - 6) | (1 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 6) | (2 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	break; \
-    case (sizeof (FbBits) - 6) | (3 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 6) | (4 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD16,xor); \
-	break; \
-    case (sizeof (FbBits) - 6) | (5 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 2,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 6): \
-	FbStorePart(dst,sizeof (FbBits) - 6,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD32,xor); \
-	break; \
-    case (sizeof (FbBits) - 5) | (1 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 5,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 5) | (2 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 5,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 5) | (3 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 5,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD16,xor); \
-	break; \
-    case (sizeof (FbBits) - 5) | (4 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 5,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 2,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 5): \
-	FbStorePart(dst,sizeof (FbBits) - 5,CARD8,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD32,xor); \
-	break; \
-    case (sizeof (FbBits) - 4) | (1 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 4) | (2 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD16,xor); \
-	break; \
-    case (sizeof (FbBits) - 4) | (3 << (FB_SHIFT - 3)): \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD16,xor); \
-	FbStorePart(dst,sizeof (FbBits) - 2,CARD8,xor); \
-	break; \
-    case (sizeof (FbBits) - 4): \
-	FbStorePart(dst,sizeof (FbBits) - 4,CARD32,xor); \
-	break;
-
-#define FbDoRightMaskByteRRop6Cases(dst,xor) \
-    case 4: \
-	FbStorePart(dst,0,CARD32,xor); \
-	break; \
-    case 5: \
-	FbStorePart(dst,0,CARD32,xor); \
-	FbStorePart(dst,4,CARD8,xor); \
-	break; \
-    case 6: \
-	FbStorePart(dst,0,CARD32,xor); \
-	FbStorePart(dst,4,CARD16,xor); \
-	break; \
-    case 7: \
-	FbStorePart(dst,0,CARD32,xor); \
-	FbStorePart(dst,4,CARD16,xor); \
-	FbStorePart(dst,6,CARD8,xor); \
-	break;
-#else
-#define FbDoLeftMaskByteRRop6Cases(dst,xor)
-#define FbDoRightMaskByteRRop6Cases(dst,xor)
-#endif
-
 #define FbDoLeftMaskByteRRop(dst,lb,l,and,xor) { \
     switch (lb) { \
-    FbDoLeftMaskByteRRop6Cases(dst,xor) \
     case (sizeof (FbBits) - 3) | (1 << (FB_SHIFT - 3)): \
 	FbStorePart(dst,sizeof (FbBits) - 3,CARD8,xor); \
 	break; \
@@ -416,7 +276,6 @@ extern _X_EXPORT void fbSetBits(FbStip * bits, int stride, FbStip data);
 	FbStorePart(dst,0,CARD16,xor); \
 	FbStorePart(dst,2,CARD8,xor); \
 	break; \
-    FbDoRightMaskByteRRop6Cases(dst,xor) \
     default: \
 	WRITE(dst, FbDoMaskRRop (READ(dst), and, xor, r)); \
     } \
@@ -470,21 +329,7 @@ extern _X_EXPORT void fbSetBits(FbStip * bits, int stride, FbStip data);
 	FbLaneCase2((n)>>2,a,(o)+2)					\
     }
 
-#define FbLaneCase8(n,a,o)						\
-    if ((n) == 0x0ff) {							\
-	*(FbBits *) ((a)+(o)) = fgxor;					\
-    } else {								\
-	FbLaneCase4((n)&15,a,o)						\
-	FbLaneCase4((n)>>4,a,(o)+4)					\
-    }
-
-#if FB_SHIFT == 6
-#define FbLaneCase(n,a)   FbLaneCase8(n,(CARD8 *) (a),0)
-#endif
-
-#if FB_SHIFT == 5
 #define FbLaneCase(n,a)   FbLaneCase4(n,(CARD8 *) (a),0)
-#endif
 
 /* Rotate a filled pixel value to the specified alignement */
 #define FbRot24(p,b)	    (FbScrRight(p,b) | FbScrLeft(p,24-(b)))
@@ -497,19 +342,6 @@ extern _X_EXPORT void fbSetBits(FbStip * bits, int stride, FbStip data);
 #define FbPrev24Stip(p)	(FbRot24(p,FB_STIP_UNIT%24))
 
 /* step a rotation value to the next/previous rotation value */
-#if FB_UNIT == 64
-#define FbNext24Rot(r)        ((r) == 16 ? 0 : (r) + 8)
-#define FbPrev24Rot(r)        ((r) == 0 ? 16 : (r) - 8)
-
-#if IMAGE_BYTE_ORDER == MSBFirst
-#define FbFirst24Rot(x)		(((x) + 8) % 24)
-#else
-#define FbFirst24Rot(x)		((x) % 24)
-#endif
-
-#endif
-
-#if FB_UNIT == 32
 #define FbNext24Rot(r)        ((r) == 0 ? 16 : (r) - 8)
 #define FbPrev24Rot(r)        ((r) == 16 ? 0 : (r) + 8)
 
@@ -517,7 +349,6 @@ extern _X_EXPORT void fbSetBits(FbStip * bits, int stride, FbStip data);
 #define FbFirst24Rot(x)		(((x) + 16) % 24)
 #else
 #define FbFirst24Rot(x)		((x) % 24)
-#endif
 #endif
 
 #define FbNext24RotStip(r)        ((r) == 0 ? 16 : (r) - 8)
