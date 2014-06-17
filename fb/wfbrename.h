@@ -141,12 +141,6 @@
 #define fbSolid wfbSolid
 #define fbSolid24 wfbSolid24
 #define fbSolidBoxClipped wfbSolidBoxClipped
-#define fbStipple1Bits wfbStipple1Bits
-#define fbStipple24Bits wfbStipple24Bits
-#define fbStipple2Bits wfbStipple2Bits
-#define fbStipple4Bits wfbStipple4Bits
-#define fbStipple8Bits wfbStipple8Bits
-#define fbStippleTable wfbStippleTable
 #define fbTile wfbTile
 #define fbTrapezoids wfbTrapezoids
 #define fbTriangles wfbTriangles
