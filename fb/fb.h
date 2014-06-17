@@ -1375,9 +1375,6 @@ fbTile(FbBits * dst,
  */
 extern _X_EXPORT FbBits fbReplicatePixel(Pixel p, int bpp);
 
-extern _X_EXPORT void
- fbReduceRasterOp(int rop, FbBits fg, FbBits pm, FbBits * andp, FbBits * xorp);
-
 #ifdef FB_ACCESS_WRAPPER
 extern _X_EXPORT ReadMemoryProcPtr wfbReadMemory;
 extern _X_EXPORT WriteMemoryProcPtr wfbWriteMemory;

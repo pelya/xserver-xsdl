@@ -126,8 +126,6 @@
 #define fbQueryBestSize wfbQueryBestSize
 #define fbRasterizeTrapezoid wfbRasterizeTrapezoid
 #define fbRealizeFont wfbRealizeFont
-#define fbRealizeWindow wfbRealizeWindow
-#define fbReduceRasterOp wfbReduceRasterOp
 #define fbReplicatePixel wfbReplicatePixel
 #define fbResolveColor wfbResolveColor
 #define fbScreenPrivateKeyRec wfbScreenPrivateKeyRec
