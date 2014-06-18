@@ -415,18 +415,14 @@ DRI2DrawableGone(void *p, XID id)
 }
 
 static DRI2BufferPtr
-create_buffer(DrawablePtr pDraw,
+create_buffer(DRI2ScreenPtr ds, DrawablePtr pDraw,
               unsigned int attachment, unsigned int format)
 {
-    ScreenPtr primeScreen;
-    DRI2DrawablePtr pPriv;
-    DRI2ScreenPtr ds;
     DRI2BufferPtr buffer;
-    pPriv = DRI2GetDrawable(pDraw);
-    primeScreen = GetScreenPrime(pDraw->pScreen, pPriv->prime_id);
-    ds = DRI2GetScreenPrime(pDraw->pScreen, pPriv->prime_id);
     if (ds->CreateBuffer2)
-        buffer = (*ds->CreateBuffer2)(primeScreen, pDraw, attachment, format);
+        buffer = (*ds->CreateBuffer2)(GetScreenPrime(pDraw->pScreen,
+                                                     DRI2GetDrawable(pDraw)->prime_id),
+                                      pDraw, attachment, format);
     else
         buffer = (*ds->CreateBuffer)(pDraw, attachment, format);
     return buffer;
@@ -475,7 +471,7 @@ allocate_or_reuse_buffer(DrawablePtr pDraw, DRI2ScreenPtr ds,
     if ((old_buf < 0)
         || attachment == DRI2BufferFrontLeft
         || !dimensions_match || (pPriv->buffers[old_buf]->format != format)) {
-        *buffer = create_buffer (pDraw, attachment, format);
+        *buffer = create_buffer(ds, pDraw, attachment, format);
         return TRUE;
 
     }
@@ -538,7 +534,7 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
         return NULL;
     }
 
-    ds = DRI2GetScreen(pDraw->pScreen);
+    ds = DRI2GetScreenPrime(pDraw->pScreen, pPriv->prime_id);
 
     dimensions_match = (pDraw->width == pPriv->width)
         && (pDraw->height == pPriv->height);
