@@ -771,7 +771,7 @@ present_pixmap(WindowPtr window,
             if (!vblank->queued)
                 continue;
 
-            if (vblank->crtc != target_crtc || vblank->target_msc > target_msc)
+            if (vblank->crtc != target_crtc || vblank->target_msc != target_msc)
                 continue;
 
             DebugPresent(("\tx %lld %p %8lld: %08lx -> %08lx (crtc %p)\n",
