@@ -254,13 +254,12 @@ typedef struct _GC {
     unsigned int arcMode:1;
     unsigned int subWindowMode:1;
     unsigned int graphicsExposures:1;
-    unsigned int clientClipType:2;      /* CT_<kind> */
     unsigned int miTranslate:1; /* should mi things translate? */
     unsigned int tileIsPixel:1; /* tile is solid pixel */
     unsigned int fExpose:1;     /* Call exposure handling */
     unsigned int freeCompClip:1;        /* Free composite clip */
     unsigned int scratch_inuse:1;       /* is this GC in a pool for reuse? */
-    unsigned int unused:13;     /* see comment above */
+    unsigned int unused:15;     /* see comment above */
     unsigned long planemask;
     unsigned long fgPixel;
     unsigned long bgPixel;
@@ -273,7 +272,7 @@ typedef struct _GC {
     DDXPointRec patOrg;         /* origin for (tile, stipple) */
     struct _Font *font;
     DDXPointRec clipOrg;
-    void *clientClip;
+    RegionPtr clientClip;
     unsigned long stateChanges; /* masked with GC_<kind> */
     unsigned long serialNumber;
     const GCFuncs *funcs;

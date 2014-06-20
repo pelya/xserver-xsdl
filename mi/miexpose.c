@@ -230,7 +230,7 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
     RegionIntersect(&rgnExposed, &rgnExposed, prgnDstClip);
 
     /* intersect with client clip region. */
-    if (pGC->clientClipType == CT_REGION)
+    if (pGC->clientClip)
         RegionIntersect(&rgnExposed, &rgnExposed, pGC->clientClip);
 
     /*
