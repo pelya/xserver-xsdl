@@ -35,7 +35,6 @@
 
 #include "xf86.h"
 #include "xf86DDC.h"
-#include "fb.h"
 #include "windowstr.h"
 #include "xf86Crtc.h"
 #include "xf86Modes.h"
