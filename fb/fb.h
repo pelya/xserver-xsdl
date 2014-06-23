@@ -1332,45 +1332,6 @@ fbSolid24(FbBits * dst,
           int dstX, int width, int height, FbBits and, FbBits xor);
 
 /*
- * fbtile.c
- */
-
-extern _X_EXPORT void
-
-fbEvenTile(FbBits * dst,
-           FbStride dstStride,
-           int dstX,
-           int width,
-           int height,
-           FbBits * tile,
-           FbStride tileStride,
-           int tileHeight, int alu, FbBits pm, int xRot, int yRot);
-
-extern _X_EXPORT void
-
-fbOddTile(FbBits * dst,
-          FbStride dstStride,
-          int dstX,
-          int width,
-          int height,
-          FbBits * tile,
-          FbStride tileStride,
-          int tileWidth,
-          int tileHeight, int alu, FbBits pm, int bpp, int xRot, int yRot);
-
-extern _X_EXPORT void
-
-fbTile(FbBits * dst,
-       FbStride dstStride,
-       int dstX,
-       int width,
-       int height,
-       FbBits * tile,
-       FbStride tileStride,
-       int tileWidth,
-       int tileHeight, int alu, FbBits pm, int bpp, int xRot, int yRot);
-
-/*
  * fbutil.c
  */
 extern _X_EXPORT FbBits fbReplicatePixel(Pixel p, int bpp);
