@@ -342,7 +342,6 @@ xwl_screen_post_damage(struct xwl_screen *xwl_screen)
     struct xwl_window *xwl_window, *next_xwl_window;
     RegionPtr region;
     BoxPtr box;
-    int count, i;
     struct wl_buffer *buffer;
     PixmapPtr pixmap;
 
@@ -354,8 +353,6 @@ xwl_screen_post_damage(struct xwl_screen *xwl_screen)
             continue;
 
         region = DamageRegion(xwl_window->damage);
-        count = RegionNumRects(region);
-
         pixmap = (*xwl_screen->screen->GetWindowPixmap) (xwl_window->window);
 
 #if GLAMOR_HAS_GBM
@@ -366,12 +363,10 @@ xwl_screen_post_damage(struct xwl_screen *xwl_screen)
             buffer = xwl_shm_pixmap_get_wl_buffer(pixmap);
 
         wl_surface_attach(xwl_window->surface, buffer, 0, 0);
-        for (i = 0; i < count; i++) {
-            box = &RegionRects(region)[i];
-            wl_surface_damage(xwl_window->surface,
-                              box->x1, box->y1,
-                              box->x2 - box->x1, box->y2 - box->y1);
-        }
+
+        box = RegionExtents(region);
+        wl_surface_damage(xwl_window->surface, box->x1, box->y1,
+                          box->x2 - box->x1, box->y2 - box->y1);
 
         xwl_window->frame_callback = wl_surface_frame(xwl_window->surface);
         wl_callback_add_listener(xwl_window->frame_callback, &frame_listener, xwl_window);
