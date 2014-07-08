@@ -232,10 +232,6 @@
  * Typedefs, etc...
  */
 
-/* Primitive Types */
-typedef unsigned long IOADDRESS _X_DEPRECATED;  /* Must be large enough for a pointer */
-typedef CARD32 PCITAG _X_DEPRECATED;
-
 /* Public PCI access functions */
 extern _X_EXPORT Bool xf86scanpci(void);
 
