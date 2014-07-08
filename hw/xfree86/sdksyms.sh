@@ -54,7 +54,6 @@ cat > sdksyms.c << EOF
 #include "xvmcext.h"
 #endif
 #include "geext.h"
-#include "geint.h"
 #ifdef MITSHM
 #include "shmint.h"
 #endif
