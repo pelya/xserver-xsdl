@@ -1098,15 +1098,6 @@ fbGetImage(DrawablePtr pDrawable,
  */
 
 extern _X_EXPORT void
-
-fbZeroLine(DrawablePtr pDrawable,
-           GCPtr pGC, int mode, int npt, DDXPointPtr ppt);
-
-extern _X_EXPORT void
- fbZeroSegment(DrawablePtr pDrawable, GCPtr pGC, int nseg, xSegment * pSegs);
-
-extern _X_EXPORT void
-
 fbPolyLine(DrawablePtr pDrawable,
            GCPtr pGC, int mode, int npt, DDXPointPtr ppt);
 
