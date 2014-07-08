@@ -750,13 +750,6 @@ fbArc24(FbBits * dst,
         int dstBpp, xArc * arc, int dx, int dy, FbBits and, FbBits xor);
 
 extern _X_EXPORT void
-
-fbGlyph24(FbBits * dstLine,
-          FbStride dstStride,
-          int dstBpp, FbStip * stipple, FbBits fg, int height, int shift);
-
-extern _X_EXPORT void
-
 fbPolyline24(DrawablePtr pDrawable,
              GCPtr pGC, int mode, int npt, DDXPointPtr ptsOrig);
 
@@ -1044,9 +1037,6 @@ fbGetSpans(DrawablePtr pDrawable,
 /*
  * fbglyph.c
  */
-
-extern _X_EXPORT Bool
- fbGlyphIn(RegionPtr pRegion, int x, int y, int width, int height);
 
 extern _X_EXPORT void
 

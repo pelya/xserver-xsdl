@@ -29,7 +29,7 @@
 #include	<X11/fonts/fontstruct.h>
 #include	"dixfontstr.h"
 
-Bool
+static Bool
 fbGlyphIn(RegionPtr pRegion, int x, int y, int width, int height)
 {
     BoxRec box;
@@ -116,7 +116,7 @@ fbGlyphIn(RegionPtr pRegion, int x, int y, int width, int height)
 #define CASE(a,b,c,d)	(a | (b << 1) | (c << 2) | (d << 3))
 #endif
 
-void
+static void
 fbGlyph24(FbBits * dstBits,
           FbStride dstStride,
           int dstBpp, FbStip * stipple, FbBits fg, int x, int height)

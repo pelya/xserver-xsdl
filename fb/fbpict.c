@@ -82,7 +82,7 @@ fbDestroyGlyphCache(void)
     }
 }
 
-void
+static void
 fbUnrealizeGlyph(ScreenPtr pScreen,
 		 GlyphPtr pGlyph)
 {
