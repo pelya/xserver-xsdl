@@ -32,7 +32,7 @@ extern _X_EXPORT void config_pre_init(void);
 extern _X_EXPORT void config_init(void);
 extern _X_EXPORT void config_fini(void);
 
-enum { ODEV_ATTRIB_STRING, ODEV_ATTRIB_INT };
+enum { ODEV_ATTRIB_UNKNOWN = -1, ODEV_ATTRIB_STRING = 0, ODEV_ATTRIB_INT };
 
 struct OdevAttribute {
     struct xorg_list member;
