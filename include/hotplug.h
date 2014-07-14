@@ -88,7 +88,7 @@ config_odev_free_attributes(struct OdevAttributes *attribs);
 /* Minor number of the device node pointed to by ODEV_ATTRIB_PATH */
 #define ODEV_ATTRIB_MINOR 6
 /* kernel driver name */
-#define ODEV_ATTRIB_DRIVER 4
+#define ODEV_ATTRIB_DRIVER 7
 
 typedef void (*config_odev_probe_proc_ptr)(struct OdevAttributes *attribs);
 void config_odev_probe(config_odev_probe_proc_ptr probe_callback);
