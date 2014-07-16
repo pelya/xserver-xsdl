@@ -1120,7 +1120,6 @@ glxWinSetPixelFormat(__GLXWinContext * gc, HDC hdc, int bppOverride,
             fbConfigToPixelFormatIndex(hdc, gc->base.config,
                                        drawableTypeOverride, winScreen);
         if (pixelFormat == 0) {
-            ErrorF("wglChoosePixelFormat error: %s\n", glxWinErrorMessage());
             return FALSE;
         }
 
@@ -1303,7 +1302,7 @@ glxWinDeferredCreateContext(__GLXWinContext * gc, __GLXWinDrawable * draw)
             glxWinScreen *winScreen;
             int pixelFormat;
 
-            // XXX: which DC are supposed to use???
+            // XXX: which DC are we supposed to use???
             HDC screenDC = GetDC(NULL);
 
             if (!(gc->base.config->drawableType & GLX_PBUFFER_BIT)) {
@@ -1316,10 +1315,8 @@ glxWinDeferredCreateContext(__GLXWinContext * gc, __GLXWinDrawable * draw)
 
             pixelFormat =
                 fbConfigToPixelFormatIndex(screenDC, gc->base.config,
-                                           GLX_DRAWABLE_PBUFFER, winScreen);
+                                           GLX_PBUFFER_BIT, winScreen);
             if (pixelFormat == 0) {
-                ErrorF("wglChoosePixelFormat error: %s\n",
-                       glxWinErrorMessage());
                 return;
             }
 
@@ -1758,7 +1755,7 @@ fbConfigToPixelFormatIndex(HDC hdc, __GLXconfig * mode,
         SET_ATTR_VALUE(WGL_SWAP_METHOD_ARB, WGL_SWAP_EXCHANGE_ARB);
 
     if (mode->swapMethod == GLX_SWAP_COPY_OML)
-        SET_ATTR_VALUE(WGL_SWAP_COPY_ARB, TRUE);
+        SET_ATTR_VALUE(WGL_SWAP_METHOD_ARB, WGL_SWAP_COPY_ARB);
 
     // XXX: this should probably be the other way around, but that messes up drawableTypeOverride
     if (mode->visualRating == GLX_SLOW_VISUAL_EXT)
