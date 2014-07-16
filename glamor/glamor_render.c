@@ -1450,8 +1450,8 @@ glamor_composite_clipped_region(CARD8 op,
                     || source_pixmap->drawable.height != height)))) {
         temp_src =
             glamor_convert_gradient_picture(screen, source,
-                                            extent->x1 + x_source - x_dest,
-                                            extent->y1 + y_source - y_dest,
+                                            extent->x1 + x_source - x_dest - dest->pDrawable->x,
+                                            extent->y1 + y_source - y_dest - dest->pDrawable->y,
                                             width, height);
         if (!temp_src) {
             temp_src = source;
@@ -1459,8 +1459,8 @@ glamor_composite_clipped_region(CARD8 op,
         }
         temp_src_priv =
             glamor_get_pixmap_private((PixmapPtr) (temp_src->pDrawable));
-        x_temp_src = -extent->x1 + x_dest;
-        y_temp_src = -extent->y1 + y_dest;
+        x_temp_src = -extent->x1 + x_dest + dest->pDrawable->x;
+        y_temp_src = -extent->y1 + y_dest + dest->pDrawable->y;
     }
 
     if (mask
@@ -1474,8 +1474,8 @@ glamor_composite_clipped_region(CARD8 op,
          * to do reduce one convertion. */
         temp_mask =
             glamor_convert_gradient_picture(screen, mask,
-                                            extent->x1 + x_mask - x_dest,
-                                            extent->y1 + y_mask - y_dest,
+                                            extent->x1 + x_mask - x_dest - dest->pDrawable->x,
+                                            extent->y1 + y_mask - y_dest - dest->pDrawable->y,
                                             width, height);
         if (!temp_mask) {
             temp_mask = mask;
@@ -1483,8 +1483,8 @@ glamor_composite_clipped_region(CARD8 op,
         }
         temp_mask_priv =
             glamor_get_pixmap_private((PixmapPtr) (temp_mask->pDrawable));
-        x_temp_mask = -extent->x1 + x_dest;
-        y_temp_mask = -extent->y1 + y_dest;
+        x_temp_mask = -extent->x1 + x_dest + dest->pDrawable->x;
+        y_temp_mask = -extent->y1 + y_dest + dest->pDrawable->y;
     }
     /* Do two-pass PictOpOver componentAlpha, until we enable
      * dual source color blending.
