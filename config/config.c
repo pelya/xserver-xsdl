@@ -172,11 +172,37 @@ config_odev_find_or_add_attribute(struct OdevAttributes *attribs, int attrib)
     return oa;
 }
 
+static int config_odev_get_attribute_type(int attrib)
+{
+    switch (attrib) {
+    case ODEV_ATTRIB_PATH:
+    case ODEV_ATTRIB_SYSPATH:
+    case ODEV_ATTRIB_BUSID:
+        return ODEV_ATTRIB_STRING;
+    case ODEV_ATTRIB_FD:
+    case ODEV_ATTRIB_MAJOR:
+    case ODEV_ATTRIB_MINOR:
+        return ODEV_ATTRIB_INT;
+    case ODEV_ATTRIB_DRIVER:
+        return ODEV_ATTRIB_STRING;
+    default:
+        LogMessage(X_ERROR, "Error %s called for unknown attribute %d\n",
+                   __func__, attrib);
+        return ODEV_ATTRIB_UNKNOWN;
+    }
+}
+
 Bool
 config_odev_add_attribute(struct OdevAttributes *attribs, int attrib,
                           const char *attrib_name)
 {
     struct OdevAttribute *oa;
+
+    if (config_odev_get_attribute_type(attrib) != ODEV_ATTRIB_STRING) {
+        LogMessage(X_ERROR, "Error %s called for non string attrib %d\n",
+                   __func__, attrib);
+        return FALSE;
+    }
 
     oa = config_odev_find_or_add_attribute(attribs, attrib);
     free(oa->attrib_name);
@@ -190,6 +216,12 @@ config_odev_add_int_attribute(struct OdevAttributes *attribs, int attrib,
                               int attrib_value)
 {
     struct OdevAttribute *oa;
+
+    if (config_odev_get_attribute_type(attrib) != ODEV_ATTRIB_INT) {
+        LogMessage(X_ERROR, "Error %s called for non integer attrib %d\n",
+                   __func__, attrib);
+        return FALSE;
+    }
 
     oa = config_odev_find_or_add_attribute(attribs, attrib);
     oa->attrib_value = attrib_value;

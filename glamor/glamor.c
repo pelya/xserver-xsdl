@@ -310,6 +310,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 {
     glamor_screen_private *glamor_priv;
     int gl_version;
+    int max_viewport_size[2];
 
 #ifdef RENDER
     PictureScreenPtr ps = GetPictureScreenIfSet(screen);
@@ -409,7 +410,12 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         epoxy_has_gl_extension("GL_ARB_buffer_storage");
     glamor_priv->has_nv_texture_barrier =
         epoxy_has_gl_extension("GL_NV_texture_barrier");
+
     glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glamor_priv->max_fbo_size);
+    glGetIntegerv(GL_MAX_VIEWPORT_DIMS, max_viewport_size);
+    glamor_priv->max_fbo_size = MIN(glamor_priv->max_fbo_size, max_viewport_size[0]);
+    glamor_priv->max_fbo_size = MIN(glamor_priv->max_fbo_size, max_viewport_size[1]);
 #ifdef MAX_FBO_SIZE
     glamor_priv->max_fbo_size = MAX_FBO_SIZE;
 #endif

@@ -32,7 +32,7 @@ extern _X_EXPORT void config_pre_init(void);
 extern _X_EXPORT void config_init(void);
 extern _X_EXPORT void config_fini(void);
 
-enum { ODEV_ATTRIB_STRING, ODEV_ATTRIB_INT };
+enum { ODEV_ATTRIB_UNKNOWN = -1, ODEV_ATTRIB_STRING = 0, ODEV_ATTRIB_INT };
 
 struct OdevAttribute {
     struct xorg_list member;
@@ -87,6 +87,8 @@ config_odev_free_attributes(struct OdevAttributes *attribs);
 #define ODEV_ATTRIB_MAJOR 5
 /* Minor number of the device node pointed to by ODEV_ATTRIB_PATH */
 #define ODEV_ATTRIB_MINOR 6
+/* kernel driver name */
+#define ODEV_ATTRIB_DRIVER 7
 
 typedef void (*config_odev_probe_proc_ptr)(struct OdevAttributes *attribs);
 void config_odev_probe(config_odev_probe_proc_ptr probe_callback);

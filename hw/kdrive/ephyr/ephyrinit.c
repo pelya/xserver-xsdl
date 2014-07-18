@@ -440,4 +440,6 @@ KdCardFuncs ephyrFuncs = {
 
     ephyrGetColors,             /* getColors */
     ephyrPutColors,             /* putColors */
+
+    ephyrCloseScreen,           /* closeScreen */
 };

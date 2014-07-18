@@ -758,6 +758,12 @@ ephyrScreenFini(KdScreenInfo * screen)
     }
 }
 
+void
+ephyrCloseScreen(ScreenPtr pScreen)
+{
+    ephyrUnsetInternalDamage(pScreen);
+}
+
 /*  
  * Port of Mark McLoughlin's Xnest fix for focus in + modifier bug.
  * See https://bugs.freedesktop.org/show_bug.cgi?id=3030

@@ -26,9 +26,9 @@ dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.60)
-AC_INIT([xorg-server], 1.15.99.903, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
-RELEASE_DATE="2014-06-04"
-RELEASE_NAME="Strawberry Shortcake"
+AC_INIT([xorg-server], 1.16.99.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+RELEASE_DATE="2014-07-17"
+RELEASE_NAME="Baba Ghanouj"
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
@@ -810,7 +810,7 @@ LIBDMX="dmx >= 1.0.99.1"
 LIBDRI="dri >= 7.8.0"
 LIBDRM="libdrm >= 2.3.0"
 LIBEGL="egl"
-LIBGBM="gbm >= 9"
+LIBGBM="gbm >= 10.2.0"
 LIBGL="gl >= 7.1.0"
 LIBXEXT="xext >= 1.0.99.4"
 LIBXFONT="xfont >= 1.4.2"
@@ -1424,7 +1424,7 @@ AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 
 AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
 AC_ARG_WITH(xkb-bin-directory,
-				AS_HELP_STRING([--with-xkb-bin-directory=DIR], [Directory containing xkbcomp program]),
+				AS_HELP_STRING([--with-xkb-bin-directory=DIR], [Directory containing xkbcomp program (default: ${bindir})]),
 				[XKB_BIN_DIRECTORY="$withval"],
 				[XKB_BIN_DIRECTORY="$bindir"])
 
@@ -2459,6 +2459,10 @@ if test "x$XWAYLAND" = xyes; then
 	XWAYLAND_SYS_LIBS="$XWAYLANDMODULES_LIBS $GLX_SYS_LIBS"
 	AC_SUBST([XWAYLAND_LIBS])
 	AC_SUBST([XWAYLAND_SYS_LIBS])
+
+	WAYLAND_PREFIX=`$PKG_CONFIG --variable=prefix wayland-client`
+	AC_PATH_PROG([WAYLAND_SCANNER], [wayland-scanner],,
+		     [${WAYLAND_PREFIX}/bin$PATH_SEPARATOR$PATH])
 fi
 
 
