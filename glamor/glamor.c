@@ -519,6 +519,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 #endif
     glamor_pixmap_init(screen);
     glamor_glyphs_init(screen);
+    glamor_sync_init(screen);
 
     glamor_priv->screen = screen;
 
@@ -588,6 +589,7 @@ glamor_close_screen(ScreenPtr screen)
 #endif
     glamor_priv = glamor_get_screen_private(screen);
     flags = glamor_priv->flags;
+    glamor_sync_close(screen);
     glamor_glyphs_fini(screen);
     screen->CloseScreen = glamor_priv->saved_procs.close_screen;
     screen->CreateScreenResources =

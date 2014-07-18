@@ -33,6 +33,11 @@
 #include "glamor.h"
 #include "xvdix.h"
 
+#if XSYNC
+#include "misyncshm.h"
+#include "misyncstr.h"
+#endif
+
 #include <epoxy/gl.h>
 #if GLAMOR_HAS_GBM
 #define MESA_EGL_NO_X11_HEADERS
@@ -184,6 +189,9 @@ struct glamor_saved_procs {
     DestroyPictureProcPtr destroy_picture;
     UnrealizeGlyphProcPtr unrealize_glyph;
     SetWindowPixmapProcPtr set_window_pixmap;
+#if XSYNC
+    SyncScreenFuncsRec sync_screen_funcs;
+#endif
 };
 
 #define CACHE_FORMAT_COUNT 3
@@ -977,6 +985,13 @@ void glamor_composite_rectangles(CARD8 op,
                                  PicturePtr dst,
                                  xRenderColor *color,
                                  int num_rects, xRectangle *rects);
+
+/* glamor_sync.c */
+Bool
+glamor_sync_init(ScreenPtr screen);
+
+void
+glamor_sync_close(ScreenPtr screen);
 
 /* glamor_util.c */
 void
