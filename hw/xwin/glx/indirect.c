@@ -890,13 +890,6 @@ glxWinDrawableSwapBuffers(ClientPtr client, __GLXdrawable * base)
         ("glxWinSwapBuffers on drawable %p, last context %p (native ctx %p)",
          base, draw->drawContext, draw->drawContext->ctx);
 
-    /*
-       draw->drawContext->base.drawPriv will not be set if the context is not current anymore,
-       but if it is, it should point to this drawable....
-     */
-    assert((draw->drawContext->base.drawPriv == NULL) ||
-           (draw->drawContext->base.drawPriv == base));
-
     dc = glxWinMakeDC(draw->drawContext, draw, &dc, &hwnd);
     if (dc == NULL)
         return GL_FALSE;
