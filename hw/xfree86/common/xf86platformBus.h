@@ -115,6 +115,9 @@ _xf86_get_platform_device_attrib(struct xf86_platform_device *device, int attrib
         return xf86_platform_device_odev_attributes(device)->busid;
     case ODEV_ATTRIB_DRIVER:
         return xf86_platform_device_odev_attributes(device)->driver;
+    default:
+        assert(FALSE);
+        return NULL;
     }
 }
 
@@ -135,6 +138,9 @@ _xf86_get_platform_device_int_attrib(struct xf86_platform_device *device, int at
         return xf86_platform_device_odev_attributes(device)->major;
     case ODEV_ATTRIB_MINOR:
         return xf86_platform_device_odev_attributes(device)->minor;
+    default:
+        assert(FALSE);
+        return 0;
     }
 }
 
