@@ -139,7 +139,8 @@ AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h dlfcn.h stropts.h \
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_TYPEOF
-AC_C_BIGENDIAN([ENDIAN="X_BIG_ENDIAN"], [ENDIAN="X_LITTLE_ENDIAN"])
+AC_C_BIGENDIAN(AC_DEFINE(X_BYTE_ORDER, X_BIG_ENDIAN, [byte order]),
+               AC_DEFINE(X_BYTE_ORDER, X_LITTLE_ENDIAN, [byte order]))
 
 AC_CHECK_SIZEOF([unsigned long])
 if test "$ac_cv_sizeof_unsigned_long" = 8; then
