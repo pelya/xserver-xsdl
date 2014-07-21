@@ -47,8 +47,6 @@ libmi_la_SOURCES = 	\
 	mipushpxl.c	\
 	miscanfill.h	\
 	miscrinit.c	\
-	mispans.c	\
-	mispans.h	\
 	misprite.c	\
 	misprite.h	\
 	mistruct.h	\

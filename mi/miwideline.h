@@ -28,7 +28,6 @@ from The Open Group.
 
 /* Author:  Keith Packard, MIT X Consortium */
 
-#include "mispans.h"
 #include "mifpoly.h"            /* for ICEIL */
 
 /*
