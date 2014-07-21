@@ -114,16 +114,6 @@ SOFTWARE.
 
 #endif                          /* __m32r__ */
 
-#if (defined(sun) && (defined(__sparc) || defined(sparc))) || \
-    (defined(__uxp__) && (defined(sparc) || defined(mc68000))) || \
-    defined(__sparc__) || defined(__mc68000__)
-
-#if defined(__sparc) || defined(__sparc__)
-#if !defined(sparc)
-#define sparc 1
-#endif
-#endif
-
 #if defined(sun386) || defined(sun5)
 #define IMAGE_BYTE_ORDER	LSBFirst        /* Values for the SUN only */
 #define BITMAP_BIT_ORDER	LSBFirst
@@ -131,7 +121,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	MSBFirst        /* Values for the SUN only */
 #define BITMAP_BIT_ORDER	MSBFirst
 #endif
-#endif                          /* sun && !(i386 && SVR4) */
 
 #if (defined(mips) || defined(__mips))
 
