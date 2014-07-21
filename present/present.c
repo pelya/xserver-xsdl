@@ -399,7 +399,8 @@ present_set_abort_flip(ScreenPtr screen)
         present_set_tree_pixmap(screen_priv->flip_window,
                                   (*screen->GetScreenPixmap)(screen));
 
-    present_set_tree_pixmap(screen->root, (*screen->GetScreenPixmap)(screen));
+    if (screen->root)
+        present_set_tree_pixmap(screen->root, (*screen->GetScreenPixmap)(screen));
 
     screen_priv->flip_pending->abort_flip = TRUE;
 }
