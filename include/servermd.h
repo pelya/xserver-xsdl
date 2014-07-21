@@ -88,9 +88,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	LSBFirst
 
 #define GLYPHPADBYTES		4
-#define GETLEFTBITS_ALIGNMENT	1
-#define LARGE_INSTRUCTION_CACHE
-#define AVOID_MEMORY_READ
 
 #endif                          /* __nds32__ */
 
@@ -192,8 +189,6 @@ SOFTWARE.
 #define BITMAP_BIT_ORDER      	MSBFirst
 #define GLYPHPADBYTES         	4
 
-#define FAST_UNALIGNED_READ
-
 #endif                          /* linux/s390 */
 
 #if defined (linux) && defined (__s390x__)
@@ -201,8 +196,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER       MSBFirst
 #define BITMAP_BIT_ORDER       MSBFirst
 #define GLYPHPADBYTES          4
-
-#define FAST_UNALIGNED_READ
 
 #endif                          /* linux/s390x */
 
