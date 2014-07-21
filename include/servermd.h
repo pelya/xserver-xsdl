@@ -52,26 +52,10 @@ SOFTWARE.
  * really be simplified even further.
  */
 
-/*
- * Machine dependent values:
- * GLYPHPADBYTES should be chosen with consideration for the space-time
- * trade-off.  Padding to 0 bytes means that there is no wasted space
- * in the font bitmaps (both on disk and in memory), but that access of
- * the bitmaps will cause odd-address memory references.  Padding to
- * 2 bytes would ensure even address memory references and would
- * be suitable for a 68010-class machine, but at the expense of wasted
- * space in the font bitmaps.  Padding to 4 bytes would be good
- * for real 32 bit machines, etc.  Be sure that you tell the font
- * compiler what kind of padding you want because its defines are
- * kept separate from this.  See server/include/font.h for how
- * GLYPHPADBYTES is used.
- */
-
 #ifdef __avr32__
 
 #define IMAGE_BYTE_ORDER        MSBFirst
 #define BITMAP_BIT_ORDER        MSBFirst
-#define GLYPHPADBYTES           4
 
 #endif                          /* __avr32__ */
 
@@ -79,7 +63,6 @@ SOFTWARE.
 
 #define IMAGE_BYTE_ORDER        LSBFirst
 #define BITMAP_BIT_ORDER        LSBFirst
-#define GLYPHPADBYTES           4
 
 #endif                          /* __arm32__ */
 
@@ -87,16 +70,12 @@ SOFTWARE.
 
 #define IMAGE_BYTE_ORDER	LSBFirst
 
-#define GLYPHPADBYTES		4
-
 #endif                          /* __nds32__ */
 
 #if defined __hppa__
 
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
-#define GLYPHPADBYTES		4       /* to make fb work */
-                                        /* byte boundries */
 #endif                          /* hpux || __hppa__ */
 
 #if defined(__powerpc__) || defined(__ppc__) || defined(__ppc64__)
@@ -108,7 +87,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER      MSBFirst
 #define BITMAP_BIT_ORDER      MSBFirst
 #endif
-#define GLYPHPADBYTES           4
 
 #endif                          /* PowerPC */
 
@@ -117,11 +95,9 @@ SOFTWARE.
 #if defined(__BIG_ENDIAN__)
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
-#define GLYPHPADBYTES		4
 #else
 #define IMAGE_BYTE_ORDER	LSBFirst
 #define BITMAP_BIT_ORDER	LSBFirst
-#define GLYPHPADBYTES		4
 #endif
 
 #endif                          /* SuperH */
@@ -131,11 +107,9 @@ SOFTWARE.
 #if defined(__BIG_ENDIAN__)
 #define IMAGE_BYTE_ORDER      MSBFirst
 #define BITMAP_BIT_ORDER      MSBFirst
-#define GLYPHPADBYTES         4
 #else
 #define IMAGE_BYTE_ORDER      LSBFirst
 #define BITMAP_BIT_ORDER      LSBFirst
-#define GLYPHPADBYTES         4
 #endif
 
 #endif                          /* __m32r__ */
@@ -157,9 +131,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	MSBFirst        /* Values for the SUN only */
 #define BITMAP_BIT_ORDER	MSBFirst
 #endif
-
-#define	GLYPHPADBYTES		4
-
 #endif                          /* sun && !(i386 && SVR4) */
 
 #if (defined(mips) || defined(__mips))
@@ -167,11 +138,9 @@ SOFTWARE.
 #if defined(MIPSEL) || defined(__MIPSEL__)
 #define IMAGE_BYTE_ORDER	LSBFirst        /* Values for the PMAX only */
 #define BITMAP_BIT_ORDER	LSBFirst
-#define GLYPHPADBYTES		4
 #else
 #define IMAGE_BYTE_ORDER	MSBFirst        /* Values for the MIPS only */
 #define BITMAP_BIT_ORDER	MSBFirst
-#define GLYPHPADBYTES		4
 #endif
 
 #endif                          /* mips */
@@ -179,15 +148,12 @@ SOFTWARE.
 #if defined(__alpha) || defined(__alpha__)
 #define IMAGE_BYTE_ORDER	LSBFirst        /* Values for the Alpha only */
 #define BITMAP_BIT_ORDER       LSBFirst
-#define GLYPHPADBYTES		4
-
 #endif                          /* alpha */
 
 #if defined (linux) && defined (__s390__)
 
 #define IMAGE_BYTE_ORDER      	MSBFirst
 #define BITMAP_BIT_ORDER      	MSBFirst
-#define GLYPHPADBYTES         	4
 
 #endif                          /* linux/s390 */
 
@@ -195,7 +161,6 @@ SOFTWARE.
 
 #define IMAGE_BYTE_ORDER       MSBFirst
 #define BITMAP_BIT_ORDER       MSBFirst
-#define GLYPHPADBYTES          4
 
 #endif                          /* linux/s390x */
 
@@ -203,15 +168,12 @@ SOFTWARE.
 
 #define IMAGE_BYTE_ORDER	LSBFirst
 #define BITMAP_BIT_ORDER       LSBFirst
-#define GLYPHPADBYTES		4
 
 #endif                          /* ia64 */
 
 #if defined(__amd64__) || defined(amd64) || defined(__amd64)
 #define IMAGE_BYTE_ORDER	LSBFirst
 #define BITMAP_BIT_ORDER       LSBFirst
-#define GLYPHPADBYTES		4
-/* ???? */
 #endif                          /* AMD64 */
 
 #if	defined(SVR4) && (defined(__i386__) || defined(__i386) ) ||	\
@@ -227,17 +189,12 @@ SOFTWARE.
 #define BITMAP_BIT_ORDER      LSBFirst
 #endif
 
-#ifndef GLYPHPADBYTES
-#define GLYPHPADBYTES           4
-#endif
-
 #endif                          /* SVR4 / BSD / i386 */
 
 #if defined (linux) && defined (__mc68000__)
 
 #define IMAGE_BYTE_ORDER       MSBFirst
 #define BITMAP_BIT_ORDER       MSBFirst
-#define GLYPHPADBYTES          4
 
 #endif                          /* linux/m68k */
 
@@ -245,14 +202,12 @@ SOFTWARE.
 #if defined(linux) && defined(__arm__)
 #define IMAGE_BYTE_ORDER	LSBFirst
 #define BITMAP_BIT_ORDER	LSBFirst
-#define GLYPHPADBYTES		4
 #endif
 
 /* linux on IBM S/390 */
 #if defined (linux) && defined (__s390__)
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
-#define GLYPHPADBYTES		4
 #endif                          /* linux/s390 */
 
 #ifdef __aarch64__
@@ -265,7 +220,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER        MSBFirst
 #define BITMAP_BIT_ORDER        MSBFirst
 #endif
-#define GLYPHPADBYTES           4
 
 #endif                          /* __aarch64__ */
 
@@ -278,7 +232,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	LSBFirst
 #define BITMAP_BIT_ORDER	LSBFirst
 #endif
-#define GLYPHPADBYTES		4
 
 #endif                          /* ARC */
 
@@ -292,9 +245,12 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER        MSBFirst
 #define BITMAP_BIT_ORDER        MSBFirst
 #endif
-#define GLYPHPADBYTES           4
 
 #endif                          /* __xtensa__ */
+
+#ifndef GLYPHPADBYTES
+#define GLYPHPADBYTES           4
+#endif
 
 /* size of buffer to use with GetImage, measured in bytes. There's obviously
  * a trade-off between the amount of heap used and the number of times the
