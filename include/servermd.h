@@ -167,8 +167,7 @@ SOFTWARE.
 
 #if	defined(SVR4) && (defined(__i386__) || defined(__i386) ) ||	\
 	defined(__alpha__) || defined(__alpha) || \
-	defined(__i386__) || \
-	defined(__s390x__) || defined(__s390__)
+	defined(__i386__)
 
 #ifndef IMAGE_BYTE_ORDER
 #define IMAGE_BYTE_ORDER	LSBFirst
