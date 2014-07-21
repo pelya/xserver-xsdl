@@ -192,7 +192,6 @@ SOFTWARE.
 #define BITMAP_BIT_ORDER      	MSBFirst
 #define GLYPHPADBYTES         	4
 
-#define BITMAP_SCANLINE_UNIT	8
 #define FAST_UNALIGNED_READ
 
 #endif                          /* linux/s390 */
@@ -203,7 +202,6 @@ SOFTWARE.
 #define BITMAP_BIT_ORDER       MSBFirst
 #define GLYPHPADBYTES          4
 
-#define BITMAP_SCANLINE_UNIT	8
 #define FAST_UNALIGNED_READ
 
 #endif                          /* linux/s390x */
