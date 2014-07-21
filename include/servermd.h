@@ -175,23 +175,6 @@ SOFTWARE.
 
 #endif                          /* sun && !(i386 && SVR4) */
 
-#if defined(ibm032) || defined (ibm)
-
-#ifdef __i386__
-#define IMAGE_BYTE_ORDER	LSBFirst        /* Value for PS/2 only */
-#else
-#define IMAGE_BYTE_ORDER	MSBFirst        /* Values for the RT only */
-#endif
-#define BITMAP_BIT_ORDER	MSBFirst
-#define	GLYPHPADBYTES		1
-/* ibm pcc doesn't understand pragmas. */
-
-#ifdef __i386__
-#define BITMAP_SCANLINE_UNIT	8
-#endif
-
-#endif                          /* ibm */
-
 #if (defined(mips) || defined(__mips))
 
 #if defined(MIPSEL) || defined(__MIPSEL__)
