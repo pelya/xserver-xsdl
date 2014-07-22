@@ -218,7 +218,7 @@ extern void write_mem_barrier(void);
 #endif
 
 #ifdef __GNUC__
-#if (defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)) && (defined(__alpha__))
+#if defined(__alpha__)
 
 #ifdef linux
 /* for Linux on Alpha, we use the LIBC _inx/_outx routines */
@@ -291,7 +291,7 @@ extern _X_EXPORT unsigned int inl(unsigned int port);
 #include <machine/pio.h>
 #endif                          /* __NetBSD__ */
 
-#elif (defined(linux) || defined(__FreeBSD__)) && defined(__amd64__)
+#elif defined(__amd64__)
 
 #include <inttypes.h>
 
@@ -340,7 +340,7 @@ inl(unsigned short port)
     return ret;
 }
 
-#elif (defined(linux) || defined(sun) || defined(__OpenBSD__) || defined(__FreeBSD__)) && defined(__sparc__)
+#elif defined(__sparc__)
 
 #ifndef ASI_PL
 #define ASI_PL 0x88
@@ -652,7 +652,7 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 #endif                          /* !linux */
 #endif                          /* __mips__ */
 
-#elif (defined(linux) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__)) && defined(__powerpc__)
+#elif defined(__powerpc__)
 
 #ifndef MAP_FAILED
 #define MAP_FAILED ((void *)-1)
@@ -1103,12 +1103,7 @@ inl(unsigned PORT_SIZE port)
 #define mem_barrier()           /* XXX: nop for now */
 #define write_mem_barrier()     /* XXX: nop for now */
 
-#else                           /* ix86 */
-
-#if !defined(__mc68000__) && !defined(__arm__) && \
-    !defined(__sh__) && !defined(__hppa__) && !defined(__s390__) && \
-    !defined(__m32r__) && !defined(__aarch64__) && !defined(__arc__) && \
-    !defined(__xtensa__)
+#elif defined(__i386__) || defined(__ia64__)
 
 static __inline__ void
 outb(unsigned short port, unsigned char val)
@@ -1155,9 +1150,7 @@ inl(unsigned short port)
     return ret;
 }
 
-#endif
-
-#endif                          /* ix86 */
+#endif                          /* arch madness */
 
 #else                           /* !GNUC */
 #if defined(__STDC__) && (__STDC__ == 1)
