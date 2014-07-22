@@ -28,7 +28,6 @@
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "windowstr.h"
-#include "compiler.h"
 #include "mipointer.h"
 #include "micmap.h"
 
