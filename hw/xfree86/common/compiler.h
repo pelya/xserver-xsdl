@@ -1231,14 +1231,6 @@ inl(unsigned short port)
 #if !defined(__SUNPRO_C)
 #include <sys/inline.h>
 #endif
-#if  !defined(__SUNPRO_C) || defined(__USLC__)
-#pragma asm partial_optimization outl
-#pragma asm partial_optimization outw
-#pragma asm partial_optimization outb
-#pragma asm partial_optimization inl
-#pragma asm partial_optimization inw
-#pragma asm partial_optimization inb
-#endif
 #endif                          /* __GNUC__ */
 
 #ifdef __alpha__
