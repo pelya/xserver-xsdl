@@ -141,10 +141,6 @@ extern _X_EXPORT void xf86WriteMmio32LeNB (void *, unsigned long, unsigned int);
 #endif                          /* __arm__ */
 
 #if defined(__powerpc__) && !defined(__OpenBSD__)
-extern unsigned long ldl_u(unsigned int *);
-extern unsigned long ldw_u(unsigned short *);
-extern void stl_u(unsigned long, unsigned int *);
-extern void stw_u(unsigned long, unsigned short *);
 extern void mem_barrier(void);
 extern void write_mem_barrier(void);
 extern void stl_brx(unsigned long, volatile unsigned char *, int);
@@ -901,8 +897,7 @@ xf_outl(unsigned short port, unsigned int val)
 
 /*
  * Assume all port access are aligned.  We need to revise this implementation
- * if there is unaligned port access.  For ldl_u, ldw_u, stl_u and
- * stw_u, they are assumed unaligned.
+ * if there is unaligned port access.
  */
 
 #define barrier()               /* no barrier */
@@ -1078,28 +1073,6 @@ inl(unsigned PORT_SIZE port)
     return xf86ReadMmio32Swap(IOPortBase, port);
 }
 
-static __inline__ unsigned long
-ldl_u(unsigned int *p)
-{
-    unsigned long addr = (unsigned long) p;
-    unsigned int ret;
-
-    __asm__ __volatile__("lmw.bi %0, [%1], %0, 0;\n\t"
-                         "wsbh %0, %0;\n\t" "rotri %0, %0, 16;\n\t":"=r"(ret)
-                         :"r"(addr));
-
-    return ret;
-}
-
-static __inline__ void
-stl_u(unsigned long val, unsigned int *p)
-{
-    unsigned long addr = (unsigned long) p;
-
-    __asm__ __volatile__("wsbh %0, %0;\n\t" "rotri %0, %0, 16;\n\t" "smw.bi %0, [%1], %0, 0;\n\t":      /* No outputs */
-                         :"r"(val), "r"(addr));
-}
-
 #else                           /* !NDS32_MMIO_SWAP */
 static __inline__ void
 outb(unsigned PORT_SIZE port, unsigned char val)
@@ -1140,39 +1113,7 @@ inl(unsigned PORT_SIZE port)
     return *(volatile unsigned int *) (((unsigned PORT_SIZE) (port)));
 }
 
-static __inline__ unsigned long
-ldl_u(unsigned int *p)
-{
-    unsigned long addr = (unsigned long) p;
-    unsigned int ret;
-
-    __asm__ __volatile__("lmw.bi %0, [%1], %0, 0;\n\t":"=r"(ret)
-                         :"r"(addr));
-
-    return ret;
-}
-
-static __inline__ void
-stl_u(unsigned long val, unsigned int *p)
-{
-    unsigned long addr = (unsigned long) p;
-
-    __asm__ __volatile__("smw.bi %0, [%1], %0, 0;\n\t": /* No outputs */
-                         :"r"(val), "r"(addr));
-}
 #endif                          /* NDS32_MMIO_SWAP */
-
-#if (((X_BYTE_ORDER == X_BIG_ENDIAN) && !defined(NDS32_MMIO_SWAP)) || ((X_BYTE_ORDER != X_BIG_ENDIAN) && defined(NDS32_MMIO_SWAP)))
-#define ldw_u(p)	((*(unsigned char *)(p)) << 8 | \
-			(*((unsigned char *)(p)+1)))
-#define stw_u(v,p)	(*(unsigned char *)(p)) = ((v) >> 8); \
-				(*((unsigned char *)(p)+1)) = (v)
-#else
-#define ldw_u(p)	((*(unsigned char *)(p)) | \
-			(*((unsigned char *)(p)+1)<<8))
-#define stw_u(v,p)	(*(unsigned char *)(p)) = (v); \
-				(*((unsigned char *)(p)+1)) = ((v) >> 8)
-#endif
 
 #define mem_barrier()           /* XXX: nop for now */
 #define write_mem_barrier()     /* XXX: nop for now */
