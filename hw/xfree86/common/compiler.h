@@ -238,73 +238,6 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 #define write_mem_barrier()     /* NOP */
 #endif
 
-#ifdef __GNUC__
-
-/* Define some packed structures to use with unaligned accesses */
-
-struct __una_u64 {
-    uint64_t x __attribute__ ((packed));
-};
-struct __una_u32 {
-    uint32_t x __attribute__ ((packed));
-};
-struct __una_u16 {
-    uint16_t x __attribute__ ((packed));
-};
-
-/* Elemental unaligned loads */
-
-static __inline__ uint64_t
-ldq_u(uint64_t * p)
-{
-    const struct __una_u64 *ptr = (const struct __una_u64 *) p;
-
-    return ptr->x;
-}
-
-static __inline__ uint32_t
-ldl_u(uint32_t * p)
-{
-    const struct __una_u32 *ptr = (const struct __una_u32 *) p;
-
-    return ptr->x;
-}
-
-static __inline__ uint16_t
-ldw_u(uint16_t * p)
-{
-    const struct __una_u16 *ptr = (const struct __una_u16 *) p;
-
-    return ptr->x;
-}
-
-/* Elemental unaligned stores */
-
-static __inline__ void
-stq_u(uint64_t val, uint64_t * p)
-{
-    struct __una_u64 *ptr = (struct __una_u64 *) p;
-
-    ptr->x = val;
-}
-
-static __inline__ void
-stl_u(uint32_t val, uint32_t * p)
-{
-    struct __una_u32 *ptr = (struct __una_u32 *) p;
-
-    ptr->x = val;
-}
-
-static __inline__ void
-stw_u(uint16_t val, uint16_t * p)
-{
-    struct __una_u16 *ptr = (struct __una_u16 *) p;
-
-    ptr->x = val;
-}
-#else                           /* !__GNUC__ */
-
 #include <string.h>             /* needed for memmove */
 
 static __inline__ uint64_t
@@ -357,8 +290,6 @@ stw_u(uint16_t val, uint16_t * p)
 
     memmove(p, &tmp, sizeof(*p));
 }
-
-#endif                          /* __GNUC__ */
 
 #ifdef __GNUC__
 #if (defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)) && (defined(__alpha__))
