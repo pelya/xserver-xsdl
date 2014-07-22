@@ -1117,59 +1117,6 @@ inl(unsigned PORT_SIZE port)
     !defined(__sh__) && !defined(__hppa__) && !defined(__s390__) && \
     !defined(__m32r__) && !defined(__aarch64__) && !defined(__arc__) && \
     !defined(__xtensa__)
-#ifdef GCCUSESGAS
-
-/*
- * If gcc uses gas rather than the native assembler, the syntax of these
- * inlines has to be different.		DHD
- */
-
-static __inline__ void
-outb(unsigned short port, unsigned char val)
-{
-    __asm__ __volatile__("outb %0,%1"::"a"(val), "d"(port));
-}
-
-static __inline__ void
-outw(unsigned short port, unsigned short val)
-{
-    __asm__ __volatile__("outw %0,%1"::"a"(val), "d"(port));
-}
-
-static __inline__ void
-outl(unsigned short port, unsigned int val)
-{
-    __asm__ __volatile__("outl %0,%1"::"a"(val), "d"(port));
-}
-
-static __inline__ unsigned int
-inb(unsigned short port)
-{
-    unsigned char ret;
-    __asm__ __volatile__("inb %1,%0":"=a"(ret):"d"(port));
-
-    return ret;
-}
-
-static __inline__ unsigned int
-inw(unsigned short port)
-{
-    unsigned short ret;
-    __asm__ __volatile__("inw %1,%0":"=a"(ret):"d"(port));
-
-    return ret;
-}
-
-static __inline__ unsigned int
-inl(unsigned short port)
-{
-    unsigned int ret;
-    __asm__ __volatile__("inl %1,%0":"=a"(ret):"d"(port));
-
-    return ret;
-}
-
-#else                           /* GCCUSESGAS */
 
 static __inline__ void
 outb(unsigned short port, unsigned char val)
@@ -1216,7 +1163,6 @@ inl(unsigned short port)
     return ret;
 }
 
-#endif                          /* GCCUSESGAS */
 #endif
 #endif                          /* __SUNPRO_C */
 
