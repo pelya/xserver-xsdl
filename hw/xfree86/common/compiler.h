@@ -143,10 +143,6 @@ extern _X_EXPORT void xf86WriteMmio32LeNB (void *, unsigned long, unsigned int);
 #if defined(__powerpc__) && !defined(__OpenBSD__)
 extern void mem_barrier(void);
 extern void write_mem_barrier(void);
-extern void stl_brx(unsigned long, volatile unsigned char *, int);
-extern void stw_brx(unsigned short, volatile unsigned char *, int);
-extern unsigned long ldl_brx(volatile unsigned char *, int);
-extern unsigned short ldw_brx(volatile unsigned char *, int);
 #endif                          /* __powerpc__ && !__OpenBSD */
 
 #endif                          /* NO_INLINE || DO_PROTOTYPES */
