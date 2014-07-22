@@ -1117,7 +1117,7 @@ inl(unsigned PORT_SIZE port)
 #else                           /* ix86 */
 
 #if !defined(__SUNPRO_C)
-#if !defined(FAKEIT) && !defined(__mc68000__) && !defined(__arm__) && \
+#if !defined(__mc68000__) && !defined(__arm__) && \
     !defined(__sh__) && !defined(__hppa__) && !defined(__s390__) && \
     !defined(__m32r__) && !defined(__aarch64__) && !defined(__arc__) && \
     !defined(__xtensa__)
@@ -1221,43 +1221,7 @@ inl(unsigned short port)
 }
 
 #endif                          /* GCCUSESGAS */
-
-#else                           /* !defined(FAKEIT) && !defined(__mc68000__)  && !defined(__arm__) && !defined(__sh__) && !defined(__hppa__) && !defined(__m32r__) && !defined(__arc__) */
-
-static __inline__ void
-outb(unsigned short port, unsigned char val)
-{
-}
-
-static __inline__ void
-outw(unsigned short port, unsigned short val)
-{
-}
-
-static __inline__ void
-outl(unsigned short port, unsigned int val)
-{
-}
-
-static __inline__ unsigned int
-inb(unsigned short port)
-{
-    return 0;
-}
-
-static __inline__ unsigned int
-inw(unsigned short port)
-{
-    return 0;
-}
-
-static __inline__ unsigned int
-inl(unsigned short port)
-{
-    return 0;
-}
-
-#endif                          /* FAKEIT */
+#endif
 #endif                          /* __SUNPRO_C */
 
 #endif                          /* ix86 */
