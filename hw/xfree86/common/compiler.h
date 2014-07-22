@@ -1027,6 +1027,11 @@ inl(unsigned short port)
 #endif
 #endif                          /* __GNUC__ */
 
+#if !defined(MMIO_IS_BE) && \
+    (defined(SPARC_MMIO_IS_BE) || defined(PPC_MMIO_IS_BE))
+#define MMIO_IS_BE
+#endif
+
 #ifdef __alpha__
 /* entry points for Mmio memory access routines */
 extern _X_EXPORT int (*xf86ReadMmio8) (void *, unsigned long);
@@ -1071,51 +1076,23 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #define MMIO_OUT16(base, offset, val) \
     (*xf86WriteMmio16)((CARD16)(val), base, offset)
 
-#elif defined(__powerpc__)
+#elif defined(__powerpc__) || defined(__sparc__)
  /* 
   * we provide byteswapping and no byteswapping functions here
   * with byteswapping as default, 
-  * drivers that don't need byteswapping should define PPC_MMIO_IS_BE 
+  * drivers that don't need byteswapping should define MMIO_IS_BE
   */
 #define MMIO_IN8(base, offset) xf86ReadMmio8(base, offset)
 #define MMIO_OUT8(base, offset, val) \
     xf86WriteMmio8(base, offset, (CARD8)(val))
 
-#if defined(PPC_MMIO_IS_BE)     /* No byteswapping */
+#if defined(MMIO_IS_BE)     /* No byteswapping */
 #define MMIO_IN16(base, offset) xf86ReadMmio16Be(base, offset)
 #define MMIO_IN32(base, offset) xf86ReadMmio32Be(base, offset)
 #define MMIO_OUT16(base, offset, val) \
     xf86WriteMmio16Be(base, offset, (CARD16)(val))
 #define MMIO_OUT32(base, offset, val) \
     xf86WriteMmio32Be(base, offset, (CARD32)(val))
-#else                           /* byteswapping is the default */
-#define MMIO_IN16(base, offset) xf86ReadMmio16Le(base, offset)
-#define MMIO_IN32(base, offset) xf86ReadMmio32Le(base, offset)
-#define MMIO_OUT16(base, offset, val) \
-     xf86WriteMmio16Le(base, offset, (CARD16)(val))
-#define MMIO_OUT32(base, offset, val) \
-     xf86WriteMmio32Le(base, offset, (CARD32)(val))
-#endif
-
-#elif defined(__sparc__)
- /*
-  * Like powerpc, we provide byteswapping and no byteswapping functions
-  * here with byteswapping as default, drivers that don't need byteswapping
-  * should define SPARC_MMIO_IS_BE (perhaps create a generic macro so that we
-  * do not need to use PPC_MMIO_IS_BE and the sparc one in all the same places
-  * of drivers?).
-  */
-#define MMIO_IN8(base, offset) xf86ReadMmio8(base, offset)
-#define MMIO_OUT8(base, offset, val) \
-    xf86WriteMmio8(base, offset, (CARD8)(val))
-
-#if defined(SPARC_MMIO_IS_BE)   /* No byteswapping */
-#define MMIO_IN16(base, offset) xf86ReadMmio16Be(base, offset)
-#define MMIO_IN32(base, offset) xf86ReadMmio32Be(base, offset)
-#define MMIO_OUT16(base, offset, val) \
-     xf86WriteMmio16Be(base, offset, (CARD16)(val))
-#define MMIO_OUT32(base, offset, val) \
-     xf86WriteMmio32Be(base, offset, (CARD32)(val))
 #else                           /* byteswapping is the default */
 #define MMIO_IN16(base, offset) xf86ReadMmio16Le(base, offset)
 #define MMIO_IN32(base, offset) xf86ReadMmio32Le(base, offset)
