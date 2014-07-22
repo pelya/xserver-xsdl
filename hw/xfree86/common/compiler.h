@@ -136,11 +136,6 @@ extern _X_EXPORT void xf86WriteMmio32LeNB (void *, unsigned long, unsigned int);
 #endif                          /* __sparc__,  __arm32__, __alpha__, __nds32__ */
 #endif                          /* __arm__ */
 
-#if defined(__powerpc__) && !defined(__OpenBSD__)
-extern void mem_barrier(void);
-extern void write_mem_barrier(void);
-#endif                          /* __powerpc__ && !__OpenBSD */
-
 #endif                          /* NO_INLINE || DO_PROTOTYPES */
 
 #ifdef __GNUC__
@@ -195,7 +190,7 @@ extern void write_mem_barrier(void);
 
 #elif defined __powerpc__
 
-#ifndef eieio                   /* We deal with arch-specific eieio() routines above... */
+#ifndef eieio
 #define eieio() __asm__ __volatile__ ("eieio" ::: "memory")
 #endif                          /* eieio */
 #define mem_barrier()	eieio()
