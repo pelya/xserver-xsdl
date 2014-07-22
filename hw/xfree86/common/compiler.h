@@ -94,6 +94,7 @@
 #if !defined(__GNUC__) && !defined(__FUNCTION__)
 #define __FUNCTION__ __func__   /* C99 */
 #endif
+
 #if defined(DO_PROTOTYPES)
 #if !defined(__arm__)
 #if !defined(__sparc__) && !defined(__sparc) && !defined(__arm32__) && !defined(__nds32__) \
@@ -198,6 +199,10 @@ extern _X_EXPORT void xf86WriteMmio32Le (void *, unsigned long, unsigned int);
 #define write_mem_barrier()     /* XXX: nop for now */
 #endif
 #endif                          /* __GNUC__ */
+
+#ifndef barrier
+#define barrier()
+#endif
 
 #ifndef mem_barrier
 #define mem_barrier()           /* NOP */
@@ -790,8 +795,6 @@ xf_outl(unsigned short port, unsigned int val)
  * if there is unaligned port access.
  */
 
-#define barrier()               /* no barrier */
-
 #define PORT_SIZE long
 
 static __inline__ unsigned char
@@ -963,9 +966,6 @@ inl(unsigned PORT_SIZE port)
 }
 
 #endif                          /* NDS32_MMIO_SWAP */
-
-#define mem_barrier()           /* XXX: nop for now */
-#define write_mem_barrier()     /* XXX: nop for now */
 
 #elif defined(__i386__) || defined(__ia64__)
 
