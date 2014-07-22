@@ -98,7 +98,7 @@
 #if !defined(__GNUC__) && !defined(__FUNCTION__)
 #define __FUNCTION__ __func__   /* C99 */
 #endif
-#if defined(NO_INLINE) || defined(DO_PROTOTYPES)
+#if defined(DO_PROTOTYPES)
 #if !defined(__arm__)
 #if !defined(__sparc__) && !defined(__sparc) && !defined(__arm32__) && !defined(__nds32__) \
       && !(defined(__alpha__) && defined(linux)) \
@@ -157,7 +157,6 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 
 #endif                          /* NO_INLINE || DO_PROTOTYPES */
 
-#ifndef NO_INLINE
 #ifdef __GNUC__
 #ifdef __i386__
 
@@ -230,7 +229,6 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 #define write_mem_barrier()     /* XXX: nop for now */
 #endif
 #endif                          /* __GNUC__ */
-#endif                          /* NO_INLINE */
 
 #ifndef mem_barrier
 #define mem_barrier()           /* NOP */
@@ -240,7 +238,6 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 #define write_mem_barrier()     /* NOP */
 #endif
 
-#ifndef NO_INLINE
 #ifdef __GNUC__
 
 /* Define some packed structures to use with unaligned accesses */
@@ -362,9 +359,7 @@ stw_u(uint16_t val, uint16_t * p)
 }
 
 #endif                          /* __GNUC__ */
-#endif                          /* NO_INLINE */
 
-#ifndef NO_INLINE
 #ifdef __GNUC__
 #if (defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)) && (defined(__alpha__))
 
@@ -1516,8 +1511,6 @@ inl(unsigned short port)
 #pragma asm partial_optimization inb
 #endif
 #endif                          /* __GNUC__ */
-
-#endif                          /* NO_INLINE */
 
 #ifdef __alpha__
 /* entry points for Mmio memory access routines */
