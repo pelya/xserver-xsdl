@@ -1112,7 +1112,6 @@ inl(unsigned PORT_SIZE port)
 
 #else                           /* ix86 */
 
-#if !defined(__SUNPRO_C)
 #if !defined(__mc68000__) && !defined(__arm__) && \
     !defined(__sh__) && !defined(__hppa__) && !defined(__s390__) && \
     !defined(__m32r__) && !defined(__aarch64__) && !defined(__arc__) && \
@@ -1164,7 +1163,6 @@ inl(unsigned short port)
 }
 
 #endif
-#endif                          /* __SUNPRO_C */
 
 #endif                          /* ix86 */
 
