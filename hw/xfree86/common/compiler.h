@@ -1571,8 +1571,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
     (*xf86WriteMmioNB8)((CARD8)(val), base, offset)
 #define MMIO_ONB16(base, offset, val) \
     (*xf86WriteMmioNB16)((CARD16)(val), base, offset)
-#define MMIO_MOVE32(base, offset, val) \
-    MMIO_OUT32(base, offset, val)
 
 #elif defined(__powerpc__)
  /* 
@@ -1609,9 +1607,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #define MMIO_ONB32(base, offset, val) \
      xf86WriteMmioNB32Le(base, offset, (CARD32)(val))
 #endif
-
-#define MMIO_MOVE32(base, offset, val) \
-       xf86WriteMmio32Be(base, offset, (CARD32)(val))
 
 #elif defined(__sparc__) || defined(sparc) || defined(__sparc)
  /*
@@ -1651,9 +1646,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
      xf86WriteMmio32LeNB(base, offset, (CARD32)(val))
 #endif
 
-#define MMIO_MOVE32(base, offset, val) \
-       xf86WriteMmio32Be(base, offset, (CARD32)(val))
-
 #elif defined(__nds32__)
  /*
   * we provide byteswapping and no byteswapping functions here
@@ -1691,9 +1683,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
      xf86WriteMmioNB32(base, offset, (CARD32)(val))
 #endif
 
-#define MMIO_MOVE32(base, offset, val) \
-       xf86WriteMmio32(base, offset, (CARD32)(val))
-
 #else                           /* !__alpha__ && !__powerpc__ && !__sparc__ */
 
 #define MMIO_IN8(base, offset) \
@@ -1711,8 +1700,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #define MMIO_ONB8(base, offset, val) MMIO_OUT8(base, offset, val)
 #define MMIO_ONB16(base, offset, val) MMIO_OUT16(base, offset, val)
 #define MMIO_ONB32(base, offset, val) MMIO_OUT32(base, offset, val)
-
-#define MMIO_MOVE32(base, offset, val) MMIO_OUT32(base, offset, val)
 
 #endif                          /* __alpha__ */
 
