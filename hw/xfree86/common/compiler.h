@@ -127,11 +127,6 @@ extern _X_EXPORT void xf86WriteMmio16Be (void *, unsigned long, unsigned int);
 extern _X_EXPORT void xf86WriteMmio16Le (void *, unsigned long, unsigned int);
 extern _X_EXPORT void xf86WriteMmio32Be (void *, unsigned long, unsigned int);
 extern _X_EXPORT void xf86WriteMmio32Le (void *, unsigned long, unsigned int);
-extern _X_EXPORT void xf86WriteMmio8NB    (void *, unsigned long, unsigned int);
-extern _X_EXPORT void xf86WriteMmio16BeNB (void *, unsigned long, unsigned int);
-extern _X_EXPORT void xf86WriteMmio16LeNB (void *, unsigned long, unsigned int);
-extern _X_EXPORT void xf86WriteMmio32BeNB (void *, unsigned long, unsigned int);
-extern _X_EXPORT void xf86WriteMmio32LeNB (void *, unsigned long, unsigned int);
 #endif                          /* _SUNPRO_C */
 #endif                          /* __sparc__,  __arm32__, __alpha__, __nds32__ */
 #endif                          /* __arm__ */
@@ -518,56 +513,6 @@ xf86WriteMmio32Le(__volatile__ void *base, const unsigned long offset,
     barrier();
 }
 
-static __inline__ void
-xf86WriteMmio8NB(__volatile__ void *base, const unsigned long offset,
-                 const unsigned int val)
-{
-    unsigned long addr = ((unsigned long) base) + offset;
-
-    __asm__ __volatile__("stba %0, [%1] %2":    /* No outputs */
-                         :"r"(val), "r"(addr), "i"(ASI_PL));
-}
-
-static __inline__ void
-xf86WriteMmio16BeNB(__volatile__ void *base, const unsigned long offset,
-                    const unsigned int val)
-{
-    unsigned long addr = ((unsigned long) base) + offset;
-
-    __asm__ __volatile__("sth %0, [%1]":        /* No outputs */
-                         :"r"(val), "r"(addr));
-}
-
-static __inline__ void
-xf86WriteMmio16LeNB(__volatile__ void *base, const unsigned long offset,
-                    const unsigned int val)
-{
-    unsigned long addr = ((unsigned long) base) + offset;
-
-    __asm__ __volatile__("stha %0, [%1] %2":    /* No outputs */
-                         :"r"(val), "r"(addr), "i"(ASI_PL));
-}
-
-static __inline__ void
-xf86WriteMmio32BeNB(__volatile__ void *base, const unsigned long offset,
-                    const unsigned int val)
-{
-    unsigned long addr = ((unsigned long) base) + offset;
-
-    __asm__ __volatile__("st %0, [%1]": /* No outputs */
-                         :"r"(val), "r"(addr));
-}
-
-static __inline__ void
-xf86WriteMmio32LeNB(__volatile__ void *base, const unsigned long offset,
-                    const unsigned int val)
-{
-    unsigned long addr = ((unsigned long) base) + offset;
-
-    __asm__ __volatile__("sta %0, [%1] %2":     /* No outputs */
-                         :"r"(val), "r"(addr), "i"(ASI_PL));
-}
-
 #elif defined(__mips__) || (defined(__arm32__) && !defined(__linux__))
 #if defined(__arm32__) || defined(__mips64)
 #define PORT_SIZE long
@@ -706,60 +651,13 @@ xf86ReadMmio32Le(__volatile__ void *base, const unsigned long offset)
 }
 
 static __inline__ void
-xf86WriteMmioNB8(__volatile__ void *base, const unsigned long offset,
-                 const unsigned char val)
+xf86WriteMmio8(__volatile__ void *base, const unsigned long offset,
+               const unsigned char val)
 {
     __asm__
         __volatile__("stbx %1,%2,%3\n\t":"=m"
                      (*((volatile unsigned char *) base + offset))
                      :"r"(val), "b"(base), "r"(offset));
-}
-
-static __inline__ void
-xf86WriteMmioNB16Le(__volatile__ void *base, const unsigned long offset,
-                    const unsigned short val)
-{
-    __asm__
-        __volatile__("sthbrx %1,%2,%3\n\t":"=m"
-                     (*((volatile unsigned char *) base + offset))
-                     :"r"(val), "b"(base), "r"(offset));
-}
-
-static __inline__ void
-xf86WriteMmioNB16Be(__volatile__ void *base, const unsigned long offset,
-                    const unsigned short val)
-{
-    __asm__
-        __volatile__("sthx %1,%2,%3\n\t":"=m"
-                     (*((volatile unsigned char *) base + offset))
-                     :"r"(val), "b"(base), "r"(offset));
-}
-
-static __inline__ void
-xf86WriteMmioNB32Le(__volatile__ void *base, const unsigned long offset,
-                    const unsigned int val)
-{
-    __asm__
-        __volatile__("stwbrx %1,%2,%3\n\t":"=m"
-                     (*((volatile unsigned char *) base + offset))
-                     :"r"(val), "b"(base), "r"(offset));
-}
-
-static __inline__ void
-xf86WriteMmioNB32Be(__volatile__ void *base, const unsigned long offset,
-                    const unsigned int val)
-{
-    __asm__
-        __volatile__("stwx %1,%2,%3\n\t":"=m"
-                     (*((volatile unsigned char *) base + offset))
-                     :"r"(val), "b"(base), "r"(offset));
-}
-
-static __inline__ void
-xf86WriteMmio8(__volatile__ void *base, const unsigned long offset,
-               const unsigned char val)
-{
-    xf86WriteMmioNB8(base, offset, val);
     eieio();
 }
 
@@ -767,7 +665,10 @@ static __inline__ void
 xf86WriteMmio16Le(__volatile__ void *base, const unsigned long offset,
                   const unsigned short val)
 {
-    xf86WriteMmioNB16Le(base, offset, val);
+    __asm__
+        __volatile__("sthbrx %1,%2,%3\n\t":"=m"
+                     (*((volatile unsigned char *) base + offset))
+                     :"r"(val), "b"(base), "r"(offset));
     eieio();
 }
 
@@ -775,7 +676,10 @@ static __inline__ void
 xf86WriteMmio16Be(__volatile__ void *base, const unsigned long offset,
                   const unsigned short val)
 {
-    xf86WriteMmioNB16Be(base, offset, val);
+    __asm__
+        __volatile__("sthx %1,%2,%3\n\t":"=m"
+                     (*((volatile unsigned char *) base + offset))
+                     :"r"(val), "b"(base), "r"(offset));
     eieio();
 }
 
@@ -783,7 +687,10 @@ static __inline__ void
 xf86WriteMmio32Le(__volatile__ void *base, const unsigned long offset,
                   const unsigned int val)
 {
-    xf86WriteMmioNB32Le(base, offset, val);
+    __asm__
+        __volatile__("stwbrx %1,%2,%3\n\t":"=m"
+                     (*((volatile unsigned char *) base + offset))
+                     :"r"(val), "b"(base), "r"(offset));
     eieio();
 }
 
@@ -791,7 +698,10 @@ static __inline__ void
 xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
                   const unsigned int val)
 {
-    xf86WriteMmioNB32Be(base, offset, val);
+    __asm__
+        __volatile__("stwx %1,%2,%3\n\t":"=m"
+                     (*((volatile unsigned char *) base + offset))
+                     :"r"(val), "b"(base), "r"(offset));
     eieio();
 }
 
@@ -898,13 +808,6 @@ xf86WriteMmio8(__volatile__ void *base, const unsigned long offset,
     barrier();
 }
 
-static __inline__ void
-xf86WriteMmio8NB(__volatile__ void *base, const unsigned long offset,
-                 const unsigned int val)
-{
-    *(volatile unsigned char *) ((unsigned char *) base + offset) = val;
-}
-
 static __inline__ unsigned short
 xf86ReadMmio16Swap(__volatile__ void *base, const unsigned long offset)
 {
@@ -941,23 +844,6 @@ xf86WriteMmio16(__volatile__ void *base, const unsigned long offset,
 {
     *(volatile unsigned short *) ((unsigned char *) base + offset) = val;
     barrier();
-}
-
-static __inline__ void
-xf86WriteMmio16SwapNB(__volatile__ void *base, const unsigned long offset,
-                      const unsigned int val)
-{
-    unsigned long addr = ((unsigned long) base) + offset;
-
-    __asm__ __volatile__("wsbh %0, %0;\n\t" "shi %0, [%1];\n\t":        /* No outputs */
-                         :"r"(val), "r"(addr));
-}
-
-static __inline__ void
-xf86WriteMmio16NB(__volatile__ void *base, const unsigned long offset,
-                  const unsigned int val)
-{
-    *(volatile unsigned short *) ((unsigned char *) base + offset) = val;
 }
 
 static __inline__ unsigned int
@@ -997,23 +883,6 @@ xf86WriteMmio32(__volatile__ void *base, const unsigned long offset,
 {
     *(volatile unsigned int *) ((unsigned char *) base + offset) = val;
     barrier();
-}
-
-static __inline__ void
-xf86WriteMmio32SwapNB(__volatile__ void *base, const unsigned long offset,
-                      const unsigned int val)
-{
-    unsigned long addr = ((unsigned long) base) + offset;
-
-    __asm__ __volatile__("wsbh %0, %0;\n\t" "rotri %0, %0, 16;\n\t" "swi %0, [%1];\n\t":        /* No outputs */
-                         :"r"(val), "r"(addr));
-}
-
-static __inline__ void
-xf86WriteMmio32NB(__volatile__ void *base, const unsigned long offset,
-                  const unsigned int val)
-{
-    *(volatile unsigned int *) ((unsigned char *) base + offset) = val;
 }
 
 #if defined(NDS32_MMIO_SWAP)
@@ -1177,9 +1046,6 @@ xf86ReadMmio32(void *Base, unsigned long Offset)
 extern _X_EXPORT void (*xf86WriteMmio8) (int, void *, unsigned long);
 extern _X_EXPORT void (*xf86WriteMmio16) (int, void *, unsigned long);
 extern _X_EXPORT void (*xf86WriteMmio32) (int, void *, unsigned long);
-extern _X_EXPORT void (*xf86WriteMmioNB8) (int, void *, unsigned long);
-extern _X_EXPORT void (*xf86WriteMmioNB16) (int, void *, unsigned long);
-extern _X_EXPORT void (*xf86WriteMmioNB32) (int, void *, unsigned long);
 extern _X_EXPORT void xf86SlowBCopyFromBus(unsigned char *, unsigned char *,
                                            int);
 extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
@@ -1199,17 +1065,11 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 	write_mem_barrier(); \
 	*(volatile CARD32 *)(void *)(((CARD8*)(base)) + (offset)) = (val); \
     } while (0)
-#define MMIO_ONB32(base, offset, val) \
-	*(volatile CARD32 *)(void *)(((CARD8*)(base)) + (offset)) = (val)
 
 #define MMIO_OUT8(base, offset, val) \
     (*xf86WriteMmio8)((CARD8)(val), base, offset)
 #define MMIO_OUT16(base, offset, val) \
     (*xf86WriteMmio16)((CARD16)(val), base, offset)
-#define MMIO_ONB8(base, offset, val) \
-    (*xf86WriteMmioNB8)((CARD8)(val), base, offset)
-#define MMIO_ONB16(base, offset, val) \
-    (*xf86WriteMmioNB16)((CARD16)(val), base, offset)
 
 #elif defined(__powerpc__)
  /* 
@@ -1220,8 +1080,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #define MMIO_IN8(base, offset) xf86ReadMmio8(base, offset)
 #define MMIO_OUT8(base, offset, val) \
     xf86WriteMmio8(base, offset, (CARD8)(val))
-#define MMIO_ONB8(base, offset, val) \
-    xf86WriteMmioNB8(base, offset, (CARD8)(val))
 
 #if defined(PPC_MMIO_IS_BE)     /* No byteswapping */
 #define MMIO_IN16(base, offset) xf86ReadMmio16Be(base, offset)
@@ -1230,10 +1088,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
     xf86WriteMmio16Be(base, offset, (CARD16)(val))
 #define MMIO_OUT32(base, offset, val) \
     xf86WriteMmio32Be(base, offset, (CARD32)(val))
-#define MMIO_ONB16(base, offset, val) \
-    xf86WriteMmioNB16Be(base, offset, (CARD16)(val))
-#define MMIO_ONB32(base, offset, val) \
-    xf86WriteMmioNB32Be(base, offset, (CARD32)(val))
 #else                           /* byteswapping is the default */
 #define MMIO_IN16(base, offset) xf86ReadMmio16Le(base, offset)
 #define MMIO_IN32(base, offset) xf86ReadMmio32Le(base, offset)
@@ -1241,10 +1095,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
      xf86WriteMmio16Le(base, offset, (CARD16)(val))
 #define MMIO_OUT32(base, offset, val) \
      xf86WriteMmio32Le(base, offset, (CARD32)(val))
-#define MMIO_ONB16(base, offset, val) \
-     xf86WriteMmioNB16Le(base, offset, (CARD16)(val))
-#define MMIO_ONB32(base, offset, val) \
-     xf86WriteMmioNB32Le(base, offset, (CARD32)(val))
 #endif
 
 #elif defined(__sparc__) || defined(sparc) || defined(__sparc)
@@ -1258,8 +1108,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #define MMIO_IN8(base, offset) xf86ReadMmio8(base, offset)
 #define MMIO_OUT8(base, offset, val) \
     xf86WriteMmio8(base, offset, (CARD8)(val))
-#define MMIO_ONB8(base, offset, val) \
-    xf86WriteMmio8NB(base, offset, (CARD8)(val))
 
 #if defined(SPARC_MMIO_IS_BE)   /* No byteswapping */
 #define MMIO_IN16(base, offset) xf86ReadMmio16Be(base, offset)
@@ -1268,10 +1116,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
      xf86WriteMmio16Be(base, offset, (CARD16)(val))
 #define MMIO_OUT32(base, offset, val) \
      xf86WriteMmio32Be(base, offset, (CARD32)(val))
-#define MMIO_ONB16(base, offset, val) \
-     xf86WriteMmio16BeNB(base, offset, (CARD16)(val))
-#define MMIO_ONB32(base, offset, val) \
-     xf86WriteMmio32BeNB(base, offset, (CARD32)(val))
 #else                           /* byteswapping is the default */
 #define MMIO_IN16(base, offset) xf86ReadMmio16Le(base, offset)
 #define MMIO_IN32(base, offset) xf86ReadMmio32Le(base, offset)
@@ -1279,10 +1123,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
      xf86WriteMmio16Le(base, offset, (CARD16)(val))
 #define MMIO_OUT32(base, offset, val) \
      xf86WriteMmio32Le(base, offset, (CARD32)(val))
-#define MMIO_ONB16(base, offset, val) \
-     xf86WriteMmio16LeNB(base, offset, (CARD16)(val))
-#define MMIO_ONB32(base, offset, val) \
-     xf86WriteMmio32LeNB(base, offset, (CARD32)(val))
 #endif
 
 #elif defined(__nds32__)
@@ -1295,8 +1135,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #define MMIO_IN8(base, offset) xf86ReadMmio8(base, offset)
 #define MMIO_OUT8(base, offset, val) \
     xf86WriteMmio8(base, offset, (CARD8)(val))
-#define MMIO_ONB8(base, offset, val) \
-    xf86WriteMmioNB8(base, offset, (CARD8)(val))
 
 #if defined(NDS32_MMIO_SWAP)    /* byteswapping */
 #define MMIO_IN16(base, offset) xf86ReadMmio16Swap(base, offset)
@@ -1305,10 +1143,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
     xf86WriteMmio16Swap(base, offset, (CARD16)(val))
 #define MMIO_OUT32(base, offset, val) \
     xf86WriteMmio32Swap(base, offset, (CARD32)(val))
-#define MMIO_ONB16(base, offset, val) \
-    xf86WriteMmioNB16Swap(base, offset, (CARD16)(val))
-#define MMIO_ONB32(base, offset, val) \
-    xf86WriteMmioNB32Swap(base, offset, (CARD32)(val))
 #else                           /* no byteswapping is the default */
 #define MMIO_IN16(base, offset) xf86ReadMmio16(base, offset)
 #define MMIO_IN32(base, offset) xf86ReadMmio32(base, offset)
@@ -1316,10 +1150,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
      xf86WriteMmio16(base, offset, (CARD16)(val))
 #define MMIO_OUT32(base, offset, val) \
      xf86WriteMmio32(base, offset, (CARD32)(val))
-#define MMIO_ONB16(base, offset, val) \
-     xf86WriteMmioNB16(base, offset, (CARD16)(val))
-#define MMIO_ONB32(base, offset, val) \
-     xf86WriteMmioNB32(base, offset, (CARD32)(val))
 #endif
 
 #else                           /* !__alpha__ && !__powerpc__ && !__sparc__ */
@@ -1336,9 +1166,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 	*(volatile CARD16 *)(void *)(((CARD8*)(base)) + (offset)) = (val)
 #define MMIO_OUT32(base, offset, val) \
 	*(volatile CARD32 *)(void *)(((CARD8*)(base)) + (offset)) = (val)
-#define MMIO_ONB8(base, offset, val) MMIO_OUT8(base, offset, val)
-#define MMIO_ONB16(base, offset, val) MMIO_OUT16(base, offset, val)
-#define MMIO_ONB32(base, offset, val) MMIO_OUT32(base, offset, val)
 
 #endif                          /* __alpha__ */
 
