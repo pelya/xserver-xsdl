@@ -97,7 +97,7 @@
 
 #if defined(DO_PROTOTYPES)
 #if !defined(__arm__)
-#if !defined(__sparc__) && !defined(__sparc) && !defined(__arm32__) && !defined(__nds32__) \
+#if !defined(__sparc__) && !defined(__arm32__) && !defined(__nds32__) \
       && !(defined(__alpha__) && defined(linux)) \
       && !(defined(__ia64__) && defined(linux)) \
       && !(defined(__mips64) && defined(linux)) \
@@ -1097,7 +1097,7 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
      xf86WriteMmio32Le(base, offset, (CARD32)(val))
 #endif
 
-#elif defined(__sparc__) || defined(sparc) || defined(__sparc)
+#elif defined(__sparc__)
  /*
   * Like powerpc, we provide byteswapping and no byteswapping functions
   * here with byteswapping as default, drivers that don't need byteswapping
