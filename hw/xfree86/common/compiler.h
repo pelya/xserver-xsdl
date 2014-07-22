@@ -1694,23 +1694,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #define MMIO_MOVE32(base, offset, val) \
        xf86WriteMmio32(base, offset, (CARD32)(val))
 
-#ifdef N1213_HC                 /* for NDS32 N1213 hardcore */
-static __inline__ void
-nds32_flush_icache(char *addr)
-{
-    __asm__ volatile ("isync %0;"
-                      "msync;"
-                      "isb;"
-                      "cctl %0,L1I_VA_INVAL;" "isb;"::"r" (addr):"memory");
-}
-#else
-static __inline__ void
-nds32_flush_icache(char *addr)
-{
-    __asm__ volatile ("isync %0;" "isb;"::"r" (addr):"memory");
-}
-#endif
-
 #else                           /* !__alpha__ && !__powerpc__ && !__sparc__ */
 
 #define MMIO_IN8(base, offset) \
