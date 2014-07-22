@@ -79,8 +79,6 @@
 #ifndef __inline__
 #if defined(__GNUC__)
     /* gcc has __inline__ */
-#elif defined(__HIGHC__)
-#define __inline__ _Inline
 #else
 #define __inline__ /**/
 #endif
@@ -88,8 +86,6 @@
 #ifndef __inline
 #if defined(__GNUC__)
     /* gcc has __inline */
-#elif defined(__HIGHC__)
-#define __inline _Inline
 #else
 #define __inline /**/
 #endif
@@ -1235,8 +1231,7 @@ inl(unsigned short port)
 #if !defined(__SUNPRO_C)
 #include <sys/inline.h>
 #endif
-#if !defined(__HIGHC__) && !defined(__SUNPRO_C) || \
-	defined(__USLC__)
+#if  !defined(__SUNPRO_C) || defined(__USLC__)
 #pragma asm partial_optimization outl
 #pragma asm partial_optimization outw
 #pragma asm partial_optimization outb
