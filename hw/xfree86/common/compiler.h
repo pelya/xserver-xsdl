@@ -141,10 +141,8 @@ extern _X_EXPORT void xf86WriteMmio32LeNB (void *, unsigned long, unsigned int);
 #endif                          /* __arm__ */
 
 #if defined(__powerpc__) && !defined(__OpenBSD__)
-extern unsigned long ldq_u(unsigned long *);
 extern unsigned long ldl_u(unsigned int *);
 extern unsigned long ldw_u(unsigned short *);
-extern void stq_u(unsigned long, unsigned long *);
 extern void stl_u(unsigned long, unsigned int *);
 extern void stw_u(unsigned long, unsigned short *);
 extern void mem_barrier(void);
@@ -240,15 +238,6 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 
 #include <string.h>             /* needed for memmove */
 
-static __inline__ uint64_t
-ldq_u(uint64_t * p)
-{
-    uint64_t ret;
-
-    memmove(&ret, p, sizeof(*p));
-    return ret;
-}
-
 static __inline__ uint32_t
 ldl_u(uint32_t * p)
 {
@@ -265,14 +254,6 @@ ldw_u(uint16_t * p)
 
     memmove(&ret, p, sizeof(*p));
     return ret;
-}
-
-static __inline__ void
-stq_u(uint64_t val, uint64_t * p)
-{
-    uint64_t tmp = val;
-
-    memmove(p, &tmp, sizeof(*p));
 }
 
 static __inline__ void
@@ -956,7 +937,7 @@ xf_outl(unsigned short port, unsigned int val)
 
 /*
  * Assume all port access are aligned.  We need to revise this implementation
- * if there is unaligned port access.  For ldq_u, ldl_u, ldw_u, stq_u, stl_u and
+ * if there is unaligned port access.  For ldl_u, ldw_u, stl_u and
  * stw_u, they are assumed unaligned.
  */
 
@@ -1134,19 +1115,6 @@ inl(unsigned PORT_SIZE port)
 }
 
 static __inline__ unsigned long
-ldq_u(unsigned long *p)
-{
-    unsigned long addr = (unsigned long) p;
-    unsigned int ret;
-
-    __asm__ __volatile__("lmw.bi %0, [%1], %0, 0;\n\t"
-                         "wsbh %0, %0;\n\t" "rotri %0, %0, 16;\n\t":"=r"(ret)
-                         :"r"(addr));
-
-    return ret;
-}
-
-static __inline__ unsigned long
 ldl_u(unsigned int *p)
 {
     unsigned long addr = (unsigned long) p;
@@ -1157,15 +1125,6 @@ ldl_u(unsigned int *p)
                          :"r"(addr));
 
     return ret;
-}
-
-static __inline__ void
-stq_u(unsigned long val, unsigned long *p)
-{
-    unsigned long addr = (unsigned long) p;
-
-    __asm__ __volatile__("wsbh %0, %0;\n\t" "rotri %0, %0, 16;\n\t" "smw.bi %0, [%1], %0, 0;\n\t":      /* No outputs */
-                         :"r"(val), "r"(addr));
 }
 
 static __inline__ void
@@ -1218,18 +1177,6 @@ inl(unsigned PORT_SIZE port)
 }
 
 static __inline__ unsigned long
-ldq_u(unsigned long *p)
-{
-    unsigned long addr = (unsigned long) p;
-    unsigned int ret;
-
-    __asm__ __volatile__("lmw.bi %0, [%1], %0, 0;\n\t":"=r"(ret)
-                         :"r"(addr));
-
-    return ret;
-}
-
-static __inline__ unsigned long
 ldl_u(unsigned int *p)
 {
     unsigned long addr = (unsigned long) p;
@@ -1239,15 +1186,6 @@ ldl_u(unsigned int *p)
                          :"r"(addr));
 
     return ret;
-}
-
-static __inline__ void
-stq_u(unsigned long val, unsigned long *p)
-{
-    unsigned long addr = (unsigned long) p;
-
-    __asm__ __volatile__("smw.bi %0, [%1], %0, 0;\n\t": /* No outputs */
-                         :"r"(val), "r"(addr));
 }
 
 static __inline__ void
