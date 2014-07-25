@@ -1117,10 +1117,6 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
 
         pPriv->pCompositeClip = NULL;
 
-        if (pPriv->AdaptorRec->ClipNotify)
-            (*pPriv->AdaptorRec->ClipNotify) (pPriv->pScrn, pPriv->DevPriv.ptr,
-                                              pWin, dx, dy);
-
         pPriv->clipChanged = TRUE;
 
         if (ScreenPriv->PostValidateTree == PostValidateTreeUndefined) {
