@@ -93,7 +93,6 @@ typedef struct {
     MessageType glxVisualsFrom;
 
     Bool useDefaultFontPath;
-    MessageType useDefaultFontPathFrom;
     Bool ignoreABI;
 
     Bool forceInputDevices;     /* force xorg.conf or built-in input devices */

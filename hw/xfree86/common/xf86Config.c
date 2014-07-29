@@ -959,10 +959,8 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     XkbFreeRMLVOSet(&set, FALSE);
 
     xf86Info.useDefaultFontPath = TRUE;
-    xf86Info.useDefaultFontPathFrom = X_DEFAULT;
     if (xf86GetOptValBool(FlagOptions, FLAG_USE_DEFAULT_FONT_PATH, &value)) {
         xf86Info.useDefaultFontPath = value;
-        xf86Info.useDefaultFontPathFrom = X_CONFIG;
     }
 
 /* Make sure that timers don't overflow CARD32's after multiplying */
