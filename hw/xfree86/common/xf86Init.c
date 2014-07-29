@@ -233,12 +233,6 @@ xf86PrintBanner(void)
                    "\tto make sure that you have the latest version.\n");
 }
 
-static void
-xf86PrintMarkers(void)
-{
-    LogPrintMarkers();
-}
-
 Bool
 xf86PrivsElevated(void)
 {
@@ -421,7 +415,7 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
             xf86ServerName = argv[0];
 
         xf86PrintBanner();
-        xf86PrintMarkers();
+        LogPrintMarkers();
         if (xf86LogFile) {
             time_t t;
             const char *ct;
