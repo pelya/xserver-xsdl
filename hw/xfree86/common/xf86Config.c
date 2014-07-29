@@ -760,7 +760,7 @@ static OptionInfoRec FlagOptions[] = {
      {0}, FALSE},
 };
 
-static Bool
+static void
 configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 {
     XF86OptionPtr optp, tmp;
@@ -1046,8 +1046,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
         xf86Info.dri2From = X_CONFIG;
     }
 #endif
-
-    return TRUE;
 }
 
 Bool
@@ -2474,11 +2472,7 @@ xf86HandleConfigFile(Bool autoconfig)
     }
 #endif
     /* Now process everything else */
-    if (!configServerFlags(xf86configptr->conf_flags, xf86ConfigLayout.options)) {
-        ErrorF("Problem when converting the config data structures\n");
-        return CONFIG_PARSE_ERROR;
-    }
-
+    configServerFlags(xf86configptr->conf_flags, xf86ConfigLayout.options);
     configFiles(xf86configptr->conf_files);
     configExtensions(xf86configptr->conf_extensions);
 #ifdef XF86DRI
