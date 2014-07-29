@@ -874,12 +874,10 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
         if ((s = xf86GetOptValString(FlagOptions, FLAG_LOG))) {
             if (!xf86NameCmp(s, "flush")) {
                 xf86Msg(X_CONFIG, "Flushing logfile enabled\n");
-                xf86Info.log = LogFlush;
                 LogSetParameter(XLOG_FLUSH, TRUE);
             }
             else if (!xf86NameCmp(s, "sync")) {
                 xf86Msg(X_CONFIG, "Syncing logfile enabled\n");
-                xf86Info.log = LogSync;
                 LogSetParameter(XLOG_FLUSH, TRUE);
                 LogSetParameter(XLOG_SYNC, TRUE);
             }
