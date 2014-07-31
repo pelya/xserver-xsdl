@@ -746,7 +746,7 @@ ProcXvQueryBestSize(ClientPtr client)
 
     VALIDATE_XV_PORT(stuff->port, pPort, DixReadAccess);
 
-    (*pPort->pAdaptor->ddQueryBestSize) (client, pPort, stuff->motion,
+    (*pPort->pAdaptor->ddQueryBestSize) (pPort, stuff->motion,
                                          stuff->vid_w, stuff->vid_h,
                                          stuff->drw_w, stuff->drw_h,
                                          &actual_width, &actual_height);
@@ -851,8 +851,7 @@ ProcXvPutImage(ClientPtr client)
 
     width = stuff->width;
     height = stuff->height;
-    size = (*pPort->pAdaptor->ddQueryImageAttributes) (client,
-                                                       pPort, pImage, &width,
+    size = (*pPort->pAdaptor->ddQueryImageAttributes) (pPort, pImage, &width,
                                                        &height, NULL, NULL);
     size += sizeof(xvPutImageReq);
     size = bytes_to_int32(size);
@@ -917,8 +916,7 @@ ProcXvShmPutImage(ClientPtr client)
 
     width = stuff->width;
     height = stuff->height;
-    size_needed = (*pPort->pAdaptor->ddQueryImageAttributes) (client,
-                                                              pPort, pImage,
+    size_needed = (*pPort->pAdaptor->ddQueryImageAttributes) (pPort, pImage,
                                                               &width, &height,
                                                               NULL, NULL);
     if ((size_needed + stuff->offset) > shmdesc->size)
@@ -1002,7 +1000,7 @@ ProcXvQueryImageAttributes(ClientPtr client)
     width = stuff->width;
     height = stuff->height;
 
-    size = (*pPort->pAdaptor->ddQueryImageAttributes) (client, pPort, pImage,
+    size = (*pPort->pAdaptor->ddQueryImageAttributes) (pPort, pImage,
                                                        &width, &height, offsets,
                                                        pitches);
 

@@ -58,29 +58,29 @@ of the copyright holder.
 
 /* XvAdaptorRec fields */
 
-static int KdXVPutVideo(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int KdXVPutVideo(DrawablePtr, XvPortPtr, GCPtr,
                         INT16, INT16, CARD16, CARD16,
                         INT16, INT16, CARD16, CARD16);
-static int KdXVPutStill(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int KdXVPutStill(DrawablePtr, XvPortPtr, GCPtr,
                         INT16, INT16, CARD16, CARD16,
                         INT16, INT16, CARD16, CARD16);
-static int KdXVGetVideo(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int KdXVGetVideo(DrawablePtr, XvPortPtr, GCPtr,
                         INT16, INT16, CARD16, CARD16,
                         INT16, INT16, CARD16, CARD16);
-static int KdXVGetStill(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int KdXVGetStill(DrawablePtr, XvPortPtr, GCPtr,
                         INT16, INT16, CARD16, CARD16,
                         INT16, INT16, CARD16, CARD16);
-static int KdXVStopVideo(ClientPtr, XvPortPtr, DrawablePtr);
-static int KdXVSetPortAttribute(ClientPtr, XvPortPtr, Atom, INT32);
-static int KdXVGetPortAttribute(ClientPtr, XvPortPtr, Atom, INT32 *);
-static int KdXVQueryBestSize(ClientPtr, XvPortPtr, CARD8,
+static int KdXVStopVideo(XvPortPtr, DrawablePtr);
+static int KdXVSetPortAttribute(XvPortPtr, Atom, INT32);
+static int KdXVGetPortAttribute(XvPortPtr, Atom, INT32 *);
+static int KdXVQueryBestSize(XvPortPtr, CARD8,
                              CARD16, CARD16, CARD16, CARD16,
                              unsigned int *, unsigned int *);
-static int KdXVPutImage(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int KdXVPutImage(DrawablePtr, XvPortPtr, GCPtr,
                         INT16, INT16, CARD16, CARD16,
                         INT16, INT16, CARD16, CARD16,
                         XvImagePtr, unsigned char *, Bool, CARD16, CARD16);
-static int KdXVQueryImageAttributes(ClientPtr, XvPortPtr, XvImagePtr,
+static int KdXVQueryImageAttributes(XvPortPtr, XvImagePtr,
                                     CARD16 *, CARD16 *, int *, int *);
 
 /* ScreenRec fields */
@@ -1028,8 +1028,7 @@ KdXVDisable(ScreenPtr pScreen)
 /**** XvAdaptorRec fields ****/
 
 static int
-KdXVPutVideo(ClientPtr client,
-             DrawablePtr pDraw,
+KdXVPutVideo(DrawablePtr pDraw,
              XvPortPtr pPort,
              GCPtr pGC,
              INT16 vid_x, INT16 vid_y,
@@ -1082,8 +1081,7 @@ KdXVPutVideo(ClientPtr client,
 }
 
 static int
-KdXVPutStill(ClientPtr client,
-             DrawablePtr pDraw,
+KdXVPutStill(DrawablePtr pDraw,
              XvPortPtr pPort,
              GCPtr pGC,
              INT16 vid_x, INT16 vid_y,
@@ -1175,8 +1173,7 @@ KdXVPutStill(ClientPtr client,
 }
 
 static int
-KdXVGetVideo(ClientPtr client,
-             DrawablePtr pDraw,
+KdXVGetVideo(DrawablePtr pDraw,
              XvPortPtr pPort,
              GCPtr pGC,
              INT16 vid_x, INT16 vid_y,
@@ -1229,8 +1226,7 @@ KdXVGetVideo(ClientPtr client,
 }
 
 static int
-KdXVGetStill(ClientPtr client,
-             DrawablePtr pDraw,
+KdXVGetStill(DrawablePtr pDraw,
              XvPortPtr pPort,
              GCPtr pGC,
              INT16 vid_x, INT16 vid_y,
@@ -1292,7 +1288,7 @@ KdXVGetStill(ClientPtr client,
 }
 
 static int
-KdXVStopVideo(ClientPtr client, XvPortPtr pPort, DrawablePtr pDraw)
+KdXVStopVideo(XvPortPtr pPort, DrawablePtr pDraw)
 {
     XvPortRecPrivatePtr portPriv = (XvPortRecPrivatePtr) (pPort->devPriv.ptr);
 
@@ -1318,8 +1314,7 @@ KdXVStopVideo(ClientPtr client, XvPortPtr pPort, DrawablePtr pDraw)
 }
 
 static int
-KdXVSetPortAttribute(ClientPtr client,
-                     XvPortPtr pPort, Atom attribute, INT32 value)
+KdXVSetPortAttribute(XvPortPtr pPort, Atom attribute, INT32 value)
 {
     XvPortRecPrivatePtr portPriv = (XvPortRecPrivatePtr) (pPort->devPriv.ptr);
 
@@ -1329,8 +1324,7 @@ KdXVSetPortAttribute(ClientPtr client,
 }
 
 static int
-KdXVGetPortAttribute(ClientPtr client,
-                     XvPortPtr pPort, Atom attribute, INT32 *p_value)
+KdXVGetPortAttribute(XvPortPtr pPort, Atom attribute, INT32 *p_value)
 {
     XvPortRecPrivatePtr portPriv = (XvPortRecPrivatePtr) (pPort->devPriv.ptr);
 
@@ -1341,8 +1335,7 @@ KdXVGetPortAttribute(ClientPtr client,
 }
 
 static int
-KdXVQueryBestSize(ClientPtr client,
-                  XvPortPtr pPort,
+KdXVQueryBestSize(XvPortPtr pPort,
                   CARD8 motion,
                   CARD16 vid_w, CARD16 vid_h,
                   CARD16 drw_w, CARD16 drw_h,
@@ -1359,8 +1352,7 @@ KdXVQueryBestSize(ClientPtr client,
 }
 
 static int
-KdXVPutImage(ClientPtr client,
-             DrawablePtr pDraw,
+KdXVPutImage(DrawablePtr pDraw,
              XvPortPtr pPort,
              GCPtr pGC,
              INT16 src_x, INT16 src_y,
@@ -1455,8 +1447,7 @@ KdXVPutImage(ClientPtr client,
 }
 
 static int
-KdXVQueryImageAttributes(ClientPtr client,
-                         XvPortPtr pPort,
+KdXVQueryImageAttributes(XvPortPtr pPort,
                          XvImagePtr format,
                          CARD16 *width,
                          CARD16 *height, int *pitches, int *offsets)

@@ -56,29 +56,29 @@
 
 /* XvAdaptorRec fields */
 
-static int xf86XVPutVideo(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int xf86XVPutVideo(DrawablePtr, XvPortPtr, GCPtr,
                           INT16, INT16, CARD16, CARD16,
                           INT16, INT16, CARD16, CARD16);
-static int xf86XVPutStill(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int xf86XVPutStill(DrawablePtr, XvPortPtr, GCPtr,
                           INT16, INT16, CARD16, CARD16,
                           INT16, INT16, CARD16, CARD16);
-static int xf86XVGetVideo(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int xf86XVGetVideo(DrawablePtr, XvPortPtr, GCPtr,
                           INT16, INT16, CARD16, CARD16,
                           INT16, INT16, CARD16, CARD16);
-static int xf86XVGetStill(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int xf86XVGetStill(DrawablePtr, XvPortPtr, GCPtr,
                           INT16, INT16, CARD16, CARD16,
                           INT16, INT16, CARD16, CARD16);
-static int xf86XVStopVideo(ClientPtr, XvPortPtr, DrawablePtr);
-static int xf86XVSetPortAttribute(ClientPtr, XvPortPtr, Atom, INT32);
-static int xf86XVGetPortAttribute(ClientPtr, XvPortPtr, Atom, INT32 *);
-static int xf86XVQueryBestSize(ClientPtr, XvPortPtr, CARD8,
+static int xf86XVStopVideo(XvPortPtr, DrawablePtr);
+static int xf86XVSetPortAttribute(XvPortPtr, Atom, INT32);
+static int xf86XVGetPortAttribute(XvPortPtr, Atom, INT32 *);
+static int xf86XVQueryBestSize(XvPortPtr, CARD8,
                                CARD16, CARD16, CARD16, CARD16,
                                unsigned int *, unsigned int *);
-static int xf86XVPutImage(ClientPtr, DrawablePtr, XvPortPtr, GCPtr,
+static int xf86XVPutImage(DrawablePtr, XvPortPtr, GCPtr,
                           INT16, INT16, CARD16, CARD16,
                           INT16, INT16, CARD16, CARD16,
                           XvImagePtr, unsigned char *, Bool, CARD16, CARD16);
-static int xf86XVQueryImageAttributes(ClientPtr, XvPortPtr, XvImagePtr,
+static int xf86XVQueryImageAttributes(XvPortPtr, XvImagePtr,
                                       CARD16 *, CARD16 *, int *, int *);
 
 /* ScreenRec fields */
@@ -1271,8 +1271,7 @@ xf86XVModeSet(ScrnInfoPtr pScrn)
 /**** XvAdaptorRec fields ****/
 
 static int
-xf86XVPutVideo(ClientPtr client,
-               DrawablePtr pDraw,
+xf86XVPutVideo(DrawablePtr pDraw,
                XvPortPtr pPort,
                GCPtr pGC,
                INT16 vid_x, INT16 vid_y,
@@ -1322,8 +1321,7 @@ xf86XVPutVideo(ClientPtr client,
 }
 
 static int
-xf86XVPutStill(ClientPtr client,
-               DrawablePtr pDraw,
+xf86XVPutStill(DrawablePtr pDraw,
                XvPortPtr pPort,
                GCPtr pGC,
                INT16 vid_x, INT16 vid_y,
@@ -1420,8 +1418,7 @@ xf86XVPutStill(ClientPtr client,
 }
 
 static int
-xf86XVGetVideo(ClientPtr client,
-               DrawablePtr pDraw,
+xf86XVGetVideo(DrawablePtr pDraw,
                XvPortPtr pPort,
                GCPtr pGC,
                INT16 vid_x, INT16 vid_y,
@@ -1471,8 +1468,7 @@ xf86XVGetVideo(ClientPtr client,
 }
 
 static int
-xf86XVGetStill(ClientPtr client,
-               DrawablePtr pDraw,
+xf86XVGetStill(DrawablePtr pDraw,
                XvPortPtr pPort,
                GCPtr pGC,
                INT16 vid_x, INT16 vid_y,
@@ -1531,7 +1527,7 @@ xf86XVGetStill(ClientPtr client,
 }
 
 static int
-xf86XVStopVideo(ClientPtr client, XvPortPtr pPort, DrawablePtr pDraw)
+xf86XVStopVideo(XvPortPtr pPort, DrawablePtr pDraw)
 {
     XvPortRecPrivatePtr portPriv = (XvPortRecPrivatePtr) (pPort->devPriv.ptr);
 
@@ -1555,8 +1551,7 @@ xf86XVStopVideo(ClientPtr client, XvPortPtr pPort, DrawablePtr pDraw)
 }
 
 static int
-xf86XVSetPortAttribute(ClientPtr client,
-                       XvPortPtr pPort, Atom attribute, INT32 value)
+xf86XVSetPortAttribute(XvPortPtr pPort, Atom attribute, INT32 value)
 {
     XvPortRecPrivatePtr portPriv = (XvPortRecPrivatePtr) (pPort->devPriv.ptr);
 
@@ -1566,8 +1561,7 @@ xf86XVSetPortAttribute(ClientPtr client,
 }
 
 static int
-xf86XVGetPortAttribute(ClientPtr client,
-                       XvPortPtr pPort, Atom attribute, INT32 *p_value)
+xf86XVGetPortAttribute(XvPortPtr pPort, Atom attribute, INT32 *p_value)
 {
     XvPortRecPrivatePtr portPriv = (XvPortRecPrivatePtr) (pPort->devPriv.ptr);
 
@@ -1577,8 +1571,7 @@ xf86XVGetPortAttribute(ClientPtr client,
 }
 
 static int
-xf86XVQueryBestSize(ClientPtr client,
-                    XvPortPtr pPort,
+xf86XVQueryBestSize(XvPortPtr pPort,
                     CARD8 motion,
                     CARD16 vid_w, CARD16 vid_h,
                     CARD16 drw_w, CARD16 drw_h,
@@ -1595,8 +1588,7 @@ xf86XVQueryBestSize(ClientPtr client,
 }
 
 static int
-xf86XVPutImage(ClientPtr client,
-               DrawablePtr pDraw,
+xf86XVPutImage(DrawablePtr pDraw,
                XvPortPtr pPort,
                GCPtr pGC,
                INT16 src_x, INT16 src_y,
@@ -1701,8 +1693,7 @@ xf86XVPutImage(ClientPtr client,
 }
 
 static int
-xf86XVQueryImageAttributes(ClientPtr client,
-                           XvPortPtr pPort,
+xf86XVQueryImageAttributes(XvPortPtr pPort,
                            XvImagePtr format,
                            CARD16 *width,
                            CARD16 *height, int *pitches, int *offsets)

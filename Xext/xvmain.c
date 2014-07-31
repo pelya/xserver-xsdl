@@ -356,7 +356,7 @@ XvDestroyPixmap(PixmapPtr pPix)
             if (pp->pDraw == (DrawablePtr) pPix) {
                 XvdiSendVideoNotify(pp, pp->pDraw, XvPreempted);
 
-                (void) (*pp->pAdaptor->ddStopVideo) (NULL, pp, pp->pDraw);
+                (void) (*pp->pAdaptor->ddStopVideo) (pp, pp->pDraw);
 
                 pp->pDraw = NULL;
                 pp->client = NULL;
@@ -404,7 +404,7 @@ XvDestroyWindow(WindowPtr pWin)
             if (pp->pDraw == (DrawablePtr) pWin) {
                 XvdiSendVideoNotify(pp, pp->pDraw, XvPreempted);
 
-                (void) (*pp->pAdaptor->ddStopVideo) (NULL, pp, pp->pDraw);
+                (void) (*pp->pAdaptor->ddStopVideo) (pp, pp->pDraw);
 
                 pp->pDraw = NULL;
                 pp->client = NULL;
@@ -566,7 +566,7 @@ XvdiPutVideo(ClientPtr client,
         XvdiSendVideoNotify(pPort, pPort->pDraw, XvPreempted);
     }
 
-    (void) (*pPort->pAdaptor->ddPutVideo) (client, pDraw, pPort, pGC,
+    (void) (*pPort->pAdaptor->ddPutVideo) (pDraw, pPort, pGC,
                                            vid_x, vid_y, vid_w, vid_h,
                                            drw_x, drw_y, drw_w, drw_h);
 
@@ -608,7 +608,7 @@ XvdiPutStill(ClientPtr client,
 
     pPort->time = currentTime;
 
-    status = (*pPort->pAdaptor->ddPutStill) (client, pDraw, pPort, pGC,
+    status = (*pPort->pAdaptor->ddPutStill) (pDraw, pPort, pGC,
                                              vid_x, vid_y, vid_w, vid_h,
                                              drw_x, drw_y, drw_w, drw_h);
 
@@ -644,7 +644,7 @@ XvdiPutImage(ClientPtr client,
 
     pPort->time = currentTime;
 
-    return (*pPort->pAdaptor->ddPutImage) (client, pDraw, pPort, pGC,
+    return (*pPort->pAdaptor->ddPutImage) (pDraw, pPort, pGC,
                                            src_x, src_y, src_w, src_h,
                                            drw_x, drw_y, drw_w, drw_h,
                                            image, data, sync, width, height);
@@ -683,7 +683,7 @@ XvdiGetVideo(ClientPtr client,
         XvdiSendVideoNotify(pPort, pPort->pDraw, XvPreempted);
     }
 
-    (void) (*pPort->pAdaptor->ddGetVideo) (client, pDraw, pPort, pGC,
+    (void) (*pPort->pAdaptor->ddGetVideo) (pDraw, pPort, pGC,
                                            vid_x, vid_y, vid_w, vid_h,
                                            drw_x, drw_y, drw_w, drw_h);
 
@@ -723,7 +723,7 @@ XvdiGetStill(ClientPtr client,
         return Success;
     }
 
-    status = (*pPort->pAdaptor->ddGetStill) (client, pDraw, pPort, pGC,
+    status = (*pPort->pAdaptor->ddGetStill) (pDraw, pPort, pGC,
                                              vid_x, vid_y, vid_w, vid_h,
                                              drw_x, drw_y, drw_w, drw_h);
 
@@ -955,7 +955,7 @@ XvdiStopVideo(ClientPtr client, XvPortPtr pPort, DrawablePtr pDraw)
 
     XvdiSendVideoNotify(pPort, pDraw, XvStopped);
 
-    status = (*pPort->pAdaptor->ddStopVideo) (client, pPort, pDraw);
+    status = (*pPort->pAdaptor->ddStopVideo) (pPort, pDraw);
 
     pPort->pDraw = NULL;
     pPort->client = (ClientPtr) client;
@@ -998,7 +998,7 @@ XvdiSetPortAttribute(ClientPtr client,
     int status;
 
     status =
-        (*pPort->pAdaptor->ddSetPortAttribute) (client, pPort, attribute,
+        (*pPort->pAdaptor->ddSetPortAttribute) (pPort, attribute,
                                                 value);
     if (status == Success)
         XvdiSendPortNotify(pPort, attribute, value);
@@ -1012,7 +1012,7 @@ XvdiGetPortAttribute(ClientPtr client,
 {
 
     return
-        (*pPort->pAdaptor->ddGetPortAttribute) (client, pPort, attribute,
+        (*pPort->pAdaptor->ddGetPortAttribute) (pPort, attribute,
                                                 p_value);
 
 }

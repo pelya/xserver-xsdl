@@ -157,29 +157,29 @@ typedef struct {
     int nPorts;
     struct _XvPortRec *pPorts;
     ScreenPtr pScreen;
-    int (*ddPutVideo) (ClientPtr, DrawablePtr, struct _XvPortRec *, GCPtr,
+    int (*ddPutVideo) (DrawablePtr, struct _XvPortRec *, GCPtr,
                        INT16, INT16, CARD16, CARD16,
                        INT16, INT16, CARD16, CARD16);
-    int (*ddPutStill) (ClientPtr, DrawablePtr, struct _XvPortRec *, GCPtr,
+    int (*ddPutStill) (DrawablePtr, struct _XvPortRec *, GCPtr,
                        INT16, INT16, CARD16, CARD16,
                        INT16, INT16, CARD16, CARD16);
-    int (*ddGetVideo) (ClientPtr, DrawablePtr, struct _XvPortRec *, GCPtr,
+    int (*ddGetVideo) (DrawablePtr, struct _XvPortRec *, GCPtr,
                        INT16, INT16, CARD16, CARD16,
                        INT16, INT16, CARD16, CARD16);
-    int (*ddGetStill) (ClientPtr, DrawablePtr, struct _XvPortRec *, GCPtr,
+    int (*ddGetStill) (DrawablePtr, struct _XvPortRec *, GCPtr,
                        INT16, INT16, CARD16, CARD16,
                        INT16, INT16, CARD16, CARD16);
-    int (*ddStopVideo) (ClientPtr, struct _XvPortRec *, DrawablePtr);
-    int (*ddSetPortAttribute) (ClientPtr, struct _XvPortRec *, Atom, INT32);
-    int (*ddGetPortAttribute) (ClientPtr, struct _XvPortRec *, Atom, INT32 *);
-    int (*ddQueryBestSize) (ClientPtr, struct _XvPortRec *, CARD8,
+    int (*ddStopVideo) (struct _XvPortRec *, DrawablePtr);
+    int (*ddSetPortAttribute) (struct _XvPortRec *, Atom, INT32);
+    int (*ddGetPortAttribute) (struct _XvPortRec *, Atom, INT32 *);
+    int (*ddQueryBestSize) (struct _XvPortRec *, CARD8,
                             CARD16, CARD16, CARD16, CARD16,
                             unsigned int *, unsigned int *);
-    int (*ddPutImage) (ClientPtr, DrawablePtr, struct _XvPortRec *, GCPtr,
+    int (*ddPutImage) (DrawablePtr, struct _XvPortRec *, GCPtr,
                        INT16, INT16, CARD16, CARD16,
                        INT16, INT16, CARD16, CARD16,
                        XvImagePtr, unsigned char *, Bool, CARD16, CARD16);
-    int (*ddQueryImageAttributes) (ClientPtr, struct _XvPortRec *, XvImagePtr,
+    int (*ddQueryImageAttributes) (struct _XvPortRec *, XvImagePtr,
                                    CARD16 *, CARD16 *, int *, int *);
     DevUnion devPriv;
 } XvAdaptorRec, *XvAdaptorPtr;
