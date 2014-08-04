@@ -692,13 +692,13 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
         wl_pointer_add_listener(xwl_seat->wl_pointer,
                                 &pointer_listener, xwl_seat);
 
-        if (xwl_seat->pointer)
-            EnableDevice(xwl_seat->pointer, TRUE);
-        else {
+        if (xwl_seat->pointer == NULL) {
             xwl_seat_set_cursor(xwl_seat);
             xwl_seat->pointer =
                 add_device(xwl_seat, "xwayland-pointer", xwl_pointer_proc);
+            ActivateDevice(xwl_seat->pointer, TRUE);
         }
+        EnableDevice(xwl_seat->pointer, TRUE);
     } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && xwl_seat->wl_pointer) {
         wl_pointer_release(xwl_seat->wl_pointer);
         xwl_seat->wl_pointer = NULL;
@@ -712,12 +712,12 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
         wl_keyboard_add_listener(xwl_seat->wl_keyboard,
                                  &keyboard_listener, xwl_seat);
 
-        if (xwl_seat->keyboard)
-            EnableDevice(xwl_seat->keyboard, TRUE);
-        else {
+        if (xwl_seat->keyboard == NULL) {
             xwl_seat->keyboard =
                 add_device(xwl_seat, "xwayland-keyboard", xwl_keyboard_proc);
+            ActivateDevice(xwl_seat->keyboard, TRUE);
         }
+        EnableDevice(xwl_seat->keyboard, TRUE);
     } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD) && xwl_seat->wl_keyboard) {
         wl_keyboard_release(xwl_seat->wl_keyboard);
         xwl_seat->wl_keyboard = NULL;
