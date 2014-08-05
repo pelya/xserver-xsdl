@@ -425,17 +425,6 @@ extern _X_EXPORT int miShapedWindowIn(RegionPtr /*universe */ ,
                                       int       /*y */
     );
 
-typedef void
- (*SetRedirectBorderClipProcPtr) (WindowPtr pWindow, RegionPtr pRegion);
-
-typedef RegionPtr
- (*GetRedirectBorderClipProcPtr) (WindowPtr pWindow);
-
-extern _X_EXPORT void
-
-miRegisterRedirectBorderClipProc(SetRedirectBorderClipProcPtr setBorderClip,
-                                 GetRedirectBorderClipProcPtr getBorderClip);
-
 extern _X_EXPORT int miValidateTree(WindowPtr /*pParent */ ,
                                     WindowPtr /*pChild */ ,
                                     VTKind      /*kind */
