@@ -306,9 +306,6 @@ typedef struct glamor_screen_private {
     int linear_max_nstops;
     int radial_max_nstops;
 
-    /* glamor trapezoid shader. */
-    GLint trapezoid_prog;
-
     PixmapPtr *back_pixmap;
     int screen_fbo;
     struct glamor_saved_procs saved_procs;
@@ -745,8 +742,6 @@ void glamor_composite_glyph_rects(CARD8 op,
 void glamor_composite_rects(CARD8 op,
                             PicturePtr pDst,
                             xRenderColor *color, int nRect, xRectangle *rects);
-void glamor_init_trapezoid_shader(ScreenPtr screen);
-void glamor_fini_trapezoid_shader(ScreenPtr screen);
 PicturePtr glamor_convert_gradient_picture(ScreenPtr screen,
                                            PicturePtr source,
                                            int x_source,
@@ -1089,7 +1084,6 @@ void glamor_xv_render(glamor_port_private *port_priv);
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 #define GLAMOR_GRADIENT_SHADER
-#define GLAMOR_TRAPEZOID_SHADER
 #define GLAMOR_TEXTURED_LARGE_PIXMAP 1
 #define WALKAROUND_LARGE_TEXTURE_MAP
 #if 0
