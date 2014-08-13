@@ -635,6 +635,7 @@ glamor_copy_gl(DrawablePtr src,
             return glamor_copy_cpu_fbo(src, dst, gc, box, nbox, dx, dy,
                                        reverse, upsidedown, bitplane, closure);
     } else if (GLAMOR_PIXMAP_PRIV_HAS_FBO(src_priv) &&
+               dst_priv->type != GLAMOR_DRM_ONLY &&
                bitplane == 0) {
             return glamor_copy_fbo_cpu(src, dst, gc, box, nbox, dx, dy,
                                        reverse, upsidedown, bitplane, closure);
