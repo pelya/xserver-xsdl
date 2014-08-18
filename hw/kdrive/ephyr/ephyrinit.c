@@ -164,6 +164,7 @@ processScreenArg(const char *screen_size, char *parent_id)
     if (card) {
         KdScreenInfo *screen;
         unsigned long p_id = 0;
+        Bool use_geometry;
 
         screen = KdScreenInfoAdd(card);
         KdParseScreen(screen, screen_size);
@@ -174,8 +175,10 @@ processScreenArg(const char *screen_size, char *parent_id)
         if (parent_id) {
             p_id = strtol(parent_id, NULL, 0);
         }
+
+        use_geometry = (strchr(screen_size, '+') != NULL);
         EPHYR_DBG("screen number:%d\n", screen->mynum);
-        hostx_add_screen(screen, p_id, screen->mynum);
+        hostx_add_screen(screen, p_id, screen->mynum, use_geometry);
     }
     else {
         ErrorF("No matching card found!\n");

@@ -119,7 +119,7 @@ hostx_want_screen_size(KdScreenInfo *screen, int *width, int *height)
 }
 
 void
-hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num)
+hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num, Bool use_geometry)
 {
     EphyrScrPriv *scrpriv = screen->driver;
     int index = HostX.n_screens;
@@ -131,6 +131,7 @@ hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num)
 
     scrpriv->screen = screen;
     scrpriv->win_pre_existing = win_id;
+    scrpriv->win_explicit_position = use_geometry;
 }
 
 void
@@ -637,6 +638,7 @@ hostx_set_cmap_entry(unsigned char idx,
  */
 void *
 hostx_screen_init(KdScreenInfo *screen,
+                  int x, int y,
                   int width, int height, int buffer_height,
                   int *bytes_per_line, int *bits_per_pixel)
 {
@@ -648,8 +650,8 @@ hostx_screen_init(KdScreenInfo *screen,
         exit(1);
     }
 
-    EPHYR_DBG("host_screen=%p wxh=%dx%d, buffer_height=%d",
-              host_screen, width, height, buffer_height);
+    EPHYR_DBG("host_screen=%p x=%d, y=%d, wxh=%dx%d, buffer_height=%d",
+              host_screen, x, y, width, height, buffer_height);
 
     if (scrpriv->ximg != NULL) {
         /* Free up the image data if previously used
@@ -739,6 +741,19 @@ hostx_screen_init(KdScreenInfo *screen,
     }
 
     xcb_map_window(HostX.conn, scrpriv->win);
+
+    /* Set explicit window position if it was informed in
+     * -screen option (WxH+X or WxH+X+Y). Otherwise, accept the
+     * position set by WM.
+     * The trick here is putting this code after xcb_map_window() call,
+     * so these values won't be overriden by WM. */
+    if (scrpriv->win_explicit_position)
+    {
+        uint32_t mask = XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y;
+        uint32_t values[2] = {x, y};
+        xcb_configure_window(HostX.conn, scrpriv->win, mask, values);
+    }
+
 
     xcb_aux_sync(HostX.conn);
 

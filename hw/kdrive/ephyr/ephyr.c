@@ -242,7 +242,8 @@ ephyrMapFramebuffer(KdScreenInfo * screen)
     buffer_height = ephyrBufferHeight(screen);
 
     priv->base =
-        hostx_screen_init(screen, screen->width, screen->height, buffer_height,
+        hostx_screen_init(screen, screen->x, screen->y,
+                          screen->width, screen->height, buffer_height,
                           &priv->bytes_per_line, &screen->fb.bitsPerPixel);
 
     if ((scrpriv->randr & RR_Rotate_0) && !(scrpriv->randr & RR_Reflect_All)) {

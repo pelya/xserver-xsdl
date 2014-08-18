@@ -107,7 +107,7 @@ int
  hostx_init(void);
 
 void
-hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num);
+hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num, Bool use_geometry);
 
 void
  hostx_set_display_name(char *name);
@@ -136,6 +136,7 @@ hostx_set_cmap_entry(unsigned char idx,
                      unsigned char r, unsigned char g, unsigned char b);
 
 void *hostx_screen_init(KdScreenInfo *screen,
+                        int x, int y,
                         int width, int height, int buffer_height,
                         int *bytes_per_line, int *bits_per_pixel);
 
