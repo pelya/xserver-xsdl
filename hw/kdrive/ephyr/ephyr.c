@@ -111,13 +111,16 @@ Bool
 ephyrScreenInitialize(KdScreenInfo *screen)
 {
     EphyrScrPriv *scrpriv = screen->driver;
+    int x = 0, y = 0;
     int width = 640, height = 480;
     CARD32 redMask, greenMask, blueMask;
 
-    if (hostx_want_screen_size(screen, &width, &height)
+    if (hostx_want_screen_geometry(screen, &width, &height, &x, &y)
         || !screen->width || !screen->height) {
         screen->width = width;
         screen->height = height;
+        screen->x = x;
+        screen->y = y;
     }
 
     if (EphyrWantGrayScale)

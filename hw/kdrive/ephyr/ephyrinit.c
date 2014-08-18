@@ -47,6 +47,8 @@ extern KdPointerDriver LinuxEvdevMouseDriver;
 extern KdKeyboardDriver LinuxEvdevKeyboardDriver;
 #endif
 
+void processScreenOrOutputArg(const char *screen_size, const char *output, char *parent_id);
+void processOutputArg(const char *output, char *parent_id);
 void processScreenArg(const char *screen_size, char *parent_id);
 
 void
@@ -134,6 +136,7 @@ ddxUseMsg(void)
     ErrorF("-parent <XID>        Use existing window as Xephyr root win\n");
     ErrorF("-sw-cursor           Render cursors in software in Xephyr\n");
     ErrorF("-fullscreen          Attempt to run Xephyr fullscreen\n");
+    ErrorF("-output <NAME>       Attempt to run Xephyr fullscreen (restricted to given output geometry)\n");
     ErrorF("-grayscale           Simulate 8bit grayscale\n");
     ErrorF("-resizeable          Make Xephyr windows resizeable\n");
 #ifdef GLAMOR
@@ -154,7 +157,7 @@ ddxUseMsg(void)
 }
 
 void
-processScreenArg(const char *screen_size, char *parent_id)
+processScreenOrOutputArg(const char *screen_size, const char *output, char *parent_id)
 {
     KdCardInfo *card;
 
@@ -178,11 +181,23 @@ processScreenArg(const char *screen_size, char *parent_id)
 
         use_geometry = (strchr(screen_size, '+') != NULL);
         EPHYR_DBG("screen number:%d\n", screen->mynum);
-        hostx_add_screen(screen, p_id, screen->mynum, use_geometry);
+        hostx_add_screen(screen, p_id, screen->mynum, use_geometry, output);
     }
     else {
         ErrorF("No matching card found!\n");
     }
+}
+
+void
+processScreenArg(const char *screen_size, char *parent_id)
+{
+    processScreenOrOutputArg(screen_size, NULL, parent_id);
+}
+
+void
+processOutputArg(const char *output, char *parent_id)
+{
+    processScreenOrOutputArg("100x100+0+0", output, parent_id);
 }
 
 int
@@ -220,6 +235,15 @@ ddxProcessArgument(int argc, char **argv, int i)
         if ((i + 1) < argc) {
             processScreenArg(argv[i + 1], parent);
             parent = NULL;
+            return 2;
+        }
+
+        UseMsg();
+        exit(1);
+    }
+    else if (!strcmp(argv[i], "-output")) {
+        if (i + 1 < argc) {
+            processOutputArg(argv[i + 1], NULL);
             return 2;
         }
 

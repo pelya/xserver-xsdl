@@ -74,8 +74,10 @@ typedef struct _ephyrScrPriv {
     xcb_window_t peer_win;            /* Used for GL; should be at most one */
     xcb_image_t *ximg;
     Bool win_explicit_position;
+    int win_x, win_y;
     int win_width, win_height;
     int server_depth;
+    const char *output;         /* Set via -output option */
     unsigned char *fb_data;     /* only used when host bpp != server bpp */
     xcb_shm_segment_info_t shminfo;
 

@@ -74,13 +74,18 @@ typedef struct {
 } EphyrRect;
 
 int
-hostx_want_screen_size(KdScreenInfo *screen, int *width, int *height);
+hostx_want_screen_geometry(KdScreenInfo *screen, int *width, int *height, int *x, int *y);
 
 int
  hostx_want_host_cursor(void);
 
 void
  hostx_use_sw_cursor(void);
+
+void
+ hostx_get_output_geometry(const char *output,
+                           int *x, int *y,
+                           int *width, int *height);
 
 void
  hostx_use_fullscreen(void);
@@ -107,7 +112,7 @@ int
  hostx_init(void);
 
 void
-hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num, Bool use_geometry);
+hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num, Bool use_geometry, const char *output);
 
 void
  hostx_set_display_name(char *name);
