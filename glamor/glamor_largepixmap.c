@@ -1041,6 +1041,7 @@ glamor_composite_largepixmap_region(CARD8 op,
     int is_normal_source_fbo = 0;
     int is_normal_mask_fbo = 0;
     int fixed_block_width, fixed_block_height;
+    int dest_block_width, dest_block_height;
     int null_source, null_mask;
     glamor_pixmap_private *need_free_source_pixmap_priv = NULL;
     glamor_pixmap_private *need_free_mask_pixmap_priv = NULL;
@@ -1057,8 +1058,16 @@ glamor_composite_largepixmap_region(CARD8 op,
     else
         mask_repeat_type = RepeatNone;
 
-    fixed_block_width = dest_pixmap_priv->large.block_w;
-    fixed_block_height = dest_pixmap_priv->large.block_h;
+    if (dest_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+        dest_block_width = __glamor_large(dest_pixmap_priv)->block_w;
+        dest_block_height = __glamor_large(dest_pixmap_priv)->block_h;
+    } else {
+        dest_block_width = dest_pixmap_priv->base.pixmap->drawable.width;
+        dest_block_height = dest_pixmap_priv->base.pixmap->drawable.height;
+    }
+    fixed_block_width = dest_block_width;
+    fixed_block_height = dest_block_height;
+
     /* If we got an totally out-of-box region for a source or mask
      * region without repeat, we need to set it as null_source and
      * give it a solid color (0,0,0,0). */
@@ -1124,8 +1133,8 @@ glamor_composite_largepixmap_region(CARD8 op,
 
     /*compute the correct block width and height whose transformed source/mask
      *region can fit into one texture.*/
-    if (force_clip || fixed_block_width < dest_pixmap_priv->large.block_w
-        || fixed_block_height < dest_pixmap_priv->large.block_h)
+    if (force_clip || fixed_block_width < dest_block_width
+        || fixed_block_height < dest_block_height)
         clipped_dest_regions =
             glamor_compute_clipped_regions_ext(dest_pixmap_priv, region,
                                                &n_dest_regions,
