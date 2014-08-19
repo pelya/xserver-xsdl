@@ -4,9 +4,7 @@
 
 static inline glamor_pixmap_private_large_t *
 __glamor_large(glamor_pixmap_private *pixmap_priv) {
-#if 0
     assert(pixmap_priv->type == GLAMOR_TEXTURE_LARGE);
-#endif
     return &pixmap_priv->large;
 }
 
