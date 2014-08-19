@@ -970,7 +970,7 @@ _glamor_process_transformed_clipped_region(glamor_pixmap_private *priv,
                                      need_clean_fbo);
     }
     else {
-        SET_PIXMAP_FBO_CURRENT(priv, clipped_regions[0].block_idx);
+        glamor_set_pixmap_fbo_current(priv, clipped_regions[0].block_idx);
         if (repeat_type == RepeatReflect || repeat_type == RepeatNormal) {
             /* The required source areas are in one region,
              * we need to shift the corresponding box's coords to proper position,
@@ -1140,7 +1140,7 @@ glamor_composite_largepixmap_region(CARD8 op,
         DEBUGF("dest region %d  idx %d\n", i,
                clipped_dest_regions[i].block_idx);
         DEBUGRegionPrint(clipped_dest_regions[i].region);
-        SET_PIXMAP_FBO_CURRENT(dest_pixmap_priv,
+        glamor_set_pixmap_fbo_current(dest_pixmap_priv,
                                clipped_dest_regions[i].block_idx);
         if (source_pixmap_priv &&
             source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
@@ -1180,7 +1180,7 @@ glamor_composite_largepixmap_region(CARD8 op,
             DEBUGF("source clipped result %d region: \n", n_source_regions);
             for (j = 0; j < n_source_regions; j++) {
                 if (is_normal_source_fbo)
-                    SET_PIXMAP_FBO_CURRENT(source_pixmap_priv,
+                    glamor_set_pixmap_fbo_current(source_pixmap_priv,
                                            clipped_source_regions[j].block_idx);
 
                 if (mask_pixmap_priv &&
@@ -1267,7 +1267,7 @@ glamor_composite_largepixmap_region(CARD8 op,
                                clipped_mask_regions[k].block_idx);
                         DEBUGRegionPrint(clipped_mask_regions[k].region);
                         if (is_normal_mask_fbo) {
-                            SET_PIXMAP_FBO_CURRENT(mask_pixmap_priv,
+                            glamor_set_pixmap_fbo_current(mask_pixmap_priv,
                                                    clipped_mask_regions[k].
                                                    block_idx);
                             DEBUGF("mask fbo off %d %d \n",
@@ -1378,7 +1378,7 @@ glamor_composite_largepixmap_region(CARD8 op,
                            clipped_mask_regions[k].block_idx);
                     DEBUGRegionPrint(clipped_mask_regions[k].region);
                     if (is_normal_mask_fbo) {
-                        SET_PIXMAP_FBO_CURRENT(mask_pixmap_priv,
+                        glamor_set_pixmap_fbo_current(mask_pixmap_priv,
                                                clipped_mask_regions[k].
                                                block_idx);
                         RegionTranslate(clipped_mask_regions[k].region,

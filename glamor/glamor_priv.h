@@ -438,14 +438,6 @@ typedef struct glamor_pixmap_clipped_regions {
     RegionPtr region;
 } glamor_pixmap_clipped_regions;
 
-#define SET_PIXMAP_FBO_CURRENT(priv, idx) 				\
-  do {									\
-	if (priv->type == GLAMOR_TEXTURE_LARGE) {			\
-		(priv)->large.base.fbo = priv->large.fbo_array[idx]; 	\
-		(priv)->large.box = priv->large.box_array[idx]; 	\
-	}								\
-  } while(0)
-
 typedef struct glamor_pixmap_private_base {
     glamor_pixmap_type_t type;
     enum glamor_fbo_state gl_fbo;
@@ -517,6 +509,15 @@ typedef struct glamor_pixmap_private {
         glamor_pixmap_private_atlas_t atlas;
     };
 } glamor_pixmap_private;
+
+static inline void
+glamor_set_pixmap_fbo_current(glamor_pixmap_private *priv, int idx)
+{
+    if (priv->type == GLAMOR_TEXTURE_LARGE) {
+        priv->large.base.fbo = priv->large.fbo_array[idx];
+        priv->large.box = priv->large.box_array[idx];
+    }
+}
 
 static inline glamor_pixmap_fbo *
 glamor_pixmap_fbo_at(glamor_pixmap_private *priv, int x, int y)
