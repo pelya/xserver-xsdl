@@ -162,9 +162,9 @@ glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
         *result_regions;
     int i, j, x, y, k, inner_n_regions;
     int width, height;
-    glamor_pixmap_private_large_t *priv;
-
-    priv = &pixmap_priv->large;
+    BoxPtr box_array;
+    BoxRec small_box;
+    int block_w, block_h;
 
     DEBUGF("ext called \n");
 
@@ -178,14 +178,16 @@ glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
         clipped_regions[0].block_idx = 0;
         RegionCopy(clipped_regions[0].region, region);
         *n_region = 1;
-        priv->block_w = priv->base.pixmap->drawable.width;
-        priv->block_h = priv->base.pixmap->drawable.height;
-        priv->box_array = &priv->box;
-        priv->box.x1 = priv->box.y1 = 0;
-        priv->box.x2 = priv->block_w;
-        priv->box.y2 = priv->block_h;
+        block_w = pixmap_priv->base.pixmap->drawable.width;
+        block_h = pixmap_priv->base.pixmap->drawable.height;
+        box_array = &small_box;
+        small_box.x1 = small_box.y1 = 0;
+        small_box.x2 = block_w;
+        small_box.y2 = block_h;
     }
     else {
+        glamor_pixmap_private_large_t *priv = __glamor_large(pixmap_priv);
+
         clipped_regions = __glamor_compute_clipped_regions(priv->block_w,
                                                            priv->block_h,
                                                            priv->block_wcnt,
@@ -201,20 +203,23 @@ glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
             *n_region = 0;
             return NULL;
         }
+        block_w = priv->block_w;
+        block_h = priv->block_h;
+        box_array = priv->box_array;
     }
-    if (inner_block_w >= priv->block_w && inner_block_h >= priv->block_h)
+    if (inner_block_w >= block_w && inner_block_h >= block_h)
         return clipped_regions;
     result_regions = calloc(*n_region
-                            * ((priv->block_w + inner_block_w - 1) /
+                            * ((block_w + inner_block_w - 1) /
                                inner_block_w)
-                            * ((priv->block_h + inner_block_h - 1) /
+                            * ((block_h + inner_block_h - 1) /
                                inner_block_h), sizeof(*result_regions));
     k = 0;
     for (i = 0; i < *n_region; i++) {
-        x = priv->box_array[clipped_regions[i].block_idx].x1;
-        y = priv->box_array[clipped_regions[i].block_idx].y1;
-        width = priv->box_array[clipped_regions[i].block_idx].x2 - x;
-        height = priv->box_array[clipped_regions[i].block_idx].y2 - y;
+        x = box_array[clipped_regions[i].block_idx].x1;
+        y = box_array[clipped_regions[i].block_idx].y1;
+        width = box_array[clipped_regions[i].block_idx].x2 - x;
+        height = box_array[clipped_regions[i].block_idx].y2 - y;
         inner_regions = __glamor_compute_clipped_regions(inner_block_w,
                                                          inner_block_h,
                                                          0, x, y,
