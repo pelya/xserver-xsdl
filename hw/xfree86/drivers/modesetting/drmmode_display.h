@@ -32,10 +32,6 @@
 #include "libudev.h"
 #endif
 
-#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,14,99,2,0)
-#define DamageUnregister(d, dd) DamageUnregister(dd)
-#endif
-
 struct dumb_bo {
     uint32_t handle;
     uint32_t size;
@@ -62,9 +58,7 @@ typedef struct {
     Bool shadow_enable;
     void *shadow_fb;
 
-#ifdef HAVE_SCREEN_SPECIFIC_PRIVATE_KEYS
     DevPrivateKeyRec pixmapPrivateKeyRec;
-#endif
 } drmmode_rec, *drmmode_ptr;
 
 typedef struct {

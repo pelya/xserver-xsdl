@@ -295,10 +295,8 @@ ms_driver_func(ScrnInfoPtr scrn, xorgDriverFuncOp op, void *data)
 	    flag = (CARD32 *)data;
 	    (*flag) = 0;
 	    return TRUE;
-#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,15,99,902,0)
         case SUPPORTS_SERVER_FDS:
             return TRUE;
-#endif
 	default:
 	    return FALSE;
     }
@@ -494,7 +492,7 @@ static void dispatch_dirty(ScreenPtr pScreen)
     ret = dispatch_dirty_region(scrn, pixmap, ms->damage, fb_id);
     if (ret == -EINVAL || ret == -ENOSYS) {
 	ms->dirty_enabled = FALSE;
-	DamageUnregister(&pScreen->GetScreenPixmap(pScreen)->drawable, ms->damage);
+	DamageUnregister(ms->damage);
 	DamageDestroy(ms->damage);
 	ms->damage = NULL;
 	xf86DrvMsg(scrn->scrnIndex, X_INFO, "Disabling kernel dirty updates, not required.\n");
@@ -1082,7 +1080,7 @@ CloseScreen(ScreenPtr pScreen)
     modesettingPtr ms = modesettingPTR(pScrn);
 
     if (ms->damage) {
-	DamageUnregister(&pScreen->GetScreenPixmap(pScreen)->drawable, ms->damage);
+	DamageUnregister(ms->damage);
 	DamageDestroy(ms->damage);
 	ms->damage = NULL;
     }
