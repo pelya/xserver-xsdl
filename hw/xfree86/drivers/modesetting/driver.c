@@ -219,7 +219,7 @@ static Bool probe_hw(const char *dev, struct xf86_platform_device *platform_dev)
 
 #if XF86_PDEV_SERVER_FD
     if (platform_dev && (platform_dev->flags & XF86_PDEV_SERVER_FD)) {
-        fd = xf86_get_platform_device_int_attrib(platform_dev, ODEV_ATTRIB_FD, -1);
+        fd = xf86_platform_device_odev_attributes(platform_dev)->fd;
         if (fd == -1)
             return FALSE;
         return check_outputs(fd);
@@ -350,7 +350,7 @@ ms_platform_probe(DriverPtr driver,
               int entity_num, int flags, struct xf86_platform_device *dev, intptr_t match_data)
 {
     ScrnInfoPtr scrn = NULL;
-    const char *path = xf86_get_platform_device_attrib(dev, ODEV_ATTRIB_PATH);
+    const char *path = xf86_platform_device_odev_attributes(dev)->path;
     int scr_flags = 0;
 
     if (flags & PLATFORM_PROBE_GPU_SCREEN)
@@ -646,11 +646,11 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     if (pEnt->location.type == BUS_PLATFORM) {
 #ifdef XF86_PDEV_SERVER_FD
         if (pEnt->location.id.plat->flags & XF86_PDEV_SERVER_FD)
-            ms->fd = xf86_get_platform_device_int_attrib(pEnt->location.id.plat, ODEV_ATTRIB_FD, -1);
+            ms->fd = xf86_platform_device_odev_attributes(pEnt->location.id.plat)->fd;
         else
 #endif
         {
-            char *path = xf86_get_platform_device_attrib(pEnt->location.id.plat, ODEV_ATTRIB_PATH);
+            char *path = xf86_platform_device_odev_attributes(pEnt->location.id.plat)->path;
             ms->fd = open_hw(path);
         }
     }
