@@ -153,8 +153,8 @@ static XF86ModuleVersionInfo VersRec = {
 
 _X_EXPORT XF86ModuleData modesettingModuleData = { &VersRec, Setup, NULL };
 
-static pointer
-Setup(pointer module, pointer opts, int *errmaj, int *errmin)
+static void *
+Setup(void * module, void * opts, int *errmaj, int *errmin)
 {
     static Bool setupDone = 0;
 
@@ -168,7 +168,7 @@ Setup(pointer module, pointer opts, int *errmaj, int *errmin)
 	 * The return value must be non-NULL on success even though there
 	 * is no TearDownProc.
 	 */
-	return (pointer) 1;
+	return (void *) 1;
     } else {
 	if (errmaj)
 	    *errmaj = LDR_ONCEONLY;

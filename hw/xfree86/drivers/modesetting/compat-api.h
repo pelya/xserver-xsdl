@@ -48,7 +48,7 @@
 
 #define SCREEN_INIT_ARGS_DECL int i, ScreenPtr pScreen, int argc, char **argv
 
-#define BLOCKHANDLER_ARGS_DECL int arg, pointer blockData, pointer pTimeout, pointer pReadmask
+#define BLOCKHANDLER_ARGS_DECL int arg, void * blockData, void * pTimeout, void * pReadmask
 #define BLOCKHANDLER_ARGS arg, blockData, pTimeout, pReadmask
 
 #define CLOSE_SCREEN_ARGS_DECL int scrnIndex, ScreenPtr pScreen
@@ -73,7 +73,7 @@
 
 #define SCREEN_INIT_ARGS_DECL ScreenPtr pScreen, int argc, char **argv
 
-#define BLOCKHANDLER_ARGS_DECL ScreenPtr arg, pointer pTimeout, pointer pReadmask
+#define BLOCKHANDLER_ARGS_DECL ScreenPtr arg, void * pTimeout, void * pReadmask
 #define BLOCKHANDLER_ARGS arg, pTimeout, pReadmask
 
 #define CLOSE_SCREEN_ARGS_DECL ScreenPtr pScreen
