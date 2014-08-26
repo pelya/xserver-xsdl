@@ -24,11 +24,20 @@
 # _ladir passes a dummy rpath to libtool so the thing will actually link
 # TODO: -nostdlib/-Bstatic/-lgcc platform magic, not installing the .a, etc.
 
-AM_CFLAGS = $(XORG_CFLAGS) $(DRM_CFLAGS) $(UDEV_CFLAGS) $(CWARNFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS) $(LIBDRM_CFLAGS) $(UDEV_CFLAGS) $(CWARNFLAGS)
+
+AM_CPPFLAGS = \
+	$(XORG_INCS) \
+	-I$(srcdir)/../../ddc \
+	-I$(srcdir)/../../i2c \
+	-I$(srcdir)/../../modes \
+	-I$(srcdir)/../../parser \
+	-I$(srcdir)/../../ramdac \
+	$(NULL)
 
 modesetting_drv_la_LTLIBRARIES = modesetting_drv.la
 modesetting_drv_la_LDFLAGS = -module -avoid-version
-modesetting_drv_la_LIBADD = @UDEV_LIBS@ @DRM_LIBS@
+modesetting_drv_la_LIBADD = $(UDEV_LIBS) $(DRM_LIBS)
 modesetting_drv_ladir = @moduledir@/drivers
 
 modesetting_drv_la_SOURCES = \
@@ -37,3 +46,17 @@ modesetting_drv_la_SOURCES = \
 	 driver.h \
 	 drmmode_display.c \
 	 drmmode_display.h
+
+drivermandir = $(DRIVER_MAN_DIR)
+driverman_PRE = modesetting.man
+driverman_DATA = $(driverman_PRE:man=@DRIVER_MAN_SUFFIX@)
+
+EXTRA_DIST = modesetting.man
+
+CLEANFILES = $(driverman_DATA)
+
+# String replacements in MAN_SUBSTS now come from xorg-macros.m4 via configure
+SUFFIXES = .$(DRIVER_MAN_SUFFIX) .man
+
+.man.$(DRIVER_MAN_SUFFIX):
+	$(AM_V_GEN)$(SED) $(MAN_SUBSTS) < $< > $@

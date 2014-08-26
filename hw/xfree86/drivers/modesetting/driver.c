@@ -29,8 +29,8 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifdef HAVE_DIX_CONFIG_H
+#include "dix-config.h"
 #endif
 
 #include <unistd.h>
@@ -51,7 +51,7 @@
 #include "shadow.h"
 #include "xf86xv.h"
 #include <X11/extensions/Xv.h>
-#include <xorg-server.h>
+#include <xorg-config.h>
 #ifdef XSERVER_PLATFORM_BUS
 #include "xf86platformBus.h"
 #endif
@@ -144,7 +144,9 @@ static XF86ModuleVersionInfo VersRec = {
     MODINFOSTRING1,
     MODINFOSTRING2,
     XORG_VERSION_CURRENT,
-    PACKAGE_VERSION_MAJOR, PACKAGE_VERSION_MINOR, PACKAGE_VERSION_PATCHLEVEL,
+    XORG_VERSION_MAJOR,
+    XORG_VERSION_MINOR,
+    XORG_VERSION_PATCH,
     ABI_CLASS_VIDEODRV,
     ABI_VIDEODRV_VERSION,
     MOD_CLASS_VIDEODRV,

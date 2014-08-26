@@ -863,6 +863,7 @@ fi
 PKG_CHECK_MODULES(UDEV, $LIBUDEV, [HAVE_LIBUDEV=yes], [HAVE_LIBUDEV=no])
 if test "x$CONFIG_UDEV" = xauto; then
 	CONFIG_UDEV="$HAVE_LIBUDEV"
+	AC_DEFINE(HAVE_LIBUDEV, 1, [Define to 1 if libudev is available.])
 fi
 AM_CONDITIONAL(CONFIG_UDEV, [test "x$CONFIG_UDEV" = xyes])
 if test "x$CONFIG_UDEV" = xyes; then
@@ -2039,6 +2040,12 @@ if test "x$XORG" = xyes; then
 	        XORG_SYS_LIBS="$XORG_SYS_LIBS $XORG_MODULES_LIBS"
 	fi
 
+	if test "x$DRM" = xyes; then
+		dnl 2.4.46 is required for cursor hotspot support.
+		PKG_CHECK_EXISTS(libdrm >= 2.4.46)
+		XORG_DRIVER_MODESETTING=yes
+	fi
+
 	AC_SUBST([XORG_LIBS])
 	AC_SUBST([XORG_SYS_LIBS])
 	AC_SUBST([XORG_INCS])
@@ -2109,6 +2116,7 @@ AM_CONDITIONAL([SOLARIS_VT], [test "x$solaris_vt" = xyes])
 AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
 AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 AM_CONDITIONAL([XORG_BUS_PLATFORM], [test "x$CONFIG_UDEV_KMS" = xyes])
+AM_CONDITIONAL([XORG_DRIVER_MODESETTING], [test "x$XORG_DRIVER_MODESETTING" = xyes])
 
 dnl glamor
 AM_CONDITIONAL([GLAMOR], [test "x$GLAMOR" = xyes])
@@ -2554,6 +2562,8 @@ hw/xfree86/dixmods/Makefile
 hw/xfree86/doc/Makefile
 hw/xfree86/dri/Makefile
 hw/xfree86/dri2/Makefile
+hw/xfree86/drivers/Makefile
+hw/xfree86/drivers/modesetting/Makefile
 hw/xfree86/exa/Makefile
 hw/xfree86/exa/man/Makefile
 hw/xfree86/fbdevhw/Makefile
