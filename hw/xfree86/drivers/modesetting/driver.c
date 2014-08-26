@@ -306,6 +306,24 @@ ms_driver_func(ScrnInfoPtr scrn, xorgDriverFuncOp op, void *data)
     }
 }
 
+static void
+ms_setup_scrn_hooks(ScrnInfoPtr scrn)
+{
+    scrn->driverVersion = 1;
+    scrn->driverName = "modesetting";
+    scrn->name = "modeset";
+
+    scrn->Probe = NULL;
+    scrn->PreInit = PreInit;
+    scrn->ScreenInit = ScreenInit;
+    scrn->SwitchMode = SwitchMode;
+    scrn->AdjustFrame = AdjustFrame;
+    scrn->EnterVT = EnterVT;
+    scrn->LeaveVT = LeaveVT;
+    scrn->FreeScreen = FreeScreen;
+    scrn->ValidMode = ValidMode;
+}
+
 #if XSERVER_LIBPCIACCESS
 static Bool
 ms_pci_probe(DriverPtr driver,
@@ -322,18 +340,7 @@ ms_pci_probe(DriverPtr driver,
 
         devpath = xf86FindOptionValue(devSection->options, "kmsdev");
         if (probe_hw_pci(devpath, dev)) {
-            scrn->driverVersion = 1;
-            scrn->driverName = "modesetting";
-            scrn->name = "modeset";
-            scrn->Probe = NULL;
-            scrn->PreInit = PreInit;
-            scrn->ScreenInit = ScreenInit;
-            scrn->SwitchMode = SwitchMode;
-            scrn->AdjustFrame = AdjustFrame;
-            scrn->EnterVT = EnterVT;
-            scrn->LeaveVT = LeaveVT;
-            scrn->FreeScreen = FreeScreen;
-            scrn->ValidMode = ValidMode;
+            ms_setup_scrn_hooks(scrn);
 
             xf86DrvMsg(scrn->scrnIndex, X_CONFIG,
                        "claimed PCI slot %d@%d:%d:%d\n",
@@ -365,16 +372,8 @@ ms_platform_probe(DriverPtr driver,
         scrn = xf86AllocateScreen(driver, scr_flags);
         xf86AddEntityToScreen(scrn, entity_num);
 
-        scrn->driverName = "modesetting";
-        scrn->name = "modesetting";
-        scrn->PreInit = PreInit;
-        scrn->ScreenInit = ScreenInit;
-        scrn->SwitchMode = SwitchMode;
-        scrn->AdjustFrame = AdjustFrame;
-        scrn->EnterVT = EnterVT;
-        scrn->LeaveVT = LeaveVT;
-        scrn->FreeScreen = FreeScreen;
-        scrn->ValidMode = ValidMode;
+        ms_setup_scrn_hooks(scrn);
+
         xf86DrvMsg(scrn->scrnIndex, X_INFO,
                    "using drv %s\n", path ? path : "default device");
     }
@@ -416,18 +415,8 @@ Probe(DriverPtr drv, int flags)
 
         if (scrn) {
             foundScreen = TRUE;
-            scrn->driverVersion = 1;
-            scrn->driverName = "modesetting";
-            scrn->name = "modesetting";
+            ms_setup_scrn_hooks(scrn);
             scrn->Probe = Probe;
-            scrn->PreInit = PreInit;
-            scrn->ScreenInit = ScreenInit;
-            scrn->SwitchMode = SwitchMode;
-            scrn->AdjustFrame = AdjustFrame;
-            scrn->EnterVT = EnterVT;
-            scrn->LeaveVT = LeaveVT;
-            scrn->FreeScreen = FreeScreen;
-            scrn->ValidMode = ValidMode;
 
             xf86DrvMsg(scrn->scrnIndex, X_INFO,
                        "using %s\n", dev ? dev : "default device");
