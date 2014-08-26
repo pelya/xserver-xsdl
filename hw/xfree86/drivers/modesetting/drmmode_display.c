@@ -46,7 +46,6 @@
 #include <cursorstr.h>
 
 #include <X11/extensions/dpmsconst.h>
-#include "compat-api.h"
 
 #include "driver.h"
 

@@ -59,20 +59,19 @@
 #include <pciaccess.h>
 #endif
 
-#include "compat-api.h"
 #include "driver.h"
 
-static void AdjustFrame(ADJUST_FRAME_ARGS_DECL);
-static Bool CloseScreen(CLOSE_SCREEN_ARGS_DECL);
-static Bool EnterVT(VT_FUNC_ARGS_DECL);
+static void AdjustFrame(ScrnInfoPtr pScrn, int x, int y);
+static Bool CloseScreen(ScreenPtr pScreen);
+static Bool EnterVT(ScrnInfoPtr pScrn);
 static void Identify(int flags);
 static const OptionInfoRec *AvailableOptions(int chipid, int busid);
-static ModeStatus ValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode, Bool verbose,
+static ModeStatus ValidMode(ScrnInfoPtr pScrn, DisplayModePtr mode, Bool verbose,
 			    int flags);
-static void FreeScreen(FREE_SCREEN_ARGS_DECL);
-static void LeaveVT(VT_FUNC_ARGS_DECL);
-static Bool SwitchMode(SWITCH_MODE_ARGS_DECL);
-static Bool ScreenInit(SCREEN_INIT_ARGS_DECL);
+static void FreeScreen(ScrnInfoPtr pScrn);
+static void LeaveVT(ScrnInfoPtr pScrn);
+static Bool SwitchMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
+static Bool ScreenInit(ScreenPtr pScreen, int argc, char **argv);
 static Bool PreInit(ScrnInfoPtr pScrn, int flags);
 
 static Bool Probe(DriverPtr drv, int flags);
@@ -537,13 +536,12 @@ static void dispatch_slave_dirty(ScreenPtr pScreen)
     }
 }
 
-static void msBlockHandler(BLOCKHANDLER_ARGS_DECL)
+static void msBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
 {
-    SCREEN_PTR(arg);
     modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(pScreen));
 
     pScreen->BlockHandler = ms->BlockHandler;
-    pScreen->BlockHandler(BLOCKHANDLER_ARGS);
+    pScreen->BlockHandler(pScreen, pTimeout, pReadmask);
     pScreen->BlockHandler = msBlockHandler;
     if (pScreen->isGPU)
         dispatch_slave_dirty(pScreen);
@@ -910,7 +908,7 @@ SetMaster(ScrnInfoPtr pScrn)
 }
 
 static Bool
-ScreenInit(SCREEN_INIT_ARGS_DECL)
+ScreenInit(ScreenPtr pScreen, int argc, char **argv)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     modesettingPtr ms = modesettingPTR(pScrn);
@@ -1019,29 +1017,26 @@ ScreenInit(SCREEN_INIT_ARGS_DECL)
     if (serverGeneration == 1)
 	xf86ShowUnusedOptions(pScrn->scrnIndex, pScrn->options);
 
-    return EnterVT(VT_FUNC_ARGS);
+    return EnterVT(pScrn);
 }
 
 static void
-AdjustFrame(ADJUST_FRAME_ARGS_DECL)
+AdjustFrame(ScrnInfoPtr pScrn, int x, int y)
 {
-    SCRN_INFO_PTR(arg);
     modesettingPtr ms = modesettingPTR(pScrn);
 
     drmmode_adjust_frame(pScrn, &ms->drmmode, x, y);
 }
 
 static void
-FreeScreen(FREE_SCREEN_ARGS_DECL)
+FreeScreen(ScrnInfoPtr pScrn)
 {
-    SCRN_INFO_PTR(arg);
     FreeRec(pScrn);
 }
 
 static void
-LeaveVT(VT_FUNC_ARGS_DECL)
+LeaveVT(ScrnInfoPtr pScrn)
 {
-    SCRN_INFO_PTR(arg);
     modesettingPtr ms = modesettingPTR(pScrn);
     xf86_hide_cursors(pScrn);
 
@@ -1060,9 +1055,8 @@ LeaveVT(VT_FUNC_ARGS_DECL)
  * This gets called when gaining control of the VT, and from ScreenInit().
  */
 static Bool
-EnterVT(VT_FUNC_ARGS_DECL)
+EnterVT(ScrnInfoPtr pScrn)
 {
-    SCRN_INFO_PTR(arg);
     modesettingPtr ms = modesettingPTR(pScrn);
 
     pScrn->vtSema = TRUE;
@@ -1076,15 +1070,13 @@ EnterVT(VT_FUNC_ARGS_DECL)
 }
 
 static Bool
-SwitchMode(SWITCH_MODE_ARGS_DECL)
+SwitchMode(ScrnInfoPtr pScrn, DisplayModePtr mode)
 {
-    SCRN_INFO_PTR(arg);
-
     return xf86SetSingleMode(pScrn, mode, RR_Rotate_0);
 }
 
 static Bool
-CloseScreen(CLOSE_SCREEN_ARGS_DECL)
+CloseScreen(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     modesettingPtr ms = modesettingPTR(pScrn);
@@ -1105,7 +1097,7 @@ CloseScreen(CLOSE_SCREEN_ARGS_DECL)
     drmmode_free_bos(pScrn, &ms->drmmode);
 
     if (pScrn->vtSema) {
-        LeaveVT(VT_FUNC_ARGS);
+        LeaveVT(pScrn);
     }
 
     pScreen->CreateScreenResources = ms->createScreenResources;
@@ -1113,11 +1105,11 @@ CloseScreen(CLOSE_SCREEN_ARGS_DECL)
 
     pScrn->vtSema = FALSE;
     pScreen->CloseScreen = ms->CloseScreen;
-    return (*pScreen->CloseScreen) (CLOSE_SCREEN_ARGS);
+    return (*pScreen->CloseScreen) (pScreen);
 }
 
 static ModeStatus
-ValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode, Bool verbose, int flags)
+ValidMode(ScrnInfoPtr arg, DisplayModePtr mode, Bool verbose, int flags)
 {
     return MODE_OK;
 }
