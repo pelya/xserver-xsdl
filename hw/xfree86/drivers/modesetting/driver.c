@@ -501,7 +501,6 @@ static void dispatch_dirty(ScreenPtr pScreen)
     }
 }
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
 static void dispatch_dirty_crtc(ScrnInfoPtr scrn, xf86CrtcPtr crtc)
 {
     modesettingPtr ms = modesettingPTR(scrn);
@@ -535,7 +534,6 @@ static void dispatch_slave_dirty(ScreenPtr pScreen)
 	dispatch_dirty_crtc(scrn, crtc);
     }
 }
-#endif
 
 static void msBlockHandler(BLOCKHANDLER_ARGS_DECL)
 {
@@ -545,12 +543,9 @@ static void msBlockHandler(BLOCKHANDLER_ARGS_DECL)
     pScreen->BlockHandler = ms->BlockHandler;
     pScreen->BlockHandler(BLOCKHANDLER_ARGS);
     pScreen->BlockHandler = msBlockHandler;
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
     if (pScreen->isGPU)
         dispatch_slave_dirty(pScreen);
-    else
-#endif
-    if (ms->dirty_enabled)
+    else if (ms->dirty_enabled)
         dispatch_dirty(pScreen);
 }
 
@@ -686,7 +681,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
     ms->drmmode.fd = ms->fd;
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
     pScrn->capabilities = 0;
 #ifdef DRM_CAP_PRIME
     ret = drmGetCap(ms->fd, DRM_CAP_PRIME, &value);
@@ -694,7 +688,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
         if (value & DRM_PRIME_CAP_IMPORT)
             pScrn->capabilities |= RR_Capability_SinkOutput;
     }
-#endif
 #endif
     drmmode_get_default_bpp(pScrn, &ms->drmmode, &defaultdepth, &defaultbpp);
     if (defaultdepth == 24 && defaultbpp == 24)
@@ -877,7 +870,6 @@ msShadowInit(ScreenPtr pScreen)
     return TRUE;
 }
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
 static Bool
 msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
 {
@@ -894,7 +886,6 @@ msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
 
     return TRUE;
 }
-#endif
 
 static Bool
 SetMaster(ScrnInfoPtr pScrn)
@@ -950,12 +941,10 @@ ScreenInit(SCREEN_INIT_ARGS_DECL)
     if (!miSetPixmapDepths())
 	return FALSE;
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
     if (!dixRegisterScreenSpecificPrivateKey(pScreen, &ms->drmmode.pixmapPrivateKeyRec,
         PRIVATE_PIXMAP, sizeof(msPixmapPrivRec))) { 
 	return FALSE;
     }
-#endif
 
     pScrn->memPhysBase = 0;
     pScrn->fbOffset = 0;
@@ -1015,9 +1004,7 @@ ScreenInit(SCREEN_INIT_ARGS_DECL)
     ms->BlockHandler = pScreen->BlockHandler;
     pScreen->BlockHandler = msBlockHandler;
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
     pScreen->SetSharedPixmapBacking = msSetSharedPixmapBacking;
-#endif
 
     if (!xf86CrtcScreenInit(pScreen))
 	return FALSE;

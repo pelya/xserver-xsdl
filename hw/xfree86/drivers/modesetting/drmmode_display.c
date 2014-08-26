@@ -142,7 +142,6 @@ static int dumb_bo_destroy(int fd, struct dumb_bo *bo)
 	return 0;
 }
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
 static struct dumb_bo *dumb_get_bo_from_handle(int fd, int handle, int pitch, int size)
 {
   	struct dumb_bo *bo;
@@ -161,9 +160,7 @@ static struct dumb_bo *dumb_get_bo_from_handle(int fd, int handle, int pitch, in
 	bo->size = size;
 	return bo;
 }
-#endif
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
 Bool drmmode_SetSlaveBO(PixmapPtr ppix,
 			drmmode_ptr drmmode, 
 			int fd_handle, int pitch, int size)
@@ -177,7 +174,6 @@ Bool drmmode_SetSlaveBO(PixmapPtr ppix,
 	close(fd_handle);
 	return TRUE;
 }
-#endif
 
 static void
 drmmode_ConvertFromKMode(ScrnInfoPtr	scrn,
@@ -379,14 +375,11 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
 		drmmode_ConvertToKMode(crtc->scrn, &kmode, mode);
 
 		fb_id = drmmode->fb_id;
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
 		if (crtc->randr_crtc->scanout_pixmap) {
     			msPixmapPrivPtr ppriv = msGetPixmapPriv(drmmode, crtc->randr_crtc->scanout_pixmap);
 			fb_id = ppriv->fb_id;
 			x = y = 0;
-		} else 
-#endif
-		if (drmmode_crtc->rotate_fb_id) {
+		} else if (drmmode_crtc->rotate_fb_id) {
 			fb_id = drmmode_crtc->rotate_fb_id;
 			x = y = 0;
 		}
@@ -521,7 +514,6 @@ drmmode_crtc_gamma_set(xf86CrtcPtr crtc, uint16_t *red, uint16_t *green,
 			    size, red, green, blue);
 }
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
 static Bool
 drmmode_set_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix)
 {
@@ -566,7 +558,6 @@ drmmode_set_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix)
 	}
 	return TRUE;
 }
-#endif
 
 static void *drmmode_shadow_allocate(xf86CrtcPtr crtc, int width, int height)
 {
@@ -590,9 +581,7 @@ static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
 
     .gamma_set = drmmode_crtc_gamma_set,
     .destroy = NULL, /* XXX */
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
     .set_scanout_pixmap = drmmode_set_scanout_pixmap,
-#endif
     .shadow_allocate = drmmode_shadow_allocate,
     .shadow_create = drmmode_shadow_create,
 };
@@ -1032,10 +1021,8 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num, int *num_dv
 	/* need to do smart conversion here for compat with non-kms ATI driver */
 	if (koutput->connector_type >= MS_ARRAY_SIZE(output_names))
 		snprintf(name, 32, "Unknown-%d", koutput->connector_type_id - 1);
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
 	else if (pScrn->is_gpu)
 		snprintf(name, 32, "%s-%d-%d", output_names[koutput->connector_type], pScrn->scrnIndex - GPU_SCREEN_OFFSET + 1, koutput->connector_type_id - 1);
-#endif
 	else
 		snprintf(name, 32, "%s-%d", output_names[koutput->connector_type], koutput->connector_type_id - 1);
 
@@ -1549,7 +1536,6 @@ void *drmmode_map_front_bo(drmmode_ptr drmmode)
 	
 }
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
 void *drmmode_map_slave_bo(drmmode_ptr drmmode, msPixmapPrivPtr ppriv)
 {
         int ret;
@@ -1563,7 +1549,6 @@ void *drmmode_map_slave_bo(drmmode_ptr drmmode, msPixmapPrivPtr ppriv)
 
         return ppriv->backing_bo->ptr;  
 }
-#endif
 
 Bool drmmode_map_cursor_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 {

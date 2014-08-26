@@ -32,11 +32,6 @@
 #include "libudev.h"
 #endif
 
-/* the perfect storm */
-#if XF86_CRTC_VERSION >= 5 && defined(HAVE_DRMPRIMEFDTOHANDLE) && HAVE_SCREEN_SPECIFIC_PRIVATE_KEYS
-#define MODESETTING_OUTPUT_SLAVE_SUPPORT 1
-#endif
-
 #if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(1,14,99,2,0)
 #define DamageUnregister(d, dd) DamageUnregister(dd)
 #endif
@@ -103,7 +98,6 @@ typedef struct {
     int enc_clone_mask;
 } drmmode_output_private_rec, *drmmode_output_private_ptr;
 
-#ifdef MODESETTING_OUTPUT_SLAVE_SUPPORT
 typedef struct _msPixmapPriv {
     uint32_t fb_id;
     struct dumb_bo *backing_bo; /* if this pixmap is backed by a dumb bo */
@@ -119,7 +113,6 @@ void *drmmode_map_slave_bo(drmmode_ptr drmmode, msPixmapPrivPtr ppriv);
 Bool drmmode_SetSlaveBO(PixmapPtr ppix,
 			drmmode_ptr drmmode,
 			int fd_handle, int pitch, int size);
-#endif
 
 extern Bool drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp);
 void drmmode_adjust_frame(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int x, int y);
