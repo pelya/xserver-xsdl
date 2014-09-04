@@ -194,7 +194,7 @@ Bool noGEExtension = FALSE;
 
 Bool CoreDump;
 
-Bool enableIndirectGLX = TRUE;
+Bool enableIndirectGLX = FALSE;
 
 #ifdef PANORAMIX
 Bool PanoramiXExtensionDisabledHack = FALSE;
