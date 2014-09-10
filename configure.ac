@@ -564,7 +564,6 @@ AC_ARG_WITH(khronos-spec-dir, AS_HELP_STRING([--with-khronos-spec-dir=PATH], [Pa
 				[KHRONOS_SPEC_DIR=auto])
 
 dnl Extensions.
-AC_ARG_ENABLE(registry,       AS_HELP_STRING([--disable-registry], [Build string registry module (default: enabled)]), [XREGISTRY=$enableval], [XREGISTRY=yes])
 AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
 AC_ARG_ENABLE(mitshm,         AS_HELP_STRING([--disable-mitshm], [Build SHM extension (default: auto)]), [MITSHM=$enableval], [MITSHM=auto])
 AC_ARG_ENABLE(xres,           AS_HELP_STRING([--disable-xres], [Build XRes extension (default: enabled)]), [RES=$enableval], [RES=yes])
@@ -1014,11 +1013,6 @@ fi
 AM_CONDITIONAL(XVMC, [test "x$XVMC" = xyes])
 if test "x$XVMC" = xyes; then
 	AC_DEFINE(XvMCExtension, 1, [Build XvMC extension])
-fi
-
-AM_CONDITIONAL(XREGISTRY, [test "x$XREGISTRY" = xyes])
-if test "x$XREGISTRY" = xyes; then
-	AC_DEFINE(XREGISTRY, 1, [Build registry module])
 fi
 
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])
