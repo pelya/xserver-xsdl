@@ -574,6 +574,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP ||
         epoxy_gl_version() >= 30 ||
         epoxy_has_gl_extension("GL_NV_pack_subimage");
+    glamor_priv->has_vertex_array_object =
+        epoxy_has_gl_extension("GL_ARB_vertex_array_object");
 
     glamor_setup_debug_output(screen);
 
