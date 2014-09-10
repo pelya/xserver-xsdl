@@ -96,9 +96,11 @@ typedef enum {
 static DevPrivateKeyRec glamor_glyph_key;
 
 static inline struct glamor_glyph *
-glamor_glyph_get_private(GlyphPtr glyph)
+glamor_glyph_get_private(ScreenPtr screen, GlyphPtr glyph)
 {
-    return (struct glamor_glyph *) glyph->devPrivates;
+    struct glamor_glyph *privates = (struct glamor_glyph*)glyph->devPrivates;
+
+    return &privates[screen->myNum];
 }
 
 /*
@@ -380,7 +382,8 @@ Bool
 glamor_glyphs_init(ScreenPtr pScreen)
 {
     if (!dixRegisterPrivateKey(&glamor_glyph_key,
-                               PRIVATE_GLYPH, sizeof(struct glamor_glyph)))
+                               PRIVATE_GLYPH,
+                               screenInfo.numScreens * sizeof(struct glamor_glyph)))
         return FALSE;
 
     return TRUE;
@@ -460,7 +463,7 @@ glamor_glyph_unrealize(ScreenPtr screen, GlyphPtr glyph)
     struct glamor_glyph *priv;
 
     /* Use Lookup in case we have not attached to this glyph. */
-    priv = glamor_glyph_get_private(glyph);
+    priv = glamor_glyph_get_private(screen, glyph);
 
     if (priv->cached)
         priv->cache->glyphs[priv->pos] = NULL;
@@ -791,7 +794,7 @@ glamor_glyphs_intersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs,
             if (y1 < MINSHORT)
                 y1 = MINSHORT;
             if (check_fake_overlap)
-                priv = glamor_glyph_get_private(glyph);
+                priv = glamor_glyph_get_private(screen, glyph);
 
             x2 = x1 + glyph->info.width;
             y2 = y1 + glyph->info.height;
@@ -1079,7 +1082,7 @@ glamor_glyph_cache(glamor_screen_private *glamor, GlyphPtr glyph, int *out_x,
     mask = glamor_glyph_count_to_mask(s);
     pos = (cache->count + s - 1) & mask;
 
-    priv = glamor_glyph_get_private(glyph);
+    priv = glamor_glyph_get_private(screen, glyph);
     if (pos < GLYPH_CACHE_SIZE) {
         cache->count = pos + s;
     }
@@ -1091,7 +1094,7 @@ glamor_glyph_cache(glamor_screen_private *glamor, GlyphPtr glyph, int *out_x,
             if (evicted == NULL)
                 continue;
 
-            evicted_priv = glamor_glyph_get_private(evicted);
+            evicted_priv = glamor_glyph_get_private(screen, evicted);
             assert(evicted_priv->pos == i);
             if (evicted_priv->size >= s) {
                 cache->glyphs[i] = NULL;
@@ -1112,7 +1115,7 @@ glamor_glyph_cache(glamor_screen_private *glamor, GlyphPtr glyph, int *out_x,
 
                 if (evicted != NULL) {
 
-                    evicted_priv = glamor_glyph_get_private(evicted);
+                    evicted_priv = glamor_glyph_get_private(screen, evicted);
 
                     assert(evicted_priv->pos == pos + s);
                     evicted_priv->cached = FALSE;
@@ -1239,7 +1242,7 @@ glamor_buffer_glyph(glamor_screen_private *glamor_priv,
     glamor_glyph_cache_t *cache;
 
     if (glyphs_dst_mode != GLYPHS_DST_MODE_MASK_TO_DST)
-        priv = glamor_glyph_get_private(glyph);
+        priv = glamor_glyph_get_private(screen, glyph);
 
     if (PICT_FORMAT_BPP(format) == 1)
         format = PICT_a8;
@@ -1297,7 +1300,7 @@ glamor_buffer_glyph(glamor_screen_private *glamor_priv,
             rect->x_src = 0 + dx;
             rect->y_src = 0 + dy;
         }
-        priv = glamor_glyph_get_private(glyph);
+        priv = glamor_glyph_get_private(screen, glyph);
     }
 
     rect->x_dst = x_glyph;
