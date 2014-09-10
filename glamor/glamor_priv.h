@@ -167,6 +167,30 @@ typedef struct {
     uint16_t evict;
 } glamor_glyph_cache_t;
 
+#define CACHE_PICTURE_SIZE 1024
+#define GLYPH_MIN_SIZE 8
+#define GLYPH_MAX_SIZE	64
+#define GLYPH_CACHE_SIZE ((CACHE_PICTURE_SIZE) * CACHE_PICTURE_SIZE / (GLYPH_MIN_SIZE * GLYPH_MIN_SIZE))
+
+#define MASK_CACHE_MAX_SIZE 32
+#define MASK_CACHE_WIDTH (CACHE_PICTURE_SIZE / MASK_CACHE_MAX_SIZE)
+#define MASK_CACHE_MASK ((1LL << (MASK_CACHE_WIDTH)) - 1)
+
+struct glamor_glyph_mask_cache_entry {
+    int idx;
+    int width;
+    int height;
+    int x;
+    int y;
+};
+
+typedef struct {
+    PixmapPtr pixmap;
+    struct glamor_glyph_mask_cache_entry mcache[MASK_CACHE_WIDTH];
+    unsigned int free_bitmap;
+    unsigned int cleared_bitmap;
+} glamor_glyph_mask_cache_t;
+
 struct glamor_saved_procs {
     CloseScreenProcPtr close_screen;
     CreateScreenResourcesProcPtr create_screen_resources;
@@ -268,6 +292,7 @@ typedef struct glamor_screen_private {
         [SHADER_MASK_COUNT]
         [SHADER_IN_COUNT];
     glamor_glyph_cache_t glyphCaches[GLAMOR_NUM_GLYPH_CACHE_FORMATS];
+    glamor_glyph_mask_cache_t *mask_cache[GLAMOR_NUM_GLYPH_CACHE_FORMATS];
     Bool glyph_caches_realized;
 
     /* shaders to restore a texture to another texture. */

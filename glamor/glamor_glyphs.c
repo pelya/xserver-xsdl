@@ -62,14 +62,6 @@
  */
 #define GLYPH_BUFFER_SIZE 1024
 
-#define CACHE_PICTURE_SIZE 1024
-#define GLYPH_MIN_SIZE 8
-#define GLYPH_MAX_SIZE	64
-#define GLYPH_CACHE_SIZE ((CACHE_PICTURE_SIZE) * CACHE_PICTURE_SIZE / (GLYPH_MIN_SIZE * GLYPH_MIN_SIZE))
-#define MASK_CACHE_MAX_SIZE 32
-#define MASK_CACHE_WIDTH (CACHE_PICTURE_SIZE / MASK_CACHE_MAX_SIZE)
-#define MASK_CACHE_MASK ((1LL << (MASK_CACHE_WIDTH)) - 1)
-
 typedef struct {
     PicturePtr source;
     glamor_composite_rect_t rects[GLYPH_BUFFER_SIZE + 4];
@@ -123,24 +115,8 @@ glamor_glyph_get_private(ScreenPtr screen, GlyphPtr glyph)
  * gain.
  */
 
-struct glamor_glyph_mask_cache_entry {
-    int idx;
-    int width;
-    int height;
-    int x;
-    int y;
-};
-
-static struct glamor_glyph_mask_cache {
-    PixmapPtr pixmap;
-    struct glamor_glyph_mask_cache_entry mcache[MASK_CACHE_WIDTH];
-    unsigned int free_bitmap;
-    unsigned int cleared_bitmap;
-} *mask_cache[GLAMOR_NUM_GLYPH_CACHE_FORMATS] = {
-NULL};
-
 static void
-clear_mask_cache_bitmap(struct glamor_glyph_mask_cache *maskcache,
+clear_mask_cache_bitmap(glamor_glyph_mask_cache_t *maskcache,
                         unsigned int clear_mask_bits)
 {
     unsigned int i = 0;
@@ -162,7 +138,7 @@ clear_mask_cache_bitmap(struct glamor_glyph_mask_cache *maskcache,
 }
 
 static void
-clear_mask_cache(struct glamor_glyph_mask_cache *maskcache)
+clear_mask_cache(glamor_glyph_mask_cache_t *maskcache)
 {
     int x = 0;
     int cnt = MASK_CACHE_WIDTH;
@@ -224,7 +200,7 @@ find_continuous_bits(unsigned int bits, int bits_cnt, unsigned int *pbits_mask)
 }
 
 static struct glamor_glyph_mask_cache_entry *
-get_mask_cache(struct glamor_glyph_mask_cache *maskcache, int blocks)
+get_mask_cache(glamor_glyph_mask_cache_t *maskcache, int blocks)
 {
     int free_cleared_bit, idx = -1;
     int retry_cnt = 0;
@@ -257,7 +233,7 @@ get_mask_cache(struct glamor_glyph_mask_cache *maskcache, int blocks)
 }
 
 static void
-put_mask_cache_bitmap(struct glamor_glyph_mask_cache *maskcache,
+put_mask_cache_bitmap(glamor_glyph_mask_cache_t *maskcache,
                       unsigned int bitmap)
 {
     maskcache->free_bitmap |= bitmap;
@@ -283,8 +259,8 @@ glamor_unrealize_glyph_caches(ScreenPtr pScreen)
         if (cache->glyphs)
             free(cache->glyphs);
 
-        if (mask_cache[i])
-            free(mask_cache[i]);
+        if (glamor->mask_cache[i])
+            free(glamor->mask_cache[i]);
     }
     glamor->glyph_caches_realized = FALSE;
 }
@@ -358,9 +334,9 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
             goto bail;
 
         cache->evict = rand() % GLYPH_CACHE_SIZE;
-        mask_cache[i] = calloc(1, sizeof(*mask_cache[i]));
-        mask_cache[i]->pixmap = pixmap;
-        clear_mask_cache(mask_cache[i]);
+        glamor->mask_cache[i] = calloc(1, sizeof(*glamor->mask_cache[i]));
+        glamor->mask_cache[i]->pixmap = pixmap;
+        clear_mask_cache(glamor->mask_cache[i]);
     }
     assert(i == GLAMOR_NUM_GLYPH_CACHE_FORMATS);
 
@@ -1182,7 +1158,7 @@ unsigned long long dst_glyphs_cnt = 0;
 struct glyphs_flush_mask_arg {
     PicturePtr mask;
     glamor_glyph_buffer_t *buffer;
-    struct glamor_glyph_mask_cache *maskcache;
+    glamor_glyph_mask_cache_t *maskcache;
     unsigned int used_bitmap;
 };
 
@@ -1398,7 +1374,7 @@ glamor_glyphs_via_mask(CARD8 op,
     glamor_glyph_buffer_t *pmask_buffer;
     struct glyphs_flush_mask_arg *pmask_arg;
     struct glamor_glyph_mask_cache_entry *mce = NULL;
-    struct glamor_glyph_mask_cache *maskcache;
+    glamor_glyph_mask_cache_t *maskcache;
     glamor_glyph_cache_t *cache;
     int glyphs_dst_mode;
 
@@ -1419,7 +1395,7 @@ glamor_glyphs_via_mask(CARD8 op,
 
     cache = &glamor_priv->glyphCaches
         [PICT_FORMAT_RGB(mask_format->format) != 0];
-    maskcache = mask_cache[PICT_FORMAT_RGB(mask_format->format) != 0];
+    maskcache = glamor_priv->mask_cache[PICT_FORMAT_RGB(mask_format->format) != 0];
 
     x = -extents.x1;
     y = -extents.y1;
