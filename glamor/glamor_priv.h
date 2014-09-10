@@ -268,7 +268,7 @@ typedef struct glamor_screen_private {
         [SHADER_MASK_COUNT]
         [SHADER_IN_COUNT];
     glamor_glyph_cache_t glyphCaches[GLAMOR_NUM_GLYPH_CACHE_FORMATS];
-    Bool glyph_cache_initialized;
+    Bool glyph_caches_realized;
 
     /* shaders to restore a texture to another texture. */
     GLint finish_access_prog[2];

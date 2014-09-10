@@ -269,7 +269,7 @@ glamor_unrealize_glyph_caches(ScreenPtr pScreen)
     glamor_screen_private *glamor = glamor_get_screen_private(pScreen);
     int i;
 
-    if (!glamor->glyph_cache_initialized)
+    if (!glamor->glyph_caches_realized)
         return;
 
     for (i = 0; i < GLAMOR_NUM_GLYPH_CACHE_FORMATS; i++) {
@@ -284,7 +284,7 @@ glamor_unrealize_glyph_caches(ScreenPtr pScreen)
         if (mask_cache[i])
             free(mask_cache[i]);
     }
-    glamor->glyph_cache_initialized = FALSE;
+    glamor->glyph_caches_realized = FALSE;
 }
 
 void
@@ -313,6 +313,9 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
         PIXMAN_a8r8g8b8,
     };
     int i;
+
+    if (glamor->glyph_caches_realized)
+        return TRUE;
 
     memset(glamor->glyphCaches, 0, sizeof(glamor->glyphCaches));
 
@@ -359,6 +362,7 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
     }
     assert(i == GLAMOR_NUM_GLYPH_CACHE_FORMATS);
 
+    glamor->glyph_caches_realized = TRUE;
     return TRUE;
 
  bail:
@@ -375,16 +379,9 @@ glamor_realize_glyph_caches(ScreenPtr pScreen)
 Bool
 glamor_glyphs_init(ScreenPtr pScreen)
 {
-    glamor_screen_private *glamor = glamor_get_screen_private(pScreen);
-
-    if (glamor->glyph_cache_initialized)
-        return TRUE;
-
     if (!dixRegisterPrivateKey(&glamor_glyph_key,
                                PRIVATE_GLYPH, sizeof(struct glamor_glyph)))
         return FALSE;
-
-    glamor->glyph_cache_initialized = TRUE;
 
     return TRUE;
 }
