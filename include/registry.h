@@ -45,6 +45,7 @@ extern _X_EXPORT const char *LookupResourceName(RESTYPE rtype);
  */
 extern _X_EXPORT void dixResetRegistry(void);
 extern _X_EXPORT void dixFreeRegistry(void);
+extern _X_EXPORT void dixCloseRegistry(void);
 
 #else                           /* XREGISTRY */
 

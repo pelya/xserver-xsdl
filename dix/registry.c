@@ -309,7 +309,11 @@ dixFreeRegistry(void)
     resources = NULL;
 
     nmajor = nevent = nerror = nresource = 0;
+}
 
+void
+dixCloseRegistry(void)
+{
     if (fh) {
 	fclose(fh);
         fh = NULL;
