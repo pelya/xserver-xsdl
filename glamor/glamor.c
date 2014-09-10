@@ -296,6 +296,11 @@ glamor_create_screen_resources(ScreenPtr screen)
         ret = screen->CreateScreenResources(screen);
     screen->CreateScreenResources = glamor_create_screen_resources;
 
+    if (!glamor_glyphs_init(screen)) {
+        ErrorF("Failed to initialize glyphs\n");
+        ret = FALSE;
+    }
+
     if (!glamor_realize_glyph_caches(screen)) {
         ErrorF("Failed to initialize glyph cache\n");
         ret = FALSE;
@@ -518,7 +523,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_init_gradient_shader(screen);
 #endif
     glamor_pixmap_init(screen);
-    glamor_glyphs_init(screen);
     glamor_sync_init(screen);
 
     glamor_priv->screen = screen;
