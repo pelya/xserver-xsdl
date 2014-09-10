@@ -837,7 +837,10 @@ present_pixmap(WindowPtr window,
     if (!screen_priv->info || !(screen_priv->info->capabilities & PresentCapabilityAsync))
         vblank->sync_flip = TRUE;
 
-    if (pixmap && present_check_flip (target_crtc, window, pixmap, vblank->sync_flip, valid, x_off, y_off)) {
+    if (!(options & PresentOptionCopy) &&
+        pixmap != NULL &&
+        present_check_flip (target_crtc, window, pixmap, vblank->sync_flip, valid, x_off, y_off))
+    {
         vblank->flip = TRUE;
         if (vblank->sync_flip)
             target_msc--;
