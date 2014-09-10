@@ -938,11 +938,12 @@ present_flip_destroy(ScreenPtr screen)
 {
     present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
 
-    /* XXX this needs to be synchronous for server reset */
-
-    /* Do the actual cleanup once the flip has been performed by the hardware */
+    /* Reset window pixmaps back to the screen pixmap */
     if (screen_priv->flip_pending)
         present_set_abort_flip(screen);
+
+    /* Drop reference to any pending flip or unflip pixmaps. */
+    present_flip_idle(screen);
 }
 
 void
