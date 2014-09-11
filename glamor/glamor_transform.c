@@ -111,11 +111,17 @@ glamor_set_color(PixmapPtr      pixmap,
                  CARD32         pixel,
                  GLint          uniform)
 {
+    glamor_screen_private *glamor_priv =
+        glamor_get_screen_private((pixmap)->drawable.pScreen);
     float       color[4];
 
     glamor_get_rgba_from_pixel(pixel,
                                &color[0], &color[1], &color[2], &color[3],
                                format_for_pixmap(pixmap));
+
+    if ((pixmap->drawable.depth == 1 || pixmap->drawable.depth == 8) &&
+	glamor_priv->one_channel_format == GL_RED)
+      color[0] = color[3];
 
     glUniform4fv(uniform, 1, color);
 }

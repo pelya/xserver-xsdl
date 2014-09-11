@@ -116,10 +116,17 @@ enum shader_in {
     SHADER_IN_COUNT,
 };
 
+enum shader_dest_swizzle {
+    SHADER_DEST_SWIZZLE_DEFAULT,
+    SHADER_DEST_SWIZZLE_ALPHA_TO_RED,
+    SHADER_DEST_SWIZZLE_COUNT,
+};
+
 struct shader_key {
     enum shader_source source;
     enum shader_mask mask;
     enum shader_in in;
+    enum shader_dest_swizzle dest_swizzle;
 };
 
 struct blendinfo {
@@ -212,6 +219,8 @@ typedef struct glamor_screen_private {
     Bool has_dual_blend;
     int max_fbo_size;
 
+    GLuint one_channel_format;
+
     struct xorg_list
         fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
     unsigned long fbo_cache_watermark;
@@ -282,7 +291,8 @@ typedef struct glamor_screen_private {
     int render_nr_quads;
     glamor_composite_shader composite_shader[SHADER_SOURCE_COUNT]
         [SHADER_MASK_COUNT]
-        [SHADER_IN_COUNT];
+        [SHADER_IN_COUNT]
+        [SHADER_DEST_SWIZZLE_COUNT];
 
     /* shaders to restore a texture to another texture. */
     GLint finish_access_prog[2];

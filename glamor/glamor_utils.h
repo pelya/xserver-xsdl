@@ -757,7 +757,7 @@ gl_iformat_for_pixmap(PixmapPtr pixmap)
 
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP &&
         ((pixmap)->drawable.depth == 1 || (pixmap)->drawable.depth == 8)) {
-        return GL_ALPHA;
+        return glamor_priv->one_channel_format;
     } else {
         return GL_RGBA;
     }
@@ -867,6 +867,8 @@ glamor_pict_format_is_compatible(PicturePtr picture)
         return (picture->format == PICT_a8r8g8b8 ||
                 picture->format == PICT_x8r8g8b8);
     case GL_ALPHA:
+    case GL_RED:
+    case GL_LUMINANCE:
         return (picture->format == PICT_a8);
     default:
         return FALSE;

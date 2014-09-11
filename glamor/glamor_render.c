@@ -177,33 +177,46 @@ glamor_create_composite_fs(struct shader_key *key)
         "		return rel_sampler(mask_sampler, mask_texture,\n"
         "				   mask_wh, mask_repeat_mode, 1);\n"
         "}\n";
+
+    const char *dest_swizzle_default =
+        "vec4 dest_swizzle(vec4 color)\n"
+        "{"
+        "	return color;"
+        "}";
+    const char *dest_swizzle_alpha_to_red =
+        "vec4 dest_swizzle(vec4 color)\n"
+        "{"
+        "	float undef;\n"
+        "	return vec4(color.a, undef, undef, undef);"
+        "}";
+
     const char *in_source_only =
         "void main()\n"
         "{\n"
-        "	gl_FragColor = get_source();\n"
+        "	gl_FragColor = dest_swizzle(get_source());\n"
         "}\n";
     const char *in_normal =
         "void main()\n"
         "{\n"
-        "	gl_FragColor = get_source() * get_mask().a;\n"
+        "	gl_FragColor = dest_swizzle(get_source() * get_mask().a);\n"
         "}\n";
     const char *in_ca_source =
         "void main()\n"
         "{\n"
-        "	gl_FragColor = get_source() * get_mask();\n"
+        "	gl_FragColor = dest_swizzle(get_source() * get_mask());\n"
         "}\n";
     const char *in_ca_alpha =
         "void main()\n"
         "{\n"
-        "	gl_FragColor = get_source().a * get_mask();\n"
+        "	gl_FragColor = dest_swizzle(get_source().a * get_mask());\n"
         "}\n";
     const char *in_ca_dual_blend =
         "out vec4 color0;\n"
         "out vec4 color1;\n"
         "void main()\n"
         "{\n"
-        "	color0 = get_source() * get_mask();\n"
-        "	color1 = get_source().a * get_mask();\n"
+        "	color0 = dest_swizzle(get_source() * get_mask());\n"
+        "	color1 = dest_swizzle(get_source().a * get_mask());\n"
         "}\n";
     const char *header_ca_dual_blend =
         "#version 130\n";
@@ -214,6 +227,7 @@ glamor_create_composite_fs(struct shader_key *key)
     const char *in;
     const char *header;
     const char *header_norm = "";
+    const char *dest_swizzle;
     GLuint prog;
 
     switch (key->source) {
@@ -246,6 +260,21 @@ glamor_create_composite_fs(struct shader_key *key)
         FatalError("Bad composite shader mask");
     }
 
+    /* If we're storing to an a8 texture but our texture format is
+     * GL_RED because of a core context, then we need to make sure to
+     * put the alpha into the red channel.
+     */
+    switch (key->dest_swizzle) {
+    case SHADER_DEST_SWIZZLE_DEFAULT:
+        dest_swizzle = dest_swizzle_default;
+        break;
+    case SHADER_DEST_SWIZZLE_ALPHA_TO_RED:
+        dest_swizzle = dest_swizzle_alpha_to_red;
+        break;
+    default:
+        FatalError("Bad composite shader dest swizzle");
+    }
+
     header = header_norm;
     switch (key->in) {
     case SHADER_IN_SOURCE_ONLY:
@@ -271,8 +300,8 @@ glamor_create_composite_fs(struct shader_key *key)
     XNFasprintf(&source,
                 "%s"
                 GLAMOR_DEFAULT_PRECISION
-                "%s%s%s%s%s%s", header, repeat_define, relocate_texture,
-                rel_sampler, source_fetch, mask_fetch, in);
+                "%s%s%s%s%s%s%s", header, repeat_define, relocate_texture,
+                rel_sampler, source_fetch, mask_fetch, dest_swizzle, in);
 
     prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, source);
     free(source);
@@ -386,18 +415,36 @@ glamor_lookup_composite_shader(ScreenPtr screen, struct
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     glamor_composite_shader *shader;
 
-    shader = &glamor_priv->composite_shader[key->source][key->mask][key->in];
+    shader = &glamor_priv->composite_shader[key->source][key->mask][key->in][key->dest_swizzle];
     if (shader->prog == 0)
         glamor_create_composite_shader(screen, key, shader);
 
     return shader;
 }
 
+static GLenum
+glamor_translate_blend_alpha_to_red(GLenum blend)
+{
+    switch (blend) {
+    case GL_SRC_ALPHA:
+        return GL_SRC_COLOR;
+    case GL_DST_ALPHA:
+        return GL_DST_COLOR;
+    case GL_ONE_MINUS_SRC_ALPHA:
+        return GL_ONE_MINUS_SRC_COLOR;
+    case GL_ONE_MINUS_DST_ALPHA:
+        return GL_ONE_MINUS_DST_COLOR;
+    default:
+        return blend;
+    }
+}
+
 static Bool
 glamor_set_composite_op(ScreenPtr screen,
                         CARD8 op, struct blendinfo *op_info_result,
                         PicturePtr dest, PicturePtr mask,
-                        enum ca_state ca_state)
+                        enum ca_state ca_state,
+                        struct shader_key *key)
 {
     GLenum source_blend, dest_blend;
     struct blendinfo *op_info;
@@ -442,6 +489,14 @@ glamor_set_composite_op(ScreenPtr screen,
             dest_blend = GL_ONE_MINUS_SRC_COLOR;
             break;
         }
+    }
+
+    /* If we're outputting our alpha to the red channel, then any
+     * reads of alpha for blending need to come from the red channel.
+     */
+    if (key->dest_swizzle == SHADER_DEST_SWIZZLE_ALPHA_TO_RED) {
+        source_blend = glamor_translate_blend_alpha_to_red(source_blend);
+        dest_blend = glamor_translate_blend_alpha_to_red(dest_blend);
     }
 
     op_info_result->source_blend = source_blend;
@@ -841,6 +896,13 @@ glamor_composite_choose_shader(CARD8 op,
         key.in = SHADER_IN_SOURCE_ONLY;
     }
 
+    if (dest_pixmap->drawable.bitsPerPixel <= 8 &&
+        glamor_priv->one_channel_format == GL_RED) {
+        key.dest_swizzle = SHADER_DEST_SWIZZLE_ALPHA_TO_RED;
+    } else {
+        key.dest_swizzle = SHADER_DEST_SWIZZLE_DEFAULT;
+    }
+
     if (source && source->alphaMap) {
         glamor_fallback("source alphaMap\n");
         goto fail;
@@ -970,8 +1032,10 @@ glamor_composite_choose_shader(CARD8 op,
         goto fail;
     }
 
-    if (!glamor_set_composite_op(screen, op, op_info, dest, mask, ca_state))
+    if (!glamor_set_composite_op(screen, op, op_info, dest, mask, ca_state,
+                                 &key)) {
         goto fail;
+    }
 
     *shader = glamor_lookup_composite_shader(screen, &key);
     if ((*shader)->prog == 0) {

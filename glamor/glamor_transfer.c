@@ -42,7 +42,7 @@ glamor_format_for_pixmap(PixmapPtr pixmap, GLenum *format, GLenum *type)
         *type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
         break;
     case 8:
-        *format = GL_ALPHA;
+        *format = glamor_get_screen_private(pixmap->drawable.pScreen)->one_channel_format;
         *type = GL_UNSIGNED_BYTE;
         break;
     default:
