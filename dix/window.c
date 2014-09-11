@@ -2059,10 +2059,10 @@ ReflectStackChange(WindowPtr pWin, WindowPtr pSib, VTKind kind)
         if (anyMarked) {
             (*pScreen->ValidateTree) (pLayerWin->parent, pFirstChange, kind);
             (*pScreen->HandleExposures) (pLayerWin->parent);
+            if (pWin->drawable.pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree) (pLayerWin->parent, pFirstChange,
+                                              kind);
         }
-        if (anyMarked && pWin->drawable.pScreen->PostValidateTree)
-            (*pScreen->PostValidateTree) (pLayerWin->parent, pFirstChange,
-                                          kind);
     }
     if (pWin->realized)
         WindowsRestructured();
@@ -2576,10 +2576,10 @@ MapWindow(WindowPtr pWin, ClientPtr client)
             if (anyMarked) {
                 (*pScreen->ValidateTree) (pLayerWin->parent, pLayerWin, VTMap);
                 (*pScreen->HandleExposures) (pLayerWin->parent);
+                if (pScreen->PostValidateTree)
+                    (*pScreen->PostValidateTree) (pLayerWin->parent, pLayerWin,
+                                                  VTMap);
             }
-            if (anyMarked && pScreen->PostValidateTree)
-                (*pScreen->PostValidateTree) (pLayerWin->parent, pLayerWin,
-                                              VTMap);
         }
         WindowsRestructured();
     }
@@ -2657,10 +2657,10 @@ MapSubwindows(WindowPtr pParent, ClientPtr client)
         if (anyMarked) {
             (*pScreen->ValidateTree) (pLayerWin->parent, pFirstMapped, VTMap);
             (*pScreen->HandleExposures) (pLayerWin->parent);
+            if (pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree) (pLayerWin->parent, pFirstMapped,
+                                              VTMap);
         }
-        if (anyMarked && pScreen->PostValidateTree)
-            (*pScreen->PostValidateTree) (pLayerWin->parent, pFirstMapped,
-                                          VTMap);
         WindowsRestructured();
     }
 }
@@ -2754,9 +2754,9 @@ UnmapWindow(WindowPtr pWin, Bool fromConfigure)
         if (!fromConfigure) {
             (*pScreen->ValidateTree) (pLayerWin->parent, pWin, VTUnmap);
             (*pScreen->HandleExposures) (pLayerWin->parent);
+            if (pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree) (pLayerWin->parent, pWin, VTUnmap);
         }
-        if (!fromConfigure && pScreen->PostValidateTree)
-            (*pScreen->PostValidateTree) (pLayerWin->parent, pWin, VTUnmap);
     }
     if (wasRealized && !fromConfigure) {
         WindowsRestructured();
@@ -2824,9 +2824,10 @@ UnmapSubwindows(WindowPtr pWin)
             }
             (*pScreen->ValidateTree) (pLayerWin->parent, pHead, VTUnmap);
             (*pScreen->HandleExposures) (pLayerWin->parent);
+            if (pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree) (pLayerWin->parent, pHead,
+                                              VTUnmap);
         }
-        if (anyMarked && pScreen->PostValidateTree)
-            (*pScreen->PostValidateTree) (pLayerWin->parent, pHead, VTUnmap);
     }
     if (wasRealized) {
         WindowsRestructured();
@@ -3592,15 +3593,12 @@ SetRootClip(ScreenPtr pScreen, Bool enable)
             anyMarked = TRUE;
         }
 
-        if (anyMarked)
+        if (anyMarked) {
             (*pScreen->ValidateTree) (pWin, NullWindow, VTOther);
-    }
-
-    if (WasViewable) {
-        if (anyMarked)
             (*pScreen->HandleExposures) (pWin);
-        if (anyMarked && pScreen->PostValidateTree)
-            (*pScreen->PostValidateTree) (pWin, NullWindow, VTOther);
+            if (pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree) (pWin, NullWindow, VTOther);
+        }
     }
     if (pWin->realized)
         WindowsRestructured();

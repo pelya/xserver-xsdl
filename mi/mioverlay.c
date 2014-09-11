@@ -1464,11 +1464,7 @@ miOverlaySetShape(WindowPtr pWin, int kind)
 
         if (WasViewable) {
             (*pScreen->MarkOverlappedWindows) (pWin, pWin, NULL);
-
             (*pScreen->ValidateTree) (pWin->parent, NullWindow, VTOther);
-        }
-
-        if (WasViewable) {
             (*pScreen->HandleExposures) (pWin->parent);
             if (pScreen->PostValidateTree)
                 (*pScreen->PostValidateTree) (pWin->parent, NullWindow,

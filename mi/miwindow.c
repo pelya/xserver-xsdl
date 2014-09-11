@@ -292,9 +292,9 @@ miMoveWindow(WindowPtr pWin, int x, int y, WindowPtr pNextSib, VTKind kind)
             RegionDestroy(oldRegion);
             /* XXX need to retile border if ParentRelative origin */
             (*pScreen->HandleExposures) (pLayerWin->parent);
+            if (pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree) (pLayerWin->parent, NULL, kind);
         }
-        if (anyMarked && pScreen->PostValidateTree)
-            (*pScreen->PostValidateTree) (pLayerWin->parent, NullWindow, kind);
     }
     if (pWin->realized)
         WindowsRestructured();
@@ -607,11 +607,12 @@ miResizeWindow(WindowPtr pWin, int x, int y, unsigned int w, unsigned int h,
         RegionDestroy(pRegion);
         if (destClip)
             RegionDestroy(destClip);
-        if (anyMarked)
+        if (anyMarked) {
             (*pScreen->HandleExposures) (pLayerWin->parent);
-        if (anyMarked && pScreen->PostValidateTree)
-            (*pScreen->PostValidateTree) (pLayerWin->parent, pFirstChange,
-                                          VTOther);
+            if (pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree) (pLayerWin->parent, pFirstChange,
+                                              VTOther);
+        }
     }
     if (pWin->realized)
         WindowsRestructured();
@@ -663,17 +664,14 @@ miSetShape(WindowPtr pWin, int kind)
         if (WasViewable) {
             anyMarked |= (*pScreen->MarkOverlappedWindows) (pWin, pWin, NULL);
 
-            if (anyMarked)
+            if (anyMarked) {
                 (*pScreen->ValidateTree) (pLayerWin->parent, NullWindow,
                                           VTOther);
-        }
-
-        if (WasViewable) {
-            if (anyMarked)
                 (*pScreen->HandleExposures) (pLayerWin->parent);
-            if (anyMarked && pScreen->PostValidateTree)
-                (*pScreen->PostValidateTree) (pLayerWin->parent, NullWindow,
-                                              VTOther);
+                if (pScreen->PostValidateTree)
+                    (*pScreen->PostValidateTree) (pLayerWin->parent, NULL,
+                                                  VTOther);
+            }
         }
     }
     if (pWin->realized)
@@ -725,10 +723,10 @@ miChangeBorderWidth(WindowPtr pWin, unsigned int width)
         if (anyMarked) {
             (*pScreen->ValidateTree) (pLayerWin->parent, pLayerWin, VTOther);
             (*pScreen->HandleExposures) (pLayerWin->parent);
+            if (pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree) (pLayerWin->parent, pLayerWin,
+                                              VTOther);
         }
-        if (anyMarked && pScreen->PostValidateTree)
-            (*pScreen->PostValidateTree) (pLayerWin->parent, pLayerWin,
-                                          VTOther);
     }
     if (pWin->realized)
         WindowsRestructured();
