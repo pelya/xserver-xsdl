@@ -155,8 +155,7 @@ typedef void (*PostValidateTreeProcPtr) (WindowPtr /*pParent */ ,
                                          VTKind /*kind */ );
 
 typedef void (*WindowExposuresProcPtr) (WindowPtr /*pWindow */ ,
-                                        RegionPtr /*prgn */ ,
-                                        RegionPtr /*other_exposed */ );
+                                        RegionPtr /*prgn */);
 
 typedef void (*CopyWindowProcPtr) (WindowPtr /*pWindow */ ,
                                    DDXPointRec /*ptOldOrg */ ,

@@ -79,7 +79,7 @@ static void miOverlayMarkUnrealizedWindow(WindowPtr, WindowPtr, Bool);
 static int miOverlayValidateTree(WindowPtr, WindowPtr, VTKind);
 static void miOverlayHandleExposures(WindowPtr);
 static void miOverlayMoveWindow(WindowPtr, int, int, WindowPtr, VTKind);
-static void miOverlayWindowExposures(WindowPtr, RegionPtr, RegionPtr);
+static void miOverlayWindowExposures(WindowPtr, RegionPtr);
 static void miOverlayResizeWindow(WindowPtr, int, int, unsigned int,
                                   unsigned int, WindowPtr);
 static void miOverlayClearToBackground(WindowPtr, int, int, int, int, Bool);
@@ -827,7 +827,7 @@ miOverlayHandleExposures(WindowPtr pWin)
     miOverlayScreenPtr pPriv = MIOVERLAY_GET_SCREEN_PRIVATE(pScreen);
     WindowPtr pChild;
     ValidatePtr val;
-    void (*WindowExposures) (WindowPtr, RegionPtr, RegionPtr);
+    WindowExposuresProcPtr WindowExposures;
 
     WindowExposures = pWin->drawable.pScreen->WindowExposures;
     if (pPriv->underlayMarked) {
@@ -849,8 +849,7 @@ miOverlayHandleExposures(WindowPtr pWin)
                     }
                     RegionUninit(&mival->borderExposed);
 
-                    (*WindowExposures) (pTree->pWin, &mival->exposed,
-                                        NullRegion);
+                    (*WindowExposures) (pTree->pWin, &mival->exposed);
                     RegionUninit(&mival->exposed);
                 }
                 free(mival);
@@ -886,7 +885,7 @@ miOverlayHandleExposures(WindowPtr pWin)
                 if (RegionNotEmpty(&val->after.borderExposed)) {
                     miPaintWindow(pChild, &val->after.borderExposed, PW_BORDER);
                 }
-                (*WindowExposures) (pChild, &val->after.exposed, NullRegion);
+                (*WindowExposures) (pChild, &val->after.exposed);
             }
             RegionUninit(&val->after.borderExposed);
             RegionUninit(&val->after.exposed);
@@ -980,26 +979,16 @@ miOverlayMoveWindow(WindowPtr pWin,
 #endif
 
 static void
-miOverlayWindowExposures(WindowPtr pWin,
-                         RegionPtr prgn, RegionPtr other_exposed)
+miOverlayWindowExposures(WindowPtr pWin, RegionPtr prgn)
 {
     RegionPtr exposures = prgn;
 
-    if ((prgn && !RegionNil(prgn)) ||
-        (exposures && !RegionNil(exposures)) || other_exposed) {
+    if ((prgn && !RegionNil(prgn)) || (exposures && !RegionNil(exposures))) {
         RegionRec expRec;
         int clientInterested;
 
         clientInterested = (pWin->eventMask | wOtherEventMasks(pWin)) &
             ExposureMask;
-        if (other_exposed) {
-            if (exposures) {
-                RegionUnion(other_exposed, exposures, other_exposed);
-                if (exposures != prgn)
-                    RegionDestroy(exposures);
-            }
-            exposures = other_exposed;
-        }
         if (clientInterested && exposures &&
             (RegionNumRects(exposures) > RECTLIMIT)) {
             ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -1035,7 +1024,7 @@ miOverlayWindowExposures(WindowPtr pWin,
         if (exposures == &expRec) {
             RegionUninit(exposures);
         }
-        else if (exposures && exposures != prgn && exposures != other_exposed)
+        else if (exposures && exposures != prgn)
             RegionDestroy(exposures);
         if (prgn)
             RegionEmpty(prgn);
@@ -1592,7 +1581,6 @@ miOverlayClearToBackground(WindowPtr pWin,
     miOverlayTreePtr pTree = MIOVERLAY_GET_WINDOW_TREE(pWin);
     BoxRec box;
     RegionRec reg;
-    RegionPtr pBSReg = NullRegion;
     ScreenPtr pScreen = pWin->drawable.pScreen;
     miOverlayScreenPtr pScreenPriv = MIOVERLAY_GET_SCREEN_PRIVATE(pScreen);
     RegionPtr clipList;
@@ -1636,12 +1624,10 @@ miOverlayClearToBackground(WindowPtr pWin,
 
     RegionIntersect(&reg, &reg, clipList);
     if (generateExposures)
-        (*pScreen->WindowExposures) (pWin, &reg, pBSReg);
+        (*pScreen->WindowExposures) (pWin, &reg);
     else if (pWin->backgroundState != None)
         miPaintWindow(pWin, &reg, PW_BACKGROUND);
     RegionUninit(&reg);
-    if (pBSReg)
-        RegionDestroy(pBSReg);
 }
 
 /****************************************************************/

@@ -111,7 +111,7 @@ miClearToBackground(WindowPtr pWin,
 
     RegionIntersect(&reg, &reg, &pWin->clipList);
     if (generateExposures)
-        (*pWin->drawable.pScreen->WindowExposures) (pWin, &reg, NULL);
+        (*pWin->drawable.pScreen->WindowExposures) (pWin, &reg);
     else if (pWin->backgroundState != None)
         miPaintWindow(pWin, &reg, PW_BACKGROUND);
     RegionUninit(&reg);
@@ -221,7 +221,7 @@ miHandleValidateExposures(WindowPtr pWin)
             if (RegionNotEmpty(&val->after.borderExposed))
                 miPaintWindow(pChild, &val->after.borderExposed, PW_BORDER);
             RegionUninit(&val->after.borderExposed);
-            (*WindowExposures) (pChild, &val->after.exposed, NullRegion);
+            (*WindowExposures) (pChild, &val->after.exposed);
             RegionUninit(&val->after.exposed);
             free(val);
             pChild->valdata = NULL;

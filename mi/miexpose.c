@@ -421,12 +421,11 @@ miSendExposures(WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 }
 
 void
-miWindowExposures(WindowPtr pWin, RegionPtr prgn, RegionPtr other_exposed)
+miWindowExposures(WindowPtr pWin, RegionPtr prgn)
 {
     RegionPtr exposures = prgn;
 
-    if ((prgn && !RegionNil(prgn)) ||
-        (exposures && !RegionNil(exposures)) || other_exposed) {
+    if ((prgn && !RegionNil(prgn)) || (exposures && !RegionNil(exposures))) {
         RegionRec expRec;
         int clientInterested;
 
@@ -435,14 +434,6 @@ miWindowExposures(WindowPtr pWin, RegionPtr prgn, RegionPtr other_exposed)
          */
         clientInterested =
             (pWin->eventMask | wOtherEventMasks(pWin)) & ExposureMask;
-        if (other_exposed) {
-            if (exposures) {
-                RegionUnion(other_exposed, exposures, other_exposed);
-                if (exposures != prgn)
-                    RegionDestroy(exposures);
-            }
-            exposures = other_exposed;
-        }
         if (clientInterested && exposures &&
             (RegionNumRects(exposures) > RECTLIMIT)) {
             /*
@@ -474,7 +465,7 @@ miWindowExposures(WindowPtr pWin, RegionPtr prgn, RegionPtr other_exposed)
         if (exposures == &expRec) {
             RegionUninit(exposures);
         }
-        else if (exposures && exposures != prgn && exposures != other_exposed)
+        else if (exposures && exposures != prgn)
             RegionDestroy(exposures);
         if (prgn)
             RegionEmpty(prgn);

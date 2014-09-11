@@ -247,9 +247,7 @@ extern _X_EXPORT void miSendExposures(WindowPtr /*pWin */ ,
     );
 
 extern _X_EXPORT void miWindowExposures(WindowPtr /*pWin */ ,
-                                        RegionPtr /*prgn */ ,
-                                        RegionPtr       /*other_exposed */
-    );
+                                        RegionPtr /*prgn */);
 
 extern _X_EXPORT void miPaintWindow(WindowPtr /*pWin */ ,
                                     RegionPtr /*prgn */ ,

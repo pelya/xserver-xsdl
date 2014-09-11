@@ -2601,7 +2601,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
             (*pScreen->PostValidateTree) (NullWindow, pWin, VTMap);
         RegionNull(&temp);
         RegionCopy(&temp, &pWin->clipList);
-        (*pScreen->WindowExposures) (pWin, &temp, NullRegion);
+        (*pScreen->WindowExposures) (pWin, &temp);
         RegionUninit(&temp);
     }
 
