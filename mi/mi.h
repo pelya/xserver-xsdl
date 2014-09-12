@@ -232,13 +232,6 @@ extern _X_EXPORT RegionPtr miHandleExposures(DrawablePtr /*pSrcDrawable */ ,
                                              int /*dsty */
     );
 
-extern _X_EXPORT void miSendGraphicsExpose(ClientPtr /*client */ ,
-                                           RegionPtr /*pRgn */ ,
-                                           XID /*drawable */ ,
-                                           int /*major */ ,
-                                           int  /*minor */
-    );
-
 extern _X_EXPORT void miSendExposures(WindowPtr /*pWin */ ,
                                       RegionPtr /*pRgn */ ,
                                       int /*dx */ ,

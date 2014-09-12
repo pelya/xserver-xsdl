@@ -252,12 +252,6 @@ typedef void (*ResolveColorProcPtr) (unsigned short * /*pred */ ,
 
 typedef RegionPtr (*BitmapToRegionProcPtr) (PixmapPtr /*pPix */ );
 
-typedef void (*SendGraphicsExposeProcPtr) (ClientPtr /*client */ ,
-                                           RegionPtr /*pRgn */ ,
-                                           XID /*drawable */ ,
-                                           int /*major */ ,
-                                           int /*minor */ );
-
 typedef void (*ScreenBlockHandlerProcPtr) (ScreenPtr pScreen,
                                            void *pTimeout,
                                            void *pReadmask);
@@ -540,7 +534,6 @@ typedef struct _Screen {
     /* Region procedures */
 
     BitmapToRegionProcPtr BitmapToRegion;
-    SendGraphicsExposeProcPtr SendGraphicsExpose;
 
     /* os layer procedures */
 
