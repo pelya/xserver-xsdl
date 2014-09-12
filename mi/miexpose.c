@@ -116,18 +116,12 @@ NOTE:
      this should generally be called, even if graphicsExposures is false,
 because this is where bits get recovered from backing store.
 
-NOTE:
-     added argument 'plane' is used to indicate how exposures from backing
-store should be accomplished. If plane is 0 (i.e. no bit plane), CopyArea
-should be used, else a CopyPlane of the indicated plane will be used. The
-exposing is done by the backing store's GraphicsExpose function, of course.
-
 */
 
 RegionPtr
 miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
                   GCPtr pGC, int srcx, int srcy, int width, int height,
-                  int dstx, int dsty, unsigned long plane)
+                  int dstx, int dsty)
 {
     RegionPtr prgnSrcClip;      /* drawable-relative source clip */
     RegionRec rgnSrcRec;

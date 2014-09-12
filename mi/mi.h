@@ -229,8 +229,7 @@ extern _X_EXPORT RegionPtr miHandleExposures(DrawablePtr /*pSrcDrawable */ ,
                                              int /*width */ ,
                                              int /*height */ ,
                                              int /*dstx */ ,
-                                             int /*dsty */ ,
-                                             unsigned long      /*plane */
+                                             int /*dsty */
     );
 
 extern _X_EXPORT void miSendGraphicsExpose(ClientPtr /*client */ ,
