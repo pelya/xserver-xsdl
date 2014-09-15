@@ -151,7 +151,6 @@ typedef struct _Window {
     unsigned cursorIsNone:1;    /* else real cursor (might inherit) */
     unsigned backingStore:2;
     unsigned saveUnder:1;
-    unsigned DIXsaveUnder:1;
     unsigned bitGravity:4;
     unsigned winGravity:4;
     unsigned overrideRedirect:1;
