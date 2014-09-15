@@ -362,7 +362,7 @@ SetWindowToDefaults(WindowPtr pWin)
     pWin->cursorIsNone = TRUE;
 
     pWin->backingStore = NotUseful;
-    pWin->backStorage = (void *) NULL;
+    pWin->backStorage = 0;
 
     pWin->mapped = FALSE;       /* off */
     pWin->realized = FALSE;     /* off */

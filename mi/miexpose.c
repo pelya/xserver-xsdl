@@ -143,7 +143,7 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
     if (!pGC->graphicsExposures &&
         (pDstDrawable->type == DRAWABLE_PIXMAP) &&
         ((pSrcDrawable->type == DRAWABLE_PIXMAP) ||
-         (((WindowPtr) pSrcDrawable)->backStorage == NULL)))
+         (((WindowPtr) pSrcDrawable)->backStorage == 0)))
         return NULL;
 
     srcBox.x1 = srcx;
