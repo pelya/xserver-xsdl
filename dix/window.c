@@ -2806,8 +2806,6 @@ UnmapSubwindows(WindowPtr pWin)
             pChild->mapped = FALSE;
             if (pChild->realized)
                 UnrealizeTree(pChild, FALSE);
-            if (wasViewable) {
-            }
         }
     }
     if (wasViewable) {
