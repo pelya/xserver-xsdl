@@ -357,8 +357,8 @@ SetWindowToDefaults(WindowPtr pWin)
     pWin->firstChild = NullWindow;
     pWin->lastChild = NullWindow;
 
-    pWin->valdata = (ValidatePtr) NULL;
-    pWin->optional = (WindowOptPtr) NULL;
+    pWin->valdata = NULL;
+    pWin->optional = NULL;
     pWin->cursorIsNone = TRUE;
 
     pWin->backingStore = NotUseful;
@@ -1550,7 +1550,7 @@ MoveWindowInStack(WindowPtr pWin, WindowPtr pNextSib)
             if (pWin->prevSib)
                 pWin->prevSib->nextSib = pWin->nextSib;
             pWin->nextSib = pParent->firstChild;
-            pWin->prevSib = (WindowPtr) NULL;
+            pWin->prevSib = NULL;
             pNextSib->prevSib = pWin;
             pParent->firstChild = pWin;
         }
@@ -1847,7 +1847,7 @@ WindowExtents(WindowPtr pWin, BoxPtr pBox)
     return pBox;
 }
 
-#define IS_SHAPED(pWin)	(wBoundingShape (pWin) != (RegionPtr) NULL)
+#define IS_SHAPED(pWin)	(wBoundingShape (pWin) != NULL)
 
 static RegionPtr
 MakeBoundingRegion(WindowPtr pWin, BoxPtr pBox)
@@ -1953,7 +1953,7 @@ WhereDoIGoInTheStack(WindowPtr pWin,
     WindowPtr pHead, pFirst;
 
     if ((pWin == pWin->parent->firstChild) && (pWin == pWin->parent->lastChild))
-        return ((WindowPtr) NULL);
+        return NULL;
     pHead = RealChildHead(pWin->parent);
     pFirst = pHead ? pHead->nextSib : pWin->parent->firstChild;
     box.x1 = x;
@@ -2644,8 +2644,7 @@ MapSubwindows(WindowPtr pParent, ClientPtr client)
                 RealizeTree(pWin);
                 if (pWin->viewable) {
                     anyMarked |= (*pScreen->MarkOverlappedWindows) (pWin, pWin,
-                                                                    (WindowPtr
-                                                                     *) NULL);
+                                                                    NULL);
                 }
             }
         }
@@ -2655,8 +2654,7 @@ MapSubwindows(WindowPtr pParent, ClientPtr client)
         pLayerWin = (*pScreen->GetLayerWindow) (pParent);
         if (pLayerWin->parent != pParent) {
             anyMarked |= (*pScreen->MarkOverlappedWindows) (pLayerWin,
-                                                            pLayerWin,
-                                                            (WindowPtr *) NULL);
+                                                            pLayerWin, NULL);
             pFirstMapped = pLayerWin;
         }
         if (anyMarked) {
@@ -2815,8 +2813,7 @@ UnmapSubwindows(WindowPtr pWin)
             else {
                 WindowPtr ptmp;
 
-                (*pScreen->MarkOverlappedWindows) (pWin, pLayerWin,
-                                                   (WindowPtr *) NULL);
+                (*pScreen->MarkOverlappedWindows) (pWin, pLayerWin, NULL);
                 (*pScreen->MarkWindow) (pLayerWin->parent);
 
                 /* Windows between pWin and pLayerWin may not have been marked */
@@ -2875,7 +2872,7 @@ HandleSaveSet(ClientPtr client)
     }
     free(client->saveSet);
     client->numSaved = 0;
-    client->saveSet = (SaveSetElt *) NULL;
+    client->saveSet = NULL;
 }
 
 /**
@@ -3591,7 +3588,7 @@ SetRootClip(ScreenPtr pScreen, Bool enable)
         if (pWin->firstChild) {
             anyMarked |= (*pScreen->MarkOverlappedWindows) (pWin->firstChild,
                                                             pWin->firstChild,
-                                                            (WindowPtr *) NULL);
+                                                            NULL);
         }
         else {
             (*pScreen->MarkWindow) (pWin);
