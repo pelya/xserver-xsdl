@@ -264,7 +264,7 @@ miScreenInit(ScreenPtr pScreen, void *pbits,  /* pointer to screen bits */
     pScreen->MarkWindow = miMarkWindow;
     pScreen->MarkOverlappedWindows = miMarkOverlappedWindows;
     pScreen->MoveWindow = miMoveWindow;
-    pScreen->ResizeWindow = miSlideAndSizeWindow;
+    pScreen->ResizeWindow = miResizeWindow;
     pScreen->GetLayerWindow = miGetLayerWindow;
     pScreen->HandleExposures = miHandleValidateExposures;
     pScreen->ReparentWindow = (ReparentWindowProcPtr) 0;

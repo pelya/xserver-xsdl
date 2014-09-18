@@ -470,12 +470,12 @@ extern _X_EXPORT void miMoveWindow(WindowPtr /*pWin */ ,
                                    VTKind       /*kind */
     );
 
-extern _X_EXPORT void miSlideAndSizeWindow(WindowPtr /*pWin */ ,
-                                           int /*x */ ,
-                                           int /*y */ ,
-                                           unsigned int /*w */ ,
-                                           unsigned int /*h */ ,
-                                           WindowPtr    /*pSib */
+extern _X_EXPORT void miResizeWindow(WindowPtr /*pWin */ ,
+                                     int /*x */ ,
+                                     int /*y */ ,
+                                     unsigned int /*w */ ,
+                                     unsigned int /*h */ ,
+                                     WindowPtr    /*pSib */
     );
 
 extern _X_EXPORT WindowPtr miGetLayerWindow(WindowPtr   /*pWin */

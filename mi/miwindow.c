@@ -337,9 +337,8 @@ miRecomputeExposures(WindowPtr pWin, void *value)
 }
 
 void
-miSlideAndSizeWindow(WindowPtr pWin,
-                     int x, int y,
-                     unsigned int w, unsigned int h, WindowPtr pSib)
+miResizeWindow(WindowPtr pWin, int x, int y, unsigned int w, unsigned int h,
+               WindowPtr pSib)
 {
     WindowPtr pParent;
     Bool WasViewable = (Bool) (pWin->viewable);
