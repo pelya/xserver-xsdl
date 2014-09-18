@@ -1812,8 +1812,6 @@ ResizeChildrenWinSize(WindowPtr pWin, int dx, int dy, int dw, int dh)
 
 #define ChangeMask ((Mask)(CWX | CWY | CWWidth | CWHeight))
 
-#define IllegalInputOnlyConfigureMask (CWBorderWidth)
-
 /*
  * IsSiblingAboveMe
  *     returns Above if pSib above pMe in stack or Below otherwise 
@@ -2091,8 +2089,7 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
         h = pWin->drawable.height, bw = pWin->borderWidth;
     int rc, action, smode = Above;
 
-    if ((pWin->drawable.class == InputOnly) &&
-        (mask & IllegalInputOnlyConfigureMask))
+    if ((pWin->drawable.class == InputOnly) && (mask & CWBorderWidth))
         return BadMatch;
 
     if ((mask & CWSibling) && !(mask & CWStackMode))
