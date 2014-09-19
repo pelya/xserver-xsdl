@@ -698,6 +698,7 @@ case $host_os in
 		CONFIG_UDEV=no
 		CONFIG_UDEV_KMS=no
 		DGA=no
+		DRM=no
 		DRI2=no
 		DRI3=no
 		INT10MODULE=no
