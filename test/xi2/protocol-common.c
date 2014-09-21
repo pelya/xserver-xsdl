@@ -137,6 +137,7 @@ init_devices(void)
 {
     ClientRec client;
     struct devices local_devices;
+    int ret;
 
     client = init_client(0, NULL);
 
@@ -145,15 +146,20 @@ init_devices(void)
     inputInfo.pointer = local_devices.vcp;
 
     inputInfo.keyboard = local_devices.vck;
-    ActivateDevice(local_devices.vcp, FALSE);
-    ActivateDevice(local_devices.vck, FALSE);
+    ret = ActivateDevice(local_devices.vcp, FALSE);
+    assert(ret == Success);
+    /* This may fail if xkbcomp fails or xkb-config is not found. */
+    ret = ActivateDevice(local_devices.vck, FALSE);
+    assert(ret == Success);
     EnableDevice(local_devices.vcp, FALSE);
     EnableDevice(local_devices.vck, FALSE);
 
     AllocDevicePair(&client, "", &local_devices.mouse, &local_devices.kbd,
                     TestPointerProc, CoreKeyboardProc, FALSE);
-    ActivateDevice(local_devices.mouse, FALSE);
-    ActivateDevice(local_devices.kbd, FALSE);
+    ret = ActivateDevice(local_devices.mouse, FALSE);
+    assert(ret == Success);
+    ret = ActivateDevice(local_devices.kbd, FALSE);
+    assert(ret == Success);
     EnableDevice(local_devices.mouse, FALSE);
     EnableDevice(local_devices.kbd, FALSE);
 
