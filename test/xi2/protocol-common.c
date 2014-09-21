@@ -25,6 +25,7 @@
 #include <dix-config.h>
 #endif
 
+#include <errno.h>
 #include <stdint.h>
 #include "extinit.h"            /* for XInputExtensionInit */
 #include "exglobals.h"
@@ -138,6 +139,17 @@ init_devices(void)
     ClientRec client;
     struct devices local_devices;
     int ret;
+
+    /*
+     * Put a unique name in display pointer so that when tests are run in
+     * parallel, their xkbcomp outputs to /tmp/server-<display>.xkm don't
+     * stomp on each other.
+     */
+#ifdef HAVE_GETPROGNAME
+    display = getprogname();
+#elif HAVE_DECL_PROGRAM_INVOCATION_SHORT_NAME
+    display = program_invocation_short_name;
+#endif
 
     client = init_client(0, NULL);
 
