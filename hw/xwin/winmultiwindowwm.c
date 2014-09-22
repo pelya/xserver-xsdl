@@ -114,6 +114,7 @@ typedef struct _WMInfo {
     xcb_atom_t atmWmTakeFocus;
     xcb_atom_t atmPrivMap;
     xcb_atom_t atmUtf8String;
+    xcb_atom_t atmNetWmName;
     xcb_ewmh_connection_t ewmh;
 } WMInfoRec, *WMInfoPtr;
 
@@ -376,30 +377,51 @@ static void
 GetWindowName(WMInfoPtr pWMInfo, xcb_window_t iWin, char **ppWindowName)
 {
     xcb_connection_t *conn = pWMInfo->conn;
-    xcb_get_property_cookie_t cookie;
-    xcb_icccm_get_text_property_reply_t reply;
-    char *pszWindowName;
-    char *pszClientMachine;
-    char hostname[HOST_NAME_MAX + 1];
+    char *pszWindowName = NULL;
 
 #if CYGMULTIWINDOW_DEBUG
     ErrorF("GetWindowName\n");
 #endif
 
-    /* Intialize ppWindowName to NULL */
-    *ppWindowName = NULL;
+    /* Try to get window name from _NET_WM_NAME */
+    {
+        xcb_get_property_cookie_t cookie;
+        xcb_get_property_reply_t *reply;
 
-    /* Try to get window name */
-    cookie = xcb_icccm_get_wm_name(conn, iWin);
-    if (!xcb_icccm_get_wm_name_reply(conn, cookie, &reply, NULL)) {
-        ErrorF("GetWindowName - xcb_icccm_get_wm_name_reply failed.  No name.\n");
-        return;
+        cookie = xcb_get_property(pWMInfo->conn, FALSE, iWin,
+                                  pWMInfo->atmNetWmName,
+                                  XCB_GET_PROPERTY_TYPE_ANY, 0, INT_MAX);
+        reply = xcb_get_property_reply(pWMInfo->conn, cookie, NULL);
+        if (reply && (reply->type != XCB_NONE)) {
+            pszWindowName = strndup(xcb_get_property_value(reply),
+                                    xcb_get_property_value_length(reply));
+            free(reply);
+        }
     }
 
-    pszWindowName = Xutf8TextPropertyToString(pWMInfo, &reply);
-    xcb_icccm_get_text_property_reply_wipe(&reply);
+    /* Otherwise, try to get window name from WM_NAME */
+    if (!pszWindowName)
+        {
+            xcb_get_property_cookie_t cookie;
+            xcb_icccm_get_text_property_reply_t reply;
+
+            cookie = xcb_icccm_get_wm_name(conn, iWin);
+            if (!xcb_icccm_get_wm_name_reply(conn, cookie, &reply, NULL)) {
+                ErrorF("GetWindowName - xcb_icccm_get_wm_name_reply failed.  No name.\n");
+                *ppWindowName = NULL;
+                return;
+            }
+
+            pszWindowName = Xutf8TextPropertyToString(pWMInfo, &reply);
+            xcb_icccm_get_text_property_reply_wipe(&reply);
+        }
 
     if (g_fHostInTitle) {
+        char *pszClientMachine;
+        char hostname[HOST_NAME_MAX + 1];
+        xcb_get_property_cookie_t cookie;
+        xcb_icccm_get_text_property_reply_t reply;
+
         /* Try to get client machine name */
         cookie = xcb_icccm_get_wm_client_machine(conn, iWin);
         if (xcb_icccm_get_wm_client_machine_reply(conn, cookie, &reply, NULL)) {
@@ -998,6 +1020,7 @@ winMultiWindowXMsgProc(void *pArg)
     char pszDisplay[512];
     int iRetries;
     xcb_atom_t atmWmName;
+    xcb_atom_t atmNetWmName;
     xcb_atom_t atmWmHints;
     xcb_atom_t atmWmChange;
     xcb_atom_t atmNetWmIcon;
@@ -1099,6 +1122,7 @@ winMultiWindowXMsgProc(void *pArg)
     }
 
     atmWmName = intern_atom(pProcArg->conn, "WM_NAME");
+    atmNetWmName = intern_atom(pProcArg->conn, "_NET_WM_NAME");
     atmWmHints = intern_atom(pProcArg->conn, "WM_HINTS");
     atmWmChange = intern_atom(pProcArg->conn, "WM_CHANGE_STATE");
     atmNetWmIcon = intern_atom(pProcArg->conn, "_NET_WM_ICON");
@@ -1240,7 +1264,8 @@ winMultiWindowXMsgProc(void *pArg)
         else if (type ==  XCB_PROPERTY_NOTIFY) {
             xcb_property_notify_event_t *notify = (xcb_property_notify_event_t *)event;
 
-            if (notify->atom == atmWmName) {
+            if ((notify->atom == atmWmName) ||
+                (notify->atom == atmNetWmName)) {
                 memset(&msg, 0, sizeof(msg));
 
                 msg.msg = WM_WM_NAME_EVENT;
@@ -1453,6 +1478,7 @@ winInitMultiWindowWM(WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
     pWMInfo->atmWmTakeFocus = intern_atom(pWMInfo->conn, "WM_TAKE_FOCUS");
     pWMInfo->atmPrivMap = intern_atom(pWMInfo->conn, WINDOWSWM_NATIVE_HWND);
     pWMInfo->atmUtf8String = intern_atom(pWMInfo->conn, "UTF8_STRING");
+    pWMInfo->atmNetWmName = intern_atom(pWMInfo->conn, "_NET_WM_NAME");
 
     /* Initialization for the xcb_ewmh and EWMH atoms */
     {
