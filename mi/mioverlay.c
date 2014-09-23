@@ -983,28 +983,19 @@ miOverlayWindowExposures(WindowPtr pWin, RegionPtr prgn)
 {
     RegionPtr exposures = prgn;
 
-    if ((prgn && !RegionNil(prgn)) || (exposures && !RegionNil(exposures))) {
+    if (prgn && !RegionNil(prgn)) {
         RegionRec expRec;
-        int clientInterested;
-
-        clientInterested = (pWin->eventMask | wOtherEventMasks(pWin)) &
-            ExposureMask;
-        if (clientInterested && exposures &&
-            (RegionNumRects(exposures) > RECTLIMIT)) {
+        int clientInterested =
+            (pWin->eventMask | wOtherEventMasks(pWin)) & ExposureMask;
+        if (clientInterested && (RegionNumRects(prgn) > RECTLIMIT)) {
             ScreenPtr pScreen = pWin->drawable.pScreen;
             miOverlayScreenPtr pPriv = MIOVERLAY_GET_SCREEN_PRIVATE(pScreen);
             BoxRec box;
 
-            box = *RegionExtents(exposures);
-            if (exposures == prgn) {
-                exposures = &expRec;
-                RegionInit(exposures, &box, 1);
-                RegionReset(prgn, &box);
-            }
-            else {
-                RegionReset(exposures, &box);
-                RegionUnion(prgn, prgn, exposures);
-            }
+            box = *RegionExtents(prgn);
+            exposures = &expRec;
+            RegionInit(exposures, &box, 1);
+            RegionReset(prgn, &box);
             /* This is the only reason why we are replacing mi's version
                of this file */
 
@@ -1016,21 +1007,14 @@ miOverlayWindowExposures(WindowPtr pWin, RegionPtr prgn)
             else
                 RegionIntersect(prgn, prgn, &pWin->clipList);
         }
-        if (prgn && !RegionNil(prgn))
-            miPaintWindow(pWin, prgn, PW_BACKGROUND);
-        if (clientInterested && exposures && !RegionNil(exposures))
+        miPaintWindow(pWin, prgn, PW_BACKGROUND);
+        if (clientInterested)
             miSendExposures(pWin, exposures,
                             pWin->drawable.x, pWin->drawable.y);
-        if (exposures == &expRec) {
+        if (exposures == &expRec)
             RegionUninit(exposures);
-        }
-        else if (exposures && exposures != prgn)
-            RegionDestroy(exposures);
-        if (prgn)
-            RegionEmpty(prgn);
+        RegionEmpty(prgn);
     }
-    else if (exposures && exposures != prgn)
-        RegionDestroy(exposures);
 }
 
 typedef struct {
