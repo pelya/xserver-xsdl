@@ -31,6 +31,9 @@
 #include <SDL/SDL.h>
 #include <X11/keysym.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <pthread.h>
 
 #ifdef __ANDROID__
@@ -104,8 +107,7 @@ typedef struct
 
 //#undef RANDR
 
-Bool
-sdlMapFramebuffer (KdScreenInfo *screen)
+static Bool sdlMapFramebuffer (KdScreenInfo *screen)
 {
 	SdlDriver			*driver = screen->driver;
 	KdPointerMatrix		m;
@@ -707,14 +709,85 @@ static void sdlPollInput(void)
 	*/
 }
 
+static Bool xsdlConnectionClosed = 0;
+
+static void xsdlAudioCallback(void *userdata, Uint8 *stream, int len)
+{
+	int connection_fd = (int)userdata;
+	if (xsdlConnectionClosed)
+		return;
+	while (len > 0)
+	{
+		int count = read(connection_fd, stream, len);
+		if (count <= 0)
+		{
+			xsdlConnectionClosed = 1;
+			return;
+		}
+		stream += count;
+		len -= count;
+	}
+}
+
+static void *xsdlAudioThread(void *data)
+{
+	struct sockaddr_un address;
+	socklen_t address_length;
+	int socket_fd = (int)data;
+	int connection_fd;
+	while ((connection_fd = accept(socket_fd, (struct sockaddr *) &address, &address_length)) > -1)
+	{
+		printf("Accepted connection from audio-out socket %s\n", address.sun_path);
+		xsdlConnectionClosed = 0;
+		SDL_AudioSpec spec, obtained;
+		memset(&spec, 0, sizeof(spec));
+		spec.format = AUDIO_S16;
+		spec.channels = 2;
+		spec.samples = 4096;
+		spec.callback = xsdlAudioCallback;
+		spec.userdata = (void *)connection_fd;
+		SDL_OpenAudio(&spec, &obtained);
+		SDL_PauseAudio(0);
+		while (!xsdlConnectionClosed)
+			SDL_Delay(1000);
+		SDL_CloseAudio();
+		close(connection_fd);
+	}
+	return NULL;
+}
+
+static void xsdlCreateAudioThread()
+{
+	struct sockaddr_un address;
+	socklen_t address_length;
+	int socket_fd, connection_fd;
+	memset(&address, 0, sizeof(address));
+	address.sun_family = AF_UNIX;
+	getcwd(address.sun_path, UNIX_PATH_MAX);
+	strncat(address.sun_path, "/img/tmp/audio-out", UNIX_PATH_MAX-1-strlen(address.sun_path));
+	printf("Creating audio-out socket %s\n", address.sun_path);
+	unlink(address.sun_path);
+	socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
+	if (socket_fd < 0 ||
+		bind(socket_fd, (struct sockaddr *) &address, sizeof(address)) != 0 ||
+		listen(socket_fd, 1) != 0)
+	{
+		printf("Error creating audio-out socket %s\n", address.sun_path);
+		return;
+	}
+	pthread_t threadId;
+	pthread_create(&threadId, NULL, &xsdlAudioThread, (void *)socket_fd);
+	pthread_detach(threadId);
+}
+
 static int xsdlInit(void)
 {
 	printf("Calling SDL_Init()\n");
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO);
 	SDL_JoystickOpen(0); // Receive pressure events
+	xsdlCreateAudioThread();
 	return 0;
 }
-
 
 static void xsdlFini(void)
 {
