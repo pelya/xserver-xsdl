@@ -741,6 +741,7 @@ static void *xsdlAudioThread(void *data)
 		xsdlConnectionClosed = 0;
 		SDL_AudioSpec spec, obtained;
 		memset(&spec, 0, sizeof(spec));
+		spec.freq = 44100;
 		spec.format = AUDIO_S16;
 		spec.channels = 2;
 		spec.samples = 4096;
