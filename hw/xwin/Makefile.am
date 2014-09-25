@@ -37,12 +37,6 @@ DEFS_MULTIWINDOWEXTWM = -DXWIN_MULTIWINDOWEXTWM
 MULTIWINDOWEXTWM_LIBS = $(top_builddir)/miext/rootless/librootless.la
 endif
 
-if XWIN_PRIMARYFB
-SRCS_PRIMARYFB = \
-	winpfbdd.c
-DEFS_PRIMARYFB = -DXWIN_PRIMARYFB
-endif
-
 if XWIN_RANDR
 SRCS_RANDR = \
 	winrandr.c

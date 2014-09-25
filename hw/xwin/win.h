@@ -103,9 +103,6 @@
 #define WIN_SERVER_SHADOW_GDI	0x1L    /* 1 */
 #define WIN_SERVER_SHADOW_DD	0x2L    /* 2 */
 #define WIN_SERVER_SHADOW_DDNL	0x4L    /* 4 */
-#ifdef XWIN_PRIMARYFB
-#define WIN_SERVER_PRIMARY_DD	0x8L    /* 8 */
-#endif
 
 #define AltMapIndex		Mod1MapIndex
 #define NumLockMapIndex		Mod2MapIndex
@@ -912,15 +909,6 @@ winMouseButtonsHandle(ScreenPtr pScreen,
 
 void
  winEnqueueMotion(int x, int y);
-
-#ifdef XWIN_PRIMARYFB
-/*
- * winpfbddd.c
- */
-
-Bool
- winSetEngineFunctionsPrimaryDD(ScreenPtr pScreen);
-#endif
 
 /*
  * winscrinit.c
