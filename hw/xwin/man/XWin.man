@@ -263,8 +263,6 @@ Shadow DirectDraw
 Shadow DirectDraw Non-Locking
 .IP 8 4
 Primary DirectDraw (unsupported, obsolete)
-.IP 16 4
-Native GDI (unsupported, experimental and barely functional)
 .RE
 
 .SH FULLSCREEN OPTIONS

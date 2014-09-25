@@ -37,21 +37,6 @@ DEFS_MULTIWINDOWEXTWM = -DXWIN_MULTIWINDOWEXTWM
 MULTIWINDOWEXTWM_LIBS = $(top_builddir)/miext/rootless/librootless.la
 endif
 
-if XWIN_NATIVEGDI
-SRCS_NATIVEGDI = \
-	winclip.c \
-	winfillsp.c \
-	winfont.c \
-	wingc.c \
-	wingetsp.c \
-	winnativegdi.c \
-	winpixmap.c \
-	winpolyline.c \
-	winrop.c \
-	winsetsp.c
-DEFS_NATIVEGDI = -DXWIN_NATIVEGDI
-endif
-
 if XWIN_PRIMARYFB
 SRCS_PRIMARYFB = \
 	winpfbdd.c

@@ -59,10 +59,6 @@ winDetectSupportedEngines(void)
     /* Initialize the engine support flags */
     g_dwEnginesSupported = WIN_SERVER_SHADOW_GDI;
 
-#ifdef XWIN_NATIVEGDI
-    g_dwEnginesSupported |= WIN_SERVER_NATIVE_GDI;
-#endif
-
     /* Get operating system version information */
     ZeroMemory(&osvi, sizeof(osvi));
     osvi.dwOSVersionInfoSize = sizeof(osvi);
@@ -209,11 +205,6 @@ winSetEngine(ScreenPtr pScreen)
 #ifdef XWIN_PRIMARYFB
         case WIN_SERVER_PRIMARY_DD:
             winSetEngineFunctionsPrimaryDD(pScreen);
-            break;
-#endif
-#ifdef XWIN_NATIVEGDI
-        case WIN_SERVER_NATIVE_GDI:
-            winSetEngineFunctionsNativeGDI(pScreen);
             break;
 #endif
         default:
