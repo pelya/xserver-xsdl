@@ -1151,20 +1151,6 @@ fbPolyPoint(DrawablePtr pDrawable,
 /*
  * fbpush.c
  */
-extern _X_EXPORT void
-
-fbPushPattern(DrawablePtr pDrawable,
-              GCPtr pGC,
-              FbStip * src,
-              FbStride srcStride,
-              int srcX, int x, int y, int width, int height);
-
-extern _X_EXPORT void
-
-fbPushFill(DrawablePtr pDrawable,
-           GCPtr pGC,
-           FbStip * src,
-           FbStride srcStride, int srcX, int x, int y, int width, int height);
 
 extern _X_EXPORT void
 
