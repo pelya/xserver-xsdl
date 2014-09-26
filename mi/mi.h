@@ -288,22 +288,6 @@ extern _X_EXPORT void miFillPolygon(DrawablePtr /*dst */ ,
                                     DDXPointPtr /*pPts */
     );
 
-/* mipolycon.c */
-
-extern _X_EXPORT Bool miFillConvexPoly(DrawablePtr /*dst */ ,
-                                       GCPtr /*pgc */ ,
-                                       int /*count */ ,
-                                       DDXPointPtr      /*ptsIn */
-    );
-
-/* mipolygen.c */
-
-extern _X_EXPORT Bool miFillGeneralPoly(DrawablePtr /*dst */ ,
-                                        GCPtr /*pgc */ ,
-                                        int /*count */ ,
-                                        DDXPointPtr     /*ptsIn */
-    );
-
 /* mipolypnt.c */
 
 extern _X_EXPORT void miPolyPoint(DrawablePtr /*pDrawable */ ,

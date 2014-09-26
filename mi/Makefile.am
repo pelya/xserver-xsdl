@@ -36,8 +36,6 @@ libmi_la_SOURCES = 	\
 	mipointrst.h	\
 	mipoly.c	\
 	mipoly.h	\
-	mipolycon.c	\
-	mipolygen.c	\
 	mipolypnt.c	\
 	mipolyrect.c	\
 	mipolyseg.c	\
