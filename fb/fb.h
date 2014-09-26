@@ -1145,16 +1145,6 @@ extern _X_EXPORT RegionPtr
 
 extern _X_EXPORT void
 
-fbDots(FbBits * dstOrig,
-       FbStride dstStride,
-       int dstBpp,
-       BoxPtr pBox,
-       xPoint * pts,
-       int npt,
-       int xorg, int yorg, int xoff, int yoff, FbBits andOrig, FbBits xorOrig);
-
-extern _X_EXPORT void
-
 fbPolyPoint(DrawablePtr pDrawable,
             GCPtr pGC, int mode, int npt, xPoint * pptInit);
 
