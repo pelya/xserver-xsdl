@@ -1268,33 +1268,19 @@ typedef void FbBres(DrawablePtr pDrawable,
                     int signdy,
                     int axis, int x, int y, int e, int e1, int e3, int len);
 
-extern _X_EXPORT FbBres fbBresSolid, fbBresDash, fbBresFill, fbBresFillDash;
+extern _X_EXPORT void
+fbSegment(DrawablePtr pDrawable,
+          GCPtr pGC,
+          int xa, int ya, int xb, int yb, Bool drawLast, int *dashOffset);
 
 /*
  * fbsetsp.c
  */
 
 extern _X_EXPORT void
-
 fbSetSpans(DrawablePtr pDrawable,
            GCPtr pGC,
            char *src, DDXPointPtr ppt, int *pwidth, int nspans, int fSorted);
-
-extern _X_EXPORT FbBres *fbSelectBres(DrawablePtr pDrawable, GCPtr pGC);
-
-extern _X_EXPORT void
-
-fbBres(DrawablePtr pDrawable,
-       GCPtr pGC,
-       int dashOffset,
-       int signdx,
-       int signdy, int axis, int x, int y, int e, int e1, int e3, int len);
-
-extern _X_EXPORT void
-
-fbSegment(DrawablePtr pDrawable,
-          GCPtr pGC,
-          int xa, int ya, int xb, int yb, Bool drawLast, int *dashOffset);
 
 /*
  * fbsolid.c
