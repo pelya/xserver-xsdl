@@ -40,7 +40,6 @@ libmi_la_SOURCES = 	\
 	mipolyrect.c	\
 	mipolyseg.c	\
 	mipolytext.c	\
-	mipolyutil.c	\
 	mipushpxl.c	\
 	miscanfill.h	\
 	miscrinit.c	\
