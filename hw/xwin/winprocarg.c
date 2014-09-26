@@ -246,7 +246,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
              * OsVendorInit () gets called, otherwise we will overwrite
              * settings changed by parameters such as -fullscreen, etc.
              */
-            winErrorFVerb(2, "ddxProcessArgument - Initializing default "
+            winErrorFVerb(3, "ddxProcessArgument - Initializing default "
                           "screens\n");
             winInitializeScreenDefaults();
         }

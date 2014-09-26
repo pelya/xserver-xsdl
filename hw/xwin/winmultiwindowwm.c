@@ -1045,7 +1045,7 @@ winMultiWindowXMsgProc(void *pArg)
         pthread_exit(NULL);
     }
 
-    ErrorF("winMultiWindowXMsgProc - Calling pthread_mutex_lock ()\n");
+    winDebug("winMultiWindowXMsgProc - Calling pthread_mutex_lock ()\n");
 
     /* Grab the server started mutex - pause until we get it */
     iReturn = pthread_mutex_lock(pProcArg->ppmServerStarted);
@@ -1055,12 +1055,12 @@ winMultiWindowXMsgProc(void *pArg)
         pthread_exit(NULL);
     }
 
-    ErrorF("winMultiWindowXMsgProc - pthread_mutex_lock () returned.\n");
+    winDebug("winMultiWindowXMsgProc - pthread_mutex_lock () returned.\n");
 
     /* Release the server started mutex */
     pthread_mutex_unlock(pProcArg->ppmServerStarted);
 
-    ErrorF("winMultiWindowXMsgProc - pthread_mutex_unlock () returned.\n");
+    winDebug("winMultiWindowXMsgProc - pthread_mutex_unlock () returned.\n");
 
     /* Setup the display connection string x */
     winGetDisplayName(pszDisplay, (int) pProcArg->dwScreen);
@@ -1428,7 +1428,7 @@ winInitMultiWindowWM(WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
         pthread_exit(NULL);
     }
 
-    ErrorF("winInitMultiWindowWM - Calling pthread_mutex_lock ()\n");
+    winDebug("winInitMultiWindowWM - Calling pthread_mutex_lock ()\n");
 
     /* Grab our garbage mutex to satisfy pthread_cond_wait */
     iReturn = pthread_mutex_lock(pProcArg->ppmServerStarted);
@@ -1438,12 +1438,12 @@ winInitMultiWindowWM(WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
         pthread_exit(NULL);
     }
 
-    ErrorF("winInitMultiWindowWM - pthread_mutex_lock () returned.\n");
+    winDebug("winInitMultiWindowWM - pthread_mutex_lock () returned.\n");
 
     /* Release the server started mutex */
     pthread_mutex_unlock(pProcArg->ppmServerStarted);
 
-    ErrorF("winInitMultiWindowWM - pthread_mutex_unlock () returned.\n");
+    winDebug("winInitMultiWindowWM - pthread_mutex_unlock () returned.\n");
 
     /* Setup the display connection string x */
     winGetDisplayName(pszDisplay, (int) pProcArg->dwScreen);
