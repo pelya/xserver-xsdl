@@ -49,24 +49,6 @@ SOFTWARE.
 
 #include <X11/Xfuncproto.h>
 
-#define EPSILON	0.000001
-#define ISEQUAL(a,b) (fabs((a) - (b)) <= EPSILON)
-#define UNEQUAL(a,b) (fabs((a) - (b)) > EPSILON)
-#define WITHINHALF(a, b) (((a) - (b) > 0.0) ? (a) - (b) < 0.5 : \
-					     (b) - (a) <= 0.5)
-#define ROUNDTOINT(x)   ((int) (((x) > 0.0) ? ((x) + 0.5) : ((x) - 0.5)))
-#define ISZERO(x) 	(fabs((x)) <= EPSILON)
-#define PTISEQUAL(a,b) (ISEQUAL(a.x,b.x) && ISEQUAL(a.y,b.y))
-#define PTUNEQUAL(a,b) (UNEQUAL(a.x,b.x) || UNEQUAL(a.y,b.y))
-#define PtEqual(a, b) (((a).x == (b).x) && ((a).y == (b).y))
-
-#define NotEnd		0
-#define FirstEnd	1
-#define SecondEnd	2
-
-#define SQSECANT 108.856472512142       /* 1/sin^2(11/2) - for 11o miter cutoff */
-#define D2SECANT 5.21671526231167       /* 1/2*sin(11/2) - max extension per width */
-
 static _X_INLINE int
 ICEIL(double x)
 {
@@ -74,28 +56,5 @@ ICEIL(double x)
 
     return ((x == _cTmp) || (x < 0.0)) ? _cTmp : _cTmp + 1;
 }
-
-/* Point with sub-pixel positioning.  In this case we use doubles, but
- * see mifpolycon.c for other suggestions 
- */
-typedef struct _SppPoint {
-    double x, y;
-} SppPointRec, *SppPointPtr;
-
-typedef struct _SppArc {
-    double x, y, width, height;
-    double angle1, angle2;
-} SppArcRec, *SppArcPtr;
-
-/* mifpolycon.c */
-
-extern void miFillSppPoly(DrawablePtr /*dst */ ,
-                          GCPtr /*pgc */ ,
-                          int /*count */ ,
-                          SppPointPtr /*ptsIn */ ,
-                          int /*xTrans */ ,
-                          int /*yTrans */ ,
-                          double /*xFtrans */ ,
-                          double      /*yFtrans */);
 
 #endif                          /* __MIFPOLY_H__ */

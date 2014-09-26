@@ -36,7 +36,6 @@ Author:  Bob Scheifler, MIT X Consortium
 #include "regionstr.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"
-#include "mifpoly.h"
 #include "mi.h"
 #include "mifillarc.h"
 

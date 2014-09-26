@@ -49,7 +49,6 @@ SOFTWARE.
 
 #include "regionstr.h"
 #include "mistruct.h"
-#include "mifpoly.h"
 
 void
 miStepDash(int dist,            /* distance to step */

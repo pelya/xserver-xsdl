@@ -24,7 +24,6 @@ libmi_la_SOURCES = 	\
 	mifillarc.c	\
 	mifillarc.h	\
 	mifillrct.c	\
-	mifpolycon.c	\
 	mifpoly.h	\
 	migc.c		\
 	migc.h		\
