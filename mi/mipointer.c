@@ -273,6 +273,20 @@ miPointerSetCursorPosition(DeviceIntPtr pDev, ScreenPtr pScreen,
     return TRUE;
 }
 
+void
+miRecolorCursor(DeviceIntPtr pDev, ScreenPtr pScr,
+                CursorPtr pCurs, Bool displayed)
+{
+    /*
+     * This is guaranteed to correct any color-dependent state which may have
+     * been bound up in private state created by RealizeCursor
+     */
+    pScr->UnrealizeCursor(pDev, pScr, pCurs);
+    pScr->RealizeCursor(pDev, pScr, pCurs);
+    if (displayed)
+        pScr->DisplayCursor(pDev, pScr, pCurs);
+}
+
 /**
  * Set up sprite information for the device.
  * This function will be called once for each device after it is initialized

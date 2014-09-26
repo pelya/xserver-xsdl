@@ -16,7 +16,6 @@ libmi_la_SOURCES = 	\
 	micmap.h	\
 	micoord.h	\
 	micopy.c	\
-	micursor.c	\
 	midash.c	\
 	midispcur.c	\
 	mieq.c		\
