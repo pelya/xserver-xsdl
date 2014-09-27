@@ -44,6 +44,7 @@
 #endif
 
 #include <limits.h>
+#include <wchar.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/Xfixes.h>
@@ -208,14 +209,11 @@ winClipboardFlushXEvents(HWND hwnd,
         int iReturn;
         HGLOBAL hGlobal = NULL;
         XICCEncodingStyle xiccesStyle;
-        int iConvertDataLen = 0;
         char *pszConvertData = NULL;
         char *pszTextList[2] = { NULL };
         int iCount;
         char **ppszTextList = NULL;
         wchar_t *pwszUnicodeStr = NULL;
-        int iUnicodeLen = 0;
-        int iReturnDataLen = 0;
         Bool fAbort = FALSE;
         Bool fCloseClipboard = FALSE;
         Bool fSetClipboardData = TRUE;
@@ -381,7 +379,7 @@ winClipboardFlushXEvents(HWND hwnd,
 
             /* Convert the Unicode string to UTF8 (MBCS) */
             if (data->fUseUnicode) {
-                iConvertDataLen = WideCharToMultiByte(CP_UTF8,
+                int iConvertDataLen = WideCharToMultiByte(CP_UTF8,
                                                       0,
                                                       (LPCWSTR) pszGlobalData,
                                                       -1, NULL, 0, NULL, NULL);
@@ -396,7 +394,6 @@ winClipboardFlushXEvents(HWND hwnd,
             }
             else {
                 pszConvertData = strdup(pszGlobalData);
-                iConvertDataLen = strlen(pszConvertData) + 1;
             }
 
             /* Convert DOS string to UNIX string */
@@ -541,7 +538,6 @@ winClipboardFlushXEvents(HWND hwnd,
              */
 
         case SelectionNotify:
-
             winDebug("winClipboardFlushXEvents - SelectionNotify\n");
             {
                 char *pszAtomName;
@@ -620,8 +616,7 @@ winClipboardFlushXEvents(HWND hwnd,
                 /* Conversion succeeded or some unconvertible characters */
                 if (ppszTextList != NULL) {
                     int i;
-
-                    iReturnDataLen = 0;
+                    int iReturnDataLen = 0;
                     for (i = 0; i < iCount; i++) {
                         iReturnDataLen += strlen(ppszTextList[i]);
                     }
@@ -672,12 +667,12 @@ winClipboardFlushXEvents(HWND hwnd,
 
             if (data->fUseUnicode) {
                 /* Find out how much space needed to convert MBCS to Unicode */
-                iUnicodeLen = MultiByteToWideChar(CP_UTF8,
+                int iUnicodeLen = MultiByteToWideChar(CP_UTF8,
                                                   0,
                                                   pszReturnData, -1, NULL, 0);
 
-                /* Allocate memory for the Unicode string */
-                pwszUnicodeStr = malloc(sizeof(wchar_t) * (iUnicodeLen + 1));
+                /* NOTE: iUnicodeLen includes space for null terminator */
+                pwszUnicodeStr = malloc(sizeof(wchar_t) * iUnicodeLen);
                 if (!pwszUnicodeStr) {
                     ErrorF("winClipboardFlushXEvents - SelectionNotify "
                            "malloc failed for pwszUnicodeStr, aborting.\n");
@@ -695,9 +690,10 @@ winClipboardFlushXEvents(HWND hwnd,
 
                 /* Allocate global memory for the X clipboard data */
                 hGlobal = GlobalAlloc(GMEM_MOVEABLE,
-                                      sizeof(wchar_t) * (iUnicodeLen + 1));
+                                      sizeof(wchar_t) * iUnicodeLen);
             }
             else {
+                int iConvertDataLen = 0;
                 pszConvertData = strdup(pszReturnData);
                 iConvertDataLen = strlen(pszConvertData) + 1;
 
@@ -730,8 +726,7 @@ winClipboardFlushXEvents(HWND hwnd,
 
             /* Copy the returned string into the global memory */
             if (data->fUseUnicode) {
-                memcpy(pszGlobalData,
-                       pwszUnicodeStr, sizeof(wchar_t) * (iUnicodeLen + 1));
+                wcscpy((wchar_t *)pszGlobalData, pwszUnicodeStr);
                 free(pwszUnicodeStr);
                 pwszUnicodeStr = NULL;
             }
