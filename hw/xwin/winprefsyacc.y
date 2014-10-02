@@ -64,7 +64,7 @@ static void SetDefaultSysMenu (char *menu, int pos);
 static void SetTrayIcon (char *fname);
 
 static void OpenMenu(char *menuname);
-static void AddMenuLine(char *name, MENUCOMMANDTYPE cmd, char *param);
+static void AddMenuLine(const char *name, MENUCOMMANDTYPE cmd, const char *param);
 static void CloseMenu(void);
 
 static void OpenIcons(void);
@@ -79,7 +79,7 @@ static void OpenSysMenu(void);
 static void AddSysMenuLine(char *matchstr, char *menuname, int pos);
 static void CloseSysMenu(void);
 
-static int yyerror (char *s);
+static int yyerror (const char *s);
 
 extern char *yytext;
 extern int yylex(void);
@@ -252,7 +252,7 @@ debug: 	DEBUGOUTPUT STRING NEWLINE { ErrorF("LoadPreferences: %s\n", $2); free($
  * Errors in parsing abort and print log messages
  */
 static int
-yyerror (char *s) 
+yyerror (const char *s)
 {
   extern int yylineno; /* Handled by flex internally */
 
@@ -308,7 +308,7 @@ OpenMenu (char *menuname)
 }
 
 static void
-AddMenuLine (char *text, MENUCOMMANDTYPE cmd, char *param)
+AddMenuLine (const char *text, MENUCOMMANDTYPE cmd, const char *param)
 {
   if (menu.menuItem==NULL)
     menu.menuItem = malloc(sizeof(MENUITEM));
