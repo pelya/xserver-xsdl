@@ -96,7 +96,6 @@ static HWND
 winCreateMsgWindow(void)
 {
     HWND hwndMsg;
-    wATOM winClass;
 
     // register window class
     {
@@ -114,7 +113,7 @@ winCreateMsgWindow(void)
         wcx.lpszMenuName = NULL;
         wcx.lpszClassName = WINDOW_CLASS_X_MSG;
         wcx.hIconSm = NULL;
-        winClass = RegisterClassEx(&wcx);
+        RegisterClassEx(&wcx);
     }
 
     // Create the msg window.
