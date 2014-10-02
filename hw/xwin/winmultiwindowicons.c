@@ -382,7 +382,7 @@ winXIconToHICON(Display * pDisplay, Window id, int iconSize)
     static int generation;
     uint32_t *icon, *icon_data = NULL;
     unsigned long int size;
-    unsigned long int type;
+    Atom type;
     int format;
     unsigned long int left;
 
