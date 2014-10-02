@@ -195,7 +195,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CHANGECBCHAIN:
     {
         winDebug("winClipboardWindowProc - WM_CHANGECBCHAIN: wParam(%x) "
-                 "lParam(%x) s_hwndNextViewer(%x)\n",
+                 "lParam(%x) s_hwndNextViewer(%p)\n",
                  wParam, lParam, s_hwndNextViewer);
 
         if ((HWND) wParam == s_hwndNextViewer) {
@@ -236,7 +236,7 @@ winClipboardWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         first = GetClipboardViewer();   /* Get handle to first viewer in chain. */
         if (first == hwnd)
             return 0;           /* Make sure it's not us! */
-        winDebug("  WM_WM_REINIT: Replacing us(%x) with %x at head "
+        winDebug("  WM_WM_REINIT: Replacing us(%p) with %p at head "
                  "of chain\n", hwnd, s_hwndNextViewer);
         s_fCBCInitialized = FALSE;
         ChangeClipboardChain(hwnd, s_hwndNextViewer);
