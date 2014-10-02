@@ -1010,7 +1010,7 @@ winCheckDisplayNumber(void)
     int nDisp;
     HANDLE mutex;
     char name[MAX_PATH];
-    char *pszPrefix = '\0';
+    const char *pszPrefix = '\0';
     OSVERSIONINFO osvi = { 0 };
 
     /* Check display range */
