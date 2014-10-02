@@ -113,8 +113,8 @@ winCreatePixmapNativeGDI(ScreenPtr pScreen,
                                                  pbmih);
 
 #if CYGDEBUG
-    winDebug("winCreatePixmap () - Created a pixmap %08x, %dx%dx%d, for "
-             "screen: %08x\n",
+    winDebug("winCreatePixmap () - Created a pixmap %p, %dx%dx%d, for "
+             "screen: %p\n",
              pPixmapPriv->hBitmap, iWidth, iHeight, iDepth, pScreen);
 #endif
 
@@ -146,7 +146,7 @@ winDestroyPixmapNativeGDI(PixmapPtr pPixmap)
     pPixmapPriv = winGetPixmapPriv(pPixmap);
 
 #if CYGDEBUG
-    winDebug("winDestroyPixmapNativeGDI - pPixmapPriv->hBitmap: %08x\n",
+    winDebug("winDestroyPixmapNativeGDI - pPixmapPriv->hBitmap: %p\n",
              pPixmapPriv->hBitmap);
 #endif
 

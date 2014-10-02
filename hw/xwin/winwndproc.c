@@ -629,7 +629,7 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         int iBorderHeight, iBorderWidth;
 
 #if CYGDEBUG
-        winDebug("winWindowProc - WM_GETMINMAXINFO - pScreenInfo: %08x\n",
+        winDebug("winWindowProc - WM_GETMINMAXINFO - pScreenInfo: %p\n",
                  s_pScreenInfo);
 #endif
 

@@ -136,7 +136,7 @@ winCreateMsgWindow(void)
         return NULL;
     }
 
-    winDebug("winCreateMsgWindow - Created msg window hwnd 0x%x\n", hwndMsg);
+    winDebug("winCreateMsgWindow - Created msg window hwnd 0x%p\n", hwndMsg);
 
     return hwndMsg;
 }
