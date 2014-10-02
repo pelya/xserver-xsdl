@@ -1011,7 +1011,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
         break;
     default:
         ErrorF("Pixmap option's value (%d) must be 24 or 32\n", i);
-        return FALSE;
+        break;
     }
     if (xf86Pix24 != Pix24DontCare) {
         xf86Info.pixmap24 = xf86Pix24;
