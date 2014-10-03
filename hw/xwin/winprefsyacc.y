@@ -82,6 +82,7 @@ static void CloseSysMenu(void);
 static int yyerror (const char *s);
 
 extern char *yytext;
+extern int yylineno;
 extern int yylex(void);
 
 %}
@@ -254,8 +255,6 @@ debug: 	DEBUGOUTPUT STRING NEWLINE { ErrorF("LoadPreferences: %s\n", $2); free($
 static int
 yyerror (const char *s)
 {
-  extern int yylineno; /* Handled by flex internally */
-
   ErrorF("LoadPreferences: %s line %d\n", s, yylineno);
   return 1;
 }
