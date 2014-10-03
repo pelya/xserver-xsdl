@@ -65,12 +65,6 @@ fbBresSolid(DrawablePtr pDrawable,
     if (axis == X_AXIS) {
         bits = 0;
         while (len--) {
-            if (e >= 0) {
-                WRITE(dst, FbDoMaskRRop (READ(dst), and, xor, bits));
-                bits = 0;
-                dst += dstStride;
-                e += e3;
-            }
             bits |= mask;
             mask = fbBresShiftMask(mask, signdx, dstBpp);
             if (!mask) {
@@ -80,12 +74,23 @@ fbBresSolid(DrawablePtr pDrawable,
                 mask = mask0;
             }
             e += e1;
+            if (e >= 0) {
+                if (bits) {
+                    WRITE(dst, FbDoMaskRRop (READ(dst), and, xor, bits));
+                    bits = 0;
+                }
+                dst += dstStride;
+                e += e3;
+            }
         }
         if (bits)
             WRITE(dst, FbDoMaskRRop(READ(dst), and, xor, bits));
     }
     else {
         while (len--) {
+            WRITE(dst, FbDoMaskRRop(READ(dst), and, xor, mask));
+            dst += dstStride;
+            e += e1;
             if (e >= 0) {
                 e += e3;
                 mask = fbBresShiftMask(mask, signdx, dstBpp);
@@ -94,9 +99,6 @@ fbBresSolid(DrawablePtr pDrawable,
                     mask = mask0;
                 }
             }
-            WRITE(dst, FbDoMaskRRop(READ(dst), and, xor, mask));
-            dst += dstStride;
-            e += e1;
         }
     }
 
