@@ -757,8 +757,9 @@ static void *xsdlAudioThread(void *data)
 				SDL_Delay(1000);
 			SDL_CloseAudio();
 			close(fd);
+			printf("Audio pipe closed: %s\n", infile);
 		} else {
-			SDL_Delay(2000);
+			SDL_Delay(1000);
 		}
 	}
 	return NULL;
