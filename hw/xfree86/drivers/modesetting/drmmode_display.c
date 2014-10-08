@@ -976,7 +976,9 @@ static const xf86OutputFuncsRec drmmode_output_funcs = {
     .destroy = drmmode_output_destroy
 };
 
-static int subpixel_conv_table[7] = { 0, SubPixelUnknown,
+static int subpixel_conv_table[7] = {
+    0,
+    SubPixelUnknown,
     SubPixelHorizontalRGB,
     SubPixelHorizontalBGR,
     SubPixelVerticalRGB,
@@ -984,7 +986,8 @@ static int subpixel_conv_table[7] = { 0, SubPixelUnknown,
     SubPixelNone
 };
 
-static const char *const output_names[] = { "None",
+static const char *const output_names[] = {
+    "None",
     "VGA",
     "DVI",
     "DVI",
