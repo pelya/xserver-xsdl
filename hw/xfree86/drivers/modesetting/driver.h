@@ -35,16 +35,14 @@
 #include "drmmode_display.h"
 #define DRV_ERROR(msg)	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, msg);
 
-typedef struct
-{
+typedef struct {
     int lastInstance;
     int refCount;
     ScrnInfoPtr pScrn_1;
     ScrnInfoPtr pScrn_2;
 } EntRec, *EntPtr;
 
-typedef struct _modesettingRec
-{
+typedef struct _modesettingRec {
     int fd;
 
     EntPtr entityPrivate;
