@@ -308,14 +308,6 @@ xf86CreateRootWindow(WindowPtr pWin)
 
     DebugF("xf86CreateRootWindow(%p)\n", pWin);
 
-    if (pScreen->CreateWindow != xf86CreateRootWindow) {
-        /* Can't find hook we are hung on */
-        xf86DrvMsg(pScreen->myNum, X_WARNING /* X_ERROR */ ,
-                   "xf86CreateRootWindow %p called when not in pScreen->CreateWindow %p n",
-                   (void *) xf86CreateRootWindow,
-                   (void *) pScreen->CreateWindow);
-    }
-
     /* Unhook this function ... */
     pScreen->CreateWindow = create_window;
     dixSetPrivate(&pScreen->devPrivates, xf86CreateRootWindowKey, NULL);
@@ -343,15 +335,8 @@ xf86CreateRootWindow(WindowPtr pWin)
             ret &= (err == Success);
 
         }
-        else {
-            xf86Msg(X_ERROR, "xf86CreateRootWindow unexpectedly called with "
-                    "non-root window %p (parent %p)\n",
-                    (void *) pWin, (void *) pWin->parent);
-            ret = FALSE;
-        }
     }
 
-    DebugF("xf86CreateRootWindow() returns %d\n", ret);
     return ret;
 }
 
