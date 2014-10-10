@@ -288,16 +288,6 @@ glamor_create_screen_resources(ScreenPtr screen)
         ret = screen->CreateScreenResources(screen);
     screen->CreateScreenResources = glamor_create_screen_resources;
 
-    if (!glamor_glyphs_init(screen)) {
-        ErrorF("Failed to initialize glyphs\n");
-        ret = FALSE;
-    }
-
-    if (!glamor_realize_glyph_caches(screen)) {
-        ErrorF("Failed to initialize glyph cache\n");
-        ret = FALSE;
-    }
-
     return ret;
 }
 
@@ -509,6 +499,11 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_priv->saved_procs.block_handler = screen->BlockHandler;
     screen->BlockHandler = _glamor_block_handler;
 
+    if (!glamor_composite_glyphs_init(screen)) {
+        ErrorF("Failed to initialize composite masks\n");
+        goto fail;
+    }
+
     glamor_priv->saved_procs.create_gc = screen->CreateGC;
     screen->CreateGC = glamor_create_gc;
 
@@ -550,10 +545,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     ps->CompositeRects = miCompositeRects;
 
     glamor_priv->saved_procs.glyphs = ps->Glyphs;
-    ps->Glyphs = glamor_glyphs;
-
-    glamor_priv->saved_procs.unrealize_glyph = ps->UnrealizeGlyph;
-    ps->UnrealizeGlyph = glamor_glyph_unrealize;
+    ps->Glyphs = glamor_composite_glyphs;
 
     glamor_priv->saved_procs.create_picture = ps->CreatePicture;
     ps->CreatePicture = glamor_create_picture;
@@ -634,7 +626,7 @@ glamor_close_screen(ScreenPtr screen)
 
     glamor_priv = glamor_get_screen_private(screen);
     glamor_sync_close(screen);
-    glamor_glyphs_fini(screen);
+    glamor_composite_glyphs_fini(screen);
     screen->CloseScreen = glamor_priv->saved_procs.close_screen;
     screen->CreateScreenResources =
         glamor_priv->saved_procs.create_screen_resources;
@@ -655,7 +647,6 @@ glamor_close_screen(ScreenPtr screen)
     ps->CreatePicture = glamor_priv->saved_procs.create_picture;
     ps->CompositeRects = glamor_priv->saved_procs.composite_rects;
     ps->Glyphs = glamor_priv->saved_procs.glyphs;
-    ps->UnrealizeGlyph = glamor_priv->saved_procs.unrealize_glyph;
     screen->SetWindowPixmap = glamor_priv->saved_procs.set_window_pixmap;
 
     screen_pixmap = screen->GetScreenPixmap(screen);

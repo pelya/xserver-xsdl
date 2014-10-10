@@ -139,6 +139,10 @@ static glamor_location_var location_vars[] = {
         .vs_vars = "uniform float dash_length;\n",
         .fs_vars = "uniform sampler2D dash;\n",
     },
+    {
+        .location = glamor_program_location_atlas,
+        .fs_vars = "uniform sampler2D atlas;\n",
+    },
 };
 
 #define NUM_LOCATION_VARS       (sizeof location_vars / sizeof location_vars[0])
@@ -355,6 +359,7 @@ glamor_build_program(ScreenPtr          screen,
     prog->bitmul_uniform = glamor_get_uniform(prog, glamor_program_location_bitplane, "bitmul");
     prog->dash_uniform = glamor_get_uniform(prog, glamor_program_location_dash, "dash");
     prog->dash_length_uniform = glamor_get_uniform(prog, glamor_program_location_dash, "dash_length");
+    prog->atlas_uniform = glamor_get_uniform(prog, glamor_program_location_atlas, "atlas");
 
     free(version_string);
     free(fs_vars);
