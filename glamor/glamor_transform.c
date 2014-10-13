@@ -155,11 +155,7 @@ glamor_set_solid(PixmapPtr      pixmap,
 }
 
 Bool
-glamor_set_texture(PixmapPtr    texture,
-                   int          off_x,
-                   int          off_y,
-                   GLint        offset_uniform,
-                   GLint        size_inv_uniform)
+glamor_set_texture_pixmap(PixmapPtr texture)
 {
     glamor_pixmap_private *texture_priv;
 
@@ -173,6 +169,23 @@ glamor_set_texture(PixmapPtr    texture,
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_priv->fbo->tex);
+
+    /* we're not setting the sampler uniform here as we always use
+     * GL_TEXTURE0, and the default value for uniforms is zero. So,
+     * save a bit of CPU time by taking advantage of that.
+     */
+    return TRUE;
+}
+
+Bool
+glamor_set_texture(PixmapPtr    texture,
+                   int          off_x,
+                   int          off_y,
+                   GLint        offset_uniform,
+                   GLint        size_inv_uniform)
+{
+    if (!glamor_set_texture_pixmap(texture))
+        return FALSE;
 
     glUniform2f(offset_uniform, off_x, off_y);
     glUniform2f(size_inv_uniform, 1.0f/texture->drawable.width, 1.0f/texture->drawable.height);

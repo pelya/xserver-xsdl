@@ -53,7 +53,7 @@ static const glamor_facet glamor_facet_copyarea = {
     .vs_exec = (GLAMOR_POS(gl_Position, primitive.xy)
                 "       fill_pos = (fill_offset + primitive.xy) * fill_size_inv;\n"),
     .fs_exec = "       gl_FragColor = texture2D(sampler, fill_pos);\n",
-    .locations = glamor_program_location_fill,
+    .locations = glamor_program_location_fillsamp | glamor_program_location_fillpos,
     .use = use_copyarea,
 };
 
@@ -140,7 +140,7 @@ static const glamor_facet glamor_facet_copyplane = {
                 "               gl_FragColor = fg;\n"
                 "       else\n"
                 "               gl_FragColor = bg;\n"),
-    .locations = glamor_program_location_fill|glamor_program_location_fg|glamor_program_location_bg|glamor_program_location_bitplane,
+    .locations = glamor_program_location_fillsamp|glamor_program_location_fillpos|glamor_program_location_fg|glamor_program_location_bg|glamor_program_location_bitplane,
     .use = use_copyplane,
 };
 
@@ -338,7 +338,7 @@ glamor_copy_fbo_fbo_draw(DrawablePtr src,
 
     if (!prog->prog) {
         if (!glamor_build_program(screen, prog,
-                                  copy_facet, NULL))
+                                  copy_facet, NULL, NULL, NULL))
             goto bail_ctx;
     }
 

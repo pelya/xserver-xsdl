@@ -417,7 +417,7 @@ glamor_image_text(DrawablePtr drawable, GCPtr gc,
             fill_facet = &glamor_facet_image_fill;
         }
 
-        if (!glamor_build_program(screen, prog, prim_facet, fill_facet))
+        if (!glamor_build_program(screen, prog, prim_facet, fill_facet, NULL, NULL))
             goto bail;
     }
 
