@@ -129,7 +129,7 @@ glamor_set_solid(PixmapPtr      pixmap,
     CARD32      pixel;
     int         alu = use_alu ? gc->alu : GXcopy;
 
-    if (!glamor_set_planemask(pixmap, gc->planemask))
+    if (!glamor_set_planemask(gc->depth, gc->planemask))
         return FALSE;
 
     pixel = gc->fgPixel;
@@ -189,7 +189,7 @@ glamor_set_tiled(PixmapPtr      pixmap,
     if (!glamor_set_alu(pixmap->drawable.pScreen, gc->alu))
         return FALSE;
 
-    if (!glamor_set_planemask(pixmap, gc->planemask))
+    if (!glamor_set_planemask(gc->depth, gc->planemask))
         return FALSE;
 
     return glamor_set_texture(pixmap,

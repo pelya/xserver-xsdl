@@ -431,7 +431,7 @@ glamor_image_text(DrawablePtr drawable, GCPtr gc,
         /* Check planemask before drawing background to
          * bail early if it's not OK
          */
-        if (!glamor_set_planemask(pixmap, gc->planemask))
+        if (!glamor_set_planemask(gc->depth, gc->planemask))
             goto bail;
         for (c = 0; c < count; c++)
             if (charinfo[c])

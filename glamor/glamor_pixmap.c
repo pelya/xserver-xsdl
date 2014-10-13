@@ -109,9 +109,9 @@ glamor_set_destination_pixmap(PixmapPtr pixmap)
 }
 
 Bool
-glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask)
+glamor_set_planemask(int depth, unsigned long planemask)
 {
-    if (glamor_pm_is_solid(&pixmap->drawable, planemask)) {
+    if (glamor_pm_is_solid(depth, planemask)) {
         return GL_TRUE;
     }
 

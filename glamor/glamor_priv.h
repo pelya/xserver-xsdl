@@ -638,10 +638,10 @@ glamor_get_gc_private(GCPtr gc)
  * pixel values for pDrawable.
  */
 static inline Bool
-glamor_pm_is_solid(DrawablePtr drawable, unsigned long planemask)
+glamor_pm_is_solid(int depth, unsigned long planemask)
 {
-    return (planemask & FbFullMask(drawable->depth)) ==
-        FbFullMask(drawable->depth);
+    return (planemask & FbFullMask(depth)) ==
+        FbFullMask(depth);
 }
 
 extern int glamor_debug_level;
@@ -701,7 +701,7 @@ glamor_pixmap_fbo *glamor_es2_pixmap_read_prepare(PixmapPtr source, int x,
                                                   int swap_rb);
 
 Bool glamor_set_alu(ScreenPtr screen, unsigned char alu);
-Bool glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask);
+Bool glamor_set_planemask(int depth, unsigned long planemask);
 RegionPtr glamor_bitmap_to_region(PixmapPtr pixmap);
 
 void
