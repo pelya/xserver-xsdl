@@ -155,8 +155,7 @@ glamor_set_solid(PixmapPtr      pixmap,
 }
 
 Bool
-glamor_set_texture(PixmapPtr    pixmap,
-                   PixmapPtr    texture,
+glamor_set_texture(PixmapPtr    texture,
                    int          off_x,
                    int          off_y,
                    GLint        offset_uniform,
@@ -192,8 +191,7 @@ glamor_set_tiled(PixmapPtr      pixmap,
     if (!glamor_set_planemask(gc->depth, gc->planemask))
         return FALSE;
 
-    return glamor_set_texture(pixmap,
-                              gc->tile.pixmap,
+    return glamor_set_texture(gc->tile.pixmap,
                               -gc->patOrg.x,
                               -gc->patOrg.y,
                               offset_uniform,
@@ -274,8 +272,7 @@ glamor_set_stippled(PixmapPtr      pixmap,
     if (!glamor_set_solid(pixmap, gc, TRUE, fg_uniform))
         return FALSE;
 
-    return glamor_set_texture(pixmap,
-                              stipple,
+    return glamor_set_texture(stipple,
                               -gc->patOrg.x,
                               -gc->patOrg.y,
                               offset_uniform,
