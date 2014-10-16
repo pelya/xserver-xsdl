@@ -248,21 +248,20 @@ ShmDestroyPixmap(PixmapPtr pPixmap)
 {
     ScreenPtr pScreen = pPixmap->drawable.pScreen;
     ShmScrPrivateRec *screen_priv = ShmGetScreenPriv(pScreen);
+    void *shmdesc = NULL;
     Bool ret;
 
-    if (pPixmap->refcnt == 1) {
-        ShmDescPtr shmdesc;
-
-        shmdesc = (ShmDescPtr) dixLookupPrivate(&pPixmap->devPrivates,
-                                                shmPixmapPrivateKey);
-        if (shmdesc)
-            ShmDetachSegment((void *) shmdesc, pPixmap->drawable.id);
-    }
+    if (pPixmap->refcnt == 1)
+        shmdesc = dixLookupPrivate(&pPixmap->devPrivates, shmPixmapPrivateKey);
 
     pScreen->DestroyPixmap = screen_priv->destroyPixmap;
     ret = (*pScreen->DestroyPixmap) (pPixmap);
     screen_priv->destroyPixmap = pScreen->DestroyPixmap;
     pScreen->DestroyPixmap = ShmDestroyPixmap;
+
+    if (shmdesc)
+	ShmDetachSegment(shmdesc, pPixmap->drawable.id);
+
     return ret;
 }
 
