@@ -3986,7 +3986,7 @@ _XkbSetNamesCheck(ClientPtr client, DeviceIntPtr dev,
 {
     XkbDescRec *xkb;
     CARD32 *tmp;
-    Atom bad;
+    Atom bad = None;
 
     tmp = data;
     xkb = dev->key->xkbInfo->desc;
