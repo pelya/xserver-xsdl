@@ -78,6 +78,7 @@ compCloseScreen(ScreenPtr pScreen)
     pScreen->PositionWindow = cs->PositionWindow;
 
     pScreen->GetImage = cs->GetImage;
+    pScreen->GetSpans = cs->GetSpans;
     pScreen->SourceValidate = cs->SourceValidate;
 
     free(cs);
@@ -148,6 +149,21 @@ compGetImage(DrawablePtr pDrawable,
     (*pScreen->GetImage) (pDrawable, sx, sy, w, h, format, planemask, pdstLine);
     cs->GetImage = pScreen->GetImage;
     pScreen->GetImage = compGetImage;
+}
+
+static void
+compGetSpans(DrawablePtr pDrawable, int wMax, DDXPointPtr ppt, int *pwidth,
+             int nspans, char *pdstStart)
+{
+    ScreenPtr pScreen = pDrawable->pScreen;
+    CompScreenPtr cs = GetCompScreen(pScreen);
+
+    pScreen->GetSpans = cs->GetSpans;
+    if (pDrawable->type == DRAWABLE_WINDOW)
+        compPaintChildrenToWindow((WindowPtr) pDrawable);
+    (*pScreen->GetSpans) (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
+    cs->GetSpans = pScreen->GetSpans;
+    pScreen->GetSpans = compGetSpans;
 }
 
 static void
@@ -431,6 +447,9 @@ compScreenInit(ScreenPtr pScreen)
 
     cs->GetImage = pScreen->GetImage;
     pScreen->GetImage = compGetImage;
+
+    cs->GetSpans = pScreen->GetSpans;
+    pScreen->GetSpans = compGetSpans;
 
     cs->SourceValidate = pScreen->SourceValidate;
     pScreen->SourceValidate = compSourceValidate;
