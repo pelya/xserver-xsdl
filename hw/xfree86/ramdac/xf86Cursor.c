@@ -332,8 +332,10 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
         ScreenPriv->HotX = cursor->bits->xhot;
         ScreenPriv->HotY = cursor->bits->yhot;
 
-        if (!infoPtr->pScrn->vtSema)
+        if (!infoPtr->pScrn->vtSema) {
             ScreenPriv->SavedCursor = cursor;
+            return;
+        }
 
         if (infoPtr->pScrn->vtSema && xorg_list_is_empty(&pScreen->pixmap_dirty_list) &&
             (ScreenPriv->ForceHWCursorCount ||
