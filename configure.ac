@@ -698,6 +698,7 @@ case $host_os in
 		CONFIG_UDEV=no
 		CONFIG_UDEV_KMS=no
 		DGA=no
+		DRM=no
 		DRI2=no
 		DRI3=no
 		INT10MODULE=no
@@ -1993,11 +1994,13 @@ if test "x$XORG" = xyes; then
 	  gnu*)
 		XORG_OS_SUBDIR="hurd"
 		;;
+	  cygwin*)
+		XORG_OS_SUBDIR="stub"
+		;;
 	  *)
 		XORG_OS_SUBDIR="stub"
 		AC_MSG_NOTICE([m4_text_wrap(m4_join([ ],
-		[Your OS is unknown. Xorg currently only supports Linux,],
-		[Free/Open/Net/DragonFlyBSD, Solaris/OpenSolaris, & GNU Hurd.],
+		[Your OS is unknown.],
 		[If you are interested in porting Xorg to your platform,],
 		[please email xorg@lists.freedesktop.org.]))])
 		;;
