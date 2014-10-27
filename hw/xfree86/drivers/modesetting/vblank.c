@@ -228,17 +228,18 @@ ms_crtc_msc_to_kernel_msc(xf86CrtcPtr crtc, uint64_t expect)
     uint64_t ust;
     int64_t diff;
 
-    ms_get_crtc_ust_msc(crtc, &ust, &msc);
-    diff = expect - msc;
+    if (ms_get_crtc_ust_msc(crtc, &ust, &msc) == Success) {
+        diff = expect - msc;
 
-    /* We're way off here, assume that the kernel has lost its mind
-     * and smack the vblank back to something sensible
-     */
-    if (diff < -MAX_VBLANK_OFFSET || MAX_VBLANK_OFFSET < diff) {
-        drmmode_crtc->vblank_offset += (int32_t) diff;
-        if (drmmode_crtc->vblank_offset > -MAX_VBLANK_OFFSET &&
-            drmmode_crtc->vblank_offset < MAX_VBLANK_OFFSET)
-            drmmode_crtc->vblank_offset = 0;
+        /* We're way off here, assume that the kernel has lost its mind
+         * and smack the vblank back to something sensible
+         */
+        if (diff < -MAX_VBLANK_OFFSET || MAX_VBLANK_OFFSET < diff) {
+            drmmode_crtc->vblank_offset += (int32_t) diff;
+            if (drmmode_crtc->vblank_offset > -MAX_VBLANK_OFFSET &&
+                drmmode_crtc->vblank_offset < MAX_VBLANK_OFFSET)
+                drmmode_crtc->vblank_offset = 0;
+        }
     }
     return (uint32_t) (expect - drmmode_crtc->vblank_offset);
 }
