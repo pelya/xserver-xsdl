@@ -86,7 +86,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "windowstr.h"
 #include "pixmapstr.h"
-#include "gc.h"
+#include "gcstruct.h"
 #include "extnsionst.h"
 #include "extinit.h"
 #include "dixstruct.h"
