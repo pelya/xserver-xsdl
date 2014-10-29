@@ -2556,6 +2556,7 @@ hw/xfree86/dixmods/Makefile
 hw/xfree86/doc/Makefile
 hw/xfree86/dri/Makefile
 hw/xfree86/dri2/Makefile
+hw/xfree86/dri2/pci_ids/Makefile
 hw/xfree86/drivers/Makefile
 hw/xfree86/drivers/modesetting/Makefile
 hw/xfree86/exa/Makefile
