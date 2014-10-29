@@ -138,7 +138,7 @@ lswapl(uint32_t x)
 static inline uint16_t
 lswaps(uint16_t x)
 {
-    return ((x & 0xff) << 8) | ((x >> 8) & 0xff);
+    return (uint16_t)((x & 0xff) << 8) | ((x >> 8) & 0xff);
 }
 
 #undef min
