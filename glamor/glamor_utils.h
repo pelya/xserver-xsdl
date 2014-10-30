@@ -939,40 +939,6 @@ glamor_pict_format_is_compatible(PicturePtr picture)
     }
 }
 
-/* return TRUE if we can access this pixmap at DDX driver. */
-inline static Bool
-glamor_ddx_fallback_check_pixmap(DrawablePtr drawable)
-{
-    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
-    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-
-    return (!pixmap_priv
-            || (pixmap_priv->type == GLAMOR_TEXTURE_DRM
-                || pixmap_priv->type == GLAMOR_MEMORY
-                || pixmap_priv->type == GLAMOR_DRM_ONLY));
-}
-
-inline static Bool
-glamor_ddx_fallback_check_gc(GCPtr gc)
-{
-    PixmapPtr pixmap;
-
-    if (!gc)
-        return TRUE;
-    switch (gc->fillStyle) {
-    case FillStippled:
-    case FillOpaqueStippled:
-        pixmap = gc->stipple;
-        break;
-    case FillTiled:
-        pixmap = gc->tile.pixmap;
-        break;
-    default:
-        pixmap = NULL;
-    }
-    return (!pixmap || glamor_ddx_fallback_check_pixmap(&pixmap->drawable));
-}
-
 inline static Bool
 glamor_is_large_pixmap(PixmapPtr pixmap)
 {
