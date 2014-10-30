@@ -3243,7 +3243,7 @@ CheckWindowOptionalNeed(WindowPtr w)
         return;
     if (optional->userProps != NULL)
         return;
-    if (optional->backingBitPlanes != ~0L)
+    if (optional->backingBitPlanes != (CARD32)~0L)
         return;
     if (optional->backingPixel != 0)
         return;
