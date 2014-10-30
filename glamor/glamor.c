@@ -309,10 +309,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_screen_private *glamor_priv;
     int gl_version;
     int max_viewport_size[2];
-
-#ifdef RENDER
     PictureScreenPtr ps = GetPictureScreenIfSet(screen);
-#endif
+
     if (flags & ~GLAMOR_VALID_FLAGS) {
         ErrorF("glamor_init: Invalid flags %x\n", flags);
         return FALSE;
@@ -447,51 +445,45 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     if (!glamor_font_init(screen))
         goto fail;
 
-    if (flags & GLAMOR_USE_SCREEN) {
+    glamor_priv->saved_procs.block_handler = screen->BlockHandler;
+    screen->BlockHandler = _glamor_block_handler;
 
-        glamor_priv->saved_procs.block_handler = screen->BlockHandler;
-        screen->BlockHandler = _glamor_block_handler;
+    glamor_priv->saved_procs.create_gc = screen->CreateGC;
+    screen->CreateGC = glamor_create_gc;
 
-        glamor_priv->saved_procs.create_gc = screen->CreateGC;
-        screen->CreateGC = glamor_create_gc;
+    glamor_priv->saved_procs.create_pixmap = screen->CreatePixmap;
+    screen->CreatePixmap = glamor_create_pixmap;
 
-        glamor_priv->saved_procs.create_pixmap = screen->CreatePixmap;
-        screen->CreatePixmap = glamor_create_pixmap;
+    glamor_priv->saved_procs.destroy_pixmap = screen->DestroyPixmap;
+    screen->DestroyPixmap = glamor_destroy_pixmap;
 
-        glamor_priv->saved_procs.destroy_pixmap = screen->DestroyPixmap;
-        screen->DestroyPixmap = glamor_destroy_pixmap;
+    glamor_priv->saved_procs.get_spans = screen->GetSpans;
+    screen->GetSpans = glamor_get_spans;
 
-        glamor_priv->saved_procs.get_spans = screen->GetSpans;
-        screen->GetSpans = glamor_get_spans;
+    glamor_priv->saved_procs.get_image = screen->GetImage;
+    screen->GetImage = glamor_get_image;
 
-        glamor_priv->saved_procs.get_image = screen->GetImage;
-        screen->GetImage = glamor_get_image;
+    glamor_priv->saved_procs.change_window_attributes =
+        screen->ChangeWindowAttributes;
+    screen->ChangeWindowAttributes = glamor_change_window_attributes;
 
-        glamor_priv->saved_procs.change_window_attributes =
-            screen->ChangeWindowAttributes;
-        screen->ChangeWindowAttributes = glamor_change_window_attributes;
+    glamor_priv->saved_procs.copy_window = screen->CopyWindow;
+    screen->CopyWindow = glamor_copy_window;
 
-        glamor_priv->saved_procs.copy_window = screen->CopyWindow;
-        screen->CopyWindow = glamor_copy_window;
+    glamor_priv->saved_procs.bitmap_to_region = screen->BitmapToRegion;
+    screen->BitmapToRegion = glamor_bitmap_to_region;
 
-        glamor_priv->saved_procs.bitmap_to_region = screen->BitmapToRegion;
-        screen->BitmapToRegion = glamor_bitmap_to_region;
-    }
-#ifdef RENDER
-    if (flags & GLAMOR_USE_PICTURE_SCREEN) {
-        glamor_priv->saved_procs.composite = ps->Composite;
-        ps->Composite = glamor_composite;
+    glamor_priv->saved_procs.composite = ps->Composite;
+    ps->Composite = glamor_composite;
 
-        glamor_priv->saved_procs.trapezoids = ps->Trapezoids;
-        ps->Trapezoids = glamor_trapezoids;
+    glamor_priv->saved_procs.trapezoids = ps->Trapezoids;
+    ps->Trapezoids = glamor_trapezoids;
 
-        glamor_priv->saved_procs.triangles = ps->Triangles;
-        ps->Triangles = glamor_triangles;
+    glamor_priv->saved_procs.triangles = ps->Triangles;
+    ps->Triangles = glamor_triangles;
 
-        glamor_priv->saved_procs.addtraps = ps->AddTraps;
-        ps->AddTraps = glamor_add_traps;
-
-    }
+    glamor_priv->saved_procs.addtraps = ps->AddTraps;
+    ps->AddTraps = glamor_add_traps;
 
     glamor_priv->saved_procs.composite_rects = ps->CompositeRects;
     ps->CompositeRects = glamor_composite_rectangles;
@@ -508,13 +500,14 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_priv->saved_procs.destroy_picture = ps->DestroyPicture;
     ps->DestroyPicture = glamor_destroy_picture;
     glamor_init_composite_shaders(screen);
-#endif
+
     glamor_priv->saved_procs.set_window_pixmap = screen->SetWindowPixmap;
     screen->SetWindowPixmap = glamor_set_window_pixmap;
 
     glamor_init_vbo(screen);
     glamor_init_pixmap_fbo(screen);
     glamor_init_finish_access_shaders(screen);
+
 #ifdef GLAMOR_GRADIENT_SHADER
     glamor_init_gradient_shader(screen);
 #endif
@@ -537,9 +530,7 @@ glamor_release_screen_priv(ScreenPtr screen)
     glamor_screen_private *glamor_priv;
 
     glamor_priv = glamor_get_screen_private(screen);
-#ifdef RENDER
     glamor_fini_composite_shaders(screen);
-#endif
     glamor_fini_vbo(screen);
     glamor_fini_pixmap_fbo(screen);
     glamor_fini_finish_access_shaders(screen);
@@ -578,43 +569,34 @@ glamor_close_screen(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv;
     PixmapPtr screen_pixmap;
-    int flags;
-
-#ifdef RENDER
     PictureScreenPtr ps = GetPictureScreenIfSet(screen);
-#endif
+
     glamor_priv = glamor_get_screen_private(screen);
-    flags = glamor_priv->flags;
     glamor_sync_close(screen);
     glamor_glyphs_fini(screen);
     screen->CloseScreen = glamor_priv->saved_procs.close_screen;
     screen->CreateScreenResources =
         glamor_priv->saved_procs.create_screen_resources;
-    if (flags & GLAMOR_USE_SCREEN) {
 
-        screen->CreateGC = glamor_priv->saved_procs.create_gc;
-        screen->CreatePixmap = glamor_priv->saved_procs.create_pixmap;
-        screen->DestroyPixmap = glamor_priv->saved_procs.destroy_pixmap;
-        screen->GetSpans = glamor_priv->saved_procs.get_spans;
-        screen->ChangeWindowAttributes =
-            glamor_priv->saved_procs.change_window_attributes;
-        screen->CopyWindow = glamor_priv->saved_procs.copy_window;
-        screen->BitmapToRegion = glamor_priv->saved_procs.bitmap_to_region;
-        screen->BlockHandler = glamor_priv->saved_procs.block_handler;
-    }
-#ifdef RENDER
-    if (ps && (flags & GLAMOR_USE_PICTURE_SCREEN)) {
+    screen->CreateGC = glamor_priv->saved_procs.create_gc;
+    screen->CreatePixmap = glamor_priv->saved_procs.create_pixmap;
+    screen->DestroyPixmap = glamor_priv->saved_procs.destroy_pixmap;
+    screen->GetSpans = glamor_priv->saved_procs.get_spans;
+    screen->ChangeWindowAttributes =
+        glamor_priv->saved_procs.change_window_attributes;
+    screen->CopyWindow = glamor_priv->saved_procs.copy_window;
+    screen->BitmapToRegion = glamor_priv->saved_procs.bitmap_to_region;
+    screen->BlockHandler = glamor_priv->saved_procs.block_handler;
 
-        ps->Composite = glamor_priv->saved_procs.composite;
-        ps->Trapezoids = glamor_priv->saved_procs.trapezoids;
-        ps->Triangles = glamor_priv->saved_procs.triangles;
-        ps->CreatePicture = glamor_priv->saved_procs.create_picture;
-    }
+    ps->Composite = glamor_priv->saved_procs.composite;
+    ps->Trapezoids = glamor_priv->saved_procs.trapezoids;
+    ps->Triangles = glamor_priv->saved_procs.triangles;
+    ps->CreatePicture = glamor_priv->saved_procs.create_picture;
     ps->CompositeRects = glamor_priv->saved_procs.composite_rects;
     ps->Glyphs = glamor_priv->saved_procs.glyphs;
     ps->UnrealizeGlyph = glamor_priv->saved_procs.unrealize_glyph;
     screen->SetWindowPixmap = glamor_priv->saved_procs.set_window_pixmap;
-#endif
+
     screen_pixmap = screen->GetScreenPixmap(screen);
     glamor_set_pixmap_private(screen_pixmap, NULL);
 

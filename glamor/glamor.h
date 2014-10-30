@@ -62,15 +62,9 @@ typedef enum glamor_pixmap_type {
 } glamor_pixmap_type_t;
 
 #define GLAMOR_EGL_EXTERNAL_BUFFER 3
-#define GLAMOR_INVERTED_Y_AXIS         1 /* compat stub */
-#define GLAMOR_USE_SCREEN		(1 << 1)
-#define GLAMOR_USE_PICTURE_SCREEN 	(1 << 2)
-#define GLAMOR_USE_EGL_SCREEN		(1 << 3)
-#define GLAMOR_NO_DRI3			(1 << 4)
-#define GLAMOR_VALID_FLAGS      (GLAMOR_INVERTED_Y_AXIS  		\
-				 | GLAMOR_USE_SCREEN 			\
-                                 | GLAMOR_USE_PICTURE_SCREEN		\
-				 | GLAMOR_USE_EGL_SCREEN                \
+#define GLAMOR_USE_EGL_SCREEN		(1 << 0)
+#define GLAMOR_NO_DRI3			(1 << 1)
+#define GLAMOR_VALID_FLAGS      (GLAMOR_USE_EGL_SCREEN                \
                                  | GLAMOR_NO_DRI3)
 
 /* @glamor_init: Initialize glamor internal data structure.
@@ -78,22 +72,12 @@ typedef enum glamor_pixmap_type {
  * @screen: Current screen pointer.
  * @flags:  Please refer the flags description above.
  *
- * 	@GLAMOR_USE_SCREEN:
- *	If running in an pre-existing X environment, and the
- * 	gl context is GLX, then you should set this bit and
- * 	let the glamor to handle all the screen related
- * 	functions such as GC ops and CreatePixmap/DestroyPixmap.
- *
- * 	@GLAMOR_USE_PICTURE_SCREEN:
- * 	If don't use any other underlying DDX driver to handle
- * 	the picture related rendering functions, please set this
- * 	bit on. Otherwise, clear this bit. And then it is the DDX
- * 	driver's responsibility to determine how/when to jump to
- * 	glamor's picture compositing path.
- *
  * 	@GLAMOR_USE_EGL_SCREEN:
  * 	If you are using EGL layer, then please set this bit
  * 	on, otherwise, clear it.
+ *
+ *      @GLAMOR_NO_DRI3
+ *      Disable the built-in DRI3 support
  *
  * This function initializes necessary internal data structure
  * for glamor. And before calling into this function, the OpenGL
