@@ -48,9 +48,7 @@
     "precision mediump float;\n"  \
     "#endif\n"
 
-#ifdef RENDER
 #include "glyphstr.h"
-#endif
 
 #include "glamor_debug.h"
 #include "glamor_context.h"
@@ -704,6 +702,7 @@ glamor_track_stipple(GCPtr gc);
 
 /* glamor_glyphs.c */
 Bool glamor_realize_glyph_caches(ScreenPtr screen);
+void glamor_glyph_unrealize(ScreenPtr screen, GlyphPtr glyph);
 void glamor_glyphs_fini(ScreenPtr screen);
 void glamor_glyphs(CARD8 op,
                    PicturePtr pSrc,

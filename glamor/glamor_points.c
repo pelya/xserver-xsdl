@@ -121,18 +121,3 @@ glamor_poly_point(DrawablePtr drawable, GCPtr gc, int mode, int npt,
         return;
     miPolyPoint(drawable, gc, mode, npt, ppt);
 }
-
-Bool
-glamor_poly_point_nf(DrawablePtr drawable, GCPtr gc, int mode, int npt,
-                     DDXPointPtr ppt)
-{
-    if (glamor_poly_point_gl(drawable, gc, mode, npt, ppt))
-        return TRUE;
-
-    if (glamor_ddx_fallback_check_pixmap(drawable) && glamor_ddx_fallback_check_gc(gc))
-        return FALSE;
-
-    miPolyPoint(drawable, gc, mode, npt, ppt);
-    return TRUE;
-}
-

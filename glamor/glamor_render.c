@@ -34,7 +34,6 @@
 
 #include "glamor_priv.h"
 
-#ifdef RENDER
 #include "mipict.h"
 #include "fbpict.h"
 #if 0
@@ -1560,17 +1559,16 @@ glamor_composite_clipped_region(CARD8 op,
     return ok;
 }
 
-static Bool
-_glamor_composite(CARD8 op,
-                  PicturePtr source,
-                  PicturePtr mask,
-                  PicturePtr dest,
-                  INT16 x_source,
-                  INT16 y_source,
-                  INT16 x_mask,
-                  INT16 y_mask,
-                  INT16 x_dest, INT16 y_dest,
-                  CARD16 width, CARD16 height, Bool fallback)
+void
+glamor_composite(CARD8 op,
+                 PicturePtr source,
+                 PicturePtr mask,
+                 PicturePtr dest,
+                 INT16 x_source,
+                 INT16 y_source,
+                 INT16 x_mask,
+                 INT16 y_mask,
+                 INT16 x_dest, INT16 y_dest, CARD16 width, CARD16 height)
 {
     ScreenPtr screen = dest->pDrawable->pScreen;
     glamor_pixmap_private *dest_pixmap_priv;
@@ -1578,7 +1576,6 @@ _glamor_composite(CARD8 op,
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(dest->pDrawable);
     PixmapPtr source_pixmap = NULL, mask_pixmap = NULL;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-    Bool ret = TRUE;
     RegionRec region;
     BoxPtr extent;
     int nbox, ok = FALSE;
@@ -1639,18 +1636,16 @@ _glamor_composite(CARD8 op,
                                   (mask_pixmap ? mask->pDrawable->y : 0),
                                   x_dest + dest->pDrawable->x,
                                   y_dest + dest->pDrawable->y, width, height)) {
-        ret = TRUE;
-        goto done;
+        return;
     }
 
     nbox = REGION_NUM_RECTS(&region);
     DEBUGF("first clipped when compositing.\n");
     DEBUGRegionPrint(&region);
     extent = RegionExtents(&region);
-    if (nbox == 0) {
-        ret = TRUE;
-        goto done;
-    }
+    if (nbox == 0)
+        return;
+
     /* If destination is not a large pixmap, but the region is larger
      * than texture size limitation, and source or mask is memory pixmap,
      * then there may be need to load a large memory pixmap to a
@@ -1698,17 +1693,9 @@ _glamor_composite(CARD8 op,
     REGION_UNINIT(dest->pDrawable->pScreen, &region);
 
     if (ok)
-        goto done;
- fail:
+        return;
 
-    if (!fallback && glamor_ddx_fallback_check_pixmap(&dest_pixmap->drawable)
-        && (!source_pixmap
-            || glamor_ddx_fallback_check_pixmap(&source_pixmap->drawable))
-        && (!mask_pixmap
-            || glamor_ddx_fallback_check_pixmap(&mask_pixmap->drawable))) {
-        ret = FALSE;
-        goto done;
-    }
+ fail:
 
     glamor_fallback
         ("from picts %p:%p %dx%d / %p:%p %d x %d (%c,%c)  to pict %p:%p %dx%d (%c)\n",
@@ -1739,40 +1726,6 @@ _glamor_composite(CARD8 op,
     glamor_finish_access_picture(mask);
     glamor_finish_access_picture(source);
     glamor_finish_access_picture(dest);
-
- done:
-    return ret;
-}
-
-void
-glamor_composite(CARD8 op,
-                 PicturePtr source,
-                 PicturePtr mask,
-                 PicturePtr dest,
-                 INT16 x_source,
-                 INT16 y_source,
-                 INT16 x_mask,
-                 INT16 y_mask,
-                 INT16 x_dest, INT16 y_dest, CARD16 width, CARD16 height)
-{
-    _glamor_composite(op, source, mask, dest, x_source, y_source,
-                      x_mask, y_mask, x_dest, y_dest, width, height, TRUE);
-}
-
-Bool
-glamor_composite_nf(CARD8 op,
-                    PicturePtr source,
-                    PicturePtr mask,
-                    PicturePtr dest,
-                    INT16 x_source,
-                    INT16 y_source,
-                    INT16 x_mask,
-                    INT16 y_mask,
-                    INT16 x_dest, INT16 y_dest, CARD16 width, CARD16 height)
-{
-    return _glamor_composite(op, source, mask, dest, x_source, y_source,
-                             x_mask, y_mask, x_dest, y_dest, width, height,
-                             FALSE);
 }
 
 static void
@@ -1900,31 +1853,3 @@ glamor_composite_glyph_rects(CARD8 op,
     if (temp_src && temp_src != src)
         FreePicture(temp_src, 0);
 }
-
-static Bool
-_glamor_composite_rects(CARD8 op,
-                        PicturePtr pDst,
-                        xRenderColor *color,
-                        int nRect, xRectangle *rects, Bool fallback)
-{
-    miCompositeRects(op, pDst, color, nRect, rects);
-    return TRUE;
-}
-
-void
-glamor_composite_rects(CARD8 op,
-                       PicturePtr pDst,
-                       xRenderColor *color, int nRect, xRectangle *rects)
-{
-    _glamor_composite_rects(op, pDst, color, nRect, rects, TRUE);
-}
-
-Bool
-glamor_composite_rects_nf(CARD8 op,
-                          PicturePtr pDst,
-                          xRenderColor *color, int nRect, xRectangle *rects)
-{
-    return _glamor_composite_rects(op, pDst, color, nRect, rects, FALSE);
-}
-
-#endif                          /* RENDER */

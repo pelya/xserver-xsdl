@@ -173,15 +173,3 @@ glamor_poly_fill_rect(DrawablePtr drawable,
         return;
     glamor_poly_fill_rect_bail(drawable, gc, nrect, prect);
 }
-
-Bool
-glamor_poly_fill_rect_nf(DrawablePtr drawable,
-                         GCPtr gc, int nrect, xRectangle *prect)
-{
-    if (glamor_poly_fill_rect_gl(drawable, gc, nrect, prect))
-        return TRUE;
-    if (glamor_ddx_fallback_check_pixmap(drawable) && glamor_ddx_fallback_check_gc(gc))
-        return FALSE;
-    glamor_poly_fill_rect_bail(drawable, gc, nrect, prect);
-    return TRUE;
-}

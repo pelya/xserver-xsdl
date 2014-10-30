@@ -32,8 +32,6 @@
 
 #include "glamor_priv.h"
 
-#ifdef RENDER
-
 #define LINEAR_SMALL_STOPS (6 + 2)
 #define LINEAR_LARGE_STOPS (16 + 2)
 
@@ -1473,5 +1471,3 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
 }
 
 #endif                          /* End of GLAMOR_GRADIENT_SHADER */
-
-#endif                          /* End of RENDER */

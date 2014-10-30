@@ -709,39 +709,3 @@ glamor_copy_window(WindowPtr window, DDXPointRec old_origin, RegionPtr src_regio
 
     RegionUninit(&dst_region);
 }
-
-Bool
-glamor_copy_n_to_n_nf(DrawablePtr src,
-                      DrawablePtr dst,
-                      GCPtr gc,
-                      BoxPtr box,
-                      int nbox,
-                      int dx,
-                      int dy,
-                      Bool reverse,
-                      Bool upsidedown, Pixel bitplane,
-                      void *closure)
-{
-    if (glamor_copy_gl(src, dst, gc, box, nbox, dx, dy, reverse, upsidedown, bitplane, closure))
-        return TRUE;
-    if (glamor_ddx_fallback_check_pixmap(src) && glamor_ddx_fallback_check_pixmap(dst))
-        return FALSE;
-    glamor_copy_bail(src, dst, gc, box, nbox, dx, dy, reverse, upsidedown, bitplane, closure);
-    return TRUE;
-}
-
-Bool
-glamor_copy_plane_nf(DrawablePtr src, DrawablePtr dst, GCPtr gc,
-                     int srcx, int srcy, int w, int h, int dstx, int dsty,
-                     unsigned long bitplane, RegionPtr *region)
-{
-    if (glamor_ddx_fallback_check_pixmap(src) &&
-        glamor_ddx_fallback_check_pixmap(dst) &&
-        glamor_ddx_fallback_check_gc(gc))
-        return FALSE;
-
-    *region = glamor_copy_plane(src, dst, gc,
-                                srcx, srcy, w, h, dstx, dsty,
-                                bitplane);
-    return TRUE;
-}

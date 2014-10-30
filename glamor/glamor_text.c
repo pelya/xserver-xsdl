@@ -302,18 +302,6 @@ bail:
     return FALSE;
 }
 
-Bool
-glamor_poly_text8_nf(DrawablePtr drawable, GCPtr gc,
-                     int x, int y, int count, char *chars, int *final_pos)
-{
-    if (glamor_poly_text(drawable, gc, x, y, count, chars, FALSE, final_pos))
-        return TRUE;
-    if (glamor_ddx_fallback_check_pixmap(drawable) && glamor_ddx_fallback_check_gc(gc))
-        return FALSE;
-    *final_pos = miPolyText8(drawable, gc, x, y, count, chars);
-    return TRUE;
-}
-
 int
 glamor_poly_text8(DrawablePtr drawable, GCPtr gc,
                    int x, int y, int count, char *chars)
@@ -323,19 +311,6 @@ glamor_poly_text8(DrawablePtr drawable, GCPtr gc,
     if (glamor_poly_text(drawable, gc, x, y, count, chars, FALSE, &final_pos))
         return final_pos;
     return miPolyText8(drawable, gc, x, y, count, chars);
-}
-
-Bool
-glamor_poly_text16_nf(DrawablePtr drawable, GCPtr gc,
-                      int x, int y, int count, unsigned short *chars, int *final_pos)
-{
-    if (glamor_poly_text(drawable, gc, x, y, count, (char *) chars, TRUE, final_pos))
-        return TRUE;
-
-    if (glamor_ddx_fallback_check_pixmap(drawable) && glamor_ddx_fallback_check_gc(gc))
-        return FALSE;
-    *final_pos = miPolyText16(drawable, gc, x, y, count, chars);
-    return TRUE;
 }
 
 int
@@ -497,26 +472,12 @@ bail:
     return FALSE;
 }
 
-Bool
-glamor_image_text8_nf(DrawablePtr drawable, GCPtr gc,
-                   int x, int y, int count, char *chars)
-{
-    return glamor_image_text(drawable, gc, x, y, count, chars, FALSE);
-}
-
 void
 glamor_image_text8(DrawablePtr drawable, GCPtr gc,
                    int x, int y, int count, char *chars)
 {
     if (!glamor_image_text(drawable, gc, x, y, count, chars, FALSE))
         miImageText8(drawable, gc, x, y, count, chars);
-}
-
-Bool
-glamor_image_text16_nf(DrawablePtr drawable, GCPtr gc,
-                       int x, int y, int count, unsigned short *chars)
-{
-    return glamor_image_text(drawable, gc, x, y, count, (char *) chars, TRUE);
 }
 
 void

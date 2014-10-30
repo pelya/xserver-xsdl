@@ -168,21 +168,3 @@ glamor_poly_segment(DrawablePtr drawable, GCPtr gc,
 
     glamor_poly_segment_bail(drawable, gc, nseg, segs);
 }
-
-Bool
-glamor_poly_segment_nf(DrawablePtr drawable, GCPtr gc,
-                       int nseg, xSegment *segs)
-{
-    if (glamor_poly_segment_gl(drawable, gc, nseg, segs))
-        return TRUE;
-
-    if (glamor_ddx_fallback_check_pixmap(drawable) &&
-        glamor_ddx_fallback_check_gc(gc))
-    {
-        return FALSE;
-    }
-
-    glamor_poly_segment_bail(drawable, gc, nseg, segs);
-    return TRUE;
-}
-

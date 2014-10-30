@@ -182,21 +182,6 @@ glamor_fill_spans(DrawablePtr drawable,
     glamor_fill_spans_bail(drawable, gc, n, points, widths, sorted);
 }
 
-Bool
-glamor_fill_spans_nf(DrawablePtr drawable,
-                     GCPtr gc,
-                     int n, DDXPointPtr points, int *widths, int sorted)
-{
-    if (glamor_fill_spans_gl(drawable, gc, n, points, widths, sorted))
-        return TRUE;
-
-    if (glamor_ddx_fallback_check_pixmap(drawable) && glamor_ddx_fallback_check_gc(gc))
-        return FALSE;
-
-    glamor_fill_spans_bail(drawable, gc, n, points, widths, sorted);
-    return TRUE;
-}
-
 static Bool
 glamor_get_spans_gl(DrawablePtr drawable, int wmax,
                     DDXPointPtr points, int *widths, int count, char *dst)
@@ -280,20 +265,6 @@ glamor_get_spans(DrawablePtr drawable, int wmax,
     if (glamor_get_spans_gl(drawable, wmax, points, widths, count, dst))
         return;
     glamor_get_spans_bail(drawable, wmax, points, widths, count, dst);
-}
-
-Bool
-glamor_get_spans_nf(DrawablePtr drawable, int wmax,
-                    DDXPointPtr points, int *widths, int count, char *dst)
-{
-    if (glamor_get_spans_gl(drawable, wmax, points, widths, count, dst))
-        return TRUE;
-
-    if (glamor_ddx_fallback_check_pixmap(drawable))
-        return FALSE;
-
-    glamor_get_spans_bail(drawable, wmax, points, widths, count, dst);
-    return TRUE;
 }
 
 static Bool
@@ -414,18 +385,4 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     if (glamor_set_spans_gl(drawable, gc, src, points, widths, numPoints, sorted))
         return;
     glamor_set_spans_bail(drawable, gc, src, points, widths, numPoints, sorted);
-}
-
-Bool
-glamor_set_spans_nf(DrawablePtr drawable, GCPtr gc, char *src,
-                    DDXPointPtr points, int *widths, int numPoints, int sorted)
-{
-    if (glamor_set_spans_gl(drawable, gc, src, points, widths, numPoints, sorted))
-        return TRUE;
-
-    if (glamor_ddx_fallback_check_pixmap(drawable) && glamor_ddx_fallback_check_gc(gc))
-        return FALSE;
-
-    glamor_set_spans_bail(drawable, gc, src, points, widths, numPoints, sorted);
-    return TRUE;
 }

@@ -167,21 +167,3 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc,
         return;
     glamor_poly_lines_bail(drawable, gc, mode, n, points);
 }
-
-Bool
-glamor_poly_lines_nf(DrawablePtr drawable, GCPtr gc,
-                     int mode, int n, DDXPointPtr points)
-{
-    if (glamor_poly_lines_gl(drawable, gc, mode, n, points))
-        return TRUE;
-
-    if (glamor_ddx_fallback_check_pixmap(drawable) &&
-        glamor_ddx_fallback_check_gc(gc))
-    {
-        return FALSE;
-    }
-
-    glamor_poly_lines_bail(drawable, gc, mode, n, points);
-    return TRUE;
-}
-

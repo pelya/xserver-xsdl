@@ -34,6 +34,7 @@
 #include <stdlib.h>
 
 #include "glamor_priv.h"
+#include "mipict.h"
 
 DevPrivateKeyRec glamor_screen_private_key;
 DevPrivateKeyRec glamor_pixmap_private_key;
@@ -486,7 +487,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     ps->AddTraps = glamor_add_traps;
 
     glamor_priv->saved_procs.composite_rects = ps->CompositeRects;
-    ps->CompositeRects = glamor_composite_rectangles;
+    ps->CompositeRects = miCompositeRects;
 
     glamor_priv->saved_procs.glyphs = ps->Glyphs;
     ps->Glyphs = glamor_glyphs;
