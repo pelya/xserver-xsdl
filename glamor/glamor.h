@@ -56,8 +56,7 @@ typedef enum glamor_pixmap_type {
     GLAMOR_TEXTURE_DRM,
     GLAMOR_DRM_ONLY,
     GLAMOR_TEXTURE_ONLY,
-    GLAMOR_TEXTURE_LARGE,
-    GLAMOR_TEXTURE_PACK
+    GLAMOR_TEXTURE_LARGE
 } glamor_pixmap_type_t;
 
 #define GLAMOR_EGL_EXTERNAL_BUFFER 3
