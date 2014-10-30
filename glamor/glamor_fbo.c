@@ -241,12 +241,6 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
     fbo->format = format;
     fbo->glamor_priv = glamor_priv;
 
-    if (flag == GLAMOR_CREATE_PIXMAP_MAP) {
-        glamor_make_current(glamor_priv);
-        glGenBuffers(1, &fbo->pbo);
-        goto done;
-    }
-
     if (flag != GLAMOR_CREATE_FBO_NO_FBO) {
         if (glamor_pixmap_ensure_fb(fbo) != 0) {
             glamor_purge_fbo(fbo);
@@ -254,7 +248,6 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
         }
     }
 
- done:
     return fbo;
 }
 
@@ -367,9 +360,6 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
     if (flag == GLAMOR_CREATE_FBO_NO_FBO)
         goto new_fbo;
 
-    if (flag == GLAMOR_CREATE_PIXMAP_MAP)
-        goto no_tex;
-
     /* Tiling from textures requires exact pixmap sizes. As we don't
      * know which pixmaps will be used as tiles, just allocate
      * everything at the requested size
@@ -381,7 +371,6 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
         return fbo;
  new_fbo:
     tex = _glamor_create_tex(glamor_priv, w, h, format);
- no_tex:
     fbo = glamor_create_fbo_from_tex(glamor_priv, w, h, format, tex, flag);
 
     return fbo;
@@ -513,7 +502,6 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
             /* XXX For the Xephyr only, may be broken now. */
             pixmap_priv->base.gl_tex = 0;
         }
-    case GLAMOR_MEMORY_MAP:
         pixmap->devPrivate.ptr = NULL;
         break;
     default:

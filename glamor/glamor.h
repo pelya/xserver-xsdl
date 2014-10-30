@@ -53,7 +53,6 @@ struct glamor_context;
  */
 typedef enum glamor_pixmap_type {
     GLAMOR_MEMORY,
-    GLAMOR_MEMORY_MAP,
     GLAMOR_TEXTURE_DRM,
     GLAMOR_SEPARATE_TEXTURE,
     GLAMOR_DRM_ONLY,
@@ -142,7 +141,6 @@ extern _X_EXPORT Bool glamor_destroy_pixmap(PixmapPtr pixmap);
 #define GLAMOR_CREATE_PIXMAP_CPU        0x100
 #define GLAMOR_CREATE_PIXMAP_FIXUP      0x101
 #define GLAMOR_CREATE_FBO_NO_FBO        0x103
-#define GLAMOR_CREATE_PIXMAP_MAP        0x104
 #define GLAMOR_CREATE_NO_LARGE          0x105
 #define GLAMOR_CREATE_PIXMAP_NO_TEXTURE 0x106
 

@@ -169,9 +169,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     }
     glamor_set_pixmap_private(pixmap, pixmap_priv);
 
-    if (usage == GLAMOR_CREATE_PIXMAP_MAP)
-        type = GLAMOR_MEMORY_MAP;
-
     pixmap_priv->base.pixmap = pixmap;
     pixmap_priv->base.glamor_priv = glamor_priv;
 
@@ -188,7 +185,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
         pixmap_priv->base.box.y2 = h;
         return pixmap;
     }
-    else if (type == GLAMOR_MEMORY_MAP || usage == GLAMOR_CREATE_NO_LARGE ||
+    else if (usage == GLAMOR_CREATE_NO_LARGE ||
         glamor_check_fbo_size(glamor_priv, w, h))
     {
         pixmap_priv->type = type;
