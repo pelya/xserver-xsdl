@@ -72,7 +72,7 @@ cache_hbucket(int size)
 
 static glamor_pixmap_fbo *
 glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
-                            int w, int h, GLenum format, int flag)
+                            int w, int h, GLenum format)
 {
     struct xorg_list *cache;
     glamor_pixmap_fbo *fbo_entry, *ret_fbo = NULL;
@@ -87,33 +87,18 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
     cache = &glamor_priv->fbo_cache[n_format]
         [cache_wbucket(w)]
         [cache_hbucket(h)];
-    if (!(flag & GLAMOR_CACHE_EXACT_SIZE)) {
-        xorg_list_for_each_entry(fbo_entry, cache, list) {
-            if (fbo_entry->width >= w && fbo_entry->height >= h) {
 
-                DEBUGF("Request w %d h %d format %x \n", w, h, format);
-                DEBUGF("got cache entry %p w %d h %d fbo %d tex %d format %x\n",
-                       fbo_entry, fbo_entry->width, fbo_entry->height,
-                       fbo_entry->fb, fbo_entry->tex);
-                xorg_list_del(&fbo_entry->list);
-                ret_fbo = fbo_entry;
-                break;
-            }
-        }
-    }
-    else {
-        xorg_list_for_each_entry(fbo_entry, cache, list) {
-            if (fbo_entry->width == w && fbo_entry->height == h) {
+    xorg_list_for_each_entry(fbo_entry, cache, list) {
+        if (fbo_entry->width == w && fbo_entry->height == h) {
 
-                DEBUGF("Request w %d h %d format %x \n", w, h, format);
-                DEBUGF("got cache entry %p w %d h %d fbo %d tex %d format %x\n",
-                       fbo_entry, fbo_entry->width, fbo_entry->height,
-                       fbo_entry->fb, fbo_entry->tex, fbo_entry->format);
-                assert(format == fbo_entry->format);
-                xorg_list_del(&fbo_entry->list);
-                ret_fbo = fbo_entry;
-                break;
-            }
+            DEBUGF("Request w %d h %d format %x \n", w, h, format);
+            DEBUGF("got cache entry %p w %d h %d fbo %d tex %d format %x\n",
+                   fbo_entry, fbo_entry->width, fbo_entry->height,
+                   fbo_entry->fb, fbo_entry->tex, fbo_entry->format);
+            assert(format == fbo_entry->format);
+            xorg_list_del(&fbo_entry->list);
+            ret_fbo = fbo_entry;
+            break;
         }
     }
 
@@ -355,18 +340,11 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
 {
     glamor_pixmap_fbo *fbo;
     GLint tex = 0;
-    int cache_flag;
 
     if (flag == GLAMOR_CREATE_FBO_NO_FBO)
         goto new_fbo;
 
-    /* Tiling from textures requires exact pixmap sizes. As we don't
-     * know which pixmaps will be used as tiles, just allocate
-     * everything at the requested size
-     */
-    cache_flag = GLAMOR_CACHE_EXACT_SIZE;
-
-    fbo = glamor_pixmap_fbo_cache_get(glamor_priv, w, h, format, cache_flag);
+    fbo = glamor_pixmap_fbo_cache_get(glamor_priv, w, h, format);
     if (fbo)
         return fbo;
  new_fbo:

@@ -895,10 +895,6 @@ void glamor_set_window_pixmap(WindowPtr pWindow, PixmapPtr pPixmap);
 
 void glamor_destroy_picture(PicturePtr picture);
 
-/* fixup a fbo to the exact size as the pixmap. */
-Bool glamor_fixup_pixmap_priv(ScreenPtr screen,
-                              glamor_pixmap_private *pixmap_priv);
-
 void glamor_picture_format_fixup(PicturePtr picture,
                                  glamor_pixmap_private *pixmap_priv);
 

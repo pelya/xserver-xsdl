@@ -542,8 +542,7 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
         repeat_type += RepeatFix;
     else if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
              || pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
-        if (picture->transform
-            || (GLAMOR_PIXMAP_FBO_NOT_EXACT_SIZE(pixmap_priv)))
+        if (picture->transform)
             repeat_type += RepeatFix;
     }
     if (repeat_type >= RepeatFix) {
@@ -1038,23 +1037,6 @@ glamor_composite_choose_shader(CARD8 op,
     if (source_pixmap && source_pixmap == mask_pixmap &&
         source->format != mask->format) {
         goto fail;
-    }
-
-    /*Before enter the rendering stage, we need to fixup
-     * transformed source and mask, if the transform is not int translate. */
-    if (key.source != SHADER_SOURCE_SOLID
-        && source->transform
-        && !pixman_transform_is_int_translate(source->transform)
-        && source_pixmap_priv->type != GLAMOR_TEXTURE_LARGE) {
-        if (!glamor_fixup_pixmap_priv(screen, source_pixmap_priv))
-            goto fail;
-    }
-    if (key.mask != SHADER_MASK_NONE && key.mask != SHADER_MASK_SOLID
-        && mask->transform
-        && !pixman_transform_is_int_translate(mask->transform)
-        && mask_pixmap_priv->type != GLAMOR_TEXTURE_LARGE) {
-        if (!glamor_fixup_pixmap_priv(screen, mask_pixmap_priv))
-            goto fail;
     }
 
     if (!glamor_set_composite_op(screen, op, op_info, dest, mask))

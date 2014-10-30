@@ -55,10 +55,6 @@
     *(_pyscale_) = 1.0 / (_pixmap_priv_)->base.fbo->height;			\
   } while(0)
 
-#define GLAMOR_PIXMAP_FBO_NOT_EXACT_SIZE(priv)			\
-   (priv->base.fbo->width != priv->base.pixmap->drawable.width 	\
-      || priv->base.fbo->height != priv->base.pixmap->drawable.height)	\
-
 #define PIXMAP_PRIV_GET_ACTUAL_SIZE(priv, w, h)			\
   do {								\
 	if (_X_UNLIKELY(priv->type == GLAMOR_TEXTURE_LARGE)) {	\
