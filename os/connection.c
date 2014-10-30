@@ -26,13 +26,13 @@ Copyright 1987, 1989 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -648,8 +648,8 @@ AuthorizationIDOfClient(ClientPtr client)
  *                   CARD8	byteOrder;
  *                   BYTE	pad;
  *                   CARD16	majorVersion, minorVersion;
- *                   CARD16	nbytesAuthProto;    
- *                   CARD16	nbytesAuthString;   
+ *                   CARD16	nbytesAuthProto;
+ *                   CARD16	nbytesAuthString;
  *                 } xConnClientPrefix;
  *
  *     	It is hoped that eventually one protocol will be agreed upon.  In the
@@ -974,7 +974,7 @@ CloseDownFileDescriptor(OsCommPtr oc)
 
 /*****************
  * CheckConnections
- *    Some connection has died, go find which one and shut it down 
+ *    Some connection has died, go find which one and shut it down
  *    The file descriptor has been closed, but is still in AllClients.
  *    If would truly be wonderful if select() would put the bogus
  *    file descriptors in the exception mask, but nooooo.  So we have
@@ -1035,7 +1035,7 @@ CheckConnections(void)
 
 /*****************
  * CloseDownConnection
- *    Delete client from AllClients and free resources 
+ *    Delete client from AllClients and free resources
  *****************/
 
 void

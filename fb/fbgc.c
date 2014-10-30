@@ -119,7 +119,7 @@ fbValidateGC(GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
     /*
      * if the client clip is different or moved OR the subwindowMode has
      * changed OR the window's clip has changed since the last validation
-     * we need to recompute the composite clip 
+     * we need to recompute the composite clip
      */
 
     if ((changes &

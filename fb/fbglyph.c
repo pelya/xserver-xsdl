@@ -65,7 +65,7 @@ fbGlyphIn(RegionPtr pRegion, int x, int y, int width, int height)
  *
  *  a b c d  a b c d  a b c d	bytes
  *  A B C A  B C A B  C A B C	pixels
- * 
+ *
  *    f0        f1       f2
  *  A B C A  B C A B  C A B C	pixels LSB
  *  C A B C  A B C A  B C A B	pixels MSB

@@ -55,7 +55,7 @@ from The Open Group.
  *     the polygon by incrementing the y coordinate.  We
  *     keep a list of edges which the current scanline crosses,
  *     sorted by x.  This list is called the Active Edge Table (AET)
- *     As we change the y-coordinate, we update each entry in 
+ *     As we change the y-coordinate, we update each entry in
  *     in the active edge table to reflect the edges new xcoord.
  *     This list must be sorted at each scanline in case
  *     two edges intersect.

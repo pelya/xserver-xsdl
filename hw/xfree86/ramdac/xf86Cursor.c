@@ -349,7 +349,7 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
                (cursor->bits->height <= infoPtr->MaxHeight) &&
                (cursor->bits->width <= infoPtr->MaxWidth) &&
                (!infoPtr->UseHWCursor || (*infoPtr->UseHWCursor) (pScreen, cursor)))))) {
-            
+
             if (ScreenPriv->SWCursor)   /* remove the SW cursor */
                 (*ScreenPriv->spriteFuncs->SetCursor) (pDev, pScreen,
                                                        NullCursor, x, y);

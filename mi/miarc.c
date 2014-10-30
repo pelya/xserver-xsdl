@@ -26,13 +26,13 @@ Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -98,7 +98,7 @@ cbrt(double x)
 /*
  * some interesting sematic interpretation of the protocol:
  *
- * Self intersecting arcs (i.e. those spanning 360 degrees) 
+ * Self intersecting arcs (i.e. those spanning 360 degrees)
  *  never join with other arcs, and are drawn without caps
  *  (unless on/off dashed, in which case each dash segment
  *  is capped, except when the last segment meets the
@@ -369,7 +369,7 @@ of the two quadratics
 
 y^2 + ((b+A)/2)y + (Z + (bZ - d)/A) = 0
 
-where 
+where
 
 A = +/- sqrt(8Z + b^2 - 4c)
 b, c, d are the cubic, quadratic, and linear coefficients of the quartic
@@ -1496,7 +1496,7 @@ miArcCap(DrawablePtr pDraw,
 /* MIROUNDCAP -- a private helper function
  * Put Rounded cap on end. pCenter is the center of this end of the line
  * pEnd is the center of the other end of the line. pCorner is one of the
- * two corners at this end of the line.  
+ * two corners at this end of the line.
  * NOTE:  pOtherCorner must be counter-clockwise from pCorner.
  */
  /*ARGSUSED*/ static void
@@ -1648,7 +1648,7 @@ miDatan2(double dy, double dx)
  * array. (For example, if we want to leave a spare point to make sectors
  * instead of segments.)  So we pass in the malloc()ed chunk that contains the
  * array and an index saying where we should start stashing the points.
- * If there isn't an array already, we just pass in a null pointer and 
+ * If there isn't an array already, we just pass in a null pointer and
  * count on realloc() to handle the null pointer correctly.
  */
 static int
@@ -1667,7 +1667,7 @@ miGetArcPts(SppArcPtr parc,     /* points to an arc */
     SppPointPtr poly;
 
     /* The spec says that positive angles indicate counterclockwise motion.
-     * Given our coordinate system (with 0,0 in the upper left corner), 
+     * Given our coordinate system (with 0,0 in the upper left corner),
      * the screen appears flipped in Y.  The easiest fix is to negate the
      * angles given */
 
@@ -2753,7 +2753,7 @@ computeBound(struct arc_def *def,
 }
 
 /*
- * this section computes the x value of the span at y 
+ * this section computes the x value of the span at y
  * intersected with the specified face of the ellipse.
  *
  * this is the min/max X value over the set of normal
@@ -2766,7 +2766,7 @@ computeBound(struct arc_def *def,
  *
  * compute the derivative with-respect-to ellipse_y and solve
  * for zero:
- *    
+ *
  *       (w^2 - h^2) ellipse_y^3 + h^4 y
  * 0 = - ----------------------------------
  *       h w ellipse_y^2 sqrt (h^2 - ellipse_y^2)
@@ -2793,7 +2793,7 @@ computeBound(struct arc_def *def,
  *
  * or (to use accelerators),
  *
- * y0^3 (h^2 - w^2) - h^2 y (3y0^2 - 2h^2) 
+ * y0^3 (h^2 - w^2) - h^2 y (3y0^2 - 2h^2)
  *
  */
 

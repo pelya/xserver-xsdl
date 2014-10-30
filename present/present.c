@@ -91,7 +91,7 @@ present_flip_pending_pixmap(ScreenPtr screen)
 
     if (!screen_priv->flip_pending)
         return NULL;
-        
+
     return screen_priv->flip_pending->pixmap;
 }
 
@@ -372,7 +372,7 @@ present_set_tree_pixmap_visit(WindowPtr window, void *data)
     (*screen->SetWindowPixmap)(window, visit->new);
     return WT_WALKCHILDREN;
 }
-    
+
 static void
 present_set_tree_pixmap(WindowPtr window, PixmapPtr pixmap)
 {
