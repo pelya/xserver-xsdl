@@ -173,7 +173,7 @@ glamor_set_texture(PixmapPtr    pixmap,
         return FALSE;
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_priv->base.fbo->tex);
+    glBindTexture(GL_TEXTURE_2D, texture_priv->fbo->tex);
 
     glUniform2f(offset_uniform, off_x, off_y);
     glUniform2f(size_uniform, texture->drawable.width, texture->drawable.height);

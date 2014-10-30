@@ -51,15 +51,15 @@
 
 #define pixmap_priv_get_scale(_pixmap_priv_, _pxscale_, _pyscale_)	\
    do {									\
-    *(_pxscale_) = 1.0 / (_pixmap_priv_)->base.fbo->width;			\
-    *(_pyscale_) = 1.0 / (_pixmap_priv_)->base.fbo->height;			\
+    *(_pxscale_) = 1.0 / (_pixmap_priv_)->fbo->width;			\
+    *(_pyscale_) = 1.0 / (_pixmap_priv_)->fbo->height;			\
   } while(0)
 
 #define PIXMAP_PRIV_GET_ACTUAL_SIZE(pixmap, priv, w, h)          \
   do {								\
 	if (_X_UNLIKELY(priv->type == GLAMOR_TEXTURE_LARGE)) {	\
-		w = priv->large.box.x2 - priv->large.box.x1;	\
-		h = priv->large.box.y2 - priv->large.box.y1;	\
+		w = priv->box.x2 - priv->box.x1;	\
+		h = priv->box.y2 - priv->box.y1;	\
 	} else {						\
 		w = (pixmap)->drawable.width;		\
 		h = (pixmap)->drawable.height;		\
@@ -70,17 +70,17 @@
   do {								\
 	int actual_w, actual_h;					\
 	PIXMAP_PRIV_GET_ACTUAL_SIZE(pixmap, priv, actual_w, actual_h);	\
-	wh[0] = (float)priv->base.fbo->width / actual_w;	\
-	wh[1] = (float)priv->base.fbo->height / actual_h;	\
-	wh[2] = 1.0 / priv->base.fbo->width;			\
-	wh[3] = 1.0 / priv->base.fbo->height;			\
+	wh[0] = (float)priv->fbo->width / actual_w;	\
+	wh[1] = (float)priv->fbo->height / actual_h;	\
+	wh[2] = 1.0 / priv->fbo->width;			\
+	wh[3] = 1.0 / priv->fbo->height;			\
   } while(0)
 
 #define pixmap_priv_get_fbo_off(_priv_, _xoff_, _yoff_)		\
    do {								\
 	if (_X_UNLIKELY(_priv_ && (_priv_)->type == GLAMOR_TEXTURE_LARGE)) {  \
-		*(_xoff_) = - (_priv_)->large.box.x1;	\
-		*(_yoff_) = - (_priv_)->large.box.y1;	\
+		*(_xoff_) = - (_priv_)->box.x1;	\
+		*(_yoff_) = - (_priv_)->box.y1;	\
 	} else {						\
 		*(_xoff_) = 0;					\
 		*(_yoff_) = 0;					\
@@ -204,9 +204,9 @@
 	DEBUGF("c %f d %f oddx %d oddy %d \n",			\
 		c, d, odd_x, odd_y);				\
 	DEBUGF("x2 %d x1 %d fbo->width %d \n", priv->box.x2,	\
-		priv->box.x1, priv->base.fbo->width);		\
+		priv->box.x1, priv->fbo->width);		\
 	DEBUGF("y2 %d y1 %d fbo->height %d \n", priv->box.y2, 	\
-		priv->box.y1, priv->base.fbo->height);		\
+		priv->box.y1, priv->fbo->height);		\
 	_glamor_repeat_reflect_fixup(tx1, _x1_, c, odd_x,	\
 		(pixmap)->drawable.width,		\
 		priv->box.x1, priv->box.x2);			\
@@ -425,16 +425,16 @@
     glamor_transform_point(matrix, tx4, ty4, _x1_, _y2_);		\
     DEBUGF("transformed %f %f %f %f %f %f %f %f\n",			\
 	   tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4);			\
-    glamor_get_repeat_transform_coords(pixmap, (&priv->large), repeat_type, \
+    glamor_get_repeat_transform_coords(pixmap, priv, repeat_type, \
 				       ttx1, tty1, 			\
 				       tx1, ty1);			\
-    glamor_get_repeat_transform_coords(pixmap, (&priv->large), repeat_type, 	\
+    glamor_get_repeat_transform_coords(pixmap, priv, repeat_type, 	\
 				       ttx2, tty2, 			\
 				       tx2, ty2);			\
-    glamor_get_repeat_transform_coords(pixmap, (&priv->large), repeat_type, 	\
+    glamor_get_repeat_transform_coords(pixmap, priv, repeat_type, 	\
 				       ttx3, tty3, 			\
 				       tx3, ty3);			\
-    glamor_get_repeat_transform_coords(pixmap, (&priv->large), repeat_type, 	\
+    glamor_get_repeat_transform_coords(pixmap, priv, repeat_type, 	\
 				       ttx4, tty4, 			\
 				       tx4, ty4);			\
     DEBUGF("repeat transformed %f %f %f %f %f %f %f %f\n", ttx1, tty1, 	\
@@ -526,12 +526,12 @@
      if (_X_UNLIKELY(priv->type == GLAMOR_TEXTURE_LARGE)) {		\
 	float tx1, tx2, ty1, ty2;					\
 	if (repeat_type == RepeatPad) {					\
-		tx1 = _x1_ - priv->large.box.x1;			\
-		ty1 = _y1_ - priv->large.box.y1;			\
+		tx1 = _x1_ - priv->box.x1;			        \
+		ty1 = _y1_ - priv->box.y1;			        \
 		tx2 = tx1 + ((_x2_) - (_x1_));				\
 		ty2 = ty1 + ((_y2_) - (_y1_));				\
 	} else {							\
-            glamor_get_repeat_coords(pixmap, (&priv->large), repeat_type, \
+            glamor_get_repeat_coords(pixmap, priv, repeat_type,         \
 				 tx1, ty1, tx2, ty2,			\
 				 _x1_, _y1_, _x2_, _y2_);		\
 	}								\
@@ -756,9 +756,9 @@ glamor_translate_boxes(BoxPtr boxes, int nbox, int dx, int dy)
 						|| _depth_ == 30	\
 						|| _depth_ == 32)
 
-#define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv && pixmap_priv->base.is_picture == 1)
-#define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv && pixmap_priv->base.gl_fbo == GLAMOR_FBO_NORMAL)
-#define GLAMOR_PIXMAP_PRIV_HAS_FBO_DOWNLOADED(pixmap_priv)    (pixmap_priv && (pixmap_priv->base.gl_fbo == GLAMOR_FBO_DOWNLOADED))
+#define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv && pixmap_priv->is_picture == 1)
+#define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv && pixmap_priv->gl_fbo == GLAMOR_FBO_NORMAL)
+#define GLAMOR_PIXMAP_PRIV_HAS_FBO_DOWNLOADED(pixmap_priv)    (pixmap_priv && (pixmap_priv->gl_fbo == GLAMOR_FBO_DOWNLOADED))
 
 /**
  * Borrow from uxa.
@@ -811,7 +811,7 @@ format_for_pixmap(PixmapPtr pixmap)
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
     if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv))
-        pict_format = pixmap_priv->base.picture->format;
+        pict_format = pixmap_priv->picture->format;
     else
         pict_format = format_for_depth((pixmap)->drawable.depth);
 

@@ -2,10 +2,10 @@
 
 #include "glamor_priv.h"
 
-static inline glamor_pixmap_private_large_t *
+static inline glamor_pixmap_private *
 __glamor_large(glamor_pixmap_private *pixmap_priv) {
     assert(pixmap_priv->type == GLAMOR_TEXTURE_LARGE);
-    return &pixmap_priv->large;
+    return pixmap_priv;
 }
 
 /**
@@ -185,7 +185,7 @@ glamor_compute_clipped_regions_ext(PixmapPtr pixmap,
         small_box.y2 = block_h;
     }
     else {
-        glamor_pixmap_private_large_t *priv = __glamor_large(pixmap_priv);
+        glamor_pixmap_private *priv = __glamor_large(pixmap_priv);
 
         clipped_regions = __glamor_compute_clipped_regions(priv->block_w,
                                                            priv->block_h,
@@ -352,7 +352,7 @@ _glamor_compute_clipped_regions(PixmapPtr pixmap,
     int right_shift = 0;
     int down_shift = 0;
     int x_center_shift = 0, y_center_shift = 0;
-    glamor_pixmap_private_large_t *priv;
+    glamor_pixmap_private *priv;
 
     DEBUGRegionPrint(region);
     if (pixmap_priv->type != GLAMOR_TEXTURE_LARGE) {
@@ -763,7 +763,7 @@ glamor_merge_clipped_regions(PixmapPtr pixmap,
     int overlap;
     int i;
     int pixmap_width, pixmap_height;
-    glamor_pixmap_private_large_t *priv;
+    glamor_pixmap_private *priv;
 
     priv = __glamor_large(pixmap_priv);
     pixmap_width = pixmap->drawable.width;
@@ -858,7 +858,7 @@ glamor_merge_clipped_regions(PixmapPtr pixmap,
         RegionDestroy(clipped_regions[i].region);
     RegionDestroy(temp_region);
     priv->box = temp_box;
-    priv->base.fbo = glamor_pixmap_detach_fbo(temp_priv);
+    priv->fbo = glamor_pixmap_detach_fbo(temp_priv);
     DEBUGF("priv box x1 %d y1 %d x2 %d y2 %d \n",
            priv->box.x1, priv->box.y1, priv->box.x2, priv->box.y2);
     glamor_destroy_pixmap(temp_pixmap);
@@ -1335,8 +1335,8 @@ glamor_composite_largepixmap_region(CARD8 op,
                         null_mask = 0;
                     if (need_clean_mask_fbo) {
                         assert(is_normal_mask_fbo == 0);
-                        glamor_destroy_fbo(glamor_priv, mask_pixmap_priv->base.fbo);
-                        mask_pixmap_priv->base.fbo = NULL;
+                        glamor_destroy_fbo(glamor_priv, mask_pixmap_priv->fbo);
+                        mask_pixmap_priv->fbo = NULL;
                         need_clean_mask_fbo = 0;
                     }
                 }
@@ -1364,8 +1364,8 @@ glamor_composite_largepixmap_region(CARD8 op,
                 null_source = 0;
             if (need_clean_source_fbo) {
                 assert(is_normal_source_fbo == 0);
-                glamor_destroy_fbo(glamor_priv, source_pixmap_priv->base.fbo);
-                source_pixmap_priv->base.fbo = NULL;
+                glamor_destroy_fbo(glamor_priv, source_pixmap_priv->fbo);
+                source_pixmap_priv->fbo = NULL;
                 need_clean_source_fbo = 0;
             }
         }
@@ -1426,8 +1426,8 @@ glamor_composite_largepixmap_region(CARD8 op,
                 if (null_mask)
                     null_mask = 0;
                 if (need_clean_mask_fbo) {
-                    glamor_destroy_fbo(glamor_priv, mask_pixmap_priv->base.fbo);
-                    mask_pixmap_priv->base.fbo = NULL;
+                    glamor_destroy_fbo(glamor_priv, mask_pixmap_priv->fbo);
+                    mask_pixmap_priv->fbo = NULL;
                     need_clean_mask_fbo = 0;
                 }
             }

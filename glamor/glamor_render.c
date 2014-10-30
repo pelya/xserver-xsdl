@@ -491,7 +491,7 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
 
     glamor_make_current(glamor_priv);
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, pixmap_priv->base.fbo->tex);
+    glBindTexture(GL_TEXTURE_2D, pixmap_priv->fbo->tex);
     repeat_type = picture->repeatType;
     switch (picture->repeatType) {
     case RepeatNone:
@@ -933,7 +933,7 @@ glamor_composite_choose_shader(CARD8 op,
              * Does it need special handle? */
             glamor_fallback("source == dest\n");
         }
-        if (source_pixmap_priv->base.gl_fbo == GLAMOR_FBO_UNATTACHED) {
+        if (source_pixmap_priv->gl_fbo == GLAMOR_FBO_UNATTACHED) {
 #ifdef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
             source_status = GLAMOR_UPLOAD_PENDING;
 #else
@@ -949,7 +949,7 @@ glamor_composite_choose_shader(CARD8 op,
             glamor_fallback("mask == dest\n");
             goto fail;
         }
-        if (mask_pixmap_priv->base.gl_fbo == GLAMOR_FBO_UNATTACHED) {
+        if (mask_pixmap_priv->gl_fbo == GLAMOR_FBO_UNATTACHED) {
 #ifdef GLAMOR_PIXMAP_DYNAMIC_UPLOAD
             mask_status = GLAMOR_UPLOAD_PENDING;
 #else

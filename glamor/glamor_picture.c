@@ -70,8 +70,8 @@ glamor_create_picture(PicturePtr picture)
         pixmap_priv = glamor_get_pixmap_private(pixmap);
     }
 
-    pixmap_priv->base.is_picture = 1;
-    pixmap_priv->base.picture = picture;
+    pixmap_priv->is_picture = 1;
+    pixmap_priv->picture = picture;
 
     return miCreatePicture(picture);
 }
@@ -89,8 +89,8 @@ glamor_destroy_picture(PicturePtr picture)
     pixmap_priv = glamor_get_pixmap_private(pixmap);
 
     if (pixmap_priv) {
-        pixmap_priv->base.is_picture = 0;
-        pixmap_priv->base.picture = NULL;
+        pixmap_priv->is_picture = 0;
+        pixmap_priv->picture = NULL;
     }
     miDestroyPicture(picture);
 }
@@ -99,5 +99,5 @@ void
 glamor_picture_format_fixup(PicturePtr picture,
                             glamor_pixmap_private *pixmap_priv)
 {
-    pixmap_priv->base.picture = picture;
+    pixmap_priv->picture = picture;
 }

@@ -377,6 +377,14 @@ typedef struct glamor_pixmap_fbo {
  * @is_picture: The drawable is attached to a picture.
  * @pict_format: the corresponding picture's format.
  * @pixmap: The corresponding pixmap's pointer.
+ * @box: current fbo's coords in the whole pixmap.
+ * @block_w: block width of this large pixmap.
+ * @block_h: block height of this large pixmap.
+ * @block_wcnt: block count in one block row.
+ * @block_hcnt: block count in one block column.
+ * @nbox: total block count.
+ * @box_array: contains each block's corresponding box.
+ * @fbo_array: contains each block's fbo pointer.
  *
  * For GLAMOR_TEXTURE_LARGE, nbox should larger than 1.
  * And the box and fbo will both have nbox elements.
@@ -426,9 +434,6 @@ typedef struct glamor_pixmap_fbo {
  * to the box and fbo elements. Thus the inner routines
  * can handle it as normal, only the coords calculation need
  * to aware of it's large pixmap.
- *
- * Currently, we haven't implemented the atlas pixmap.
- *
  **/
 
 typedef struct glamor_pixmap_clipped_regions {
@@ -436,7 +441,7 @@ typedef struct glamor_pixmap_clipped_regions {
     RegionPtr region;
 } glamor_pixmap_clipped_regions;
 
-typedef struct glamor_pixmap_private_base {
+typedef struct glamor_pixmap_private {
     glamor_pixmap_type_t type;
     enum glamor_fbo_state gl_fbo;
     /**
@@ -457,26 +462,6 @@ typedef struct glamor_pixmap_private_base {
 #if GLAMOR_HAS_GBM
     EGLImageKHR image;
 #endif
-} glamor_pixmap_private_base_t;
-
-/*
- * @base.fbo: current fbo.
- * @box: current fbo's coords in the whole pixmap.
- * @block_w: block width of this large pixmap.
- * @block_h: block height of this large pixmap.
- * @block_wcnt: block count in one block row.
- * @block_hcnt: block count in one block column.
- * @nbox: total block count.
- * @box_array: contains each block's corresponding box.
- * @fbo_array: contains each block's fbo pointer.
- *
- **/
-typedef struct glamor_pixmap_private_large {
-    union {
-        glamor_pixmap_type_t type;
-        glamor_pixmap_private_base_t base;
-    };
-    BoxRec box;
     int block_w;
     int block_h;
     int block_wcnt;
@@ -484,22 +469,19 @@ typedef struct glamor_pixmap_private_large {
     int nbox;
     BoxPtr box_array;
     glamor_pixmap_fbo **fbo_array;
-} glamor_pixmap_private_large_t;
-
-typedef struct glamor_pixmap_private {
-    union {
-        glamor_pixmap_type_t type;
-        glamor_pixmap_private_base_t base;
-        glamor_pixmap_private_large_t large;
-    };
 } glamor_pixmap_private;
+
+/*
+ * @base.fbo: current fbo.
+ *
+ **/
 
 static inline void
 glamor_set_pixmap_fbo_current(glamor_pixmap_private *priv, int idx)
 {
     if (priv->type == GLAMOR_TEXTURE_LARGE) {
-        priv->large.base.fbo = priv->large.fbo_array[idx];
-        priv->large.box = priv->large.box_array[idx];
+        priv->fbo = priv->fbo_array[idx];
+        priv->box = priv->box_array[idx];
     }
 }
 
@@ -507,33 +489,33 @@ static inline glamor_pixmap_fbo *
 glamor_pixmap_fbo_at(glamor_pixmap_private *priv, int x, int y)
 {
     if (priv->type == GLAMOR_TEXTURE_LARGE) {
-        assert(x < priv->large.block_wcnt);
-        assert(y < priv->large.block_hcnt);
-        return priv->large.fbo_array[y * priv->large.block_wcnt + x];
+        assert(x < priv->block_wcnt);
+        assert(y < priv->block_hcnt);
+        return priv->fbo_array[y * priv->block_wcnt + x];
     }
     assert (x == 0);
     assert (y == 0);
-    return priv->base.fbo;
+    return priv->fbo;
 }
 
 static inline BoxPtr
 glamor_pixmap_box_at(glamor_pixmap_private *priv, int x, int y)
 {
     if (priv->type == GLAMOR_TEXTURE_LARGE) {
-        assert(x < priv->large.block_wcnt);
-        assert(y < priv->large.block_hcnt);
-        return &priv->large.box_array[y * priv->large.block_wcnt + x];
+        assert(x < priv->block_wcnt);
+        assert(y < priv->block_hcnt);
+        return &priv->box_array[y * priv->block_wcnt + x];
     }
     assert (x == 0);
     assert (y == 0);
-    return &priv->base.box;
+    return &priv->box;
 }
 
 static inline int
 glamor_pixmap_wcnt(glamor_pixmap_private *priv)
 {
     if (priv->type == GLAMOR_TEXTURE_LARGE)
-        return priv->large.block_wcnt;
+        return priv->block_wcnt;
     return 1;
 }
 
@@ -541,7 +523,7 @@ static inline int
 glamor_pixmap_hcnt(glamor_pixmap_private *priv)
 {
     if (priv->type == GLAMOR_TEXTURE_LARGE)
-        return priv->large.block_hcnt;
+        return priv->block_hcnt;
     return 1;
 }
 
@@ -615,7 +597,7 @@ glamor_pixmap_drm_only(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
 
-    return priv && priv->base.type == GLAMOR_DRM_ONLY;
+    return priv && priv->type == GLAMOR_DRM_ONLY;
 }
 
 /*
@@ -626,7 +608,7 @@ glamor_pixmap_is_memory(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
 
-    return !priv || priv->base.type == GLAMOR_TEXTURE_LARGE;
+    return !priv || priv->type == GLAMOR_TEXTURE_LARGE;
 }
 
 /*
@@ -637,7 +619,7 @@ glamor_pixmap_is_large(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
 
-    return priv && priv->base.type == GLAMOR_TEXTURE_LARGE;
+    return priv && priv->type == GLAMOR_TEXTURE_LARGE;
 }
 
 /*
@@ -648,7 +630,7 @@ glamor_pixmap_has_fbo(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
 
-    return priv && priv->base.gl_fbo == GLAMOR_FBO_NORMAL;
+    return priv && priv->gl_fbo == GLAMOR_FBO_NORMAL;
 }
 
 void glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv);

@@ -81,7 +81,7 @@ glamor_set_destination_pixmap_priv_nc(glamor_screen_private *glamor_priv,
     int w, h;
 
     PIXMAP_PRIV_GET_ACTUAL_SIZE(pixmap, pixmap_priv, w, h);
-    glamor_set_destination_pixmap_fbo(glamor_priv, pixmap_priv->base.fbo, 0, 0, w, h);
+    glamor_set_destination_pixmap_fbo(glamor_priv, pixmap_priv->fbo, 0, 0, w, h);
 }
 
 int
@@ -478,7 +478,7 @@ glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
     if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv))
-        pict_format = pixmap_priv->base.picture->format;
+        pict_format = pixmap_priv->picture->format;
     else
         pict_format = format_for_depth(pixmap->drawable.depth);
 
@@ -804,13 +804,13 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
         ) {
         int fbo_x_off, fbo_y_off;
 
-        assert(pixmap_priv->base.fbo->tex);
+        assert(pixmap_priv->fbo->tex);
         pixmap_priv_get_fbo_off(pixmap_priv, &fbo_x_off, &fbo_y_off);
 
         assert(x + fbo_x_off >= 0 && y + fbo_y_off >= 0);
-        assert(x + fbo_x_off + w <= pixmap_priv->base.fbo->width);
-        assert(y + fbo_y_off + h <= pixmap_priv->base.fbo->height);
-        __glamor_upload_pixmap_to_texture(pixmap, &pixmap_priv->base.fbo->tex,
+        assert(x + fbo_x_off + w <= pixmap_priv->fbo->width);
+        assert(y + fbo_y_off + h <= pixmap_priv->fbo->height);
+        __glamor_upload_pixmap_to_texture(pixmap, &pixmap_priv->fbo->tex,
                                           format, type,
                                           x + fbo_x_off, y + fbo_y_off, w, h,
                                           bits, pbo);
@@ -874,17 +874,17 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha,
     pixmap_priv = glamor_get_pixmap_private(pixmap);
     glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
 
-    if (pixmap_priv->base.gl_fbo != GLAMOR_FBO_UNATTACHED)
+    if (pixmap_priv->gl_fbo != GLAMOR_FBO_UNATTACHED)
         return 0;
 
-    if (pixmap_priv->base.fbo
-        && (pixmap_priv->base.fbo->width < pixmap->drawable.width
-            || pixmap_priv->base.fbo->height < pixmap->drawable.height)) {
+    if (pixmap_priv->fbo
+        && (pixmap_priv->fbo->width < pixmap->drawable.width
+            || pixmap_priv->fbo->height < pixmap->drawable.height)) {
         fbo = glamor_pixmap_detach_fbo(pixmap_priv);
         glamor_destroy_fbo(glamor_priv, fbo);
     }
 
-    if (pixmap_priv->base.fbo && pixmap_priv->base.fbo->fb)
+    if (pixmap_priv->fbo && pixmap_priv->fbo->fb)
         return 0;
 
     if (!(no_alpha || (revert == REVERT_NORMAL)
@@ -895,8 +895,8 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha,
     }
 
     if ((flag == GLAMOR_CREATE_FBO_NO_FBO
-         && pixmap_priv->base.fbo && pixmap_priv->base.fbo->tex)
-        || (flag == 0 && pixmap_priv->base.fbo && pixmap_priv->base.fbo->fb))
+         && pixmap_priv->fbo && pixmap_priv->fbo->tex)
+        || (flag == 0 && pixmap_priv->fbo && pixmap_priv->fbo->fb))
         return 0;
 
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
@@ -980,8 +980,8 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
             clipped_regions =
                 glamor_compute_clipped_regions_ext(pixmap, &region,
                                                    &n_region,
-                                                   pixmap_priv->large.block_w,
-                                                   pixmap_priv->large.block_h,
+                                                   pixmap_priv->block_w,
+                                                   pixmap_priv->block_h,
                                                    0,
                                                    0);
         DEBUGF("prepare upload %dx%d to a large pixmap %p\n", w, h, pixmap);
@@ -1052,10 +1052,10 @@ glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-    if ((pixmap_priv->base.fbo)
-        && (pixmap_priv->base.fbo->pbo_valid)) {
+    if ((pixmap_priv->fbo)
+        && (pixmap_priv->fbo->pbo_valid)) {
         data = NULL;
-        pbo = pixmap_priv->base.fbo->pbo;
+        pbo = pixmap_priv->fbo->pbo;
     }
     else {
         data = pixmap->devPrivate.ptr;
@@ -1126,7 +1126,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h,
     glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, source_priv->base.fbo->tex);
+    glBindTexture(GL_TEXTURE_2D, source_priv->fbo->tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
