@@ -496,7 +496,7 @@ glamor_pixmap_destroy_fbo(glamor_screen_private *glamor_priv,
 {
     glamor_pixmap_fbo *fbo;
 
-    if (priv->type == GLAMOR_TEXTURE_LARGE) {
+    if (glamor_pixmap_priv_is_large(priv)) {
         int i;
         glamor_pixmap_private *large = priv;
 

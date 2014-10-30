@@ -57,7 +57,7 @@
 
 #define PIXMAP_PRIV_GET_ACTUAL_SIZE(pixmap, priv, w, h)          \
   do {								\
-	if (_X_UNLIKELY(priv->type == GLAMOR_TEXTURE_LARGE)) {	\
+	if (_X_UNLIKELY(glamor_pixmap_priv_is_large(priv))) {	\
 		w = priv->box.x2 - priv->box.x1;	\
 		h = priv->box.y2 - priv->box.y1;	\
 	} else {						\
@@ -78,7 +78,7 @@
 
 #define pixmap_priv_get_fbo_off(_priv_, _xoff_, _yoff_)		\
    do {								\
-	if (_X_UNLIKELY(_priv_ && (_priv_)->type == GLAMOR_TEXTURE_LARGE)) {  \
+        if (_X_UNLIKELY(_priv_ && glamor_pixmap_priv_is_large(_priv_))) { \
 		*(_xoff_) = - (_priv_)->box.x1;	\
 		*(_yoff_) = - (_priv_)->box.y1;	\
 	} else {						\
@@ -410,7 +410,7 @@
 							 texcoords,	\
 							 stride)	\
   do {									\
-    if (_X_LIKELY(priv->type != GLAMOR_TEXTURE_LARGE)) {		\
+    if (_X_LIKELY(glamor_pixmap_priv_is_small(priv))) {		\
 	glamor_set_transformed_normalize_tcoords_ext(priv, matrix, xscale,	\
 						 yscale, _x1_, _y1_,	\
 						 _x2_, _y2_,	\
@@ -493,7 +493,7 @@
 				     x1, y1, x2, y2,			\
                                      vertices, stride)	\
   do {									\
-     if (_X_UNLIKELY(priv->type == GLAMOR_TEXTURE_LARGE)) {		\
+     if (_X_UNLIKELY(glamor_pixmap_priv_is_large(priv))) {		\
 	float tx1, tx2, ty1, ty2;					\
 	int fbo_x_off, fbo_y_off;					\
 	pixmap_priv_get_fbo_off(priv, &fbo_x_off, &fbo_y_off);		\
@@ -523,7 +523,7 @@
 					    _x1_, _y1_, _x2_, _y2_,	\
 	                                    vertices, stride)		\
   do {									\
-     if (_X_UNLIKELY(priv->type == GLAMOR_TEXTURE_LARGE)) {		\
+     if (_X_UNLIKELY(glamor_pixmap_priv_is_large(priv))) {		\
 	float tx1, tx2, ty1, ty2;					\
 	if (repeat_type == RepeatPad) {					\
 		tx1 = _x1_ - priv->box.x1;			        \
@@ -943,7 +943,7 @@ glamor_is_large_pixmap(PixmapPtr pixmap)
     glamor_pixmap_private *priv;
 
     priv = glamor_get_pixmap_private(pixmap);
-    return (priv->type == GLAMOR_TEXTURE_LARGE);
+    return (glamor_pixmap_priv_is_large(priv));
 }
 
 inline static Bool

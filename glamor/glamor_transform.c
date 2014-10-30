@@ -169,7 +169,7 @@ glamor_set_texture(PixmapPtr    pixmap,
     if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(texture_priv))
         return FALSE;
 
-    if (texture_priv->type == GLAMOR_TEXTURE_LARGE)
+    if (glamor_pixmap_priv_is_large(texture_priv))
         return FALSE;
 
     glActiveTexture(GL_TEXTURE0);

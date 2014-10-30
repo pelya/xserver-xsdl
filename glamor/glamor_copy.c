@@ -367,7 +367,7 @@ glamor_copy_fbo_fbo_draw(DrawablePtr src,
 
     glamor_get_drawable_deltas(src, src_pixmap, &src_off_x, &src_off_y);
 
-    set_scissor = src_priv->type == GLAMOR_TEXTURE_LARGE;
+    set_scissor = glamor_pixmap_priv_is_large(src_priv);
     if (set_scissor)
         glEnable(GL_SCISSOR_TEST);
 

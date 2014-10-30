@@ -542,7 +542,7 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
     if (repeat_type != RepeatNone)
         repeat_type += RepeatFix;
     else if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-             || pixmap_priv->type == GLAMOR_TEXTURE_LARGE) {
+             || glamor_pixmap_priv_is_large(pixmap_priv)) {
         if (picture->transform)
             repeat_type += RepeatFix;
     }

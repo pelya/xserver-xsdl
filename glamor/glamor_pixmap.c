@@ -799,7 +799,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
     if (no_alpha == 0
         && revert == REVERT_NONE && swap_rb == SWAP_NONE_UPLOADING
 #ifdef WALKAROUND_LARGE_TEXTURE_MAP
-        && pixmap_priv->type != GLAMOR_TEXTURE_LARGE
+        && glamor_pixmap_priv_is_small(pixmap_priv)
 #endif
         ) {
         int fbo_x_off, fbo_y_off;
@@ -956,7 +956,7 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
     force_clip = glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP
         && !glamor_check_fbo_size(glamor_priv, w, h);
 
-    if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE || force_clip) {
+    if (glamor_pixmap_priv_is_large(pixmap_priv) || force_clip) {
         RegionRec region;
         BoxRec box;
         int n_region;

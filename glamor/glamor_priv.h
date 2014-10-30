@@ -471,15 +471,86 @@ typedef struct glamor_pixmap_private {
     glamor_pixmap_fbo **fbo_array;
 } glamor_pixmap_private;
 
+extern DevPrivateKeyRec glamor_pixmap_private_key;
+
+static inline glamor_pixmap_private *
+glamor_get_pixmap_private(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *priv;
+
+    if (pixmap == NULL)
+        return NULL;
+
+    priv = dixLookupPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key);
+    if (!priv) {
+        glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
+        priv = dixLookupPrivate(&pixmap->devPrivates,
+                                &glamor_pixmap_private_key);
+    }
+    return priv;
+}
+
+void glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv);
+
 /*
- * @base.fbo: current fbo.
- *
- **/
+ * Returns TRUE if pixmap has no image object
+ */
+static inline Bool
+glamor_pixmap_drm_only(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
+
+    return priv && priv->type == GLAMOR_DRM_ONLY;
+}
+
+/*
+ * Returns TRUE if pixmap is plain memory (not a GL object at all)
+ */
+static inline Bool
+glamor_pixmap_is_memory(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
+
+    return !priv || priv->type == GLAMOR_MEMORY;
+}
+
+/*
+ * Returns TRUE if pixmap requires multiple textures to hold it
+ */
+static inline Bool
+glamor_pixmap_priv_is_large(glamor_pixmap_private *priv)
+{
+    return priv && priv->type == GLAMOR_TEXTURE_LARGE;
+}
+
+static inline Bool
+glamor_pixmap_priv_is_small(glamor_pixmap_private *priv)
+{
+    return priv && priv->type != GLAMOR_TEXTURE_LARGE;
+}
+
+static inline Bool
+glamor_pixmap_is_large(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
+
+    return priv && glamor_pixmap_priv_is_large(priv);
+}
+/*
+ * Returns TRUE if pixmap has an FBO
+ */
+static inline Bool
+glamor_pixmap_has_fbo(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
+
+    return priv && priv->gl_fbo == GLAMOR_FBO_NORMAL;
+}
 
 static inline void
 glamor_set_pixmap_fbo_current(glamor_pixmap_private *priv, int idx)
 {
-    if (priv->type == GLAMOR_TEXTURE_LARGE) {
+    if (glamor_pixmap_priv_is_large(priv)) {
         priv->fbo = priv->fbo_array[idx];
         priv->box = priv->box_array[idx];
     }
@@ -488,7 +559,7 @@ glamor_set_pixmap_fbo_current(glamor_pixmap_private *priv, int idx)
 static inline glamor_pixmap_fbo *
 glamor_pixmap_fbo_at(glamor_pixmap_private *priv, int x, int y)
 {
-    if (priv->type == GLAMOR_TEXTURE_LARGE) {
+    if (glamor_pixmap_priv_is_large(priv)) {
         assert(x < priv->block_wcnt);
         assert(y < priv->block_hcnt);
         return priv->fbo_array[y * priv->block_wcnt + x];
@@ -501,7 +572,7 @@ glamor_pixmap_fbo_at(glamor_pixmap_private *priv, int x, int y)
 static inline BoxPtr
 glamor_pixmap_box_at(glamor_pixmap_private *priv, int x, int y)
 {
-    if (priv->type == GLAMOR_TEXTURE_LARGE) {
+    if (glamor_pixmap_priv_is_large(priv)) {
         assert(x < priv->block_wcnt);
         assert(y < priv->block_hcnt);
         return &priv->box_array[y * priv->block_wcnt + x];
@@ -514,7 +585,7 @@ glamor_pixmap_box_at(glamor_pixmap_private *priv, int x, int y)
 static inline int
 glamor_pixmap_wcnt(glamor_pixmap_private *priv)
 {
-    if (priv->type == GLAMOR_TEXTURE_LARGE)
+    if (glamor_pixmap_priv_is_large(priv))
         return priv->block_wcnt;
     return 1;
 }
@@ -522,7 +593,7 @@ glamor_pixmap_wcnt(glamor_pixmap_private *priv)
 static inline int
 glamor_pixmap_hcnt(glamor_pixmap_private *priv)
 {
-    if (priv->type == GLAMOR_TEXTURE_LARGE)
+    if (glamor_pixmap_priv_is_large(priv))
         return priv->block_hcnt;
     return 1;
 }
@@ -557,7 +628,6 @@ typedef struct {
 
 extern DevPrivateKeyRec glamor_gc_private_key;
 extern DevPrivateKeyRec glamor_screen_private_key;
-extern DevPrivateKeyRec glamor_pixmap_private_key;
 
 static inline glamor_screen_private *
 glamor_get_screen_private(ScreenPtr screen)
@@ -571,69 +641,6 @@ glamor_set_screen_private(ScreenPtr screen, glamor_screen_private *priv)
 {
     dixSetPrivate(&screen->devPrivates, &glamor_screen_private_key, priv);
 }
-
-static inline glamor_pixmap_private *
-glamor_get_pixmap_private(PixmapPtr pixmap)
-{
-    glamor_pixmap_private *priv;
-
-    if (pixmap == NULL)
-        return NULL;
-
-    priv = dixLookupPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key);
-    if (!priv) {
-        glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
-        priv = dixLookupPrivate(&pixmap->devPrivates,
-                                &glamor_pixmap_private_key);
-    }
-    return priv;
-}
-
-/*
- * Returns TRUE if pixmap has no image object
- */
-static inline Bool
-glamor_pixmap_drm_only(PixmapPtr pixmap)
-{
-    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
-
-    return priv && priv->type == GLAMOR_DRM_ONLY;
-}
-
-/*
- * Returns TRUE if pixmap is plain memory (not a GL object at all)
- */
-static inline Bool
-glamor_pixmap_is_memory(PixmapPtr pixmap)
-{
-    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
-
-    return !priv || priv->type == GLAMOR_TEXTURE_LARGE;
-}
-
-/*
- * Returns TRUE if pixmap requires multiple textures to hold it
- */
-static inline Bool
-glamor_pixmap_is_large(PixmapPtr pixmap)
-{
-    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
-
-    return priv && priv->type == GLAMOR_TEXTURE_LARGE;
-}
-
-/*
- * Returns TRUE if pixmap has an FBO
- */
-static inline Bool
-glamor_pixmap_has_fbo(PixmapPtr pixmap)
-{
-    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
-
-    return priv && priv->gl_fbo == GLAMOR_FBO_NORMAL;
-}
-
-void glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv);
 
 static inline glamor_gc_private *
 glamor_get_gc_private(GCPtr gc)
