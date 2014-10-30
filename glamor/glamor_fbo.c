@@ -473,7 +473,6 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
     pixmap_priv->fbo = fbo;
 
     switch (pixmap_priv->type) {
-    case GLAMOR_TEXTURE_LARGE:
     case GLAMOR_TEXTURE_ONLY:
     case GLAMOR_TEXTURE_DRM:
         pixmap_priv->gl_fbo = GLAMOR_FBO_NORMAL;
@@ -484,7 +483,6 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
             pixmap_priv->gl_tex = 0;
         }
         pixmap->devPrivate.ptr = NULL;
-        break;
     default:
         break;
     }
@@ -498,11 +496,10 @@ glamor_pixmap_destroy_fbo(glamor_screen_private *glamor_priv,
 
     if (glamor_pixmap_priv_is_large(priv)) {
         int i;
-        glamor_pixmap_private *large = priv;
 
-        for (i = 0; i < large->block_wcnt * large->block_hcnt; i++)
-            glamor_destroy_fbo(glamor_priv, large->fbo_array[i]);
-        free(large->fbo_array);
+        for (i = 0; i < priv->block_wcnt * priv->block_hcnt; i++)
+            glamor_destroy_fbo(glamor_priv, priv->fbo_array[i]);
+        free(priv->fbo_array);
     }
     else {
         fbo = glamor_pixmap_detach_fbo(priv);

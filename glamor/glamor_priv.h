@@ -466,7 +466,6 @@ typedef struct glamor_pixmap_private {
     int block_h;
     int block_wcnt;
     int block_hcnt;
-    int nbox;
     BoxPtr box_array;
     glamor_pixmap_fbo **fbo_array;
 } glamor_pixmap_private;
@@ -520,13 +519,13 @@ glamor_pixmap_is_memory(PixmapPtr pixmap)
 static inline Bool
 glamor_pixmap_priv_is_large(glamor_pixmap_private *priv)
 {
-    return priv && priv->type == GLAMOR_TEXTURE_LARGE;
+    return priv && (priv->block_wcnt > 1 || priv->block_hcnt > 1);
 }
 
 static inline Bool
 glamor_pixmap_priv_is_small(glamor_pixmap_private *priv)
 {
-    return priv && priv->type != GLAMOR_TEXTURE_LARGE;
+    return priv && priv->block_wcnt <= 1 && priv->block_hcnt <= 1;
 }
 
 static inline Bool
@@ -559,43 +558,29 @@ glamor_set_pixmap_fbo_current(glamor_pixmap_private *priv, int idx)
 static inline glamor_pixmap_fbo *
 glamor_pixmap_fbo_at(glamor_pixmap_private *priv, int x, int y)
 {
-    if (glamor_pixmap_priv_is_large(priv)) {
-        assert(x < priv->block_wcnt);
-        assert(y < priv->block_hcnt);
-        return priv->fbo_array[y * priv->block_wcnt + x];
-    }
-    assert (x == 0);
-    assert (y == 0);
-    return priv->fbo;
+    assert(x < priv->block_wcnt);
+    assert(y < priv->block_hcnt);
+    return priv->fbo_array[y * priv->block_wcnt + x];
 }
 
 static inline BoxPtr
 glamor_pixmap_box_at(glamor_pixmap_private *priv, int x, int y)
 {
-    if (glamor_pixmap_priv_is_large(priv)) {
-        assert(x < priv->block_wcnt);
-        assert(y < priv->block_hcnt);
-        return &priv->box_array[y * priv->block_wcnt + x];
-    }
-    assert (x == 0);
-    assert (y == 0);
-    return &priv->box;
+    assert(x < priv->block_wcnt);
+    assert(y < priv->block_hcnt);
+    return &priv->box_array[y * priv->block_wcnt + x];
 }
 
 static inline int
 glamor_pixmap_wcnt(glamor_pixmap_private *priv)
 {
-    if (glamor_pixmap_priv_is_large(priv))
-        return priv->block_wcnt;
-    return 1;
+    return priv->block_wcnt;
 }
 
 static inline int
 glamor_pixmap_hcnt(glamor_pixmap_private *priv)
 {
-    if (glamor_pixmap_priv_is_large(priv))
-        return priv->block_hcnt;
-    return 1;
+    return priv->block_hcnt;
 }
 
 #define glamor_pixmap_loop(priv, x, y)                  \

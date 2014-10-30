@@ -60,6 +60,21 @@ glamor_get_drawable_pixmap(DrawablePtr drawable)
         return (PixmapPtr) drawable;
 }
 
+static void
+glamor_init_pixmap_private_small(PixmapPtr pixmap, glamor_pixmap_private *pixmap_priv)
+{
+    pixmap_priv->box.x1 = 0;
+    pixmap_priv->box.x2 = pixmap->drawable.width;
+    pixmap_priv->box.y1 = 0;
+    pixmap_priv->box.y2 = pixmap->drawable.height;
+    pixmap_priv->block_w = pixmap->drawable.width;
+    pixmap_priv->block_h = pixmap->drawable.height;
+    pixmap_priv->block_hcnt = 1;
+    pixmap_priv->block_wcnt = 1;
+    pixmap_priv->box_array = &pixmap_priv->box;
+    pixmap_priv->fbo_array = &pixmap_priv->fbo;
+}
+
 _X_EXPORT void
 glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
 {
@@ -72,10 +87,7 @@ glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
         glamor_set_pixmap_private(pixmap, pixmap_priv);
     }
     pixmap_priv->type = type;
-    pixmap_priv->box.x1 = 0;
-    pixmap_priv->box.x2 = pixmap->drawable.width;
-    pixmap_priv->box.y1 = 0;
-    pixmap_priv->box.y2 = pixmap->drawable.height;
+    glamor_init_pixmap_private_small(pixmap, pixmap_priv);
 }
 
 _X_EXPORT void
@@ -138,7 +150,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
                      unsigned int usage)
 {
     PixmapPtr pixmap;
-    glamor_pixmap_type_t type = GLAMOR_TEXTURE_ONLY;
     glamor_pixmap_private *pixmap_priv;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     glamor_pixmap_fbo *fbo = NULL;
@@ -171,27 +182,21 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     pitch = (((w * pixmap->drawable.bitsPerPixel + 7) / 8) + 3) & ~3;
     screen->ModifyPixmapHeader(pixmap, w, h, 0, 0, pitch, NULL);
 
+    pixmap_priv->type = GLAMOR_TEXTURE_ONLY;
+
     if (usage == GLAMOR_CREATE_PIXMAP_NO_TEXTURE) {
-        pixmap_priv->type = GLAMOR_TEXTURE_ONLY;
-        pixmap_priv->box.x1 = 0;
-        pixmap_priv->box.y1 = 0;
-        pixmap_priv->box.x2 = w;
-        pixmap_priv->box.y2 = h;
+        glamor_init_pixmap_private_small(pixmap, pixmap_priv);
         return pixmap;
     }
     else if (usage == GLAMOR_CREATE_NO_LARGE ||
         glamor_check_fbo_size(glamor_priv, w, h))
     {
-        pixmap_priv->type = type;
-        pixmap_priv->box.x1 = 0;
-        pixmap_priv->box.y1 = 0;
-        pixmap_priv->box.x2 = w;
-        pixmap_priv->box.y2 = h;
+        glamor_init_pixmap_private_small(pixmap, pixmap_priv);
         fbo = glamor_create_fbo(glamor_priv, w, h, format, usage);
     } else {
         int tile_size = glamor_priv->max_fbo_size;
-        DEBUGF("Create LARGE pixmap %p width %d height %d, tile size %d\n", pixmap, w, h, tile_size);
-        pixmap_priv->type = GLAMOR_TEXTURE_LARGE;
+        DEBUGF("Create LARGE pixmap %p width %d height %d, tile size %d\n",
+               pixmap, w, h, tile_size);
         fbo = glamor_create_fbo_array(glamor_priv, w, h, format, usage,
                                       tile_size, tile_size, pixmap_priv);
     }
