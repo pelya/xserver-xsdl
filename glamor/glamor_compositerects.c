@@ -254,7 +254,7 @@ glamor_composite_rectangles(CARD8 op,
                 goto done;
             if (glamor_composite_clipped_region(op, source,
                                                 NULL, dst,
-                                                NULL, NULL, priv,
+                                                NULL, NULL, pixmap,
                                                 &region, 0, 0, 0, 0, 0, 0))
                 goto done;
         }

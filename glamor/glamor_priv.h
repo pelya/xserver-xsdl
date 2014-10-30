@@ -72,7 +72,7 @@ typedef struct glamor_composite_shader {
     union {
         float source_solid_color[4];
         struct {
-            struct glamor_pixmap_private *source_priv;
+            PixmapPtr source_pixmap;
             PicturePtr source;
         };
     };
@@ -80,7 +80,7 @@ typedef struct glamor_composite_shader {
     union {
         float mask_solid_color[4];
         struct {
-            struct glamor_pixmap_private *mask_priv;
+            PixmapPtr mask_pixmap;
             PicturePtr mask;
         };
     };
@@ -369,7 +369,6 @@ typedef struct glamor_pixmap_fbo {
     Bool external;
     GLenum format;
     GLenum type;
-    glamor_screen_private *glamor_priv;
 } glamor_pixmap_fbo;
 
 /*
@@ -449,10 +448,8 @@ typedef struct glamor_pixmap_private_base {
     unsigned char is_picture:1;
     unsigned char gl_tex:1;
     glamor_pixmap_fbo *fbo;
-    PixmapPtr pixmap;
     BoxRec box;
     int drm_stride;
-    glamor_screen_private *glamor_priv;
     PicturePtr picture;
     GLuint pbo;
     RegionRec prepare_region;
@@ -610,6 +607,9 @@ glamor_get_pixmap_private(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv;
 
+    if (pixmap == NULL)
+        return NULL;
+
     priv = dixLookupPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key);
     if (!priv) {
         glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
@@ -617,6 +617,50 @@ glamor_get_pixmap_private(PixmapPtr pixmap)
                                 &glamor_pixmap_private_key);
     }
     return priv;
+}
+
+/*
+ * Returns TRUE if pixmap has no image object
+ */
+static inline Bool
+glamor_pixmap_drm_only(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
+
+    return priv && priv->base.type == GLAMOR_DRM_ONLY;
+}
+
+/*
+ * Returns TRUE if pixmap is plain memory (not a GL object at all)
+ */
+static inline Bool
+glamor_pixmap_is_memory(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
+
+    return !priv || priv->base.type == GLAMOR_TEXTURE_LARGE;
+}
+
+/*
+ * Returns TRUE if pixmap requires multiple textures to hold it
+ */
+static inline Bool
+glamor_pixmap_is_large(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
+
+    return priv && priv->base.type == GLAMOR_TEXTURE_LARGE;
+}
+
+/*
+ * Returns TRUE if pixmap has an FBO
+ */
+static inline Bool
+glamor_pixmap_has_fbo(PixmapPtr pixmap)
+{
+    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
+
+    return priv && priv->base.gl_fbo == GLAMOR_FBO_NORMAL;
 }
 
 void glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv);
@@ -652,9 +696,10 @@ glamor_pixmap_fbo *glamor_create_fbo_from_tex(glamor_screen_private *
                                               int flag);
 glamor_pixmap_fbo *glamor_create_fbo(glamor_screen_private *glamor_priv, int w,
                                      int h, GLenum format, int flag);
-void glamor_destroy_fbo(glamor_pixmap_fbo *fbo);
-void glamor_pixmap_destroy_fbo(glamor_pixmap_private *priv);
-
+void glamor_destroy_fbo(glamor_screen_private *glamor_priv,
+                        glamor_pixmap_fbo *fbo);
+void glamor_pixmap_destroy_fbo(glamor_screen_private *glamor_priv,
+                               glamor_pixmap_private *priv);
 void glamor_init_pixmap_fbo(ScreenPtr screen);
 void glamor_fini_pixmap_fbo(ScreenPtr screen);
 Bool glamor_pixmap_fbo_fixup(ScreenPtr screen, PixmapPtr pixmap);
@@ -679,13 +724,13 @@ void glamor_get_color_4f_from_pixel(PixmapPtr pixmap,
                                     unsigned long fg_pixel, GLfloat *color);
 
 int glamor_set_destination_pixmap(PixmapPtr pixmap);
-int glamor_set_destination_pixmap_priv(glamor_pixmap_private *pixmap_priv);
-void glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *, int, int, int, int);
+int glamor_set_destination_pixmap_priv(glamor_screen_private *glamor_priv, PixmapPtr pixmap, glamor_pixmap_private *pixmap_priv);
+void glamor_set_destination_pixmap_fbo(glamor_screen_private *glamor_priv, glamor_pixmap_fbo *, int, int, int, int);
 
 /* nc means no check. caller must ensure this pixmap has valid fbo.
  * usually use the GLAMOR_PIXMAP_PRIV_HAS_FBO firstly.
  * */
-void glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv);
+void glamor_set_destination_pixmap_priv_nc(glamor_screen_private *glamor_priv, PixmapPtr pixmap, glamor_pixmap_private *pixmap_priv);
 
 glamor_pixmap_fbo *glamor_es2_pixmap_read_prepare(PixmapPtr source, int x,
                                                   int y, int w, int h,
@@ -716,9 +761,9 @@ Bool glamor_composite_clipped_region(CARD8 op,
                                      PicturePtr source,
                                      PicturePtr mask,
                                      PicturePtr dest,
-                                     glamor_pixmap_private *soruce_pixmap_priv,
-                                     glamor_pixmap_private *mask_pixmap_priv,
-                                     glamor_pixmap_private *dest_pixmap_priv,
+                                     PixmapPtr source_pixmap,
+                                     PixmapPtr mask_pixmap,
+                                     PixmapPtr dest_pixmap,
                                      RegionPtr region,
                                      int x_source,
                                      int y_source,
@@ -748,23 +793,6 @@ PicturePtr glamor_convert_gradient_picture(ScreenPtr screen,
                                            PicturePtr source,
                                            int x_source,
                                            int y_source, int width, int height);
-
-Bool glamor_composite_choose_shader(CARD8 op,
-                                    PicturePtr source,
-                                    PicturePtr mask,
-                                    PicturePtr dest,
-                                    glamor_pixmap_private *source_pixmap_priv,
-                                    glamor_pixmap_private *mask_pixmap_priv,
-                                    glamor_pixmap_private *dest_pixmap_priv,
-                                    struct shader_key *s_key,
-                                    glamor_composite_shader ** shader,
-                                    struct blendinfo *op_info,
-                                    PictFormatShort *psaved_source_format);
-
-void glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
-                                       struct shader_key *key,
-                                       glamor_composite_shader *shader,
-                                       struct blendinfo *op_info);
 
 void *glamor_setup_composite_vbo(ScreenPtr screen, int n_verts);
 
@@ -832,19 +860,19 @@ Bool glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
                                          int pbo);
 
 glamor_pixmap_clipped_regions *
-glamor_compute_clipped_regions(glamor_pixmap_private *priv,
+glamor_compute_clipped_regions(PixmapPtr pixmap,
                                RegionPtr region, int *clipped_nbox,
                                int repeat_type, int reverse,
                                int upsidedown);
 
 glamor_pixmap_clipped_regions *
-glamor_compute_clipped_regions_ext(glamor_pixmap_private *pixmap_priv,
+glamor_compute_clipped_regions_ext(PixmapPtr pixmap,
                                    RegionPtr region, int *n_region,
                                    int inner_block_w, int inner_block_h,
                                    int reverse, int upsidedown);
 
 glamor_pixmap_clipped_regions *
-glamor_compute_transform_clipped_regions(glamor_pixmap_private *priv,
+glamor_compute_transform_clipped_regions(PixmapPtr pixmap,
                                          struct pixman_transform *transform,
                                          RegionPtr region,
                                          int *n_region, int dx, int dy,
@@ -855,9 +883,9 @@ Bool glamor_composite_largepixmap_region(CARD8 op,
                                          PicturePtr source,
                                          PicturePtr mask,
                                          PicturePtr dest,
-                                         glamor_pixmap_private *source_pixmap_priv,
-                                         glamor_pixmap_private *mask_pixmap_priv,
-                                         glamor_pixmap_private *dest_pixmap_priv,
+                                         PixmapPtr source_pixmap,
+                                         PixmapPtr mask_pixmap,
+                                         PixmapPtr dest_pixmap,
                                          RegionPtr region, Bool force_clip,
                                          INT16 x_source,
                                          INT16 y_source,

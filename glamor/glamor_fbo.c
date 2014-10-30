@@ -112,9 +112,10 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 }
 
 static void
-glamor_purge_fbo(glamor_pixmap_fbo *fbo)
+glamor_purge_fbo(glamor_screen_private *glamor_priv,
+                 glamor_pixmap_fbo *fbo)
 {
-    glamor_make_current(fbo->glamor_priv);
+    glamor_make_current(glamor_priv);
 
     if (fbo->fb)
         glDeleteFramebuffers(1, &fbo->fb);
@@ -127,7 +128,8 @@ glamor_purge_fbo(glamor_pixmap_fbo *fbo)
 }
 
 static void
-glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
+glamor_pixmap_fbo_cache_put(glamor_screen_private *glamor_priv,
+                            glamor_pixmap_fbo *fbo)
 {
     struct xorg_list *cache;
     int n_format;
@@ -139,32 +141,33 @@ glamor_pixmap_fbo_cache_put(glamor_pixmap_fbo *fbo)
     n_format = cache_format(fbo->format);
 
     if (fbo->fb == 0 || fbo->external || n_format == -1
-        || fbo->glamor_priv->fbo_cache_watermark >= FBO_CACHE_THRESHOLD) {
-        fbo->glamor_priv->tick += GLAMOR_CACHE_EXPIRE_MAX;
-        glamor_fbo_expire(fbo->glamor_priv);
-        glamor_purge_fbo(fbo);
+        || glamor_priv->fbo_cache_watermark >= FBO_CACHE_THRESHOLD) {
+        glamor_priv->tick += GLAMOR_CACHE_EXPIRE_MAX;
+        glamor_fbo_expire(glamor_priv);
+        glamor_purge_fbo(glamor_priv, fbo);
         return;
     }
 
-    cache = &fbo->glamor_priv->fbo_cache[n_format]
+    cache = &glamor_priv->fbo_cache[n_format]
         [cache_wbucket(fbo->width)]
         [cache_hbucket(fbo->height)];
     DEBUGF
         ("Put cache entry %p to cache %p w %d h %d format %x fbo %d tex %d \n",
          fbo, cache, fbo->width, fbo->height, fbo->format, fbo->fb, fbo->tex);
 
-    fbo->glamor_priv->fbo_cache_watermark += fbo->width * fbo->height;
+    glamor_priv->fbo_cache_watermark += fbo->width * fbo->height;
     xorg_list_add(&fbo->list, cache);
-    fbo->expire = fbo->glamor_priv->tick + GLAMOR_CACHE_EXPIRE_MAX;
+    fbo->expire = glamor_priv->tick + GLAMOR_CACHE_EXPIRE_MAX;
 #endif
 }
 
 static int
-glamor_pixmap_ensure_fb(glamor_pixmap_fbo *fbo)
+glamor_pixmap_ensure_fb(glamor_screen_private *glamor_priv,
+                        glamor_pixmap_fbo *fbo)
 {
     int status, err = 0;
 
-    glamor_make_current(fbo->glamor_priv);
+    glamor_make_current(glamor_priv);
 
     if (fbo->fb == 0)
         glGenFramebuffers(1, &fbo->fb);
@@ -224,11 +227,10 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
     fbo->height = h;
     fbo->external = FALSE;
     fbo->format = format;
-    fbo->glamor_priv = glamor_priv;
 
     if (flag != GLAMOR_CREATE_FBO_NO_FBO) {
-        if (glamor_pixmap_ensure_fb(fbo) != 0) {
-            glamor_purge_fbo(fbo);
+        if (glamor_pixmap_ensure_fb(glamor_priv, fbo) != 0) {
+            glamor_purge_fbo(glamor_priv, fbo);
             fbo = NULL;
         }
     }
@@ -258,7 +260,7 @@ glamor_fbo_expire(glamor_screen_private *glamor_priv)
                     xorg_list_del(&fbo_entry->list);
                     DEBUGF("cache %p fbo %p expired %d current %d \n", cache,
                            fbo_entry, fbo_entry->expire, glamor_priv->tick);
-                    glamor_purge_fbo(fbo_entry);
+                    glamor_purge_fbo(glamor_priv, fbo_entry);
                 }
             }
 
@@ -295,16 +297,17 @@ glamor_fini_pixmap_fbo(ScreenPtr screen)
                 xorg_list_for_each_entry_safe_reverse(fbo_entry, tmp, cache,
                                                       list) {
                     xorg_list_del(&fbo_entry->list);
-                    glamor_purge_fbo(fbo_entry);
+                    glamor_purge_fbo(glamor_priv, fbo_entry);
                 }
             }
 }
 
 void
-glamor_destroy_fbo(glamor_pixmap_fbo *fbo)
+glamor_destroy_fbo(glamor_screen_private *glamor_priv,
+                   glamor_pixmap_fbo *fbo)
 {
     xorg_list_del(&fbo->list);
-    glamor_pixmap_fbo_cache_put(fbo);
+    glamor_pixmap_fbo_cache_put(glamor_priv, fbo);
 
 }
 
@@ -420,7 +423,7 @@ _glamor_create_fbo_array(glamor_screen_private *glamor_priv,
  cleanup:
     for (i = 0; i < block_wcnt * block_hcnt; i++)
         if ((fbo_array)[i])
-            glamor_destroy_fbo((fbo_array)[i]);
+            glamor_destroy_fbo(glamor_priv, (fbo_array)[i]);
     free(box_array);
     free(fbo_array);
     return NULL;
@@ -488,7 +491,8 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
 }
 
 void
-glamor_pixmap_destroy_fbo(glamor_pixmap_private *priv)
+glamor_pixmap_destroy_fbo(glamor_screen_private *glamor_priv,
+                          glamor_pixmap_private *priv)
 {
     glamor_pixmap_fbo *fbo;
 
@@ -497,13 +501,13 @@ glamor_pixmap_destroy_fbo(glamor_pixmap_private *priv)
         glamor_pixmap_private_large_t *large = &priv->large;
 
         for (i = 0; i < large->block_wcnt * large->block_hcnt; i++)
-            glamor_destroy_fbo(large->fbo_array[i]);
+            glamor_destroy_fbo(glamor_priv, large->fbo_array[i]);
         free(large->fbo_array);
     }
     else {
         fbo = glamor_pixmap_detach_fbo(priv);
         if (fbo)
-            glamor_destroy_fbo(fbo);
+            glamor_destroy_fbo(glamor_priv, fbo);
     }
 }
 
@@ -533,7 +537,7 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
                                    pixmap->drawable.height, format);
 
         if (flag != GLAMOR_CREATE_FBO_NO_FBO && pixmap_priv->base.fbo->fb == 0)
-            if (glamor_pixmap_ensure_fb(pixmap_priv->base.fbo) != 0)
+            if (glamor_pixmap_ensure_fb(glamor_priv, pixmap_priv->base.fbo) != 0)
                 return FALSE;
     }
 

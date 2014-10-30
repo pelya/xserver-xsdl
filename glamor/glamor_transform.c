@@ -43,6 +43,8 @@ glamor_set_destination_drawable(DrawablePtr     drawable,
                                 int             *p_off_x,
                                 int             *p_off_y)
 {
+    ScreenPtr screen = drawable->pScreen;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     int off_x, off_y;
@@ -95,7 +97,7 @@ glamor_set_destination_drawable(DrawablePtr     drawable,
                 scale_x, (off_x + center_adjust) * scale_x - 1.0f,
                 scale_y, (off_y + center_adjust) * scale_y - 1.0f);
 
-    glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo_at(pixmap_priv, box_x, box_y),
+    glamor_set_destination_pixmap_fbo(glamor_priv, glamor_pixmap_fbo_at(pixmap_priv, box_x, box_y),
                                       0, 0, w, h);
 }
 

@@ -482,9 +482,10 @@ glamor_set_composite_op(ScreenPtr screen,
 static void
 glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
                              PicturePtr picture,
-                             glamor_pixmap_private *pixmap_priv,
+                             PixmapPtr pixmap,
                              GLuint wh_location, GLuint repeat_location)
 {
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     float wh[4];
     int repeat_type;
 
@@ -546,7 +547,7 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
             repeat_type += RepeatFix;
     }
     if (repeat_type >= RepeatFix) {
-        glamor_pixmap_fbo_fix_wh_ratio(wh, pixmap_priv);
+        glamor_pixmap_fbo_fix_wh_ratio(wh, pixmap, pixmap_priv);
         if ((wh[0] != 1.0 || wh[1] != 1.0)
             || (glamor_priv->gl_flavor == GLAMOR_GL_ES2
                 && repeat_type == RepeatFix))
@@ -786,7 +787,8 @@ combine_pict_format(PictFormatShort * des, const PictFormatShort src,
 }
 
 static void
-glamor_set_normalize_tcoords_generic(glamor_pixmap_private *priv,
+glamor_set_normalize_tcoords_generic(PixmapPtr pixmap,
+                                     glamor_pixmap_private *priv,
                                      int repeat_type,
                                      float *matrix,
                                      float xscale, float yscale,
@@ -804,24 +806,27 @@ glamor_set_normalize_tcoords_generic(glamor_pixmap_private *priv,
                                                      x2, y2,
                                                      texcoords, stride);
     else if (!matrix && repeat_type != RepeatNone)
-        glamor_set_repeat_normalize_tcoords_ext(priv, repeat_type,
+        glamor_set_repeat_normalize_tcoords_ext(pixmap, priv, repeat_type,
                                                 xscale, yscale,
                                                 x1, y1,
                                                 x2, y2,
                                                 texcoords, stride);
     else if (matrix && repeat_type != RepeatNone)
-        glamor_set_repeat_transformed_normalize_tcoords_ext(priv, repeat_type,
+        glamor_set_repeat_transformed_normalize_tcoords_ext(pixmap, priv, repeat_type,
                                                             matrix, xscale,
                                                             yscale, x1, y1, x2,
                                                             y2,
                                                             texcoords, stride);
 }
 
-Bool
+static Bool
 glamor_composite_choose_shader(CARD8 op,
                                PicturePtr source,
                                PicturePtr mask,
                                PicturePtr dest,
+                               PixmapPtr source_pixmap,
+                               PixmapPtr mask_pixmap,
+                               PixmapPtr dest_pixmap,
                                glamor_pixmap_private *source_pixmap_priv,
                                glamor_pixmap_private *mask_pixmap_priv,
                                glamor_pixmap_private *dest_pixmap_priv,
@@ -831,9 +836,6 @@ glamor_composite_choose_shader(CARD8 op,
                                PictFormatShort *psaved_source_format)
 {
     ScreenPtr screen = dest->pDrawable->pScreen;
-    PixmapPtr dest_pixmap = dest_pixmap_priv->base.pixmap;
-    PixmapPtr source_pixmap = NULL;
-    PixmapPtr mask_pixmap = NULL;
     enum glamor_pixmap_status source_status = GLAMOR_NONE;
     enum glamor_pixmap_status mask_status = GLAMOR_NONE;
     PictFormatShort saved_source_format = 0;
@@ -926,7 +928,6 @@ glamor_composite_choose_shader(CARD8 op,
 
     if (key.source == SHADER_SOURCE_TEXTURE ||
         key.source == SHADER_SOURCE_TEXTURE_ALPHA) {
-        source_pixmap = source_pixmap_priv->base.pixmap;
         if (source_pixmap == dest_pixmap) {
             /* XXX source and the dest share the same texture.
              * Does it need special handle? */
@@ -944,7 +945,6 @@ glamor_composite_choose_shader(CARD8 op,
 
     if (key.mask == SHADER_MASK_TEXTURE ||
         key.mask == SHADER_MASK_TEXTURE_ALPHA) {
-        mask_pixmap = mask_pixmap_priv->base.pixmap;
         if (mask_pixmap == dest_pixmap) {
             glamor_fallback("mask == dest\n");
             goto fail;
@@ -1052,7 +1052,7 @@ glamor_composite_choose_shader(CARD8 op,
         memcpy(&(*shader)->source_solid_color[0],
                source_solid_color, 4 * sizeof(float));
     else {
-        (*shader)->source_priv = source_pixmap_priv;
+        (*shader)->source_pixmap = source_pixmap;
         (*shader)->source = source;
     }
 
@@ -1060,7 +1060,7 @@ glamor_composite_choose_shader(CARD8 op,
         memcpy(&(*shader)->mask_solid_color[0],
                mask_solid_color, 4 * sizeof(float));
     else {
-        (*shader)->mask_priv = mask_pixmap_priv;
+        (*shader)->mask_pixmap = mask_pixmap;
         (*shader)->mask = mask;
     }
 
@@ -1076,16 +1076,13 @@ glamor_composite_choose_shader(CARD8 op,
     return ret;
 }
 
-void
-glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
+static void
+glamor_composite_set_shader_blend(glamor_screen_private *glamor_priv,
+                                  glamor_pixmap_private *dest_priv,
                                   struct shader_key *key,
                                   glamor_composite_shader *shader,
                                   struct blendinfo *op_info)
 {
-    glamor_screen_private *glamor_priv;
-
-    glamor_priv = dest_priv->base.glamor_priv;
-
     glamor_make_current(glamor_priv);
     glUseProgram(shader->prog);
 
@@ -1096,7 +1093,7 @@ glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
     else {
         glamor_set_composite_texture(glamor_priv, 0,
                                      shader->source,
-                                     shader->source_priv, shader->source_wh,
+                                     shader->source_pixmap, shader->source_wh,
                                      shader->source_repeat_mode);
     }
 
@@ -1108,7 +1105,7 @@ glamor_composite_set_shader_blend(glamor_pixmap_private *dest_priv,
         else {
             glamor_set_composite_texture(glamor_priv, 1,
                                          shader->mask,
-                                         shader->mask_priv, shader->mask_wh,
+                                         shader->mask_pixmap, shader->mask_wh,
                                          shader->mask_repeat_mode);
         }
     }
@@ -1127,6 +1124,9 @@ glamor_composite_with_shader(CARD8 op,
                              PicturePtr source,
                              PicturePtr mask,
                              PicturePtr dest,
+                             PixmapPtr source_pixmap,
+                             PixmapPtr mask_pixmap,
+                             PixmapPtr dest_pixmap,
                              glamor_pixmap_private *source_pixmap_priv,
                              glamor_pixmap_private *mask_pixmap_priv,
                              glamor_pixmap_private *dest_pixmap_priv,
@@ -1134,10 +1134,7 @@ glamor_composite_with_shader(CARD8 op,
                              Bool two_pass_ca)
 {
     ScreenPtr screen = dest->pDrawable->pScreen;
-    glamor_screen_private *glamor_priv = dest_pixmap_priv->base.glamor_priv;
-    PixmapPtr dest_pixmap = dest_pixmap_priv->base.pixmap;
-    PixmapPtr source_pixmap = NULL;
-    PixmapPtr mask_pixmap = NULL;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     GLfloat dst_xscale, dst_yscale;
     GLfloat mask_xscale = 1, mask_yscale = 1, src_xscale = 1, src_yscale = 1;
     struct shader_key key, key_ca;
@@ -1153,6 +1150,7 @@ glamor_composite_with_shader(CARD8 op,
     struct blendinfo op_info, op_info_ca;
 
     if (!glamor_composite_choose_shader(op, source, mask, dest,
+                                        source_pixmap, mask_pixmap, dest_pixmap,
                                         source_pixmap_priv, mask_pixmap_priv,
                                         dest_pixmap_priv,
                                         &key, &shader, &op_info,
@@ -1162,6 +1160,7 @@ glamor_composite_with_shader(CARD8 op,
     }
     if (two_pass_ca) {
         if (!glamor_composite_choose_shader(PictOpAdd, source, mask, dest,
+                                            source_pixmap, mask_pixmap, dest_pixmap,
                                             source_pixmap_priv,
                                             mask_pixmap_priv, dest_pixmap_priv,
                                             &key_ca, &shader_ca, &op_info_ca,
@@ -1171,8 +1170,8 @@ glamor_composite_with_shader(CARD8 op,
         }
     }
 
-    glamor_set_destination_pixmap_priv_nc(dest_pixmap_priv);
-    glamor_composite_set_shader_blend(dest_pixmap_priv, &key, shader, &op_info);
+    glamor_set_destination_pixmap_priv_nc(glamor_priv, dest_pixmap, dest_pixmap_priv);
+    glamor_composite_set_shader_blend(glamor_priv, dest_pixmap_priv, &key, shader, &op_info);
 
     glamor_make_current(glamor_priv);
 
@@ -1184,10 +1183,9 @@ glamor_composite_with_shader(CARD8 op,
     dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
     glamor_get_drawable_deltas(dest->pDrawable, dest_pixmap,
                                &dest_x_off, &dest_y_off);
-    pixmap_priv_get_dest_scale(dest_pixmap_priv, &dst_xscale, &dst_yscale);
+    pixmap_priv_get_dest_scale(dest_pixmap, dest_pixmap_priv, &dst_xscale, &dst_yscale);
 
     if (glamor_priv->has_source_coords) {
-        source_pixmap = source_pixmap_priv->base.pixmap;
         glamor_get_drawable_deltas(source->pDrawable,
                                    source_pixmap, &source_x_off, &source_y_off);
         pixmap_priv_get_scale(source_pixmap_priv, &src_xscale, &src_yscale);
@@ -1198,7 +1196,6 @@ glamor_composite_with_shader(CARD8 op,
     }
 
     if (glamor_priv->has_mask_coords) {
-        mask_pixmap = mask_pixmap_priv->base.pixmap;
         glamor_get_drawable_deltas(mask->pDrawable, mask_pixmap,
                                    &mask_x_off, &mask_y_off);
         pixmap_priv_get_scale(mask_pixmap_priv, &mask_xscale, &mask_yscale);
@@ -1250,7 +1247,8 @@ glamor_composite_with_shader(CARD8 op,
                                              vb_stride);
             vertices += 2;
             if (key.source != SHADER_SOURCE_SOLID) {
-                glamor_set_normalize_tcoords_generic(source_pixmap_priv,
+                glamor_set_normalize_tcoords_generic(source_pixmap,
+                                                     source_pixmap_priv,
                                                      source->repeatType,
                                                      psrc_matrix, src_xscale,
                                                      src_yscale, x_source,
@@ -1261,7 +1259,8 @@ glamor_composite_with_shader(CARD8 op,
             }
 
             if (key.mask != SHADER_MASK_NONE && key.mask != SHADER_MASK_SOLID) {
-                glamor_set_normalize_tcoords_generic(mask_pixmap_priv,
+                glamor_set_normalize_tcoords_generic(mask_pixmap,
+                                                     mask_pixmap_priv,
                                                      mask->repeatType,
                                                      pmask_matrix, mask_xscale,
                                                      mask_yscale, x_mask,
@@ -1280,11 +1279,11 @@ glamor_composite_with_shader(CARD8 op,
         glamor_flush_composite_rects(screen);
         nrect -= rect_processed;
         if (two_pass_ca) {
-            glamor_composite_set_shader_blend(dest_pixmap_priv,
+            glamor_composite_set_shader_blend(glamor_priv, dest_pixmap_priv,
                                               &key_ca, shader_ca, &op_info_ca);
             glamor_flush_composite_rects(screen);
             if (nrect)
-                glamor_composite_set_shader_blend(dest_pixmap_priv,
+                glamor_composite_set_shader_blend(glamor_priv, dest_pixmap_priv,
                                                   &key, shader, &op_info);
         }
     }
@@ -1371,17 +1370,21 @@ glamor_composite_clipped_region(CARD8 op,
                                 PicturePtr source,
                                 PicturePtr mask,
                                 PicturePtr dest,
-                                glamor_pixmap_private *source_pixmap_priv,
-                                glamor_pixmap_private *mask_pixmap_priv,
-                                glamor_pixmap_private *dest_pixmap_priv,
+                                PixmapPtr source_pixmap,
+                                PixmapPtr mask_pixmap,
+                                PixmapPtr dest_pixmap,
                                 RegionPtr region,
                                 int x_source,
                                 int y_source,
                                 int x_mask, int y_mask, int x_dest, int y_dest)
 {
+    glamor_pixmap_private *source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
+    glamor_pixmap_private *mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
+    glamor_pixmap_private *dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
     ScreenPtr screen = dest->pDrawable->pScreen;
-    PixmapPtr source_pixmap = NULL, mask_pixmap = NULL;
     PicturePtr temp_src = source, temp_mask = mask;
+    PixmapPtr temp_src_pixmap = source_pixmap;
+    PixmapPtr temp_mask_pixmap = mask_pixmap;
     glamor_pixmap_private *temp_src_priv = source_pixmap_priv;
     glamor_pixmap_private *temp_mask_priv = mask_pixmap_priv;
     int x_temp_src, y_temp_src, x_temp_mask, y_temp_mask;
@@ -1411,12 +1414,6 @@ glamor_composite_clipped_region(CARD8 op,
     DEBUGF("clipped (%d %d) (%d %d) (%d %d) width %d height %d \n",
            x_source, y_source, x_mask, y_mask, x_dest, y_dest, width, height);
 
-    if (source_pixmap_priv)
-        source_pixmap = source_pixmap_priv->base.pixmap;
-
-    if (mask_pixmap_priv)
-        mask_pixmap = mask_pixmap_priv->base.pixmap;
-
     /* XXX is it possible source mask have non-zero drawable.x/y? */
     if (source
         && ((!source->pDrawable
@@ -1434,8 +1431,8 @@ glamor_composite_clipped_region(CARD8 op,
             temp_src = source;
             goto out;
         }
-        temp_src_priv =
-            glamor_get_pixmap_private((PixmapPtr) (temp_src->pDrawable));
+        temp_src_pixmap = (PixmapPtr) (temp_src->pDrawable);
+        temp_src_priv = glamor_get_pixmap_private(temp_src_pixmap);
         x_temp_src = -extent->x1 + x_dest + dest->pDrawable->x;
         y_temp_src = -extent->y1 + y_dest + dest->pDrawable->y;
     }
@@ -1458,8 +1455,8 @@ glamor_composite_clipped_region(CARD8 op,
             temp_mask = mask;
             goto out;
         }
-        temp_mask_priv =
-            glamor_get_pixmap_private((PixmapPtr) (temp_mask->pDrawable));
+        temp_mask_pixmap = (PixmapPtr) (temp_mask->pDrawable);
+        temp_mask_priv = glamor_get_pixmap_private(temp_mask_pixmap);
         x_temp_mask = -extent->x1 + x_dest + dest->pDrawable->x;
         y_temp_mask = -extent->y1 + y_dest + dest->pDrawable->y;
     }
@@ -1521,6 +1518,7 @@ glamor_composite_clipped_region(CARD8 op,
             DEBUGF("dest %d %d \n", prect[i].x_dst, prect[i].y_dst);
         }
         ok = glamor_composite_with_shader(op, temp_src, temp_mask, dest,
+                                          temp_src_pixmap, temp_mask_pixmap, dest_pixmap,
                                           temp_src_priv, temp_mask_priv,
                                           dest_pixmap_priv,
                                           box_cnt, prect, two_pass_ca);
@@ -1553,8 +1551,6 @@ glamor_composite(CARD8 op,
                  INT16 x_dest, INT16 y_dest, CARD16 width, CARD16 height)
 {
     ScreenPtr screen = dest->pDrawable->pScreen;
-    glamor_pixmap_private *dest_pixmap_priv;
-    glamor_pixmap_private *source_pixmap_priv = NULL, *mask_pixmap_priv = NULL;
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(dest->pDrawable);
     PixmapPtr source_pixmap = NULL, mask_pixmap = NULL;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
@@ -1563,19 +1559,15 @@ glamor_composite(CARD8 op,
     int nbox, ok = FALSE;
     int force_clip = 0;
 
-    dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
-
     if (source->pDrawable) {
         source_pixmap = glamor_get_drawable_pixmap(source->pDrawable);
-        source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
-        if (source_pixmap_priv && source_pixmap_priv->type == GLAMOR_DRM_ONLY)
+        if (glamor_pixmap_drm_only(source_pixmap))
             goto fail;
     }
 
     if (mask && mask->pDrawable) {
         mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
-        mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
-        if (mask_pixmap_priv && mask_pixmap_priv->type == GLAMOR_DRM_ONLY)
+        if (glamor_pixmap_drm_only(mask_pixmap))
             goto fail;
     }
 
@@ -1584,9 +1576,8 @@ glamor_composite(CARD8 op,
          source_pixmap, x_source, y_source, x_mask, y_mask, x_dest, y_dest,
          width, height);
 
-    if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
+    if (!glamor_pixmap_has_fbo(dest_pixmap))
         goto fail;
-    }
 
     if (op >= ARRAY_SIZE(composite_op_info))
         goto fail;
@@ -1636,28 +1627,28 @@ glamor_composite(CARD8 op,
      * pixmap. */
     if (!glamor_check_fbo_size(glamor_priv,
                                extent->x2 - extent->x1, extent->y2 - extent->y1)
-        && (dest_pixmap_priv->type != GLAMOR_TEXTURE_LARGE)
-        && ((source_pixmap_priv
-             && (source_pixmap_priv->type == GLAMOR_MEMORY ||
+        && glamor_pixmap_is_large(dest_pixmap)
+        && ((source_pixmap
+             && (glamor_pixmap_is_memory(source_pixmap) ||
                  source->repeatType == RepeatPad))
-            || (mask_pixmap_priv &&
-                (mask_pixmap_priv->type == GLAMOR_MEMORY ||
+            || (mask_pixmap &&
+                (glamor_pixmap_is_memory(mask_pixmap) ||
                  mask->repeatType == RepeatPad))
-            || (!source_pixmap_priv &&
+            || (!source_pixmap &&
                 (source->pSourcePict->type != SourcePictTypeSolidFill))
-            || (!mask_pixmap_priv && mask &&
+            || (!mask_pixmap && mask &&
                 mask->pSourcePict->type != SourcePictTypeSolidFill)))
         force_clip = 1;
 
-    if (force_clip || dest_pixmap_priv->type == GLAMOR_TEXTURE_LARGE
-        || (source_pixmap_priv
-            && source_pixmap_priv->type == GLAMOR_TEXTURE_LARGE)
-        || (mask_pixmap_priv && mask_pixmap_priv->type == GLAMOR_TEXTURE_LARGE))
+    if (force_clip || glamor_pixmap_is_large(dest_pixmap)
+        || (source_pixmap
+            && glamor_pixmap_is_large(source_pixmap))
+        || (mask_pixmap && glamor_pixmap_is_large(mask_pixmap)))
         ok = glamor_composite_largepixmap_region(op,
                                                  source, mask, dest,
-                                                 source_pixmap_priv,
-                                                 mask_pixmap_priv,
-                                                 dest_pixmap_priv,
+                                                 source_pixmap,
+                                                 mask_pixmap,
+                                                 dest_pixmap,
                                                  &region, force_clip,
                                                  x_source, y_source,
                                                  x_mask, y_mask,
@@ -1665,9 +1656,9 @@ glamor_composite(CARD8 op,
     else
         ok = glamor_composite_clipped_region(op, source,
                                              mask, dest,
-                                             source_pixmap_priv,
-                                             mask_pixmap_priv,
-                                             dest_pixmap_priv,
+                                             source_pixmap,
+                                             mask_pixmap,
+                                             dest_pixmap,
                                              &region,
                                              x_source, y_source,
                                              x_mask, y_mask, x_dest, y_dest);
@@ -1758,21 +1749,27 @@ glamor_composite_glyph_rects(CARD8 op,
     if (!(glamor_is_large_picture(src)
           || (mask && glamor_is_large_picture(mask))
           || glamor_is_large_picture(dst))) {
+        PixmapPtr src_pixmap = NULL;
+        PixmapPtr mask_pixmap = NULL;
+        PixmapPtr dst_pixmap = NULL;
+        PixmapPtr temp_src_pixmap = NULL;
         glamor_pixmap_private *src_pixmap_priv = NULL;
         glamor_pixmap_private *mask_pixmap_priv = NULL;
         glamor_pixmap_private *dst_pixmap_priv;
         glamor_pixmap_private *temp_src_priv = NULL;
         BoxRec src_extent;
 
-        dst_pixmap_priv = glamor_get_pixmap_private
-            (glamor_get_drawable_pixmap(dst->pDrawable));
+        dst_pixmap = glamor_get_drawable_pixmap(dst->pDrawable);
+        dst_pixmap_priv = glamor_get_pixmap_private(dst_pixmap);
 
-        if (mask && mask->pDrawable)
-            mask_pixmap_priv = glamor_get_pixmap_private
-                (glamor_get_drawable_pixmap(mask->pDrawable));
-        if (src->pDrawable)
-            src_pixmap_priv = glamor_get_pixmap_private
-                (glamor_get_drawable_pixmap(src->pDrawable));
+        if (mask && mask->pDrawable) {
+            mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
+            mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
+        }
+        if (src->pDrawable) {
+            src_pixmap = glamor_get_drawable_pixmap(src->pDrawable);
+            src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
+        }
 
         if (!src->pDrawable
             && (src->pSourcePict->type != SourcePictTypeSolidFill)) {
@@ -1788,13 +1785,14 @@ glamor_composite_glyph_rects(CARD8 op,
             if (!temp_src)
                 goto fallback;
 
-            temp_src_priv = glamor_get_pixmap_private
-                ((PixmapPtr) (temp_src->pDrawable));
+            temp_src_pixmap = (PixmapPtr) (temp_src->pDrawable);
+            temp_src_priv = glamor_get_pixmap_private(temp_src_pixmap);
             glamor_composite_src_rect_translate(nrect, rects,
                                                 -src_extent.x1, -src_extent.y1);
         }
         else {
             temp_src = src;
+            temp_src_pixmap = src_pixmap;
             temp_src_priv = src_pixmap_priv;
         }
 
@@ -1802,6 +1800,7 @@ glamor_composite_glyph_rects(CARD8 op,
             if (op == PictOpOver) {
                 if (glamor_composite_with_shader(PictOpOutReverse,
                                                  temp_src, mask, dst,
+                                                 temp_src_pixmap, mask_pixmap, dst_pixmap,
                                                  temp_src_priv,
                                                  mask_pixmap_priv,
                                                  dst_pixmap_priv, nrect, rects,
@@ -1811,7 +1810,9 @@ glamor_composite_glyph_rects(CARD8 op,
         }
         else {
             if (glamor_composite_with_shader
-                (op, temp_src, mask, dst, temp_src_priv, mask_pixmap_priv,
+                (op, temp_src, mask, dst,
+                 temp_src_pixmap, mask_pixmap, dst_pixmap,
+                 temp_src_priv, mask_pixmap_priv,
                  dst_pixmap_priv, nrect, rects, FALSE))
                 goto done;
         }

@@ -64,16 +64,12 @@ _X_EXPORT void
 glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
 {
     glamor_pixmap_private *pixmap_priv;
-    glamor_screen_private *glamor_priv =
-        glamor_get_screen_private(pixmap->drawable.pScreen);
 
     pixmap_priv = dixLookupPrivate(&pixmap->devPrivates,
                                    &glamor_pixmap_private_key);
     if (pixmap_priv == NULL) {
         pixmap_priv = calloc(sizeof(*pixmap_priv), 1);
         glamor_set_pixmap_private(pixmap, pixmap_priv);
-        pixmap_priv->base.pixmap = pixmap;
-        pixmap_priv->base.glamor_priv = glamor_priv;
     }
     pixmap_priv->type = type;
     pixmap_priv->base.box.x1 = 0;
@@ -96,7 +92,7 @@ glamor_set_pixmap_texture(PixmapPtr pixmap, unsigned int tex)
 
     if (pixmap_priv->base.fbo) {
         fbo = glamor_pixmap_detach_fbo(pixmap_priv);
-        glamor_destroy_fbo(fbo);
+        glamor_destroy_fbo(glamor_priv, fbo);
     }
 
     format = gl_iformat_for_pixmap(pixmap);
@@ -169,9 +165,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
         return fbCreatePixmap(screen, w, h, depth, usage);
     }
     glamor_set_pixmap_private(pixmap, pixmap_priv);
-
-    pixmap_priv->base.pixmap = pixmap;
-    pixmap_priv->base.glamor_priv = glamor_priv;
 
     format = gl_iformat_for_pixmap(pixmap);
 
@@ -557,8 +550,8 @@ glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
     else {
         if (old_priv == NULL)
             return;
-
-        glamor_pixmap_destroy_fbo(old_priv);
+        glamor_pixmap_destroy_fbo(glamor_get_screen_private(pixmap->drawable.pScreen),
+                                  old_priv);
         free(old_priv);
     }
 

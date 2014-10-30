@@ -63,31 +63,36 @@ glamor_pixmap_fini(ScreenPtr screen)
 }
 
 void
-glamor_set_destination_pixmap_fbo(glamor_pixmap_fbo *fbo, int x0, int y0,
+glamor_set_destination_pixmap_fbo(glamor_screen_private *glamor_priv,
+                                  glamor_pixmap_fbo *fbo, int x0, int y0,
                                   int width, int height)
 {
-    glamor_make_current(fbo->glamor_priv);
+    glamor_make_current(glamor_priv);
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
     glViewport(x0, y0, width, height);
 }
 
 void
-glamor_set_destination_pixmap_priv_nc(glamor_pixmap_private *pixmap_priv)
+glamor_set_destination_pixmap_priv_nc(glamor_screen_private *glamor_priv,
+                                      PixmapPtr pixmap,
+                                      glamor_pixmap_private *pixmap_priv)
 {
     int w, h;
 
-    PIXMAP_PRIV_GET_ACTUAL_SIZE(pixmap_priv, w, h);
-    glamor_set_destination_pixmap_fbo(pixmap_priv->base.fbo, 0, 0, w, h);
+    PIXMAP_PRIV_GET_ACTUAL_SIZE(pixmap, pixmap_priv, w, h);
+    glamor_set_destination_pixmap_fbo(glamor_priv, pixmap_priv->base.fbo, 0, 0, w, h);
 }
 
 int
-glamor_set_destination_pixmap_priv(glamor_pixmap_private *pixmap_priv)
+glamor_set_destination_pixmap_priv(glamor_screen_private *glamor_priv,
+                                   PixmapPtr pixmap,
+                                   glamor_pixmap_private *pixmap_priv)
 {
     if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv))
         return -1;
 
-    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+    glamor_set_destination_pixmap_priv_nc(glamor_priv, pixmap, pixmap_priv);
     return 0;
 }
 
@@ -96,8 +101,10 @@ glamor_set_destination_pixmap(PixmapPtr pixmap)
 {
     int err;
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+    ScreenPtr screen = pixmap->drawable.pScreen;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
-    err = glamor_set_destination_pixmap_priv(pixmap_priv);
+    err = glamor_set_destination_pixmap_priv(glamor_priv, pixmap, pixmap_priv);
     return err;
 }
 
@@ -810,7 +817,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
     } else {
         ptexcoords = texcoords_inv;
 
-        pixmap_priv_get_dest_scale(pixmap_priv, &dst_xscale, &dst_yscale);
+        pixmap_priv_get_dest_scale(pixmap, pixmap_priv, &dst_xscale, &dst_yscale);
         glamor_set_normalize_vcoords(pixmap_priv, dst_xscale,
                                      dst_yscale,
                                      x, y,
@@ -825,7 +832,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
                               GL_FALSE, 2 * sizeof(float), ptexcoords);
         glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
-        glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+        glamor_set_destination_pixmap_priv_nc(glamor_priv, pixmap, pixmap_priv);
         __glamor_upload_pixmap_to_texture(pixmap, &tex,
                                           format, type, 0, 0, w, h, bits, pbo);
         glActiveTexture(GL_TEXTURE0);
@@ -874,7 +881,7 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha,
         && (pixmap_priv->base.fbo->width < pixmap->drawable.width
             || pixmap_priv->base.fbo->height < pixmap->drawable.height)) {
         fbo = glamor_pixmap_detach_fbo(pixmap_priv);
-        glamor_destroy_fbo(fbo);
+        glamor_destroy_fbo(glamor_priv, fbo);
     }
 
     if (pixmap_priv->base.fbo && pixmap_priv->base.fbo->fb)
@@ -927,6 +934,8 @@ Bool
 glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
                                     int h, int stride, void *bits, int pbo)
 {
+    ScreenPtr screen = pixmap->drawable.pScreen;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     GLenum format, type;
     int no_alpha, revert, swap_rb;
     glamor_pixmap_private *pixmap_priv;
@@ -944,8 +953,8 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
         return FALSE;
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
-    force_clip = pixmap_priv->base.glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP
-        && !glamor_check_fbo_size(pixmap_priv->base.glamor_priv, w, h);
+    force_clip = glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP
+        && !glamor_check_fbo_size(glamor_priv, w, h);
 
     if (pixmap_priv->type == GLAMOR_TEXTURE_LARGE || force_clip) {
         RegionRec region;
@@ -965,11 +974,11 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
         RegionInitBoxes(&region, &box, 1);
         if (!force_clip)
             clipped_regions =
-                glamor_compute_clipped_regions(pixmap_priv, &region, &n_region,
+                glamor_compute_clipped_regions(pixmap, &region, &n_region,
                                                0, 0, 0);
         else
             clipped_regions =
-                glamor_compute_clipped_regions_ext(pixmap_priv, &region,
+                glamor_compute_clipped_regions_ext(pixmap, &region,
                                                    &n_region,
                                                    pixmap_priv->large.block_w,
                                                    pixmap_priv->large.block_h,
@@ -1121,7 +1130,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glamor_set_destination_pixmap_fbo(temp_fbo, 0, 0, w, h);
+    glamor_set_destination_pixmap_fbo(glamor_priv, temp_fbo, 0, 0, w, h);
     glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
     glUniform1i(glamor_priv->finish_access_revert[no_alpha], revert);
     glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha], swap_rb);

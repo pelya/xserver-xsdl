@@ -682,9 +682,9 @@ _glamor_gradient_set_pixmap_destination(ScreenPtr screen,
         return 0;
     }
 
-    glamor_set_destination_pixmap_priv_nc(pixmap_priv);
+    glamor_set_destination_pixmap_priv_nc(glamor_priv, pixmap, pixmap_priv);
 
-    pixmap_priv_get_dest_scale(pixmap_priv, xscale, yscale);
+    pixmap_priv_get_dest_scale(pixmap, pixmap_priv, xscale, yscale);
 
     DEBUGF("xscale = %f, yscale = %f,"
            " x_source = %d, y_source = %d, width = %d, height = %d\n",
