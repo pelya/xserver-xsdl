@@ -54,7 +54,6 @@ struct glamor_context;
 typedef enum glamor_pixmap_type {
     GLAMOR_MEMORY,
     GLAMOR_TEXTURE_DRM,
-    GLAMOR_SEPARATE_TEXTURE,
     GLAMOR_DRM_ONLY,
     GLAMOR_TEXTURE_ONLY,
     GLAMOR_TEXTURE_LARGE,
