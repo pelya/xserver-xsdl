@@ -486,23 +486,11 @@ typedef struct glamor_pixmap_private_large {
     glamor_pixmap_fbo **fbo_array;
 } glamor_pixmap_private_large_t;
 
-/*
- * @box: the relative coords in the corresponding fbo.
- */
-typedef struct glamor_pixmap_private_atlas {
-    union {
-        glamor_pixmap_type_t type;
-        glamor_pixmap_private_base_t base;
-    };
-    BoxRec box;
-} glamor_pixmap_private_atlas_t;
-
 typedef struct glamor_pixmap_private {
     union {
         glamor_pixmap_type_t type;
         glamor_pixmap_private_base_t base;
         glamor_pixmap_private_large_t large;
-        glamor_pixmap_private_atlas_t atlas;
     };
 } glamor_pixmap_private;
 
