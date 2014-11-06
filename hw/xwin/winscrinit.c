@@ -313,8 +313,6 @@ winFinishScreenInitFB(int i, ScreenPtr pScreen, int argc, char **argv)
     if (pScreenInfo->dwDepth == 8
         && (pScreenInfo->dwEngine == WIN_SERVER_SHADOW_GDI
             || (pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL
-                && pScreenInfo->fFullScreen)
-            || (pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DD
                 && pScreenInfo->fFullScreen))) {
         winSetColormapFunctions(pScreen);
 
@@ -388,7 +386,6 @@ winFinishScreenInitFB(int i, ScreenPtr pScreen, int argc, char **argv)
 
     /* Initialize the shadow framebuffer layer */
     if ((pScreenInfo->dwEngine == WIN_SERVER_SHADOW_GDI
-         || pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DD
          || pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL)
 #ifdef XWIN_MULTIWINDOWEXTWM
         && !pScreenInfo->fMWExtWM

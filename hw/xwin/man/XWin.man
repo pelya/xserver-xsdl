@@ -248,9 +248,6 @@ functionality does not provide a benefit at any number of boxes; we
 can only determine the usefulness of this feature through testing.
 This option probably has limited effect on current \fIWindows\fP versions
 as they already perform GDI batching.
-This parameter works in conjunction with engines 1, 2, and 4 (Shadow
-GDI, Shadow DirectDraw, and Shadow DirectDraw Non-Locking,
-respectively).
 .TP 8
 .B "\-engine \fIengine_type_id\fP"
 This option, which is intended for Cygwin/X developers,
@@ -265,8 +262,6 @@ The engine type ids are:
 .RS
 .IP 1 4
 Shadow GDI
-.IP 2 4
-Shadow DirectDraw
 .IP 4 4
 Shadow DirectDraw Non-Locking
 .RE
