@@ -71,6 +71,7 @@ SRCS =	InitInput.c \
 	winmsgwindow.c \
 	winmultiwindowclass.c \
 	winmultiwindowicons.c \
+	winos.c \
 	winprefs.c \
 	winprefsyacc.y \
 	winprefslex.l \

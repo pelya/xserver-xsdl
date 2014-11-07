@@ -1196,6 +1196,12 @@ Bool
 winCreateMsgWindowThread(void);
 
 /*
+ * winos.c
+ */
+void
+winOS(void);
+
+/*
  * END DDX and DIX Function Prototypes
  */
 

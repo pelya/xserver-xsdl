@@ -1200,6 +1200,7 @@ winLogVersionInfo(void)
         }
     }
 #endif
+    winOS();
     if (strlen(BUILDERSTRING))
         ErrorF("%s\n", BUILDERSTRING);
     ErrorF("Contact: %s\n", BUILDERADDR);
