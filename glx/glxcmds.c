@@ -2025,7 +2025,7 @@ __glXDisp_Render(__GLXclientState * cl, GLbyte * pc)
     left = (req->length << 2) - sz_xGLXRenderReq;
     while (left > 0) {
         __GLXrenderSizeData entry;
-        int extra;
+        int extra = 0;
         __GLXdispatchRenderProcPtr proc;
         int err;
 
@@ -2044,6 +2044,9 @@ __glXDisp_Render(__GLXclientState * cl, GLbyte * pc)
         cmdlen = hdr->length;
         opcode = hdr->opcode;
 
+        if (left < cmdlen)
+            return BadLength;
+
         /*
          ** Check for core opcodes and grab entry data.
          */
@@ -2057,6 +2060,10 @@ __glXDisp_Render(__GLXclientState * cl, GLbyte * pc)
             return __glXError(GLXBadRenderRequest);
         }
 
+        if (cmdlen < entry.bytes) {
+            return BadLength;
+        }
+
         if (entry.varsize) {
             /* variable size command */
             extra = (*entry.varsize) (pc + __GLX_RENDER_HDR_SIZE,
@@ -2064,17 +2071,9 @@ __glXDisp_Render(__GLXclientState * cl, GLbyte * pc)
             if (extra < 0) {
                 return BadLength;
             }
-            if (cmdlen != __GLX_PAD(entry.bytes + extra)) {
-                return BadLength;
-            }
         }
-        else {
-            /* constant size command */
-            if (cmdlen != __GLX_PAD(entry.bytes)) {
-                return BadLength;
-            }
-        }
-        if (left < cmdlen) {
+
+        if (cmdlen != safe_pad(safe_add(entry.bytes, extra))) {
             return BadLength;
         }
 
