@@ -115,21 +115,6 @@ cbrt(double x)
  *
  */
 
-#undef max
-#undef min
-
-_X_INLINE static int
-max(const int x, const int y)
-{
-    return x > y ? x : y;
-}
-
-_X_INLINE static int
-min(const int x, const int y)
-{
-    return x < y ? x : y;
-}
-
 struct bound {
     double min, max;
 };
