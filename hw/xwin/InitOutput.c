@@ -690,6 +690,20 @@ OsVendorInit(void)
             }
         }
     }
+
+    /* Work out what the default resize setting should be, and apply it if it
+     was not explicitly specified */
+    {
+        int j;
+        for (j = 0; j < g_iNumScreens; j++) {
+            if (g_ScreenInfo[j].iResizeMode == resizeDefault) {
+                if (g_ScreenInfo[j].fFullScreen)
+                    g_ScreenInfo[j].iResizeMode = resizeNotAllowed;
+                else
+                    g_ScreenInfo[j].iResizeMode = resizeWithRandr;
+                }
+        }
+    }
 }
 
 static void

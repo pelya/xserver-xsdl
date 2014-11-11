@@ -316,7 +316,7 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 
         /* Break if we do not allow resizing */
-        if ((s_pScreenInfo->iResizeMode == notAllowed)
+        if ((s_pScreenInfo->iResizeMode == resizeNotAllowed)
             || !s_pScreenInfo->fDecoration
 #ifdef XWIN_MULTIWINDOWEXTWM
             || s_pScreenInfo->fMWExtWM

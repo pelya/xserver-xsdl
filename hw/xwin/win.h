@@ -335,7 +335,8 @@ typedef struct {
  * Resize modes
  */
 typedef enum {
-    notAllowed,
+    resizeDefault = -1,
+    resizeNotAllowed,
     resizeWithScrollbars,
     resizeWithRandr
 } winResizeMode;
