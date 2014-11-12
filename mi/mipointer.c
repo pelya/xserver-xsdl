@@ -553,10 +553,15 @@ miPointerMoveNoEvent(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
  * The coordinates provided are always absolute. The parameter mode whether
  * it was relative or absolute movement that landed us at those coordinates.
  *
+ * If the cursor was constrained by a barrier, ET_Barrier* events may be
+ * generated and appended to the InternalEvent list provided.
+ *
  * @param pDev The device to move
  * @param mode Movement mode (Absolute or Relative)
  * @param[in,out] screenx The x coordinate in desktop coordinates
  * @param[in,out] screeny The y coordinate in desktop coordinates
+ * @param[in,out] nevents The number of events in events (before/after)
+ * @param[in,out] events The list of events before/after being constrained
  */
 ScreenPtr
 miPointerSetPosition(DeviceIntPtr pDev, int mode, double *screenx,
