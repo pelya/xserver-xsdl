@@ -74,6 +74,7 @@ WinKBLayoutRec winKBLayouts[] = {
     {0x00010410, -1, "pc105", "it", NULL, NULL, "Italian (142)"},
     {0xa0000410, -1, "macbook79", "it", "mac", NULL, "Italiano (Apple)"},
     {0x00000411, 7, "jp106", "jp", NULL, NULL, "Japanese"},
+    {0x00000412, -1, "kr106", "kr", NULL, NULL, "Korean"},
     {0x00000413, -1, "pc105", "nl", NULL, NULL, "Dutch"},
     {0x00000813, -1, "pc105", "be", NULL, NULL, "Dutch (Belgian)"},
     {0x00000414, -1, "pc105", "no", NULL, NULL, "Norwegian"},
