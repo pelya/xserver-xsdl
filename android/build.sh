@@ -749,7 +749,7 @@ autoreconf -v --install \
 
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h" \
-LDFLAGS="-L$BUILDDIR" \
+LDFLAGS="-pie -L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -946,7 +946,7 @@ autoreconf -v --install \
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h \
 -Dsethostent=abs -Dendhostent=sync" \
-LDFLAGS="-L$BUILDDIR" \
+LDFLAGS="-pie -L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -985,7 +985,7 @@ echo "SRCS = bright.c clip.c cmuwmrast.c compress.c dither.c faces.c fbm.c \
       sunraster.c value.c window.c xbitmap.c xli.c \
       xpixmap.c xwd.c zio.c zoom.c ddxli.c doslib.c tga.c bmp.c pcd.c " > Makefile
 echo 'xli: $(SRCS)' >> Makefile
-echo '	$(CC) $(CFLAGS) $(SRCS) -o xli $(LDFLAGS) -lX11 -lxcb -lXau -lXdmcp -landroid_support -lm' >> Makefile
+echo '	$(CC) $(CFLAGS) $(SRCS) -o xli $(LDFLAGS) -pie -lX11 -lxcb -lXau -lXdmcp -landroid_support -lm' >> Makefile
 
 echo '#include <stdarg.h>' > varargs.h
 
@@ -1019,7 +1019,7 @@ curl -L $PKGURL | tar xvz || exit 1
 cd $PKGDIR
 
 env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc" \
-LDFLAGS="-L$BUILDDIR" \
+LDFLAGS="-pie -L$BUILDDIR" \
 LIBS="-lX11 -lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \

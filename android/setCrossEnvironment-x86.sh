@@ -33,7 +33,7 @@ fi
 ARCH=x86
 
 CFLAGS="\
--ffunction-sections -funwind-tables -no-canonical-prefixes \
+-fpic -ffunction-sections -funwind-tables -no-canonical-prefixes \
 -fstack-protector -O2 -g -DNDEBUG \
 -fomit-frame-pointer -fstrict-aliasing -funswitch-loops \
 -finline-limit=300 \
