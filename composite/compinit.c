@@ -209,7 +209,7 @@ compFindVisuallessDepth(ScreenPtr pScreen, int d)
         }
     }
     /*
-     * If there isn't one, then it's gonna be hard to have 
+     * If there isn't one, then it's gonna be hard to have
      * an associated visual
      */
     return 0;

@@ -25,7 +25,7 @@
  *
  *
  * Original Author: Alan Hourihane <alanh@tungstengraphics.com>
- * Rewrite: Dave Airlie <airlied@redhat.com> 
+ * Rewrite: Dave Airlie <airlied@redhat.com>
  *
  */
 

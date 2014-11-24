@@ -700,7 +700,7 @@ winUpdateWindowsWindow(WindowPtr pWin)
 }
 
 /*
- * winGetWindowID - 
+ * winGetWindowID -
  */
 
 XID
@@ -720,7 +720,7 @@ winGetWindowID(WindowPtr pWin)
 }
 
 /*
- * winFindWindow - 
+ * winFindWindow -
  */
 
 static void
@@ -734,7 +734,7 @@ winFindWindow(void *value, XID id, void *cdata)
 }
 
 /*
- * winReorderWindowsMultiWindow - 
+ * winReorderWindowsMultiWindow -
  */
 
 void

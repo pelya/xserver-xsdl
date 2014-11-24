@@ -76,7 +76,7 @@
 
 /*
  *  enable this for debugging
- 
+
     #define COMPOSITE_DEBUG
  */
 

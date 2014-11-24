@@ -92,7 +92,7 @@ extern _X_EXPORT const FbMergeRopRec FbMergeRopBits[16];
 #define fbAndStip(rop,fg,pm)	fbAndT(rop,fg,pm,FbStip)
 
 /*
- * Stippling operations; 
+ * Stippling operations;
  */
 
 #define FbStippleRRop(dst, b, fa, fx, ba, bx) \

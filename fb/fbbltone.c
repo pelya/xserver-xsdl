@@ -206,7 +206,7 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
     pixelsPerDst = FB_UNIT / dstBpp;
 
     /*
-     * Number of source stipple patterns in FbStip 
+     * Number of source stipple patterns in FbStip
      */
     unitsPerSrc = FB_STIP_UNIT / pixelsPerDst;
 
@@ -266,8 +266,8 @@ fbBltOne(FbStip * src, FbStride srcStride,      /* FbStip units per scanline */
     }
 
     /*
-     * Compute total number of destination words written, but 
-     * don't count endmask 
+     * Compute total number of destination words written, but
+     * don't count endmask
      */
     nDst = nmiddle;
     if (startmask)

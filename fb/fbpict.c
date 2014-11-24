@@ -113,7 +113,7 @@ fbGlyphs(CARD8 op,
     int xDst = list->xOff, yDst = list->yOff;
 
     miCompositeSourceValidate(pSrc);
-    
+
     n_glyphs = 0;
     for (i = 0; i < nlist; ++i)
 	n_glyphs += list[i].len;
@@ -122,12 +122,12 @@ fbGlyphs(CARD8 op,
 	glyphCache = pixman_glyph_cache_create();
 
     pixman_glyph_cache_freeze (glyphCache);
-    
+
     if (n_glyphs > N_STACK_GLYPHS) {
 	if (!(pglyphs = malloc (n_glyphs * sizeof (pixman_glyph_t))))
 	    goto out;
     }
-    
+
     i = 0;
     x = y = 0;
     while (nlist--) {

@@ -404,7 +404,7 @@ ProcShmAttach(ClientPtr client)
         }
 
         /* The attach was performed with root privs. We must
-         * do manual checking of access rights for the credentials 
+         * do manual checking of access rights for the credentials
          * of the client */
 
         if (shm_access(client, &(SHM_PERM(buf)), stuff->readOnly) == -1) {
@@ -1147,7 +1147,7 @@ ProcShmAttachFd(ClientPtr client)
                          fd, 0);
 
     close(fd);
-    if ((shmdesc->addr == ((char *) -1))) {
+    if (shmdesc->addr == ((char *) -1)) {
         free(shmdesc);
         return BadAccess;
     }
@@ -1237,7 +1237,7 @@ ProcShmCreateSegment(ClientPtr client)
                          MAP_SHARED,
                          fd, 0);
 
-    if ((shmdesc->addr == ((char *) -1))) {
+    if (shmdesc->addr == ((char *) -1)) {
         close(fd);
         free(shmdesc);
         return BadAccess;
