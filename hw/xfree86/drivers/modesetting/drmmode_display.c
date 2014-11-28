@@ -49,6 +49,11 @@
 
 #include "driver.h"
 
+#ifdef GLAMOR
+#define GLAMOR_FOR_XORG 1
+#include "glamor.h"
+#endif
+
 static struct dumb_bo *
 dumb_bo_create(int fd,
                const unsigned width, const unsigned height, const unsigned bpp)
@@ -1242,6 +1247,20 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
         screen->ModifyPixmapHeader(ppix, width, height, -1, -1,
                                    pitch, drmmode->shadow_fb);
     }
+
+#ifdef GLAMOR
+    if (drmmode->glamor) {
+        if (!glamor_egl_create_textured_screen_ext(screen,
+                                                   drmmode->front_bo->handle,
+                                                   scrn->displayWidth *
+                                                   scrn->bitsPerPixel / 8,
+                                                   NULL)) {
+            xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+                       "glamor_egl_create_textured_screen_ext() failed\n");
+            goto fail;
+        }
+    }
+#endif
 
     for (i = 0; i < xf86_config->num_crtc; i++) {
         xf86CrtcPtr crtc = xf86_config->crtc[i];
