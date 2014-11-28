@@ -1487,7 +1487,7 @@ drmmode_setup_colormap(ScreenPtr pScreen, ScrnInfoPtr pScrn)
     return TRUE;
 }
 
-#ifdef HAVE_UDEV
+#ifdef CONFIG_UDEV_KMS
 static void
 drmmode_handle_uevents(int fd, void *closure)
 {
@@ -1507,7 +1507,7 @@ drmmode_handle_uevents(int fd, void *closure)
 void
 drmmode_uevent_init(ScrnInfoPtr scrn, drmmode_ptr drmmode)
 {
-#ifdef HAVE_UDEV
+#ifdef CONFIG_UDEV_KMS
     struct udev *u;
     struct udev_monitor *mon;
 
@@ -1540,7 +1540,7 @@ drmmode_uevent_init(ScrnInfoPtr scrn, drmmode_ptr drmmode)
 void
 drmmode_uevent_fini(ScrnInfoPtr scrn, drmmode_ptr drmmode)
 {
-#ifdef HAVE_UDEV
+#ifdef CONFIG_UDEV_KMS
     if (drmmode->uevent_handler) {
         struct udev *u = udev_monitor_get_udev(drmmode->uevent_monitor);
 
