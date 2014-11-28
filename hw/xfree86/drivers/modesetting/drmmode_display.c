@@ -1024,8 +1024,7 @@ static const char *const output_names[] = {
 };
 
 static void
-drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num,
-                    int *num_dvi, int *num_hdmi)
+drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num)
 {
     xf86OutputPtr output;
     drmModeConnectorPtr koutput;
@@ -1298,7 +1297,7 @@ static const xf86CrtcConfigFuncsRec drmmode_xf86crtc_config_funcs = {
 Bool
 drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp)
 {
-    int i, num_dvi = 0, num_hdmi = 0;
+    int i;
     int ret;
     uint64_t value = 0;
 
@@ -1326,7 +1325,7 @@ drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp)
             drmmode_crtc_init(pScrn, drmmode, i);
 
     for (i = 0; i < drmmode->mode_res->count_connectors; i++)
-        drmmode_output_init(pScrn, drmmode, i, &num_dvi, &num_hdmi);
+        drmmode_output_init(pScrn, drmmode, i);
 
     /* workout clones */
     drmmode_clones_init(pScrn, drmmode);
