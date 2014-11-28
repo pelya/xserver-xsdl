@@ -593,7 +593,7 @@ try_enable_glamor(ScrnInfoPtr pScrn)
     Bool do_glamor = (!accel_method_str ||
                       strcmp(accel_method_str, "glamor") == 0);
 
-    ms->glamor = FALSE;
+    ms->drmmode.glamor = FALSE;
 
 #ifdef GLAMOR
     if (!do_glamor) {
@@ -604,7 +604,7 @@ try_enable_glamor(ScrnInfoPtr pScrn)
     if (xf86LoadSubModule(pScrn, GLAMOR_EGL_MODULE_NAME)) {
         if (glamor_egl_init(pScrn, ms->fd)) {
             xf86DrvMsg(pScrn->scrnIndex, X_INFO, "glamor initialized\n");
-            ms->glamor = TRUE;
+            ms->drmmode.glamor = TRUE;
         } else {
             xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                        "glamor initialization failed\n");
@@ -788,7 +788,7 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
     try_enable_glamor(pScrn);
 
-    if (ms->glamor) {
+    if (ms->drmmode.glamor) {
         xf86LoadSubModule(pScrn, "dri2");
     } else {
         Bool prefer_shadow = TRUE;
@@ -887,7 +887,7 @@ CreateScreenResources(ScreenPtr pScreen)
         return FALSE;
 
 #ifdef GLAMOR
-    if (ms->glamor) {
+    if (ms->drmmode.glamor) {
         if (!glamor_egl_create_textured_screen_ext(pScreen,
                                                    ms->drmmode.front_bo->handle,
                                                    pScrn->displayWidth *
@@ -1053,7 +1053,7 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
     fbPictureInit(pScreen, NULL, 0);
 
 #ifdef GLAMOR
-    if (ms->glamor) {
+    if (ms->drmmode.glamor) {
         if (!glamor_init(pScreen,
                          GLAMOR_USE_EGL_SCREEN |
                          GLAMOR_USE_SCREEN |
@@ -1116,7 +1116,7 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
     }
 
 #ifdef GLAMOR
-    if (ms->glamor) {
+    if (ms->drmmode.glamor) {
         if (!ms_dri2_screen_init(pScreen)) {
             xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                        "Failed to initialize the DRI2 extension.\n");
@@ -1190,7 +1190,7 @@ CloseScreen(ScreenPtr pScreen)
     modesettingPtr ms = modesettingPTR(pScrn);
 
 #ifdef GLAMOR
-    if (ms->glamor) {
+    if (ms->drmmode.glamor) {
         ms_dri2_close_screen(pScreen);
     }
 #endif

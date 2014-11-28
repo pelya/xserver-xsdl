@@ -56,6 +56,7 @@ typedef struct {
     struct dumb_bo *front_bo;
     Bool sw_cursor;
 
+    Bool glamor;
     Bool shadow_enable;
     void *shadow_fb;
 
