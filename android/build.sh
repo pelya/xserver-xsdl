@@ -1197,7 +1197,7 @@ LIBS="-lfontenc -lfreetype -llog -lSDL -lGLESv1_CM -landroid-shmem" \
 --disable-xephyr --disable-xfake --disable-xfbdev --disable-unit-tests --disable-tslib \
 --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
 --enable-xsdl --enable-kdrive --enable-kdrive-kbd --enable-kdrive-mouse --enable-kdrive-evdev \
---enable-shm --enable-mitshm \
+--enable-shm --enable-mitshm --disable-config-udev \
 || exit 1
 
 ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1
