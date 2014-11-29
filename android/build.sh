@@ -46,8 +46,13 @@ cd $BUILDDIR
 # =========== xsproto ===========
 
 [ -e X11/Xfuncproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/x11proto/snapshot/xproto-7.0.24.tar.gz | tar xvz || exit 1
-ln -sf xproto-7.0.24 X11
+PKGURL=http://cgit.freedesktop.org/xorg/proto/x11proto/snapshot/xproto-7.0.24.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+
+ln -sf $PKGDIR X11
 cd X11
 patch -p0 < ../../xproto.diff || exit 1
 $BUILDDIR/setCrossEnvironment.sh \
@@ -59,8 +64,13 @@ cd $BUILDDIR
 # =========== fontsproto ===========
 
 [ -e X11/fonts/fontstruct.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/fontsproto/snapshot/fontsproto-2.1.2.tar.gz | tar xvz || exit 1
-ln -sf ../fontsproto-2.1.2 X11/fonts
+PKGURL=http://cgit.freedesktop.org/xorg/proto/fontsproto/snapshot/fontsproto-2.1.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+
+ln -sf ../$PKGDIR X11/fonts
 cd X11/fonts
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
@@ -71,9 +81,12 @@ cd $BUILDDIR
 # =========== xtrans ===========
 
 [ -e xtrans-1.2.7 ] || {
-[ -e xtrans-1.2.7 ] || curl http://cgit.freedesktop.org/xorg/lib/libxtrans/snapshot/xtrans-1.2.7.tar.gz | tar xvz || exit 1
-
-cd xtrans-1.2.7
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libxtrans/snapshot/xtrans-1.2.7.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -92,8 +105,13 @@ ln -sf ../xtrans-1.2.7 X11/Xtrans
 # =========== xextproto ===========
 
 [ -e X11/extensions/geproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/xextproto/snapshot/xextproto-7.2.1.tar.gz | tar xvz || exit 1
-ln -sf ../xextproto-7.2.1 X11/extensions
+PKGURL=http://cgit.freedesktop.org/xorg/proto/xextproto/snapshot/xextproto-7.2.1.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+
+ln -sf ../$PKGDIR X11/extensions
 cd X11/extensions
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
@@ -104,8 +122,13 @@ cd $BUILDDIR
 # =========== inputproto ===========
 
 [ -e X11/extensions/XI.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/inputproto/snapshot/inputproto-2.3.tar.gz | tar xvz || exit 1
-cd inputproto-2.3
+PKGURL=http://cgit.freedesktop.org/xorg/proto/inputproto/snapshot/inputproto-2.3.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -118,8 +141,13 @@ done
 # =========== kbproto ===========
 
 [ -e X11/extensions/XKBproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/kbproto/snapshot/kbproto-1.0.6.tar.gz | tar xvz || exit 1
-cd kbproto-1.0.6
+PKGURL=http://cgit.freedesktop.org/xorg/proto/kbproto/snapshot/kbproto-1.0.6.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -132,8 +160,13 @@ done
 # =========== xineramaproto ===========
 
 [ -e X11/extensions/panoramiXproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/xineramaproto/snapshot/xineramaproto-1.2.1.tar.gz | tar xvz || exit 1
-cd xineramaproto-1.2.1
+PKGURL=http://cgit.freedesktop.org/xorg/proto/xineramaproto/snapshot/xineramaproto-1.2.1.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -146,8 +179,13 @@ done
 # =========== renderproto ===========
 
 [ -e X11/extensions/renderproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/renderproto/snapshot/renderproto-0.11.1.tar.gz | tar xvz || exit 1
-cd renderproto-0.11.1
+PKGURL=http://cgit.freedesktop.org/xorg/proto/renderproto/snapshot/renderproto-0.11.1.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -160,8 +198,13 @@ done
 # =========== xfixesproto ===========
 
 [ -e X11/extensions/xfixesproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/fixesproto/snapshot/fixesproto-5.0.tar.gz | tar xvz || exit 1
-cd fixesproto-5.0
+PKGURL=http://cgit.freedesktop.org/xorg/proto/fixesproto/snapshot/fixesproto-5.0.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -174,8 +217,13 @@ done
 # =========== damageproto ===========
 
 [ -e X11/extensions/damageproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/damageproto/snapshot/damageproto-1.2.1.tar.gz | tar xvz || exit 1
-cd damageproto-1.2.1
+PKGURL=http://cgit.freedesktop.org/xorg/proto/damageproto/snapshot/damageproto-1.2.1.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -188,8 +236,13 @@ done
 # =========== compositeproto ===========
 
 [ -e X11/extensions/compositeproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/compositeproto/snapshot/compositeproto-0.4.2.tar.gz | tar xvz || exit 1
-cd compositeproto-0.4.2
+PKGURL=http://cgit.freedesktop.org/xorg/proto/compositeproto/snapshot/compositeproto-0.4.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -202,8 +255,13 @@ done
 # =========== bigreqsproto ===========
 
 [ -e X11/extensions/bigreqsproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/bigreqsproto/snapshot/bigreqsproto-1.1.2.tar.gz | tar xvz || exit 1
-cd bigreqsproto-1.1.2
+PKGURL=http://cgit.freedesktop.org/xorg/proto/bigreqsproto/snapshot/bigreqsproto-1.1.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -216,8 +274,13 @@ done
 # =========== scrnsaverproto ===========
 
 [ -e X11/extensions/saver.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/scrnsaverproto/snapshot/scrnsaverproto-1.2.2.tar.gz | tar xvz || exit 1
-cd scrnsaverproto-1.2.2
+PKGURL=http://cgit.freedesktop.org/xorg/proto/scrnsaverproto/snapshot/scrnsaverproto-1.2.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -230,8 +293,13 @@ done
 # =========== videoproto ===========
 
 [ -e X11/extensions/Xv.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/videoproto/snapshot/videoproto-2.3.2.tar.gz | tar xvz || exit 1
-cd videoproto-2.3.2
+PKGURL=http://cgit.freedesktop.org/xorg/proto/videoproto/snapshot/videoproto-2.3.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -244,8 +312,13 @@ done
 # =========== resourceproto ===========
 
 [ -e X11/extensions/XResproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/resourceproto/snapshot/resourceproto-1.2.0.tar.gz | tar xvz || exit 1
-cd resourceproto-1.2.0
+PKGURL=http://cgit.freedesktop.org/xorg/proto/resourceproto/snapshot/resourceproto-1.2.0.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -258,8 +331,13 @@ done
 # =========== xcmiscproto ===========
 
 [ -e X11/extensions/xcmiscproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/xcmiscproto/snapshot/xcmiscproto-1.2.2.tar.gz | tar xvz || exit 1
-cd xcmiscproto-1.2.2
+PKGURL=http://cgit.freedesktop.org/xorg/proto/xcmiscproto/snapshot/xcmiscproto-1.2.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -272,8 +350,13 @@ done
 # =========== randrproto ===========
 
 [ -e X11/extensions/randr.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/randrproto/snapshot/randrproto-1.4.0.tar.gz | tar xvz || exit 1
-cd randrproto-1.4.0
+PKGURL=http://cgit.freedesktop.org/xorg/proto/randrproto/snapshot/randrproto-1.4.0.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -286,8 +369,13 @@ done
 # =========== xf86bigfontproto ===========
 
 [ -e X11/extensions/xf86bigfproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/xf86bigfontproto/snapshot/xf86bigfontproto-1.2.0.tar.gz | tar xvz || exit 1
-cd xf86bigfontproto-1.2.0
+PKGURL=http://cgit.freedesktop.org/xorg/proto/xf86bigfontproto/snapshot/xf86bigfontproto-1.2.0.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -300,8 +388,13 @@ done
 # =========== recordproto ===========
 
 [ -e X11/extensions/recordproto.h ] || {
-curl http://cgit.freedesktop.org/xorg/proto/recordproto/snapshot/recordproto-1.14.2.tar.gz | tar xvz || exit 1
-cd recordproto-1.14.2
+PKGURL=http://cgit.freedesktop.org/xorg/proto/recordproto/snapshot/recordproto-1.14.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -314,8 +407,12 @@ done
 # =========== libpixman-1.a ===========
 
 [ -e libpixman-1.a ] || {
-curl http://cairographics.org/releases/pixman-0.30.2.tar.gz | tar xvz || exit 1
-cd pixman-0.30.2
+PKGURL=http://cairographics.org/releases/pixman-0.30.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 env CFLAGS="-I$NDK/sources/android/cpufeatures" \
 LDFLAGS="-L$NDK/sources/android/libportable/libs/$TARGET_ARCH -lportable" \
@@ -337,9 +434,12 @@ ln -sf $BUILDDIR/pixman-0.30.2/pixman/.libs/libpixman-1.a $BUILDDIR/libpixman-1.
 # =========== libfontenc.a ===========
 
 [ -e libfontenc.a ] || {
-curl http://cgit.freedesktop.org/xorg/lib/libfontenc/snapshot/libfontenc-1.1.2.tar.gz | tar xvz || exit 1
-
-cd libfontenc-1.1.2
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libfontenc/snapshot/libfontenc-1.1.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -371,9 +471,12 @@ ln -sf libfontenc-1.1.2/src/.libs/libfontenc.a ./
 ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libfreetype.a $BUILDDIR/
 
 [ -e libXfont.a ] || {
-curl http://cgit.freedesktop.org/xorg/lib/libXfont/snapshot/libXfont-1.4.6.tar.gz | tar xvz || exit 1
-
-cd libXfont-1.4.6
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libXfont/snapshot/libXfont-1.4.6.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -410,9 +513,12 @@ done
 # =========== libXau.a ==========
 
 [ -e libXau.a ] || {
-curl http://cgit.freedesktop.org/xorg/lib/libXau/snapshot/libXau-1.0.8.tar.gz | tar xvz || exit 1
-
-cd libXau-1.0.8
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libXau/snapshot/libXau-1.0.8.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -444,9 +550,12 @@ ln -sf ../libXau-1.0.8/include/X11/Xauth.h X11/
 # =========== libXdmcp.a ==========
 
 [ -e libXdmcp.a ] || {
-curl http://cgit.freedesktop.org/xorg/lib/libXdmcp/snapshot/libXdmcp-1.1.1.tar.gz | tar xvz || exit 1
-
-cd libXdmcp-1.1.1
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libXdmcp/snapshot/libXdmcp-1.1.1.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -477,8 +586,13 @@ ln -sf ../libXdmcp-1.1.1/include/X11/Xdmcp.h X11/
 
 # =========== xcbproto ===========
 [ -e proto-1.8 ] || {
-curl http://cgit.freedesktop.org/xcb/proto/snapshot/proto-1.8.tar.gz | tar xvz || exit 1
-cd proto-1.8
+PKGURL=http://cgit.freedesktop.org/xcb/proto/snapshot/proto-1.8.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -490,9 +604,12 @@ cd $BUILDDIR
 # =========== libxcb.a ==========
 
 [ -e libxcb.a ] || {
-curl http://cgit.freedesktop.org/xcb/libxcb/snapshot/libxcb-1.10.tar.gz | tar xvz || exit 1
-
-cd libxcb-1.10
+PKGURL=http://cgit.freedesktop.org/xcb/libxcb/snapshot/libxcb-1.10.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -540,9 +657,12 @@ cd $BUILDDIR
 # =========== libX11.a ==========
 
 [ -e libX11.a ] || {
-curl http://cgit.freedesktop.org/xorg/lib/libX11/snapshot/libX11-1.6.2.tar.gz | tar xvz || exit 1
-
-cd libX11-1.6.2
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libX11/snapshot/libX11-1.6.2.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -585,8 +705,8 @@ done
 PKGURL=http://cgit.freedesktop.org/xorg/lib/libXext/snapshot/libXext-1.3.2.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
-curl $PKGURL | tar xvz || exit 1
-
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -625,8 +745,8 @@ done
 PKGURL=http://cgit.freedesktop.org/xorg/lib/libXrender/snapshot/libXrender-0.9.8.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
-curl $PKGURL | tar xvz || exit 1
-
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -665,8 +785,8 @@ done
 PKGURL=http://cgit.freedesktop.org/xorg/lib/libXrandr/snapshot/libXrandr-1.4.2.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
-curl $PKGURL | tar xvz || exit 1
-
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -702,9 +822,12 @@ done
 # =========== libxkbfile.a ==========
 
 [ -e libxkbfile.a ] || {
-curl http://cgit.freedesktop.org/xorg/lib/libxkbfile/snapshot/libxkbfile-1.0.8.tar.gz | tar xvz || exit 1
-
-cd libxkbfile-1.0.8
+PKGURL=http://cgit.freedesktop.org/xorg/lib/libxkbfile/snapshot/libxkbfile-1.0.8.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -739,9 +862,12 @@ done
 # =========== xkbcomp binary ==========
 
 [ -e xkbcomp ] || {
-curl http://cgit.freedesktop.org/xorg/app/xkbcomp/snapshot/xkbcomp-1.2.4.tar.gz | tar xvz || exit 1
-
-cd xkbcomp-1.2.4
+PKGURL=http://cgit.freedesktop.org/xorg/app/xkbcomp/snapshot/xkbcomp-1.2.4.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -778,7 +904,8 @@ sh -c '$STRIP xkbcomp'
 PKGURL=http://cgit.freedesktop.org/xorg/lib/libICE/snapshot/libICE-1.0.8.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
-curl $PKGURL | tar xvz || exit 1
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -816,8 +943,8 @@ ln -sf ../$PKGDIR/include/X11/ICE X11/
 PKGURL=http://cgit.freedesktop.org/xorg/lib/libSM/snapshot/libSM-1.2.2.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
-curl $PKGURL | tar xvz || exit 1
-
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -855,7 +982,8 @@ ln -sf ../$PKGDIR/include/X11/SM X11/
 PKGURL=http://cgit.freedesktop.org/xorg/lib/libXt/snapshot/libXt-1.1.4.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
-curl $PKGURL | tar xvz || exit 1
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -898,7 +1026,8 @@ done
 PKGURL=http://cgit.freedesktop.org/xorg/lib/libXmu/snapshot/libXmu-1.1.2.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
-curl $PKGURL | tar xvz || exit 1
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -936,7 +1065,8 @@ ln -sf ../$PKGDIR/include/X11/Xmu X11/
 PKGURL=http://cgit.freedesktop.org/xorg/app/xhost/snapshot/xhost-1.0.6.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
-curl $PKGURL | tar xvz || exit 1
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -975,7 +1105,8 @@ sh -c '$STRIP xhost'
 PKGURL=http://web.aanet.com.au/gwg/xli-1.16.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
-curl $PKGURL | tar xvz || exit 1
+[ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 echo "SRCS = bright.c clip.c cmuwmrast.c compress.c dither.c faces.c fbm.c \
@@ -1015,7 +1146,8 @@ sh -c '$STRIP xli'
 PKGURL=https://github.com/kfish/xsel/archive/master.tar.gz
 PKGDIR=xsel-master
 echo $PKGDIR: $PKGURL
-curl -L $PKGURL | tar xvz || exit 1
+[ -e ../$PKGDIR.tar.gz ] || curl -L $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc" \
