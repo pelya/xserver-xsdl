@@ -137,8 +137,9 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
     }
 
     if (asprintf(&buf,
-                 "\"%s%sxkbcomp\" -w %d %s -xkm \"%s\" "
+                 "\"%s%sxkbcomp\" -I%s/usr/share/X11/xkb -w %d %s -xkm \"%s\" "
                  "-em1 %s -emp %s -eml %s \"%s%s.xkm\"",
+                 (getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ""),
                  xkbbindir, xkbbindirsep,
                  ((xkbDebugFlags < 2) ? 1 :
                   ((xkbDebugFlags > 10) ? 10 : (int) xkbDebugFlags)),
