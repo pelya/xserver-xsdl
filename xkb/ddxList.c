@@ -167,7 +167,8 @@ char	tmpname[PATH_MAX];
 	    free(buf);
 	    if (asprintf
 		(&buf,
-		 "'%s/xkbcomp' '-R%s/%s' -w %ld -l -vlfhpR '%s'" W32_tmparg,
+		 "'%s/xkbcomp' -I%s/usr/share/X11/xkb '-R%s/%s' -w %ld -l -vlfhpR '%s'" W32_tmparg,
+		 (getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ""),
 		 XkbBinDirectory, XkbBaseDirectory, componentDirs[what],
 		 (long) ((xkbDebugFlags < 2) ? 1 :
 			 ((xkbDebugFlags > 10) ? 10 : xkbDebugFlags)),
@@ -188,7 +189,8 @@ char	tmpname[PATH_MAX];
 	    free(buf);
 	    if (asprintf
 		(&buf,
-		 "xkbcomp -R%s -w %ld -l -vlfhpR '%s'" W32_tmparg,
+		 "xkbcomp -I%s/usr/share/X11/xkb -R%s -w %ld -l -vlfhpR '%s'" W32_tmparg,
+		 (getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ""),
 		 componentDirs[what],
 		 (long)	((xkbDebugFlags < 2) ? 1 :
 			 ((xkbDebugFlags > 10) ? 10 : xkbDebugFlags)),
@@ -201,6 +203,7 @@ char	tmpname[PATH_MAX];
     if (!haveDir)
     {  
 #ifndef WIN32
+	DebugF("[xkb] xkbList executes: %s\n",buf);
 	in= Popen(buf,"r");
 #else
         if (xkbDebugFlags)

@@ -222,9 +222,10 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
     }
 
     if (asprintf(&buf,
-		 "%s%sxkbcomp -w %d %s -xkm %s "
+		 "%s%sxkbcomp -I%s/usr/share/X11/xkb -w %d %s -xkm %s "
 		  "-em1 %s -emp %s -eml %s %s%s.xkm",
 		 xkbbindir, xkbbindirsep,
+		 (getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ""),
 		 ((xkbDebugFlags < 2) ? 1 :
 		  ((xkbDebugFlags > 10) ? 10 : (int) xkbDebugFlags)),
 		 xkbbasedirflag ? xkbbasedirflag : "", xkmfile,
@@ -238,7 +239,7 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
         LogMessage(X_ERROR, "XKB: Could not invoke xkbcomp: not enough memory\n");
         return FALSE;
     }
-    
+    DebugF("[xkb] XkbDDXCompileKeymapByNames executes: %s\n",buf);
 #ifndef WIN32
     out= Popen(buf,"w");
 #else
@@ -249,13 +250,7 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 #ifdef DEBUG
     if (xkbDebugFlags) {
        ErrorF("[xkb] XkbDDXCompileKeymapByNames compiling keymap:\n");
-#ifdef __ANDROID__
-       //FILE * dbg = fopen("/sdcard/xkb-input.txt", "wb");
-       //XkbWriteXKBKeymapForNames(dbg,names,xkb,want,need);
-       //fclose(dbg);
-#else
        XkbWriteXKBKeymapForNames(stderr,names,xkb,want,need);
-#endif
     }
 #endif
 	XkbWriteXKBKeymapForNames(out,names,xkb,want,need);
