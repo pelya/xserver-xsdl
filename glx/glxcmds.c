@@ -198,6 +198,12 @@ __glXdirectContextDestroy(__GLXcontext * context)
     free(context);
 }
 
+static int
+__glXdirectContextLoseCurrent(__GLXcontext * context)
+{
+    return GL_TRUE;
+}
+
 _X_HIDDEN __GLXcontext *
 __glXdirectContextCreate(__GLXscreen * screen,
                          __GLXconfig * modes, __GLXcontext * shareContext)
@@ -209,6 +215,7 @@ __glXdirectContextCreate(__GLXscreen * screen,
         return NULL;
 
     context->destroy = __glXdirectContextDestroy;
+    context->loseCurrent = __glXdirectContextLoseCurrent;
 
     return context;
 }
