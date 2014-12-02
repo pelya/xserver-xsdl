@@ -1916,38 +1916,48 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
 {
     ClientPtr client = cl->client;
     xGLXGetDrawableAttributesReply reply;
-    __GLXdrawable *pGlxDraw;
+    __GLXdrawable *pGlxDraw = NULL;
+    DrawablePtr pDraw;
     CARD32 attributes[14];
     int num = 0, error;
 
     if (!validGlxDrawable(client, drawId, GLX_DRAWABLE_ANY,
-                          DixGetAttrAccess, &pGlxDraw, &error))
-        return error;
+                          DixGetAttrAccess, &pGlxDraw, &error)) {
+        /* hack for GLX 1.2 naked windows */
+        int err = dixLookupWindow((WindowPtr *)&pDraw, drawId, client,
+                                  DixGetAttrAccess);
+        if (err != Success)
+            return error;
+    }
+    if (pGlxDraw)
+        pDraw = pGlxDraw->pDraw;
 
-    attributes[2*num] = GLX_TEXTURE_TARGET_EXT;
-    attributes[2*num+1] = pGlxDraw->target == GL_TEXTURE_2D ?
-        GLX_TEXTURE_2D_EXT :
-        GLX_TEXTURE_RECTANGLE_EXT;
-    num++;
     attributes[2*num] = GLX_Y_INVERTED_EXT;
     attributes[2*num+1] = GL_FALSE;
     num++;
-    attributes[2*num] = GLX_EVENT_MASK;
-    attributes[2*num+1] = pGlxDraw->eventMask;
-    num++;
     attributes[2*num] = GLX_WIDTH;
-    attributes[2*num+1] = pGlxDraw->pDraw->width;
+    attributes[2*num+1] = pDraw->width;
     num++;
     attributes[2*num] = GLX_HEIGHT;
-    attributes[2*num+1] = pGlxDraw->pDraw->height;
+    attributes[2*num+1] = pDraw->height;
     num++;
-    attributes[2*num] = GLX_FBCONFIG_ID;
-    attributes[2*num+1] = pGlxDraw->config->fbconfigID;
-    num++;
-    if (pGlxDraw->type == GLX_DRAWABLE_PBUFFER) {
-        attributes[2*num] = GLX_PRESERVED_CONTENTS;
-        attributes[2*num+1] = GL_TRUE;
+    if (pGlxDraw) {
+        attributes[2*num] = GLX_TEXTURE_TARGET_EXT;
+        attributes[2*num+1] = pGlxDraw->target == GL_TEXTURE_2D ?
+            GLX_TEXTURE_2D_EXT :
+            GLX_TEXTURE_RECTANGLE_EXT;
         num++;
+        attributes[2*num] = GLX_EVENT_MASK;
+        attributes[2*num+1] = pGlxDraw->eventMask;
+        num++;
+        attributes[2*num] = GLX_FBCONFIG_ID;
+        attributes[2*num+1] = pGlxDraw->config->fbconfigID;
+        num++;
+        if (pGlxDraw->type == GLX_DRAWABLE_PBUFFER) {
+            attributes[2*num] = GLX_PRESERVED_CONTENTS;
+            attributes[2*num+1] = GL_TRUE;
+            num++;
+        }
     }
 
     reply = (xGLXGetDrawableAttributesReply) {
