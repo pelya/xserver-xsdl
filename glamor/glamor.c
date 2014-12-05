@@ -123,8 +123,6 @@ glamor_set_screen_pixmap(PixmapPtr screen_pixmap, PixmapPtr *back_pixmap)
 
     pixmap_priv->base.fbo->width = screen_pixmap->drawable.width;
     pixmap_priv->base.fbo->height = screen_pixmap->drawable.height;
-
-    glamor_priv->back_pixmap = back_pixmap;
 }
 
 uint32_t
@@ -218,27 +216,17 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     return pixmap;
 }
 
-void
-glamor_destroy_textured_pixmap(PixmapPtr pixmap)
-{
-    if (pixmap->refcnt == 1) {
-        glamor_pixmap_private *pixmap_priv;
-
-        pixmap_priv = glamor_get_pixmap_private(pixmap);
-        if (pixmap_priv != NULL)
-            glamor_pixmap_destroy_fbo(pixmap_priv);
-    }
-}
-
 Bool
 glamor_destroy_pixmap(PixmapPtr pixmap)
 {
-    glamor_screen_private
-        *glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
-    if (glamor_priv->dri3_enabled)
-        glamor_egl_destroy_textured_pixmap(pixmap);
-    else
-        glamor_destroy_textured_pixmap(pixmap);
+    if (pixmap->refcnt == 1) {
+        glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+        if (pixmap_priv != NULL)
+            glamor_pixmap_destroy_fbo(pixmap_priv);
+#if GLAMOR_HAS_GBM
+        glamor_egl_destroy_pixmap_image(pixmap);
+#endif
+    }
     return fbDestroyPixmap(pixmap);
 }
 
@@ -619,8 +607,6 @@ glamor_close_screen(ScreenPtr screen)
 #endif
     screen_pixmap = screen->GetScreenPixmap(screen);
     glamor_set_pixmap_private(screen_pixmap, NULL);
-    if (glamor_priv->back_pixmap && *glamor_priv->back_pixmap)
-        glamor_set_pixmap_private(*glamor_priv->back_pixmap, NULL);
 
     glamor_release_screen_priv(screen);
 

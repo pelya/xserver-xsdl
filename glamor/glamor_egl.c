@@ -70,7 +70,6 @@ struct glamor_egl_screen_private {
     CloseScreenProcPtr CloseScreen;
     int fd;
     EGLImageKHR front_image;
-    PixmapPtr *back_pixmap;
     int cpp;
 #ifdef GLAMOR_HAS_GBM
     struct gbm_device *gbm;
@@ -235,7 +234,7 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
     }
 
     glamor_egl->front_image = pixmap_priv->base.image;
-    glamor_set_screen_pixmap(screen_pixmap, glamor_egl->back_pixmap);
+    glamor_set_screen_pixmap(screen_pixmap, NULL);
     return TRUE;
 }
 
@@ -244,15 +243,7 @@ glamor_egl_create_textured_screen_ext(ScreenPtr screen,
                                       int handle,
                                       int stride, PixmapPtr *back_pixmap)
 {
-    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
-    struct glamor_egl_screen_private *glamor_egl;
-
-    glamor_egl = glamor_egl_get_screen_private(scrn);
-
-    glamor_egl->back_pixmap = back_pixmap;
-    if (!glamor_egl_create_textured_screen(screen, handle, stride))
-        return FALSE;
-    return TRUE;
+    return glamor_egl_create_textured_screen(screen, handle, stride);
 }
 
 static Bool
@@ -519,16 +510,17 @@ glamor_pixmap_from_fd(ScreenPtr screen,
 #endif
 }
 
-static void
-_glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
+void
+glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
 {
-    ScrnInfoPtr scrn = xf86ScreenToScrn(pixmap->drawable.pScreen);
-    struct glamor_egl_screen_private *glamor_egl =
-        glamor_egl_get_screen_private(scrn);
     struct glamor_pixmap_private *pixmap_priv =
         glamor_get_pixmap_private(pixmap);
 
-    if (pixmap_priv->base.image) {
+    if (pixmap_priv && pixmap_priv->base.image) {
+        ScrnInfoPtr scrn = xf86ScreenToScrn(pixmap->drawable.pScreen);
+        struct glamor_egl_screen_private *glamor_egl =
+            glamor_egl_get_screen_private(scrn);
+
         /* Before destroy an image which was attached to
          * a texture. we must call glFlush to make sure the
          * operation on that texture has been done.*/
@@ -562,14 +554,6 @@ glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back)
 
 }
 
-void
-glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap)
-{
-    if (pixmap->refcnt == 1)
-        _glamor_egl_destroy_pixmap_image(pixmap);
-    glamor_destroy_textured_pixmap(pixmap);
-}
-
 static Bool
 glamor_egl_close_screen(ScreenPtr screen)
 {
@@ -586,14 +570,6 @@ glamor_egl_close_screen(ScreenPtr screen)
     eglDestroyImageKHR(glamor_egl->display, glamor_egl->front_image);
     pixmap_priv->base.image = NULL;
     glamor_egl->front_image = NULL;
-
-    if (glamor_egl->back_pixmap && *glamor_egl->back_pixmap) {
-        pixmap_priv = glamor_get_pixmap_private(*glamor_egl->back_pixmap);
-        if (pixmap_priv->base.image) {
-            eglDestroyImageKHR(glamor_egl->display, pixmap_priv->base.image);
-            pixmap_priv->base.image = NULL;
-        }
-    }
 
     screen->CloseScreen = glamor_egl->saved_close_screen;
 

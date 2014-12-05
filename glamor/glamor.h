@@ -132,7 +132,6 @@ extern _X_EXPORT void glamor_set_pixmap_texture(PixmapPtr pixmap,
 
 extern _X_EXPORT void glamor_set_pixmap_type(PixmapPtr pixmap,
                                              glamor_pixmap_type_t type);
-extern _X_EXPORT void glamor_destroy_textured_pixmap(PixmapPtr pixmap);
 extern _X_EXPORT void glamor_block_handler(ScreenPtr screen);
 
 extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h,
@@ -169,6 +168,8 @@ extern _X_EXPORT unsigned int glamor_egl_create_argb8888_based_texture(ScreenPtr
 extern _X_EXPORT int glamor_egl_dri3_fd_name_from_tex(ScreenPtr, PixmapPtr,
                                                       unsigned int, Bool,
                                                       CARD16 *, CARD32 *);
+
+extern void glamor_egl_destroy_pixmap_image(PixmapPtr pixmap);
 
 /* @glamor_supports_pixmap_import_export: Returns whether
  * glamor_fd_from_pixmap(), glamor_name_from_pixmap(), and
