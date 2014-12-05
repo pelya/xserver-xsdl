@@ -69,7 +69,6 @@ struct glamor_egl_screen_private {
     CreateScreenResourcesProcPtr CreateScreenResources;
     CloseScreenProcPtr CloseScreen;
     int fd;
-    EGLImageKHR front_image;
     int cpp;
 #ifdef GLAMOR_HAS_GBM
     struct gbm_device *gbm;
@@ -219,13 +218,9 @@ Bool
 glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
 {
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
-    struct glamor_pixmap_private *pixmap_priv;
-    struct glamor_egl_screen_private *glamor_egl;
     PixmapPtr screen_pixmap;
 
-    glamor_egl = glamor_egl_get_screen_private(scrn);
     screen_pixmap = screen->GetScreenPixmap(screen);
-    pixmap_priv = glamor_get_pixmap_private(screen_pixmap);
 
     if (!glamor_egl_create_textured_pixmap(screen_pixmap, handle, stride)) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR,
@@ -233,7 +228,6 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
         return FALSE;
     }
 
-    glamor_egl->front_image = pixmap_priv->base.image;
     glamor_set_screen_pixmap(screen_pixmap, NULL);
     return TRUE;
 }
@@ -533,9 +527,6 @@ glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
 _X_EXPORT void
 glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back)
 {
-    ScrnInfoPtr scrn = xf86ScreenToScrn(front->drawable.pScreen);
-    struct glamor_egl_screen_private *glamor_egl =
-        glamor_egl_get_screen_private(scrn);
     EGLImageKHR temp;
     struct glamor_pixmap_private *front_priv =
         glamor_get_pixmap_private(front);
@@ -550,7 +541,6 @@ glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back)
 
     glamor_set_pixmap_type(front, GLAMOR_TEXTURE_DRM);
     glamor_set_pixmap_type(back, GLAMOR_TEXTURE_DRM);
-    glamor_egl->front_image = front_priv->base.image;
 
 }
 
@@ -567,9 +557,8 @@ glamor_egl_close_screen(ScreenPtr screen)
     screen_pixmap = screen->GetScreenPixmap(screen);
     pixmap_priv = glamor_get_pixmap_private(screen_pixmap);
 
-    eglDestroyImageKHR(glamor_egl->display, glamor_egl->front_image);
+    eglDestroyImageKHR(glamor_egl->display, pixmap_priv->base.image);
     pixmap_priv->base.image = NULL;
-    glamor_egl->front_image = NULL;
 
     screen->CloseScreen = glamor_egl->saved_close_screen;
 
