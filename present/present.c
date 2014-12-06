@@ -834,10 +834,13 @@ present_pixmap(WindowPtr window,
     vblank->notifies = notifies;
     vblank->num_notifies = num_notifies;
 
-    if (!screen_priv->info || !(screen_priv->info->capabilities & PresentCapabilityAsync))
+    if (!(options & PresentOptionAsync))
         vblank->sync_flip = TRUE;
 
     if (!(options & PresentOptionCopy) &&
+        !((options & PresentOptionAsync) &&
+          (!screen_priv->info ||
+           !(screen_priv->info->capabilities & PresentCapabilityAsync))) &&
         pixmap != NULL &&
         present_check_flip (target_crtc, window, pixmap, vblank->sync_flip, valid, x_off, y_off))
     {
