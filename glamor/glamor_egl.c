@@ -253,6 +253,24 @@ glamor_egl_check_has_gem(int fd)
     return FALSE;
 }
 
+static void
+glamor_egl_set_pixmap_image(PixmapPtr pixmap, EGLImageKHR image)
+{
+    struct glamor_pixmap_private *pixmap_priv =
+        glamor_get_pixmap_private(pixmap);
+    EGLImageKHR old;
+
+    old = pixmap_priv->base.image;
+    if (old) {
+        ScreenPtr                               screen = pixmap->drawable.pScreen;
+        ScrnInfoPtr                             scrn = xf86ScreenToScrn(screen);
+        struct glamor_egl_screen_private        *glamor_egl = glamor_egl_get_screen_private(scrn);
+
+        eglDestroyImageKHR(glamor_egl->display, old);
+    }
+    pixmap_priv->base.image = image;
+}
+
 Bool
 glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 {
@@ -260,8 +278,6 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     struct glamor_screen_private *glamor_priv =
         glamor_get_screen_private(screen);
-    struct glamor_pixmap_private *pixmap_priv =
-        glamor_get_pixmap_private(pixmap);
     struct glamor_egl_screen_private *glamor_egl;
     EGLImageKHR image;
     GLuint texture;
@@ -296,7 +312,7 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
     glamor_create_texture_from_image(screen, image, &texture);
     glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
     glamor_set_pixmap_texture(pixmap, texture);
-    pixmap_priv->base.image = image;
+    glamor_egl_set_pixmap_image(pixmap, image);
     ret = TRUE;
 
  done:
@@ -310,8 +326,6 @@ glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap, void *bo)
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     struct glamor_screen_private *glamor_priv =
         glamor_get_screen_private(screen);
-    struct glamor_pixmap_private *pixmap_priv =
-        glamor_get_pixmap_private(pixmap);
     struct glamor_egl_screen_private *glamor_egl;
     EGLImageKHR image;
     GLuint texture;
@@ -331,7 +345,7 @@ glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap, void *bo)
     glamor_create_texture_from_image(screen, image, &texture);
     glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
     glamor_set_pixmap_texture(pixmap, texture);
-    pixmap_priv->base.image = image;
+    glamor_egl_set_pixmap_image(pixmap, image);
     ret = TRUE;
 
  done:
@@ -404,8 +418,8 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
         if (image == EGL_NO_IMAGE_KHR)
             goto failure;
 
-        pixmap_priv->base.image = image;
         glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
+        glamor_egl_set_pixmap_image(pixmap, image);
     }
 
     bo = gbm_bo_import(glamor_egl->gbm, GBM_BO_IMPORT_EGL_IMAGE, image, 0);
