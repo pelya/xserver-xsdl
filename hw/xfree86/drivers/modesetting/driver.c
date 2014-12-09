@@ -877,7 +877,7 @@ CreateScreenResources(ScreenPtr pScreen)
     modesettingPtr ms = modesettingPTR(pScrn);
     PixmapPtr rootPixmap;
     Bool ret;
-    void *pixels;
+    void *pixels = NULL;
 
     pScreen->CreateScreenResources = ms->createScreenResources;
     ret = pScreen->CreateScreenResources(pScreen);
@@ -893,9 +893,12 @@ CreateScreenResources(ScreenPtr pScreen)
 
     if (!ms->drmmode.sw_cursor)
         drmmode_map_cursor_bos(pScrn, &ms->drmmode);
-    pixels = drmmode_map_front_bo(&ms->drmmode);
-    if (!pixels)
-        return FALSE;
+
+    if (!ms->drmmode.gbm) {
+        pixels = drmmode_map_front_bo(&ms->drmmode);
+        if (!pixels)
+            return FALSE;
+    }
 
     rootPixmap = pScreen->GetScreenPixmap(pScreen);
 
@@ -984,6 +987,11 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     if (!SetMaster(pScrn))
         return FALSE;
+
+#ifdef GLAMOR_HAS_GBM
+    if (ms->drmmode.glamor)
+        ms->drmmode.gbm = glamor_egl_get_gbm_device(pScreen);
+#endif
 
     /* HW dependent - FIXME */
     pScrn->displayWidth = pScrn->virtualX;

@@ -34,8 +34,13 @@
 
 #include "dumb_bo.h"
 
+struct gbm_device;
+
 typedef struct {
     struct dumb_bo *dumb;
+#ifdef GLAMOR_HAS_GBM
+    struct gbm_bo *gbm;
+#endif
 } drmmode_bo;
 
 typedef struct {
@@ -46,6 +51,9 @@ typedef struct {
     drmModeFBPtr mode_fb;
     int cpp;
     ScrnInfoPtr scrn;
+
+    struct gbm_device *gbm;
+
 #ifdef CONFIG_UDEV_KMS
     struct udev_monitor *uevent_monitor;
     InputHandlerProc uevent_handler;
