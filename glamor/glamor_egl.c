@@ -174,6 +174,18 @@ glamor_create_texture_from_image(ScreenPtr screen,
     return TRUE;
 }
 
+void *
+glamor_egl_get_gbm_device(ScreenPtr screen)
+{
+#ifdef GLAMOR_HAS_GBM
+    struct glamor_egl_screen_private *glamor_egl =
+        glamor_egl_get_screen_private(xf86ScreenToScrn(screen));
+    return glamor_egl->gbm;
+#else
+    return NULL;
+#endif
+}
+
 unsigned int
 glamor_egl_create_argb8888_based_texture(ScreenPtr screen, int w, int h)
 {
