@@ -1231,21 +1231,17 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
     if (!new_pixels)
         goto fail;
 
-    if (!drmmode->shadow_enable)
-        screen->ModifyPixmapHeader(ppix, width, height, -1, -1,
-                                   pitch, new_pixels);
-    else {
-        void *new_shadow;
+    if (drmmode->shadow_enable) {
         uint32_t size = scrn->displayWidth * scrn->virtualY *
             ((scrn->bitsPerPixel + 7) >> 3);
-        new_shadow = calloc(1, size);
-        if (new_shadow == NULL)
+        new_pixels = calloc(1, size);
+        if (new_pixels == NULL)
             goto fail;
         free(drmmode->shadow_fb);
-        drmmode->shadow_fb = new_shadow;
-        screen->ModifyPixmapHeader(ppix, width, height, -1, -1,
-                                   pitch, drmmode->shadow_fb);
+        drmmode->shadow_fb = new_pixels;
     }
+
+    screen->ModifyPixmapHeader(ppix, width, height, -1, -1, pitch, new_pixels);
 
 #ifdef GLAMOR
     if (drmmode->glamor) {
