@@ -1176,6 +1176,29 @@ drmmode_clones_init(ScrnInfoPtr scrn, drmmode_ptr drmmode)
     }
 }
 
+Bool
+drmmode_glamor_handle_new_screen_pixmap(drmmode_ptr drmmode)
+{
+#ifdef GLAMOR
+    ScrnInfoPtr scrn = drmmode->scrn;
+    ScreenPtr screen = xf86ScrnToScreen(drmmode->scrn);
+
+    if (!drmmode->glamor)
+        return TRUE;
+
+    if (!glamor_egl_create_textured_screen(screen,
+                                           drmmode->front_bo->handle,
+                                           scrn->displayWidth *
+                                           scrn->bitsPerPixel / 8)) {
+        xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+                   "glamor_egl_create_textured_screen() failed\n");
+        return FALSE;
+    }
+#endif
+
+    return TRUE;
+}
+
 static Bool
 drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
 {
@@ -1243,18 +1266,8 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
 
     screen->ModifyPixmapHeader(ppix, width, height, -1, -1, pitch, new_pixels);
 
-#ifdef GLAMOR
-    if (drmmode->glamor) {
-        if (!glamor_egl_create_textured_screen(screen,
-                                               drmmode->front_bo->handle,
-                                               scrn->displayWidth *
-                                               scrn->bitsPerPixel / 8)) {
-            xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-                       "glamor_egl_create_textured_screen() failed\n");
-            goto fail;
-        }
-    }
-#endif
+    if (!drmmode_glamor_handle_new_screen_pixmap(drmmode))
+        goto fail;
 
     for (i = 0; i < xf86_config->num_crtc; i++) {
         xf86CrtcPtr crtc = xf86_config->crtc[i];

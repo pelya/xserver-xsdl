@@ -886,18 +886,8 @@ CreateScreenResources(ScreenPtr pScreen)
     if (!drmmode_set_desired_modes(pScrn, &ms->drmmode))
         return FALSE;
 
-#ifdef GLAMOR
-    if (ms->drmmode.glamor) {
-        if (!glamor_egl_create_textured_screen(pScreen,
-                                               ms->drmmode.front_bo->handle,
-                                               pScrn->displayWidth *
-                                               pScrn->bitsPerPixel / 8)) {
-            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-                       "glamor_egl_create_textured_screen() failed\n");
-            return FALSE;
-        }
-    }
-#endif
+    if (!drmmode_glamor_handle_new_screen_pixmap(&ms->drmmode))
+        return FALSE;
 
     drmmode_uevent_init(pScrn, &ms->drmmode);
 

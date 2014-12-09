@@ -129,6 +129,7 @@ extern DevPrivateKeyRec msPixmapPrivateKeyRec;
 
 #define msGetPixmapPriv(drmmode, p) ((msPixmapPrivPtr)dixGetPrivateAddr(&(p)->devPrivates, &(drmmode)->pixmapPrivateKeyRec))
 
+Bool drmmode_glamor_handle_new_screen_pixmap(drmmode_ptr drmmode);
 void *drmmode_map_slave_bo(drmmode_ptr drmmode, msPixmapPrivPtr ppriv);
 Bool drmmode_SetSlaveBO(PixmapPtr ppix,
                         drmmode_ptr drmmode,
