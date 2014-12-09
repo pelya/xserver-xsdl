@@ -33,6 +33,7 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include "dumb_bo.h"
 #include "xf86str.h"
 #include "X11/Xatom.h"
 #include "micmap.h"
@@ -53,114 +54,6 @@
 #define GLAMOR_FOR_XORG 1
 #include "glamor.h"
 #endif
-
-static struct dumb_bo *
-dumb_bo_create(int fd,
-               const unsigned width, const unsigned height, const unsigned bpp)
-{
-    struct drm_mode_create_dumb arg;
-    struct dumb_bo *bo;
-    int ret;
-
-    bo = calloc(1, sizeof(*bo));
-    if (!bo)
-        return NULL;
-
-    memset(&arg, 0, sizeof(arg));
-    arg.width = width;
-    arg.height = height;
-    arg.bpp = bpp;
-
-    ret = drmIoctl(fd, DRM_IOCTL_MODE_CREATE_DUMB, &arg);
-    if (ret)
-        goto err_free;
-
-    bo->handle = arg.handle;
-    bo->size = arg.size;
-    bo->pitch = arg.pitch;
-
-    return bo;
- err_free:
-    free(bo);
-    return NULL;
-}
-
-static int
-dumb_bo_map(int fd, struct dumb_bo *bo)
-{
-    struct drm_mode_map_dumb arg;
-    int ret;
-    void *map;
-
-    if (bo->ptr) {
-        bo->map_count++;
-        return 0;
-    }
-
-    memset(&arg, 0, sizeof(arg));
-    arg.handle = bo->handle;
-
-    ret = drmIoctl(fd, DRM_IOCTL_MODE_MAP_DUMB, &arg);
-    if (ret)
-        return ret;
-
-    map = mmap(0, bo->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, arg.offset);
-    if (map == MAP_FAILED)
-        return -errno;
-
-    bo->ptr = map;
-    return 0;
-}
-
-#if 0
-static int
-dumb_bo_unmap(int fd, struct dumb_bo *bo)
-{
-    bo->map_count--;
-    return 0;
-}
-#endif
-
-int
-dumb_bo_destroy(int fd, struct dumb_bo *bo)
-{
-    struct drm_mode_destroy_dumb arg;
-    int ret;
-
-    if (bo->ptr) {
-        munmap(bo->ptr, bo->size);
-        bo->ptr = NULL;
-    }
-
-    memset(&arg, 0, sizeof(arg));
-    arg.handle = bo->handle;
-    ret = drmIoctl(fd, DRM_IOCTL_MODE_DESTROY_DUMB, &arg);
-    if (ret)
-        return -errno;
-
-    free(bo);
-    return 0;
-}
-
-struct dumb_bo *
-dumb_get_bo_from_fd(int fd, int handle, int pitch, int size)
-{
-    struct dumb_bo *bo;
-    int ret;
-
-    bo = calloc(1, sizeof(*bo));
-    if (!bo)
-        return NULL;
-
-    ret = drmPrimeFDToHandle(fd, handle, &bo->handle);
-    if (ret) {
-        free(bo);
-        return NULL;
-    }
-    bo->pitch = pitch;
-    bo->size = size;
-    return bo;
-}
 
 Bool
 drmmode_SetSlaveBO(PixmapPtr ppix,
