@@ -74,7 +74,6 @@ dumb_bo_map(int fd, struct dumb_bo *bo)
     void *map;
 
     if (bo->ptr) {
-        bo->map_count++;
         return 0;
     }
 
@@ -92,15 +91,6 @@ dumb_bo_map(int fd, struct dumb_bo *bo)
     bo->ptr = map;
     return 0;
 }
-
-#if 0
-static int
-dumb_bo_unmap(int fd, struct dumb_bo *bo)
-{
-    bo->map_count--;
-    return 0;
-}
-#endif
 
 int
 dumb_bo_destroy(int fd, struct dumb_bo *bo)

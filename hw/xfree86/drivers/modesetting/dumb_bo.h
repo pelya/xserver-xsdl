@@ -33,7 +33,6 @@ struct dumb_bo {
     uint32_t handle;
     uint32_t size;
     void *ptr;
-    int map_count;
     uint32_t pitch;
 };
 
