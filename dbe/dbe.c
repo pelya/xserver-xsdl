@@ -452,6 +452,7 @@ ProcDbeSwapBuffers(ClientPtr client)
     int error;
     unsigned int i, j;
     unsigned int nStuff;
+    int nStuff_i;       /* DDX API requires int for nStuff */
 
     REQUEST_AT_LEAST_SIZE(xDbeSwapBuffersReq);
     nStuff = stuff->n;          /* use local variable for performance. */
@@ -527,9 +528,10 @@ ProcDbeSwapBuffers(ClientPtr client)
      * could deal with cross-screen synchronization.
      */
 
-    while (nStuff > 0) {
+    nStuff_i = nStuff;
+    while (nStuff_i > 0) {
         pDbeScreenPriv = DBE_SCREEN_PRIV_FROM_WINDOW(swapInfo[0].pWindow);
-        error = (*pDbeScreenPriv->SwapBuffers) (client, &nStuff, swapInfo);
+        error = (*pDbeScreenPriv->SwapBuffers) (client, &nStuff_i, swapInfo);
         if (error != Success) {
             free(swapInfo);
             return error;
