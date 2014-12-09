@@ -55,6 +55,40 @@
 #include "glamor.h"
 #endif
 
+static int
+drmmode_bo_destroy(drmmode_ptr drmmode, drmmode_bo *bo)
+{
+    int ret;
+
+    if (bo->dumb) {
+        ret = dumb_bo_destroy(drmmode->fd, bo->dumb);
+        if (ret == 0)
+            bo->dumb = NULL;
+    }
+
+    return 0;
+}
+
+static uint32_t
+drmmode_bo_get_pitch(drmmode_bo *bo)
+{
+    return bo->dumb->pitch;
+}
+
+uint32_t
+drmmode_bo_get_handle(drmmode_bo *bo)
+{
+    return bo->dumb->handle;
+}
+
+static Bool
+drmmode_create_bo(drmmode_ptr drmmode, drmmode_bo *bo,
+                  unsigned width, unsigned height, unsigned bpp)
+{
+    bo->dumb = dumb_bo_create(drmmode->fd, width, height, bpp);
+    return bo->dumb != NULL;
+}
+
 Bool
 drmmode_SetSlaveBO(PixmapPtr ppix,
                    drmmode_ptr drmmode, int fd_handle, int pitch, int size)
@@ -213,8 +247,9 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
         ret = drmModeAddFB(drmmode->fd,
                            pScrn->virtualX, height,
                            pScrn->depth, pScrn->bitsPerPixel,
-                           drmmode->front_bo->pitch,
-                           drmmode->front_bo->handle, &drmmode->fb_id);
+                           drmmode_bo_get_pitch(&drmmode->front_bo),
+                           drmmode_bo_get_handle(&drmmode->front_bo),
+                           &drmmode->fb_id);
         if (ret < 0) {
             ErrorF("failed to add fb %d\n", ret);
             return FALSE;
@@ -1080,7 +1115,7 @@ drmmode_glamor_handle_new_screen_pixmap(drmmode_ptr drmmode)
         return TRUE;
 
     if (!glamor_egl_create_textured_screen(screen,
-                                           drmmode->front_bo->handle,
+                                           drmmode_bo_get_handle(&drmmode->front_bo),
                                            scrn->displayWidth *
                                            scrn->bitsPerPixel / 8)) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR,
@@ -1100,7 +1135,7 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
     drmmode_crtc_private_ptr
         drmmode_crtc = xf86_config->crtc[0]->driver_private;
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
-    struct dumb_bo *old_front = NULL;
+    drmmode_bo old_front;
     Bool ret;
     ScreenPtr screen = xf86ScrnToScreen(scrn);
     uint32_t old_fb_id;
@@ -1122,16 +1157,15 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
 
     old_width = scrn->virtualX;
     old_height = scrn->virtualY;
-    old_pitch = drmmode->front_bo->pitch;
+    old_pitch = drmmode_bo_get_pitch(&drmmode->front_bo);
     old_fb_id = drmmode->fb_id;
     old_front = drmmode->front_bo;
 
-    drmmode->front_bo =
-        dumb_bo_create(drmmode->fd, width, height, scrn->bitsPerPixel);
-    if (!drmmode->front_bo)
+    if (!drmmode_create_bo(drmmode, &drmmode->front_bo,
+                           width, height, scrn->bitsPerPixel))
         goto fail;
 
-    pitch = drmmode->front_bo->pitch;
+    pitch = drmmode_bo_get_pitch(&drmmode->front_bo);
 
     scrn->virtualX = width;
     scrn->virtualY = height;
@@ -1139,7 +1173,8 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
 
     ret = drmModeAddFB(drmmode->fd, width, height, scrn->depth,
                        scrn->bitsPerPixel, pitch,
-                       drmmode->front_bo->handle, &drmmode->fb_id);
+                       drmmode_bo_get_handle(&drmmode->front_bo),
+                       &drmmode->fb_id);
     if (ret)
         goto fail;
 
@@ -1174,14 +1209,13 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
 
     if (old_fb_id) {
         drmModeRmFB(drmmode->fd, old_fb_id);
-        dumb_bo_destroy(drmmode->fd, old_front);
+        drmmode_bo_destroy(drmmode, &old_front);
     }
 
     return TRUE;
 
  fail:
-    if (drmmode->front_bo)
-        dumb_bo_destroy(drmmode->fd, drmmode->front_bo);
+    drmmode_bo_destroy(drmmode, &drmmode->front_bo);
     drmmode->front_bo = old_front;
     scrn->virtualX = old_width;
     scrn->virtualY = old_height;
@@ -1467,10 +1501,9 @@ drmmode_create_initial_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
     width = pScrn->virtualX;
     height = pScrn->virtualY;
 
-    drmmode->front_bo = dumb_bo_create(drmmode->fd, width, height, bpp);
-    if (!drmmode->front_bo)
+    if (!drmmode_create_bo(drmmode, &drmmode->front_bo, width, height, bpp))
         return FALSE;
-    pScrn->displayWidth = drmmode->front_bo->pitch / cpp;
+    pScrn->displayWidth = drmmode_bo_get_pitch(&drmmode->front_bo) / cpp;
 
     width = ms->cursor_width;
     height = ms->cursor_height;
@@ -1490,14 +1523,14 @@ drmmode_map_front_bo(drmmode_ptr drmmode)
 {
     int ret;
 
-    if (drmmode->front_bo->ptr)
-        return drmmode->front_bo->ptr;
+    if (drmmode->front_bo.dumb->ptr)
+        return drmmode->front_bo.dumb->ptr;
 
-    ret = dumb_bo_map(drmmode->fd, drmmode->front_bo);
+    ret = dumb_bo_map(drmmode->fd, drmmode->front_bo.dumb);
     if (ret)
         return NULL;
 
-    return drmmode->front_bo->ptr;
+    return drmmode->front_bo.dumb->ptr;
 
 }
 
@@ -1544,8 +1577,7 @@ drmmode_free_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
         drmmode->fb_id = 0;
     }
 
-    dumb_bo_destroy(drmmode->fd, drmmode->front_bo);
-    drmmode->front_bo = NULL;
+    drmmode_bo_destroy(drmmode, &drmmode->front_bo);
 
     for (i = 0; i < xf86_config->num_crtc; i++) {
         xf86CrtcPtr crtc = xf86_config->crtc[i];

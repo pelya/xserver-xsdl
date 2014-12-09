@@ -861,7 +861,7 @@ msShadowWindow(ScreenPtr screen, CARD32 row, CARD32 offset, int mode,
     stride = (pScrn->displayWidth * pScrn->bitsPerPixel) / 8;
     *size = stride;
 
-    return ((uint8_t *) ms->drmmode.front_bo->ptr + row * stride + offset);
+    return ((uint8_t *) ms->drmmode.front_bo.dumb->ptr + row * stride + offset);
 }
 
 static void

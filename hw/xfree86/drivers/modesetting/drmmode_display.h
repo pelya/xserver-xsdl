@@ -35,6 +35,10 @@
 #include "dumb_bo.h"
 
 typedef struct {
+    struct dumb_bo *dumb;
+} drmmode_bo;
+
+typedef struct {
     int fd;
     unsigned fb_id;
     unsigned old_fb_id;
@@ -47,7 +51,7 @@ typedef struct {
     InputHandlerProc uevent_handler;
 #endif
     drmEventContext event_context;
-    struct dumb_bo *front_bo;
+    drmmode_bo front_bo;
     Bool sw_cursor;
 
     Bool glamor;
@@ -123,6 +127,7 @@ extern DevPrivateKeyRec msPixmapPrivateKeyRec;
 
 #define msGetPixmapPriv(drmmode, p) ((msPixmapPrivPtr)dixGetPrivateAddr(&(p)->devPrivates, &(drmmode)->pixmapPrivateKeyRec))
 
+uint32_t drmmode_bo_get_handle(drmmode_bo *bo);
 Bool drmmode_glamor_handle_new_screen_pixmap(drmmode_ptr drmmode);
 void *drmmode_map_slave_bo(drmmode_ptr drmmode, msPixmapPrivPtr ppriv);
 Bool drmmode_SetSlaveBO(PixmapPtr ppix,
