@@ -1249,13 +1249,12 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
 
 #ifdef GLAMOR
     if (drmmode->glamor) {
-        if (!glamor_egl_create_textured_screen_ext(screen,
-                                                   drmmode->front_bo->handle,
-                                                   scrn->displayWidth *
-                                                   scrn->bitsPerPixel / 8,
-                                                   NULL)) {
+        if (!glamor_egl_create_textured_screen(screen,
+                                               drmmode->front_bo->handle,
+                                               scrn->displayWidth *
+                                               scrn->bitsPerPixel / 8)) {
             xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-                       "glamor_egl_create_textured_screen_ext() failed\n");
+                       "glamor_egl_create_textured_screen() failed\n");
             goto fail;
         }
     }

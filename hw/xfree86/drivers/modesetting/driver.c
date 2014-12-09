@@ -888,13 +888,12 @@ CreateScreenResources(ScreenPtr pScreen)
 
 #ifdef GLAMOR
     if (ms->drmmode.glamor) {
-        if (!glamor_egl_create_textured_screen_ext(pScreen,
-                                                   ms->drmmode.front_bo->handle,
-                                                   pScrn->displayWidth *
-                                                   pScrn->bitsPerPixel / 8,
-                                                   NULL)) {
+        if (!glamor_egl_create_textured_screen(pScreen,
+                                               ms->drmmode.front_bo->handle,
+                                               pScrn->displayWidth *
+                                               pScrn->bitsPerPixel / 8)) {
             xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-                       "glamor_egl_create_textured_screen_ext() failed\n");
+                       "glamor_egl_create_textured_screen() failed\n");
             return FALSE;
         }
     }
