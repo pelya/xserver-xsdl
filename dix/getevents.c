@@ -68,12 +68,7 @@
 #include "exevents.h"
 #include "extnsionst.h"
 #include "listdev.h"            /* for sizing up DeviceClassesChangedEvent */
-
-#if XSERVER_DTRACE
-#include <sys/types.h>
-typedef const char *string;
-#include <Xserver-dtrace.h>
-#endif
+#include "probes.h"
 
 /* Number of motion history events to store. */
 #define MOTION_HISTORY_SIZE 256
