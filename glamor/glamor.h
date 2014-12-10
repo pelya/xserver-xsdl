@@ -132,6 +132,7 @@ extern _X_EXPORT void glamor_set_pixmap_texture(PixmapPtr pixmap,
 
 extern _X_EXPORT void glamor_set_pixmap_type(PixmapPtr pixmap,
                                              glamor_pixmap_type_t type);
+extern _X_EXPORT void glamor_destroy_textured_pixmap(PixmapPtr pixmap);
 extern _X_EXPORT void glamor_block_handler(ScreenPtr screen);
 
 extern _X_EXPORT PixmapPtr glamor_create_pixmap(ScreenPtr screen, int w, int h,

@@ -558,6 +558,12 @@ glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back)
 
 }
 
+void
+glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap)
+{
+    glamor_destroy_textured_pixmap(pixmap);
+}
+
 static Bool
 glamor_egl_close_screen(ScreenPtr screen)
 {
