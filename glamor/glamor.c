@@ -221,11 +221,12 @@ glamor_destroy_textured_pixmap(PixmapPtr pixmap)
 {
     if (pixmap->refcnt == 1) {
         glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-        if (pixmap_priv != NULL)
-            glamor_pixmap_destroy_fbo(pixmap_priv);
+        if (pixmap_priv != NULL) {
 #if GLAMOR_HAS_GBM
-        glamor_egl_destroy_pixmap_image(pixmap);
+            glamor_egl_destroy_pixmap_image(pixmap);
 #endif
+            glamor_pixmap_destroy_fbo(pixmap_priv);
+        }
     }
 }
 
