@@ -61,11 +61,6 @@
 
 #include "driver.h"
 
-#ifdef GLAMOR
-#define GLAMOR_FOR_XORG 1
-#include "glamor.h"
-#endif
-
 static void AdjustFrame(ScrnInfoPtr pScrn, int x, int y);
 static Bool CloseScreen(ScreenPtr pScreen);
 static Bool EnterVT(ScrnInfoPtr pScrn);

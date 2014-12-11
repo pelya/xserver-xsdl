@@ -33,6 +33,14 @@
 #include <xf86Crtc.h>
 #include <damage.h>
 
+#ifdef GLAMOR
+#define GLAMOR_FOR_XORG 1
+#include "glamor.h"
+#ifdef GLAMOR_HAS_GBM
+#include <gbm.h>
+#endif
+#endif
+
 #include "drmmode_display.h"
 #define DRV_ERROR(msg)	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, msg);
 

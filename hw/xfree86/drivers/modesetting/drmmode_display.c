@@ -50,14 +50,6 @@
 
 #include "driver.h"
 
-#ifdef GLAMOR
-#define GLAMOR_FOR_XORG 1
-#include "glamor.h"
-#ifdef GLAMOR_HAS_GBM
-#include <gbm.h>
-#endif
-#endif
-
 static int
 drmmode_bo_destroy(drmmode_ptr drmmode, drmmode_bo *bo)
 {
