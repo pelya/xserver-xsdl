@@ -424,6 +424,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glamor_set_debug_level(&glamor_debug_level);
 
+    glamor_priv->saved_procs.close_screen = screen->CloseScreen;
+    screen->CloseScreen = glamor_close_screen;
+
     /* If we are using egl screen, call egl screen init to
      * register correct close screen function. */
     if (flags & GLAMOR_USE_EGL_SCREEN) {
@@ -432,9 +435,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         if (!glamor_glx_screen_init(&glamor_priv->ctx))
             goto fail;
     }
-
-    glamor_priv->saved_procs.close_screen = screen->CloseScreen;
-    screen->CloseScreen = glamor_close_screen;
 
     glamor_priv->saved_procs.create_screen_resources =
         screen->CreateScreenResources;
