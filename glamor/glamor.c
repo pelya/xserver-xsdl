@@ -563,8 +563,11 @@ glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
     else {
         if (old_priv == NULL)
             return;
-        fbo = glamor_pixmap_detach_fbo(old_priv);
-        glamor_purge_fbo(fbo);
+
+        if (old_priv->base.fbo) {
+            fbo = glamor_pixmap_detach_fbo(old_priv);
+            glamor_purge_fbo(fbo);
+        }
         free(old_priv);
     }
 
