@@ -1128,6 +1128,11 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
             xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                        "Failed to initialize the DRI2 extension.\n");
         }
+
+        if (!ms_present_screen_init(pScreen)) {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                       "Failed to initialize the Present extension.\n");
+        }
     }
 #endif
 

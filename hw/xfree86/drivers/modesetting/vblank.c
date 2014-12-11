@@ -331,6 +331,24 @@ ms_drm_abort_scrn(ScrnInfoPtr scrn)
 }
 
 /*
+ * Externally usable abort function that uses a callback to match a single
+ * queued entry to abort
+ */
+void
+ms_drm_abort(ScrnInfoPtr scrn, Bool (*match)(void *data, void *match_data),
+             void *match_data)
+{
+    struct ms_drm_queue *q;
+
+    xorg_list_for_each_entry(q, &ms_drm_queue, list) {
+        if (match(q->data, match_data)) {
+            ms_drm_abort_one(q);
+            break;
+        }
+    }
+}
+
+/*
  * General DRM kernel handler. Looks for the matching sequence number in the
  * drm event queue and calls the handler for it.
  */

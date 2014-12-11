@@ -50,6 +50,7 @@ modesetting_drv_la_SOURCES = \
 	 drmmode_display.h \
 	 dumb_bo.c \
 	 dumb_bo.h \
+	 present.c \
 	 vblank.c \
 	 $(NULL)
 

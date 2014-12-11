@@ -114,6 +114,10 @@ uint32_t ms_drm_queue_alloc(xf86CrtcPtr crtc,
                             ms_drm_handler_proc handler,
                             ms_drm_abort_proc abort);
 
+void ms_drm_abort(ScrnInfoPtr scrn,
+                  Bool (*match)(void *data, void *match_data),
+                  void *match_data);
+
 xf86CrtcPtr ms_dri2_crtc_covering_drawable(DrawablePtr pDraw);
 xf86CrtcPtr ms_covering_crtc(ScrnInfoPtr scrn, BoxPtr box,
                              xf86CrtcPtr desired, BoxPtr crtc_box_ret);
@@ -129,3 +133,5 @@ void ms_dri2_close_screen(ScreenPtr screen);
 
 Bool ms_vblank_screen_init(ScreenPtr screen);
 void ms_vblank_close_screen(ScreenPtr screen);
+
+Bool ms_present_screen_init(ScreenPtr screen);
