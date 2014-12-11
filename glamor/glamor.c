@@ -226,6 +226,7 @@ glamor_destroy_textured_pixmap(PixmapPtr pixmap)
             glamor_egl_destroy_pixmap_image(pixmap);
 #endif
             glamor_pixmap_destroy_fbo(pixmap_priv);
+            glamor_set_pixmap_private(pixmap, NULL);
         }
     }
 }
