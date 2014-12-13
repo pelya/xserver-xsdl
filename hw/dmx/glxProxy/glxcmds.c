@@ -3394,11 +3394,11 @@ __glXCreatePbuffer(__GLXclientState * cl, GLbyte * pc)
 
         /* Send attributes */
         if (attr != NULL) {
-            CARD32 *pc = (CARD32 *) (be_req + 1);
+            CARD32 *pca = (CARD32 *) (be_req + 1);
 
             while (numAttribs-- > 0) {
-                *pc++ = *attr++;        /* token */
-                *pc++ = *attr++;        /* value */
+                *pca++ = *attr++;        /* token */
+                *pca++ = *attr++;        /* value */
             }
         }
 
