@@ -335,7 +335,7 @@ __glXGetServerString(unsigned int name)
 }
 
 int
-glxIsExtensionSupported(char *ext)
+glxIsExtensionSupported(const char *ext)
 {
     return (strstr(ExtensionsString, ext) != NULL);
 }
