@@ -164,23 +164,23 @@ dmxErrorHandler(Display * dpy, XErrorEvent * ev)
     switch (ev->error_code) {
     case BadValue:
         dmxLog(dmxWarning, "                 Value:        0x%x\n",
-               ev->resourceid);
+               (unsigned int) ev->resourceid);
         break;
     case BadAtom:
         dmxLog(dmxWarning, "                 AtomID:       0x%x\n",
-               ev->resourceid);
+               (unsigned int) ev->resourceid);
         break;
     default:
         dmxLog(dmxWarning, "                 ResourceID:   0x%x\n",
-               ev->resourceid);
+               (unsigned int) ev->resourceid);
         break;
     }
 
     /* Provide serial number information */
     dmxLog(dmxWarning, "                 Failed serial number:  %d\n",
-           ev->serial);
+           (unsigned int) ev->serial);
     dmxLog(dmxWarning, "                 Current serial number: %d\n",
-           dpy->request);
+           (unsigned int) dpy->request);
     return 0;
 }
 
@@ -634,7 +634,7 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char *argv[])
         if (major > 0 && minor > 0)
             year += 2000;
 
-        dmxLog(dmxInfo, "Generation:         %d\n", dmxGeneration);
+        dmxLog(dmxInfo, "Generation:         %lu\n", dmxGeneration);
         dmxLog(dmxInfo, "DMX version:        %d.%d.%02d%02d%02d (%s)\n",
                major, minor, year, month, day, VENDOR_STRING);
 
