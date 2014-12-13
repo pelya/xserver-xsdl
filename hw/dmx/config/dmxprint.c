@@ -130,7 +130,7 @@ dmxConfigPopState(void)
     dmxConfigNewline();
 }
 
-static void
+static void _X_ATTRIBUTE_PRINTF(4, 5)
 dmxConfigOutput(int addSpace, int doNewline, const char *comment,
                 const char *format, ...)
 {
