@@ -61,7 +61,6 @@
 extern __GLXFBConfig **__glXFBConfigs;
 extern int __glXNumFBConfigs;
 
-extern int glxIsExtensionSupported(char *ext);
 extern int __glXGetFBConfigsSGIX(__GLXclientState * cl, GLbyte * pc);
 
 #define BE_TO_CLIENT_ERROR(x) \
