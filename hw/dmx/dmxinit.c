@@ -762,7 +762,6 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char *argv[])
             dmxGlxVisualPrivate **configprivs = NULL;
             int nconfigs = 0;
             int (*oldErrorHandler) (Display *, XErrorEvent *);
-            int i;
 
             /* Catch errors if when using an older GLX w/o FBconfigs */
             oldErrorHandler = XSetErrorHandler(dmxNOPErrorHandler);
@@ -797,28 +796,29 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char *argv[])
             configprivs = malloc(nconfigs * sizeof(dmxGlxVisualPrivate *));
 
             if (configs != NULL && configprivs != NULL) {
+                int j;
 
                 /* Initialize our private info for each visual
                  * (currently only x_visual_depth and x_visual_class)
                  */
-                for (i = 0; i < nconfigs; i++) {
+                for (j = 0; j < nconfigs; j++) {
 
-                    configprivs[i] = (dmxGlxVisualPrivate *)
+                    configprivs[j] = (dmxGlxVisualPrivate *)
                         malloc(sizeof(dmxGlxVisualPrivate));
-                    configprivs[i]->x_visual_depth = 0;
-                    configprivs[i]->x_visual_class = 0;
+                    configprivs[j]->x_visual_depth = 0;
+                    configprivs[j]->x_visual_class = 0;
 
                     /* Find the visual depth */
-                    if (configs[i].vid > 0) {
-                        int j;
+                    if (configs[j].vid > 0) {
+                        int k;
 
-                        for (j = 0; j < dmxScreen->beNumVisuals; j++) {
-                            if (dmxScreen->beVisuals[j].visualid ==
-                                configs[i].vid) {
-                                configprivs[i]->x_visual_depth =
-                                    dmxScreen->beVisuals[j].depth;
-                                configprivs[i]->x_visual_class =
-                                    dmxScreen->beVisuals[j].class;
+                        for (k = 0; k < dmxScreen->beNumVisuals; k++) {
+                            if (dmxScreen->beVisuals[k].visualid ==
+                                configs[j].vid) {
+                                configprivs[j]->x_visual_depth =
+                                    dmxScreen->beVisuals[k].depth;
+                                configprivs[j]->x_visual_class =
+                                    dmxScreen->beVisuals[k].class;
                                 break;
                             }
                         }
