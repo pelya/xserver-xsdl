@@ -923,7 +923,7 @@ if test "x$SUID_WRAPPER" = xyes; then
         PKG_CHECK_MODULES([LIBDRM], $LIBDRM)
         dnl This is a define so that if some platforms want to put the wrapper
         dnl somewhere else this can be easily changed
-        AC_DEFINE_DIR(SUID_WRAPPER_DIR, libexecdir, [Where to install Xorg.bin and Xorg.wrap])
+        AC_DEFINE_DIR(SUID_WRAPPER_DIR, libexecdir, [Where to install the Xorg binary and Xorg.wrap])
         SETUID="no"
 fi
 AM_CONDITIONAL(SUID_WRAPPER, [test "x$SUID_WRAPPER" = xyes])
