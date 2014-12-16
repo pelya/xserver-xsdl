@@ -448,12 +448,11 @@ extern _X_EXPORT void QueuePointerEvents(DeviceIntPtr pDev,
 extern _X_EXPORT int GetKeyboardEvents(InternalEvent *events,
                                        DeviceIntPtr pDev,
                                        int type,
-                                       int key_code, const ValuatorMask *mask);
+                                       int key_code);
 
 extern _X_EXPORT void QueueKeyboardEvents(DeviceIntPtr pDev,
                                           int type,
-                                          int key_code,
-                                          const ValuatorMask *mask);
+                                          int key_code);
 
 extern int GetTouchEvents(InternalEvent *events,
                           DeviceIntPtr pDev,
