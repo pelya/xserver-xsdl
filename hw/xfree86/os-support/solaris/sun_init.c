@@ -52,8 +52,6 @@ static Bool UseConsole = FALSE;
 static int VTnum = -1;
 static int xf86StartVT = -1;
 static int vtEnabled = 0;
-extern void xf86VTAcquire(int);
-extern void xf86VTRelease(int);
 #endif
 
 /* Device to open as xf86Info.consoleFd */
