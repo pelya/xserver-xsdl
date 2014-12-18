@@ -79,6 +79,9 @@ OutputDirectory(char *outdir, size_t size)
     if (strlen("/tmp/") < size) {
         (void) strcpy(outdir, "/tmp/");
     }
+#ifdef __ANDROID__
+    sprintf(outdir, "%s/", getenv("SECURE_STORAGE_DIR"));
+#endif
 }
 
 /**
