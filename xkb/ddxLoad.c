@@ -150,23 +150,7 @@ OutputDirectory(
     char* outdir,
     size_t size)
 {
-#ifndef WIN32
-    /* Can we write an xkm and then open it too? */
-    if (access(XKM_OUTPUT_DIR, W_OK | X_OK) == 0 && (strlen(XKM_OUTPUT_DIR) < size))
-    {
-	(void) strcpy (outdir, XKM_OUTPUT_DIR);
-    } else
-#else
-    if (strlen(Win32TempDir()) + 1 < size)
-    {
-	(void) strcpy(outdir, Win32TempDir());
-	(void) strcat(outdir, "\\");
-    } else 
-#endif
-    if (strlen("/tmp/") < size)
-    {
-	(void) strcpy (outdir, "/tmp/");
-    }
+    sprintf(outdir, "%s/", getenv("SECURE_STORAGE_DIR"));
 }
 
 static Bool

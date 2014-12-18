@@ -683,6 +683,8 @@ extern unsigned char	XkbDfltAccessXOptions;
 int
 XkbProcessArguments(int argc,char *argv[],int i)
 {
+    asprintf(&XkbBaseDirectory, "%s/usr/share/X11/xkb", getenv("SECURE_STORAGE_DIR"));
+    asprintf(&XkbBinDirectory, "%s/usr/bin", getenv("SECURE_STORAGE_DIR"));
     if (strncmp(argv[i], "-xkbdir", 7) == 0) {
 	if(++i < argc) {
 #if !defined(WIN32) && !defined(__CYGWIN__)
