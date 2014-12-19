@@ -56,7 +56,7 @@ SOFTWARE.
 #include "resource.h"
 #include "dix.h"
 
-#define InitialTableSize 100
+#define InitialTableSize 256
 
 typedef struct _Node {
     struct _Node *left, *right;
