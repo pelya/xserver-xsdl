@@ -88,6 +88,14 @@ static int ms_box_area(BoxPtr box)
     return (int)(box->x2 - box->x1) * (int)(box->y2 - box->y1);
 }
 
+static Bool
+ms_crtc_on(xf86CrtcPtr crtc)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+    return crtc->enabled && drmmode_crtc->dpms_mode == DPMSModeOn;
+}
+
 /*
  * Return the crtc covering 'box'. If two crtcs cover a portion of
  * 'box', then prefer 'desired'. If 'desired' is NULL, then prefer the crtc
@@ -114,7 +122,7 @@ ms_covering_crtc(ScrnInfoPtr scrn,
         crtc = xf86_config->crtc[c];
 
         /* If the CRTC is off, treat it as not covering */
-        if (!crtc->enabled)
+        if (!ms_crtc_on(crtc))
             continue;
 
         ms_crtc_box(crtc, &crtc_box);
