@@ -871,19 +871,18 @@ present_pixmap(WindowPtr window,
     vblank->queued = TRUE;
     if ((pixmap && target_msc >= crtc_msc) || (!pixmap && target_msc > crtc_msc)) {
         ret = present_queue_vblank(screen, target_crtc, vblank->event_id, target_msc);
-        if (ret != Success) {
-            xorg_list_del(&vblank->event_queue);
-            vblank->queued = FALSE;
-            goto failure;
-        }
-    } else
-        present_execute(vblank, ust, crtc_msc);
+        if (ret == Success)
+            return Success;
+
+        DebugPresent(("present_queue_vblank failed\n"));
+    }
+
+    present_execute(vblank, ust, crtc_msc);
 
     return Success;
 
 no_mem:
     ret = BadAlloc;
-failure:
     vblank->notifies = NULL;
     present_vblank_destroy(vblank);
     return ret;
