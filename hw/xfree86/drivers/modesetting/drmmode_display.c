@@ -193,18 +193,8 @@ drmmode_ConvertToKMode(ScrnInfoPtr scrn,
 static void
 drmmode_crtc_dpms(xf86CrtcPtr crtc, int mode)
 {
-#if 0
-    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
-
-//      drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
-//      drmmode_ptr drmmode = drmmode_crtc->drmmode;
-
-    /* bonghits in the randr 1.2 - uses dpms to disable crtc - bad buzz */
-    if (mode == DPMSModeOff) {
-//              drmModeSetCrtc(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
-//                             0, 0, 0, NULL, 0, NULL);
-    }
-#endif
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    drmmode_crtc->dpms_mode = mode;
 }
 
 #if 0
@@ -347,6 +337,9 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
 
         if (crtc->scrn->pScreen)
             xf86CrtcSetScreenSubpixelOrder(crtc->scrn->pScreen);
+
+        crtc->funcs->dpms(crtc, DPMSModeOn);
+
         /* go through all the outputs and force DPMS them back on? */
         for (i = 0; i < xf86_config->num_output; i++) {
             xf86OutputPtr output = xf86_config->output[i];

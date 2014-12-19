@@ -86,6 +86,7 @@ typedef struct {
     drmmode_ptr drmmode;
     drmModeCrtcPtr mode_crtc;
     uint32_t vblank_pipe;
+    int dpms_mode;
     struct dumb_bo *cursor_bo;
     Bool cursor_up;
     unsigned rotate_fb_id;
