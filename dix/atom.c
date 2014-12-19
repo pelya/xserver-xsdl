@@ -70,8 +70,6 @@ static NodePtr atomRoot = NULL;
 static unsigned long tableLength;
 static NodePtr *nodeTable;
 
-void FreeAtom(NodePtr patom);
-
 Atom
 MakeAtom(const char *string, unsigned len, Bool makeit)
 {
@@ -166,7 +164,7 @@ AtomError(void)
     FatalError("initializing atoms");
 }
 
-void
+static void
 FreeAtom(NodePtr patom)
 {
     if (patom->left)
