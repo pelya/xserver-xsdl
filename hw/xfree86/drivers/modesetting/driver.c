@@ -453,11 +453,12 @@ dispatch_dirty_region(ScrnInfoPtr scrn,
     modesettingPtr ms = modesettingPTR(scrn);
     RegionPtr dirty = DamageRegion(damage);
     unsigned num_cliprects = REGION_NUM_RECTS(dirty);
+    int ret = 0;
 
     if (num_cliprects) {
         drmModeClip *clip = malloc(num_cliprects * sizeof(drmModeClip));
         BoxPtr rect = REGION_RECTS(dirty);
-        int i, ret;
+        int i;
 
         if (!clip)
             return -ENOMEM;
@@ -474,12 +475,8 @@ dispatch_dirty_region(ScrnInfoPtr scrn,
         ret = drmModeDirtyFB(ms->fd, fb_id, clip, num_cliprects);
         free(clip);
         DamageEmpty(damage);
-        if (ret) {
-            if (ret == -EINVAL)
-                return ret;
-        }
     }
-    return 0;
+    return ret;
 }
 
 static void
