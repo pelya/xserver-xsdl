@@ -875,6 +875,7 @@ CreateScreenResources(ScreenPtr pScreen)
     PixmapPtr rootPixmap;
     Bool ret;
     void *pixels = NULL;
+    int err;
 
     pScreen->CreateScreenResources = ms->createScreenResources;
     ret = pScreen->CreateScreenResources(pScreen);
@@ -911,18 +912,22 @@ CreateScreenResources(ScreenPtr pScreen)
             return FALSE;
     }
 
-    ms->damage = DamageCreate(NULL, NULL, DamageReportNone, TRUE,
-                              pScreen, rootPixmap);
+    err = drmModeDirtyFB(ms->fd, ms->drmmode.fb_id, NULL, 0);
 
-    if (ms->damage) {
-        DamageRegister(&rootPixmap->drawable, ms->damage);
-        ms->dirty_enabled = TRUE;
-        xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Damage tracking initialized\n");
-    }
-    else {
-        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-                   "Failed to create screen damage record\n");
-        return FALSE;
+    if (err != -EINVAL && err != -ENOSYS) {
+        ms->damage = DamageCreate(NULL, NULL, DamageReportNone, TRUE,
+                                  pScreen, rootPixmap);
+
+        if (ms->damage) {
+            DamageRegister(&rootPixmap->drawable, ms->damage);
+            ms->dirty_enabled = TRUE;
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Damage tracking initialized\n");
+        }
+        else {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                       "Failed to create screen damage record\n");
+            return FALSE;
+        }
     }
     return ret;
 }
