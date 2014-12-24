@@ -225,7 +225,6 @@ glamor_destroy_textured_pixmap(PixmapPtr pixmap)
 #if GLAMOR_HAS_GBM
             glamor_egl_destroy_pixmap_image(pixmap);
 #endif
-            glamor_pixmap_destroy_fbo(pixmap_priv);
             glamor_set_pixmap_private(pixmap, NULL);
         }
     }
@@ -554,7 +553,6 @@ _X_EXPORT void
 glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
 {
     glamor_pixmap_private *old_priv;
-    glamor_pixmap_fbo *fbo;
 
     old_priv = dixGetPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key);
 
@@ -565,10 +563,7 @@ glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
         if (old_priv == NULL)
             return;
 
-        if (old_priv->base.fbo) {
-            fbo = glamor_pixmap_detach_fbo(old_priv);
-            glamor_purge_fbo(fbo);
-        }
+        glamor_pixmap_destroy_fbo(old_priv);
         free(old_priv);
     }
 
