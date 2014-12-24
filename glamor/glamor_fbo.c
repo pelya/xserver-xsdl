@@ -126,7 +126,7 @@ glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
 #endif
 }
 
-void
+static void
 glamor_purge_fbo(glamor_pixmap_fbo *fbo)
 {
     glamor_make_current(fbo->glamor_priv);

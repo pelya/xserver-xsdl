@@ -653,7 +653,6 @@ glamor_pixmap_fbo *glamor_create_fbo(glamor_screen_private *glamor_priv, int w,
                                      int h, GLenum format, int flag);
 void glamor_destroy_fbo(glamor_pixmap_fbo *fbo);
 void glamor_pixmap_destroy_fbo(glamor_pixmap_private *priv);
-void glamor_purge_fbo(glamor_pixmap_fbo *fbo);
 
 void glamor_init_pixmap_fbo(ScreenPtr screen);
 void glamor_fini_pixmap_fbo(ScreenPtr screen);
