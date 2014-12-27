@@ -435,7 +435,7 @@ glamor_xv_put_image(glamor_port_private *port_priv,
     }
 
     top = (src_y) & ~1;
-    nlines = (src_y + height) - top;
+    nlines = (src_y + src_h) - top;
 
     switch (id) {
     case FOURCC_YV12:
