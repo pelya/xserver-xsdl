@@ -65,7 +65,7 @@ glamor_poly_fill_rect_gl(DrawablePtr drawable,
                                        &glamor_facet_polyfillrect_130);
 
         if (!prog)
-            goto bail_ctx;
+            goto bail;
 
         /* Set up the vertex buffers for the points */
 
@@ -87,7 +87,7 @@ glamor_poly_fill_rect_gl(DrawablePtr drawable,
                                        &glamor_facet_polyfillrect_120);
 
         if (!prog)
-            goto bail_ctx;
+            goto bail;
 
         /* Set up the vertex buffers for the points */
 
@@ -139,14 +139,11 @@ glamor_poly_fill_rect_gl(DrawablePtr drawable,
     }
 
     glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_COLOR_LOGIC_OP);
     if (glamor_priv->glsl_version >= 130)
         glVertexAttribDivisor(GLAMOR_VERTEX_POS, 0);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 
     return TRUE;
-bail_ctx:
-    glDisable(GL_COLOR_LOGIC_OP);
 bail:
     return FALSE;
 }

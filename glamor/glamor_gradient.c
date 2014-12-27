@@ -993,6 +993,8 @@ glamor_generate_radial_gradient_picture(ScreenPtr screen,
          vertices, tex_vertices, 0))
         goto GRADIENT_FAIL;
 
+    glamor_set_alu(screen, GXcopy);
+
     /* Set all the stops and colors to shader. */
     if (stops_count > RADIAL_SMALL_STOPS) {
         stop_colors = malloc(4 * stops_count * sizeof(float));
@@ -1308,6 +1310,8 @@ glamor_generate_linear_gradient_picture(ScreenPtr screen,
         (screen, glamor_priv, dst_picture, &xscale, &yscale, x_source, y_source,
          vertices, tex_vertices, 1))
         goto GRADIENT_FAIL;
+
+    glamor_set_alu(screen, GXcopy);
 
     /* Normalize the PTs. */
     glamor_set_normalize_pt(xscale, yscale,

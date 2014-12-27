@@ -210,7 +210,6 @@ glamor_text(DrawablePtr drawable, GCPtr gc,
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
     glVertexAttribDivisor(GLAMOR_VERTEX_POS, 0);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-    glDisable(GL_COLOR_LOGIC_OP);
 
     return x;
 }
@@ -286,18 +285,14 @@ glamor_poly_text(DrawablePtr drawable, GCPtr gc,
     prog = glamor_use_program_fill(pixmap, gc, &glamor_priv->poly_text_progs, &glamor_facet_poly_text);
 
     if (!prog)
-        goto bail_ctx;
+        goto bail;
 
     x = glamor_text(drawable, gc, glamor_font, prog,
                     x, y, count, chars, charinfo, sixteen);
 
-    glDisable(GL_COLOR_LOGIC_OP);
-
     *final_pos = x;
     return TRUE;
 
-bail_ctx:
-    glDisable(GL_COLOR_LOGIC_OP);
 bail:
     return FALSE;
 }
@@ -468,7 +463,6 @@ glamor_image_text(DrawablePtr drawable, GCPtr gc,
     return TRUE;
 
 bail:
-    glDisable(GL_COLOR_LOGIC_OP);
     return FALSE;
 }
 

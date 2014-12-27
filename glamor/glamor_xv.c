@@ -286,6 +286,7 @@ glamor_xv_render(glamor_port_private *port_priv)
     glamor_get_drawable_deltas(port_priv->pDraw, port_priv->pPixmap, &dst_x_off,
                                &dst_y_off);
     glamor_set_destination_pixmap_priv_nc(glamor_priv, pixmap, pixmap_priv);
+    glamor_set_alu(screen, GXcopy);
 
     for (i = 0; i < 3; i++) {
         if (port_priv->src_pix[i]) {

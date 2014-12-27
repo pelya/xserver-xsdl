@@ -404,11 +404,9 @@ glamor_copy_fbo_fbo_draw(DrawablePtr src,
         glDisable(GL_SCISSOR_TEST);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 
-    glDisable(GL_COLOR_LOGIC_OP);
     return TRUE;
 
 bail_ctx:
-    glDisable(GL_COLOR_LOGIC_OP);
     return FALSE;
 }
 
@@ -452,7 +450,6 @@ glamor_copy_fbo_fbo_temp(DrawablePtr src,
 
     if (!glamor_set_alu(screen, gc ? gc->alu : GXcopy))
         goto bail_ctx;
-    glDisable(GL_COLOR_LOGIC_OP);
 
     /* Find the size of the area to copy
      */
@@ -521,7 +518,6 @@ bail:
     return FALSE;
 
 bail_ctx:
-    glDisable(GL_COLOR_LOGIC_OP);
     return FALSE;
 }
 

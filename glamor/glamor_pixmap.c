@@ -748,6 +748,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
                                       int swap_rb, int x, int y, int w, int h,
                                       int stride, void *bits, int pbo)
 {
+    ScreenPtr screen = pixmap->drawable.pScreen;
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     glamor_screen_private *glamor_priv =
         glamor_get_screen_private(pixmap->drawable.pScreen);
@@ -833,6 +834,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
         glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
 
         glamor_set_destination_pixmap_priv_nc(glamor_priv, pixmap, pixmap_priv);
+        glamor_set_alu(screen, GXcopy);
         __glamor_upload_pixmap_to_texture(pixmap, &tex,
                                           format, type, 0, 0, w, h, bits, pbo);
         glActiveTexture(GL_TEXTURE0);
@@ -1131,6 +1133,7 @@ glamor_es2_pixmap_read_prepare(PixmapPtr source, int x, int y, int w, int h,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glamor_set_destination_pixmap_fbo(glamor_priv, temp_fbo, 0, 0, w, h);
+    glamor_set_alu(screen, GXcopy);
     glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
     glUniform1i(glamor_priv->finish_access_revert[no_alpha], revert);
     glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha], swap_rb);

@@ -60,7 +60,7 @@ glamor_poly_glyph_blt_gl(DrawablePtr drawable, GCPtr gc,
                                    &glamor_priv->poly_glyph_blt_progs,
                                    &glamor_facet_poly_glyph_blt);
     if (!prog)
-        goto bail_ctx;
+        goto bail;
 
     glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
 
@@ -138,12 +138,9 @@ glamor_poly_glyph_blt_gl(DrawablePtr drawable, GCPtr gc,
         }
     }
 
-    glDisable(GL_COLOR_LOGIC_OP);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 
     return TRUE;
-bail_ctx:
-    glDisable(GL_COLOR_LOGIC_OP);
 bail:
     return FALSE;
 }
@@ -191,7 +188,7 @@ glamor_push_pixels_gl(GCPtr gc, PixmapPtr bitmap,
                                    &glamor_priv->poly_glyph_blt_progs,
                                    &glamor_facet_poly_glyph_blt);
     if (!prog)
-        goto bail_ctx;
+        goto bail;
 
     glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
 
@@ -230,12 +227,9 @@ glamor_push_pixels_gl(GCPtr gc, PixmapPtr bitmap,
         glDrawArrays(GL_POINTS, 0, num_points);
     }
 
-    glDisable(GL_COLOR_LOGIC_OP);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     return TRUE;
 
-bail_ctx:
-    glDisable(GL_COLOR_LOGIC_OP);
 bail:
     return FALSE;
 }

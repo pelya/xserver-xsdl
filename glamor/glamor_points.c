@@ -55,17 +55,17 @@ glamor_poly_point_gl(DrawablePtr drawable, GCPtr gc, int mode, int npt, DDXPoint
     glamor_make_current(glamor_priv);
 
     if (prog->failed)
-        goto bail_ctx;
+        goto bail;
 
     if (!prog->prog) {
         if (!glamor_build_program(screen, prog,
                                   &glamor_facet_point,
                                   &glamor_fill_solid))
-            goto bail_ctx;
+            goto bail;
     }
 
     if (!glamor_use_program(pixmap, gc, prog, NULL))
-        goto bail_ctx;
+        goto bail;
 
     vbo_ppt = glamor_get_vbo_space(screen, npt * (2 * sizeof (INT16)), &vbo_offset);
     glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
@@ -102,13 +102,10 @@ glamor_poly_point_gl(DrawablePtr drawable, GCPtr gc, int mode, int npt, DDXPoint
     }
 
     glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_COLOR_LOGIC_OP);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 
     return TRUE;
 
-bail_ctx:
-    glDisable(GL_COLOR_LOGIC_OP);
 bail:
     return FALSE;
 }

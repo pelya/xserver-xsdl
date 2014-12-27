@@ -65,7 +65,7 @@ glamor_poly_lines_solid_gl(DrawablePtr drawable, GCPtr gc,
                                    &glamor_facet_poly_lines);
 
     if (!prog)
-        goto bail_ctx;
+        goto bail;
 
     /* Set up the vertex buffers for the points */
 
@@ -117,12 +117,9 @@ glamor_poly_lines_solid_gl(DrawablePtr drawable, GCPtr gc,
     }
 
     glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_COLOR_LOGIC_OP);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 
     return TRUE;
-bail_ctx:
-    glDisable(GL_COLOR_LOGIC_OP);
 bail:
     return FALSE;
 }
