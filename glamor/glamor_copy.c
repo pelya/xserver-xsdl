@@ -315,7 +315,6 @@ glamor_copy_fbo_fbo_draw(DrawablePtr src,
     struct copy_args args;
     glamor_program *prog;
     const glamor_facet *copy_facet;
-    Bool set_scissor;
     int n;
 
     glamor_make_current(glamor_priv);
@@ -367,9 +366,7 @@ glamor_copy_fbo_fbo_draw(DrawablePtr src,
 
     glamor_get_drawable_deltas(src, src_pixmap, &src_off_x, &src_off_y);
 
-    set_scissor = glamor_pixmap_priv_is_large(src_priv);
-    if (set_scissor)
-        glEnable(GL_SCISSOR_TEST);
+    glEnable(GL_SCISSOR_TEST);
 
     glamor_pixmap_loop(src_priv, src_box_x, src_box_y) {
         BoxPtr src_box = glamor_pixmap_box_at(src_priv, src_box_x, src_box_y);
@@ -385,11 +382,10 @@ glamor_copy_fbo_fbo_draw(DrawablePtr src,
             glamor_set_destination_drawable(dst, dst_box_x, dst_box_y, FALSE, FALSE,
                                             prog->matrix_uniform, &dst_off_x, &dst_off_y);
 
-            if (set_scissor)
-                glScissor(dst_off_x - args.dx,
-                          dst_off_y - args.dy,
-                          src_box->x2 - src_box->x1,
-                          src_box->y2 - src_box->y1);
+            glScissor(dst_off_x - args.dx,
+                      dst_off_y - args.dy,
+                      src_box->x2 - src_box->x1,
+                      src_box->y2 - src_box->y1);
 
             if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
                 glDrawArrays(GL_QUADS, 0, nbox * 4);
@@ -400,8 +396,7 @@ glamor_copy_fbo_fbo_draw(DrawablePtr src,
             }
         }
     }
-    if (set_scissor)
-        glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_SCISSOR_TEST);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
 
     return TRUE;
