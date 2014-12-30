@@ -153,8 +153,10 @@ xf86_check_platform_slot(const struct xf86_platform_device *pd)
     for (i = 0; i < xf86NumEntities; i++) {
         const EntityPtr u = xf86Entities[i];
 
-        if (pd->pdev && u->bus.type == BUS_PCI)
-            return !MATCH_PCI_DEVICES(pd->pdev, u->bus.id.pci);
+        if (pd->pdev && u->bus.type == BUS_PCI &&
+            MATCH_PCI_DEVICES(pd->pdev, u->bus.id.pci)) {
+            return FALSE;
+        }
         if ((u->bus.type == BUS_PLATFORM) && (pd == u->bus.id.plat)) {
             return FALSE;
         }
