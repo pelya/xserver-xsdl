@@ -196,12 +196,14 @@ ms_present_abort_vblank(RRCrtcPtr crtc, uint64_t event_id, uint64_t msc)
 static void
 ms_present_flush(WindowPtr window)
 {
+#ifdef GLAMOR
     ScreenPtr screen = window->drawable.pScreen;
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     modesettingPtr ms = modesettingPTR(scrn);
 
     if (ms->drmmode.glamor)
         glamor_block_handler(screen);
+#endif
 }
 
 static present_screen_info_rec ms_present_screen_info = {
