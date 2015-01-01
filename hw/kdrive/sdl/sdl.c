@@ -29,6 +29,7 @@
 #endif
 #include "kdrive.h"
 #include <SDL/SDL.h>
+#include <SDL/SDL_syswm.h>
 #include <X11/keysym.h>
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -64,6 +65,7 @@ static void sdlMouseDisable (KdPointerInfo *pi);
 static int execute_command(const char * command, const char *mode, char * data, int datalen);
 static int UnicodeToUtf8(int src, char * dest);
 static void send_unicode(int unicode);
+static void set_clipboard_text(const char *text);
 
 KdKeyboardInfo *sdlKeyboard = NULL;
 KdPointerInfo *sdlPointer = NULL;
@@ -204,6 +206,8 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 	SDL_WM_SetCaption("Freedesktop.org X server (SDL)", NULL);
 
 	SDL_EnableUNICODE(1);
+	SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+	set_clipboard_text(SDL_GetClipboardText());
 
 	return sdlMapFramebuffer (screen);
 }
@@ -694,6 +698,10 @@ static void sdlPollInput(void)
 				// Oherwise SDL will stuck and we will get a permanent black screen
 				SDL_Flip(SDL_GetVideoSurface());
 				break;
+			case SDL_SYSWMEVENT:
+				if (event.syswm.msg != NULL && event.syswm.msg->type == SDL_SYSWM_ANDROID_CLIPBOARD_CHANGED)
+					set_clipboard_text(SDL_GetClipboardText());
+				break;
 			//case SDL_QUIT:
 				/* this should never happen */
 				//SDL_Quit(); // SDL_Quit() on Android is buggy
@@ -812,18 +820,27 @@ static void *send_unicode_thread(void *param)
 	sprintf (cmd, "127.0.0.1:%s", display);
 	setenv ("DISPLAY", cmd, 1);
 	UnicodeToUtf8 (unicode, c);
-	//sprintf(cmd, "echo '%s' | %s/usr/bin/xsel -b -i >/dev/null 2>&1", c, getenv("APPDIR"));
-	//sprintf(cmd, "echo '%s' >/dev/null 2>&1", c);
-	//sprintf(cmd, "%s/usr/bin/xsel -b", getenv("APPDIR"));
-	//printf("Launching cmd: %s", cmd);
-	//int ret = system(cmd);
-	//printf("Cmd ret: %d", ret);
 	sprintf(cmd, "%s/usr/bin/xsel -b -i >/dev/null 2>&1", getenv("APPDIR"));
 	execute_command(cmd, "w", c, 5);
 	KdEnqueueKeyboardEvent (sdlKeyboard, 37, 0); // LCTRL
 	KdEnqueueKeyboardEvent (sdlKeyboard, 55, 0); // V
 	KdEnqueueKeyboardEvent (sdlKeyboard, 55, 1); // V
 	KdEnqueueKeyboardEvent (sdlKeyboard, 37, 1); // LCTRL
+	return NULL;
+}
+
+static void *set_clipboard_text_thread(void *param)
+{
+	// International text input - copy symbol to clipboard, and send copypaste key
+	const char *text = (const char *)param;
+	char cmd[1024] = "";
+	sprintf (cmd, "127.0.0.1:%s", display);
+	setenv ("DISPLAY", cmd, 1);
+	sprintf(cmd, "%s/usr/bin/xsel -b -i >/dev/null 2>&1", getenv("APPDIR"));
+	execute_command(cmd, "w", text, strlen(text));
+	sprintf(cmd, "%s/usr/bin/xsel -p -i >/dev/null 2>&1", getenv("APPDIR"));
+	execute_command(cmd, "w", text, strlen(text));
+	SDL_free(text);
 	return NULL;
 }
 
@@ -834,6 +851,16 @@ void send_unicode(int unicode)
 	pthread_attr_init (&attr);
 	pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
 	pthread_create (&thread_id, &attr, &send_unicode_thread, (void *)unicode);
+	pthread_attr_destroy (&attr);
+}
+
+void set_clipboard_text(const char *text)
+{
+	pthread_t thread_id;
+	pthread_attr_t attr;
+	pthread_attr_init (&attr);
+	pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
+	pthread_create (&thread_id, &attr, &set_clipboard_text_thread, (void *)text);
 	pthread_attr_destroy (&attr);
 }
 
