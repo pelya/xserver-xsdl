@@ -838,8 +838,6 @@ static void *set_clipboard_text_thread(void *param)
 	setenv ("DISPLAY", cmd, 1);
 	sprintf(cmd, "%s/usr/bin/xsel -b -i >/dev/null 2>&1", getenv("APPDIR"));
 	execute_command(cmd, "w", text, strlen(text));
-	sprintf(cmd, "%s/usr/bin/xsel -p -i >/dev/null 2>&1", getenv("APPDIR"));
-	execute_command(cmd, "w", text, strlen(text));
 	SDL_free(text);
 	return NULL;
 }
