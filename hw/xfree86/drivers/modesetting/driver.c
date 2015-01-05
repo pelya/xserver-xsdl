@@ -1077,6 +1077,7 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
     if (!ms->drmmode.sw_cursor)
         xf86_cursors_init(pScreen, ms->cursor_width, ms->cursor_height,
                           HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64 |
+                          HARDWARE_CURSOR_UPDATE_UNHIDDEN |
                           HARDWARE_CURSOR_ARGB);
 
     /* Must force it before EnterVT, so we are in control of VT and
