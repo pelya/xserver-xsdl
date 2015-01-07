@@ -118,6 +118,8 @@ void ms_drm_abort(ScrnInfoPtr scrn,
                   Bool (*match)(void *data, void *match_data),
                   void *match_data);
 
+Bool ms_crtc_on(xf86CrtcPtr crtc);
+
 xf86CrtcPtr ms_dri2_crtc_covering_drawable(DrawablePtr pDraw);
 xf86CrtcPtr ms_covering_crtc(ScrnInfoPtr scrn, BoxPtr box,
                              xf86CrtcPtr desired, BoxPtr crtc_box_ret);
