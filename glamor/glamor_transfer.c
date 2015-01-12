@@ -186,7 +186,7 @@ glamor_download_boxes(PixmapPtr pixmap, BoxPtr in_boxes, int in_nbox,
         BoxPtr                  boxes = in_boxes;
         int                     nbox = in_nbox;
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->fb);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
 
         while (nbox--) {
 

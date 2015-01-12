@@ -226,7 +226,7 @@ glamor_get_spans_gl(DrawablePtr drawable, int wmax,
         BoxPtr                  box = glamor_pixmap_box_at(pixmap_priv, box_x, box_y);
         glamor_pixmap_fbo       *fbo = glamor_pixmap_fbo_at(pixmap_priv, box_x, box_y);
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->fb);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo->fb);
         glPixelStorei(GL_PACK_ALIGNMENT, 4);
 
         d = dst;
