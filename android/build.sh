@@ -99,7 +99,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 || exit 1
 
 cd $BUILDDIR
-ln -sf ../xtrans-1.2.7 X11/Xtrans
+ln -sf ../$PKGDIR X11/Xtrans
 } || exit 1
 
 # =========== xextproto ===========
@@ -133,7 +133,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in inputproto-2.3/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -152,7 +152,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in kbproto-1.0.6/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -171,7 +171,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in xineramaproto-1.2.1/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -190,7 +190,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in renderproto-0.11.1/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -209,7 +209,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in fixesproto-5.0/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -228,7 +228,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in damageproto-1.2.1/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -247,7 +247,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in compositeproto-0.4.2/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -266,7 +266,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in bigreqsproto-1.1.2/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -285,7 +285,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in scrnsaverproto-1.2.2/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -304,7 +304,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in videoproto-2.3.2/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -323,7 +323,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in resourceproto-1.2.0/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -342,7 +342,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in xcmiscproto-1.2.2/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -361,7 +361,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in randrproto-1.4.0/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -380,7 +380,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in xf86bigfontproto-1.2.0/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -399,7 +399,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
 cd $BUILDDIR
-for F in recordproto-1.14.2/*.h ; do
+for F in $PKGDIR/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -428,7 +428,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf $BUILDDIR/pixman-0.30.2/pixman/.libs/libpixman-1.a $BUILDDIR/libpixman-1.a
+ln -sf $BUILDDIR/$PKGDIR/pixman/.libs/libpixman-1.a $BUILDDIR/libpixman-1.a
 } || exit 1
 
 # =========== libfontenc.a ===========
@@ -462,8 +462,8 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf ../libfontenc-1.1.2/include/X11/fonts/fontenc.h X11/fonts/
-ln -sf libfontenc-1.1.2/src/.libs/libfontenc.a ./
+ln -sf ../$PKGDIR/include/X11/fonts/fontenc.h X11/fonts/
+ln -sf $PKGDIR/src/.libs/libfontenc.a ./
 } || exit 1
 
 # =========== libXfont.a ===========
@@ -504,8 +504,8 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf libXfont-1.4.6/src/.libs/libXfont.a ./
-for F in libXfont-1.4.6/include/X11/fonts/* ; do
+ln -sf $PKGDIR/src/.libs/libXfont.a ./
+for F in $PKGDIR/include/X11/fonts/* ; do
 ln -sf ../$F X11/fonts/
 done
 } || exit 1
@@ -543,8 +543,8 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf libXau-1.0.8/.libs/libXau.a ./
-ln -sf ../libXau-1.0.8/include/X11/Xauth.h X11/
+ln -sf $PKGDIR/.libs/libXau.a ./
+ln -sf ../$PKGDIR/include/X11/Xauth.h X11/
 } || exit 1
 
 # =========== libXdmcp.a ==========
@@ -580,8 +580,8 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf libXdmcp-1.1.1/.libs/libXdmcp.a ./
-ln -sf ../libXdmcp-1.1.1/include/X11/Xdmcp.h X11/
+ln -sf $PKGDIR/.libs/libXdmcp.a ./
+ln -sf ../$PKGDIR/include/X11/Xdmcp.h X11/
 } || exit 1
 
 # =========== xcbproto ===========
@@ -634,11 +634,11 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf libxcb-1.10/src/.libs/libxcb.a ./
+ln -sf $PKGDIR/src/.libs/libxcb.a ./
 mkdir -p xcb
-ln -sf ../libxcb-1.10/src/xcb.h xcb/
-ln -sf ../libxcb-1.10/src/xproto.h xcb/
-ln -sf ../libxcb-1.10/src/xcbext.h xcb/
+ln -sf ../$PKGDIR/src/xcb.h xcb/
+ln -sf ../$PKGDIR/src/xproto.h xcb/
+ln -sf ../$PKGDIR/src/xcbext.h xcb/
 } || exit 1
 
 [ -e libandroid_support.a ] || {
@@ -693,8 +693,8 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf libX11-1.6.2/src/.libs/libX11.a ./
-for F in libX11-1.6.2/include/X11/*.h ; do
+ln -sf $PKGDIR/src/.libs/libX11.a ./
+for F in $PKGDIR/include/X11/*.h ; do
 ln -sf ../$F X11
 done
 } || exit 1
@@ -853,8 +853,8 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf libxkbfile-1.0.8/src/.libs/libxkbfile.a ./
-for F in libxkbfile-1.0.8/include/X11/extensions/*.h ; do
+ln -sf $PKGDIR/src/.libs/libxkbfile.a ./
+for F in $PKGDIR/include/X11/extensions/*.h ; do
 ln -sf ../$F X11/extensions/
 done
 } || exit 1
@@ -874,8 +874,8 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
-LDFLAGS="-pie -L$BUILDDIR" \
+-include strings.h -Os" \
+LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -893,9 +893,46 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-cp -f xkbcomp-1.2.4/xkbcomp ./
+cp -f $PKGDIR/xkbcomp ./
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xkbcomp'
+} || exit 1
+
+mkdir -p pie
+
+[ -e pie/xkbcomp ] || {
+cd pie
+tar xvzf ../../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h -Os" \
+LDFLAGS="-pie -L$BUILDDIR" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=$TARGET_HOST \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR/pie
+cp -f $PKGDIR/xkbcomp ./
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP xkbcomp'
+cd $BUILDDIR
 } || exit 1
 
 # =========== libICE.a ==========
@@ -1075,8 +1112,8 @@ autoreconf -v --install \
 
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h \
--Dsethostent=abs -Dendhostent=sync" \
-LDFLAGS="-pie -L$BUILDDIR" \
+-Dsethostent=abs -Dendhostent=sync -Os" \
+LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -1099,6 +1136,42 @@ $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xhost'
 } || exit 1
 
+[ -e pie/xhost ] || {
+cd pie
+tar xvzf ../../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h \
+-Dsethostent=abs -Dendhostent=sync -Os" \
+LDFLAGS="-pie -L$BUILDDIR" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=$TARGET_HOST \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+cp -f `which libtool` ./
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+
+cd $BUILDDIR/pie
+cp -f $PKGDIR/xhost ./
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP xhost'
+cd $BUILDDIR
+} || exit 1
+
 # =========== xli binary ==========
 
 [ -e xli ] || {
@@ -1116,7 +1189,7 @@ echo "SRCS = bright.c clip.c cmuwmrast.c compress.c dither.c faces.c fbm.c \
       sunraster.c value.c window.c xbitmap.c xli.c \
       xpixmap.c xwd.c zio.c zoom.c ddxli.c doslib.c tga.c bmp.c pcd.c " > Makefile
 echo 'xli: $(SRCS)' >> Makefile
-echo '	$(CC) $(CFLAGS) $(SRCS) -o xli $(LDFLAGS) -pie -lX11 -lxcb -lXau -lXdmcp -landroid_support -lm' >> Makefile
+echo '	$(CC) $(CFLAGS) $(SRCS) -Os -o xli $(LDFLAGS) $(PIE) -lX11 -lxcb -lXau -lXdmcp -landroid_support -lm' >> Makefile
 
 echo '#include <stdarg.h>' > varargs.h
 
@@ -1129,15 +1202,46 @@ env CFLAGS="-isystem$BUILDDIR \
 -include stdlib.h \
 -include string.h \
 -Drindex=strchr \
--isystem ." \
+-isystem . \
+-Os" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
-make V=1 2>&1 || exit 1
+make V=1 PIE= 2>&1 || exit 1
 
 cd $BUILDDIR
 cp -f $PKGDIR/xli ./
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xli'
+} || exit 1
+
+[ -e pie/xli ] || {
+cd pie
+tar xvzf ../../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
+cp -f ../../$PKGDIR/Makefile ./
+cp -f ../../$PKGDIR/varargs.h ./
+
+sed -i 's/extern int errno;//' *.c
+
+env CFLAGS="-isystem$BUILDDIR \
+-include strings.h \
+-include sys/select.h \
+-include math.h \
+-include stdlib.h \
+-include string.h \
+-Drindex=strchr \
+-isystem . \
+-Os" \
+LDFLAGS="-L$BUILDDIR" \
+$BUILDDIR/setCrossEnvironment.sh \
+make V=1 PIE=-pie 2>&1 || exit 1
+
+cd $BUILDDIR/pie
+cp -f $PKGDIR/xli ./
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP xli'
+cd $BUILDDIR
 } || exit 1
 
 # =========== xsel binary ==========
@@ -1150,8 +1254,8 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc" \
-LDFLAGS="-pie -L$BUILDDIR" \
+env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc -Os" \
+LDFLAGS="-L$BUILDDIR" \
 LIBS="-lX11 -lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
@@ -1164,6 +1268,28 @@ cd $BUILDDIR
 cp -f $PKGDIR/xsel ./ || exit 1
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xsel'
+} || exit 1
+
+[ -e pie/xsel ] || {
+cd pie
+tar xvzf ../../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
+env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc -Os" \
+LDFLAGS="-pie -L$BUILDDIR" \
+LIBS="-lX11 -lxcb -lXau -lXdmcp -landroid_support" \
+$BUILDDIR/setCrossEnvironment.sh \
+./autogen.sh --host=$TARGET_HOST \
+|| exit 1
+
+$BUILDDIR/setCrossEnvironment.sh \
+make V=1 2>&1 || exit 1
+
+cd $BUILDDIR/pie
+cp -f $PKGDIR/xsel ./ || exit 1
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP xsel'
+cd $BUILDDIR
 } || exit 1
 
 # =========== xsdl ==========
