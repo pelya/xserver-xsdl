@@ -82,6 +82,17 @@ drmmode_bo_get_pitch(drmmode_bo *bo)
     return bo->dumb->pitch;
 }
 
+static Bool
+drmmode_bo_has_bo(drmmode_bo *bo)
+{
+#ifdef GLAMOR_HAS_GBM
+    if (bo->gbm)
+        return TRUE;
+#endif
+
+    return bo->dumb != NULL;
+}
+
 uint32_t
 drmmode_bo_get_handle(drmmode_bo *bo)
 {
@@ -91,6 +102,26 @@ drmmode_bo_get_handle(drmmode_bo *bo)
 #endif
 
     return bo->dumb->handle;
+}
+
+static void *
+drmmode_bo_map(drmmode_ptr drmmode, drmmode_bo *bo)
+{
+    int ret;
+
+#ifdef GLAMOR_HAS_GBM
+    if (bo->gbm)
+        return NULL;
+#endif
+
+    if (bo->dumb->ptr)
+        return bo->dumb->ptr;
+
+    ret = dumb_bo_map(drmmode->fd, bo->dumb);
+    if (ret)
+        return NULL;
+
+    return bo->dumb->ptr;
 }
 
 static Bool
@@ -1570,17 +1601,7 @@ drmmode_create_initial_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 void *
 drmmode_map_front_bo(drmmode_ptr drmmode)
 {
-    int ret;
-
-    if (drmmode->front_bo.dumb->ptr)
-        return drmmode->front_bo.dumb->ptr;
-
-    ret = dumb_bo_map(drmmode->fd, drmmode->front_bo.dumb);
-    if (ret)
-        return NULL;
-
-    return drmmode->front_bo.dumb->ptr;
-
+    return drmmode_bo_map(drmmode, &drmmode->front_bo);
 }
 
 void *
