@@ -395,13 +395,10 @@ glamor_get_name_from_bo(int gbm_fd, struct gbm_bo *bo, int *name)
 }
 #endif
 
-int
-glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
-                                 PixmapPtr pixmap,
-                                 unsigned int tex,
-                                 Bool want_name, CARD16 *stride, CARD32 *size)
-{
 #ifdef GLAMOR_HAS_GBM
+static void *
+_get_gbm_bo_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, unsigned int tex)
+{
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     struct glamor_pixmap_private *pixmap_priv =
         glamor_get_pixmap_private(pixmap);
@@ -410,7 +407,6 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
     struct glamor_egl_screen_private *glamor_egl;
     EGLImageKHR image;
     struct gbm_bo *bo;
-    int fd = -1;
 
     EGLint attribs[] = {
         EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
@@ -430,13 +426,64 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
                                   (EGLClientBuffer) (uintptr_t)
                                   tex, attribs);
         if (image == EGL_NO_IMAGE_KHR)
-            goto failure;
+            return NULL;
 
         glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
         glamor_egl_set_pixmap_image(pixmap, image);
     }
 
     bo = gbm_bo_import(glamor_egl->gbm, GBM_BO_IMPORT_EGL_IMAGE, image, 0);
+    if (!bo)
+        return NULL;
+
+    pixmap->devKind = gbm_bo_get_stride(bo);
+
+    return bo;
+}
+#endif
+
+void *
+glamor_gbm_bo_from_pixmap(ScreenPtr screen, PixmapPtr pixmap)
+{
+#ifdef GLAMOR_HAS_GBM
+    glamor_screen_private *glamor_priv =
+        glamor_get_screen_private(pixmap->drawable.pScreen);
+    glamor_pixmap_private *pixmap_priv =
+        glamor_get_pixmap_private(pixmap);
+
+    pixmap_priv = glamor_get_pixmap_private(pixmap);
+    if (pixmap_priv == NULL || !glamor_priv->dri3_enabled)
+        return NULL;
+    switch (pixmap_priv->type) {
+    case GLAMOR_TEXTURE_DRM:
+    case GLAMOR_TEXTURE_ONLY:
+        if (!glamor_pixmap_ensure_fbo(pixmap, GL_RGBA, 0))
+            return NULL;
+        return _get_gbm_bo_from_pixmap(screen, pixmap,
+                                       pixmap_priv->fbo->tex);
+    default:
+        break;
+    }
+    return NULL;
+#else
+    return NULL;
+#endif
+}
+
+int
+glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
+                                 PixmapPtr pixmap,
+                                 unsigned int tex,
+                                 Bool want_name, CARD16 *stride, CARD32 *size)
+{
+#ifdef GLAMOR_HAS_GBM
+    struct glamor_egl_screen_private *glamor_egl;
+    struct gbm_bo *bo;
+    int fd = -1;
+
+    glamor_egl = glamor_egl_get_screen_private(xf86ScreenToScrn(screen));
+
+    bo = _get_gbm_bo_from_pixmap(screen, pixmap, tex);
     if (!bo)
         goto failure;
 

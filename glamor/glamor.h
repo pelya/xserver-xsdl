@@ -198,6 +198,21 @@ extern _X_EXPORT int glamor_fd_from_pixmap(ScreenPtr screen,
 extern _X_EXPORT int glamor_name_from_pixmap(PixmapPtr pixmap,
                                              CARD16 *stride, CARD32 *size);
 
+/* @glamor_gbm_bo_from_pixmap: Get a GBM bo from a pixmap.
+ *
+ * @screen: Current screen pointer.
+ * @pixmap: The pixmap from which we want the fd.
+ * @stride, @size: Pointers to fill the stride and size of the
+ * 		   buffer associated to the fd.
+ *
+ * the pixmap and the buffer represented by the gbm_bo will share the same
+ * content.
+ *
+ * Returns the gbm_bo on success, NULL on error.
+ * */
+extern _X_EXPORT void *glamor_gbm_bo_from_pixmap(ScreenPtr screen,
+                                                 PixmapPtr pixmap);
+
 /* @glamor_pixmap_from_fd: Creates a pixmap to wrap a dma-buf fd.
  *
  * @screen: Current screen pointer.
