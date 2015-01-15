@@ -1364,6 +1364,9 @@ OsAbort(void)
 int
 System(const char *command)
 {
+#ifdef ANDROID
+	return system(command);
+#else
     int pid, p;
     void (*csig) (int);
     int status;
@@ -1402,6 +1405,7 @@ System(const char *command)
     }
 
     return p == -1 ? -1 : status;
+#endif
 }
 
 static struct pid {
@@ -1413,6 +1417,9 @@ static struct pid {
 void *
 Popen(const char *command, const char *type)
 {
+#ifdef ANDROID
+	return popen(command, type);
+#else
     struct pid *cur;
     FILE *iop;
     int pdes[2], pid;
@@ -1498,6 +1505,7 @@ Popen(const char *command, const char *type)
     DebugF("Popen: `%s', fp = %p\n", command, iop);
 
     return iop;
+#endif
 }
 
 /* fopen that drops privileges */
@@ -1598,6 +1606,9 @@ Fopen(const char *file, const char *type)
 int
 Pclose(void *iop)
 {
+#ifdef ANDROID
+	return pclose(iop);
+#else
     struct pid *cur, *last;
     int pstat;
     int pid;
@@ -1632,6 +1643,7 @@ Pclose(void *iop)
 #endif
 
     return pid == -1 ? -1 : pstat;
+#endif
 }
 
 int
