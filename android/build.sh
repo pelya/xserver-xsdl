@@ -421,6 +421,8 @@ $BUILDDIR/setCrossEnvironment.sh \
 --host=$TARGET_HOST \
 --disable-arm-iwmmxt
 
+sed -i "s/TOOLCHAIN_SUPPORTS_ATTRIBUTE_CONSTRUCTOR/DISABLE_TOOLCHAIN_SUPPORTS_ATTRIBUTE_CONSTRUCTOR/g" config.h
+
 cd pixman
 touch *.S
 

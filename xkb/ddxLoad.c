@@ -205,16 +205,23 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 	}
     }
 
+	out = fopen("x-keyboard.txt", "w");
+	if (out) {
+		XkbWriteXKBKeymapForNames(out,names,xkb,want,need);
+		fclose(out);
+	}
+
     if (asprintf(&buf,
-		 "%s%sxkbcomp -I%s/usr/share/X11/xkb -w %d %s -xkm %s "
-		  "-em1 %s -emp %s -eml %s %s%s.xkm",
+		 "cat x-keyboard.txt | %s%sxkbcomp -I%s/usr/share/X11/xkb -w %d %s -xkm %s "
+		  "-em1 %s -emp %s -eml %s %s%s.xkm 2>%s/popen-stderr.txt",
 		 xkbbindir, xkbbindirsep,
 		 (getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ""),
 		 ((xkbDebugFlags < 2) ? 1 :
 		  ((xkbDebugFlags > 10) ? 10 : (int) xkbDebugFlags)),
 		 xkbbasedirflag ? xkbbasedirflag : "", xkmfile,
 		 PRE_ERROR_MSG, ERROR_PREFIX, POST_ERROR_MSG1,
-		 xkm_output_dir, keymap) == -1)
+		 xkm_output_dir, keymap,
+		 (getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ".")) == -1)
 	buf = NULL;
 
     free(xkbbasedirflag);
@@ -237,7 +244,6 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
        XkbWriteXKBKeymapForNames(stderr,names,xkb,want,need);
     }
 #endif
-	XkbWriteXKBKeymapForNames(out,names,xkb,want,need);
 #ifndef WIN32
 	if (Pclose(out)==0)
 #else
