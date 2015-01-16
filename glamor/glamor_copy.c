@@ -42,7 +42,7 @@ use_copyarea(PixmapPtr dst, GCPtr gc, glamor_program *prog, void *arg)
     glBindTexture(GL_TEXTURE_2D, src->tex);
 
     glUniform2f(prog->fill_offset_uniform, args->dx, args->dy);
-    glUniform2f(prog->fill_size_uniform, src->width, src->height);
+    glUniform2f(prog->fill_size_inv_uniform, 1.0f/src->width, 1.0f/src->height);
 
     return TRUE;
 }
@@ -51,7 +51,7 @@ static const glamor_facet glamor_facet_copyarea = {
     "copy_area",
     .vs_vars = "attribute vec2 primitive;\n",
     .vs_exec = (GLAMOR_POS(gl_Position, primitive.xy)
-                "       fill_pos = (fill_offset + primitive.xy) / fill_size;\n"),
+                "       fill_pos = (fill_offset + primitive.xy) * fill_size_inv;\n"),
     .fs_exec = "       gl_FragColor = texture2D(sampler, fill_pos);\n",
     .locations = glamor_program_location_fill,
     .use = use_copyarea,
@@ -71,7 +71,7 @@ use_copyplane(PixmapPtr dst, GCPtr gc, glamor_program *prog, void *arg)
     glBindTexture(GL_TEXTURE_2D, src->tex);
 
     glUniform2f(prog->fill_offset_uniform, args->dx, args->dy);
-    glUniform2f(prog->fill_size_uniform, src->width, src->height);
+    glUniform2f(prog->fill_size_inv_uniform, 1.0f/src->width, 1.0f/src->height);
 
     glamor_set_color(dst, gc->fgPixel, prog->fg_uniform);
     glamor_set_color(dst, gc->bgPixel, prog->bg_uniform);
@@ -134,7 +134,7 @@ static const glamor_facet glamor_facet_copyplane = {
     .version = 130,
     .vs_vars = "attribute vec2 primitive;\n",
     .vs_exec = (GLAMOR_POS(gl_Position, (primitive.xy))
-                "       fill_pos = (fill_offset + primitive.xy) / fill_size;\n"),
+                "       fill_pos = (fill_offset + primitive.xy) * fill_size_inv;\n"),
     .fs_exec = ("       uvec4 bits = uvec4(round(texture2D(sampler, fill_pos) * bitmul));\n"
                 "       if ((bits & bitplane) != uvec4(0,0,0,0))\n"
                 "               gl_FragColor = fg;\n"

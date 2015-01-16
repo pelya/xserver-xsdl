@@ -160,7 +160,7 @@ glamor_set_texture(PixmapPtr    pixmap,
                    int          off_x,
                    int          off_y,
                    GLint        offset_uniform,
-                   GLint        size_uniform)
+                   GLint        size_inv_uniform)
 {
     glamor_pixmap_private *texture_priv;
 
@@ -176,7 +176,7 @@ glamor_set_texture(PixmapPtr    pixmap,
     glBindTexture(GL_TEXTURE_2D, texture_priv->fbo->tex);
 
     glUniform2f(offset_uniform, off_x, off_y);
-    glUniform2f(size_uniform, texture->drawable.width, texture->drawable.height);
+    glUniform2f(size_inv_uniform, 1.0f/texture->drawable.width, 1.0f/texture->drawable.height);
     return TRUE;
 }
 
@@ -184,7 +184,7 @@ Bool
 glamor_set_tiled(PixmapPtr      pixmap,
                  GCPtr          gc,
                  GLint          offset_uniform,
-                 GLint          size_uniform)
+                 GLint          size_inv_uniform)
 {
     if (!glamor_set_alu(pixmap->drawable.pScreen, gc->alu))
         return FALSE;
@@ -197,7 +197,7 @@ glamor_set_tiled(PixmapPtr      pixmap,
                               -gc->patOrg.x,
                               -gc->patOrg.y,
                               offset_uniform,
-                              size_uniform);
+                              size_inv_uniform);
 }
 
 static PixmapPtr
