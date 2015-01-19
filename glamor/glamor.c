@@ -411,6 +411,14 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         epoxy_has_gl_extension("GL_ARB_buffer_storage");
     glamor_priv->has_nv_texture_barrier =
         epoxy_has_gl_extension("GL_NV_texture_barrier");
+    glamor_priv->has_unpack_subimage =
+        glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP ||
+        epoxy_gl_version() >= 30 ||
+        epoxy_has_gl_extension("GL_EXT_unpack_subimage");
+    glamor_priv->has_pack_subimage =
+        glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP ||
+        epoxy_gl_version() >= 30 ||
+        epoxy_has_gl_extension("GL_NV_pack_subimage");
 
     glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size);
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glamor_priv->max_fbo_size);

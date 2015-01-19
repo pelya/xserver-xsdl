@@ -236,6 +236,8 @@ typedef struct glamor_screen_private {
     int has_buffer_storage;
     int has_khr_debug;
     int has_nv_texture_barrier;
+    int has_pack_subimage;
+    int has_unpack_subimage;
     int max_fbo_size;
     int has_rw_pbo;
 
