@@ -343,9 +343,6 @@ glamor_build_program(ScreenPtr          screen,
     prog->dash_uniform = glamor_get_uniform(prog, glamor_program_location_dash, "dash");
     prog->dash_length_uniform = glamor_get_uniform(prog, glamor_program_location_dash, "dash_length");
 
-    if (glGetError() != GL_NO_ERROR)
-        goto fail;
-
     free(version_string);
     free(fs_vars);
     free(vs_vars);
