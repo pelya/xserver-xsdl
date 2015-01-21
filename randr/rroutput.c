@@ -487,6 +487,7 @@ ProcRRGetOutputInfo(ClientPtr client)
         swapl(&rep.mmHeight);
         swaps(&rep.nCrtcs);
         swaps(&rep.nModes);
+        swaps(&rep.nPreferred);
         swaps(&rep.nClones);
         swaps(&rep.nameLength);
     }
