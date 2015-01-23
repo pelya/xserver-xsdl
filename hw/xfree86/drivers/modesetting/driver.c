@@ -538,6 +538,7 @@ msBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
 
     pScreen->BlockHandler = ms->BlockHandler;
     pScreen->BlockHandler(pScreen, pTimeout, pReadmask);
+    ms->BlockHandler = pScreen->BlockHandler;
     pScreen->BlockHandler = msBlockHandler;
     if (pScreen->isGPU)
         dispatch_slave_dirty(pScreen);
