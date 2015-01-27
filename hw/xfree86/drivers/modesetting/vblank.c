@@ -323,6 +323,22 @@ ms_drm_abort_scrn(ScrnInfoPtr scrn)
     }
 }
 
+/**
+ * Abort by drm queue sequence number.
+ */
+void
+ms_drm_abort_seq(ScrnInfoPtr scrn, uint32_t seq)
+{
+    struct ms_drm_queue *q, *tmp;
+
+    xorg_list_for_each_entry_safe(q, tmp, &ms_drm_queue, list) {
+        if (q->seq == seq) {
+            ms_drm_abort_one(q);
+            break;
+        }
+    }
+}
+
 /*
  * Externally usable abort function that uses a callback to match a single
  * queued entry to abort
