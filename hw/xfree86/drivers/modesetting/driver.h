@@ -101,6 +101,12 @@ typedef struct _modesettingRec {
 
     drmEventContext event_context;
 
+    /**
+     * Page flipping stuff.
+     *  @{
+     */
+    /** @} */
+
     DamagePtr damage;
     Bool dirty_enabled;
 

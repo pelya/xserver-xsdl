@@ -51,7 +51,8 @@
 #include "driver.h"
 
 static Bool drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height);
-static int
+
+int
 drmmode_bo_destroy(drmmode_ptr drmmode, drmmode_bo *bo)
 {
     int ret;
@@ -72,7 +73,7 @@ drmmode_bo_destroy(drmmode_ptr drmmode, drmmode_bo *bo)
     return 0;
 }
 
-static uint32_t
+uint32_t
 drmmode_bo_get_pitch(drmmode_bo *bo)
 {
 #ifdef GLAMOR_HAS_GBM
@@ -139,6 +140,35 @@ drmmode_create_bo(drmmode_ptr drmmode, drmmode_bo *bo,
 #endif
 
     bo->dumb = dumb_bo_create(drmmode->fd, width, height, bpp);
+    return bo->dumb != NULL;
+}
+
+Bool
+drmmode_bo_for_pixmap(drmmode_ptr drmmode, drmmode_bo *bo, PixmapPtr pixmap)
+{
+    ScreenPtr screen = xf86ScrnToScreen(drmmode->scrn);
+    uint16_t pitch;
+    uint32_t size;
+    int fd;
+
+#ifdef GLAMOR_HAS_GBM
+    if (drmmode->glamor) {
+        bo->gbm = glamor_gbm_bo_from_pixmap(screen, pixmap);
+        bo->dumb = NULL;
+        return bo->gbm != NULL;
+    }
+#endif
+
+    fd = glamor_fd_from_pixmap(screen, pixmap, &pitch, &size);
+    if (fd < 0) {
+        xf86DrvMsg(drmmode->scrn->scrnIndex, X_ERROR,
+                   "Failed to get fd for flip to new front.\n");
+        return FALSE;
+    }
+
+    bo->dumb = dumb_get_bo_from_fd(drmmode->fd, fd, pitch, size);
+    close(fd);
+
     return bo->dumb != NULL;
 }
 
@@ -368,6 +398,7 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
         if (crtc->scrn->pScreen)
             xf86CrtcSetScreenSubpixelOrder(crtc->scrn->pScreen);
 
+        drmmode_crtc->need_modeset = FALSE;
         crtc->funcs->dpms(crtc, DPMSModeOn);
 
         /* go through all the outputs and force DPMS them back on? */
@@ -1003,6 +1034,7 @@ static void
 drmmode_output_dpms(xf86OutputPtr output, int mode)
 {
     drmmode_output_private_ptr drmmode_output = output->driver_private;
+    xf86CrtcPtr crtc = output->crtc;
     drmModeConnectorPtr koutput = drmmode_output->mode_output;
     drmmode_ptr drmmode = drmmode_output->drmmode;
 
@@ -1011,6 +1043,13 @@ drmmode_output_dpms(xf86OutputPtr output, int mode)
 
     drmModeConnectorSetProperty(drmmode->fd, koutput->connector_id,
                                 drmmode_output->dpms_enum_id, mode);
+
+    if (mode == DPMSModeOn && crtc) {
+        drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+        if (drmmode_crtc->need_modeset)
+            drmmode_set_mode_major(crtc, &crtc->mode, crtc->rotation,
+                                   crtc->x, crtc->y);
+    }
     return;
 }
 

@@ -123,6 +123,7 @@ typedef enum {
     OPTION_DEVICE_PATH,
     OPTION_SHADOW_FB,
     OPTION_ACCEL_METHOD,
+    OPTION_PAGEFLIP,
 } modesettingOpts;
 
 static const OptionInfoRec Options[] = {
@@ -130,6 +131,7 @@ static const OptionInfoRec Options[] = {
     {OPTION_DEVICE_PATH, "kmsdev", OPTV_STRING, {0}, FALSE},
     {OPTION_SHADOW_FB, "ShadowFB", OPTV_BOOLEAN, {0}, FALSE},
     {OPTION_ACCEL_METHOD, "AccelMethod", OPTV_STRING, {0}, FALSE},
+    {OPTION_PAGEFLIP, "PageFlip", OPTV_BOOLEAN, {0}, FALSE},
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
@@ -820,6 +822,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     try_enable_glamor(pScrn);
 
     if (ms->drmmode.glamor) {
+        ms->drmmode.pageflip =
+            xf86ReturnOptValBool(ms->Options, OPTION_PAGEFLIP, TRUE);
     } else {
         Bool prefer_shadow = TRUE;
 
@@ -836,6 +840,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
                    "ShadowFB: preferred %s, enabled %s\n",
                    prefer_shadow ? "YES" : "NO",
                    ms->drmmode.shadow_enable ? "YES" : "NO");
+
+        ms->drmmode.pageflip = FALSE;
     }
 
     if (drmmode_pre_init(pScrn, &ms->drmmode, pScrn->bitsPerPixel / 8) == FALSE) {
