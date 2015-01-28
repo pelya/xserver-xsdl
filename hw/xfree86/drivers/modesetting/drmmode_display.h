@@ -47,7 +47,6 @@ typedef struct {
     int fd;
     unsigned fb_id;
     unsigned old_fb_id;
-    drmModeResPtr mode_res;
     drmModeFBPtr mode_fb;
     int cpp;
     ScrnInfoPtr scrn;

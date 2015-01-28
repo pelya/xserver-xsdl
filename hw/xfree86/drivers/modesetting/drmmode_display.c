@@ -687,7 +687,7 @@ drmmode_crtc_vblank_pipe(int crtc_id)
 }
 
 static void
-drmmode_crtc_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num)
+drmmode_crtc_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_res, int num)
 {
     xf86CrtcPtr crtc;
     drmmode_crtc_private_ptr drmmode_crtc;
@@ -698,7 +698,7 @@ drmmode_crtc_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num)
 
     drmmode_crtc = xnfcalloc(sizeof(drmmode_crtc_private_rec), 1);
     drmmode_crtc->mode_crtc =
-        drmModeGetCrtc(drmmode->fd, drmmode->mode_res->crtcs[num]);
+        drmModeGetCrtc(drmmode->fd, mode_res->crtcs[num]);
     drmmode_crtc->drmmode = drmmode;
     drmmode_crtc->vblank_pipe = drmmode_crtc_vblank_pipe(num);
     crtc->driver_private = drmmode_crtc;
@@ -1112,7 +1112,7 @@ static const char *const output_names[] = {
 };
 
 static void
-drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num)
+drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_res, int num)
 {
     xf86OutputPtr output;
     drmModeConnectorPtr koutput;
@@ -1123,7 +1123,7 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num)
     int i;
 
     koutput =
-        drmModeGetConnector(drmmode->fd, drmmode->mode_res->connectors[num]);
+        drmModeGetConnector(drmmode->fd, mode_res->connectors[num]);
     if (!koutput)
         return;
 
@@ -1161,7 +1161,7 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int num)
         goto out_free_encoders;
     }
 
-    drmmode_output->output_id = drmmode->mode_res->connectors[num];
+    drmmode_output->output_id = mode_res->connectors[num];
     drmmode_output->mode_output = koutput;
     drmmode_output->mode_encoders = kencoders;
     drmmode_output->drmmode = drmmode;
@@ -1231,7 +1231,7 @@ find_clones(ScrnInfoPtr scrn, xf86OutputPtr output)
 }
 
 static void
-drmmode_clones_init(ScrnInfoPtr scrn, drmmode_ptr drmmode)
+drmmode_clones_init(ScrnInfoPtr scrn, drmmode_ptr drmmode, drmModeResPtr mode_res)
 {
     int i, j;
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1246,8 +1246,8 @@ drmmode_clones_init(ScrnInfoPtr scrn, drmmode_ptr drmmode)
         for (j = 0; j < drmmode_output->mode_output->count_encoders; j++) {
             int k;
 
-            for (k = 0; k < drmmode->mode_res->count_encoders; k++) {
-                if (drmmode->mode_res->encoders[k] ==
+            for (k = 0; k < mode_res->count_encoders; k++) {
+                if (mode_res->encoders[k] ==
                     drmmode_output->mode_encoders[j]->encoder_id)
                     drmmode_output->enc_mask |= (1 << k);
             }
@@ -1425,6 +1425,7 @@ drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp)
     int i;
     int ret;
     uint64_t value = 0;
+    drmModeResPtr mode_res;
 
     /* check for dumb capability */
     ret = drmGetCap(drmmode->fd, DRM_CAP_DUMB_BUFFER, &value);
@@ -1438,23 +1439,24 @@ drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp)
 
     drmmode->scrn = pScrn;
     drmmode->cpp = cpp;
-    drmmode->mode_res = drmModeGetResources(drmmode->fd);
-    if (!drmmode->mode_res)
+    mode_res = drmModeGetResources(drmmode->fd);
+    if (!mode_res)
         return FALSE;
 
-    xf86CrtcSetSizeRange(pScrn, 320, 200, drmmode->mode_res->max_width,
-                         drmmode->mode_res->max_height);
-    for (i = 0; i < drmmode->mode_res->count_crtcs; i++)
+    xf86CrtcSetSizeRange(pScrn, 320, 200, mode_res->max_width,
+                         mode_res->max_height);
+    for (i = 0; i < mode_res->count_crtcs; i++)
         if (!xf86IsEntityShared(pScrn->entityList[0]) ||
             pScrn->confScreen->device->screen == i)
-            drmmode_crtc_init(pScrn, drmmode, i);
+            drmmode_crtc_init(pScrn, drmmode, mode_res, i);
 
-    for (i = 0; i < drmmode->mode_res->count_connectors; i++)
-        drmmode_output_init(pScrn, drmmode, i);
+    for (i = 0; i < mode_res->count_connectors; i++)
+        drmmode_output_init(pScrn, drmmode, mode_res, i);
 
     /* workout clones */
-    drmmode_clones_init(pScrn, drmmode);
+    drmmode_clones_init(pScrn, drmmode, mode_res);
 
+    drmModeFreeResources(mode_res);
 #if XF86_CRTC_VERSION >= 5
     xf86ProviderSetup(pScrn, NULL, "modesetting");
 #endif
