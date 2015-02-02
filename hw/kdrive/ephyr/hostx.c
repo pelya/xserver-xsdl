@@ -1407,9 +1407,12 @@ ephyr_glamor_init(ScreenPtr screen)
     ephyr_glamor_set_window_size(scrpriv->glamor,
                                  scrpriv->win_width, scrpriv->win_height);
 
-    glamor_init(screen,
-                GLAMOR_USE_SCREEN |
-                GLAMOR_USE_PICTURE_SCREEN);
+    if (!glamor_init(screen,
+                     GLAMOR_USE_SCREEN |
+                     GLAMOR_USE_PICTURE_SCREEN)) {
+        FatalError("Failed to initialize glamor\n");
+        return FALSE;
+    }
 
     return TRUE;
 }
