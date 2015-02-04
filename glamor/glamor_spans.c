@@ -134,14 +134,7 @@ glamor_fill_spans_gl(DrawablePtr drawable,
             if (glamor_priv->glsl_version >= 130)
                 glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, n);
             else {
-                if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-                    glDrawArrays(GL_QUADS, 0, 4 * n);
-                } else {
-                    int i;
-                    for (i = 0; i < n; i++) {
-                        glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
-                    }
-                }
+                glamor_glDrawArrays_GL_QUADS(glamor_priv, nbox);
             }
         }
     }

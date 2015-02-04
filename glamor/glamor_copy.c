@@ -387,13 +387,7 @@ glamor_copy_fbo_fbo_draw(DrawablePtr src,
                       src_box->x2 - src_box->x1,
                       src_box->y2 - src_box->y1);
 
-            if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
-                glDrawArrays(GL_QUADS, 0, nbox * 4);
-            else {
-                int i;
-                for (i = 0; i < nbox; i++)
-                    glDrawArrays(GL_TRIANGLE_FAN, i*4, 4);
-            }
+            glamor_glDrawArrays_GL_QUADS(glamor_priv, nbox);
         }
     }
     glDisable(GL_SCISSOR_TEST);
