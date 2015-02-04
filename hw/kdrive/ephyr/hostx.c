@@ -443,7 +443,7 @@ hostx_init(void)
     else
 #endif
         HostX.conn = xcb_connect(NULL, &HostX.screen);
-    if (xcb_connection_has_error(HostX.conn)) {
+    if (!HostX.conn || xcb_connection_has_error(HostX.conn)) {
         fprintf(stderr, "\nXephyr cannot open host display. Is DISPLAY set?\n");
         exit(1);
     }
