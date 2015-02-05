@@ -301,6 +301,35 @@ glamor_create_screen_resources(ScreenPtr screen)
     return ret;
 }
 
+static Bool
+glamor_check_instruction_count(int gl_version)
+{
+    GLint max_native_alu_instructions;
+
+    /* Avoid using glamor if the reported instructions limit is too low,
+     * as this would cause glamor to fallback on sw due to large shaders
+     * which ends up being unbearably slow.
+     */
+    if (gl_version < 30) {
+        if (!epoxy_has_gl_extension("GL_ARB_fragment_program")) {
+            ErrorF("GL_ARB_fragment_program required\n");
+            return FALSE;
+        }
+
+        glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB,
+                          GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB,
+                          &max_native_alu_instructions);
+        if (max_native_alu_instructions < GLAMOR_MIN_ALU_INSTRUCTIONS) {
+            LogMessage(X_WARNING,
+                       "glamor requires at least %d instructions (%d reported)\n",
+                       GLAMOR_MIN_ALU_INSTRUCTIONS, max_native_alu_instructions);
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
 /** Set up glamor for an already-configured GL context. */
 Bool
 glamor_init(ScreenPtr screen, unsigned int flags)
@@ -378,6 +407,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
             ErrorF("Require OpenGL version 2.1 or later.\n");
             goto fail;
         }
+
+        if (!glamor_check_instruction_count(gl_version))
+            goto fail;
     } else {
         if (gl_version < 20) {
             ErrorF("Require Open GLES2.0 or later.\n");
