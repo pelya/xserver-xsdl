@@ -479,12 +479,6 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
     case GLAMOR_TEXTURE_ONLY:
     case GLAMOR_TEXTURE_DRM:
         pixmap_priv->gl_fbo = GLAMOR_FBO_NORMAL;
-        if (fbo->tex != 0)
-            pixmap_priv->gl_tex = 1;
-        else {
-            /* XXX For the Xephyr only, may be broken now. */
-            pixmap_priv->gl_tex = 0;
-        }
         pixmap->devPrivate.ptr = NULL;
     default:
         break;

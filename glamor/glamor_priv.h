@@ -351,7 +351,6 @@ typedef struct glamor_pixmap_fbo {
 
 /*
  * glamor_pixmap_private - glamor pixmap's private structure.
- * @gl_tex:  The pixmap is in a gl texture originally.
  * @is_picture: The drawable is attached to a picture.
  * @pict_format: the corresponding picture's format.
  * @pixmap: The corresponding pixmap's pointer.
@@ -429,7 +428,6 @@ typedef struct glamor_pixmap_private {
      */
     glamor_access_t map_access;
     unsigned char is_picture:1;
-    unsigned char gl_tex:1;
     glamor_pixmap_fbo *fbo;
     BoxRec box;
     int drm_stride;
