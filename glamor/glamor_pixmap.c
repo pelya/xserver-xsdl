@@ -1047,27 +1047,13 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
 enum glamor_pixmap_status
 glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
 {
-    glamor_pixmap_private *pixmap_priv;
-    void *data;
-    int pbo;
     int ret;
-
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
-
-    if ((pixmap_priv->fbo)
-        && (pixmap_priv->fbo->pbo_valid)) {
-        data = NULL;
-        pbo = pixmap_priv->fbo->pbo;
-    }
-    else {
-        data = pixmap->devPrivate.ptr;
-        pbo = 0;
-    }
 
     if (glamor_upload_sub_pixmap_to_texture(pixmap, 0, 0,
                                             pixmap->drawable.width,
                                             pixmap->drawable.height,
-                                            pixmap->devKind, data, pbo))
+                                            pixmap->devKind,
+                                            pixmap->devPrivate.ptr, 0))
         ret = GLAMOR_UPLOAD_DONE;
     else
         ret = GLAMOR_UPLOAD_FAILED;

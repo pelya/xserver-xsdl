@@ -326,7 +326,6 @@ enum glamor_fbo_state {
  * @expire:  when push to cache pool list, set a expire count.
  * 	     will be freed when glamor_priv->tick is equal or
  * 	     larger than this expire count in block handler.
- * @pbo_valid: The pbo has a valid copy of the pixmap's data.
  * @tex:     attached texture.
  * @fb:      attached fbo.
  * @pbo:     attached pbo.
@@ -340,7 +339,6 @@ enum glamor_fbo_state {
 typedef struct glamor_pixmap_fbo {
     struct xorg_list list;
     unsigned int expire;
-    unsigned char pbo_valid;
     GLuint tex;
     GLuint fb;
     GLuint pbo;
