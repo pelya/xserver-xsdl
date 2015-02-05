@@ -121,8 +121,6 @@ glamor_purge_fbo(glamor_screen_private *glamor_priv,
         glDeleteFramebuffers(1, &fbo->fb);
     if (fbo->tex)
         glDeleteTextures(1, &fbo->tex);
-    if (fbo->pbo)
-        glDeleteBuffers(1, &fbo->pbo);
 
     free(fbo);
 }

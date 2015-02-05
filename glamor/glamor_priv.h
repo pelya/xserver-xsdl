@@ -328,7 +328,6 @@ enum glamor_fbo_state {
  * 	     larger than this expire count in block handler.
  * @tex:     attached texture.
  * @fb:      attached fbo.
- * @pbo:     attached pbo.
  * @width:   width of this fbo.
  * @height:  height of this fbo.
  * @external set when the texture was not created by glamor
@@ -341,7 +340,6 @@ typedef struct glamor_pixmap_fbo {
     unsigned int expire;
     GLuint tex;
     GLuint fb;
-    GLuint pbo;
     int width;
     int height;
     Bool external;
