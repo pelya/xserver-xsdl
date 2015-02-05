@@ -321,95 +321,25 @@ enum glamor_fbo_state {
     GLAMOR_FBO_DOWNLOADED,
 };
 
-/* glamor_pixmap_fbo:
- * @list:    to be used to link to the cache pool list.
- * @expire:  when push to cache pool list, set a expire count.
- * 	     will be freed when glamor_priv->tick is equal or
- * 	     larger than this expire count in block handler.
- * @tex:     attached texture.
- * @fb:      attached fbo.
- * @width:   width of this fbo.
- * @height:  height of this fbo.
- * @external set when the texture was not created by glamor
- * @format:  internal format of this fbo's texture.
- * @type:    internal type of this fbo's texture.
- * @glamor_priv: point to glamor private data.
- */
 typedef struct glamor_pixmap_fbo {
-    struct xorg_list list;
+    struct xorg_list list; /**< linked list pointers when in the fbo cache */
+    /** glamor_priv->tick number when this FBO will be expired from the cache. */
     unsigned int expire;
-    GLuint tex;
-    GLuint fb;
-    int width;
-    int height;
+    GLuint tex; /**< GL texture name */
+    GLuint fb; /**< GL FBO name */
+    int width; /**< width in pixels */
+    int height; /**< height in pixels */
+    /**
+     * Flag for when texture contents might be shared with a
+     * non-glamor user.
+     *
+     * This is used to avoid putting textures used by other clients
+     * into the FBO cache.
+     */
     Bool external;
-    GLenum format;
-    GLenum type;
+    GLenum format; /**< GL format used to create the texture. */
+    GLenum type; /**< GL type used to create the texture. */
 } glamor_pixmap_fbo;
-
-/*
- * glamor_pixmap_private - glamor pixmap's private structure.
- * @is_picture: The drawable is attached to a picture.
- * @pict_format: the corresponding picture's format.
- * @pixmap: The corresponding pixmap's pointer.
- * @box: current fbo's coords in the whole pixmap.
- * @block_w: block width of this large pixmap.
- * @block_h: block height of this large pixmap.
- * @block_wcnt: block count in one block row.
- * @block_hcnt: block count in one block column.
- * @nbox: total block count.
- * @box_array: contains each block's corresponding box.
- * @fbo_array: contains each block's fbo pointer.
- *
- * For GLAMOR_TEXTURE_LARGE, nbox should larger than 1.
- * And the box and fbo will both have nbox elements.
- * and box[i] store the relatively coords in this pixmap
- * of the fbo[i]. The reason why use boxes not region to
- * represent this structure is we may need to use overlapped
- * boxes for one pixmap for some special reason.
- *
- * pixmap
- * ******************
- * *  fbo0 * fbo1   *
- * *       *        *
- * ******************
- * *  fbo2 * fbo3   *
- * *       *        *
- * ******************
- *
- * Let's assume the texture has size of 1024x1024
- * box[0] = {0,0,1024,1024}
- * box[1] = {1024,0,2048,2048}
- * ...
- *
- * For GLAMOR_TEXTURE_ATLAS nbox should be 1. And box
- * and fbo both has one elements, and the box store
- * the relatively coords in the fbo of this pixmap:
- *
- * fbo
- * ******************
- * *   pixmap       *
- * *   *********    *
- * *   *       *    *
- * *   *********    *
- * *                *
- * ******************
- *
- * Assume the pixmap is at the (100,100) relatively to
- * the fbo's origin.
- * box[0]={100, 100, 1124, 1124};
- *
- * Considering large pixmap is not a normal case, to keep
- * it simple, I designe it as the following way.
- * When deal with a large pixmap, it split the working
- * rectangle into serval boxes, and each box fit into a
- * corresponding fbo. And then the rendering function will
- * loop from the left-top box to the right-bottom box,
- * each time, we will set current box and current fbo
- * to the box and fbo elements. Thus the inner routines
- * can handle it as normal, only the coords calculation need
- * to aware of it's large pixmap.
- **/
 
 typedef struct glamor_pixmap_clipped_regions {
     int block_idx;
@@ -425,8 +355,10 @@ typedef struct glamor_pixmap_private {
      * that data on glamor_finish_access().
      */
     glamor_access_t map_access;
+    /** Set if the pixmap is currenty attached to a Picture. */
     unsigned char is_picture:1;
     glamor_pixmap_fbo *fbo;
+    /** current fbo's coords in the whole pixmap. */
     BoxRec box;
     int drm_stride;
     PicturePtr picture;
@@ -436,11 +368,40 @@ typedef struct glamor_pixmap_private {
 #if GLAMOR_HAS_GBM
     EGLImageKHR image;
 #endif
+    /** block width of this large pixmap. */
     int block_w;
+    /** block height of this large pixmap. */
     int block_h;
+
+    /** block_wcnt: block count in one block row. */
     int block_wcnt;
+    /** block_hcnt: block count in one block column. */
     int block_hcnt;
+
+    /**
+     * The list of boxes for the bounds of the FBOs making up the
+     * pixmap.
+     *
+     * For a 2048x2048 pixmap with GL FBO size limits of 1024x1024:
+     *
+     * ******************
+     * *  fbo0 * fbo1   *
+     * *       *        *
+     * ******************
+     * *  fbo2 * fbo3   *
+     * *       *        *
+     * ******************
+     *
+     * box[0] = {0,0,1024,1024}
+     * box[1] = {1024,0,2048,2048}
+     * ...
+     */
     BoxPtr box_array;
+
+    /**
+     * Array of fbo structs containing the actual GL texture/fbo
+     * names.
+     */
     glamor_pixmap_fbo **fbo_array;
 } glamor_pixmap_private;
 
@@ -561,19 +522,19 @@ glamor_pixmap_hcnt(glamor_pixmap_private *priv)
     for (y = 0; y < glamor_pixmap_hcnt(priv); y++)      \
         for (x = 0; x < glamor_pixmap_wcnt(priv); x++)
 
-/*
- * Pixmap dynamic status, used by dynamic upload feature.
- *
- * GLAMOR_NONE:  initial status, don't need to do anything.
- * GLAMOR_UPLOAD_PENDING: marked as need to be uploaded to gl texture.
- * GLAMOR_UPLOAD_DONE: the pixmap has been uploaded successfully.
- * GLAMOR_UPLOAD_FAILED: fail to upload the pixmap.
- *
- * */
+/**
+ * Pixmap upload status, used by glamor_render.c's support for
+ * temporarily uploading pixmaps to GL textures to get a Composite
+ * operation done.
+ */
 typedef enum glamor_pixmap_status {
+    /** initial status, don't need to do anything. */
     GLAMOR_NONE,
+    /** marked as need to be uploaded to gl texture. */
     GLAMOR_UPLOAD_PENDING,
+    /** the pixmap has been uploaded successfully. */
     GLAMOR_UPLOAD_DONE,
+    /** fail to upload the pixmap. */
     GLAMOR_UPLOAD_FAILED
 } glamor_pixmap_status_t;
 
