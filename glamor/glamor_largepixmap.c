@@ -755,7 +755,6 @@ glamor_merge_clipped_regions(PixmapPtr pixmap,
                              glamor_pixmap_clipped_regions *clipped_regions,
                              int *n_regions, int *need_clean_fbo)
 {
-    BoxPtr temp_extent;
     BoxRec temp_box, copy_box;
     RegionPtr temp_region;
     glamor_pixmap_private *temp_priv;
@@ -779,9 +778,8 @@ glamor_merge_clipped_regions(PixmapPtr pixmap,
     RegionValidate(temp_region, &overlap);
     DEBUGF("temp region: \n");
     DEBUGRegionPrint(temp_region);
-    temp_extent = RegionExtents(temp_region);
 
-    temp_box = *temp_extent;
+    temp_box = *RegionExtents(temp_region);
 
     DEBUGF("need copy region: \n");
     DEBUGF("%d %d %d %d \n", temp_box.x1, temp_box.y1, temp_box.x2,
@@ -801,16 +799,16 @@ glamor_merge_clipped_regions(PixmapPtr pixmap,
     assert(glamor_pixmap_priv_is_small(temp_priv));
 
     priv->box = temp_box;
-    if (temp_extent->x1 >= 0 && temp_extent->x2 <= pixmap_width
-        && temp_extent->y1 >= 0 && temp_extent->y2 <= pixmap_height) {
+    if (temp_box.x1 >= 0 && temp_box.x2 <= pixmap_width
+        && temp_box.y1 >= 0 && temp_box.y2 <= pixmap_height) {
         int dx, dy;
 
         copy_box.x1 = 0;
         copy_box.y1 = 0;
-        copy_box.x2 = temp_extent->x2 - temp_extent->x1;
-        copy_box.y2 = temp_extent->y2 - temp_extent->y1;
-        dx = temp_extent->x1;
-        dy = temp_extent->y1;
+        copy_box.x2 = temp_box.x2 - temp_box.x1;
+        copy_box.y2 = temp_box.y2 - temp_box.y1;
+        dx = temp_box.x1;
+        dy = temp_box.y1;
         glamor_copy(&pixmap->drawable,
                     &temp_pixmap->drawable,
                     NULL, &copy_box, 1, dx, dy, 0, 0, 0, NULL);
