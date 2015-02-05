@@ -314,11 +314,6 @@ enum glamor_fbo_state {
      * point at anything.
      */
     GLAMOR_FBO_NORMAL,
-    /**
-     * The FBO is present and can be accessed as a linear memory
-     * mapping through devPrivate.ptr.
-     */
-    GLAMOR_FBO_DOWNLOADED,
 };
 
 typedef struct glamor_pixmap_fbo {
