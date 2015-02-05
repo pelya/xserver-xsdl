@@ -358,20 +358,24 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
     return fbo;
 }
 
-static glamor_pixmap_fbo *
-_glamor_create_fbo_array(glamor_screen_private *glamor_priv,
+/**
+ * Create storage for the w * h region, using FBOs of the GL's maximum
+ * supported size.
+ */
+glamor_pixmap_fbo *
+glamor_create_fbo_array(glamor_screen_private *glamor_priv,
                          int w, int h, GLenum format, int flag,
                          int block_w, int block_h,
-                         glamor_pixmap_private *pixmap_priv, int has_fbo)
+                         glamor_pixmap_private *priv)
 {
     int block_wcnt;
     int block_hcnt;
     glamor_pixmap_fbo **fbo_array;
     BoxPtr box_array;
     int i, j;
-    glamor_pixmap_private *priv;
 
-    priv = pixmap_priv;
+    priv->block_w = block_w;
+    priv->block_h = block_h;
 
     block_wcnt = (w + block_w - 1) / block_w;
     block_hcnt = (h + block_h - 1) / block_h;
@@ -402,13 +406,10 @@ _glamor_create_fbo_array(glamor_screen_private *glamor_priv,
             fbo_w =
                 box_array[i * block_wcnt + j].x2 - box_array[i * block_wcnt +
                                                              j].x1;
-            if (!has_fbo)
-                fbo_array[i * block_wcnt + j] = glamor_create_fbo(glamor_priv,
-                                                                  fbo_w, fbo_h,
-                                                                  format,
-                                                                  GLAMOR_CREATE_PIXMAP_FIXUP);
-            else
-                fbo_array[i * block_wcnt + j] = priv->fbo;
+            fbo_array[i * block_wcnt + j] = glamor_create_fbo(glamor_priv,
+                                                              fbo_w, fbo_h,
+                                                              format,
+                                                              GLAMOR_CREATE_PIXMAP_FIXUP);
             if (fbo_array[i * block_wcnt + j] == NULL)
                 goto cleanup;
         }
@@ -428,20 +429,6 @@ _glamor_create_fbo_array(glamor_screen_private *glamor_priv,
     free(box_array);
     free(fbo_array);
     return NULL;
-}
-
-/* Create a fbo array to cover the w*h region, by using block_w*block_h
- * block.*/
-glamor_pixmap_fbo *
-glamor_create_fbo_array(glamor_screen_private *glamor_priv,
-                        int w, int h, GLenum format, int flag,
-                        int block_w, int block_h,
-                        glamor_pixmap_private *pixmap_priv)
-{
-    pixmap_priv->block_w = block_w;
-    pixmap_priv->block_h = block_h;
-    return _glamor_create_fbo_array(glamor_priv, w, h, format, flag,
-                                    block_w, block_h, pixmap_priv, 0);
 }
 
 glamor_pixmap_fbo *
