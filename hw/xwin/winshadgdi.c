@@ -199,7 +199,7 @@ winQueryRGBBitsAndMasks(ScreenPtr pScreen)
         winDebug("%s - Masks: %08x %08x %08x\n", __FUNCTION__,
                  (unsigned int)pdw[0], (unsigned int)pdw[1], (unsigned int)pdw[2]);
         winDebug("%s - Bitmap: %dx%d %d bpp %d planes\n", __FUNCTION__,
-                 pbmih->biWidth, pbmih->biHeight, pbmih->biBitCount,
+                 (int)pbmih->biWidth, (int)pbmih->biHeight, pbmih->biBitCount,
                  pbmih->biPlanes);
         winDebug("%s - Compression: %u %s\n", __FUNCTION__,
                  (unsigned int)pbmih->biCompression,

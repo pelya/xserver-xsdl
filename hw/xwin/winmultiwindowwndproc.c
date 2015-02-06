@@ -770,20 +770,20 @@ winTopLevelWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             ErrorF("\nCYGWINDOWING Dump:\n"
                    "\tdrawable: (%hd, %hd) - %hdx%hd\n", pDraw->x,
                    pDraw->y, pDraw->width, pDraw->height);
-            ErrorF("\twindPlace: (%ld, %ld) - %ldx%ld\n", pRect->left,
-                   pRect->top, pRect->right - pRect->left,
-                   pRect->bottom - pRect->top);
+            ErrorF("\twindPlace: (%d, %d) - %dx%d\n", (int)pRect->left,
+                   (int)pRect->top, (int)(pRect->right - pRect->left),
+                   (int)(pRect->bottom - pRect->top));
             if (GetClientRect(hwnd, &rc)) {
                 pRect = &rc;
-                ErrorF("\tClientRect: (%ld, %ld) - %ldx%ld\n", pRect->left,
-                       pRect->top, pRect->right - pRect->left,
-                       pRect->bottom - pRect->top);
+                ErrorF("\tClientRect: (%d, %d) - %dx%d\n", (int)pRect->left,
+                       (int)pRect->top, (int)(pRect->right - pRect->left),
+                       (int)(pRect->bottom - pRect->top));
             }
             if (GetWindowRect(hwnd, &rc)) {
                 pRect = &rc;
-                ErrorF("\tWindowRect: (%ld, %ld) - %ldx%ld\n", pRect->left,
-                       pRect->top, pRect->right - pRect->left,
-                       pRect->bottom - pRect->top);
+                ErrorF("\tWindowRect: (%d, %d) - %dx%d\n", (int)pRect->left,
+                       (int)pRect->top, (int)(pRect->right - pRect->left),
+                       (int)(pRect->bottom - pRect->top));
             }
             ErrorF("\n");
         }
@@ -1081,9 +1081,9 @@ winTopLevelWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         winDebug
             ("winTopLevelWindowProc - WM_STYLECHANGING client area {%d, %d, %d, %d}, {%d x %d}\n",
-             wi.rcClient.left, wi.rcClient.top, wi.rcClient.right,
-             wi.rcClient.bottom, wi.rcClient.right - wi.rcClient.left,
-             wi.rcClient.bottom - wi.rcClient.top);
+             (int)wi.rcClient.left, (int)wi.rcClient.top, (int)wi.rcClient.right,
+             (int)wi.rcClient.bottom, (int)(wi.rcClient.right - wi.rcClient.left),
+             (int)(wi.rcClient.bottom - wi.rcClient.top));
 
         newWinRect = wi.rcClient;
         if (!AdjustWindowRectEx(&newWinRect, dwStyle, FALSE, dwExStyle))
@@ -1092,9 +1092,9 @@ winTopLevelWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         winDebug
             ("winTopLevelWindowProc - WM_STYLECHANGING window area should be {%d, %d, %d, %d}, {%d x %d}\n",
-             newWinRect.left, newWinRect.top, newWinRect.right,
-             newWinRect.bottom, newWinRect.right - newWinRect.left,
-             newWinRect.bottom - newWinRect.top);
+             (int)newWinRect.left, (int)newWinRect.top, (int)newWinRect.right,
+             (int)newWinRect.bottom, (int)(newWinRect.right - newWinRect.left),
+             (int)(newWinRect.bottom - newWinRect.top));
 
         /*
            Style change hasn't happened yet, so we can't adjust the window size yet, as the winAdjustXWindow()

@@ -220,7 +220,7 @@ winPositionWindowMultiWindow(WindowPtr pWin, int x, int y)
 #if CYGMULTIWINDOW_DEBUG
     lpRc = &rcNew;
     ErrorF("winPositionWindowMultiWindow - drawable (%d, %d)-(%d, %d)\n",
-           lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
+           (int)lpRc->left, (int)lpRc->top, (int)lpRc->right, (int)lpRc->bottom);
 #endif
 
     /*
@@ -238,15 +238,15 @@ winPositionWindowMultiWindow(WindowPtr pWin, int x, int y)
 
     lpRc = &rcNew;
     ErrorF("winPositionWindowMultiWindow - rcNew (%d, %d)-(%d, %d)\n",
-           lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
+           (int)lpRc->left, (int)lpRc->top, (int)lpRc->right, (int)lpRc->bottom);
 
     lpRc = &rcOld;
     ErrorF("winPositionWindowMultiWindow - rcOld (%d, %d)-(%d, %d)\n",
-           lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
+           (int)lpRc->left, (int)lpRc->top, (int)lpRc->right, (int)lpRc->bottom);
 
     lpRc = &rcClient;
     ErrorF("rcClient (%d, %d)-(%d, %d)\n",
-           lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
+           (int)lpRc->left, (int)lpRc->top, (int)lpRc->right, (int)lpRc->bottom);
 #endif
 
     /* Check if the old rectangle and new rectangle are the same */
@@ -256,8 +256,8 @@ winPositionWindowMultiWindow(WindowPtr pWin, int x, int y)
 #endif
 
 #if CYGWINDOWING_DEBUG
-        ErrorF("\tMoveWindow to (%ld, %ld) - %ldx%ld\n", rcNew.left, rcNew.top,
-               rcNew.right - rcNew.left, rcNew.bottom - rcNew.top);
+        ErrorF("\tMoveWindow to (%d, %d) - %dx%d\n", (int)rcNew.left, (int)rcNew.top,
+               (int)(rcNew.right - rcNew.left), (int)(rcNew.bottom - rcNew.top));
 #endif
         /* Change the position and dimensions of the Windows window */
         MoveWindow(hWnd,
@@ -948,8 +948,8 @@ winAdjustXWindow(WindowPtr pWin, HWND hwnd)
     SetRect(&rcDraw, x, y, x + pDraw->width, y + pDraw->height);
 #ifdef CYGMULTIWINDOW_DEBUG
     winDebug("\tDrawable extend {%d, %d, %d, %d}, {%d, %d}\n",
-             rcDraw.left, rcDraw.top, rcDraw.right, rcDraw.bottom,
-             rcDraw.right - rcDraw.left, rcDraw.bottom - rcDraw.top);
+             (int)rcDraw.left, (int)rcDraw.top, (int)rcDraw.right, (int)rcDraw.bottom,
+             (int)(rcDraw.right - rcDraw.left), (int)(rcDraw.bottom - rcDraw.top));
 #endif
     dwExStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
     dwStyle = GetWindowLongPtr(hwnd, GWL_STYLE);
@@ -962,11 +962,11 @@ winAdjustXWindow(WindowPtr pWin, HWND hwnd)
     GetWindowRect(hwnd, &rcWin);
 #ifdef CYGMULTIWINDOW_DEBUG
     winDebug("\tWindow extend {%d, %d, %d, %d}, {%d, %d}\n",
-             rcWin.left, rcWin.top, rcWin.right, rcWin.bottom,
-             rcWin.right - rcWin.left, rcWin.bottom - rcWin.top);
+             (int)rcWin.left, (int)rcWin.top, (int)rcWin.right, (int)rcWin.bottom,
+             (int)(rcWin.right - rcWin.left), (int)(rcWin.bottom - rcWin.top));
     winDebug("\tDraw extend {%d, %d, %d, %d}, {%d, %d}\n",
-             rcDraw.left, rcDraw.top, rcDraw.right, rcDraw.bottom,
-             rcDraw.right - rcDraw.left, rcDraw.bottom - rcDraw.top);
+             (int)rcDraw.left, (int)rcDraw.top, (int)rcDraw.right, (int)rcDraw.bottom,
+             (int)(rcDraw.right - rcDraw.left), (int)(rcDraw.bottom - rcDraw.top));
 #endif
 
     if (EqualRect(&rcDraw, &rcWin)) {
