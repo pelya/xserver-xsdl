@@ -515,7 +515,7 @@ winCreateDefColormap(ScreenPtr pScreen)
      */
 
 #if CYGDEBUG
-    winDebug("winCreateDefColormap - defColormap: %d\n", pScreen->defColormap);
+    winDebug("winCreateDefColormap - defColormap: %lu\n", pScreen->defColormap);
 #endif
 
     /* Allocate an X colormap, owned by client 0 */
