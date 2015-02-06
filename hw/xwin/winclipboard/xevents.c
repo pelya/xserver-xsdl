@@ -107,7 +107,7 @@ MonitorSelection(XFixesSelectionNotifyEvent * e, unsigned int i)
 
     /* Save new selection owner or None */
     s_iOwners[i] = e->owner;
-    winDebug("MonitorSelection - %s - Now owned by XID %x\n",
+    winDebug("MonitorSelection - %s - Now owned by XID %lx\n",
              szSelectionNames[i], e->owner);
 }
 
@@ -172,7 +172,7 @@ winClipboardSelectionNotifyTargets(HWND hwnd, Window iWindow, Display *pDisplay,
         Atom atom = prop[i];
         char *pszAtomName = XGetAtomName(pDisplay, atom);
         data->targetList[i] = atom;
-        winDebug("winClipboardFlushXEvents - SelectionNotify - target[%d] %d = %s\n", i, atom, pszAtomName);
+        winDebug("winClipboardFlushXEvents - SelectionNotify - target[%d] %ld = %s\n", i, atom, pszAtomName);
         XFree(pszAtomName);
       }
 
@@ -231,7 +231,7 @@ winClipboardFlushXEvents(HWND hwnd,
         {
             char *pszAtomName = NULL;
 
-            winDebug("SelectionRequest - target %d\n",
+            winDebug("SelectionRequest - target %ld\n",
                      event.xselectionrequest.target);
 
             pszAtomName = XGetAtomName(pDisplay,
@@ -561,7 +561,7 @@ winClipboardFlushXEvents(HWND hwnd,
             */
             if (event.xselection.property == None) {
                     ErrorF("winClipboardFlushXEvents - SelectionNotify - "
-                           "Conversion to format %d refused.\n",
+                           "Conversion to format %ld refused.\n",
                            event.xselection.target);
                     return WIN_XEVENTS_FAILED;
                 }
@@ -591,7 +591,7 @@ winClipboardFlushXEvents(HWND hwnd,
             {
                 char *pszAtomName = NULL;
 
-                winDebug("SelectionNotify - returned data %d left %d\n",
+                winDebug("SelectionNotify - returned data %lu left %lu\n",
                          xtpText.nitems, ulReturnBytesLeft);
                 pszAtomName = XGetAtomName(pDisplay, xtpText.encoding);
                 winDebug("Notify atom name %s\n", pszAtomName);
