@@ -104,7 +104,7 @@ winProcessXEventsTimeout(HWND hwnd, Window iWindow, Display * pDisplay,
         remainingTime = dwStopTime - GetTickCount();
         tv.tv_sec = remainingTime / 1000;
         tv.tv_usec = (remainingTime % 1000) * 1000;
-        winDebug("winProcessXEventsTimeout () - %d milliseconds left\n",
+        winDebug("winProcessXEventsTimeout () - %ld milliseconds left\n",
                  remainingTime);
 
         /* Break out if no time left */
