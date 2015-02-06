@@ -504,7 +504,7 @@ winSendKeyEvent(DWORD dwKey, Bool fDown)
     QueueKeyboardEvents(g_pwinKeyboard, fDown ? KeyPress : KeyRelease,
                         dwKey + MIN_KEYCODE);
 
-    winDebug("winSendKeyEvent: dwKey: %d, fDown: %d\n", dwKey, fDown);
+    winDebug("winSendKeyEvent: dwKey: %u, fDown: %u\n", (unsigned int)dwKey, fDown);
 }
 
 BOOL

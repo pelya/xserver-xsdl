@@ -309,7 +309,7 @@ winClipboardFlushXEvents(HWND hwnd,
             /* Access the clipboard */
             if (!OpenClipboard(hwnd)) {
                 ErrorF("winClipboardFlushXEvents - SelectionRequest - "
-                       "OpenClipboard () failed: %08lx\n", GetLastError());
+                       "OpenClipboard () failed: %08x\n", (unsigned int)GetLastError());
 
                 /* Abort */
                 fAbort = TRUE;
@@ -369,7 +369,7 @@ winClipboardFlushXEvents(HWND hwnd,
             }
             if (!hGlobal) {
                 ErrorF("winClipboardFlushXEvents - SelectionRequest - "
-                       "GetClipboardData () failed: %08lx\n", GetLastError());
+                       "GetClipboardData () failed: %08x\n", (unsigned int)GetLastError());
 
                 /* Abort */
                 fAbort = TRUE;
@@ -706,7 +706,7 @@ winClipboardFlushXEvents(HWND hwnd,
             /* Check that global memory was allocated */
             if (!hGlobal) {
                 ErrorF("winClipboardFlushXEvents - SelectionNotify "
-                       "GlobalAlloc failed, aborting: %ld\n", GetLastError());
+                       "GlobalAlloc failed, aborting: %08x\n", (unsigned int)GetLastError());
 
                 /* Abort */
                 fAbort = TRUE;

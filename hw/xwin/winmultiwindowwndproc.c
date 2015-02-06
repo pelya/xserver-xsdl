@@ -1064,7 +1064,7 @@ winTopLevelWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         dwStyle = GetWindowLongPtr(hwnd, GWL_STYLE);
 
         winDebug("winTopLevelWindowProc - WM_STYLECHANGING from %08x %08x\n",
-                 dwStyle, dwExStyle);
+                 (unsigned int)dwStyle, (unsigned int)dwExStyle);
 
         if (wParam == GWL_EXSTYLE)
             dwExStyle = newStyle;
@@ -1073,7 +1073,7 @@ winTopLevelWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             dwStyle = newStyle;
 
         winDebug("winTopLevelWindowProc - WM_STYLECHANGING to %08x %08x\n",
-                 dwStyle, dwExStyle);
+                 (unsigned int)dwStyle, (unsigned int)dwExStyle);
 
         /* Get client rect in screen coordinates */
         wi.cbSize = sizeof(WINDOWINFO);

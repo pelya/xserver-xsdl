@@ -954,7 +954,7 @@ winAdjustXWindow(WindowPtr pWin, HWND hwnd)
     dwExStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
     dwStyle = GetWindowLongPtr(hwnd, GWL_STYLE);
 #ifdef CYGMULTIWINDOW_DEBUG
-    winDebug("\tWindowStyle: %08x %08x\n", dwStyle, dwExStyle);
+    winDebug("\tWindowStyle: %08x %08x\n", (unsigned int)dwStyle, (unsigned int)dwExStyle);
 #endif
     AdjustWindowRectEx(&rcDraw, dwStyle, FALSE, dwExStyle);
 
