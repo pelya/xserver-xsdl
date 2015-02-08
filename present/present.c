@@ -453,6 +453,7 @@ present_flip_notify(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
     screen_priv->flip_window = vblank->window;
     screen_priv->flip_serial = vblank->serial;
     screen_priv->flip_pixmap = vblank->pixmap;
+    screen_priv->flip_sync = vblank->sync_flip;
     screen_priv->flip_idle_fence = vblank->idle_fence;
 
     vblank->pixmap = NULL;
@@ -541,14 +542,14 @@ present_check_flip_window (WindowPtr window)
          * Check current flip
          */
         if (window == screen_priv->flip_window) {
-            if (!present_check_flip(screen_priv->flip_crtc, window, screen_priv->flip_pixmap, FALSE, NULL, 0, 0))
+            if (!present_check_flip(screen_priv->flip_crtc, window, screen_priv->flip_pixmap, screen_priv->flip_sync, NULL, 0, 0))
                 present_unflip(screen);
         }
     }
 
     /* Now check any queued vblanks */
     xorg_list_for_each_entry(vblank, &window_priv->vblank, window_list) {
-        if (vblank->queued && vblank->flip && !present_check_flip(vblank->crtc, window, vblank->pixmap, FALSE, NULL, 0, 0))
+        if (vblank->queued && vblank->flip && !present_check_flip(vblank->crtc, window, vblank->pixmap, vblank->sync_flip, NULL, 0, 0))
             vblank->flip = FALSE;
     }
 }
