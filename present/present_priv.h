@@ -70,6 +70,7 @@ struct present_vblank {
     present_notify_ptr  notifies;
     int                 num_notifies;
     Bool                queued;         /* on present_exec_queue */
+    Bool                requeue;        /* on queue, but target_msc has changed */
     Bool                flip;           /* planning on using flip */
     Bool                flip_ready;     /* wants to flip, but waiting for previous flip or unflip */
     Bool                sync_flip;      /* do flip synchronous to vblank */
