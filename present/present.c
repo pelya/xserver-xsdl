@@ -374,12 +374,17 @@ present_set_tree_pixmap_visit(WindowPtr window, void *data)
 }
 
 static void
-present_set_tree_pixmap(WindowPtr window, PixmapPtr pixmap)
+present_set_tree_pixmap(WindowPtr window,
+                        PixmapPtr expected,
+                        PixmapPtr pixmap)
 {
     struct pixmap_visit visit;
     ScreenPtr           screen = window->drawable.pScreen;
 
     visit.old = (*screen->GetWindowPixmap)(window);
+    if (expected && visit.old != expected)
+        return;
+
     visit.new = pixmap;
     if (visit.old == visit.new)
         return;
@@ -390,6 +395,7 @@ static void
 present_set_abort_flip(ScreenPtr screen)
 {
     present_screen_priv_ptr screen_priv = present_screen_priv(screen);
+    PixmapPtr pixmap = (*screen->GetScreenPixmap)(screen);
 
     /* Switch back to using the screen pixmap now to avoid
      * 2D applications drawing to the wrong pixmap.
@@ -397,10 +403,11 @@ present_set_abort_flip(ScreenPtr screen)
 
     if (screen_priv->flip_window)
         present_set_tree_pixmap(screen_priv->flip_window,
-                                  (*screen->GetScreenPixmap)(screen));
+                                screen_priv->flip_pixmap,
+                                pixmap);
 
     if (screen->root)
-        present_set_tree_pixmap(screen->root, (*screen->GetScreenPixmap)(screen));
+        present_set_tree_pixmap(screen->root, NULL, pixmap);
 
     screen_priv->flip_pending->abort_flip = TRUE;
 }
@@ -414,10 +421,12 @@ present_unflip(ScreenPtr screen)
     assert (!screen_priv->unflip_event_id);
     assert (!screen_priv->flip_pending);
 
-    if (screen_priv->flip_window)
-        present_set_tree_pixmap(screen_priv->flip_window, pixmap);
+    if (screen_priv->flip_pixmap && screen_priv->flip_window)
+        present_set_tree_pixmap(screen_priv->flip_window,
+                                screen_priv->flip_pixmap,
+                                pixmap);
 
-    present_set_tree_pixmap(screen->root, pixmap);
+    present_set_tree_pixmap(screen->root, NULL, pixmap);
 
     /* Update the screen pixmap with the current flip pixmap contents
      */
@@ -644,9 +653,10 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
                  */
                 if (screen_priv->flip_window && screen_priv->flip_window != window)
                     present_set_tree_pixmap(screen_priv->flip_window,
-                                              (*screen->GetScreenPixmap)(screen));
-                present_set_tree_pixmap(vblank->window, vblank->pixmap);
-                present_set_tree_pixmap(screen->root, vblank->pixmap);
+                                            screen_priv->flip_pixmap,
+                                            (*screen->GetScreenPixmap)(screen));
+                present_set_tree_pixmap(vblank->window, NULL, vblank->pixmap);
+                present_set_tree_pixmap(screen->root, NULL, vblank->pixmap);
 
                 /* Report update region as damaged
                  */
