@@ -72,8 +72,11 @@ ms_present_get_ust_msc(RRCrtcPtr crtc, CARD64 *ust, CARD64 *msc)
 
 /*
  * Flush the DRM event queue when full; makes space for new events.
+ *
+ * Returns a negative value on error, 0 if there was nothing to process,
+ * or 1 if we handled any events.
  */
-static Bool
+static int
 ms_flush_drm_events(ScreenPtr screen)
 {
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
@@ -86,10 +89,19 @@ ms_flush_drm_events(ScreenPtr screen)
             r = poll(&p, 1, 0);
     } while (r == -1 && (errno == EINTR || errno == EAGAIN));
 
+    /* If there was an error, r will be < 0.  Return that.  If there was
+     * nothing to process, r == 0.  Return that.
+     */
     if (r <= 0)
-        return TRUE;
+        return r;
 
-    return drmHandleEvent(ms->fd, &ms->event_context) >= 0;
+    /* Try to handle the event.  If there was an error, return it. */
+    r = drmHandleEvent(ms->fd, &ms->event_context);
+    if (r < 0)
+        return r;
+
+    /* Otherwise return 1 to indicate that we handled an event. */
+    return 1;
 }
 
 /*
@@ -159,7 +171,10 @@ ms_present_queue_vblank(RRCrtcPtr crtc,
         ret = drmWaitVBlank(ms->fd, &vbl);
         if (!ret)
             break;
-        if (errno != EBUSY || !ms_flush_drm_events(screen))
+        /* If we hit EBUSY, then try to flush events.  If we can't, then
+         * this is an error.
+         */
+        if (errno != EBUSY || ms_flush_drm_events(screen) < 0)
             return BadAlloc;
     }
     DebugPresent(("\t\tmq %lld seq %u msc %llu (hw msc %u)\n",
