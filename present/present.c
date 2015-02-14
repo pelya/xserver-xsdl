@@ -353,10 +353,10 @@ present_re_execute(present_vblank_ptr vblank)
 static void
 present_flip_try_ready(ScreenPtr screen)
 {
-    present_vblank_ptr  vblank, tmp;
+    present_vblank_ptr  vblank;
 
-    xorg_list_for_each_entry_safe(vblank, tmp, &present_exec_queue, event_queue) {
-        if (vblank->flip_ready) {
+    xorg_list_for_each_entry(vblank, &present_flip_queue, event_queue) {
+        if (vblank->queued) {
             present_re_execute(vblank);
             return;
         }
@@ -656,6 +656,8 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
             DebugPresent(("\tr %lld %p (pending %p unflip %lld)\n",
                           vblank->event_id, vblank,
                           screen_priv->flip_pending, screen_priv->unflip_event_id));
+            xorg_list_del(&vblank->event_queue);
+            xorg_list_append(&vblank->event_queue, &present_flip_queue);
             vblank->flip_ready = TRUE;
             return;
         }
@@ -994,6 +996,7 @@ present_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64
     xorg_list_for_each_entry(vblank, &present_flip_queue, event_queue) {
         if (vblank->event_id == event_id) {
             xorg_list_del(&vblank->event_queue);
+            vblank->queued = FALSE;
             return;
         }
     }
