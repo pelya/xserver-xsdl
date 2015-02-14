@@ -260,7 +260,7 @@ ShmDestroyPixmap(PixmapPtr pPixmap)
     pScreen->DestroyPixmap = ShmDestroyPixmap;
 
     if (shmdesc)
-	ShmDetachSegment(shmdesc, pPixmap->drawable.id);
+	ShmDetachSegment(shmdesc, 0);
 
     return ret;
 }
@@ -427,7 +427,7 @@ ProcShmAttach(ClientPtr client)
 
  /*ARGSUSED*/ static int
 ShmDetachSegment(void *value, /* must conform to DeleteType */
-                 XID shmseg)
+                 XID unused)
 {
     ShmDescPtr shmdesc = (ShmDescPtr) value;
     ShmDescPtr *prev;
