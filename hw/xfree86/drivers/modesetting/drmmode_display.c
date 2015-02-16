@@ -833,6 +833,7 @@ drmmode_load_cursor_argb_check(xf86CrtcPtr crtc, CARD32 *image)
     drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
     int i;
     uint32_t *ptr;
+    static Bool first_time = TRUE;
 
     /* cursor should be mapped already */
     ptr = (uint32_t *) (drmmode_crtc->cursor_bo->ptr);
@@ -840,8 +841,13 @@ drmmode_load_cursor_argb_check(xf86CrtcPtr crtc, CARD32 *image)
     for (i = 0; i < ms->cursor_width * ms->cursor_height; i++)
         ptr[i] = image[i];      // cpu_to_le32(image[i]);
 
-    if (drmmode_crtc->cursor_up)
-        return drmmode_set_cursor(crtc);
+    if (drmmode_crtc->cursor_up || first_time) {
+        Bool ret = drmmode_set_cursor(crtc);
+        if (!drmmode_crtc->cursor_up)
+            drmmode_hide_cursor(crtc);
+        first_time = FALSE;
+        return ret;
+    }
     return TRUE;
 }
 
