@@ -798,8 +798,8 @@ drmmode_set_cursor(xf86CrtcPtr crtc)
                               cursor->bits->xhot, cursor->bits->yhot);
         if (!ret)
             return;
-        if (ret == -EINVAL)
-            use_set_cursor2 = FALSE;
+
+        use_set_cursor2 = FALSE;
     }
 
     ret = drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, handle,
