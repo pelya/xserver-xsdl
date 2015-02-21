@@ -638,37 +638,6 @@ DDXRingBell(int volume, int pitch, int duration)
 {
 }
 
-static WindowPtr
-xwl_xy_to_window(ScreenPtr screen, SpritePtr sprite, int x, int y)
-{
-    struct xwl_seat *xwl_seat = NULL;
-    DeviceIntPtr device;
-
-    for (device = inputInfo.devices; device; device = device->next) {
-        if (device->deviceProc == xwl_pointer_proc &&
-            device->spriteInfo->sprite == sprite) {
-            xwl_seat = device->public.devicePrivate;
-            break;
-        }
-    }
-
-    if (xwl_seat == NULL) {
-        /* XTEST device */
-        sprite->spriteTraceGood = 1;
-        return sprite->spriteTrace[0];
-    }
-
-    if (xwl_seat->focus_window) {
-        sprite->spriteTraceGood = 2;
-        sprite->spriteTrace[1] = xwl_seat->focus_window->window;
-        return miSpriteTrace(sprite, x, y);
-    }
-    else {
-        sprite->spriteTraceGood = 1;
-        return sprite->spriteTrace[0];
-    }
-}
-
 void
 InitInput(int argc, char *argv[])
 {
@@ -680,9 +649,6 @@ InitInput(int argc, char *argv[])
     xwl_screen->input_registry = wl_display_get_registry(xwl_screen->display);
     wl_registry_add_listener(xwl_screen->input_registry, &input_listener,
                              xwl_screen);
-
-    xwl_screen->XYToWindow = pScreen->XYToWindow;
-    pScreen->XYToWindow = xwl_xy_to_window;
 
     xwl_screen->expecting_event = 0;
     wl_display_roundtrip(xwl_screen->display);
