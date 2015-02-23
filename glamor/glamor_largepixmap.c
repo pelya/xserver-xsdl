@@ -923,10 +923,10 @@ glamor_get_transform_block_size(struct pixman_transform *transform,
     return TRUE;
 }
 
-#define VECTOR_FROM_POINT(p, x, y)	\
+#define VECTOR_FROM_POINT(p, x, y) do {\
 	p.v[0] = x;  \
 	p.v[1] = y;  \
-	p.v[2] = 1.0;
+	p.v[2] = 1.0; } while (0)
 void
 glamor_get_transform_extent_from_box(struct pixman_box32 *box,
                                      struct pixman_transform *transform)
@@ -936,12 +936,12 @@ glamor_get_transform_extent_from_box(struct pixman_box32 *box,
 
     struct pixman_f_transform ftransform;
 
-    VECTOR_FROM_POINT(p0, box->x1, box->y1)
-        VECTOR_FROM_POINT(p1, box->x2, box->y1)
-        VECTOR_FROM_POINT(p2, box->x2, box->y2)
-        VECTOR_FROM_POINT(p3, box->x1, box->y2)
+    VECTOR_FROM_POINT(p0, box->x1, box->y1);
+    VECTOR_FROM_POINT(p1, box->x2, box->y1);
+    VECTOR_FROM_POINT(p2, box->x2, box->y2);
+    VECTOR_FROM_POINT(p3, box->x1, box->y2);
 
-        pixman_f_transform_from_pixman_transform(&ftransform, transform);
+    pixman_f_transform_from_pixman_transform(&ftransform, transform);
     pixman_f_transform_point(&ftransform, &p0);
     pixman_f_transform_point(&ftransform, &p1);
     pixman_f_transform_point(&ftransform, &p2);
