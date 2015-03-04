@@ -936,6 +936,9 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     size_t buffer_size;
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
 
+    if (!enableIndirectGLX)
+	    return NULL;
+
     screen = calloc(1, sizeof *screen);
     if (screen == NULL)
         return NULL;
