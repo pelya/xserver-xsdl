@@ -454,9 +454,6 @@
 /* Define to __typeof__ if your compiler spells it that way. */
 #undef typeof
 
-/* The compiler supported TLS storage class, prefering initial-exec if tls_model is supported */
-#undef TLS
-
 /* Correctly set _XSERVER64 for OSX fat binaries */
 #ifdef __APPLE__
 #include "dix-config-apple-verbatim.h"
