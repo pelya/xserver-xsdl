@@ -136,9 +136,20 @@ def ParseCmdParams(cmd):
     params = cmd.elem.findall('param')
     plist=[]
     for param in params:
-        paramlist = ([t for t in param.itertext()])
-        paramtype = ''.join(paramlist[:-1])
-        paramname = paramlist[-1]
+        # construct the formal parameter definition from ptype and name
+        # elements, also using any text found around these in the
+        # param element, in the order it appears in the document
+        paramtype = ''
+        # also extract the formal parameter name from the name element
+        paramname = ''
+        for t in param.iter():
+            if t.tag == 'ptype' or t.tag == 'param':
+                paramtype = paramtype + noneStr(t.text)
+            if t.tag == 'name':
+                paramname = t.text + '_'
+                paramtype = paramtype + ' ' + paramname
+            if t.tail is not None:
+                paramtype = paramtype + t.tail.strip()
         plist.append((paramtype, paramname))
     return plist
 
@@ -206,7 +217,7 @@ class WrapperOutputGenerator(OutputGenerator):
         Comma=""
         if len(plist):
             for ptype, pname in plist:
-                self.outFile.write("%s%s%s_"%(Comma, ptype, pname))
+                self.outFile.write("%s%s"%(Comma, ptype))
                 Comma=", "
         else:
             self.outFile.write("void")
@@ -227,7 +238,7 @@ class WrapperOutputGenerator(OutputGenerator):
 
             Comma=""
             for ptype, pname in plist:
-                self.outFile.write("%s%s_"%(Comma, pname))
+                self.outFile.write("%s%s"%(Comma, pname))
                 Comma=", "
 
         # for GL 1.2+ functions, generate stdcall wrappers which use wglGetProcAddress()
@@ -253,7 +264,7 @@ class WrapperOutputGenerator(OutputGenerator):
 
             Comma=""
             for ptype, pname in plist:
-                self.outFile.write("%s%s_"%(Comma, pname))
+                self.outFile.write("%s%s"%(Comma, pname))
                 Comma=", "
         self.outFile.write(" );\n}\n\n")
 
@@ -282,10 +293,11 @@ class ThunkOutputGenerator(OutputGenerator):
         rettype=ParseCmdRettype(cmd)
         self.outFile.write("%s %sWrapper("%(rettype, name))
         plist=ParseCmdParams(cmd)
+
         Comma=""
         if len(plist):
             for ptype, pname in plist:
-                self.outFile.write("%s%s%s_"%(Comma, ptype, pname))
+                self.outFile.write("%s%s"%(Comma, ptype))
                 Comma=", "
         else:
             self.outFile.write("void")
@@ -301,7 +313,7 @@ class ThunkOutputGenerator(OutputGenerator):
 
             Comma=""
             for ptype, pname in plist:
-                self.outFile.write("%s%s_"%(Comma, pname))
+                self.outFile.write("%s%s"%(Comma, pname))
                 Comma=", "
 
         # for GL 1.2+ functions, generate wrappers which use wglGetProcAddress()
@@ -315,7 +327,7 @@ class ThunkOutputGenerator(OutputGenerator):
 
             Comma=""
             for ptype, pname in plist:
-                self.outFile.write("%s%s_"%(Comma, pname))
+                self.outFile.write("%s%s"%(Comma, pname))
                 Comma=", "
         self.outFile.write(" );\n}\n\n")
 
@@ -373,10 +385,11 @@ class ShimOutputGenerator(OutputGenerator):
         rettype=ParseCmdRettype(cmd)
         self.outFile.write("%s %s("%(rettype, name))
         plist=ParseCmdParams(cmd)
+
         Comma=""
         if len(plist):
             for ptype, pname in plist:
-                self.outFile.write("%s%s%s_"%(Comma, ptype, pname))
+                self.outFile.write("%s%s"%(Comma, ptype))
                 Comma=", "
         else:
             self.outFile.write("void")
@@ -388,7 +401,7 @@ class ShimOutputGenerator(OutputGenerator):
         if len(plist):
             Comma=""
             for ptype, pname in plist:
-                self.outFile.write("%s %s %s_"%(Comma, ptype, pname))
+                self.outFile.write("%s %s"%(Comma, ptype))
                 Comma=", "
         else:
             self.outFile.write("void")
@@ -404,7 +417,7 @@ class ShimOutputGenerator(OutputGenerator):
 
         Comma=""
         for ptype, pname in plist:
-            self.outFile.write("%s%s_"%(Comma, pname))
+            self.outFile.write("%s%s"%(Comma, pname))
             Comma=", "
 
         self.outFile.write(" );\n}\n\n")
