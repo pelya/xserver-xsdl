@@ -123,6 +123,25 @@ else:
     errWarn = sys.stderr
 diag = open(diagFilename, 'w')
 
+def ParseCmdRettype(cmd):
+    proto=noneStr(cmd.elem.find('proto'))
+    rettype=noneStr(proto.text)
+    if rettype.lower()!="void ":
+        plist = ([t for t in proto.itertext()])
+        rettype = ''.join(plist[:-1])
+    rettype=rettype.strip()
+    return rettype
+
+def ParseCmdParams(cmd):
+    params = cmd.elem.findall('param')
+    plist=[]
+    for param in params:
+        paramlist = ([t for t in param.itertext()])
+        paramtype = ''.join(paramlist[:-1])
+        paramname = paramlist[-1]
+        plist.append((paramtype, paramname))
+    return plist
+
 class PreResolveOutputGenerator(OutputGenerator):
     def __init__(self,
                  errFile = sys.stderr,
@@ -179,21 +198,11 @@ class WrapperOutputGenerator(OutputGenerator):
         if prefix == 'wgl' and not name in used_wgl_ext_fns:
             return
 
-        proto=noneStr(cmd.elem.find('proto'))
-        rettype=noneStr(proto.text)
-        if rettype.lower()!="void ":
-            plist = ([t for t in proto.itertext()])
-            rettype = ''.join(plist[:-1])
-        rettype=rettype.strip()
+        rettype=ParseCmdRettype(cmd)
+
         if staticwrappers: self.outFile.write("static ")
         self.outFile.write("%s %sWrapper("%(rettype, name))
-        params = cmd.elem.findall('param')
-        plist=[]
-        for param in params:
-            paramlist = ([t for t in param.itertext()])
-            paramtype = ''.join(paramlist[:-1])
-            paramname = paramlist[-1]
-            plist.append((paramtype, paramname))
+        plist=ParseCmdParams(cmd)
         Comma=""
         if len(plist):
             for ptype, pname in plist:
@@ -270,20 +279,9 @@ class ThunkOutputGenerator(OutputGenerator):
     def genCmd(self, cmd, name):
         OutputGenerator.genCmd(self, cmd, name)
 
-        proto=noneStr(cmd.elem.find('proto'))
-        rettype=noneStr(proto.text)
-        if rettype.lower()!="void ":
-            plist = ([t for t in proto.itertext()])
-            rettype = ''.join(plist[:-1])
-        rettype=rettype.strip()
+        rettype=ParseCmdRettype(cmd)
         self.outFile.write("%s %sWrapper("%(rettype, name))
-        params = cmd.elem.findall('param')
-        plist=[]
-        for param in params:
-            paramlist = ([t for t in param.itertext()])
-            paramtype = ''.join(paramlist[:-1])
-            paramname = paramlist[-1]
-            plist.append((paramtype, paramname))
+        plist=ParseCmdParams(cmd)
         Comma=""
         if len(plist):
             for ptype, pname in plist:
@@ -372,20 +370,9 @@ class ShimOutputGenerator(OutputGenerator):
             return
 
         # for GL functions which are in the ABI, generate a shim which calls the function via GetProcAddress
-        proto=noneStr(cmd.elem.find('proto'))
-        rettype=noneStr(proto.text)
-        if rettype.lower()!="void ":
-            plist = ([t for t in proto.itertext()])
-            rettype = ''.join(plist[:-1])
-        rettype=rettype.strip()
+        rettype=ParseCmdRettype(cmd)
         self.outFile.write("%s %s("%(rettype, name))
-        params = cmd.elem.findall('param')
-        plist=[]
-        for param in params:
-            paramlist = ([t for t in param.itertext()])
-            paramtype = ''.join(paramlist[:-1])
-            paramname = paramlist[-1]
-            plist.append((paramtype, paramname))
+        plist=ParseCmdParams(cmd)
         Comma=""
         if len(plist):
             for ptype, pname in plist:
