@@ -413,8 +413,9 @@ rrGetMultiScreenResources(ClientPtr client, Bool query, ScreenPtr pScreen)
         .nbytesNames = total_name_len
     };
 
-    rep.length = (total_crtcs + total_outputs + total_modes * bytes_to_int32(SIZEOF(xRRModeInfo)) +
-                  bytes_to_int32(rep.nbytesNames));
+    rep.length = (total_crtcs + total_outputs +
+                  total_modes * bytes_to_int32(SIZEOF(xRRModeInfo)) +
+                  bytes_to_int32(total_name_len));
 
     extraLen = rep.length << 2;
     if (extraLen) {
