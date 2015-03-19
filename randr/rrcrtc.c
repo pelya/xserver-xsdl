@@ -1575,7 +1575,8 @@ ProcRRGetCrtcTransform(ClientPtr client)
     return Success;
 }
 
-static Bool check_all_screen_crtcs(ScreenPtr pScreen, int *x, int *y)
+static Bool
+check_all_screen_crtcs(ScreenPtr pScreen, int *x, int *y)
 {
     rrScrPriv(pScreen);
     int i;
@@ -1595,7 +1596,8 @@ static Bool check_all_screen_crtcs(ScreenPtr pScreen, int *x, int *y)
     return FALSE;
 }
 
-static Bool constrain_all_screen_crtcs(DeviceIntPtr pDev, ScreenPtr pScreen, int *x, int *y)
+static Bool
+constrain_all_screen_crtcs(DeviceIntPtr pDev, ScreenPtr pScreen, int *x, int *y)
 {
     rrScrPriv(pScreen);
     int i;
