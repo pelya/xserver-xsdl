@@ -428,7 +428,7 @@ rrCreateSharedPixmap(RRCrtcPtr crtc, int width, int height,
 
     ret = pScrPriv->rrCrtcSetScanoutPixmap(crtc, spix);
     if (ret == FALSE) {
-        ErrorF("failed to set shadow slave pixmap\n");
+        ErrorF("randr: failed to set shadow slave pixmap\n");
         return FALSE;
     }
 
