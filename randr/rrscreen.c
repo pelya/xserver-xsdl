@@ -400,8 +400,6 @@ rrGetMultiScreenResources(ClientPtr client, Bool query, ScreenPtr pScreen)
         update_totals(iter, pScrPriv);
     }
 
-    ErrorF("reporting %d %d %d %d\n", total_crtcs, total_outputs, total_modes, total_name_len);
-
     pScrPriv = rrGetScrPriv(pScreen);
     rep = (xRRGetScreenResourcesReply) {
         .type = X_Reply,

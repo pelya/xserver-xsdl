@@ -502,7 +502,6 @@ rrCheckPixmapBounding(ScreenPtr pScreen,
 
     if (new_width == screen_pixmap->drawable.width &&
         new_height == screen_pixmap->drawable.height) {
-        ErrorF("adjust shatters %d %d\n", newsize->x1, newsize->x2);
     } else {
         pScrPriv->rrScreenSetSize(pScreen, new_width, new_height, 0, 0);
     }
@@ -557,7 +556,6 @@ RRCrtcSet(RRCrtcPtr crtc,
                 width = mode->mode.width;
                 height = mode->mode.height;
             }
-            ErrorF("have a master to look out for\n");
             ret = rrCheckPixmapBounding(master, crtc,
                                         x, y, width, height);
             if (!ret)
@@ -565,8 +563,6 @@ RRCrtcSet(RRCrtcPtr crtc,
 
             if (pScreen->current_master) {
                 ret = rrCreateSharedPixmap(crtc, width, height, x, y);
-                ErrorF("need to create shared pixmap %d", ret);
-
             }
         }
 #if RANDR_12_INTERFACE
