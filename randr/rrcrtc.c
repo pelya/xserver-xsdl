@@ -394,7 +394,7 @@ rrCreateSharedPixmap(RRCrtcPtr crtc, int width, int height,
     Bool ret;
     int depth;
     PixmapPtr mscreenpix;
-    PixmapPtr protopix = crtc->pScreen->current_master->GetScreenPixmap(crtc->pScreen->current_master);
+    PixmapPtr protopix = master->GetScreenPixmap(master);
     rrScrPriv(crtc->pScreen);
 
     /* create a pixmap on the master screen,
@@ -457,18 +457,20 @@ rrCheckPixmapBounding(ScreenPtr pScreen,
     /* have to iterate all the crtcs of the attached gpu masters
        and all their output slaves */
     for (c = 0; c < pScrPriv->numCrtcs; c++) {
-        if (pScrPriv->crtcs[c] == rr_crtc) {
+        RRCrtcPtr crtc = pScrPriv->crtcs[c];
+
+        if (crtc == rr_crtc) {
             newbox.x1 = x;
             newbox.x2 = x + w;
             newbox.y1 = y;
             newbox.y2 = y + h;
         } else {
-            if (!pScrPriv->crtcs[c]->mode)
+            if (!crtc->mode)
                 continue;
-            newbox.x1 = pScrPriv->crtcs[c]->x;
-            newbox.x2 = pScrPriv->crtcs[c]->x + pScrPriv->crtcs[c]->mode->mode.width;
-            newbox.y1 = pScrPriv->crtcs[c]->y;
-            newbox.y2 = pScrPriv->crtcs[c]->y + pScrPriv->crtcs[c]->mode->mode.height;
+            newbox.x1 = crtc->x;
+            newbox.x2 = crtc->x + crtc->mode->mode.width;
+            newbox.y1 = crtc->y;
+            newbox.y2 = crtc->y + crtc->mode->mode.height;
         }
         RegionInit(&new_crtc_region, &newbox, 1);
         RegionUnion(&total_region, &total_region, &new_crtc_region);
@@ -477,19 +479,21 @@ rrCheckPixmapBounding(ScreenPtr pScreen,
     xorg_list_for_each_entry(slave, &pScreen->output_slave_list, output_head) {
         rrScrPrivPtr    slave_priv = rrGetScrPriv(slave);
         for (c = 0; c < slave_priv->numCrtcs; c++) {
-            if (slave_priv->crtcs[c] == rr_crtc) {
+            RRCrtcPtr slave_crtc = slave_priv->crtcs[c];
+
+            if (slave_crtc == rr_crtc) {
                 newbox.x1 = x;
                 newbox.x2 = x + w;
                 newbox.y1 = y;
                 newbox.y2 = y + h;
             }
             else {
-                if (!slave_priv->crtcs[c]->mode)
+                if (!slave_crtc->mode)
                     continue;
-                newbox.x1 = slave_priv->crtcs[c]->x;
-                newbox.x2 = slave_priv->crtcs[c]->x + slave_priv->crtcs[c]->mode->mode.width;
-                newbox.y1 = slave_priv->crtcs[c]->y;
-                newbox.y2 = slave_priv->crtcs[c]->y + slave_priv->crtcs[c]->mode->mode.height;
+                newbox.x1 = slave_crtc->x;
+                newbox.x2 = slave_crtc->x + slave_crtc->mode->mode.width;
+                newbox.y1 = slave_crtc->y;
+                newbox.y2 = slave_crtc->y + slave_crtc->mode->mode.height;
             }
             RegionInit(&new_crtc_region, &newbox, 1);
             RegionUnion(&total_region, &total_region, &new_crtc_region);
