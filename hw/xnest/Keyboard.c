@@ -16,6 +16,10 @@ is" without express or implied warranty.
 #include <xnest-config.h>
 #endif
 
+#ifdef WIN32
+#include <X11/Xwindows.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <xcb/xcb_keysyms.h>
