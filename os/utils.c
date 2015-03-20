@@ -1640,7 +1640,7 @@ Fclose(void *iop)
 #include <X11/Xwindows.h>
 
 const char *
-Win32TempDir()
+Win32TempDir(void)
 {
     static char buffer[PATH_MAX];
 
