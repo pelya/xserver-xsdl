@@ -344,7 +344,7 @@ Dispatch(void)
     nextFreeClientID = 1;
     nClients = 0;
 
-    clientReady = malloc(sizeof(int) * MaxClients);
+    clientReady = xallocarray(MaxClients, sizeof(int));
     if (!clientReady)
         return;
 
@@ -963,7 +963,7 @@ ProcQueryTree(ClientPtr client)
     if (numChildren) {
         int curChild = 0;
 
-        childIDs = malloc(numChildren * sizeof(Window));
+        childIDs = xallocarray(numChildren, sizeof(Window));
         if (!childIDs)
             return BadAlloc;
         for (pChild = pWin->lastChild; pChild != pHead;

@@ -4785,8 +4785,8 @@ SetInputFocus(ClientPtr client,
             depth++;
         if (depth > focus->traceSize) {
             focus->traceSize = depth + 1;
-            focus->trace = realloc(focus->trace,
-                                   focus->traceSize * sizeof(WindowPtr));
+            focus->trace = reallocarray(focus->trace, focus->traceSize,
+                                        sizeof(WindowPtr));
         }
         focus->traceGood = depth;
         for (pWin = focusWin, depth--; pWin; pWin = pWin->parent, depth--)
