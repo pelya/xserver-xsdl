@@ -2001,7 +2001,7 @@ xstrtokenize(const char *str, const char *separators)
     if (!tmp)
         goto error;
     for (tok = strtok(tmp, separators); tok; tok = strtok(NULL, separators)) {
-        nlist = realloc(list, (num + 2) * sizeof(*list));
+        nlist = reallocarray(list, num + 2, sizeof(*list));
         if (!nlist)
             goto error;
         list = nlist;
