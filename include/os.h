@@ -517,7 +517,14 @@ ddxGiveUp(enum ExitCode error);
 extern _X_EXPORT int
 TimeSinceLastInputEvent(void);
 
-/* strcasecmp.c */
+/* Function fallbacks provided by AC_REPLACE_FUNCS in configure.ac */
+
+#ifndef HAVE_REALLOCARRAY
+#define reallocarray xreallocarray
+extern _X_EXPORT void *
+reallocarray(void *optr, size_t nmemb, size_t size);
+#endif
+
 #ifndef HAVE_STRCASECMP
 #define strcasecmp xstrcasecmp
 extern _X_EXPORT int
