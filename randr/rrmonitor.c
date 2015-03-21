@@ -494,8 +494,9 @@ RRMonitorAdd(ClientPtr client, ScreenPtr screen, RRMonitorPtr monitor)
      * needs to not have any side-effects on failure
      */
     if (pScrPriv->numMonitors)
-        monitors = realloc(pScrPriv->monitors,
-                           (pScrPriv->numMonitors + 1) * sizeof (RRMonitorPtr));
+        monitors = reallocarray(pScrPriv->monitors,
+                                pScrPriv->numMonitors + 1,
+                                sizeof (RRMonitorPtr));
     else
         monitors = malloc(sizeof (RRMonitorPtr));
 

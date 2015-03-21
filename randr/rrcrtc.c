@@ -65,8 +65,8 @@ RRCrtcCreate(ScreenPtr pScreen, void *devPrivate)
 
     /* make space for the crtc pointer */
     if (pScrPriv->numCrtcs)
-        crtcs = realloc(pScrPriv->crtcs,
-                        (pScrPriv->numCrtcs + 1) * sizeof(RRCrtcPtr));
+        crtcs = reallocarray(pScrPriv->crtcs,
+                             pScrPriv->numCrtcs + 1, sizeof(RRCrtcPtr));
     else
         crtcs = malloc(sizeof(RRCrtcPtr));
     if (!crtcs)
@@ -176,10 +176,10 @@ RRCrtcNotify(RRCrtcPtr crtc,
 
         if (numOutputs) {
             if (crtc->numOutputs)
-                newoutputs = realloc(crtc->outputs,
-                                     numOutputs * sizeof(RROutputPtr));
+                newoutputs = reallocarray(crtc->outputs,
+                                          numOutputs, sizeof(RROutputPtr));
             else
-                newoutputs = malloc(numOutputs * sizeof(RROutputPtr));
+                newoutputs = xallocarray(numOutputs, sizeof(RROutputPtr));
             if (!newoutputs)
                 return FALSE;
         }
@@ -798,7 +798,7 @@ RRCrtcGammaSetSize(RRCrtcPtr crtc, int size)
     if (size == crtc->gammaSize)
         return TRUE;
     if (size) {
-        gamma = malloc(size * 3 * sizeof(CARD16));
+        gamma = xallocarray(size, 3 * sizeof(CARD16));
         if (!gamma)
             return FALSE;
     }
@@ -1027,7 +1027,7 @@ ProcRRSetCrtcConfig(ClientPtr client)
             return BadMatch;
     }
     if (numOutputs) {
-        outputs = malloc(numOutputs * sizeof(RROutputPtr));
+        outputs = xallocarray(numOutputs, sizeof(RROutputPtr));
         if (!outputs)
             return BadAlloc;
     }
