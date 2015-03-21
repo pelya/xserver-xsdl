@@ -1128,10 +1128,20 @@ XNFalloc(unsigned long amount)
     return ptr;
 }
 
+/* The original XNFcalloc was used with the xnfcalloc macro which multiplied
+ * the arguments at the call site without allowing calloc to check for overflow.
+ * XNFcallocarray was added to fix that without breaking ABI.
+ */
 void *
 XNFcalloc(unsigned long amount)
 {
-    void *ret = calloc(1, amount);
+    return XNFcallocarray(1, amount);
+}
+
+void *
+XNFcallocarray(size_t nmemb, size_t size)
+{
+    void *ret = calloc(nmemb, size);
 
     if (!ret)
         FatalError("XNFcalloc: Out of memory");

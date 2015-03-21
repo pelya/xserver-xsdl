@@ -69,7 +69,7 @@ typedef struct _NewClientRec *NewClientPtr;
 
 #ifndef xnfalloc
 #define xnfalloc(size) XNFalloc((unsigned long)(size))
-#define xnfcalloc(_num, _size) XNFcalloc((unsigned long)(_num)*(unsigned long)(_size))
+#define xnfcalloc(_num, _size) XNFcallocarray((_num), (_size))
 #define xnfrealloc(ptr, size) XNFrealloc((void *)(ptr), (unsigned long)(size))
 
 #define xstrdup(s) Xstrdup(s)
@@ -222,7 +222,14 @@ XNFalloc(unsigned long /*amount */ );
  * enough memory.
  */
 extern _X_EXPORT void *
-XNFcalloc(unsigned long /*amount */ );
+XNFcalloc(unsigned long /*amount */ ) _X_DEPRECATED;
+
+/*
+ * This function calloc(3)s buffer, terminating the server if there is not
+ * enough memory or the arguments overflow when multiplied
+ */
+extern _X_EXPORT void *
+XNFcallocarray(size_t nmemb, size_t size);
 
 /*
  * This function realloc(3)s passed buffer, terminating the server if there is
