@@ -634,7 +634,7 @@ glyph_new_fixed_list(struct glamor_glyph_list *fixed_list,
     }
     DEBUGF("got %d lists\n", list_cnt);
     if (list_cnt != 0) {
-        fixed_list->list = malloc(list_cnt * sizeof(*cur_list));
+        fixed_list->list = xallocarray(list_cnt, sizeof(*cur_list));
         memcpy(fixed_list->list, *head_list, list_cnt * sizeof(*cur_list));
         fixed_list->list[0].xOff = *head_x;
         fixed_list->list[0].yOff = *head_y;
