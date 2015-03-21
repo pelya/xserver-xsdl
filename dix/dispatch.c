@@ -2786,7 +2786,7 @@ ProcQueryColors(ClientPtr client)
 
         count =
             bytes_to_int32((client->req_len << 2) - sizeof(xQueryColorsReq));
-        prgbs = calloc(1, count * sizeof(xrgb));
+        prgbs = calloc(count, sizeof(xrgb));
         if (!prgbs && count)
             return BadAlloc;
         if ((rc =
@@ -2908,10 +2908,10 @@ ProcCreateCursor(ClientPtr client)
     if (stuff->x > width || stuff->y > height)
         return BadMatch;
 
-    n = BitmapBytePad(width) * height;
-    srcbits = calloc(1, n);
+    srcbits = calloc(BitmapBytePad(width), height);
     if (!srcbits)
         return BadAlloc;
+    n = BitmapBytePad(width) * height;
     mskbits = malloc(n);
     if (!mskbits) {
         free(srcbits);

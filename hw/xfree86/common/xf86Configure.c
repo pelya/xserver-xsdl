@@ -645,10 +645,10 @@ DoConfigure(void)
 
     xf86DoConfigurePass1 = FALSE;
 
-    dev2screen = xnfcalloc(1, xf86NumDrivers * sizeof(int));
+    dev2screen = xnfcalloc(xf86NumDrivers, sizeof(int));
 
     {
-        Bool *driverProbed = xnfcalloc(1, xf86NumDrivers * sizeof(Bool));
+        Bool *driverProbed = xnfcalloc(xf86NumDrivers, sizeof(Bool));
 
         for (screennum = 0; screennum < nDevToConfig; screennum++) {
             int k, l, n, oldNumScreens;

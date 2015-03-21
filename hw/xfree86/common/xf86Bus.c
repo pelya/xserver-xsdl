@@ -260,7 +260,7 @@ xf86AllocateEntity(void)
                               sizeof(EntityPtr) * xf86NumEntities);
     xf86Entities[xf86NumEntities - 1] = xnfcalloc(1, sizeof(EntityRec));
     xf86Entities[xf86NumEntities - 1]->entityPrivates =
-        xnfcalloc(sizeof(DevUnion) * xf86EntityPrivateCount, 1);
+        xnfcalloc(xf86EntityPrivateCount, sizeof(DevUnion));
     return xf86NumEntities - 1;
 }
 
