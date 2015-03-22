@@ -118,7 +118,7 @@ xf86CrtcCreate(ScrnInfoPtr scrn, const xf86CrtcFuncsRec * funcs)
 
     /* Preallocate gamma at a sensible size. */
     crtc->gamma_size = 256;
-    crtc->gamma_red = malloc(3 * crtc->gamma_size * sizeof(CARD16));
+    crtc->gamma_red = xallocarray(crtc->gamma_size, 3 * sizeof(CARD16));
     if (!crtc->gamma_red) {
         free(crtc);
         return NULL;
@@ -127,10 +127,10 @@ xf86CrtcCreate(ScrnInfoPtr scrn, const xf86CrtcFuncsRec * funcs)
     crtc->gamma_blue = crtc->gamma_green + crtc->gamma_size;
 
     if (xf86_config->crtc)
-        crtcs = realloc(xf86_config->crtc,
-                        (xf86_config->num_crtc + 1) * sizeof(xf86CrtcPtr));
+        crtcs = reallocarray(xf86_config->crtc,
+                             xf86_config->num_crtc + 1, sizeof(xf86CrtcPtr));
     else
-        crtcs = malloc((xf86_config->num_crtc + 1) * sizeof(xf86CrtcPtr));
+        crtcs = xallocarray(xf86_config->num_crtc + 1, sizeof(xf86CrtcPtr));
     if (!crtcs) {
         free(crtc->gamma_red);
         free(crtc);
@@ -620,11 +620,12 @@ xf86OutputCreate(ScrnInfoPtr scrn,
     }
 
     if (xf86_config->output)
-        outputs = realloc(xf86_config->output,
-                          (xf86_config->num_output +
-                           1) * sizeof(xf86OutputPtr));
+        outputs = reallocarray(xf86_config->output,
+                               xf86_config->num_output + 1,
+                               sizeof(xf86OutputPtr));
     else
-        outputs = malloc((xf86_config->num_output + 1) * sizeof(xf86OutputPtr));
+        outputs = xallocarray(xf86_config->num_output + 1,
+                              sizeof(xf86OutputPtr));
     if (!outputs) {
         free(output);
         return NULL;
@@ -942,7 +943,7 @@ xf86PickCrtcs(ScrnInfoPtr scrn,
     if (modes[n] == NULL)
         return best_score;
 
-    crtcs = malloc(config->num_output * sizeof(xf86CrtcPtr));
+    crtcs = xallocarray(config->num_output, sizeof(xf86CrtcPtr));
     if (!crtcs)
         return best_score;
 
@@ -2334,7 +2335,7 @@ xf86CrtcSetInitialGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
     int i, size = 256;
     CARD16 *red, *green, *blue;
 
-    red = malloc(3 * size * sizeof(CARD16));
+    red = xallocarray(size, 3 * sizeof(CARD16));
     green = red + size;
     blue = green + size;
 

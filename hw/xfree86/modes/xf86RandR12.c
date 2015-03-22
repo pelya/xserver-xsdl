@@ -1058,7 +1058,7 @@ xf86RandR12CrtcNotify(RRCrtcPtr randr_crtc)
     DisplayModePtr mode = &crtc->mode;
     Bool ret;
 
-    randr_outputs = malloc(config->num_output * sizeof(RROutputPtr));
+    randr_outputs = xallocarray(config->num_output, sizeof(RROutputPtr));
     if (!randr_outputs)
         return FALSE;
     x = crtc->x;
@@ -1150,7 +1150,7 @@ xf86RandR12CrtcSet(ScreenPtr pScreen,
     if (!crtc->scrn->vtSema)
         return FALSE;
 
-    save_crtcs = malloc(config->num_output * sizeof(xf86CrtcPtr));
+    save_crtcs = xallocarray(config->num_output, sizeof(xf86CrtcPtr));
     if ((randr_mode != NULL) != crtc->enabled)
         changed = TRUE;
     else if (randr_mode && !xf86RandRModeMatches(randr_mode, &crtc->mode))
@@ -1255,9 +1255,8 @@ xf86RandR12CrtcSetGamma(ScreenPtr pScreen, RRCrtcPtr randr_crtc)
     if (randr_crtc->gammaSize != crtc->gamma_size) {
         CARD16 *tmp_ptr;
 
-        tmp_ptr =
-            realloc(crtc->gamma_red,
-                    3 * randr_crtc->gammaSize * sizeof(CARD16));
+        tmp_ptr = reallocarray(crtc->gamma_red,
+                               randr_crtc->gammaSize, 3 * sizeof(CARD16));
         if (!tmp_ptr)
             return FALSE;
         crtc->gamma_red = tmp_ptr;
@@ -1298,9 +1297,8 @@ xf86RandR12CrtcGetGamma(ScreenPtr pScreen, RRCrtcPtr randr_crtc)
     if (randr_crtc->gammaSize != crtc->gamma_size) {
         CARD16 *tmp_ptr;
 
-        tmp_ptr =
-            realloc(randr_crtc->gammaRed,
-                    3 * crtc->gamma_size * sizeof(CARD16));
+        tmp_ptr = reallocarray(randr_crtc->gammaRed,
+                               crtc->gamma_size, 3 * sizeof(CARD16));
         if (!tmp_ptr)
             return FALSE;
         randr_crtc->gammaRed = tmp_ptr;
@@ -1394,7 +1392,7 @@ xf86RROutputSetModes(RROutputPtr randr_output, DisplayModePtr modes)
         nmode++;
 
     if (nmode) {
-        rrmodes = malloc(nmode * sizeof(RRModePtr));
+        rrmodes = xallocarray(nmode, sizeof(RRModePtr));
 
         if (!rrmodes)
             return FALSE;
@@ -1449,8 +1447,8 @@ xf86RandR12SetInfo12(ScreenPtr pScreen)
     int o, c, l;
     int nclone;
 
-    clones = malloc(config->num_output * sizeof(RROutputPtr));
-    crtcs = malloc(config->num_crtc * sizeof(RRCrtcPtr));
+    clones = xallocarray(config->num_output, sizeof(RROutputPtr));
+    crtcs = xallocarray(config->num_crtc, sizeof(RRCrtcPtr));
     for (o = 0; o < config->num_output; o++) {
         xf86OutputPtr output = config->output[o];
 
