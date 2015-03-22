@@ -822,7 +822,9 @@ AC_ARG_WITH([systemd-daemon],
 		[support systemd socket activation (default: auto)]),
 	[WITH_SYSTEMD_DAEMON=$withval], [WITH_SYSTEMD_DAEMON=auto])
 PKG_CHECK_MODULES([SYSTEMD_DAEMON], [libsystemd-daemon],
-                  [HAVE_SYSTEMD_DAEMON=yes], [HAVE_SYSTEMD_DAEMON=no])
+                  [HAVE_SYSTEMD_DAEMON=yes],
+                  [PKG_CHECK_MODULES([SYSTEMD_DAEMON], [libsystemd],
+                                     [HAVE_SYSTEMD_DAEMON=yes], [HAVE_SYSTEMD_DAEMON=no])])
 if test "x$WITH_SYSTEMD_DAEMON" = xauto; then
 	WITH_SYSTEMD_DAEMON="$HAVE_SYSTEMD_DAEMON"
 fi
