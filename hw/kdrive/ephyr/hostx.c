@@ -129,8 +129,8 @@ hostx_add_screen(KdScreenInfo *screen, unsigned long win_id, int screen_num, Boo
     int index = HostX.n_screens;
 
     HostX.n_screens += 1;
-    HostX.screens = realloc(HostX.screens,
-                            HostX.n_screens * sizeof(HostX.screens[0]));
+    HostX.screens = reallocarray(HostX.screens,
+                                 HostX.n_screens, sizeof(HostX.screens[0]));
     HostX.screens[index] = screen;
 
     scrpriv->screen = screen;
@@ -867,7 +867,7 @@ hostx_screen_init(KdScreenInfo *screen,
                                                     NULL);
 
         scrpriv->ximg->data =
-            malloc(scrpriv->ximg->stride * buffer_height);
+            xallocarray(scrpriv->ximg->stride, buffer_height);
     }
 
     {
@@ -933,7 +933,7 @@ hostx_screen_init(KdScreenInfo *screen,
         *bits_per_pixel = scrpriv->server_depth;
 
         EPHYR_DBG("server bpp %i", bytes_per_pixel);
-        scrpriv->fb_data = malloc (stride * buffer_height);
+        scrpriv->fb_data = xallocarray (stride, buffer_height);
         return scrpriv->fb_data;
     }
 }
@@ -1148,9 +1148,9 @@ hostx_get_visuals_info(EphyrHostVisualInfo ** a_visuals, int *a_num_entries)
         for (; depths.rem; xcb_depth_next(&depths)) {
             xcb_visualtype_t *visuals = xcb_depth_visuals(depths.data);
             EphyrHostVisualInfo *tmp_visuals =
-                realloc(host_visuals,
-                        (nb_items + depths.data->visuals_len)
-                        * sizeof(EphyrHostVisualInfo));
+                reallocarray(host_visuals,
+                             nb_items + depths.data->visuals_len,
+                             sizeof(EphyrHostVisualInfo));
             if (!tmp_visuals) {
                 goto out;
             }
