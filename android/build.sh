@@ -863,7 +863,7 @@ done
 
 # =========== xkbcomp binary ==========
 
-[ -e xkbcomp ] || {
+[ -e xkbcomp -a -e pie/xkbcomp ] || {
 PKGURL=http://cgit.freedesktop.org/xorg/app/xkbcomp/snapshot/xkbcomp-1.2.4.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
@@ -1100,7 +1100,7 @@ ln -sf ../$PKGDIR/include/X11/Xmu X11/
 
 # =========== xhost binary ==========
 
-[ -e xhost ] || {
+[ -e xhost -a -e pie/xhost ] || {
 PKGURL=http://cgit.freedesktop.org/xorg/app/xhost/snapshot/xhost-1.0.6.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
@@ -1176,7 +1176,7 @@ cd $BUILDDIR
 
 # =========== xli binary ==========
 
-[ -e xli ] || {
+[ -e xli -a -e pie/xli ] || {
 PKGURL=http://web.aanet.com.au/gwg/xli-1.16.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
@@ -1248,7 +1248,7 @@ cd $BUILDDIR
 
 # =========== xsel binary ==========
 
-[ -e xsel ] || {
+[ -e xsel -a -e pie/xsel ] || {
 PKGURL=https://github.com/kfish/xsel/archive/master.tar.gz
 PKGDIR=xsel-master
 echo $PKGDIR: $PKGURL
