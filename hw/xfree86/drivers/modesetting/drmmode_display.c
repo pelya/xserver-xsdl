@@ -749,6 +749,46 @@ drmmode_output_mode_valid(xf86OutputPtr output, DisplayModePtr pModes)
     return MODE_OK;
 }
 
+static void
+drmmode_output_attach_tile(xf86OutputPtr output)
+{
+    drmmode_output_private_ptr drmmode_output = output->driver_private;
+    drmModeConnectorPtr koutput = drmmode_output->mode_output;
+    drmmode_ptr drmmode = drmmode_output->drmmode;
+    int i;
+    struct xf86CrtcTileInfo tile_info, *set = NULL;
+
+    if (!koutput) {
+        xf86OutputSetTile(output, NULL);
+        return;
+    }
+
+    /* look for a TILE property */
+    for (i = 0; i < koutput->count_props; i++) {
+        drmModePropertyPtr props;
+        props = drmModeGetProperty(drmmode->fd, koutput->props[i]);
+        if (!props)
+            continue;
+
+        if (!(props->flags & DRM_MODE_PROP_BLOB)) {
+            drmModeFreeProperty(props);
+            continue;
+        }
+
+        if (!strcmp(props->name, "TILE")) {
+            drmModeFreePropertyBlob(drmmode_output->tile_blob);
+            drmmode_output->tile_blob =
+                drmModeGetPropertyBlob(drmmode->fd, koutput->prop_values[i]);
+        }
+        drmModeFreeProperty(props);
+    }
+    if (drmmode_output->tile_blob) {
+        if (xf86OutputParseKMSTile(drmmode_output->tile_blob->data, drmmode_output->tile_blob->length, &tile_info) == TRUE)
+            set = &tile_info;
+    }
+    xf86OutputSetTile(output, set);
+}
+
 static Bool
 has_panel_fitter(xf86OutputPtr output)
 {
@@ -856,6 +896,8 @@ drmmode_output_get_modes(xf86OutputPtr output)
             mon->flags |= MONITOR_EDID_COMPLETE_RAWDATA;
     }
     xf86OutputSetEDID(output, mon);
+
+    drmmode_output_attach_tile(output);
 
     /* modes should already be available */
     for (i = 0; i < koutput->count_modes; i++) {
