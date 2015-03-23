@@ -71,16 +71,6 @@ Bool EphyrWantResize = 0;
 Bool EphyrWantNoHostGrab = 0;
 
 Bool
-host_has_extension(xcb_extension_t *extension)
-{
-    const xcb_query_extension_reply_t *rep;
-
-    rep = xcb_get_extension_data(hostx_get_xcbconn(), extension);
-
-    return rep && rep->present;
-}
-
-Bool
 ephyrInitialize(KdCardInfo * card, EphyrPriv * priv)
 {
     OsSignal(SIGUSR1, hostx_handle_signal);
@@ -670,7 +660,7 @@ ephyrInitScreen(ScreenPtr pScreen)
     }
 #endif /*XV*/
 #ifdef XF86DRI
-    if (!ephyrNoDRI && !host_has_extension(&xcb_xf86dri_id)) {
+    if (!ephyrNoDRI && !hostx_has_extension(&xcb_xf86dri_id)) {
         EPHYR_LOG("host x does not support DRI. Disabling DRI forwarding\n");
         ephyrNoDRI = TRUE;
     }
