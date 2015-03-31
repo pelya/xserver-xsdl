@@ -1035,7 +1035,7 @@ hostx_paint_rect(KdScreenInfo *screen,
     }
     else {
         xcb_image_put(HostX.conn, scrpriv->win, HostX.gc, scrpriv->ximg,
-                      dx, dy, 0);
+                      0, 0, 0);
     }
 
     xcb_aux_sync(HostX.conn);
