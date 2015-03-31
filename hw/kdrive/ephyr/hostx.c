@@ -798,7 +798,7 @@ hostx_screen_init(KdScreenInfo *screen,
     }
 
     EPHYR_DBG("host_screen=%p x=%d, y=%d, wxh=%dx%d, buffer_height=%d",
-              host_screen, x, y, width, height, buffer_height);
+              screen, x, y, width, height, buffer_height);
 
     if (scrpriv->ximg != NULL) {
         /* Free up the image data if previously used
