@@ -1825,13 +1825,34 @@ configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen, int scrnum,
         screenp->device = NULL;
     }
 
-    for (i = 0; i < conf_screen->num_gpu_devices; i++) {
-        screenp->gpu_devices[i] = xnfcalloc(1, sizeof(GDevRec));
-        if (configDevice(screenp->gpu_devices[i], conf_screen->scrn_gpu_devices[i], TRUE, TRUE)) {
-            screenp->gpu_devices[i]->myScreenSection = screenp;
+    if (conf_screen->num_gpu_devices == 0 && xf86configptr->conf_device_lst) {
+        XF86ConfDevicePtr sdevice = xf86configptr->conf_device_lst->list.next;
+
+        for (i = 0; i < MAX_GPUDEVICES; i++) {
+            if (!sdevice)
+                break;
+
+            FIND_SUITABLE (XF86ConfDevicePtr, sdevice, conf_screen->scrn_gpu_devices[i]);
+            if (!conf_screen->scrn_gpu_devices[i])
+                break;
+            screenp->gpu_devices[i] = xnfcalloc(1, sizeof(GDevRec));
+            if (configDevice(screenp->gpu_devices[i], conf_screen->scrn_gpu_devices[i], TRUE, TRUE)) {
+                screenp->gpu_devices[i]->myScreenSection = screenp;
+            }
+            sdevice = conf_screen->scrn_gpu_devices[i]->list.next;
         }
+        screenp->num_gpu_devices = i;
+
+    } else {
+        for (i = 0; i < conf_screen->num_gpu_devices; i++) {
+            screenp->gpu_devices[i] = xnfcalloc(1, sizeof(GDevRec));
+            if (configDevice(screenp->gpu_devices[i], conf_screen->scrn_gpu_devices[i], TRUE, TRUE)) {
+                screenp->gpu_devices[i]->myScreenSection = screenp;
+            }
+        }
+        screenp->num_gpu_devices = conf_screen->num_gpu_devices;
     }
-    screenp->num_gpu_devices = conf_screen->num_gpu_devices;
+
     screenp->options = conf_screen->scrn_option_lst;
 
     /*
