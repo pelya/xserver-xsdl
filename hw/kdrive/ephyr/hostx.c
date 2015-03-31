@@ -177,7 +177,7 @@ hostx_set_win_title(KdScreenInfo *screen, const char *extra_text)
 
         memset(buf, 0, BUF_LEN + 1);
         snprintf(buf, BUF_LEN, "Xephyr on %s.%d %s",
-                 HostX.server_dpy_name,
+                 HostX.server_dpy_name ? HostX.server_dpy_name : ":0",
                  scrpriv->mynum, (extra_text != NULL) ? extra_text : "");
 
         xcb_icccm_set_wm_name(HostX.conn,
