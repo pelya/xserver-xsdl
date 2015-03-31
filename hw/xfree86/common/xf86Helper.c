@@ -1367,7 +1367,7 @@ xf86MatchDevice(const char *drivername, GDevPtr ** sectlist)
 {
     GDevPtr gdp, *pgdp = NULL;
     confScreenPtr screensecptr;
-    int i, j;
+    int i, j, k;
 
     if (sectlist)
         *sectlist = NULL;
@@ -1410,6 +1410,17 @@ xf86MatchDevice(const char *drivername, GDevPtr ** sectlist)
              */
             pgdp = xnfrealloc(pgdp, (i + 2) * sizeof(GDevPtr));
             pgdp[i++] = screensecptr->device;
+        }
+        for (k = 0; k < screensecptr->num_gpu_devices; k++) {
+            if ((screensecptr->gpu_devices[k]->driver != NULL)
+            && (xf86NameCmp(screensecptr->gpu_devices[k]->driver, drivername) == 0)
+                && (!screensecptr->gpu_devices[k]->claimed)) {
+                /*
+                 * we have a matching driver that wasn't claimed, yet
+                 */
+                pgdp = xnfrealloc(pgdp, (i + 2) * sizeof(GDevPtr));
+                pgdp[i++] = screensecptr->gpu_devices[k];
+            }
         }
     }
 

@@ -440,6 +440,7 @@ typedef struct _confxvadaptrec {
     void *options;
 } confXvAdaptorRec, *confXvAdaptorPtr;
 
+#define MAX_GPUDEVICES 4
 typedef struct _confscreenrec {
     const char *id;
     int screennum;
@@ -453,6 +454,9 @@ typedef struct _confscreenrec {
     int numxvadaptors;
     confXvAdaptorPtr xvadaptors;
     void *options;
+
+    int num_gpu_devices;
+    GDevPtr gpu_devices[MAX_GPUDEVICES];
 } confScreenRec, *confScreenPtr;
 
 typedef enum {
