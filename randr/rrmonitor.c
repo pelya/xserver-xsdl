@@ -389,13 +389,13 @@ RRMonitorCountList(ScreenPtr screen)
     return nmon;
 }
 
-static void
+void
 RRMonitorFree(RRMonitorPtr monitor)
 {
     free(monitor);
 }
 
-static RRMonitorPtr
+RRMonitorPtr
 RRMonitorAlloc(int noutput)
 {
     RRMonitorPtr        monitor;
@@ -451,7 +451,7 @@ RRMonitorMatchesOutputName(ScreenPtr screen, Atom name)
     return FALSE;
 }
 
-static int
+int
 RRMonitorAdd(ClientPtr client, ScreenPtr screen, RRMonitorPtr monitor)
 {
     rrScrPrivPtr        pScrPriv = rrGetScrPriv(screen);
