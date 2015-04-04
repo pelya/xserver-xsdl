@@ -2006,11 +2006,6 @@ if test "x$XORG" = xyes; then
 		;;
 	esac
 
-	case $host_cpu in
-	  i*86)
-		;;
-	esac
-
 	if test "x$DGA" = xauto; then
 		PKG_CHECK_MODULES(DGA, $DGAPROTO, [DGA=yes], [DGA=no])
 	fi
