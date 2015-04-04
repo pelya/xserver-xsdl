@@ -1976,7 +1976,7 @@ if test "x$XORG" = xyes; then
 		  sparc*)	
 			SOLARIS_INOUT_ARCH="sparcv8plus"
 			;;
-		  i*86)	
+		  i*86|x86_64*)
 			if test x$SOLARIS_64 = xyes ; then
 				SOLARIS_INOUT_ARCH="amd64"
 			else
