@@ -676,7 +676,7 @@ glamor_pixmap_fbo *glamor_create_fbo_array(glamor_screen_private *glamor_priv,
 void glamor_init_finish_access_shaders(ScreenPtr screen);
 void glamor_fini_finish_access_shaders(ScreenPtr screen);
 
-const Bool glamor_get_drawable_location(const DrawablePtr drawable);
+Bool glamor_get_drawable_location(const DrawablePtr drawable);
 void glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
                                 int *x, int *y);
 GLint glamor_compile_glsl_prog(GLenum type, const char *source);
