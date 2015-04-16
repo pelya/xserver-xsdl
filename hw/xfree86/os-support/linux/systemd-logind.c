@@ -313,6 +313,9 @@ message_filter(DBusConnection * connection, DBusMessage * message, void *data)
     dbus_int32_t major, minor;
     char *pause_str;
 
+    if (dbus_message_get_type (message) != DBUS_MESSAGE_TYPE_SIGNAL)
+        return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+
     dbus_error_init(&error);
 
     if (dbus_message_is_signal(message,
