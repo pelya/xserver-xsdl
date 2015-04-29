@@ -177,6 +177,9 @@ DeviceSetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
             if (!isfinite(f[i]))
                 return BadValue;
 
+	if (!dev->valuator)
+		return BadMatch;
+
         if (!checkonly)
             DeviceSetTransform(dev, f);
     }
