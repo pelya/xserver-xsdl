@@ -977,8 +977,8 @@ ephyrProcessMouseMotion(xcb_generic_event_t *xev)
 
     if (ephyrCursorScreen != screen->pScreen) {
         EPHYR_LOG("warping mouse cursor. "
-                  "cur_screen%d, motion_screen:%d\n",
-                  ephyrCursorScreen, screen->pScreen->myNum);
+                  "cur_screen:%d, motion_screen:%d\n",
+                  ephyrCursorScreen->myNum, screen->pScreen->myNum);
         ephyrWarpCursor(inputInfo.pointer, screen->pScreen,
                         motion->event_x, motion->event_y);
     }
