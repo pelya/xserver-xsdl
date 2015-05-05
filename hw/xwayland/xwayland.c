@@ -483,7 +483,7 @@ listen_on_fds(struct xwl_screen *xwl_screen)
     int i;
 
     for (i = 0; i < xwl_screen->listen_fd_count; i++)
-        ListenOnOpenFD(xwl_screen->listen_fds[i], TRUE);
+        ListenOnOpenFD(xwl_screen->listen_fds[i], FALSE);
 }
 
 static void
