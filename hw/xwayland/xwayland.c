@@ -702,4 +702,6 @@ InitOutput(ScreenInfo * screen_info, int argc, char **argv)
     if (AddScreen(xwl_screen_init, argc, argv) == -1) {
         FatalError("Couldn't add screen\n");
     }
+
+    LocalAccessScopeUser();
 }
