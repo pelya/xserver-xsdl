@@ -540,7 +540,7 @@ create_input_device(struct xwl_screen *xwl_screen, uint32_t id)
 
     xwl_seat = calloc(sizeof *xwl_seat, 1);
     if (xwl_seat == NULL) {
-        ErrorF("create_input ENOMEM");
+        ErrorF("create_input ENOMEM\n");
         return;
     }
 
