@@ -560,17 +560,7 @@ dnl GLX build options
 AC_ARG_ENABLE(aiglx,          AS_HELP_STRING([--enable-aiglx], [Build accelerated indirect GLX (default: enabled)]),
                                 [AIGLX=$enableval],
                                 [AIGLX=yes])
-XORG_TLS
-AC_ARG_ENABLE(glx-tls,        AS_HELP_STRING([--enable-glx-tls], [Build GLX with TLS support (default: auto)]),
-                                [GLX_USE_TLS=$enableval
-                                 if test "x$GLX_USE_TLS" = "xyes" && test "${ac_cv_tls}" = "none" ; then
-                                   AC_MSG_ERROR([GLX with TLS support requested, but the compiler does not support it.])
-                                 fi],
-                                [GLX_USE_TLS=no
-                                 if test "${ac_cv_tls}" != "none" ; then
-                                   GLX_USE_TLS=yes
-                                 fi])
-AC_SUBST(GLX_TLS, ${GLX_USE_TLS})
+
 AC_ARG_WITH(khronos-spec-dir, AS_HELP_STRING([--with-khronos-spec-dir=PATH], [Path to Khronos OpenGL registry database files (default: auto)]),
 				[KHRONOS_SPEC_DIR="${withval}"],
 				[KHRONOS_SPEC_DIR=auto])
@@ -1324,10 +1314,6 @@ if test "x$AIGLX" = xyes -a \( "x$DRI2" = xyes \); then
 fi
 AM_CONDITIONAL(AIGLX_DRI_LOADER, { test "x$DRI2" = xyes; } && test "x$AIGLX" = xyes)
 
-if test "x$GLX_USE_TLS" = xyes ; then
-	GLX_DEFINES="-DGLX_USE_TLS -DPTHREADS"
-	GLX_SYS_LIBS="$GLX_SYS_LIBS -lpthread"
-fi
 AC_SUBST([GLX_DEFINES])
 AC_SUBST([GLX_SYS_LIBS])
 
