@@ -1562,6 +1562,70 @@ xf86RandR12CreateObjects12(ScreenPtr pScreen)
     return TRUE;
 }
 
+static void
+xf86RandR12CreateMonitors(ScreenPtr pScreen)
+{
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
+    int o, ot;
+    int ht, vt;
+    int ret;
+    char buf[25];
+
+    for (o = 0; o < config->num_output; o++) {
+        xf86OutputPtr output = config->output[o];
+        struct xf86CrtcTileInfo *tile_info = &output->tile_info, *this_tile;
+        RRMonitorPtr monitor;
+        int output_num, num_outputs;
+        if (!tile_info->group_id)
+            continue;
+
+        if (tile_info->tile_h_loc ||
+            tile_info->tile_v_loc)
+            continue;
+
+        num_outputs = tile_info->num_h_tile * tile_info->num_v_tile;
+
+        monitor = RRMonitorAlloc(num_outputs);
+        if (!monitor)
+            return;
+        monitor->pScreen = pScreen;
+        snprintf(buf, 25, "Auto-Monitor-%d", tile_info->group_id);
+        monitor->name = MakeAtom(buf, strlen(buf), TRUE);
+        monitor->primary = 0;
+        monitor->automatic = TRUE;
+        memset(&monitor->geometry.box, 0, sizeof(monitor->geometry.box));
+
+        output_num = 0;
+        for (ht = 0; ht < tile_info->num_h_tile; ht++) {
+            for (vt = 0; vt < tile_info->num_v_tile; vt++) {
+
+                for (ot = 0; ot < config->num_output; ot++) {
+                    this_tile = &config->output[ot]->tile_info;
+
+                    if (this_tile->group_id != tile_info->group_id)
+                        continue;
+
+                    if (this_tile->tile_h_loc != ht ||
+                        this_tile->tile_v_loc != vt)
+                        continue;
+
+                    monitor->outputs[output_num] = config->output[ot]->randr_output->id;
+                    output_num++;
+
+                }
+
+            }
+        }
+
+        ret = RRMonitorAdd(serverClient, pScreen, monitor);
+        if (ret) {
+            RRMonitorFree(monitor);
+            return;
+        }
+    }
+}
+
 static Bool
 xf86RandR12CreateScreenResources12(ScreenPtr pScreen)
 {
@@ -1577,6 +1641,8 @@ xf86RandR12CreateScreenResources12(ScreenPtr pScreen)
 
     RRScreenSetSizeRange(pScreen, config->minWidth, config->minHeight,
                          config->maxWidth, config->maxHeight);
+
+    xf86RandR12CreateMonitors(pScreen);
     return TRUE;
 }
 
