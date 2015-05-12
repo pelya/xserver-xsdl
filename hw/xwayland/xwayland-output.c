@@ -185,6 +185,7 @@ void
 xwl_output_destroy(struct xwl_output *xwl_output)
 {
     wl_output_destroy(xwl_output->output);
+    xorg_list_del(&xwl_output->link);
     free(xwl_output);
 }
 
