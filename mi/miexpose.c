@@ -478,14 +478,21 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     else {
         PixmapPtr pixmap;
 
-        tile_x_off = drawable->x;
-        tile_y_off = drawable->y;
+        fill = pWin->border;
+        solid = pWin->borderIsPixel;
 
         /* servers without pixmaps draw their own borders */
         if (!pScreen->GetWindowPixmap)
             return;
         pixmap = (*pScreen->GetWindowPixmap) ((WindowPtr) drawable);
         drawable = &pixmap->drawable;
+
+        while (pWin->backgroundState == ParentRelative)
+            pWin = pWin->parent;
+
+        tile_x_off = pWin->drawable.x;
+        tile_y_off = pWin->drawable.y;
+
 #ifdef COMPOSITE
         draw_x_off = pixmap->screen_x;
         draw_y_off = pixmap->screen_y;
@@ -495,8 +502,6 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
         draw_x_off = 0;
         draw_y_off = 0;
 #endif
-        fill = pWin->border;
-        solid = pWin->borderIsPixel;
     }
 
     gcval[0].val = GXcopy;
