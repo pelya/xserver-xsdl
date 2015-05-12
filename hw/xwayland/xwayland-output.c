@@ -167,11 +167,7 @@ xwl_output_create(struct xwl_screen *xwl_screen, uint32_t id)
                                           &wl_output_interface, 2);
     wl_output_add_listener(xwl_output->output, &output_listener, xwl_output);
 
-    if (snprintf(name, sizeof name, "XWAYLAND%d", serial++) < 0) {
-        ErrorF("create_output ENOMEM\n");
-        free(xwl_output);
-        return NULL;
-    }
+    snprintf(name, sizeof name, "XWAYLAND%d", serial++);
 
     xwl_output->xwl_screen = xwl_screen;
     xwl_output->randr_crtc = RRCrtcCreate(xwl_screen->screen, xwl_output);
