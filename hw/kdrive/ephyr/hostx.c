@@ -866,6 +866,11 @@ hostx_screen_init(KdScreenInfo *screen,
                                                     ~0,
                                                     NULL);
 
+        /* Match server byte order so that the image can be converted to
+         * the native byte order by xcb_image_put() before drawing */
+        if (host_depth_matches_server(scrpriv))
+            scrpriv->ximg->byte_order = IMAGE_BYTE_ORDER;
+
         scrpriv->ximg->data =
             xallocarray(scrpriv->ximg->stride, buffer_height);
     }
@@ -1034,8 +1039,11 @@ hostx_paint_rect(KdScreenInfo *screen,
                           sx, sy, dx, dy, width, height, FALSE);
     }
     else {
-        xcb_image_put(HostX.conn, scrpriv->win, HostX.gc, scrpriv->ximg,
-                      0, 0, 0);
+        /* This is slow and could be done better */
+        xcb_image_t *img = xcb_image_native (HostX.conn, scrpriv->ximg, 1);
+        xcb_image_put(HostX.conn, scrpriv->win, HostX.gc, img, 0, 0, 0);
+        if (scrpriv->ximg != img)
+            xcb_image_destroy(img);
     }
 
     xcb_aux_sync(HostX.conn);
