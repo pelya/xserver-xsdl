@@ -26,7 +26,7 @@
 #ifndef XF86_LINUX_H
 #define XF86_LINUX_H
 
-void linux_parse_vt_settings(void);
+int linux_parse_vt_settings(int may_fail);
 int linux_get_keeptty(void);
 
 #endif

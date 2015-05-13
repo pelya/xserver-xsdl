@@ -80,8 +80,8 @@ switch_to(int vt, const char *from)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 
-void
-linux_parse_vt_settings(void)
+int
+linux_parse_vt_settings(int may_fail)
 {
     int i, fd = -1, ret, current_vt = -1;
     struct vt_stat vts;
@@ -93,7 +93,7 @@ linux_parse_vt_settings(void)
     static int vt_settings_parsed = 0;
 
     if (vt_settings_parsed)
-        return;
+        return 1;
 
     /*
      * setup the virtual terminal manager
@@ -110,24 +110,36 @@ linux_parse_vt_settings(void)
             i++;
         }
 
-        if (fd < 0)
+        if (fd < 0) {
+            if (may_fail)
+                return 0;
             FatalError("parse_vt_settings: Cannot open /dev/tty0 (%s)\n",
                        strerror(errno));
+        }
 
         if (xf86Info.ShareVTs) {
             SYSCALL(ret = ioctl(fd, VT_GETSTATE, &vts));
-            if (ret < 0)
+            if (ret < 0) {
+                if (may_fail)
+                    return 0;
                 FatalError("parse_vt_settings: Cannot find the current"
                            " VT (%s)\n", strerror(errno));
+            }
             xf86Info.vtno = vts.v_active;
         }
         else {
             SYSCALL(ret = ioctl(fd, VT_OPENQRY, &xf86Info.vtno));
-            if (ret < 0)
+            if (ret < 0) {
+                if (may_fail)
+                    return 0;
                 FatalError("parse_vt_settings: Cannot find a free VT: "
                            "%s\n", strerror(errno));
-            if (xf86Info.vtno == -1)
+            }
+            if (xf86Info.vtno == -1) {
+                if (may_fail)
+                    return 0;
                 FatalError("parse_vt_settings: Cannot find a free VT\n");
+            }
         }
         close(fd);
     }
@@ -151,6 +163,7 @@ linux_parse_vt_settings(void)
     }
 
     vt_settings_parsed = 1;
+    return 1;
 }
 
 int
@@ -168,7 +181,7 @@ xf86OpenConsole(void)
     const char *vcs[] = { "/dev/vc/%d", "/dev/tty%d", NULL };
 
     if (serverGeneration == 1) {
-        linux_parse_vt_settings();
+        linux_parse_vt_settings(FALSE);
 
         if (!KeepTty) {
             pid_t ppid = getppid();
