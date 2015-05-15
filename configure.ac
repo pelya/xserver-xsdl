@@ -1760,7 +1760,7 @@ case "$host_os" in
 #		 XORG_DRIVER_LIBS="-Wl,-z,defs -Wl,-z,parent=${bindir}/Xorg"
          ],[],
 		[AC_LANG_SOURCE([extern int main(int argc, char **argv);
-			int call_main(void) { return main(0, NULL); }])])
+			int call_main(void) { return main(0, (void *)0); }])])
 	     rm -f conftest.parent
 	    ])
 	;;
