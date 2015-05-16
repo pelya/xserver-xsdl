@@ -165,6 +165,7 @@ xwl_output_create(struct xwl_screen *xwl_screen, uint32_t id)
 
     xwl_output->output = wl_registry_bind(xwl_screen->registry, id,
                                           &wl_output_interface, 2);
+    xwl_output->server_output_id = id;
     wl_output_add_listener(xwl_output->output, &output_listener, xwl_output);
 
     snprintf(name, sizeof name, "XWAYLAND%d", serial++);

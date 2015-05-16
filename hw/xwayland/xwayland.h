@@ -142,6 +142,7 @@ struct xwl_seat {
 struct xwl_output {
     struct xorg_list link;
     struct wl_output *output;
+    uint32_t server_output_id;
     struct xwl_screen *xwl_screen;
     RROutputPtr randr_output;
     RRCrtcPtr randr_crtc;
