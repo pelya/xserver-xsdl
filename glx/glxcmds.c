@@ -1921,6 +1921,11 @@ __glXDisp_CopySubBufferMESA(__GLXclientState * cl, GLbyte * pc)
     return Success;
 }
 
+/* hack for old glxext.h */
+#ifndef GLX_STEREO_TREE_EXT
+#define GLX_STEREO_TREE_EXT                 0x20F5
+#endif
+
 /*
 ** Get drawable attributes
 */
@@ -1931,7 +1936,7 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     xGLXGetDrawableAttributesReply reply;
     __GLXdrawable *pGlxDraw = NULL;
     DrawablePtr pDraw;
-    CARD32 attributes[16];
+    CARD32 attributes[18];
     int num = 0, error;
 
     if (!validGlxDrawable(client, drawId, GLX_DRAWABLE_ANY,
@@ -1963,6 +1968,9 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
         ATTRIB(GLX_FBCONFIG_ID, pGlxDraw->config->fbconfigID);
         if (pGlxDraw->type == GLX_DRAWABLE_PBUFFER) {
             ATTRIB(GLX_PRESERVED_CONTENTS, GL_TRUE);
+        }
+        if (pGlxDraw->type == GLX_DRAWABLE_WINDOW) {
+            ATTRIB(GLX_STEREO_TREE_EXT, 0);
         }
     }
 #undef ATTRIB
