@@ -1047,11 +1047,13 @@ hostx_paint_rect(KdScreenInfo *screen,
                           sx, sy, dx, dy, width, height, FALSE);
     }
     else {
-        /* This is slow and could be done better */
-        xcb_image_t *img = xcb_image_native (HostX.conn, scrpriv->ximg, 1);
-        xcb_image_put(HostX.conn, scrpriv->win, HostX.gc, img, 0, 0, 0);
-        if (scrpriv->ximg != img)
+        xcb_image_t *subimg = xcb_image_subimage(scrpriv->ximg, sx, sy,
+                                                 width, height, 0, 0, 0);
+        xcb_image_t *img = xcb_image_native(HostX.conn, subimg, 1);
+        xcb_image_put(HostX.conn, scrpriv->win, HostX.gc, img, dx, dy, 0);
+        if (subimg != img)
             xcb_image_destroy(img);
+        xcb_image_destroy(subimg);
     }
 
     xcb_aux_sync(HostX.conn);
