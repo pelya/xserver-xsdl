@@ -845,6 +845,20 @@ DDXRingBell(int volume, int pitch, int duration)
 }
 
 void
+xwl_seat_clear_touch(struct xwl_seat *xwl_seat, WindowPtr window)
+{
+    struct xwl_touch *xwl_touch, *next_xwl_touch;
+
+    xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
+                                  &xwl_seat->touches, link_touch) {
+        if (xwl_touch->window->window == window) {
+            xorg_list_del(&xwl_touch->link_touch);
+            free(xwl_touch);
+        }
+    }
+}
+
+void
 InitInput(int argc, char *argv[])
 {
     ScreenPtr pScreen = screenInfo.screens[0];

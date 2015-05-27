@@ -159,6 +159,8 @@ void xwl_seat_set_cursor(struct xwl_seat *xwl_seat);
 
 void xwl_seat_destroy(struct xwl_seat *xwl_seat);
 
+void xwl_seat_clear_touch(struct xwl_seat *xwl_seat, WindowPtr window);
+
 Bool xwl_screen_init_output(struct xwl_screen *xwl_screen);
 
 struct xwl_output *xwl_output_create(struct xwl_screen *xwl_screen,

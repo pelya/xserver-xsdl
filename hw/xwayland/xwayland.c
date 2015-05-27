@@ -287,10 +287,10 @@ xwl_unrealize_window(WindowPtr window)
     xwl_screen = xwl_screen_get(screen);
 
     xorg_list_for_each_entry(xwl_seat, &xwl_screen->seat_list, link) {
-        if (!xwl_seat->focus_window)
-            continue;
-        if (xwl_seat->focus_window->window == window)
+        if (xwl_seat->focus_window && xwl_seat->focus_window->window == window)
             xwl_seat->focus_window = NULL;
+
+        xwl_seat_clear_touch(xwl_seat, window);
     }
 
     screen->UnrealizeWindow = xwl_screen->UnrealizeWindow;
