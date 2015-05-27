@@ -586,11 +586,21 @@ create_input_device(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version
     xwl_seat->cursor = wl_compositor_create_surface(xwl_screen->compositor);
     wl_seat_add_listener(xwl_seat->seat, &seat_listener, xwl_seat);
     wl_array_init(&xwl_seat->keys);
+
+    xorg_list_init(&xwl_seat->touches);
 }
 
 void
 xwl_seat_destroy(struct xwl_seat *xwl_seat)
 {
+    struct xwl_touch *xwl_touch, *next_xwl_touch;
+
+    xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
+                                  &xwl_seat->touches, link_touch) {
+        xorg_list_del(&xwl_touch->link_touch);
+        free(xwl_touch);
+    }
+
     wl_seat_destroy(xwl_seat->seat);
     wl_surface_destroy(xwl_seat->cursor);
     if (xwl_seat->cursor_frame_cb)

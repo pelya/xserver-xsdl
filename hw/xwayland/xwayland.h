@@ -106,6 +106,13 @@ struct xwl_window {
 
 #define MODIFIER_META 0x01
 
+struct xwl_touch {
+    struct xwl_window *window;
+    int32_t id;
+    int x, y;
+    struct xorg_list link_touch;
+};
+
 struct xwl_seat {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
@@ -122,6 +129,8 @@ struct xwl_seat {
     struct wl_surface *cursor;
     struct wl_callback *cursor_frame_cb;
     Bool cursor_needs_update;
+
+    struct xorg_list touches;
 
     size_t keymap_size;
     char *keymap;
