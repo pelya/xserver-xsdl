@@ -116,10 +116,12 @@ struct xwl_touch {
 struct xwl_seat {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
+    DeviceIntPtr touch;
     struct xwl_screen *xwl_screen;
     struct wl_seat *seat;
     struct wl_pointer *wl_pointer;
     struct wl_keyboard *wl_keyboard;
+    struct wl_touch *wl_touch;
     struct wl_array keys;
     struct xwl_window *focus_window;
     uint32_t id;
