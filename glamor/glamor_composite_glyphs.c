@@ -331,8 +331,6 @@ glamor_composite_glyphs(CARD8 op,
     ScreenPtr screen = drawable->pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     glamor_program *prog = NULL;
-    PicturePtr glyph_pict = NULL;
-    DrawablePtr glyph_draw;
     glamor_program_render       *glyphs_program = &glamor_priv->glyphs_program;
     struct glamor_glyph_atlas    *glyph_atlas = NULL;
     int x = 0, y = 0;
@@ -360,11 +358,10 @@ glamor_composite_glyphs(CARD8 op,
             /* Glyph not empty?
              */
             if (glyph->info.width && glyph->info.height) {
-                glamor_pixmap_private *glyph_pix_priv;
-
-                glyph_pict = GlyphPicture(glyph)[screen_num];
-                glyph_draw = glyph_pict->pDrawable;
-                glyph_pix_priv = glamor_get_pixmap_private((PixmapPtr) glyph_draw);
+                PicturePtr glyph_pict = GlyphPicture(glyph)[screen_num];
+                DrawablePtr glyph_draw = glyph_pict->pDrawable;
+                glamor_pixmap_private *glyph_pix_priv =
+                    glamor_get_pixmap_private((PixmapPtr) glyph_draw);
 
                 /* Need to draw with slow path?
                  */
