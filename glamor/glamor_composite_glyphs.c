@@ -112,7 +112,8 @@ glamor_glyph_atlas_init(ScreenPtr screen, struct glamor_glyph_atlas *atlas)
     PictFormatPtr               format = atlas->format;
 
     atlas->atlas = glamor_create_pixmap(screen, glamor_priv->glyph_atlas_dim,
-                                        glamor_priv->glyph_atlas_dim, format->depth, 0);
+                                        glamor_priv->glyph_atlas_dim, format->depth,
+                                        GLAMOR_CREATE_FBO_NO_FBO);
     atlas->x = 0;
     atlas->y = 0;
     atlas->row_height = 0;
