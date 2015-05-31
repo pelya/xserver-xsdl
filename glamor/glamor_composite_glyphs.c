@@ -266,9 +266,11 @@ glamor_glyphs_flush(CARD8 op, PicturePtr src, PicturePtr dst,
 
     glDisable(GL_SCISSOR_TEST);
 
-    glVertexAttribDivisor(GLAMOR_VERTEX_SOURCE, 0);
+    if (glamor_glyph_use_130(glamor_priv)) {
+        glVertexAttribDivisor(GLAMOR_VERTEX_SOURCE, 0);
+        glVertexAttribDivisor(GLAMOR_VERTEX_POS, 0);
+    }
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-    glVertexAttribDivisor(GLAMOR_VERTEX_POS, 0);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisable(GL_BLEND);
 }
