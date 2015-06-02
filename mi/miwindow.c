@@ -767,14 +767,11 @@ miSpriteTrace(SpritePtr pSprite, int x, int y)
                 RegionContainsPoint(wInputShape(pWin),
                                     x - pWin->drawable.x,
                                     y - pWin->drawable.y, &box))
-#ifdef ROOTLESS
             /* In rootless mode windows may be offscreen, even when
              * they're in X's stack. (E.g. if the native window system
              * implements some form of virtual desktop system).
              */
-            && !pWin->rootlessUnhittable
-#endif
-            ) {
+            && !pWin->unhittable) {
             if (pSprite->spriteTraceGood >= pSprite->spriteTraceSize) {
                 pSprite->spriteTraceSize += 10;
                 pSprite->spriteTrace = reallocarray(pSprite->spriteTrace,

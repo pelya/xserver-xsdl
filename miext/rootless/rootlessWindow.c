@@ -92,7 +92,7 @@ RootlessNativeWindowStateChanged(WindowPtr pWin, unsigned int state)
 
     winRec->is_offscreen = ((state & XP_WINDOW_STATE_OFFSCREEN) != 0);
     winRec->is_obscured = ((state & XP_WINDOW_STATE_OBSCURED) != 0);
-    pWin->rootlessUnhittable = winRec->is_offscreen;
+    pWin->unhittable = winRec->is_offscreen;
 }
 
 void
@@ -569,7 +569,7 @@ RootlessReorderWindow(WindowPtr pWin)
         newPrevW = pWin->prevSib;
         while (newPrevW &&
                (WINREC(newPrevW) == NULL || !newPrevW->realized ||
-                newPrevW->rootlessUnhittable != pWin->rootlessUnhittable))
+                newPrevW->unhittable != pWin->unhittable))
             newPrevW = newPrevW->prevSib;
 
         newPrev = newPrevW != NULL ? WINREC(newPrevW) : NULL;
@@ -1365,7 +1365,7 @@ RootlessReparentWindow(WindowPtr pWin, WindowPtr pPriorParent)
     pTopWin = TopLevelParent(pWin);
     assert(pTopWin != pWin);
 
-    pWin->rootlessUnhittable = FALSE;
+    pWin->unhittable = FALSE;
 
     DeleteProperty(serverClient, pWin, xa_native_window_id());
 
@@ -1503,7 +1503,7 @@ RootlessOrderAllWindows(Bool include_unhitable)
                 continue;
             if (RootlessEnsureFrame(pWin) == NULL)
                 continue;
-            if (!include_unhitable && pWin->rootlessUnhittable)
+            if (!include_unhitable && pWin->unhittable)
                 continue;
             RootlessReorderWindow(pWin);
         }
