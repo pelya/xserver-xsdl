@@ -720,7 +720,7 @@ RootlessResizeCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 /*
  * RootlessCopyWindow
  *  Update *new* location of window. Old location is redrawn with
- *  miPaintWindow. Cloned from fbCopyWindow.
+ *  PaintWindow. Cloned from fbCopyWindow.
  *  The original always draws on the root pixmap, which we don't have.
  *  Instead, draw on the parent window's pixmap.
  */
@@ -792,6 +792,27 @@ RootlessCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     SCREEN_WRAP(pScreen, CopyWindow);
 
     RL_DEBUG_MSG("copywindowFB end\n");
+}
+
+void
+RootlessPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+
+    if (IsFramedWindow(pWin)) {
+        RootlessStartDrawing(pWin);
+        RootlessDamageRegion(pWin, prgn);
+
+        if (pWin->backgroundState == ParentRelative) {
+            if ((what == PW_BACKGROUND) ||
+                (what == PW_BORDER && !pWin->borderIsPixel))
+                RootlessSetPixmapOfAncestors(pWin);
+        }
+    }
+
+    SCREEN_UNWRAP(pScreen, PaintWindow);
+    pScreen->PaintWindow(pWin, prgn, what);
+    SCREEN_WRAP(pScreen, PaintWindow);
 }
 
 /*

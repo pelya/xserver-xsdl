@@ -104,7 +104,7 @@ winDoRandRScreenSetSize(ScreenPtr pScreen,
     SetRootClip(pScreen, TRUE);
 
     // and arrange for it to be repainted
-    miPaintWindow(pRoot, &pRoot->borderClip, PW_BACKGROUND);
+    pScreen->PaintWindow(pRoot, &pRoot->borderClip, PW_BACKGROUND);
 
     /* Indicate that a screen size change took place */
     RRScreenSizeNotify(pScreen);
