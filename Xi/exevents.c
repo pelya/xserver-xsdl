@@ -1730,6 +1730,18 @@ ProcessDeviceEvent(InternalEvent *ev, DeviceIntPtr device)
         break;
     }
 
+    /* send KeyPress and KeyRelease events to XACE plugins */
+    if (XaceHookIsSet(XACE_KEY_AVAIL) &&
+            (event->type == ET_KeyPress || event->type == ET_KeyRelease)) {
+        xEvent *core;
+        int count;
+
+        if (EventToCore(ev, &core, &count) == Success && count > 0) {
+            XaceHook(XACE_KEY_AVAIL, core, device, 0);
+            free(core);
+        }
+    }
+
     if (DeviceEventCallback && !syncEvents.playingEvents) {
         DeviceEventInfoRec eventinfo;
         SpritePtr pSprite = device->spriteInfo->sprite;
