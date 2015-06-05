@@ -66,6 +66,8 @@ static int execute_command(const char * command, const char *mode, char * data, 
 static int UnicodeToUtf8(int src, char * dest);
 static void send_unicode(int unicode);
 static void set_clipboard_text(const char *text);
+static Bool sdlScreenButtons = FALSE;
+static void setScreenButtons(int mouseX);
 
 KdKeyboardInfo *sdlKeyboard = NULL;
 KdPointerInfo *sdlPointer = NULL;
@@ -208,6 +210,9 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 	SDL_EnableUNICODE(1);
 	SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 	set_clipboard_text(SDL_GetClipboardText());
+
+	sdlScreenButtons = SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0);
+	setScreenButtons(10000);
 
 	return sdlMapFramebuffer (screen);
 }
@@ -582,6 +587,7 @@ static void sdlPollInput(void)
 			case SDL_MOUSEMOTION:
 				//printf("SDL_MOUSEMOTION pressure %d\n", pressure);
 				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, pressure);
+				setScreenButtons(event.motion.x);
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				switch(event.button.button)
@@ -658,6 +664,7 @@ static void sdlPollInput(void)
 				{
 					if(event.type == SDL_KEYUP)
 						SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
+					setScreenButtons(10000);
 				}
 				else
 #endif
@@ -920,4 +927,68 @@ int UnicodeToUtf8(int src, char * dest)
     }
     *dest = 0;
     return len;
+}
+
+void setScreenButtons(int mouseX)
+{
+#ifdef __ANDROID__
+	//printf ("setScreenButtons: kbShown %d sdlScreenButtons %d alignLeft %d", SDL_IsScreenKeyboardShown(NULL), sdlScreenButtons, mouseX > (((unsigned)SDL_GetVideoSurface()->w) >> 3));
+
+	if ( SDL_ANDROID_GetScreenKeyboardRedefinedByUser() )
+		return;
+
+	int kbShown = SDL_IsScreenKeyboardShown(NULL);
+	if (!sdlScreenButtons && !kbShown)
+	{
+		if (SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0))
+		{
+			SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, 0);
+			SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, 0);
+			SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, 0);
+		}
+		return;
+	}
+
+	SDL_Rect pos;
+	SDL_ANDROID_GetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, &pos);
+
+	//printf ("setScreenButtons: pos %d %d shown %d", pos.x, pos.y, SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0));
+
+	int alignLeft;
+	alignLeft = mouseX > (((unsigned)SDL_GetVideoSurface()->w) >> 3);
+
+	if (!kbShown && pos.y > 0 && (pos.x == 0) == alignLeft)
+		return;
+
+	if (kbShown && pos.y == 0 && (pos.x == 0) == alignLeft && SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0))
+		return;
+
+	int resolutionW;
+	resolutionW = atoi(getenv("DISPLAY_RESOLUTION_WIDTH"));
+	if (resolutionW <= 0)
+		resolutionW = SDL_ListModes(NULL, 0)[0]->w;
+
+	pos.w = 40 * SDL_ListModes(NULL, 0)[0]->w / resolutionW;
+	pos.h = SDL_ListModes(NULL, 0)[0]->h / 20;
+	pos.x = alignLeft ? 0 : SDL_ListModes(NULL, 0)[0]->w - pos.w;
+	pos.y = kbShown ? 0 : SDL_ListModes(NULL, 0)[0]->h - pos.h * 3;
+
+	SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, 1);
+	SDL_ANDROID_SetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, &pos);
+	SDL_ANDROID_SetScreenKeyboardButtonImagePos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, &pos);
+	SDL_ANDROID_SetScreenKeyboardButtonStayPressedAfterTouch(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, 1);
+	pos.y += pos.h;
+	SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, 1);
+	SDL_ANDROID_SetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, &pos);
+	SDL_ANDROID_SetScreenKeyboardButtonImagePos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, &pos);
+	SDL_ANDROID_SetScreenKeyboardButtonStayPressedAfterTouch(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, 1);
+	pos.y += pos.h;
+	SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, 1);
+	SDL_ANDROID_SetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, &pos);
+	SDL_ANDROID_SetScreenKeyboardButtonImagePos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, &pos);
+	SDL_ANDROID_SetScreenKeyboardButtonStayPressedAfterTouch(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, 1);
+
+	SDL_ANDROID_SetScreenKeyboardTransparency(255); // opaque
+
+#endif
 }
