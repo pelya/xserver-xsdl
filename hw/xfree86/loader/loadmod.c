@@ -177,7 +177,6 @@ static const char *stdSubdirs[] = {
     "input/",
     "drivers/",
     "extensions/",
-    "internal/",
     NULL
 };
 
