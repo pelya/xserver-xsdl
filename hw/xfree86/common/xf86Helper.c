@@ -1752,10 +1752,6 @@ xf86FindXvOptions(ScrnInfoPtr pScrn, int adaptor_index, const char *port_name,
     return NULL;
 }
 
-/* Rather than duplicate loader's get OS function, just include it directly */
-#define LoaderGetOS xf86GetOS
-#include "loader/os.c"
-
 static void
 xf86ConfigFbEntityInactive(EntityInfoPtr pEnt, EntityProc init,
                            EntityProc enter, EntityProc leave, void *private)

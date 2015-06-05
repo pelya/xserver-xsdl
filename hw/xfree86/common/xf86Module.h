@@ -176,8 +176,6 @@ extern _X_EXPORT void *LoaderSymbol(const char *);
 extern _X_EXPORT const char **LoaderListDirs(const char **, const char **);
 extern _X_EXPORT void LoaderFreeDirList(char **);
 extern _X_EXPORT void LoaderErrorMsg(const char *, const char *, int, int);
-extern _X_EXPORT void LoaderGetOS(const char **name, int *major, int *minor,
-                                  int *teeny);
 extern _X_EXPORT Bool LoaderShouldIgnoreABI(void);
 extern _X_EXPORT int LoaderGetABIVersion(const char *abiclass);
 

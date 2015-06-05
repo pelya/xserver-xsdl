@@ -269,9 +269,7 @@ InitSubdirs(const char **subdirlist)
     const char **tmp_subdirlist = NULL;
     char **subdirs = NULL;
     const char **s, **stmp = NULL;
-    const char *osname;
-    const char *slash;
-    int oslen = 0, len;
+    int len;
     Bool indefault;
 
     if (subdirlist == NULL) {
@@ -281,9 +279,6 @@ InitSubdirs(const char **subdirlist)
         subdirlist[0] = DEFAULT_LIST;
         subdirlist[1] = NULL;
     }
-
-    LoaderGetOS(&osname, NULL, NULL, NULL);
-    oslen = strlen(osname);
 
     {
         /* Count number of entries and check for invalid paths */
@@ -323,12 +318,8 @@ InitSubdirs(const char **subdirlist)
             }
             len = strlen(*s);
             if (**s && (*s)[len - 1] != '/') {
-                slash = "/";
                 len++;
             }
-            else
-                slash = "";
-            len += oslen + 2;
             if (!(subdirs[i] = malloc(len))) {
                 while (--i >= 0)
                     free(subdirs[i]);
@@ -336,9 +327,6 @@ InitSubdirs(const char **subdirlist)
                 free(tmp_subdirlist);
                 return NULL;
             }
-            /* tack on the OS name */
-            sprintf(subdirs[i], "%s%s%s/", *s, slash, osname);
-            i++;
             /* path as given */
             subdirs[i] = strdup(*s);
             i++;
