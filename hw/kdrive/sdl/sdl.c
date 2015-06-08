@@ -968,7 +968,7 @@ void setScreenButtons(int mouseX)
 	if (resolutionW <= 0)
 		resolutionW = SDL_ListModes(NULL, 0)[0]->w;
 
-	pos.w = 40 * SDL_ListModes(NULL, 0)[0]->w / resolutionW;
+	pos.w = (kbShown ? 60 : 40) * SDL_ListModes(NULL, 0)[0]->w / resolutionW;
 	pos.h = SDL_ListModes(NULL, 0)[0]->h / 20;
 	pos.x = alignLeft ? 0 : SDL_ListModes(NULL, 0)[0]->w - pos.w;
 	pos.y = kbShown ? 0 : SDL_ListModes(NULL, 0)[0]->h - pos.h * 3;
