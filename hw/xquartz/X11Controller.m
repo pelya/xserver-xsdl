@@ -929,9 +929,9 @@ extern char *bundle_id_prefix;
      *        and then run the alert on a timer? It seems to work here, so..
      */
 
-    return (NSRunAlertPanel(title, msg, NSLocalizedString(@"Quit", @""),
-                            NSLocalizedString(@"Cancel", @""), nil)
-            == NSAlertDefaultReturn) ? NSTerminateNow : NSTerminateCancel;
+    NSInteger result = NSRunAlertPanel(title, @"%@", NSLocalizedString(@"Quit", @""),
+                                       NSLocalizedString(@"Cancel", @""), nil, msg);
+    return (result == NSAlertDefaultReturn) ? NSTerminateNow : NSTerminateCancel;
 }
 
 - (void) applicationWillTerminate:(NSNotification *)aNotification _X_NORETURN
