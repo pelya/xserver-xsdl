@@ -142,7 +142,8 @@ extern _X_EXPORT void glamor_enable_dri3(ScreenPtr screen);
 extern _X_EXPORT unsigned int glamor_egl_create_argb8888_based_texture(ScreenPtr
                                                                        screen,
                                                                        int w,
-                                                                       int h);
+                                                                       int h,
+                                                                       Bool linear);
 extern _X_EXPORT int glamor_egl_dri3_fd_name_from_tex(ScreenPtr, PixmapPtr,
                                                       unsigned int, Bool,
                                                       CARD16 *, CARD32 *);

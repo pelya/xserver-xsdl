@@ -187,7 +187,7 @@ glamor_egl_get_gbm_device(ScreenPtr screen)
 }
 
 unsigned int
-glamor_egl_create_argb8888_based_texture(ScreenPtr screen, int w, int h)
+glamor_egl_create_argb8888_based_texture(ScreenPtr screen, int w, int h, Bool linear)
 {
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     struct glamor_egl_screen_private *glamor_egl;
@@ -200,6 +200,9 @@ glamor_egl_create_argb8888_based_texture(ScreenPtr screen, int w, int h)
 
     glamor_egl = glamor_egl_get_screen_private(scrn);
     bo = gbm_bo_create(glamor_egl->gbm, w, h, GBM_FORMAT_ARGB8888,
+#ifdef GLAMOR_HAS_GBM_LINEAR
+                       (linear ? GBM_BO_USE_LINEAR : 0) |
+#endif
                        GBM_BO_USE_RENDERING | GBM_BO_USE_SCANOUT);
     if (!bo)
         return 0;

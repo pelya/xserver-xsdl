@@ -2105,6 +2105,10 @@ if test "x$GLAMOR" = xyes; then
 	if test "x$GBM" = xyes; then
 		AC_DEFINE(GLAMOR_HAS_GBM, 1,
 			  [Build glamor with GBM-based EGL support])
+		AC_CHECK_DECL(GBM_BO_USE_LINEAR,
+			[AC_DEFINE(GLAMOR_HAS_GBM_LINEAR, 1, [Have GBM_BO_USE_LINEAR])], [],
+			[#include <stdlib.h>
+			 #include <gbm.h>])
 	fi
 
 fi
