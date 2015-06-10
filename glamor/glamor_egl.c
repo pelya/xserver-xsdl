@@ -461,19 +461,19 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
 #endif
 }
 
-_X_EXPORT PixmapPtr
-glamor_pixmap_from_fd(ScreenPtr screen,
-                      int fd,
-                      CARD16 width,
-                      CARD16 height,
-                      CARD16 stride, CARD8 depth, CARD8 bpp)
+_X_EXPORT Bool
+glamor_back_pixmap_from_fd(PixmapPtr pixmap,
+                           int fd,
+                           CARD16 width,
+                           CARD16 height,
+                           CARD16 stride, CARD8 depth, CARD8 bpp)
 {
 #ifdef GLAMOR_HAS_GBM
+    ScreenPtr screen = pixmap->drawable.pScreen;
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     struct glamor_egl_screen_private *glamor_egl;
     struct gbm_bo *bo;
     EGLImageKHR image;
-    PixmapPtr pixmap;
     Bool ret = FALSE;
 
     EGLint attribs[] = {
@@ -489,10 +489,10 @@ glamor_pixmap_from_fd(ScreenPtr screen,
     glamor_egl = glamor_egl_get_screen_private(scrn);
 
     if (!glamor_egl->dri3_capable)
-        return NULL;
+        return FALSE;
 
     if (bpp != 32 || !(depth == 24 || depth == 32) || width == 0 || height == 0)
-        return NULL;
+        return FALSE;
 
     attribs[1] = width;
     attribs[3] = height;
@@ -504,29 +504,48 @@ glamor_pixmap_from_fd(ScreenPtr screen,
                               NULL, attribs);
 
     if (image == EGL_NO_IMAGE_KHR)
-        return NULL;
+        return FALSE;
 
     /* EGL_EXT_image_dma_buf_import can impose restrictions on the
      * usage of the image. Use gbm_bo to bypass the limitations. */
-
     bo = gbm_bo_import(glamor_egl->gbm, GBM_BO_IMPORT_EGL_IMAGE, image, 0);
     eglDestroyImageKHR(glamor_egl->display, image);
 
     if (!bo)
-        return NULL;
+        return FALSE;
 
-    pixmap = screen->CreatePixmap(screen, 0, 0, depth, 0);
     screen->ModifyPixmapHeader(pixmap, width, height, 0, 0, stride, NULL);
 
     ret = glamor_egl_create_textured_pixmap_from_gbm_bo(pixmap, bo);
     gbm_bo_destroy(bo);
 
     if (ret)
-        return pixmap;
-    else {
+        return TRUE;
+    return FALSE;
+#else
+    return FALSE;
+#endif
+}
+
+_X_EXPORT PixmapPtr
+glamor_pixmap_from_fd(ScreenPtr screen,
+                      int fd,
+                      CARD16 width,
+                      CARD16 height,
+                      CARD16 stride, CARD8 depth, CARD8 bpp)
+{
+#ifdef GLAMOR_HAS_GBM
+    PixmapPtr pixmap;
+    Bool ret;
+
+    pixmap = screen->CreatePixmap(screen, 0, 0, depth, 0);
+    ret = glamor_back_pixmap_from_fd(pixmap, fd, width, height,
+                                     stride, depth, bpp);
+    if (ret == FALSE) {
         screen->DestroyPixmap(pixmap);
         return NULL;
     }
+    return pixmap;
 #else
     return NULL;
 #endif

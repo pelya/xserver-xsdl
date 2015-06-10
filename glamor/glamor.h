@@ -218,6 +218,25 @@ extern _X_EXPORT PixmapPtr glamor_pixmap_from_fd(ScreenPtr screen,
                                                  CARD8 depth,
                                                  CARD8 bpp);
 
+/* @glamor_back_pixmap_from_fd: Backs an existing pixmap with a dma-buf fd.
+ *
+ * @pixmap: Pixmap to change backing for
+ * @fd: The dma-buf fd to import.
+ * @width: The width of the buffer.
+ * @height: The height of the buffer.
+ * @stride: The stride of the buffer.
+ * @depth: The depth of the buffer.
+ * @bpp: The number of bpp of the buffer.
+ *
+ * Returns TRUE if successful, FALSE on failure.
+ * */
+extern _X_EXPORT Bool glamor_back_pixmap_from_fd(PixmapPtr pixmap,
+                                                 int fd,
+                                                 CARD16 width,
+                                                 CARD16 height,
+                                                 CARD16 stride,
+                                                 CARD8 depth,
+                                                 CARD8 bpp);
 #ifdef GLAMOR_FOR_XORG
 
 #define GLAMOR_EGL_MODULE_NAME  "glamoregl"
