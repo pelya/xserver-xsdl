@@ -79,6 +79,8 @@ typedef struct {
     uint32_t triple_buffer_name;
 
     DevPrivateKeyRec pixmapPrivateKeyRec;
+
+    Bool reverse_prime_offload_mode;
 } drmmode_rec, *drmmode_ptr;
 
 typedef struct {
@@ -93,7 +95,7 @@ typedef struct {
 
     drmmode_bo rotate_bo;
     unsigned rotate_fb_id;
-
+    unsigned prime_pixmap_x;
     /**
      * @{ MSC (vblank count) handling for the PRESENT extension.
      *

@@ -572,7 +572,7 @@ msBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
     pScreen->BlockHandler(pScreen, pTimeout, pReadmask);
     ms->BlockHandler = pScreen->BlockHandler;
     pScreen->BlockHandler = msBlockHandler;
-    if (pScreen->isGPU)
+    if (pScreen->isGPU && !ms->drmmode.reverse_prime_offload_mode)
         dispatch_slave_dirty(pScreen);
     else if (ms->dirty_enabled)
         dispatch_dirty(pScreen);
@@ -999,10 +999,18 @@ msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     modesettingPtr ms = modesettingPTR(scrn);
     Bool ret;
-    int size = ppix->devKind * ppix->drawable.height;
     int ihandle = (int) (long) fd_handle;
 
-    ret = drmmode_SetSlaveBO(ppix, &ms->drmmode, ihandle, ppix->devKind, size);
+    if (ms->drmmode.reverse_prime_offload_mode) {
+        ret = glamor_back_pixmap_from_fd(ppix, ihandle,
+                                         ppix->drawable.width,
+                                         ppix->drawable.height,
+                                         ppix->devKind, ppix->drawable.depth,
+                                         ppix->drawable.bitsPerPixel);
+    } else {
+        int size = ppix->devKind * ppix->drawable.height;
+        ret = drmmode_SetSlaveBO(ppix, &ms->drmmode, ihandle, ppix->devKind, size);
+    }
     if (ret == FALSE)
         return ret;
 
@@ -1190,6 +1198,9 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
             xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                        "Failed to initialize the Present extension.\n");
         }
+        /* enable reverse prime if we are a GPU screen, and accelerated */
+        if (pScreen->isGPU)
+            ms->drmmode.reverse_prime_offload_mode = TRUE;
     }
 #endif
 
