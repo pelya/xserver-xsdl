@@ -356,6 +356,42 @@ static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 							screen->width_mm,
 							screen->height_mm);
 
+	struct { int width, height; } sizes[] =
+		{
+		{ 1920, 1200 },
+		{ 1920, 1080 },
+		{ 1600, 1200 },
+		{ 1400, 1050 },
+		{ 1280, 1024 },
+		{ 1280, 960  },
+		{ 1280, 800  },
+		{ 1280, 720  },
+		{ 1152, 864 },
+		{ 1024, 768 },
+		{ 832, 624 },
+		{ 800, 600 },
+		{ 800, 480 },
+		{ 720, 400 },
+		{ 640, 480 },
+		{ 640, 400 },
+		{ 320, 240 },
+		{ 320, 200 },
+		{ 160, 160 },
+		{ 0, 0 }
+	};
+
+	n = 0;
+	while (sizes[n].width != 0 && sizes[n].height != 0)
+	{
+		RRRegisterSize (pScreen,
+				sizes[n].width,
+				sizes[n].height, 
+				(sizes[n].width * screen->width_mm)/screen->width,
+				(sizes[n].height *screen->height_mm)/screen->height
+				);
+		n++;
+	}
+
 	randr = KdSubRotation (driver->randr, screen->randr);
 
 	RRSetCurrentConfig (pScreen, randr, 0, pSize);
