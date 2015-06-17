@@ -1590,7 +1590,7 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
     if (!ti) {
         DebugF("[Xi] %s: Failed to get event %d for touchpoint %d\n",
                dev->name, type, touchid);
-        return;
+        goto out;
     }
 
     /* if emulate_pointer is set, emulate the motion event right
@@ -1624,6 +1624,7 @@ ProcessTouchEvent(InternalEvent *ev, DeviceIntPtr dev)
     if (ev->any.type == ET_TouchEnd)
         TouchEndTouch(dev, ti);
 
+ out:
     if (emulate_pointer)
         UpdateDeviceState(dev, &ev->device_event);
 }
