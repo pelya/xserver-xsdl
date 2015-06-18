@@ -409,12 +409,6 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
     return 0;
 }
 
-unsigned int
-glamor_egl_create_argb8888_based_texture(ScreenPtr screen, int w, int h, Bool linear)
-{
-    return 0;
-}
-
 struct xwl_auth_state {
     int fd;
     ClientPtr client;
