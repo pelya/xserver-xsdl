@@ -368,22 +368,7 @@ glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap, void *bo)
 }
 
 #ifdef GLAMOR_HAS_GBM
-int glamor_get_fd_from_bo(int gbm_fd, struct gbm_bo *bo, int *fd);
 void glamor_get_name_from_bo(int gbm_fd, struct gbm_bo *bo, int *name);
-int
-glamor_get_fd_from_bo(int gbm_fd, struct gbm_bo *bo, int *fd)
-{
-    union gbm_bo_handle handle;
-    struct drm_prime_handle args;
-
-    handle = gbm_bo_get_handle(bo);
-    args.handle = handle.u32;
-    args.flags = DRM_CLOEXEC;
-    if (ioctl(gbm_fd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &args))
-        return FALSE;
-    *fd = args.fd;
-    return TRUE;
-}
 
 void
 glamor_get_name_from_bo(int gbm_fd, struct gbm_bo *bo, int *name)
@@ -495,8 +480,7 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
             glamor_get_name_from_bo(glamor_egl->fd, bo, &fd);
     }
     else {
-        if (glamor_get_fd_from_bo(glamor_egl->fd, bo, &fd)) {
-        }
+        fd = gbm_bo_get_fd(bo);
     }
     *stride = pixmap->devKind;
     *size = pixmap->devKind * gbm_bo_get_height(bo);
