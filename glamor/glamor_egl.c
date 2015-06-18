@@ -506,18 +506,8 @@ glamor_back_pixmap_from_fd(PixmapPtr pixmap,
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     struct glamor_egl_screen_private *glamor_egl;
     struct gbm_bo *bo;
-    EGLImageKHR image;
     Bool ret = FALSE;
-
-    EGLint attribs[] = {
-        EGL_WIDTH, 0,
-        EGL_HEIGHT, 0,
-        EGL_LINUX_DRM_FOURCC_EXT, DRM_FORMAT_ARGB8888,
-        EGL_DMA_BUF_PLANE0_FD_EXT, 0,
-        EGL_DMA_BUF_PLANE0_OFFSET_EXT, 0,
-        EGL_DMA_BUF_PLANE0_PITCH_EXT, 0,
-        EGL_NONE
-    };
+    struct gbm_import_fd_data import_data = { 0 };
 
     glamor_egl = glamor_egl_get_screen_private(scrn);
 
@@ -527,23 +517,12 @@ glamor_back_pixmap_from_fd(PixmapPtr pixmap,
     if (bpp != 32 || !(depth == 24 || depth == 32) || width == 0 || height == 0)
         return FALSE;
 
-    attribs[1] = width;
-    attribs[3] = height;
-    attribs[7] = fd;
-    attribs[11] = stride;
-    image = eglCreateImageKHR(glamor_egl->display,
-                              EGL_NO_CONTEXT,
-                              EGL_LINUX_DMA_BUF_EXT,
-                              NULL, attribs);
-
-    if (image == EGL_NO_IMAGE_KHR)
-        return FALSE;
-
-    /* EGL_EXT_image_dma_buf_import can impose restrictions on the
-     * usage of the image. Use gbm_bo to bypass the limitations. */
-    bo = gbm_bo_import(glamor_egl->gbm, GBM_BO_IMPORT_EGL_IMAGE, image, 0);
-    eglDestroyImageKHR(glamor_egl->display, image);
-
+    import_data.fd = fd;
+    import_data.width = width;
+    import_data.height = height;
+    import_data.stride = stride;
+    import_data.format = GBM_FORMAT_ARGB8888;
+    bo = gbm_bo_import(glamor_egl->gbm, GBM_BO_IMPORT_FD, &import_data, 0);
     if (!bo)
         return FALSE;
 
@@ -871,8 +850,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 #ifdef GLAMOR_HAS_GBM
     if (epoxy_has_egl_extension(glamor_egl->display,
                                 "EGL_KHR_gl_texture_2D_image") &&
-        epoxy_has_egl_extension(glamor_egl->display,
-                                "EGL_EXT_image_dma_buf_import") &&
         epoxy_has_gl_extension("GL_OES_EGL_image"))
         glamor_egl->dri3_capable = TRUE;
 #endif
