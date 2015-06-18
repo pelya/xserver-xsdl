@@ -175,7 +175,7 @@ glamor_create_texture_from_image(ScreenPtr screen,
     return TRUE;
 }
 
-void *
+struct gbm_device *
 glamor_egl_get_gbm_device(ScreenPtr screen)
 {
 #ifdef GLAMOR_HAS_GBM
@@ -335,7 +335,8 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 }
 
 Bool
-glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap, void *bo)
+glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap,
+                                              struct gbm_bo *bo)
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
@@ -428,7 +429,7 @@ _get_gbm_bo_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, unsigned int tex)
 }
 #endif
 
-void *
+struct gbm_bo *
 glamor_gbm_bo_from_pixmap(ScreenPtr screen, PixmapPtr pixmap)
 {
 #ifdef GLAMOR_HAS_GBM
