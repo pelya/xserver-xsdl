@@ -274,6 +274,68 @@ glamor_set_debug_level(int *debug_level)
 
 int glamor_debug_level;
 
+void
+glamor_gldrawarrays_quads_using_indices(glamor_screen_private *glamor_priv,
+                                        unsigned count)
+{
+    unsigned i;
+
+    /* For a single quad, don't bother with an index buffer. */
+    if (count ==  1)
+        goto fallback;
+
+    if (glamor_priv->ib_size < count) {
+        /* Basic GLES2 doesn't have any way to map buffer objects for
+         * writing, but it's long past time for drivers to have
+         * MapBufferRange.
+         */
+        if (!glamor_priv->has_map_buffer_range)
+            goto fallback;
+
+        /* Lazy create the buffer name, and only bind it once since
+         * none of the glamor code binds it to anything else.
+         */
+        if (!glamor_priv->ib) {
+            glGenBuffers(1, &glamor_priv->ib);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ib);
+        }
+
+        /* For now, only support GL_UNSIGNED_SHORTs. */
+        if (count > ((1 << 16) - 1) / 4) {
+            goto fallback;
+        } else {
+            uint16_t *data;
+            size_t size = count * 6 * sizeof(GLushort);
+
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
+            data = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER,
+                                    0, size,
+                                    GL_MAP_WRITE_BIT |
+                                    GL_MAP_INVALIDATE_BUFFER_BIT);
+            for (i = 0; i < count; i++) {
+                data[i * 6 + 0] = i * 4 + 0;
+                data[i * 6 + 1] = i * 4 + 1;
+                data[i * 6 + 2] = i * 4 + 2;
+                data[i * 6 + 3] = i * 4 + 0;
+                data[i * 6 + 4] = i * 4 + 2;
+                data[i * 6 + 5] = i * 4 + 3;
+            }
+            glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+            glamor_priv->ib_size = count;
+            glamor_priv->ib_type = GL_UNSIGNED_SHORT;
+        }
+    }
+
+    glDrawElements(GL_TRIANGLES, count * 6, glamor_priv->ib_type, NULL);
+    return;
+
+fallback:
+    for (i = 0; i < count; i++)
+        glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
+}
+
+
 /**
  * Creates any pixmaps used internally by glamor, since those can't be
  * allocated at ScreenInit time.

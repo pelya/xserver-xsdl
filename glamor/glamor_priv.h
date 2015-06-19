@@ -261,6 +261,14 @@ typedef struct glamor_screen_private {
      */
     char *vb;
     int vb_stride;
+
+    /** Cached index buffer for translating GL_QUADS to triangles. */
+    GLuint ib;
+    /** Index buffer type: GL_UNSIGNED_SHORT or GL_UNSIGNED_INT */
+    GLenum ib_type;
+    /** Number of quads the index buffer has indices for. */
+    unsigned ib_size;
+
     Bool has_source_coords, has_mask_coords;
     int render_nr_quads;
     glamor_composite_shader composite_shader[SHADER_SOURCE_COUNT]
@@ -642,6 +650,9 @@ glamor_pixmap_fbo *glamor_create_fbo_array(glamor_screen_private *glamor_priv,
                                            int w, int h, GLenum format,
                                            int flag, int block_w, int block_h,
                                            glamor_pixmap_private *);
+
+void glamor_gldrawarrays_quads_using_indices(glamor_screen_private *glamor_priv,
+                                             unsigned count);
 
 /* glamor_core.c */
 void glamor_init_finish_access_shaders(ScreenPtr screen);

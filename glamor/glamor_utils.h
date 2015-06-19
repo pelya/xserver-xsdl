@@ -1403,9 +1403,7 @@ glamor_glDrawArrays_GL_QUADS(glamor_screen_private *glamor_priv, unsigned count)
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
         glDrawArrays(GL_QUADS, 0, count * 4);
     } else {
-        unsigned i;
-        for (i = 0; i < count; i++)
-            glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
+        glamor_gldrawarrays_quads_using_indices(glamor_priv, count);
     }
 }
 
