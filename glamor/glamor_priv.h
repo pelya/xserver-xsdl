@@ -248,8 +248,8 @@ typedef struct glamor_screen_private {
     int                         glyph_max_dim;
     char                        *glyph_defines;
 
-    /* vertext/elment_index buffer object for render */
-    GLuint vbo, ebo;
+    /** Vertex buffer for all GPU rendering. */
+    GLuint vbo;
     /** Next offset within the VBO that glamor_get_vbo_space() will use. */
     int vbo_offset;
     int vbo_size;
@@ -262,7 +262,7 @@ typedef struct glamor_screen_private {
     char *vb;
     int vb_stride;
     Bool has_source_coords, has_mask_coords;
-    int render_nr_verts;
+    int render_nr_quads;
     glamor_composite_shader composite_shader[SHADER_SOURCE_COUNT]
         [SHADER_MASK_COUNT]
         [SHADER_IN_COUNT];
@@ -701,7 +701,6 @@ void glamor_composite(CARD8 op,
                       INT16 yMask,
                       INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
 
-void glamor_init_composite_shaders(ScreenPtr screen);
 void glamor_composite_rects(CARD8 op,
                             PicturePtr pDst,
                             xRenderColor *color, int nRect, xRectangle *rects);

@@ -554,7 +554,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glamor_priv->saved_procs.destroy_picture = ps->DestroyPicture;
     ps->DestroyPicture = glamor_destroy_picture;
-    glamor_init_composite_shaders(screen);
 
     glamor_priv->saved_procs.set_window_pixmap = screen->SetWindowPixmap;
     screen->SetWindowPixmap = glamor_set_window_pixmap;

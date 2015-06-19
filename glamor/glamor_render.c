@@ -379,41 +379,6 @@ glamor_lookup_composite_shader(ScreenPtr screen, struct
     return shader;
 }
 
-static void
-glamor_init_eb(unsigned short *eb, int vert_cnt)
-{
-    int i, j;
-
-    for (i = 0, j = 0; j < vert_cnt; i += 6, j += 4) {
-        eb[i] = j;
-        eb[i + 1] = j + 1;
-        eb[i + 2] = j + 2;
-        eb[i + 3] = j;
-        eb[i + 4] = j + 2;
-        eb[i + 5] = j + 3;
-    }
-}
-
-void
-glamor_init_composite_shaders(ScreenPtr screen)
-{
-    glamor_screen_private *glamor_priv;
-    unsigned short *eb;
-    int eb_size;
-
-    glamor_priv = glamor_get_screen_private(screen);
-    glamor_make_current(glamor_priv);
-    glGenBuffers(1, &glamor_priv->ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glamor_priv->ebo);
-
-    eb_size = GLAMOR_COMPOSITE_VBO_VERT_CNT * sizeof(short) * 2;
-
-    eb = XNFalloc(eb_size);
-    glamor_init_eb(eb, GLAMOR_COMPOSITE_VBO_VERT_CNT);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, eb_size, eb, GL_STATIC_DRAW);
-    free(eb);
-}
-
 static Bool
 glamor_set_composite_op(ScreenPtr screen,
                         CARD8 op, struct blendinfo *op_info_result,
@@ -647,7 +612,7 @@ glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
     char *vbo_offset;
     float *vb;
 
-    glamor_priv->render_nr_verts = 0;
+    glamor_priv->render_nr_quads = 0;
     glamor_priv->vb_stride = 2 * sizeof(float);
     if (glamor_priv->has_source_coords)
         glamor_priv->vb_stride += 2 * sizeof(float);
@@ -689,17 +654,10 @@ glamor_flush_composite_rects(ScreenPtr screen)
 
     glamor_make_current(glamor_priv);
 
-    if (!glamor_priv->render_nr_verts)
+    if (!glamor_priv->render_nr_quads)
         return;
 
-    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-        glDrawRangeElements(GL_TRIANGLES, 0, glamor_priv->render_nr_verts,
-                            (glamor_priv->render_nr_verts * 3) / 2,
-                            GL_UNSIGNED_SHORT, NULL);
-    } else {
-        glDrawElements(GL_TRIANGLES, (glamor_priv->render_nr_verts * 3) / 2,
-                       GL_UNSIGNED_SHORT, NULL);
-    }
+    glamor_glDrawArrays_GL_QUADS(glamor_priv, glamor_priv->render_nr_quads);
 }
 
 int pict_format_combine_tab[][3] = {
@@ -1249,7 +1207,7 @@ glamor_composite_with_shader(CARD8 op,
                                                      vertices, vb_stride);
                 vertices += 2;
             }
-            glamor_priv->render_nr_verts += 4;
+            glamor_priv->render_nr_quads++;
             rects++;
 
             /* We've incremented by one of our 4 verts, now do the other 3. */
