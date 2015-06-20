@@ -256,7 +256,7 @@ glamor_glyphs_flush(CARD8 op, PicturePtr src, PicturePtr dst,
                 if (glamor_glyph_use_130(glamor_priv))
                     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nglyph);
                 else
-                    glamor_glDrawArrays_GL_QUADS(glamor_priv, nglyph * 4);
+                    glamor_glDrawArrays_GL_QUADS(glamor_priv, nglyph);
             }
         }
         if (prog->alpha != glamor_program_alpha_ca_first)
