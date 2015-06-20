@@ -531,6 +531,15 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         epoxy_gl_version() >= 30 ||
         epoxy_has_gl_extension("GL_NV_pack_subimage");
 
+    glamor_priv->use_quads = (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
+    /* Driver-specific hack: Avoid using GL_QUADS on VC4, where
+     * they'll be emulated more expensively than we can with our
+     * cached IB.
+     */
+    if (strstr((char *)glGetString(GL_VENDOR), "Broadcom") &&
+        strstr((char *)glGetString(GL_RENDERER), "VC4"))
+        glamor_priv->use_quads = FALSE;
+
     glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &glamor_priv->max_fbo_size);
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glamor_priv->max_fbo_size);
     glGetIntegerv(GL_MAX_VIEWPORT_DIMS, max_viewport_size);

@@ -1400,7 +1400,7 @@ glamor_make_current(glamor_screen_private *glamor_priv)
 static inline void
 glamor_glDrawArrays_GL_QUADS(glamor_screen_private *glamor_priv, unsigned count)
 {
-    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+    if (glamor_priv->use_quads) {
         glDrawArrays(GL_QUADS, 0, count * 4);
     } else {
         glamor_gldrawarrays_quads_using_indices(glamor_priv, count);

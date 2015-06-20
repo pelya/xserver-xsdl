@@ -203,6 +203,7 @@ typedef struct glamor_screen_private {
     Bool has_pack_subimage;
     Bool has_unpack_subimage;
     Bool has_rw_pbo;
+    Bool use_quads;
     int max_fbo_size;
 
     struct xorg_list
