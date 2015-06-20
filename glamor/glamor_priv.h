@@ -194,16 +194,16 @@ typedef struct glamor_screen_private {
     unsigned int tick;
     enum glamor_gl_flavor gl_flavor;
     int glsl_version;
-    int has_pack_invert;
-    int has_fbo_blit;
-    int has_map_buffer_range;
-    int has_buffer_storage;
-    int has_khr_debug;
-    int has_nv_texture_barrier;
-    int has_pack_subimage;
-    int has_unpack_subimage;
+    Bool has_pack_invert;
+    Bool has_fbo_blit;
+    Bool has_map_buffer_range;
+    Bool has_buffer_storage;
+    Bool has_khr_debug;
+    Bool has_nv_texture_barrier;
+    Bool has_pack_subimage;
+    Bool has_unpack_subimage;
+    Bool has_rw_pbo;
     int max_fbo_size;
-    int has_rw_pbo;
 
     struct xorg_list
         fbo_cache[CACHE_FORMAT_COUNT][CACHE_BUCKET_WCOUNT][CACHE_BUCKET_HCOUNT];
