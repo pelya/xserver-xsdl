@@ -414,27 +414,6 @@ glamor_init_composite_shaders(ScreenPtr screen)
     free(eb);
 }
 
-void
-glamor_fini_composite_shaders(ScreenPtr screen)
-{
-    glamor_screen_private *glamor_priv;
-    glamor_composite_shader *shader;
-    int i, j, k;
-
-    glamor_priv = glamor_get_screen_private(screen);
-    glamor_make_current(glamor_priv);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glDeleteBuffers(1, &glamor_priv->ebo);
-
-    for (i = 0; i < SHADER_SOURCE_COUNT; i++)
-        for (j = 0; j < SHADER_MASK_COUNT; j++)
-            for (k = 0; k < SHADER_IN_COUNT; k++) {
-                shader = &glamor_priv->composite_shader[i][j][k];
-                if (shader->prog)
-                    glDeleteProgram(shader->prog);
-            }
-}
-
 static Bool
 glamor_set_composite_op(ScreenPtr screen,
                         CARD8 op, struct blendinfo *op_info_result,

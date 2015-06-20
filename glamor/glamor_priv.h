@@ -645,7 +645,6 @@ glamor_pixmap_fbo *glamor_create_fbo_array(glamor_screen_private *glamor_priv,
 
 /* glamor_core.c */
 void glamor_init_finish_access_shaders(ScreenPtr screen);
-void glamor_fini_finish_access_shaders(ScreenPtr screen);
 
 Bool glamor_get_drawable_location(const DrawablePtr drawable);
 void glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
@@ -703,7 +702,6 @@ void glamor_composite(CARD8 op,
                       INT16 xDst, INT16 yDst, CARD16 width, CARD16 height);
 
 void glamor_init_composite_shaders(ScreenPtr screen);
-void glamor_fini_composite_shaders(ScreenPtr screen);
 void glamor_composite_rects(CARD8 op,
                             PicturePtr pDst,
                             xRenderColor *color, int nRect, xRectangle *rects);
@@ -722,7 +720,6 @@ void glamor_trapezoids(CARD8 op,
 
 /* glamor_gradient.c */
 void glamor_init_gradient_shader(ScreenPtr screen);
-void glamor_fini_gradient_shader(ScreenPtr screen);
 PicturePtr glamor_generate_linear_gradient_picture(ScreenPtr screen,
                                                    PicturePtr src_picture,
                                                    int x_source, int y_source,

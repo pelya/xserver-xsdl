@@ -283,17 +283,6 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     glUniform1i(glamor_priv->finish_access_swap_rb[1], 0);
 }
 
-void
-glamor_fini_finish_access_shaders(ScreenPtr screen)
-{
-    glamor_screen_private *glamor_priv;
-
-    glamor_priv = glamor_get_screen_private(screen);
-    glamor_make_current(glamor_priv);
-    glDeleteProgram(glamor_priv->finish_access_prog[0]);
-    glDeleteProgram(glamor_priv->finish_access_prog[1]);
-}
-
 GCOps glamor_gc_ops = {
     .FillSpans = glamor_fill_spans,
     .SetSpans = glamor_set_spans,
