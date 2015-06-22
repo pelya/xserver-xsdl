@@ -507,6 +507,24 @@ connect_hook(DBusConnection *connection, void *data)
         goto cleanup;
     }
 
+    dbus_bus_add_match(connection,
+        "type='signal',sender='org.freedesktop.login1',interface='org.freedesktop.login1.Session',member='PauseDevice'",
+        &error);
+    if (dbus_error_is_set(&error)) {
+        LogMessage(X_ERROR, "systemd-logind: could not add match: %s\n",
+                   error.message);
+        goto cleanup;
+    }
+
+    dbus_bus_add_match(connection,
+        "type='signal',sender='org.freedesktop.login1',interface='org.freedesktop.login1.Session',member='ResumeDevice'",
+        &error);
+    if (dbus_error_is_set(&error)) {
+        LogMessage(X_ERROR, "systemd-logind: could not add match: %s\n",
+                   error.message);
+        goto cleanup;
+    }
+
     /*
      * HdG: This is not useful with systemd <= 208 since the signal only
      * contains invalidated property names there, rather than property, val
