@@ -820,7 +820,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     try_enable_glamor(pScrn);
 
     if (ms->drmmode.glamor) {
-        xf86LoadSubModule(pScrn, "dri2");
     } else {
         Bool prefer_shadow = TRUE;
 
