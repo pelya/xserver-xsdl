@@ -1,0 +1,15 @@
+--- Xtrans.c	2012-03-23 05:04:16.000000000 +0200
++++ Xtrans.c	2015-06-25 21:55:11.338383377 +0300
+@@ -1071,9 +1071,9 @@
+ 	    continue;
+ 	}
+ #if defined(IPv6) && defined(AF_INET6)
+-		if ((Xtransports[i].transport_id == TRANS_SOCKET_INET_INDEX
+-		     && ipv6_succ))
+-		    flags |= ADDR_IN_USE_ALLOWED;
++	//	if ((Xtransports[i].transport_id == TRANS_SOCKET_INET_INDEX
++	//	     && ipv6_succ))
++	//	    flags |= ADDR_IN_USE_ALLOWED;
+ #endif
+ 
+ 	if ((status = TRANS(CreateListener (ciptr, port, flags))) < 0)

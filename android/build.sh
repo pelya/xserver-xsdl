@@ -88,6 +88,8 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
+patch -p0 < ../../Xtrans.c.diff || exit 1
+
 [ -e configure ] || \
 autoreconf -v --install \
 || exit 1
