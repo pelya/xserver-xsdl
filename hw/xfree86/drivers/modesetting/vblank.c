@@ -50,11 +50,6 @@
 static struct xorg_list ms_drm_queue;
 static uint32_t ms_drm_seq;
 
-struct ms_pageflip {
-    ScreenPtr screen;
-    Bool crtc_for_msc_ust;
-};
-
 static void ms_box_intersect(BoxPtr dest, BoxPtr a, BoxPtr b)
 {
     dest->x1 = a->x1 > b->x1 ? a->x1 : b->x1;
