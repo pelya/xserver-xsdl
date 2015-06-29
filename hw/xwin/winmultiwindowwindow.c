@@ -219,8 +219,8 @@ winPositionWindowMultiWindow(WindowPtr pWin, int x, int y)
 
 #if CYGMULTIWINDOW_DEBUG
     lpRc = &rcNew;
-    ErrorF("winPositionWindowMultiWindow - (%d ms)drawable (%d, %d)-(%d, %d)\n",
-           GetTickCount(), lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
+    ErrorF("winPositionWindowMultiWindow - drawable (%d, %d)-(%d, %d)\n",
+           lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
 #endif
 
     /*
@@ -237,16 +237,16 @@ winPositionWindowMultiWindow(WindowPtr pWin, int x, int y)
     GetClientRect(hWnd, &rcClient);
 
     lpRc = &rcNew;
-    ErrorF("winPositionWindowMultiWindow - (%d ms)rcNew (%d, %d)-(%d, %d)\n",
-           GetTickCount(), lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
+    ErrorF("winPositionWindowMultiWindow - rcNew (%d, %d)-(%d, %d)\n",
+           lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
 
     lpRc = &rcOld;
-    ErrorF("winPositionWindowMultiWindow - (%d ms)rcOld (%d, %d)-(%d, %d)\n",
-           GetTickCount(), lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
+    ErrorF("winPositionWindowMultiWindow - rcOld (%d, %d)-(%d, %d)\n",
+           lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
 
     lpRc = &rcClient;
-    ErrorF("(%d ms)rcClient (%d, %d)-(%d, %d)\n",
-           GetTickCount(), lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
+    ErrorF("rcClient (%d, %d)-(%d, %d)\n",
+           lpRc->left, lpRc->top, lpRc->right, lpRc->bottom);
 #endif
 
     /* Check if the old rectangle and new rectangle are the same */
