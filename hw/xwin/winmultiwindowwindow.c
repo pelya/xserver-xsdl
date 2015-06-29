@@ -379,8 +379,9 @@ winReparentWindowMultiWindow(WindowPtr pWin, WindowPtr pPriorParent)
 
     winDebug
         ("winReparentMultiWindow - pWin:%p XID:0x%x, reparent from pWin:%p XID:0x%x to pWin:%p XID:0x%x\n",
-         pWin, pWin->drawable.id, pPriorParent, pPriorParent->drawable.id,
-         pWin->parent, pWin->parent->drawable.id);
+         pWin, (unsigned int)pWin->drawable.id,
+         pPriorParent, (unsigned int)pPriorParent->drawable.id,
+         pWin->parent, (unsigned int)pWin->parent->drawable.id);
 
     WIN_UNWRAP(ReparentWindow);
     if (pScreen->ReparentWindow)
@@ -493,7 +494,7 @@ winCreateWindowsWindow(WindowPtr pWin)
     winInitMultiWindowClass();
 
     winDebug("winCreateWindowsTopLevelWindow - pWin:%p XID:0x%x \n", pWin,
-             pWin->drawable.id);
+             (unsigned int)pWin->drawable.id);
 
     iX = pWin->drawable.x + GetSystemMetrics(SM_XVIRTUALSCREEN);
     iY = pWin->drawable.y + GetSystemMetrics(SM_YVIRTUALSCREEN);
@@ -619,7 +620,7 @@ winDestroyWindowsWindow(WindowPtr pWin)
     HICON hIconSm;
 
     winDebug("winDestroyWindowsWindow - pWin:%p XID:0x%x \n", pWin,
-             pWin->drawable.id);
+             (unsigned int)pWin->drawable.id);
 
     /* Bail out if the Windows window handle is invalid */
     if (pWinPriv->hWnd == NULL)
@@ -713,7 +714,7 @@ winGetWindowID(WindowPtr pWin)
     FindClientResourcesByType(c, RT_WINDOW, winFindWindow, &wi);
 
 #if CYGMULTIWINDOW_DEBUG
-    ErrorF("winGetWindowID - Window ID: %d\n", wi.id);
+    ErrorF("winGetWindowID - Window ID: %u\n", (unsigned int)wi.id);
 #endif
 
     return wi.id;
@@ -993,8 +994,9 @@ winAdjustXWindow(WindowPtr pWin, HWND hwnd)
     vlist[2] = pDraw->width + dW;
     vlist[3] = pDraw->height + dH;
 #if CYGWINDOWING_DEBUG
-    ErrorF("\tConfigureWindow to (%ld, %ld) - %ldx%ld\n", vlist[0], vlist[1],
-           vlist[2], vlist[3]);
+    ErrorF("\tConfigureWindow to (%u, %u) - %ux%u\n",
+           (unsigned int)vlist[0], (unsigned int)vlist[1],
+           (unsigned int)vlist[2], (unsigned int)vlist[3]);
 #endif
     return ConfigureWindow(pWin, CWX | CWY | CWWidth | CWHeight,
                            vlist, wClient(pWin));
