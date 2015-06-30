@@ -160,7 +160,9 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
         return NullPixmap;
 
     if ((usage == GLAMOR_CREATE_PIXMAP_CPU
-         || (usage == CREATE_PIXMAP_USAGE_GLYPH_PICTURE && w <= 64 && h <= 64)
+         || (usage == CREATE_PIXMAP_USAGE_GLYPH_PICTURE &&
+             w <= glamor_priv->glyph_max_dim &&
+             h <= glamor_priv->glyph_max_dim)
          || (w == 0 && h == 0)
          || !glamor_check_pixmap_fbo_depth(depth))
         || (!GLAMOR_TEXTURED_LARGE_PIXMAP &&

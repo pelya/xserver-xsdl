@@ -112,7 +112,8 @@ glamor_glyph_atlas_init(ScreenPtr screen, struct glamor_glyph_atlas *atlas)
     PictFormatPtr               format = atlas->format;
 
     atlas->atlas = glamor_create_pixmap(screen, glamor_priv->glyph_atlas_dim,
-                                        glamor_priv->glyph_atlas_dim, format->depth, 0);
+                                        glamor_priv->glyph_atlas_dim, format->depth,
+                                        GLAMOR_CREATE_FBO_NO_FBO);
     atlas->x = 0;
     atlas->y = 0;
     atlas->row_height = 0;
@@ -265,9 +266,11 @@ glamor_glyphs_flush(CARD8 op, PicturePtr src, PicturePtr dst,
 
     glDisable(GL_SCISSOR_TEST);
 
-    glVertexAttribDivisor(GLAMOR_VERTEX_SOURCE, 0);
+    if (glamor_glyph_use_130(glamor_priv)) {
+        glVertexAttribDivisor(GLAMOR_VERTEX_SOURCE, 0);
+        glVertexAttribDivisor(GLAMOR_VERTEX_POS, 0);
+    }
     glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-    glVertexAttribDivisor(GLAMOR_VERTEX_POS, 0);
     glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
     glDisable(GL_BLEND);
 }
@@ -331,8 +334,6 @@ glamor_composite_glyphs(CARD8 op,
     ScreenPtr screen = drawable->pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     glamor_program *prog = NULL;
-    PicturePtr glyph_pict = NULL;
-    DrawablePtr glyph_draw;
     glamor_program_render       *glyphs_program = &glamor_priv->glyphs_program;
     struct glamor_glyph_atlas    *glyph_atlas = NULL;
     int x = 0, y = 0;
@@ -360,11 +361,10 @@ glamor_composite_glyphs(CARD8 op,
             /* Glyph not empty?
              */
             if (glyph->info.width && glyph->info.height) {
-                glamor_pixmap_private *glyph_pix_priv;
-
-                glyph_pict = GlyphPicture(glyph)[screen_num];
-                glyph_draw = glyph_pict->pDrawable;
-                glyph_pix_priv = glamor_get_pixmap_private((PixmapPtr) glyph_draw);
+                PicturePtr glyph_pict = GlyphPicture(glyph)[screen_num];
+                DrawablePtr glyph_draw = glyph_pict->pDrawable;
+                glamor_pixmap_private *glyph_pix_priv =
+                    glamor_get_pixmap_private((PixmapPtr) glyph_draw);
 
                 /* Need to draw with slow path?
                  */
