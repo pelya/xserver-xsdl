@@ -2337,6 +2337,33 @@ if test "$KDRIVE" = yes; then
         fi
     fi
 
+    case $host_os in
+	*linux*)
+	    KDRIVE_OS_LIB='$(top_builddir)/hw/kdrive/linux/liblinux.la'
+            KDRIVELINUX=yes
+	    if test "x$KDRIVE_EVDEV" = xauto; then
+		KDRIVE_EVDEV=yes
+	    fi
+	    if test "x$KDRIVE_KBD" = xauto; then
+		KDRIVE_KBD=yes
+	    fi
+	    if test "x$KDRIVE_MOUSE" = xauto; then
+		KDRIVE_MOUSE=yes
+	    fi
+	    ;;
+	*)
+	    if test "x$KDRIVE_EVDEV" = xauto; then
+		KDRIVE_EVDEV=no
+	    fi
+	    if test "x$KDRIVE_KBD" = xauto; then
+		KDRIVE_KBD=no
+	    fi
+	    if test "x$KDRIVE_MOUSE" = xauto; then
+		KDRIVE_MOUSE=no
+	    fi
+	    ;;
+    esac
+
     if test "x$KDRIVE_KBD" = xyes; then
        AC_DEFINE(KDRIVE_KBD, 1, [Enable KDrive kbd driver])
     fi
@@ -2378,32 +2405,6 @@ if test "$KDRIVE" = yes; then
 
     KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $OS_LIB"
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.la'
-    case $host_os in
-	*linux*)
-	    KDRIVE_OS_LIB='$(top_builddir)/hw/kdrive/linux/liblinux.la'
-            KDRIVELINUX=yes
-	    if test "x$KDRIVE_EVDEV" = xauto; then
-		KDRIVE_EVDEV=yes
-	    fi
-	    if test "x$KDRIVE_KBD" = xauto; then
-		KDRIVE_KBD=yes
-	    fi
-	    if test "x$KDRIVE_MOUSE" = xauto; then
-		KDRIVE_MOUSE=yes
-	    fi
-	    ;;
-	*)
-	    if test "x$KDRIVE_EVDEV" = xauto; then
-		KDRIVE_EVDEV=no
-	    fi
-	    if test "x$KDRIVE_KBD" = xauto; then
-		KDRIVE_KBD=no
-	    fi
-	    if test "x$KDRIVE_MOUSE" = xauto; then
-		KDRIVE_MOUSE=no
-	    fi
-	    ;;
-    esac
     KDRIVE_MAIN_LIB="$MAIN_LIB"
     KDRIVE_LOCAL_LIBS="$DIX_LIB $KDRIVE_LIB"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $FB_LIB $MI_LIB $KDRIVE_PURE_LIBS"
