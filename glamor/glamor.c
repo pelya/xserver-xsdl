@@ -616,7 +616,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     ps->AddTraps = glamor_add_traps;
 
     glamor_priv->saved_procs.composite_rects = ps->CompositeRects;
-    ps->CompositeRects = miCompositeRects;
+    ps->CompositeRects = glamor_composite_rectangles;
 
     glamor_priv->saved_procs.glyphs = ps->Glyphs;
     ps->Glyphs = glamor_composite_glyphs;
