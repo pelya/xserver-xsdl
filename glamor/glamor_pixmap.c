@@ -897,8 +897,7 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha,
     }
 
     if ((flag == GLAMOR_CREATE_FBO_NO_FBO
-         && pixmap_priv->fbo && pixmap_priv->fbo->tex)
-        || (flag == 0 && pixmap_priv->fbo && pixmap_priv->fbo->fb))
+         && pixmap_priv->fbo && pixmap_priv->fbo->tex))
         return 0;
 
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
