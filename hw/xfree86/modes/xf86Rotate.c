@@ -360,6 +360,8 @@ xf86CrtcRotate(xf86CrtcPtr crtc)
     RRTransformPtr transform = NULL;
     Bool damage = FALSE;
 
+    if (pScreen->isGPU)
+        return TRUE;
     if (crtc->transformPresent)
         transform = &crtc->transform;
 
