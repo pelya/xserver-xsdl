@@ -2,6 +2,10 @@
 
 #include "glamor_priv.h"
 
+static void
+glamor_get_transform_extent_from_box(struct pixman_box32 *box,
+                                     struct pixman_transform *transform);
+
 static inline glamor_pixmap_private *
 __glamor_large(glamor_pixmap_private *pixmap_priv) {
     assert(glamor_pixmap_priv_is_large(pixmap_priv));
@@ -681,7 +685,7 @@ glamor_compute_clipped_regions(PixmapPtr pixmap,
 /* XXX overflow still exist. maybe we need to change to use region32.
  * by default. Or just use region32 for repeat cases?
  **/
-glamor_pixmap_clipped_regions *
+static glamor_pixmap_clipped_regions *
 glamor_compute_transform_clipped_regions(PixmapPtr pixmap,
                                          struct pixman_transform *transform,
                                          RegionPtr region, int *n_region,
@@ -876,7 +880,7 @@ glamor_merge_clipped_regions(PixmapPtr pixmap,
  * boundary and can avoid some overhead.
  *
  **/
-Bool
+static Bool
 glamor_get_transform_block_size(struct pixman_transform *transform,
                                 int block_w, int block_h,
                                 int *transformed_block_w,
@@ -925,7 +929,7 @@ glamor_get_transform_block_size(struct pixman_transform *transform,
 	p.v[0] = x;  \
 	p.v[1] = y;  \
 	p.v[2] = 1.0; } while (0)
-void
+static void
 glamor_get_transform_extent_from_box(struct pixman_box32 *box,
                                      struct pixman_transform *transform)
 {

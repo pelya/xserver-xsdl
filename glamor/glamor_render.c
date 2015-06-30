@@ -604,7 +604,7 @@ glamor_composite_with_copy(CARD8 op,
     return ret;
 }
 
-void *
+static void *
 glamor_setup_composite_vbo(ScreenPtr screen, int n_verts)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
@@ -1238,7 +1238,7 @@ glamor_composite_with_shader(CARD8 op,
     return ret;
 }
 
-PicturePtr
+static PicturePtr
 glamor_convert_gradient_picture(ScreenPtr screen,
                                 PicturePtr source,
                                 int x_source,

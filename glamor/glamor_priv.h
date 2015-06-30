@@ -660,12 +660,6 @@ void glamor_composite(CARD8 op,
 void glamor_composite_rects(CARD8 op,
                             PicturePtr pDst,
                             xRenderColor *color, int nRect, xRectangle *rects);
-PicturePtr glamor_convert_gradient_picture(ScreenPtr screen,
-                                           PicturePtr source,
-                                           int x_source,
-                                           int y_source, int width, int height);
-
-void *glamor_setup_composite_vbo(ScreenPtr screen, int n_verts);
 
 /* glamor_trapezoid.c */
 void glamor_trapezoids(CARD8 op,
@@ -741,14 +735,6 @@ glamor_compute_clipped_regions_ext(PixmapPtr pixmap,
                                    int inner_block_w, int inner_block_h,
                                    int reverse, int upsidedown);
 
-glamor_pixmap_clipped_regions *
-glamor_compute_transform_clipped_regions(PixmapPtr pixmap,
-                                         struct pixman_transform *transform,
-                                         RegionPtr region,
-                                         int *n_region, int dx, int dy,
-                                         int repeat_type, int reverse,
-                                         int upsidedown);
-
 Bool glamor_composite_largepixmap_region(CARD8 op,
                                          PicturePtr source,
                                          PicturePtr mask,
@@ -763,14 +749,6 @@ Bool glamor_composite_largepixmap_region(CARD8 op,
                                          INT16 y_mask,
                                          INT16 x_dest, INT16 y_dest,
                                          CARD16 width, CARD16 height);
-
-Bool glamor_get_transform_block_size(struct pixman_transform *transform,
-                                     int block_w, int block_h,
-                                     int *transformed_block_w,
-                                     int *transformed_block_h);
-
-void glamor_get_transform_extent_from_box(struct pixman_box32 *temp_box,
-                                          struct pixman_transform *transform);
 
 /**
  * Upload a picture to gl texture. Similar to the
