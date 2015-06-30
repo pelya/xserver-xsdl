@@ -424,8 +424,8 @@ glamor_create_fbo_array(glamor_screen_private *glamor_priv,
 
  cleanup:
     for (i = 0; i < block_wcnt * block_hcnt; i++)
-        if ((fbo_array)[i])
-            glamor_destroy_fbo(glamor_priv, (fbo_array)[i]);
+        if (fbo_array[i])
+            glamor_destroy_fbo(glamor_priv, fbo_array[i]);
     free(box_array);
     free(fbo_array);
     return NULL;
