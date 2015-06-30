@@ -52,7 +52,7 @@ struct glamor_context;
  * @TEXTURE_ONLY: pixmap is in an internal texture.
  */
 typedef enum glamor_pixmap_type {
-    GLAMOR_MEMORY,
+    GLAMOR_MEMORY = 0, /* Newly calloc()ed pixmaps are memory. */
     GLAMOR_TEXTURE_DRM,
     GLAMOR_DRM_ONLY,
     GLAMOR_TEXTURE_ONLY,

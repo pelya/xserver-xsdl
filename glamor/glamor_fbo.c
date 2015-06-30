@@ -471,9 +471,11 @@ glamor_pixmap_attach_fbo(PixmapPtr pixmap, glamor_pixmap_fbo *fbo)
 }
 
 void
-glamor_pixmap_destroy_fbo(glamor_screen_private *glamor_priv,
-                          glamor_pixmap_private *priv)
+glamor_pixmap_destroy_fbo(PixmapPtr pixmap)
 {
+    ScreenPtr screen = pixmap->drawable.pScreen;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
     glamor_pixmap_fbo *fbo;
 
     if (glamor_pixmap_priv_is_large(priv)) {

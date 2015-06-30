@@ -80,12 +80,7 @@ glamor_set_pixmap_type(PixmapPtr pixmap, glamor_pixmap_type_t type)
 {
     glamor_pixmap_private *pixmap_priv;
 
-    pixmap_priv = dixLookupPrivate(&pixmap->devPrivates,
-                                   &glamor_pixmap_private_key);
-    if (pixmap_priv == NULL) {
-        pixmap_priv = calloc(sizeof(*pixmap_priv), 1);
-        glamor_set_pixmap_private(pixmap, pixmap_priv);
-    }
+    pixmap_priv = glamor_get_pixmap_private(pixmap);
     pixmap_priv->type = type;
     glamor_init_pixmap_private_small(pixmap, pixmap_priv);
 }
@@ -171,13 +166,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     else
         pixmap = fbCreatePixmap(screen, 0, 0, depth, usage);
 
-    pixmap_priv = calloc(1, sizeof(*pixmap_priv));
-
-    if (!pixmap_priv) {
-        fbDestroyPixmap(pixmap);
-        return fbCreatePixmap(screen, w, h, depth, usage);
-    }
-    glamor_set_pixmap_private(pixmap, pixmap_priv);
+    pixmap_priv = glamor_get_pixmap_private(pixmap);
 
     format = gl_iformat_for_pixmap(pixmap);
 
@@ -223,7 +212,7 @@ glamor_destroy_textured_pixmap(PixmapPtr pixmap)
 #if GLAMOR_HAS_GBM
             glamor_egl_destroy_pixmap_image(pixmap);
 #endif
-            glamor_set_pixmap_private(pixmap, NULL);
+            glamor_pixmap_destroy_fbo(pixmap);
         }
     }
 }
@@ -455,7 +444,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glamor_set_screen_private(screen, glamor_priv);
 
-    if (!dixRegisterPrivateKey(&glamor_pixmap_private_key, PRIVATE_PIXMAP, 0)) {
+    if (!dixRegisterPrivateKey(&glamor_pixmap_private_key, PRIVATE_PIXMAP,
+                               sizeof(struct glamor_pixmap_private))) {
         LogMessage(X_WARNING,
                    "glamor%d: Failed to allocate pixmap private\n",
                    screen->myNum);
@@ -705,27 +695,6 @@ glamor_release_screen_priv(ScreenPtr screen)
     glamor_set_screen_private(screen, NULL);
 }
 
-_X_EXPORT void
-glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv)
-{
-    glamor_pixmap_private *old_priv;
-
-    old_priv = dixGetPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key);
-
-    if (priv) {
-        assert(old_priv == NULL);
-    }
-    else {
-        if (old_priv == NULL)
-            return;
-        glamor_pixmap_destroy_fbo(glamor_get_screen_private(pixmap->drawable.pScreen),
-                                  old_priv);
-        free(old_priv);
-    }
-
-    dixSetPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key, priv);
-}
-
 Bool
 glamor_close_screen(ScreenPtr screen)
 {
@@ -759,7 +728,7 @@ glamor_close_screen(ScreenPtr screen)
     screen->SetWindowPixmap = glamor_priv->saved_procs.set_window_pixmap;
 
     screen_pixmap = screen->GetScreenPixmap(screen);
-    glamor_set_pixmap_private(screen_pixmap, NULL);
+    glamor_pixmap_destroy_fbo(screen_pixmap);
 
     glamor_release_screen_priv(screen);
 

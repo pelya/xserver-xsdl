@@ -405,21 +405,11 @@ extern DevPrivateKeyRec glamor_pixmap_private_key;
 static inline glamor_pixmap_private *
 glamor_get_pixmap_private(PixmapPtr pixmap)
 {
-    glamor_pixmap_private *priv;
-
     if (pixmap == NULL)
         return NULL;
 
-    priv = dixLookupPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key);
-    if (!priv) {
-        glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
-        priv = dixLookupPrivate(&pixmap->devPrivates,
-                                &glamor_pixmap_private_key);
-    }
-    return priv;
+    return dixLookupPrivate(&pixmap->devPrivates, &glamor_pixmap_private_key);
 }
-
-void glamor_set_pixmap_private(PixmapPtr pixmap, glamor_pixmap_private *priv);
 
 /*
  * Returns TRUE if pixmap has no image object
@@ -590,8 +580,7 @@ glamor_pixmap_fbo *glamor_create_fbo(glamor_screen_private *glamor_priv, int w,
                                      int h, GLenum format, int flag);
 void glamor_destroy_fbo(glamor_screen_private *glamor_priv,
                         glamor_pixmap_fbo *fbo);
-void glamor_pixmap_destroy_fbo(glamor_screen_private *glamor_priv,
-                               glamor_pixmap_private *priv);
+void glamor_pixmap_destroy_fbo(PixmapPtr pixmap);
 void glamor_init_pixmap_fbo(ScreenPtr screen);
 void glamor_fini_pixmap_fbo(ScreenPtr screen);
 Bool glamor_pixmap_fbo_fixup(ScreenPtr screen, PixmapPtr pixmap);
