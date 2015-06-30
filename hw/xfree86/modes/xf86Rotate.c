@@ -43,12 +43,6 @@
 #include "X11/extensions/dpmsconst.h"
 #include "X11/Xatom.h"
 
-/* borrowed from composite extension, move to Render and publish? */
-
-#define F(x)	IntToxFixed(x)
-
-#define toF(x)	((float) (x) / 65536.0f)
-
 static void
 xf86RotateCrtcRedisplay(xf86CrtcPtr crtc, RegionPtr region)
 {

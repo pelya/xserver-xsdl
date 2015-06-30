@@ -228,6 +228,9 @@ glamor_create_fbo_from_tex(glamor_screen_private *glamor_priv,
     fbo->external = FALSE;
     fbo->format = format;
 
+    if (flag == CREATE_PIXMAP_USAGE_SHARED)
+        fbo->external = TRUE;
+
     if (flag != GLAMOR_CREATE_FBO_NO_FBO) {
         if (glamor_pixmap_ensure_fb(glamor_priv, fbo) != 0) {
             glamor_purge_fbo(glamor_priv, fbo);
@@ -313,7 +316,7 @@ glamor_destroy_fbo(glamor_screen_private *glamor_priv,
 
 static int
 _glamor_create_tex(glamor_screen_private *glamor_priv,
-                   int w, int h, GLenum format)
+                   int w, int h, GLenum format, Bool linear)
 {
     unsigned int tex = 0;
 
@@ -323,7 +326,7 @@ _glamor_create_tex(glamor_screen_private *glamor_priv,
      * an ARGB8888 based texture for us. */
     if (glamor_priv->dri3_enabled && format == GL_RGBA) {
         tex = glamor_egl_create_argb8888_based_texture(glamor_priv->screen,
-                                                       w, h);
+                                                       w, h, linear);
     }
     if (!tex) {
         glamor_make_current(glamor_priv);
@@ -344,14 +347,14 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
     glamor_pixmap_fbo *fbo;
     GLint tex = 0;
 
-    if (flag == GLAMOR_CREATE_FBO_NO_FBO)
+    if (flag == GLAMOR_CREATE_FBO_NO_FBO || flag == CREATE_PIXMAP_USAGE_SHARED)
         goto new_fbo;
 
     fbo = glamor_pixmap_fbo_cache_get(glamor_priv, w, h, format);
     if (fbo)
         return fbo;
  new_fbo:
-    tex = _glamor_create_tex(glamor_priv, w, h, format);
+    tex = _glamor_create_tex(glamor_priv, w, h, format, flag == CREATE_PIXMAP_USAGE_SHARED);
     fbo = glamor_create_fbo_from_tex(glamor_priv, w, h, format, tex, flag);
 
     return fbo;
@@ -531,7 +534,7 @@ glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag)
         if (!pixmap_priv->fbo->tex)
             pixmap_priv->fbo->tex =
                 _glamor_create_tex(glamor_priv, pixmap->drawable.width,
-                                   pixmap->drawable.height, format);
+                                   pixmap->drawable.height, format, FALSE);
 
         if (flag != GLAMOR_CREATE_FBO_NO_FBO && pixmap_priv->fbo->fb == 0)
             if (glamor_pixmap_ensure_fb(glamor_priv, pixmap_priv->fbo) != 0)
