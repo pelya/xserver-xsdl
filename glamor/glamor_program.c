@@ -145,8 +145,6 @@ static glamor_location_var location_vars[] = {
     },
 };
 
-#define NUM_LOCATION_VARS       (sizeof location_vars / sizeof location_vars[0])
-
 static char *
 add_var(char *cur, const char *add)
 {
@@ -170,7 +168,7 @@ vs_location_vars(glamor_program_location locations)
     int l;
     char *vars = strdup("");
 
-    for (l = 0; vars && l < NUM_LOCATION_VARS; l++)
+    for (l = 0; vars && l < ARRAY_SIZE(location_vars); l++)
         if (locations & location_vars[l].location)
             vars = add_var(vars, location_vars[l].vs_vars);
     return vars;
@@ -182,7 +180,7 @@ fs_location_vars(glamor_program_location locations)
     int l;
     char *vars = strdup("");
 
-    for (l = 0; vars && l < NUM_LOCATION_VARS; l++)
+    for (l = 0; vars && l < ARRAY_SIZE(location_vars); l++)
         if (locations & location_vars[l].location)
             vars = add_var(vars, location_vars[l].fs_vars);
     return vars;

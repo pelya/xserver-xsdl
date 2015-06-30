@@ -707,10 +707,7 @@ combine_pict_format(PictFormatShort * des, const PictFormatShort src,
         return TRUE;
     }
 
-    for (i = 0;
-         i <
-         sizeof(pict_format_combine_tab) /
-         sizeof(pict_format_combine_tab[0]); i++) {
+    for (i = 0; i < ARRAY_SIZE(pict_format_combine_tab); i++) {
         if ((src_type == pict_format_combine_tab[i][0]
              && mask_type == pict_format_combine_tab[i][1])
             || (src_type == pict_format_combine_tab[i][1]
