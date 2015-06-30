@@ -660,7 +660,7 @@ glamor_flush_composite_rects(ScreenPtr screen)
     glamor_glDrawArrays_GL_QUADS(glamor_priv, glamor_priv->render_nr_quads);
 }
 
-int pict_format_combine_tab[][3] = {
+static const int pict_format_combine_tab[][3] = {
     {PICT_TYPE_ARGB, PICT_TYPE_A, PICT_TYPE_ARGB},
     {PICT_TYPE_ABGR, PICT_TYPE_A, PICT_TYPE_ABGR},
 };

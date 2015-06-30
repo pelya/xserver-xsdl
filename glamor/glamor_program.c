@@ -499,7 +499,7 @@ use_source_solid(CARD8 op, PicturePtr src, PicturePtr dst, glamor_program *prog)
     return TRUE;
 }
 
-const glamor_facet glamor_source_solid = {
+static const glamor_facet glamor_source_solid = {
     .name = "render_solid",
     .fs_exec = "       vec4 source = fg;\n",
     .locations = glamor_program_location_fg,
@@ -517,7 +517,7 @@ use_source_picture(CARD8 op, PicturePtr src, PicturePtr dst, glamor_program *pro
                               prog->fill_size_inv_uniform);
 }
 
-const glamor_facet glamor_source_picture = {
+static const glamor_facet glamor_source_picture = {
     .name = "render_picture",
     .vs_exec =  "       fill_pos = (fill_offset + primitive.xy + pos) * fill_size_inv;\n",
     .fs_exec =  "       vec4 source = texture2D(sampler, fill_pos);\n",
@@ -533,14 +533,14 @@ use_source_1x1_picture(CARD8 op, PicturePtr src, PicturePtr dst, glamor_program 
     return glamor_set_texture_pixmap((PixmapPtr) src->pDrawable);
 }
 
-const glamor_facet glamor_source_1x1_picture = {
+static const glamor_facet glamor_source_1x1_picture = {
     .name = "render_picture",
     .fs_exec =  "       vec4 source = texture2D(sampler, vec2(0.5));\n",
     .locations = glamor_program_location_fillsamp,
     .use_render = use_source_1x1_picture,
 };
 
-const glamor_facet *glamor_facet_source[glamor_program_source_count] = {
+static const glamor_facet *glamor_facet_source[glamor_program_source_count] = {
     [glamor_program_source_solid] = &glamor_source_solid,
     [glamor_program_source_picture] = &glamor_source_picture,
     [glamor_program_source_1x1_picture] = &glamor_source_1x1_picture,

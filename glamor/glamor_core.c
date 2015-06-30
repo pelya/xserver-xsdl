@@ -283,7 +283,7 @@ glamor_init_finish_access_shaders(ScreenPtr screen)
     glUniform1i(glamor_priv->finish_access_swap_rb[1], 0);
 }
 
-GCOps glamor_gc_ops = {
+static GCOps glamor_gc_ops = {
     .FillSpans = glamor_fill_spans,
     .SetSpans = glamor_set_spans,
     .PutImage = glamor_put_image,
