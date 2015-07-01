@@ -946,18 +946,6 @@ glamor_is_large_pixmap(PixmapPtr pixmap)
 }
 
 inline static Bool
-glamor_is_large_picture(PicturePtr picture)
-{
-    PixmapPtr pixmap;
-
-    if (picture->pDrawable) {
-        pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
-        return glamor_is_large_pixmap(pixmap);
-    }
-    return FALSE;
-}
-
-inline static Bool
 glamor_tex_format_is_readable(GLenum format)
 {
     return ((format == GL_RGBA || format == GL_RGB || format == GL_ALPHA));
