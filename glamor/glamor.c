@@ -384,6 +384,45 @@ glamor_check_instruction_count(int gl_version)
     return TRUE;
 }
 
+static void GLAPIENTRY
+glamor_debug_output_callback(GLenum source,
+                             GLenum type,
+                             GLuint id,
+                             GLenum severity,
+                             GLsizei length,
+                             const GLchar *message,
+                             const void *userParam)
+{
+    ScreenPtr screen = (void *)userParam;
+    LogMessageVerb(X_ERROR, 0, "glamor%d: GL error: %*s\n",
+               screen->myNum, length, message);
+}
+
+/**
+ * Configures GL_ARB_debug_output to give us immediate callbacks when
+ * GL errors occur, so that we can log them.
+ */
+static void
+glamor_setup_debug_output(ScreenPtr screen)
+{
+    if (!epoxy_has_gl_extension("GL_ARB_debug_output"))
+        return;
+
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageControl(GL_DEBUG_SOURCE_API,
+                          GL_DEBUG_TYPE_ERROR,
+                          GL_DONT_CARE,
+                          0, NULL, GL_TRUE);
+    glDebugMessageCallback(glamor_debug_output_callback,
+                           screen);
+
+    /* If KHR_debug is present, all debug output is disabled by
+     * default on non-debug contexts.
+     */
+    if (epoxy_has_gl_extension("GL_KHR_debug"))
+        glEnable(GL_DEBUG_OUTPUT);
+}
+
 /** Set up glamor for an already-configured GL context. */
 Bool
 glamor_init(ScreenPtr screen, unsigned int flags)
@@ -530,6 +569,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP ||
         epoxy_gl_version() >= 30 ||
         epoxy_has_gl_extension("GL_NV_pack_subimage");
+
+    glamor_setup_debug_output(screen);
 
     glamor_priv->use_quads = (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
     /* Driver-specific hack: Avoid using GL_QUADS on VC4, where
