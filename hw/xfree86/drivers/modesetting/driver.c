@@ -1000,6 +1000,7 @@ msSharePixmapBacking(PixmapPtr ppix, ScreenPtr screen, void **handle)
 static Bool
 msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
 {
+#ifdef GLAMOR
     ScreenPtr screen = ppix->drawable.pScreen;
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     modesettingPtr ms = modesettingPTR(scrn);
@@ -1020,6 +1021,9 @@ msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
         return ret;
 
     return TRUE;
+#else
+    return FALSE;
+#endif
 }
 
 static Bool

@@ -641,8 +641,8 @@ static present_screen_info_rec ms_present_screen_info = {
     .flush = ms_present_flush,
 
     .capabilities = PresentCapabilityNone,
-    .check_flip = ms_present_check_flip,
 #ifdef GLAMOR
+    .check_flip = ms_present_check_flip,
     .flip = ms_present_flip,
     .unflip = ms_present_unflip,
 #endif

@@ -146,6 +146,7 @@ drmmode_create_bo(drmmode_ptr drmmode, drmmode_bo *bo,
 Bool
 drmmode_bo_for_pixmap(drmmode_ptr drmmode, drmmode_bo *bo, PixmapPtr pixmap)
 {
+#ifdef GLAMOR
     ScreenPtr screen = xf86ScrnToScreen(drmmode->scrn);
     uint16_t pitch;
     uint32_t size;
@@ -165,9 +166,9 @@ drmmode_bo_for_pixmap(drmmode_ptr drmmode, drmmode_bo *bo, PixmapPtr pixmap)
                    "Failed to get fd for flip to new front.\n");
         return FALSE;
     }
-
     bo->dumb = dumb_get_bo_from_fd(drmmode->fd, fd, pitch, size);
     close(fd);
+#endif
 
     return bo->dumb != NULL;
 }
