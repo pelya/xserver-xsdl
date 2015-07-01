@@ -800,44 +800,6 @@ winReorderWindowsMultiWindow(void)
 }
 
 /*
- * winMinimizeWindow - Minimize in response to WM_CHANGE_STATE
- */
-
-void
-winMinimizeWindow(Window id)
-{
-    WindowPtr pWin;
-    winPrivWinPtr pWinPriv;
-
-    HWND hWnd;
-    ScreenPtr pScreen = NULL;
-    winPrivScreenPtr pScreenPriv = NULL;
-
-#if CYGWINDOWING_DEBUG
-    ErrorF("winMinimizeWindow\n");
-#endif
-
-    dixLookupResourceByType((void *) &pWin, id, RT_WINDOW, NullClient,
-                            DixUnknownAccess);
-    if (!pWin) {
-        ErrorF("%s: NULL pWin. Leaving\n", __FUNCTION__);
-        return;
-    }
-
-    pScreen = pWin->drawable.pScreen;
-    if (pScreen)
-        pScreenPriv = winGetScreenPriv(pScreen);
-
-    if (pScreenPriv)
-    {
-        pWinPriv = winGetWindowPriv(pWin);
-        hWnd = pWinPriv->hWnd;
-    }
-
-    ShowWindow(hWnd, SW_MINIMIZE);
-}
-
-/*
  * CopyWindow - See Porting Layer Definition - p. 39
  */
 void

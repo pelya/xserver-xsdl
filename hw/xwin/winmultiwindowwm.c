@@ -672,6 +672,25 @@ UpdateStyle(WMInfoPtr pWMInfo, Window iWindow)
                             WS_EX_APPWINDOW) ? TRUE : FALSE);
 }
 
+/*
+ * Updates the state of a HWND
+ * (only minimization supported at the moment)
+ */
+
+static void
+UpdateState(WMInfoPtr pWMInfo, Window iWindow)
+{
+    HWND hWnd;
+
+    winDebug("UpdateState: iWindow 0x%08x\n", (int)iWindow);
+
+    hWnd = getHwnd(pWMInfo, iWindow);
+    if (!hWnd)
+        return;
+
+    ShowWindow(hWnd, SW_MINIMIZE);
+}
+
 #if 0
 /*
  * Fix up any differences between the X11 and Win32 window stacks
@@ -879,8 +898,7 @@ winMultiWindowWMProc(void *pArg)
             break;
 
         case WM_WM_CHANGE_STATE:
-            /* Minimize the window in Windows */
-            winMinimizeWindow(pNode->msg.iWindow);
+            UpdateState(pWMInfo, pNode->msg.iWindow);
             break;
 
         default:
