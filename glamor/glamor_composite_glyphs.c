@@ -376,14 +376,12 @@ glamor_composite_glyphs(CARD8 op,
             if (glyph->info.width && glyph->info.height) {
                 PicturePtr glyph_pict = GlyphPicture(glyph)[screen_num];
                 DrawablePtr glyph_draw = glyph_pict->pDrawable;
-                glamor_pixmap_private *glyph_pix_priv =
-                    glamor_get_pixmap_private((PixmapPtr) glyph_draw);
 
                 /* Need to draw with slow path?
                  */
                 if (_X_UNLIKELY(glyph_draw->width > glyph_max_dim ||
                                 glyph_draw->height > glyph_max_dim ||
-                                (glyph_pix_priv != 0 && glyph_pix_priv->type != GLAMOR_MEMORY)))
+                                !glamor_pixmap_is_memory((PixmapPtr)glyph_draw)))
                 {
                     if (glyphs_queued) {
                         glamor_glyphs_flush(op, src, dst, prog, glyph_atlas, glyphs_queued);
