@@ -936,13 +936,6 @@ glamor_is_large_pixmap(PixmapPtr pixmap)
     return (glamor_pixmap_priv_is_large(priv));
 }
 
-inline static Bool
-glamor_tex_format_is_readable(GLenum format)
-{
-    return ((format == GL_RGBA || format == GL_RGB || format == GL_ALPHA));
-
-}
-
 static inline void
 _glamor_dump_pixmap_bits(PixmapPtr pixmap, int x, int y, int w, int h)
 {
