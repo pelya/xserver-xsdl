@@ -697,45 +697,6 @@
         (c)[1] = (float)y;				\
     } while(0)
 
-inline static void
-glamor_calculate_boxes_bound(BoxPtr bound, BoxPtr boxes, int nbox)
-{
-    int x_min, y_min;
-    int x_max, y_max;
-    int i;
-
-    x_min = y_min = MAXSHORT;
-    x_max = y_max = MINSHORT;
-    for (i = 0; i < nbox; i++) {
-        if (x_min > boxes[i].x1)
-            x_min = boxes[i].x1;
-        if (y_min > boxes[i].y1)
-            y_min = boxes[i].y1;
-
-        if (x_max < boxes[i].x2)
-            x_max = boxes[i].x2;
-        if (y_max < boxes[i].y2)
-            y_max = boxes[i].y2;
-    }
-    bound->x1 = x_min;
-    bound->y1 = y_min;
-    bound->x2 = x_max;
-    bound->y2 = y_max;
-}
-
-inline static void
-glamor_translate_boxes(BoxPtr boxes, int nbox, int dx, int dy)
-{
-    int i;
-
-    for (i = 0; i < nbox; i++) {
-        boxes[i].x1 += dx;
-        boxes[i].y1 += dy;
-        boxes[i].x2 += dx;
-        boxes[i].y2 += dy;
-    }
-}
-
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
