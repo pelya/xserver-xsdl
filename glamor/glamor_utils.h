@@ -824,21 +824,6 @@ format_for_pixmap(PixmapPtr pixmap)
 #define SWAP_UPLOADING	  	2
 #define SWAP_NONE_UPLOADING	3
 
-inline static int
-cache_format(GLenum format)
-{
-    switch (format) {
-    case GL_ALPHA:
-        return 2;
-    case GL_RGB:
-        return 1;
-    case GL_RGBA:
-        return 0;
-    default:
-        return -1;
-    }
-}
-
 /* borrowed from uxa */
 static inline Bool
 glamor_get_rgba_from_pixel(CARD32 pixel,

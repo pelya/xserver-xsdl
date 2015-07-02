@@ -70,6 +70,21 @@ cache_hbucket(int size)
     return order;
 }
 
+static int
+cache_format(GLenum format)
+{
+    switch (format) {
+    case GL_ALPHA:
+        return 2;
+    case GL_RGB:
+        return 1;
+    case GL_RGBA:
+        return 0;
+    default:
+        return -1;
+    }
+}
+
 static glamor_pixmap_fbo *
 glamor_pixmap_fbo_cache_get(glamor_screen_private *glamor_priv,
                             int w, int h, GLenum format)
