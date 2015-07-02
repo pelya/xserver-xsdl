@@ -931,7 +931,7 @@ glamor_put_bits(char *dst_bits, int dst_stride, char *src_bits,
     }
 }
 
-Bool
+static Bool
 glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
                                     int h, int stride, void *bits, int pbo)
 {
