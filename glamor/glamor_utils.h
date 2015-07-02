@@ -805,16 +805,7 @@ gl_iformat_for_pixmap(PixmapPtr pixmap)
 static inline CARD32
 format_for_pixmap(PixmapPtr pixmap)
 {
-    glamor_pixmap_private *pixmap_priv;
-    PictFormatShort pict_format;
-
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
-    if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv))
-        pict_format = pixmap_priv->picture->format;
-    else
-        pict_format = format_for_depth((pixmap)->drawable.depth);
-
-    return pict_format;
+    return format_for_depth((pixmap)->drawable.depth);
 }
 
 #define REVERT_NONE       		0
