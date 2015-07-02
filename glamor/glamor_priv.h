@@ -173,9 +173,6 @@ struct glamor_saved_procs {
     BitmapToRegionProcPtr bitmap_to_region;
     TrianglesProcPtr triangles;
     AddTrapsProcPtr addtraps;
-    CreatePictureProcPtr create_picture;
-    DestroyPictureProcPtr destroy_picture;
-    SetWindowPixmapProcPtr set_window_pixmap;
 #if XSYNC
     SyncScreenFuncsRec sync_screen_funcs;
 #endif
@@ -350,13 +347,10 @@ typedef struct glamor_pixmap_private {
      * that data on glamor_finish_access().
      */
     glamor_access_t map_access;
-    /** Set if the pixmap is currenty attached to a Picture. */
-    unsigned char is_picture:1;
     glamor_pixmap_fbo *fbo;
     /** current fbo's coords in the whole pixmap. */
     BoxRec box;
     int drm_stride;
-    PicturePtr picture;
     GLuint pbo;
     RegionRec prepare_region;
     Bool prepared;
@@ -733,15 +727,6 @@ Bool glamor_composite_largepixmap_region(CARD8 op,
  * glamor_upload_pixmap_to_texture. Used in rendering.
  **/
 enum glamor_pixmap_status glamor_upload_picture_to_texture(PicturePtr picture);
-
-int glamor_create_picture(PicturePtr picture);
-
-void glamor_set_window_pixmap(WindowPtr pWindow, PixmapPtr pPixmap);
-
-void glamor_destroy_picture(PicturePtr picture);
-
-void glamor_picture_format_fixup(PicturePtr picture,
-                                 glamor_pixmap_private *pixmap_priv);
 
 void glamor_add_traps(PicturePtr pPicture,
                       INT16 x_off, INT16 y_off, int ntrap, xTrap *traps);

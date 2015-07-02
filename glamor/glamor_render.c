@@ -936,9 +936,6 @@ glamor_composite_choose_shader(CARD8 op,
                 goto fail;
             }
 
-            if (source->format != saved_source_format) {
-                glamor_picture_format_fixup(source, source_pixmap_priv);
-            }
             /* XXX
              * By default, glamor_upload_picture_to_texture will wire alpha to 1
              * if one picture doesn't have alpha. So we don't do that again in

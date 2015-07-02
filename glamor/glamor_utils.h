@@ -33,6 +33,7 @@
 #define __GLAMOR_UTILS_H__
 
 #include "glamor_prepare.h"
+#include "mipict.h"
 
 #define v_from_x_coord_x(_xscale_, _x_)          ( 2 * (_x_) * (_xscale_) - 1.0)
 #define v_from_x_coord_y(_yscale_, _y_)          (-2 * (_y_) * (_yscale_) + 1.0)
@@ -756,7 +757,6 @@ glamor_translate_boxes(BoxPtr boxes, int nbox, int dx, int dy)
 						|| _depth_ == 30	\
 						|| _depth_ == 32)
 
-#define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv->is_picture == 1)
 #define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv->gl_fbo == GLAMOR_FBO_NORMAL)
 
 /**
@@ -1287,9 +1287,9 @@ glamor_compare_pictures(ScreenPtr screen,
 
     if (fst_pixmap->drawable.depth != snd_pixmap->drawable.depth) {
         if (fst_generated)
-            glamor_destroy_picture(fst_picture);
+            miDestroyPicture(fst_picture);
         if (snd_generated)
-            glamor_destroy_picture(snd_picture);
+            miDestroyPicture(snd_picture);
 
         ErrorF("Different pixmap depth can not compare!\n");
         return;
@@ -1315,9 +1315,9 @@ glamor_compare_pictures(ScreenPtr screen,
     glamor_finish_access(&snd_pixmap->drawable);
 
     if (fst_generated)
-        glamor_destroy_picture(fst_picture);
+        miDestroyPicture(fst_picture);
     if (snd_generated)
-        glamor_destroy_picture(snd_picture);
+        miDestroyPicture(snd_picture);
 
     return;
 }
