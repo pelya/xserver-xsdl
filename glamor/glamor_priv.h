@@ -350,7 +350,6 @@ typedef struct glamor_pixmap_private {
     glamor_pixmap_fbo *fbo;
     /** current fbo's coords in the whole pixmap. */
     BoxRec box;
-    int drm_stride;
     GLuint pbo;
     RegionRec prepare_region;
     Bool prepared;
