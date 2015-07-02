@@ -210,6 +210,64 @@ static Bool redirectError = FALSE;
 static Bool g_fAnotherWMRunning = FALSE;
 
 /*
+ * Translate msg id to text, for debug purposes
+ */
+
+static const char *
+MessageName(winWMMessagePtr msg)
+{
+  switch (msg->msg)
+    {
+    case WM_WM_MOVE:
+      return "WM_WM_MOVE";
+      break;
+    case WM_WM_SIZE:
+      return "WM_WM_SIZE";
+      break;
+    case WM_WM_RAISE:
+      return "WM_WM_RAISE";
+      break;
+    case WM_WM_LOWER:
+      return "WM_WM_LOWER";
+      break;
+    case WM_WM_UNMAP:
+      return "WM_WM_UNMAP";
+      break;
+    case WM_WM_KILL:
+      return "WM_WM_KILL";
+      break;
+    case WM_WM_ACTIVATE:
+      return "WM_WM_ACTIVATE";
+      break;
+    case WM_WM_NAME_EVENT:
+      return "WM_WM_NAME_EVENT";
+      break;
+    case WM_WM_ICON_EVENT:
+      return "WM_WM_ICON_EVENT";
+      break;
+    case WM_WM_CHANGE_STATE:
+      return "WM_WM_CHANGE_STATE";
+      break;
+    case WM_WM_MAP:
+      return "WM_WM_MAP";
+      break;
+    case WM_WM_MAP2:
+      return "WM_WM_MAP2";
+      break;
+    case WM_WM_MAP3:
+      return "WM_WM_MAP3";
+      break;
+    case WM_WM_HINTS_EVENT:
+      return "WM_WM_HINTS_EVENT";
+      break;
+    default:
+      return "Unknown Message";
+      break;
+    }
+}
+
+
+/*
  * PushMessage - Push a message onto the queue
  */
 
@@ -230,44 +288,6 @@ PushMessage(WMMsgQueuePtr pQueue, WMMsgNodePtr pNode)
     if (pQueue->pHead == NULL) {
         pQueue->pHead = pNode;
     }
-
-#if 0
-    switch (pNode->msg.msg) {
-    case WM_WM_MOVE:
-        ErrorF("\tWM_WM_MOVE\n");
-        break;
-    case WM_WM_SIZE:
-        ErrorF("\tWM_WM_SIZE\n");
-        break;
-    case WM_WM_RAISE:
-        ErrorF("\tWM_WM_RAISE\n");
-        break;
-    case WM_WM_LOWER:
-        ErrorF("\tWM_WM_LOWER\n");
-        break;
-    case WM_WM_MAP:
-        ErrorF("\tWM_WM_MAP\n");
-        break;
-    case WM_WM_MAP2:
-        ErrorF("\tWM_WM_MAP2\n");
-        break;
-    case WM_WM_MAP3:
-        ErrorF("\tWM_WM_MAP3\n");
-        break;
-    case WM_WM_UNMAP:
-        ErrorF("\tWM_WM_UNMAP\n");
-        break;
-    case WM_WM_KILL:
-        ErrorF("\tWM_WM_KILL\n");
-        break;
-    case WM_WM_ACTIVATE:
-        ErrorF("\tWM_WM_ACTIVATE\n");
-        break;
-    default:
-        ErrorF("\tUnknown Message.\n");
-        break;
-    }
-#endif
 
     /* Increase the count of elements in the queue by one */
     ++(pQueue->nQueueSize);
@@ -772,26 +792,21 @@ winMultiWindowWMProc(void *pArg)
         }
 
 #if CYGMULTIWINDOW_DEBUG
-        ErrorF("winMultiWindowWMProc - MSG: %d ID: %d\n",
-               (int) pNode->msg.msg, (int) pNode->msg.dwID);
+        ErrorF("winMultiWindowWMProc - MSG: %s (%d) ID: %d\n",
+               MessageName(&(pNode->msg)), (int)pNode->msg.msg, (int)pNode->msg.dwID);
 #endif
 
         /* Branch on the message type */
         switch (pNode->msg.msg) {
 #if 0
         case WM_WM_MOVE:
-            ErrorF("\tWM_WM_MOVE\n");
             break;
 
         case WM_WM_SIZE:
-            ErrorF("\tWM_WM_SIZE\n");
             break;
 #endif
 
         case WM_WM_RAISE:
-#if CYGMULTIWINDOW_DEBUG
-            ErrorF("\tWM_WM_RAISE\n");
-#endif
             /* Raise the window */
             XRaiseWindow(pWMInfo->pDisplay, pNode->msg.iWindow);
 #if 0
@@ -800,18 +815,11 @@ winMultiWindowWMProc(void *pArg)
             break;
 
         case WM_WM_LOWER:
-#if CYGMULTIWINDOW_DEBUG
-            ErrorF("\tWM_WM_LOWER\n");
-#endif
-
             /* Lower the window */
             XLowerWindow(pWMInfo->pDisplay, pNode->msg.iWindow);
             break;
 
         case WM_WM_MAP:
-#if CYGMULTIWINDOW_DEBUG
-            ErrorF("\tWM_WM_MAP\n");
-#endif
             /* Put a note as to the HWND associated with this Window */
             XChangeProperty(pWMInfo->pDisplay, pNode->msg.iWindow, pWMInfo->atmPrivMap, XA_INTEGER,
                             32,
@@ -822,9 +830,6 @@ winMultiWindowWMProc(void *pArg)
             break;
 
         case WM_WM_MAP2:
-#if CYGMULTIWINDOW_DEBUG
-            ErrorF("\tWM_WM_MAP2\n");
-#endif
             XChangeProperty(pWMInfo->pDisplay, pNode->msg.iWindow, pWMInfo->atmPrivMap, XA_INTEGER,
                             32,
                             PropModeReplace,
@@ -832,9 +837,6 @@ winMultiWindowWMProc(void *pArg)
             break;
 
         case WM_WM_MAP3:
-#if CYGMULTIWINDOW_DEBUG
-            ErrorF("\tWM_WM_MAP3\n");
-#endif
             /* Put a note as to the HWND associated with this Window */
             XChangeProperty(pWMInfo->pDisplay, pNode->msg.iWindow, pWMInfo->atmPrivMap, XA_INTEGER,
                             32,
@@ -858,18 +860,12 @@ winMultiWindowWMProc(void *pArg)
             break;
 
         case WM_WM_UNMAP:
-#if CYGMULTIWINDOW_DEBUG
-            ErrorF("\tWM_WM_UNMAP\n");
-#endif
 
             /* Unmap the window */
             XUnmapWindow(pWMInfo->pDisplay, pNode->msg.iWindow);
             break;
 
         case WM_WM_KILL:
-#if CYGMULTIWINDOW_DEBUG
-            ErrorF("\tWM_WM_KILL\n");
-#endif
             {
                 /* --- */
                 if (IsWmProtocolAvailable(pWMInfo->pDisplay,
@@ -884,9 +880,6 @@ winMultiWindowWMProc(void *pArg)
             break;
 
         case WM_WM_ACTIVATE:
-#if CYGMULTIWINDOW_DEBUG
-            ErrorF("\tWM_WM_ACTIVATE\n");
-#endif
             /* Set the input focus */
 
             /*
@@ -1512,7 +1505,7 @@ winSendMessageToWM(void *pWMInfo, winWMMessagePtr pMsg)
     WMMsgNodePtr pNode;
 
 #if CYGMULTIWINDOW_DEBUG
-    ErrorF("winSendMessageToWM ()\n");
+    ErrorF("winSendMessageToWM %s\n", MessageName(pMsg));
 #endif
 
     pNode = malloc(sizeof(WMMsgNodeRec));
