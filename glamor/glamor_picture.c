@@ -307,21 +307,14 @@ glamor_get_tex_format_type_from_pictformat_gles2(PictFormatShort format,
 
 static int
 glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
+                                       PictFormatShort pict_format,
                                        GLenum *format,
                                        GLenum *type,
                                        int *no_alpha,
                                        int *revert, int *swap_rb, int is_upload)
 {
-    glamor_pixmap_private *pixmap_priv;
-    PictFormatShort pict_format;
     glamor_screen_private *glamor_priv =
         glamor_get_screen_private(pixmap->drawable.pScreen);
-
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
-    if (GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv))
-        pict_format = pixmap_priv->picture->format;
-    else
-        pict_format = format_for_depth(pixmap->drawable.depth);
 
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
         return glamor_get_tex_format_type_from_pictformat_gl(pict_format,
@@ -774,7 +767,8 @@ glamor_put_bits(char *dst_bits, int dst_stride, char *src_bits,
 
 static Bool
 glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
-                                    int h, int stride, void *bits, int pbo)
+                                    int h, int stride, void *bits, int pbo,
+                                    PictFormatShort pict_format)
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
@@ -784,6 +778,7 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
     Bool force_clip;
 
     if (glamor_get_tex_format_type_from_pixmap(pixmap,
+                                               pict_format,
                                                &format,
                                                &type,
                                                &no_alpha,
@@ -884,23 +879,6 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
                                                      pbo);
 }
 
-static enum glamor_pixmap_status
-glamor_upload_pixmap_to_texture(PixmapPtr pixmap)
-{
-    int ret;
-
-    if (glamor_upload_sub_pixmap_to_texture(pixmap, 0, 0,
-                                            pixmap->drawable.width,
-                                            pixmap->drawable.height,
-                                            pixmap->devKind,
-                                            pixmap->devPrivate.ptr, 0))
-        ret = GLAMOR_UPLOAD_DONE;
-    else
-        ret = GLAMOR_UPLOAD_FAILED;
-
-    return ret;
-}
-
 /* Upload picture to texture.  We may need to flip the y axis or
  * wire alpha to 1. So we may conditional create fbo for the picture.
  * */
@@ -912,7 +890,15 @@ glamor_upload_picture_to_texture(PicturePtr picture)
     assert(picture->pDrawable);
     pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
 
-    return glamor_upload_pixmap_to_texture(pixmap);
+    if (glamor_upload_sub_pixmap_to_texture(pixmap, 0, 0,
+                                            pixmap->drawable.width,
+                                            pixmap->drawable.height,
+                                            pixmap->devKind,
+                                            pixmap->devPrivate.ptr, 0,
+                                            picture->format))
+        return GLAMOR_UPLOAD_DONE;
+    else
+        return GLAMOR_UPLOAD_FAILED;
 }
 
 /*
