@@ -701,13 +701,6 @@ glamor_put_vbo_space(ScreenPtr screen);
  */
 Bool glamor_pixmap_ensure_fbo(PixmapPtr pixmap, GLenum format, int flag);
 
-/**
- * Upload a pixmap to gl texture. Used by dynamic pixmap
- * uploading feature. The pixmap must be a software pixmap.
- * This function will change current FBO and current shaders.
- */
-enum glamor_pixmap_status glamor_upload_pixmap_to_texture(PixmapPtr pixmap);
-
 glamor_pixmap_clipped_regions *
 glamor_compute_clipped_regions(PixmapPtr pixmap,
                                RegionPtr region, int *clipped_nbox,
