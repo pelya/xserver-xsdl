@@ -741,15 +741,6 @@ Bool glamor_composite_largepixmap_region(CARD8 op,
  **/
 enum glamor_pixmap_status glamor_upload_picture_to_texture(PicturePtr picture);
 
-/**
- * Upload bits to a pixmap's texture. This function will
- * convert the bits to the specified format/type format
- * if the conversion is unavoidable.
- **/
-Bool glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
-                                          GLenum type, int no_alpha, int revert,
-                                          int swap_rb, void *bits);
-
 int glamor_create_picture(PicturePtr picture);
 
 void glamor_set_window_pixmap(WindowPtr pWindow, PixmapPtr pPixmap);
