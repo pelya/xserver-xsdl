@@ -766,6 +766,21 @@ glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
 #endif
 }
 
+static void glamor_egl_cleanup(struct glamor_egl_screen_private *glamor_egl)
+{
+    if (glamor_egl->display != EGL_NO_DISPLAY) {
+        eglMakeCurrent(glamor_egl->display,
+                       EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        eglTerminate(glamor_egl->display);
+    }
+#ifdef GLAMOR_HAS_GBM
+    if (glamor_egl->gbm)
+        gbm_device_destroy(glamor_egl->gbm);
+#endif
+    free(glamor_egl->device_path);
+    free(glamor_egl);
+}
+
 static void
 glamor_egl_free_screen(ScrnInfoPtr scrn)
 {
@@ -773,17 +788,8 @@ glamor_egl_free_screen(ScrnInfoPtr scrn)
 
     glamor_egl = glamor_egl_get_screen_private(scrn);
     if (glamor_egl != NULL) {
-
-        eglMakeCurrent(glamor_egl->display,
-                       EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-#ifdef GLAMOR_HAS_GBM
-        if (glamor_egl->gbm)
-            gbm_device_destroy(glamor_egl->gbm);
-#endif
-        free(glamor_egl->device_path);
-
         scrn->FreeScreen = glamor_egl->saved_free_screen;
-        free(glamor_egl);
+        glamor_egl_cleanup(glamor_egl);
         scrn->FreeScreen(scrn);
     }
 }
@@ -814,7 +820,7 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
     glamor_egl->gbm = gbm_create_device(glamor_egl->fd);
     if (glamor_egl->gbm == NULL) {
         ErrorF("couldn't get display device\n");
-        return FALSE;
+        goto error;
     }
     glamor_egl->display = eglGetDisplay(glamor_egl->gbm);
 #else
@@ -831,7 +837,8 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
     if (!eglInitialize
         (glamor_egl->display, &glamor_egl->major, &glamor_egl->minor)) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR, "eglInitialize() failed\n");
-        return FALSE;
+        glamor_egl->display = EGL_NO_DISPLAY;
+        goto error;
     }
 
     version = eglQueryString(glamor_egl->display, EGL_VERSION);
@@ -840,14 +847,14 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 #define GLAMOR_CHECK_EGL_EXTENSION(EXT)  \
 	if (!epoxy_has_egl_extension(glamor_egl->display, "EGL_" #EXT)) {  \
 		ErrorF("EGL_" #EXT " required.\n");  \
-		return FALSE;  \
+		goto error;  \
 	}
 
 #define GLAMOR_CHECK_EGL_EXTENSIONS(EXT1, EXT2)	 \
 	if (!epoxy_has_egl_extension(glamor_egl->display, "EGL_" #EXT1) &&  \
 	    !epoxy_has_egl_extension(glamor_egl->display, "EGL_" #EXT2)) {  \
 		ErrorF("EGL_" #EXT1 " or EGL_" #EXT2 " required.\n");  \
-		return FALSE;  \
+		goto error;  \
 	}
 
     GLAMOR_CHECK_EGL_EXTENSION(MESA_drm_image);
@@ -872,14 +879,14 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
                                            config_attribs);
     if (glamor_egl->context == EGL_NO_CONTEXT) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR, "Failed to create EGL context\n");
-        return FALSE;
+        goto error;
     }
 
     if (!eglMakeCurrent(glamor_egl->display,
                         EGL_NO_SURFACE, EGL_NO_SURFACE, glamor_egl->context)) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR,
                    "Failed to make EGL context current\n");
-        return FALSE;
+        goto error;
     }
     glamor_egl->saved_free_screen = scrn->FreeScreen;
     scrn->FreeScreen = glamor_egl_free_screen;
@@ -890,6 +897,10 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
                "Indirect GLX may not work correctly.\n");
 #endif
     return TRUE;
+
+error:
+    glamor_egl_cleanup(glamor_egl);
+    return FALSE;
 }
 
 /** Stub to retain compatibility with pre-server-1.16 ABI. */
