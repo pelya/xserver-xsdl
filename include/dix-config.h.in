@@ -518,4 +518,7 @@
 /* Listen on local socket */
 #undef LISTEN_LOCAL
 
+/* Define if no local socket credentials interface exists */
+#undef NO_LOCAL_CLIENT_CRED
+
 #endif /* _DIX_CONFIG_H_ */
