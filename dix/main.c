@@ -165,7 +165,7 @@ dix_main(int argc, char *argv[], char *envp[])
         OsInit();
         if (serverGeneration == 1) {
             CreateWellKnownSockets();
-            for (i = 1; i < MAXCLIENTS; i++)
+            for (i = 1; i < LimitClients; i++)
                 clients[i] = NullClient;
             serverClient = calloc(sizeof(ClientRec), 1);
             if (!serverClient)

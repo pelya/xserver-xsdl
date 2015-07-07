@@ -557,6 +557,7 @@ UseMsg(void)
 #ifdef LOCK_SERVER
     ErrorF("-nolock                disable the locking mechanism\n");
 #endif
+    ErrorF("-maxclients n          set maximum number of clients (power of two)\n");
     ErrorF("-nolisten string       don't listen on protocol\n");
     ErrorF("-listen string         listen on protocol\n");
     ErrorF("-noreset               don't reset after last client exists\n");
@@ -861,6 +862,19 @@ ProcessCommandLine(int argc, char *argv[])
                 nolock = TRUE;
         }
 #endif
+	else if ( strcmp( argv[i], "-maxclients") == 0)
+	{
+	    if (++i < argc) {
+		LimitClients = atoi(argv[i]);
+		if (LimitClients != 64 &&
+		    LimitClients != 128 &&
+		    LimitClients != 256 &&
+		    LimitClients != 512) {
+		    FatalError("maxclients must be one of 64, 128, 256 or 512\n");
+		}
+	    } else
+		UseMsg();
+	}
         else if (strcmp(argv[i], "-nolisten") == 0) {
             if (++i < argc) {
                 if (_XSERVTransNoListen(argv[i]))

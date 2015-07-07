@@ -320,6 +320,11 @@ sets the stack space limit of the server to the specified number of kilobytes.
 A value of zero makes the stack size as large as possible.  The default value
 of \-1 leaves the stack space limit unchanged.
 .TP 8
+.B \-maxclients
+.BR 64 | 128 | 256 | 512
+Set the maximum number of clients allowed to connect to the X server.
+Acceptable values are 64, 128, 256 or 512.
+.TP 8
 .B \-render
 .BR default | mono | gray | color
 sets the color allocation policy that will be used by the render extension.

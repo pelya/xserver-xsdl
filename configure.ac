@@ -400,7 +400,7 @@ case $host_os in
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
 	;;
   cygwin*|mingw*)
-	CFLAGS="$CFLAGS -DFD_SETSIZE=256"
+	CFLAGS="$CFLAGS -DFD_SETSIZE=512"
 	;;
 esac
 
@@ -771,7 +771,7 @@ APPLEWMPROTO="applewmproto >= 1.4"
 LIBXSHMFENCE="xshmfence >= 1.1"
 
 dnl Required modules
-XPROTO="xproto >= 7.0.26"
+XPROTO="xproto >= 7.0.28"
 RANDRPROTO="randrproto >= 1.5.0"
 RENDERPROTO="renderproto >= 0.11"
 XEXTPROTO="xextproto >= 7.2.99.901"
