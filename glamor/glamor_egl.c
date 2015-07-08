@@ -452,7 +452,7 @@ glamor_gbm_bo_from_pixmap(ScreenPtr screen, PixmapPtr pixmap)
         glamor_get_pixmap_private(pixmap);
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
-    if (pixmap_priv == NULL || !glamor_priv->dri3_enabled)
+    if (!glamor_priv->dri3_enabled)
         return NULL;
     switch (pixmap_priv->type) {
     case GLAMOR_TEXTURE_DRM:
@@ -604,7 +604,7 @@ glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
     struct glamor_pixmap_private *pixmap_priv =
         glamor_get_pixmap_private(pixmap);
 
-    if (pixmap_priv && pixmap_priv->image) {
+    if (pixmap_priv->image) {
         ScrnInfoPtr scrn = xf86ScreenToScrn(pixmap->drawable.pScreen);
         struct glamor_egl_screen_private *glamor_egl =
             glamor_egl_get_screen_private(scrn);

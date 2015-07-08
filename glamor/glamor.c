@@ -207,13 +207,10 @@ void
 glamor_destroy_textured_pixmap(PixmapPtr pixmap)
 {
     if (pixmap->refcnt == 1) {
-        glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-        if (pixmap_priv != NULL) {
 #if GLAMOR_HAS_GBM
-            glamor_egl_destroy_pixmap_image(pixmap);
+        glamor_egl_destroy_pixmap_image(pixmap);
 #endif
-            glamor_pixmap_destroy_fbo(pixmap);
-        }
+        glamor_pixmap_destroy_fbo(pixmap);
     }
 }
 
@@ -761,12 +758,11 @@ _X_EXPORT int
 glamor_fd_from_pixmap(ScreenPtr screen,
                       PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
 {
-    glamor_pixmap_private *pixmap_priv;
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     glamor_screen_private *glamor_priv =
         glamor_get_screen_private(pixmap->drawable.pScreen);
 
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
-    if (pixmap_priv == NULL || !glamor_priv->dri3_enabled)
+    if (!glamor_priv->dri3_enabled)
         return -1;
     switch (pixmap_priv->type) {
     case GLAMOR_TEXTURE_DRM:
@@ -786,12 +782,11 @@ glamor_fd_from_pixmap(ScreenPtr screen,
 int
 glamor_name_from_pixmap(PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
 {
-    glamor_pixmap_private *pixmap_priv;
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     glamor_screen_private *glamor_priv =
         glamor_get_screen_private(pixmap->drawable.pScreen);
 
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
-    if (pixmap_priv == NULL || !glamor_priv->dri3_enabled)
+    if (!glamor_priv->dri3_enabled)
         return -1;
     switch (pixmap_priv->type) {
     case GLAMOR_TEXTURE_DRM:

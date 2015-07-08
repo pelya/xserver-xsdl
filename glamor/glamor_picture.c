@@ -61,15 +61,6 @@ glamor_create_picture(PicturePtr picture)
 
     pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
     pixmap_priv = glamor_get_pixmap_private(pixmap);
-    if (!pixmap_priv) {
-        /* We must create a pixmap priv to track the picture format even
-         * if the pixmap is a pure in memory pixmap. The reason is that
-         * we may need to upload this pixmap to a texture on the fly. During
-         * the uploading, we need to know the picture format. */
-        glamor_set_pixmap_type(pixmap, GLAMOR_MEMORY);
-        pixmap_priv = glamor_get_pixmap_private(pixmap);
-    }
-
     pixmap_priv->is_picture = 1;
     pixmap_priv->picture = picture;
 

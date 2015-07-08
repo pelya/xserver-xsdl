@@ -756,8 +756,8 @@ glamor_translate_boxes(BoxPtr boxes, int nbox, int dx, int dy)
 						|| _depth_ == 30	\
 						|| _depth_ == 32)
 
-#define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv && pixmap_priv->is_picture == 1)
-#define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv && pixmap_priv->gl_fbo == GLAMOR_FBO_NORMAL)
+#define GLAMOR_PIXMAP_PRIV_IS_PICTURE(pixmap_priv) (pixmap_priv->is_picture == 1)
+#define GLAMOR_PIXMAP_PRIV_HAS_FBO(pixmap_priv)    (pixmap_priv->gl_fbo == GLAMOR_FBO_NORMAL)
 
 /**
  * Borrow from uxa.

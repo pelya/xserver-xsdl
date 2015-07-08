@@ -419,7 +419,7 @@ glamor_pixmap_drm_only(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
 
-    return priv && priv->type == GLAMOR_DRM_ONLY;
+    return priv->type == GLAMOR_DRM_ONLY;
 }
 
 /*
@@ -430,7 +430,7 @@ glamor_pixmap_is_memory(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
 
-    return !priv || priv->type == GLAMOR_MEMORY;
+    return priv->type == GLAMOR_MEMORY;
 }
 
 /*
@@ -439,13 +439,13 @@ glamor_pixmap_is_memory(PixmapPtr pixmap)
 static inline Bool
 glamor_pixmap_priv_is_large(glamor_pixmap_private *priv)
 {
-    return priv && (priv->block_wcnt > 1 || priv->block_hcnt > 1);
+    return priv->block_wcnt > 1 || priv->block_hcnt > 1;
 }
 
 static inline Bool
 glamor_pixmap_priv_is_small(glamor_pixmap_private *priv)
 {
-    return priv && priv->block_wcnt <= 1 && priv->block_hcnt <= 1;
+    return priv->block_wcnt <= 1 && priv->block_hcnt <= 1;
 }
 
 static inline Bool
@@ -453,7 +453,7 @@ glamor_pixmap_is_large(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
 
-    return priv && glamor_pixmap_priv_is_large(priv);
+    return glamor_pixmap_priv_is_large(priv);
 }
 /*
  * Returns TRUE if pixmap has an FBO
@@ -463,7 +463,7 @@ glamor_pixmap_has_fbo(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv = glamor_get_pixmap_private(pixmap);
 
-    return priv && priv->gl_fbo == GLAMOR_FBO_NORMAL;
+    return priv->gl_fbo == GLAMOR_FBO_NORMAL;
 }
 
 static inline void
