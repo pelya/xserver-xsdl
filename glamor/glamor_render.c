@@ -753,6 +753,29 @@ glamor_set_normalize_tcoords_generic(PixmapPtr pixmap,
                                                             texcoords, stride);
 }
 
+/**
+ * Returns whether the general composite path supports this picture
+ * format for a pixmap that is permanently stored in an FBO (as
+ * opposed to the GLAMOR_PIXMAP_DYNAMIC_UPLOAD path).
+ *
+ * We could support many more formats by using GL_ARB_texture_view to
+ * parse the same bits as different formats.  For now, we only support
+ * tweaking whether we sample the alpha bits of an a8r8g8b8, or just
+ * force them to 1.
+ */
+static Bool
+glamor_render_format_is_supported(PictFormatShort format)
+{
+    switch (format) {
+    case PICT_a8r8g8b8:
+    case PICT_x8r8g8b8:
+    case PICT_a8:
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
 static Bool
 glamor_composite_choose_shader(CARD8 op,
                                PicturePtr source,
@@ -780,6 +803,11 @@ glamor_composite_choose_shader(CARD8 op,
 
     if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(dest_pixmap_priv)) {
         glamor_fallback("dest has no fbo.\n");
+        goto fail;
+    }
+
+    if (!glamor_render_format_is_supported(dest->format)) {
+        glamor_fallback("Unsupported dest picture format.\n");
         goto fail;
     }
 
@@ -951,12 +979,22 @@ glamor_composite_choose_shader(CARD8 op,
                 glamor_fallback("Failed to upload source texture.\n");
                 goto fail;
             }
+        } else {
+            if (!glamor_render_format_is_supported(source->format)) {
+                glamor_fallback("Unsupported source picture format.\n");
+                goto fail;
+            }
         }
 
         if (mask_status == GLAMOR_UPLOAD_PENDING) {
             mask_status = glamor_upload_picture_to_texture(mask);
             if (mask_status != GLAMOR_UPLOAD_DONE) {
                 glamor_fallback("Failed to upload mask texture.\n");
+                goto fail;
+            }
+        } else if (mask) {
+            if (!glamor_render_format_is_supported(mask->format)) {
+                glamor_fallback("Unsupported mask picture format.\n");
                 goto fail;
             }
         }
