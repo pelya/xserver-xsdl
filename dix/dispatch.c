@@ -3965,6 +3965,16 @@ AddGPUScreen(Bool (*pfnInit) (ScreenPtr /*pScreen */ ,
 
     update_desktop_dimensions();
 
+    /*
+     * We cannot register the Screen PRIVATE_CURSOR key if cursors are already
+     * created, because dix/privates.c does not have relocation code for
+     * PRIVATE_CURSOR. Once this is fixed the if() can be removed and we can
+     * register the Screen PRIVATE_CURSOR key unconditionally.
+     */
+    if (!dixPrivatesCreated(PRIVATE_CURSOR))
+        dixRegisterScreenPrivateKey(&cursorScreenDevPriv, pScreen,
+                                    PRIVATE_CURSOR, 0);
+
     return i;
 }
 

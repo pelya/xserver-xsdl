@@ -337,7 +337,7 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
             return;
         }
 
-        if (infoPtr->pScrn->vtSema && xorg_list_is_empty(&pScreen->pixmap_dirty_list) &&
+        if (infoPtr->pScrn->vtSema &&
             (ScreenPriv->ForceHWCursorCount ||
              xf86CheckHWCursor(pScreen, cursor, infoPtr))) {
 
