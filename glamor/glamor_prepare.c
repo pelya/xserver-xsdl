@@ -45,6 +45,8 @@ glamor_prep_pixmap_box(PixmapPtr pixmap, glamor_access_t access, BoxPtr box)
     if (!GLAMOR_PIXMAP_PRIV_HAS_FBO(priv))
         return TRUE;
 
+    glamor_make_current(glamor_priv);
+
     RegionInit(&region, box, 1);
 
     /* See if it's already mapped */
