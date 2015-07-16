@@ -148,8 +148,8 @@ drmmode_bo_for_pixmap(drmmode_ptr drmmode, drmmode_bo *bo, PixmapPtr pixmap)
 {
 #ifdef GLAMOR
     ScreenPtr screen = xf86ScrnToScreen(drmmode->scrn);
-    uint16_t pitch;
-    uint32_t size;
+    CARD16 pitch;
+    CARD32 size;
     int fd;
 
 #ifdef GLAMOR_HAS_GBM
