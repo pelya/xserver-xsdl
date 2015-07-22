@@ -71,19 +71,6 @@ typedef struct {
     Bool force_24_32;
     void *shadow_fb;
 
-    /**
-     * A screen-sized pixmap when we're doing triple-buffered DRI2
-     * pageflipping.
-     *
-     * One is shared between all drawables that flip to the front
-     * buffer, and it only gets reallocated when root pixmap size
-     * changes.
-     */
-    PixmapPtr triple_buffer_pixmap;
-
-    /** The GEM name for triple_buffer_pixmap */
-    uint32_t triple_buffer_name;
-
     DevPrivateKeyRec pixmapPrivateKeyRec;
 
     Bool reverse_prime_offload_mode;

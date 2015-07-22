@@ -1995,11 +1995,6 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
     xf86DrvMsg(scrn->scrnIndex, X_INFO,
                "Allocate new frame buffer %dx%d stride\n", width, height);
 
-    if (drmmode->triple_buffer_pixmap) {
-        screen->DestroyPixmap(drmmode->triple_buffer_pixmap);
-        drmmode->triple_buffer_pixmap = NULL;
-    }
-
     old_width = scrn->virtualX;
     old_height = scrn->virtualY;
     old_pitch = drmmode_bo_get_pitch(&drmmode->front_bo);
