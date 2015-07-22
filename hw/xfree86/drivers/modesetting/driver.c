@@ -130,6 +130,7 @@ static const OptionInfoRec Options[] = {
     {OPTION_ACCEL_METHOD, "AccelMethod", OPTV_STRING, {0}, FALSE},
     {OPTION_PAGEFLIP, "PageFlip", OPTV_BOOLEAN, {0}, FALSE},
     {OPTION_ZAPHOD_HEADS, "ZaphodHeads", OPTV_STRING, {0}, FALSE},
+    {OPTION_DOUBLE_SHADOW, "DoubleShadow", OPTV_BOOLEAN, {0}, FALSE},
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
@@ -732,6 +733,35 @@ try_enable_glamor(ScrnInfoPtr pScrn)
 #endif
 }
 
+static Bool
+msShouldDoubleShadow(ScrnInfoPtr pScrn, modesettingPtr ms)
+{
+    Bool ret = FALSE, asked;
+    int from;
+    drmVersionPtr v = drmGetVersion(ms->fd);
+
+    if (!ms->drmmode.shadow_enable)
+        return FALSE;
+
+    if (!strcmp(v->name, "mgag200") ||
+        !strcmp(v->name, "ast")) /* XXX || rn50 */
+        ret = TRUE;
+
+    drmFreeVersion(v);
+
+    asked = xf86GetOptValBool(ms->drmmode.Options, OPTION_DOUBLE_SHADOW, &ret);
+
+    if (asked)
+        from = X_CONFIG;
+    else
+        from = X_INFO;
+
+    xf86DrvMsg(pScrn->scrnIndex, from,
+               "Double-buffered shadow updates: %s\n", ret ? "on" : "off");
+
+    return ret;
+}
+
 #ifndef DRM_CAP_CURSOR_WIDTH
 #define DRM_CAP_CURSOR_WIDTH 0x8
 #endif
@@ -934,6 +964,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
                    prefer_shadow ? "YES" : "NO",
                    ms->drmmode.force_24_32 ? "FORCE" :
                    ms->drmmode.shadow_enable ? "YES" : "NO");
+
+        ms->drmmode.shadow_enable2 = msShouldDoubleShadow(pScrn, ms);
     }
 
     ms->drmmode.pageflip =
@@ -1011,10 +1043,92 @@ msShadowWindow(ScreenPtr screen, CARD32 row, CARD32 offset, int mode,
     return ((uint8_t *) ms->drmmode.front_bo.dumb->ptr + row * stride + offset);
 }
 
+/* somewhat arbitrary tile size, in pixels */
+#define TILE 16
+
+static int
+msUpdateIntersect(modesettingPtr ms, shadowBufPtr pBuf, BoxPtr box,
+                  xRectangle *prect)
+{
+    int i, dirty = 0, stride = pBuf->pPixmap->devKind, cpp = ms->drmmode.cpp;
+    int width = (box->x2 - box->x1) * cpp;
+    unsigned char *old, *new;
+
+    old = ms->drmmode.shadow_fb2;
+    old += (box->y1 * stride) + (box->x1 * cpp);
+    new = ms->drmmode.shadow_fb;
+    new += (box->y1 * stride) + (box->x1 * cpp);
+
+    for (i = box->y2 - box->y1 - 1; i >= 0; i--) {
+        unsigned char *o = old + i * stride,
+                      *n = new + i * stride;
+        if (memcmp(o, n, width) != 0) {
+            dirty = 1;
+            memcpy(o, n, width);
+        }
+    }
+
+    if (dirty) {
+        prect->x = box->x1;
+        prect->y = box->y1;
+        prect->width = box->x2 - box->x1;
+        prect->height = box->y2 - box->y1;
+    }
+
+    return dirty;
+}
+
 static void
 msUpdatePacked(ScreenPtr pScreen, shadowBufPtr pBuf)
 {
-    shadowUpdatePacked(pScreen, pBuf);
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    modesettingPtr ms = modesettingPTR(pScrn);
+    Bool use_ms_shadow = ms->drmmode.force_24_32 && pScrn->bitsPerPixel == 32;
+
+    if (ms->drmmode.shadow_enable2 && ms->drmmode.shadow_fb2) do {
+        RegionPtr damage = DamageRegion(pBuf->pDamage), tiles;
+        BoxPtr extents = RegionExtents(damage);
+        xRectangle *prect;
+        int nrects;
+        int i, j, tx1, tx2, ty1, ty2;
+
+        tx1 = extents->x1 / TILE;
+        tx2 = (extents->x2 + TILE - 1) / TILE;
+        ty1 = extents->y1 / TILE;
+        ty2 = (extents->y2 + TILE - 1) / TILE;
+
+        nrects = (tx2 - tx1) * (ty2 - ty1);
+        if (!(prect = calloc(nrects, sizeof(xRectangle))))
+            break;
+
+        nrects = 0;
+        for (j = ty2 - 1; j >= ty1; j--) {
+            for (i = tx2 - 1; i >= tx1; i--) {
+                BoxRec box;
+
+                box.x1 = max(i * TILE, extents->x1);
+                box.y1 = max(j * TILE, extents->y1);
+                box.x2 = min((i+1) * TILE, extents->x2);
+                box.y2 = min((j+1) * TILE, extents->y2);
+
+                if (RegionContainsRect(damage, &box) != rgnOUT) {
+                    if (msUpdateIntersect(ms, pBuf, &box, prect + nrects)) {
+                        nrects++;
+                    }
+                }
+            }
+        }
+
+        tiles = RegionFromRects(nrects, prect, CT_NONE);
+        RegionIntersect(damage, damage, tiles);
+        RegionDestroy(tiles);
+        free(prect);
+    } while (0);
+
+    if (use_ms_shadow)
+        ms_shadowUpdate32to24(pScreen, pBuf);
+    else
+        shadowUpdatePacked(pScreen, pBuf);
 }
 
 static Bool
@@ -1160,7 +1274,6 @@ CreateScreenResources(ScreenPtr pScreen)
     Bool ret;
     void *pixels = NULL;
     int err;
-    Bool use_ms_shadow = ms->drmmode.force_24_32 && pScrn->bitsPerPixel == 32;
 
     pScreen->CreateScreenResources = ms->createScreenResources;
     ret = pScreen->CreateScreenResources(pScreen);
@@ -1188,13 +1301,18 @@ CreateScreenResources(ScreenPtr pScreen)
     if (ms->drmmode.shadow_enable)
         pixels = ms->drmmode.shadow_fb;
 
+    if (ms->drmmode.shadow_enable2) {
+        ms->drmmode.shadow_fb2 = calloc(1, pScrn->displayWidth * pScrn->virtualY * ((pScrn->bitsPerPixel + 7) >> 3));
+        if (!ms->drmmode.shadow_fb2)
+            ms->drmmode.shadow_enable2 = FALSE;
+    }
+
     if (!pScreen->ModifyPixmapHeader(rootPixmap, -1, -1, -1, -1, -1, pixels))
         FatalError("Couldn't adjust screen pixmap\n");
 
     if (ms->drmmode.shadow_enable) {
-        if (!shadowAdd(pScreen, rootPixmap,
-                       use_ms_shadow ? ms_shadowUpdate32to24 : msUpdatePacked,
-                       msShadowWindow, 0, 0))
+        if (!shadowAdd(pScreen, rootPixmap, msUpdatePacked, msShadowWindow,
+                       0, 0))
             return FALSE;
     }
 
@@ -1650,6 +1768,8 @@ CloseScreen(ScreenPtr pScreen)
         shadowRemove(pScreen, pScreen->GetScreenPixmap(pScreen));
         free(ms->drmmode.shadow_fb);
         ms->drmmode.shadow_fb = NULL;
+        free(ms->drmmode.shadow_fb2);
+        ms->drmmode.shadow_fb2 = NULL;
     }
     drmmode_uevent_fini(pScrn, &ms->drmmode);
 
