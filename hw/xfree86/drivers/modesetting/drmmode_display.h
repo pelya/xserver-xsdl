@@ -48,6 +48,7 @@ typedef struct {
     unsigned fb_id;
     drmModeFBPtr mode_fb;
     int cpp;
+    int kbpp;
     ScrnInfoPtr scrn;
 
     struct gbm_device *gbm;
@@ -67,6 +68,7 @@ typedef struct {
     Bool shadow_enable;
     /** Is Option "PageFlip" enabled? */
     Bool pageflip;
+    Bool force_24_32;
     void *shadow_fb;
 
     /**
