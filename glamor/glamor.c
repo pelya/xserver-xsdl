@@ -194,7 +194,6 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 
     if (fbo == NULL) {
         fbDestroyPixmap(pixmap);
-        free(pixmap_priv);
         return fbCreatePixmap(screen, w, h, depth, usage);
     }
 
