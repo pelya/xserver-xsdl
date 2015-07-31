@@ -1143,10 +1143,8 @@ winSetEngineFunctionsShadowGDI(ScreenPtr pScreen)
     pScreenPriv->pwinStoreColors = winStoreColorsShadowGDI;
     pScreenPriv->pwinCreateColormap = winCreateColormapShadowGDI;
     pScreenPriv->pwinDestroyColormap = winDestroyColormapShadowGDI;
-    pScreenPriv->pwinCreatePrimarySurface =
-        (winCreatePrimarySurfaceProcPtr) (void (*)(void)) NoopDDA;
-    pScreenPriv->pwinReleasePrimarySurface =
-        (winReleasePrimarySurfaceProcPtr) (void (*)(void)) NoopDDA;
+    pScreenPriv->pwinCreatePrimarySurface = NULL;
+    pScreenPriv->pwinReleasePrimarySurface = NULL;
 
     return TRUE;
 }
