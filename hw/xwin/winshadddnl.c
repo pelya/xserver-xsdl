@@ -1213,10 +1213,6 @@ winSetEngineFunctionsShadowDDNL(ScreenPtr pScreen)
     pScreenPriv->pwinDestroyColormap = winDestroyColormapShadowDDNL;
     pScreenPriv->pwinCreatePrimarySurface = winCreatePrimarySurfaceShadowDDNL;
     pScreenPriv->pwinReleasePrimarySurface = winReleasePrimarySurfaceShadowDDNL;
-#ifdef XWIN_MULTIWINDOW
-    pScreenPriv->pwinFinishCreateWindowsWindow
-        = (winFinishCreateWindowsWindowProcPtr) (void (*)(void)) NoopDDA;
-#endif
 
     return TRUE;
 }
