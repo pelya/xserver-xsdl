@@ -1107,14 +1107,6 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             winFixShiftKeys(iScanCode);
         return 0;
 
-    case WM_HOTKEY:
-        if (s_pScreenPriv == NULL)
-            break;
-
-        /* Call the engine-specific hot key handler */
-        (*s_pScreenPriv->pwinHotKeyAltTab) (s_pScreen);
-        return 0;
-
     case WM_ACTIVATE:
         if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
             break;

@@ -1143,8 +1143,6 @@ winSetEngineFunctionsShadowGDI(ScreenPtr pScreen)
     pScreenPriv->pwinStoreColors = winStoreColorsShadowGDI;
     pScreenPriv->pwinCreateColormap = winCreateColormapShadowGDI;
     pScreenPriv->pwinDestroyColormap = winDestroyColormapShadowGDI;
-    pScreenPriv->pwinHotKeyAltTab =
-        (winHotKeyAltTabProcPtr) (void (*)(void)) NoopDDA;
     pScreenPriv->pwinCreatePrimarySurface =
         (winCreatePrimarySurfaceProcPtr) (void (*)(void)) NoopDDA;
     pScreenPriv->pwinReleasePrimarySurface =
