@@ -1763,8 +1763,12 @@ winApplyHints(WMInfoPtr pWMInfo, xcb_window_t iWindow, HWND hWnd, HWND * zstyle)
         cookie = xcb_icccm_get_wm_normal_hints(conn, iWindow);
         if (xcb_icccm_get_wm_normal_hints_reply(conn, cookie, &size_hints, NULL)) {
             if (size_hints.flags & XCB_ICCCM_SIZE_HINT_P_MAX_SIZE) {
-                /* Not maximizable if a maximum size is specified */
-                hint |= HINT_NOMAXIMIZE;
+
+                /* Not maximizable if a maximum size is specified, and that size
+                   is smaller (in either dimension) than the screen size */
+                if ((size_hints.max_width < GetSystemMetrics(SM_CXVIRTUALSCREEN))
+                    || (size_hints.max_height < GetSystemMetrics(SM_CYVIRTUALSCREEN)))
+                    hint |= HINT_NOMAXIMIZE;
 
                 if (size_hints.flags & XCB_ICCCM_SIZE_HINT_P_MIN_SIZE) {
                     /*
