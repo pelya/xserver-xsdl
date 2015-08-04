@@ -559,8 +559,6 @@ create_input_device(struct xwl_screen *xwl_screen, uint32_t id)
 void
 xwl_seat_destroy(struct xwl_seat *xwl_seat)
 {
-    RemoveDevice(xwl_seat->pointer, FALSE);
-    RemoveDevice(xwl_seat->keyboard, FALSE);
     wl_seat_destroy(xwl_seat->seat);
     wl_surface_destroy(xwl_seat->cursor);
     if (xwl_seat->cursor_frame_cb)
