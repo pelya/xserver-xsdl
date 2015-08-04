@@ -188,8 +188,6 @@ void
 xwl_output_destroy(struct xwl_output *xwl_output)
 {
     wl_output_destroy(xwl_output->output);
-    RRCrtcDestroy(xwl_output->randr_crtc);
-    RROutputDestroy(xwl_output->randr_output);
     free(xwl_output);
 }
 
