@@ -41,6 +41,10 @@ The following driver
 .B Options
 are supported:
 .TP
+.BI "Option \*qSWcursor\*q \*q" boolean \*q
+Selects software cursor.  The default is
+.B off.
+.TP
 .BI "Option \*qkmsdev\*q \*q" string \*q
 The framebuffer device to use. Default: /dev/dri/card0.
 .TP
@@ -49,6 +53,10 @@ Enable or disable use of the shadow framebuffer layer.  Default: on.
 .TP
 .BI "Option \*qAccelMethod\*q \*q" string \*q
 One of \*qglamor\*q or \*qnone\*q.  Default: glamor
+.TP
+.BI "Option \*qPageFlip\*q \*q" boolean \*q
+Enable DRI3 page flipping.  The default is
+.B on.
 .TP
 .BI "Option \*qZaphodHeads\*q \*q" string \*q
 Specify the RandR output(s) to use with zaphod mode for a particular driver
