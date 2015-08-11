@@ -1765,7 +1765,7 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
                            (unsigned char **) &pAtom) == Success) {
         if (pAtom && nitems == 1) {
             if (*pAtom == dockWindow) {
-                hint = (hint & ~HINT_NOFRAME) | HINT_SIZEBOX;   /* Xming puts a sizebox on dock windows */
+                hint = (hint & ~HINT_NOFRAME) | HINT_SKIPTASKBAR | HINT_SIZEBOX;
                 *zstyle = HWND_TOPMOST;
             }
         }
