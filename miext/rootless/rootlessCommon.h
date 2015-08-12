@@ -70,8 +70,8 @@ extern DevPrivateKeyRec rootlessWindowOldPixmapPrivateKeyRec;
 
 // RootlessGCRec: private per-gc data
 typedef struct {
-    GCFuncs *originalFuncs;
-    GCOps *originalOps;
+    const GCFuncs *originalFuncs;
+    const GCOps *originalOps;
 } RootlessGCRec;
 
 // RootlessScreenRec: per-screen private data
