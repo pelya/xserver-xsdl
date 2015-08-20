@@ -441,12 +441,43 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
     }
 }
 
+static void
+keyboard_handle_repeat_info (void *data, struct wl_keyboard *keyboard,
+                             int32_t rate, int32_t delay)
+{
+    struct xwl_seat *xwl_seat = data;
+    DeviceIntPtr dev;
+    XkbControlsPtr ctrl;
+
+    if (rate < 0 || delay < 0) {
+	ErrorF("Wrong rate/delay: %d, %d\n", rate, delay);
+	return;
+    }
+
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+        if (dev != xwl_seat->keyboard &&
+            dev != GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD))
+            continue;
+
+	if (rate != 0) {
+            ctrl = dev->key->xkbInfo->desc->ctrls;
+            ctrl->repeat_delay = delay;
+            /* rate is number of keys per second */
+            ctrl->repeat_interval = 1000 / rate;
+
+	    XkbSetRepeatKeys(dev, -1, AutoRepeatModeOn);
+	} else
+	    XkbSetRepeatKeys(dev, -1, AutoRepeatModeOff);
+    }
+}
+
 static const struct wl_keyboard_listener keyboard_listener = {
     keyboard_handle_keymap,
     keyboard_handle_enter,
     keyboard_handle_leave,
     keyboard_handle_key,
     keyboard_handle_modifiers,
+    keyboard_handle_repeat_info,
 };
 
 static DeviceIntPtr
@@ -534,7 +565,7 @@ static const struct wl_seat_listener seat_listener = {
 };
 
 static void
-create_input_device(struct xwl_screen *xwl_screen, uint32_t id)
+create_input_device(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version)
 {
     struct xwl_seat *xwl_seat;
 
@@ -548,7 +579,8 @@ create_input_device(struct xwl_screen *xwl_screen, uint32_t id)
     xorg_list_add(&xwl_seat->link, &xwl_screen->seat_list);
 
     xwl_seat->seat =
-        wl_registry_bind(xwl_screen->registry, id, &wl_seat_interface, 3);
+        wl_registry_bind(xwl_screen->registry, id,
+                         &wl_seat_interface, min(version, 4));
     xwl_seat->id = id;
 
     xwl_seat->cursor = wl_compositor_create_surface(xwl_screen->compositor);
@@ -574,7 +606,7 @@ input_handler(void *data, struct wl_registry *registry, uint32_t id,
     struct xwl_screen *xwl_screen = data;
 
     if (strcmp(interface, "wl_seat") == 0 && version >= 3) {
-        create_input_device(xwl_screen, id);
+        create_input_device(xwl_screen, id, version);
         xwl_screen->expecting_event++;
     }
 }
