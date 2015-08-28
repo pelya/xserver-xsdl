@@ -246,7 +246,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     valuator_mask_zero(&mask);
     for (i = 0; i < dev->button->numButtons; i++)
         if (BitIsOn(dev->button->down, i))
-            QueuePointerEvents(xwl_seat->pointer, ButtonRelease, i, 0, &mask);
+            QueuePointerEvents(dev, ButtonRelease, i, 0, &mask);
 }
 
 static void
