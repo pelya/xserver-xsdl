@@ -231,7 +231,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     xwl_seat->focus_window = wl_surface_get_user_data(surface);
 
     (*pScreen->SetCursorPosition) (dev, pScreen, sx, sy, TRUE);
-    CheckMotion(NULL, GetMaster(dev, MASTER_POINTER));
+    CheckMotion(NULL, GetMaster(dev, POINTER_OR_FLOAT));
 
     /* Ideally, X clients shouldn't see these button releases.  When
      * the pointer leaves a window with buttons down, it means that
@@ -259,7 +259,7 @@ pointer_handle_leave(void *data, struct wl_pointer *pointer,
     xwl_seat->xwl_screen->serial = serial;
 
     xwl_seat->focus_window = NULL;
-    CheckMotion(NULL, GetMaster(dev, MASTER_POINTER));
+    CheckMotion(NULL, GetMaster(dev, POINTER_OR_FLOAT));
 }
 
 static void
