@@ -433,7 +433,7 @@ elapse between autorepeat-generated keystrokes).
 loads keyboard description in \fIfilename\fP on server startup.
 .SH "NETWORK CONNECTIONS"
 The X server supports client connections via a platform-dependent subset of
-the following transport types: TCP\/IP, Unix Domain sockets, DECnet,
+the following transport types: TCP/IP, Unix Domain sockets, DECnet,
 and several varieties of SVR4 local connections.  See the DISPLAY
 NAMES section of the \fIX\fP(__miscmansuffix__) manual page to learn how to
 specify which transport type clients should try to use.
