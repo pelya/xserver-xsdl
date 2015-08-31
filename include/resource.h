@@ -85,7 +85,7 @@ typedef uint32_t RESTYPE;
 #define RT_LASTPREDEF	((RESTYPE)9)
 #define RT_NONE		((RESTYPE)0)
 
-extern unsigned int ResourceClientBits(void);
+extern _X_EXPORT unsigned int ResourceClientBits(void);
 /* bits and fields within a resource id */
 #define RESOURCE_AND_CLIENT_COUNT   29  /* 29 bits for XIDs */
 #define RESOURCE_CLIENT_BITS        ResourceClientBits() /* client field offset */
