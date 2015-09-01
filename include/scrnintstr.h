@@ -258,12 +258,15 @@ typedef void (*ResolveColorProcPtr) (unsigned short * /*pred */ ,
 typedef RegionPtr (*BitmapToRegionProcPtr) (PixmapPtr /*pPix */ );
 
 typedef void (*ScreenBlockHandlerProcPtr) (ScreenPtr pScreen,
-                                           void *pTimeout,
-                                           void *pReadmask);
+                                           void *timeout);
 
+/* result has three possible values:
+ * < 0 - error
+ * = 0 - timeout
+ * > 0 - activity
+ */
 typedef void (*ScreenWakeupHandlerProcPtr) (ScreenPtr pScreen,
-                                            unsigned long result,
-                                            void *pReadMask);
+                                            int result);
 
 typedef Bool (*CreateScreenResourcesProcPtr) (ScreenPtr /*pScreen */ );
 

@@ -639,12 +639,12 @@ ms_dirty_get_ent(ScreenPtr screen, PixmapPtr slave_dst)
 }
 
 static void
-msBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
+msBlockHandler(ScreenPtr pScreen, void *timeout)
 {
     modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(pScreen));
 
     pScreen->BlockHandler = ms->BlockHandler;
-    pScreen->BlockHandler(pScreen, pTimeout, pReadmask);
+    pScreen->BlockHandler(pScreen, timeout);
     ms->BlockHandler = pScreen->BlockHandler;
     pScreen->BlockHandler = msBlockHandler;
     if (pScreen->isGPU && !ms->drmmode.reverse_prime_offload_mode)
@@ -656,12 +656,12 @@ msBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
 }
 
 static void
-msBlockHandler_oneshot(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
+msBlockHandler_oneshot(ScreenPtr pScreen, void *pTimeout)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     modesettingPtr ms = modesettingPTR(pScrn);
 
-    msBlockHandler(pScreen, pTimeout, pReadmask);
+    msBlockHandler(pScreen, pTimeout);
 
     drmmode_set_desired_modes(pScrn, &ms->drmmode, TRUE);
 }
