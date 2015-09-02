@@ -26,9 +26,9 @@ dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.60)
-AC_INIT([xorg-server], 1.17.99.0, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
-RELEASE_DATE="2015-02-02"
-RELEASE_NAME="Côte de veau"
+AC_INIT([xorg-server], 1.17.99.901, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+RELEASE_DATE="2015-09-01"
+RELEASE_NAME="Nectarine"
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
