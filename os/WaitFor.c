@@ -208,7 +208,7 @@ WaitForSomething(int *pClientsReady)
             XFD_COPYSET(&AllSockets, &LastSelectMask);
         }
 
-        BlockHandler((void *) &wt, (void *) &LastSelectMask);
+        BlockHandler(&wt);
         if (NewOutputPending)
             FlushAllOutput();
         /* keep this check close to select() call to minimize race */
@@ -223,7 +223,7 @@ WaitForSomething(int *pClientsReady)
             i = Select(MaxClients, &LastSelectMask, NULL, NULL, wt);
         }
         selecterr = GetErrno();
-        WakeupHandler(i, (void *) &LastSelectMask);
+        WakeupHandler(i);
         if (i <= 0) {           /* An error or timeout occurred */
             if (dispatchException)
                 return 0;

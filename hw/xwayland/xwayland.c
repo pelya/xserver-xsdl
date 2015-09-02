@@ -507,12 +507,12 @@ socket_handler(int fd, int ready, void *data)
 }
 
 static void
-wakeup_handler(void *data, int err, void *pRead)
+wakeup_handler(void *data, int err)
 {
 }
 
 static void
-block_handler(void *data, OSTimePtr pTimeout, void *pRead)
+block_handler(void *data, void *timeout)
 {
     struct xwl_screen *xwl_screen = data;
 

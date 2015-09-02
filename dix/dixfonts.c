@@ -197,7 +197,7 @@ RemoveFontWakeup(FontPathElementPtr fpe)
 }
 
 static void
-FontWakeup(void *data, int count, void *LastSelectMask)
+FontWakeup(void *data, int count)
 {
     int i;
     FontPathElementPtr fpe;
@@ -1918,8 +1918,7 @@ _client_auth_generation(ClientPtr client)
 static int fs_handlers_installed = 0;
 static unsigned int last_server_gen;
 
-static void
-fs_block_handler(void *blockData, OSTimePtr timeout, void *readmask)
+static void fs_block_handler(void *blockData, void *timeout)
 {
     FontBlockHandlerProcPtr block_handler = blockData;
 
@@ -2004,7 +2003,7 @@ _init_fs_handlers(FontPathElementPtr fpe, FontBlockHandlerProcPtr block_handler)
 
 static void
 _remove_fs_handlers(FontPathElementPtr fpe, FontBlockHandlerProcPtr block_handler,
-                   Bool all)
+                    Bool all)
 {
     if (all) {
         /* remove the handlers if no one else is using them */

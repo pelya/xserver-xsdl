@@ -263,11 +263,9 @@ extern _X_EXPORT void DRIDestroyInfoRec(DRIInfoPtr DRIInfo);
 
 extern _X_EXPORT Bool DRIFinishScreenInit(ScreenPtr pScreen);
 
-extern _X_EXPORT void DRIWakeupHandler(void *wakeupData,
-                                       int result, void *pReadmask);
+extern _X_EXPORT void DRIWakeupHandler(void *wakeupData, int result);
 
-extern _X_EXPORT void DRIBlockHandler(void *blockData,
-                                      OSTimePtr pTimeout, void *pReadmask);
+extern _X_EXPORT void DRIBlockHandler(void *blockData, void *timeout);
 
 extern _X_EXPORT void DRIDoWakeupHandler(ScreenPtr pScreen, int result);
 

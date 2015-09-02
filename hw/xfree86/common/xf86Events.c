@@ -242,7 +242,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 
 /* ARGSUSED */
 void
-xf86Wakeup(void *blockData, int err, void *pReadmask)
+xf86Wakeup(void *blockData, int err)
 {
     if (xf86VTSwitchPending())
         xf86VTSwitch();

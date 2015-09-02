@@ -1667,7 +1667,7 @@ DRIDestroyInfoRec(DRIInfoPtr DRIInfo)
 }
 
 void
-DRIWakeupHandler(void *wakeupData, int result, void *pReadmask)
+DRIWakeupHandler(void *wakeupData, int result)
 {
     int i;
 
@@ -1681,7 +1681,7 @@ DRIWakeupHandler(void *wakeupData, int result, void *pReadmask)
 }
 
 void
-DRIBlockHandler(void *blockData, OSTimePtr pTimeout, void *pReadmask)
+DRIBlockHandler(void *blockData, void *pTimeout)
 {
     int i;
 
