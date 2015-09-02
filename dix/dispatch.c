@@ -108,7 +108,7 @@ int ProcInitialConnection();
 
 #include "windowstr.h"
 #include <X11/fonts/fontstruct.h>
-#include <X11/fonts/fontutil.h>
+#include <X11/fonts/libxfont2.h>
 #include "dixfontstr.h"
 #include "gcstruct.h"
 #include "selection.h"
@@ -1285,7 +1285,7 @@ ProcQueryTextExtents(ClientPtr client)
             return BadLength;
         length--;
     }
-    if (!QueryTextExtents(pFont, length, (unsigned char *) &stuff[1], &info))
+    if (!xfont2_query_text_extents(pFont, length, (unsigned char *) &stuff[1], &info))
         return BadAlloc;
     reply = (xQueryTextExtentsReply) {
         .type = X_Reply,

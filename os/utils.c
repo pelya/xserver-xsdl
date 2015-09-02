@@ -80,7 +80,7 @@ __stdcall unsigned long GetTickCount(void);
 #include <X11/Xtrans/Xtrans.h>
 #include "input.h"
 #include "dixfont.h"
-#include <X11/fonts/fontutil.h>
+#include <X11/fonts/libxfont2.h>
 #include "osdep.h"
 #include "extension.h"
 #ifdef X_POSIX_C_SOURCE
@@ -798,7 +798,7 @@ ProcessCommandLine(int argc, char *argv[])
             DPMSDisabledSwitch = TRUE;
 #endif
         else if (strcmp(argv[i], "-deferglyphs") == 0) {
-            if (++i >= argc || !ParseGlyphCachingMode(argv[i]))
+            if (++i >= argc || !xfont2_parse_glyph_caching_mode(argv[i]))
                 UseMsg();
         }
         else if (strcmp(argv[i], "-f") == 0) {

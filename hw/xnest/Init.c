@@ -26,6 +26,7 @@ is" without express or implied warranty.
 #include "servermd.h"
 #include "mi.h"
 #include <X11/fonts/fontstruct.h>
+#include "dixfontstr.h"
 
 #include "Xnest.h"
 
@@ -72,7 +73,7 @@ InitOutput(ScreenInfo * screen_info, int argc, char *argv[])
                 break;
             }
 
-    xnestFontPrivateIndex = AllocateFontPrivateIndex();
+    xnestFontPrivateIndex = xfont2_allocate_font_private_index();
 
     if (!xnestNumScreens)
         xnestNumScreens = 1;
