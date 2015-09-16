@@ -545,6 +545,11 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         }
     }
 
+    if (!epoxy_has_gl_extension("GL_OES_EGL_image")) {
+        ErrorF("GL_OES_EGL_image not available\n");
+        goto fail;
+    }
+
     glamor_priv->has_rw_pbo = FALSE;
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
         glamor_priv->has_rw_pbo = TRUE;
