@@ -199,8 +199,6 @@ static void send_packet(void);
 
 static void timeout(void);
 
-static void restart(void);
-
 static void XdmcpBlockHandler(void              *data ,
                               struct timeval    **wt,
                               void              *LastSelectMask);
@@ -708,9 +706,7 @@ XdmcpWakeupHandler(void *data,        /* unused */
 #endif
         XFD_ANDSET(&devicesReadable, last_select_mask, &EnabledDevices);
         if (XFD_ANYSET(&devicesReadable)) {
-            if (state == XDM_AWAIT_USER_INPUT)
-                restart();
-            else if (state == XDM_RUN_SESSION)
+            if (state == XDM_RUN_SESSION)
                 keepaliveDormancy = defaultKeepaliveDormancy;
         }
         if (XFD_ANYSET(&AllClients) && state == XDM_RUN_SESSION)
@@ -933,14 +929,6 @@ timeout(void)
     default:
         break;
     }
-    send_packet();
-}
-
-static void
-restart(void)
-{
-    state = XDM_INIT_STATE;
-    timeOutRtx = 0;
     send_packet();
 }
 
