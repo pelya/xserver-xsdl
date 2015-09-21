@@ -148,6 +148,61 @@ xwl_keyboard_proc(DeviceIntPtr device, int what)
     return BadMatch;
 }
 
+static int
+xwl_touch_proc(DeviceIntPtr device, int what)
+{
+#define NTOUCHPOINTS 20
+#define NBUTTONS 1
+#define NAXES 2
+    struct xwl_seat *xwl_seat = device->public.devicePrivate;
+    Atom btn_labels[NBUTTONS] = { 0 };
+    Atom axes_labels[NAXES] = { 0 };
+    BYTE map[NBUTTONS + 1] = { 0 };
+
+    switch (what) {
+    case DEVICE_INIT:
+        device->public.on = FALSE;
+
+        axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_MT_POSITION_X);
+        axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_MT_POSITION_Y);
+
+        if (!InitValuatorClassDeviceStruct(device, NAXES, axes_labels,
+                                           GetMotionHistorySize(), Absolute))
+            return BadValue;
+
+        if (!InitButtonClassDeviceStruct(device, NBUTTONS, btn_labels, map))
+            return BadValue;
+
+        if (!InitTouchClassDeviceStruct(device, NTOUCHPOINTS,
+                                        XIDirectTouch, NAXES))
+            return BadValue;
+
+        /* Valuators */
+        /* FIXME: devices might be mapped to a single wl_output */
+        InitValuatorAxisStruct(device, 0, axes_labels[0],
+                               0, xwl_seat->xwl_screen->width,
+                               10000, 0, 10000, Absolute);
+        InitValuatorAxisStruct(device, 1, axes_labels[1],
+                               0, xwl_seat->xwl_screen->height,
+                               10000, 0, 10000, Absolute);
+        return Success;
+
+    case DEVICE_ON:
+        device->public.on = TRUE;
+        return Success;
+
+    case DEVICE_OFF:
+    case DEVICE_CLOSE:
+        device->public.on = FALSE;
+        return Success;
+    }
+
+    return BadMatch;
+#undef NAXES
+#undef NBUTTONS
+#undef NTOUCHPOINTS
+}
+
 static void
 pointer_handle_enter(void *data, struct wl_pointer *pointer,
                      uint32_t serial, struct wl_surface *surface,
@@ -176,7 +231,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     xwl_seat->focus_window = wl_surface_get_user_data(surface);
 
     (*pScreen->SetCursorPosition) (dev, pScreen, sx, sy, TRUE);
-    CheckMotion(NULL, GetMaster(dev, MASTER_POINTER));
+    CheckMotion(NULL, GetMaster(dev, POINTER_OR_FLOAT));
 
     /* Ideally, X clients shouldn't see these button releases.  When
      * the pointer leaves a window with buttons down, it means that
@@ -191,7 +246,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     valuator_mask_zero(&mask);
     for (i = 0; i < dev->button->numButtons; i++)
         if (BitIsOn(dev->button->down, i))
-            QueuePointerEvents(xwl_seat->pointer, ButtonRelease, i, 0, &mask);
+            QueuePointerEvents(dev, ButtonRelease, i, 0, &mask);
 }
 
 static void
@@ -204,7 +259,7 @@ pointer_handle_leave(void *data, struct wl_pointer *pointer,
     xwl_seat->xwl_screen->serial = serial;
 
     xwl_seat->focus_window = NULL;
-    CheckMotion(NULL, GetMaster(dev, MASTER_POINTER));
+    CheckMotion(NULL, GetMaster(dev, POINTER_OR_FLOAT));
 }
 
 static void
@@ -480,6 +535,129 @@ static const struct wl_keyboard_listener keyboard_listener = {
     keyboard_handle_repeat_info,
 };
 
+static struct xwl_touch *
+xwl_seat_lookup_touch(struct xwl_seat *xwl_seat, int32_t id)
+{
+    struct xwl_touch *xwl_touch, *next_xwl_touch;
+
+    xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
+                                  &xwl_seat->touches, link_touch) {
+        if (xwl_touch->id == id)
+            return xwl_touch;
+    }
+
+    return NULL;
+}
+
+static void
+xwl_touch_send_event(struct xwl_touch *xwl_touch,
+                     struct xwl_seat *xwl_seat, int type)
+{
+    int32_t dx, dy;
+    ValuatorMask mask;
+
+    dx = xwl_touch->window->window->drawable.x;
+    dy = xwl_touch->window->window->drawable.y;
+
+    valuator_mask_zero(&mask);
+    valuator_mask_set(&mask, 0, dx + xwl_touch->x);
+    valuator_mask_set(&mask, 1, dy + xwl_touch->y);
+    QueueTouchEvents(xwl_seat->touch, type, xwl_touch->id, 0, &mask);
+}
+
+static void
+touch_handle_down(void *data, struct wl_touch *wl_touch,
+                  uint32_t serial, uint32_t time,
+                  struct wl_surface *surface,
+                  int32_t id, wl_fixed_t sx_w, wl_fixed_t sy_w)
+{
+    struct xwl_seat *xwl_seat = data;
+    struct xwl_touch *xwl_touch;
+
+    if (surface == NULL)
+        return;
+
+    xwl_touch = calloc(sizeof *xwl_touch, 1);
+    if (xwl_touch == NULL) {
+        ErrorF("touch_handle_down ENOMEM");
+        return;
+    }
+
+    xwl_touch->window = wl_surface_get_user_data(surface);
+    xwl_touch->id = id;
+    xwl_touch->x = wl_fixed_to_int(sx_w);
+    xwl_touch->y = wl_fixed_to_int(sy_w);
+    xorg_list_add(&xwl_touch->link_touch, &xwl_seat->touches);
+
+    xwl_touch_send_event(xwl_touch, xwl_seat, XI_TouchBegin);
+}
+
+static void
+touch_handle_up(void *data, struct wl_touch *wl_touch,
+                uint32_t serial, uint32_t time, int32_t id)
+{
+    struct xwl_touch *xwl_touch;
+    struct xwl_seat *xwl_seat = data;
+
+    xwl_touch = xwl_seat_lookup_touch(xwl_seat, id);
+
+    if (!xwl_touch)
+        return;
+
+    xwl_touch_send_event(xwl_touch, xwl_seat, XI_TouchEnd);
+    xorg_list_del(&xwl_touch->link_touch);
+    free(xwl_touch);
+}
+
+static void
+touch_handle_motion(void *data, struct wl_touch *wl_touch,
+                    uint32_t time, int32_t id,
+                    wl_fixed_t sx_w, wl_fixed_t sy_w)
+{
+    struct xwl_seat *xwl_seat = data;
+    struct xwl_touch *xwl_touch;
+
+    xwl_touch = xwl_seat_lookup_touch(xwl_seat, id);
+
+    if (!xwl_touch)
+        return;
+
+    xwl_touch->x = wl_fixed_to_int(sx_w);
+    xwl_touch->y = wl_fixed_to_int(sy_w);
+    xwl_touch_send_event(xwl_touch, xwl_seat, XI_TouchUpdate);
+}
+
+static void
+touch_handle_frame(void *data, struct wl_touch *wl_touch)
+{
+}
+
+static void
+touch_handle_cancel(void *data, struct wl_touch *wl_touch)
+{
+    struct xwl_seat *xwl_seat = data;
+    struct xwl_touch *xwl_touch, *next_xwl_touch;
+
+    xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
+                                  &xwl_seat->touches, link_touch) {
+        /* We can't properly notify of cancellation to the X client
+         * once it thinks it has the ownership, send at least a
+         * TouchEnd event.
+         */
+        xwl_touch_send_event(xwl_touch, xwl_seat, XI_TouchEnd);
+        xorg_list_del(&xwl_touch->link_touch);
+        free(xwl_touch);
+    }
+}
+
+static const struct wl_touch_listener touch_listener = {
+    touch_handle_down,
+    touch_handle_up,
+    touch_handle_motion,
+    touch_handle_frame,
+    touch_handle_cancel
+};
+
 static DeviceIntPtr
 add_device(struct xwl_seat *xwl_seat,
            const char *driver, DeviceProc device_proc)
@@ -514,13 +692,13 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
         wl_pointer_add_listener(xwl_seat->wl_pointer,
                                 &pointer_listener, xwl_seat);
 
-        if (xwl_seat->pointer)
-            EnableDevice(xwl_seat->pointer, TRUE);
-        else {
+        if (xwl_seat->pointer == NULL) {
             xwl_seat_set_cursor(xwl_seat);
             xwl_seat->pointer =
                 add_device(xwl_seat, "xwayland-pointer", xwl_pointer_proc);
+            ActivateDevice(xwl_seat->pointer, TRUE);
         }
+        EnableDevice(xwl_seat->pointer, TRUE);
     } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && xwl_seat->wl_pointer) {
         wl_pointer_release(xwl_seat->wl_pointer);
         xwl_seat->wl_pointer = NULL;
@@ -534,12 +712,12 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
         wl_keyboard_add_listener(xwl_seat->wl_keyboard,
                                  &keyboard_listener, xwl_seat);
 
-        if (xwl_seat->keyboard)
-            EnableDevice(xwl_seat->keyboard, TRUE);
-        else {
+        if (xwl_seat->keyboard == NULL) {
             xwl_seat->keyboard =
                 add_device(xwl_seat, "xwayland-keyboard", xwl_keyboard_proc);
+            ActivateDevice(xwl_seat->keyboard, TRUE);
         }
+        EnableDevice(xwl_seat->keyboard, TRUE);
     } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD) && xwl_seat->wl_keyboard) {
         wl_keyboard_release(xwl_seat->wl_keyboard);
         xwl_seat->wl_keyboard = NULL;
@@ -548,8 +726,26 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
             DisableDevice(xwl_seat->keyboard, TRUE);
     }
 
+    if (caps & WL_SEAT_CAPABILITY_TOUCH && xwl_seat->wl_touch == NULL) {
+        xwl_seat->wl_touch = wl_seat_get_touch(seat);
+        wl_touch_add_listener(xwl_seat->wl_touch,
+                              &touch_listener, xwl_seat);
+
+        if (xwl_seat->touch)
+            EnableDevice(xwl_seat->touch, TRUE);
+        else {
+            xwl_seat->touch =
+                add_device(xwl_seat, "xwayland-touch", xwl_touch_proc);
+        }
+    } else if (!(caps & WL_SEAT_CAPABILITY_TOUCH) && xwl_seat->wl_touch) {
+        wl_touch_release(xwl_seat->wl_touch);
+        xwl_seat->wl_touch = NULL;
+
+        if (xwl_seat->touch)
+            DisableDevice(xwl_seat->touch, TRUE);
+    }
+
     xwl_seat->xwl_screen->expecting_event--;
-    /* FIXME: Touch ... */
 }
 
 static void
@@ -586,11 +782,21 @@ create_input_device(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version
     xwl_seat->cursor = wl_compositor_create_surface(xwl_screen->compositor);
     wl_seat_add_listener(xwl_seat->seat, &seat_listener, xwl_seat);
     wl_array_init(&xwl_seat->keys);
+
+    xorg_list_init(&xwl_seat->touches);
 }
 
 void
 xwl_seat_destroy(struct xwl_seat *xwl_seat)
 {
+    struct xwl_touch *xwl_touch, *next_xwl_touch;
+
+    xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
+                                  &xwl_seat->touches, link_touch) {
+        xorg_list_del(&xwl_touch->link_touch);
+        free(xwl_touch);
+    }
+
     wl_seat_destroy(xwl_seat->seat);
     wl_surface_destroy(xwl_seat->cursor);
     if (xwl_seat->cursor_frame_cb)
@@ -638,34 +844,17 @@ DDXRingBell(int volume, int pitch, int duration)
 {
 }
 
-static WindowPtr
-xwl_xy_to_window(ScreenPtr screen, SpritePtr sprite, int x, int y)
+void
+xwl_seat_clear_touch(struct xwl_seat *xwl_seat, WindowPtr window)
 {
-    struct xwl_seat *xwl_seat = NULL;
-    DeviceIntPtr device;
+    struct xwl_touch *xwl_touch, *next_xwl_touch;
 
-    for (device = inputInfo.devices; device; device = device->next) {
-        if (device->deviceProc == xwl_pointer_proc &&
-            device->spriteInfo->sprite == sprite) {
-            xwl_seat = device->public.devicePrivate;
-            break;
+    xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
+                                  &xwl_seat->touches, link_touch) {
+        if (xwl_touch->window->window == window) {
+            xorg_list_del(&xwl_touch->link_touch);
+            free(xwl_touch);
         }
-    }
-
-    if (xwl_seat == NULL) {
-        /* XTEST device */
-        sprite->spriteTraceGood = 1;
-        return sprite->spriteTrace[0];
-    }
-
-    if (xwl_seat->focus_window) {
-        sprite->spriteTraceGood = 2;
-        sprite->spriteTrace[1] = xwl_seat->focus_window->window;
-        return miSpriteTrace(sprite, x, y);
-    }
-    else {
-        sprite->spriteTraceGood = 1;
-        return sprite->spriteTrace[0];
     }
 }
 
@@ -680,9 +869,6 @@ InitInput(int argc, char *argv[])
     xwl_screen->input_registry = wl_display_get_registry(xwl_screen->display);
     wl_registry_add_listener(xwl_screen->input_registry, &input_listener,
                              xwl_screen);
-
-    xwl_screen->XYToWindow = pScreen->XYToWindow;
-    pScreen->XYToWindow = xwl_xy_to_window;
 
     xwl_screen->expecting_event = 0;
     wl_display_roundtrip(xwl_screen->display);
