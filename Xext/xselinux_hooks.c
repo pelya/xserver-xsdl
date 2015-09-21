@@ -41,7 +41,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "extnsionst.h"
 #include "xacestr.h"
 #include "client.h"
-#include "../os/osdep.h"
 #define _XSELINUX_NEED_FLASK_MAP
 #include "xselinuxint.h"
 

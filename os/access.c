@@ -1574,6 +1574,20 @@ GetAccessControl(void)
     return AccessEnabled;
 }
 
+int
+GetClientFd(ClientPtr client)
+{
+    return ((OsCommPtr) client->osPrivate)->fd;
+}
+
+Bool
+ClientIsLocal(ClientPtr client)
+{
+    XtransConnInfo ci = ((OsCommPtr) client->osPrivate)->trans_conn;
+
+    return _XSERVTransIsLocal(ci);
+}
+
 /*****************************************************************************
  * FamilyServerInterpreted host entry implementation
  *
