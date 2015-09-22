@@ -870,7 +870,8 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
     if (epoxy_has_egl_extension(glamor_egl->display,
                                 "EGL_KHR_gl_texture_2D_image") &&
         epoxy_has_egl_extension(glamor_egl->display,
-                                "EGL_EXT_image_dma_buf_import"))
+                                "EGL_EXT_image_dma_buf_import") &&
+        epoxy_has_gl_extension("GL_OES_EGL_image"))
         glamor_egl->dri3_capable = TRUE;
 #endif
 
