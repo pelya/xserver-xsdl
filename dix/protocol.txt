@@ -235,6 +235,11 @@ V000 MIT-SHM:Completion
 E000 MIT-SHM:BadShmSeg
 R000 MIT-SUNDRY-NONSTANDARD:SetBugMode
 R001 MIT-SUNDRY-NONSTANDARD:GetBugMode
+R000 Present:QueryVersion
+R001 Present:Pixmap
+R002 Present:NotifyMSC
+R003 Present:SelectInput
+R004 Present:QueryCapabilities
 R000 RANDR:QueryVersion
 R001 RANDR:OldGetScreenInfo
 R002 RANDR:SetScreenConfig
