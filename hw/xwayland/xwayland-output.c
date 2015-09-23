@@ -101,8 +101,13 @@ output_handle_mode(void *data, struct wl_output *wl_output, uint32_t flags,
     if (!(flags & WL_OUTPUT_MODE_CURRENT))
         return;
 
-    xwl_output->width = width;
-    xwl_output->height = height;
+    if (xwl_output->rotation & (RR_Rotate_0 | RR_Rotate_180)) {
+        xwl_output->width = width;
+        xwl_output->height = height;
+    } else {
+        xwl_output->width = height;
+        xwl_output->height = width;
+    }
 
     randr_mode = xwayland_cvt(width, height, refresh / 1000.0, 0, 0);
 
