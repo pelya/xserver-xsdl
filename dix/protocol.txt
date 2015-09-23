@@ -277,6 +277,9 @@ R038 RANDR:RRConfigureProviderProperty
 R039 RANDR:RRChangeProviderProperty
 R040 RANDR:RRDeleteProviderProperty
 R041 RANDR:RRGetProviderProperty
+R042 RANDR:GetMonitors
+R043 RANDR:SetMonitor
+R044 RANDR:DeleteMonitor
 V000 RANDR:ScreenChangeNotify
 V001 RANDR:Notify
 E000 RANDR:BadRROutput
