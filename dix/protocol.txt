@@ -101,6 +101,12 @@ R011 DRI2:WaitSBC
 R012 DRI2:SwapInterval
 V000 DRI2:BufferSwapComplete
 V001 DRI2:InvalidateBuffers
+R000 DRI3:QueryVersion
+R001 DRI3:Open
+R002 DRI3:PixmapFromBuffer
+R003 DRI3:BufferFromPixmap
+R004 DRI3:FenceFromFD
+R005 DRI3:FDFromFence
 R000 Extended-Visual-Information:QueryVersion
 R001 Extended-Visual-Information:GetVisualInfo
 R000 FontCache:QueryVersion
