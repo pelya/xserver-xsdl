@@ -30,6 +30,8 @@
 #include "xwayland.h"
 #include <randrstr.h>
 
+#define DEFAULT_DPI 96
+
 static Rotation
 wl_transform_to_xrandr(enum wl_output_transform transform)
 {
@@ -129,12 +131,40 @@ output_get_new_size(struct xwl_output *xwl_output,
         *height = xwl_output->y + xwl_output->height;
 }
 
+/* Approximate some kind of mmpd (m.m. per dot) of the screen given the outputs
+ * associated with it.
+ *
+ * It will either calculate the mean mmpd of all the outputs, or default to
+ * 96 DPI if no reasonable value could be calculated.
+ */
+static double
+approximate_mmpd(struct xwl_screen *xwl_screen)
+{
+    struct xwl_output *it;
+    int total_width_mm = 0;
+    int total_width = 0;
+
+    xorg_list_for_each_entry(it, &xwl_screen->output_list, link) {
+        if (it->randr_output->mmWidth == 0)
+            continue;
+
+        total_width_mm += it->randr_output->mmWidth;
+        total_width += it->width;
+    }
+
+    if (total_width_mm != 0)
+        return (double)total_width_mm / total_width;
+    else
+        return 25.4 / DEFAULT_DPI;
+}
+
 static void
 output_handle_done(void *data, struct wl_output *wl_output)
 {
     struct xwl_output *it, *xwl_output = data;
     struct xwl_screen *xwl_screen = xwl_output->xwl_screen;
     int width = 0, height = 0, has_this_output = 0;
+    double mmpd;
 
     xorg_list_for_each_entry(it, &xwl_screen->output_list, link) {
         /* output done event is sent even when some property
@@ -163,6 +193,15 @@ output_handle_done(void *data, struct wl_output *wl_output)
     xwl_screen->height = height;
     xwl_screen->screen->width = width;
     xwl_screen->screen->height = height;
+
+    if (xwl_output->width == width && xwl_output->height == height) {
+        xwl_screen->screen->mmWidth = xwl_output->randr_output->mmWidth;
+        xwl_screen->screen->mmHeight = xwl_output->randr_output->mmHeight;
+    } else {
+        mmpd = approximate_mmpd(xwl_screen);
+        xwl_screen->screen->mmWidth = width * mmpd;
+        xwl_screen->screen->mmHeight = height * mmpd;
+    }
 
     if (xwl_screen->screen->root) {
         xwl_screen->screen->root->drawable.width = width;
