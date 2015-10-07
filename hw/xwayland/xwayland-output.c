@@ -156,9 +156,22 @@ output_handle_done(void *data, struct wl_output *wl_output)
 	--xwl_screen->expecting_event;
     }
 
+    if (xwl_screen->screen->root)
+        SetRootClip(xwl_screen->screen, FALSE);
+
     xwl_screen->width = width;
     xwl_screen->height = height;
-    RRScreenSizeNotify(xwl_screen->screen);
+    xwl_screen->screen->width = width;
+    xwl_screen->screen->height = height;
+
+    if (xwl_screen->screen->root) {
+        xwl_screen->screen->root->drawable.width = width;
+        xwl_screen->screen->root->drawable.height = height;
+        SetRootClip(xwl_screen->screen, TRUE);
+        RRScreenSizeNotify(xwl_screen->screen);
+    }
+
+    update_desktop_dimensions();
 }
 
 static void
