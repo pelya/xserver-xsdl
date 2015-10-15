@@ -369,9 +369,7 @@ glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap,
 }
 
 #ifdef GLAMOR_HAS_GBM
-void glamor_get_name_from_bo(int gbm_fd, struct gbm_bo *bo, int *name);
-
-void
+static void
 glamor_get_name_from_bo(int gbm_fd, struct gbm_bo *bo, int *name)
 {
     union gbm_bo_handle handle;
