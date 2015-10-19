@@ -16,6 +16,7 @@ static void *child_command(void *unused)
 	sprintf (buf, ":%s", display);
 	printf ("setenv DISPLAY=%s", buf);
 	setenv ("DISPLAY", buf, 1);
+	setenv ("PULSE_SERVER", "tcp:127.0.0.1:4712");
 	printf ("Starting child command: %s", kdExecuteCommand);
 	cmd = popen (kdExecuteCommand, "r");
 	if (!cmd) {
