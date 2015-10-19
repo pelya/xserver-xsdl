@@ -39,8 +39,10 @@
 #include <sys/consio.h>
 #endif
 #include <unistd.h>
+#ifdef WITH_LIBDRM
 #include <drm.h>
 #include <xf86drm.h> /* For DRM_DEV_NAME */
+#endif
 
 #define CONFIG_FILE SYSCONFDIR "/X11/Xwrapper.config"
 
@@ -183,7 +185,9 @@ static int on_console(int fd)
 
 int main(int argc, char *argv[])
 {
+#ifdef WITH_LIBDRM
     struct drm_mode_card_res res;
+#endif
     char buf[PATH_MAX];
     int i, r, fd;
     int kms_cards = 0;
@@ -219,6 +223,7 @@ int main(int argc, char *argv[])
         }
     }
 
+#ifdef WITH_LIBDRM
     /* Detect if we need root rights, except when overriden by the config */
     if (needs_root_rights == -1) {
         for (i = 0; i < 16; i++) {
@@ -237,6 +242,7 @@ int main(int argc, char *argv[])
             close(fd);
         }
     }
+#endif
 
     /* If we've found cards, and all cards support kms, drop root rights */
     if (needs_root_rights == 0 || (total_cards && kms_cards == total_cards)) {

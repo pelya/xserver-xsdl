@@ -926,8 +926,6 @@ fi
 AM_CONDITIONAL(SYSTEMD_LOGIND, [test "x$SYSTEMD_LOGIND" = xyes])
 
 if test "x$SUID_WRAPPER" = xyes; then
-        dnl The wrapper uses libdrm headers, so ensure they are available
-        PKG_CHECK_MODULES([LIBDRM], $LIBDRM)
         dnl This is a define so that if some platforms want to put the wrapper
         dnl somewhere else this can be easily changed
         AC_DEFINE_DIR(SUID_WRAPPER_DIR, libexecdir, [Where to install the Xorg binary and Xorg.wrap])
