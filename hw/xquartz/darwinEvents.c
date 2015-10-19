@@ -178,7 +178,7 @@ static int darwin_x11_modifier_mask_list[] = {
     0
 };
 
-static int darwin_all_modifier_mask_additions[] = { NX_SECONDARYFNMASK, };
+static int darwin_all_modifier_mask_additions[] = { NX_SECONDARYFNMASK, 0 };
 
 static void
 DarwinUpdateModifiers(int pressed,                    // KeyPress or KeyRelease
