@@ -16,12 +16,12 @@ static void *child_command(void *unused)
 	sprintf (buf, ":%s", display);
 	printf ("setenv DISPLAY=%s", buf);
 	setenv ("DISPLAY", buf, 1);
-	setenv ("PULSE_SERVER", "tcp:127.0.0.1:4712");
+	setenv ("PULSE_SERVER", "tcp:127.0.0.1:4712", 1);
 	printf ("Starting child command: %s", kdExecuteCommand);
 	cmd = popen (kdExecuteCommand, "r");
 	if (!cmd) {
 		printf ("Error while starting child command: %s", kdExecuteCommand);
-		return;
+		return NULL;
 	}
 	while (fgets (buf, sizeof(buf), cmd)) {
 		printf ("> %s", buf);
