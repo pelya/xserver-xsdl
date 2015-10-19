@@ -202,8 +202,8 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
     return pixmap;
 }
 
-void
-glamor_destroy_textured_pixmap(PixmapPtr pixmap)
+Bool
+glamor_destroy_pixmap(PixmapPtr pixmap)
 {
     if (pixmap->refcnt == 1) {
 #if GLAMOR_HAS_GBM
@@ -211,12 +211,7 @@ glamor_destroy_textured_pixmap(PixmapPtr pixmap)
 #endif
         glamor_pixmap_destroy_fbo(pixmap);
     }
-}
 
-Bool
-glamor_destroy_pixmap(PixmapPtr pixmap)
-{
-    glamor_destroy_textured_pixmap(pixmap);
     return fbDestroyPixmap(pixmap);
 }
 
