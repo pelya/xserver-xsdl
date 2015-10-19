@@ -44,6 +44,8 @@
 #include <xf86drm.h> /* For DRM_DEV_NAME */
 #endif
 
+#include "misc.h"
+
 #define CONFIG_FILE SYSCONFDIR "/X11/Xwrapper.config"
 
 static const char *progname;
