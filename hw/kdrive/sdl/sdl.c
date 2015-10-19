@@ -774,6 +774,7 @@ static void xsdlAudioCallback(void *userdata, Uint8 *stream, int len)
 		int count = read(fd, stream, len);
 		if (count <= 0)
 		{
+			printf("Audio pipe closed, notifying main thread");
 			xsdlConnectionClosed = 1;
 			return;
 		}
@@ -858,6 +859,7 @@ static void *xsdlAudioThread(void *data)
 	strcpy(infile, getenv("SECURE_STORAGE_DIR"));
 	strcat(infile, "/pulse");
 
+	printf("Registering inotify listener on %s", infile);
 	notify = inotify_init();
 	if (inotify_add_watch(notify, infile, IN_CREATE | IN_DELETE) < 0)
 	{
@@ -874,10 +876,10 @@ static void *xsdlAudioThread(void *data)
 
 	while (1)
 	{
-		//printf("Trying to open audio pipe %s\n", infile);
+		printf("Trying to open audio pipe %s\n", infile);
 		if ((fd = open(infile, O_RDONLY)) > -1)
 		{
-			printf("Reading audio data from pipe %s\n", infile);
+			printf("Reading audio data from pipe %s", infile);
 			xsdlConnectionClosed = 0;
 			SDL_AudioSpec spec, obtained;
 			memset(&spec, 0, sizeof(spec));
@@ -890,13 +892,17 @@ static void *xsdlAudioThread(void *data)
 			SDL_OpenAudio(&spec, &obtained);
 			SDL_PauseAudio(0);
 			while (!xsdlConnectionClosed)
+			{
+				printf("Waiting for audio pipe to close");
 				read(notify, notifyEvents, sizeof(notifyEvents));
+			}
 			SDL_CloseAudio();
 			close(fd);
-			printf("Audio pipe closed: %s\n", infile);
+			printf("Audio pipe closed: %s", infile);
 		}
 		else
 		{
+			printf("Waiting for audio pipe to open");
 			read(notify, notifyEvents, sizeof(notifyEvents));
 		}
 	}
