@@ -609,10 +609,6 @@ glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
         struct glamor_egl_screen_private *glamor_egl =
             glamor_egl_get_screen_private(scrn);
 
-        /* Before destroy an image which was attached to
-         * a texture. we must call glFlush to make sure the
-         * operation on that texture has been done.*/
-        glamor_block_handler(pixmap->drawable.pScreen);
         eglDestroyImageKHR(glamor_egl->display, pixmap_priv->image);
         pixmap_priv->image = NULL;
     }
