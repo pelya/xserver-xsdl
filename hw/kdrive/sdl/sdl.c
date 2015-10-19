@@ -790,6 +790,9 @@ static void initPulseAudioConfig()
 	printf("Fixing up PulseAudio config file");
 	printf("%s", cmd);
 	system(cmd);
+	sprintf(cmd, "rm %s/pulse/audio-out", getenv("SECURE_STORAGE_DIR"));
+	printf("%s", cmd);
+	system(cmd);
 }
 
 static void executeBackground(const char *cmd)
@@ -800,6 +803,7 @@ static void executeBackground(const char *cmd)
 
 	if (childpid == 0)
 	{
+		/*
 		int fd;
 		setsid();
 		// Close all open file descriptors
@@ -812,6 +816,7 @@ static void executeBackground(const char *cmd)
 		dup2(0, fd);
 		dup2(1, fd);
 		dup2(2, fd);
+		*/
 		execlp("logwrapper", "logwrapper", "sh", "-c", cmd, NULL);
 		printf("Error: cannot launch command: %s\n", strerror(errno));
 		exit(0);
