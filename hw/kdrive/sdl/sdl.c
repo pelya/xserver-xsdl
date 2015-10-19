@@ -36,6 +36,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <pthread.h>
+#include <sys/inotify.h>
+#include <fcntl.h>
 
 #ifdef __ANDROID__
 #include <SDL/SDL_screenkeyboard.h>
@@ -780,13 +782,96 @@ static void xsdlAudioCallback(void *userdata, Uint8 *stream, int len)
 	}
 }
 
+static void initPulseAudioConfig()
+{
+	char cmd[PATH_MAX * 4];
+	sprintf(cmd, "%s/busybox sed -i s@/data/local/tmp@%s/pulse@g %s/pulse/pulseaudio.conf", getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"));
+	printf("Fixing up PulseAudio config file");
+	printf("%s", cmd);
+	system(cmd);
+}
+
+static void executeBackground(const char *cmd)
+{
+	pid_t childpid;
+
+	childpid = fork();
+
+	if (childpid == 0)
+	{
+		int fd;
+		setsid();
+		// Close all open file descriptors
+		//for (fd = getdtablesize(); fd >= 0; --fd)
+		//	close(fd);
+		close(0);
+		close(1);
+		close(2);
+		fd = open("/dev/null", O_RDWR);
+		dup2(0, fd);
+		dup2(1, fd);
+		dup2(2, fd);
+		execlp("logwrapper", "logwrapper", "sh", "-c", cmd, NULL);
+		printf("Error: cannot launch command: %s\n", strerror(errno));
+		exit(0);
+	}
+}
+
+static void launchPulseAudio()
+{
+	char cmd[PATH_MAX * 6];
+	sprintf(cmd,
+		"cd %s/pulse ; while true ; do "
+		"rm -f audio-out ; "
+		"HOME=%s/pulse "
+		"TMPDIR=%s/pulse "
+		"LD_LIBRARY_PATH=%s/pulse "
+		"./pulseaudio --disable-shm -n -F pulseaudio.conf "
+		"--dl-search-path=%s/pulse "
+		"--daemonize=false --use-pid-file=false "
+		"--log-target=stderr --log-level=notice 2>&1 ; "
+		"sleep 1 ; "
+		"done",
+		getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"));
+	printf("Launching PulseAudio daemon:");
+	printf("%s", cmd);
+	executeBackground(cmd);
+	printf("Launching PulseAudio daemon done");
+	//system(cmd);
+}
+
 static void *xsdlAudioThread(void *data)
 {
 	char infile[PATH_MAX];
-	strcpy(infile, getenv("SECURE_STORAGE_DIR"));
-	strcat(infile, "/img/tmp/audio-out");
+	int fd, notify;
+	struct inotify_event notifyEvents[8];
 
-	int fd;
+	strcpy(infile, getenv("SECURE_STORAGE_DIR"));
+	strcat(infile, "/pulse/pulseaudio");
+
+	if (access(infile, X_OK) < 0)
+	{
+		printf("PulseAudio not installed, disabling audio");
+		return NULL;
+	}
+
+	strcpy(infile, getenv("SECURE_STORAGE_DIR"));
+	strcat(infile, "/pulse");
+
+	notify = inotify_init();
+	if (inotify_add_watch(notify, infile, IN_CREATE | IN_DELETE) < 0)
+	{
+		printf("Cannot set inotify event on dir %s, disabling audio: %s\n", infile, strerror(errno));
+		close(notify);
+		return NULL;
+	}
+
+	initPulseAudioConfig();
+	launchPulseAudio();
+
+	strcpy(infile, getenv("SECURE_STORAGE_DIR"));
+	strcat(infile, "/pulse/audio-out");
+
 	while (1)
 	{
 		//printf("Trying to open audio pipe %s\n", infile);
@@ -805,14 +890,17 @@ static void *xsdlAudioThread(void *data)
 			SDL_OpenAudio(&spec, &obtained);
 			SDL_PauseAudio(0);
 			while (!xsdlConnectionClosed)
-				SDL_Delay(1000);
+				read(notify, notifyEvents, sizeof(notifyEvents));
 			SDL_CloseAudio();
 			close(fd);
 			printf("Audio pipe closed: %s\n", infile);
-		} else {
-			SDL_Delay(1000);
+		}
+		else
+		{
+			read(notify, notifyEvents, sizeof(notifyEvents));
 		}
 	}
+	close(notify);
 	return NULL;
 }
 
