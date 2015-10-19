@@ -752,6 +752,11 @@ case $host_os in
 			XF86VIDMODE=no
 		fi
 		;;
+	gnu*)
+		DRM=no
+		DRI2=no
+		DRI3=no
+		;;
 	*) XQUARTZ=no ;;
 esac
 
