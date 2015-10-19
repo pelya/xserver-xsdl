@@ -367,14 +367,12 @@ DarwinEQInit(void)
 {
     int *p;
 
-    for (p = darwin_x11_modifier_mask_list, darwin_all_modifier_mask = 0; *p;
-         p++) {
+    for (p = darwin_x11_modifier_mask_list; *p; p++) {
         darwin_x11_modifier_mask |= *p;
     }
 
-    for (p = darwin_all_modifier_mask_additions,
-         darwin_all_modifier_mask = darwin_x11_modifier_mask;
-         *p; p++) {
+    darwin_all_modifier_mask = darwin_x11_modifier_mask;
+    for (p = darwin_all_modifier_mask_additions; *p; p++) {
         darwin_all_modifier_mask |= *p;
     }
 
@@ -387,7 +385,6 @@ DarwinEQInit(void)
      */
     if (!darwinEvents) {
         darwinEvents = InitEventList(GetMaximumEventsNum());
-        ;
 
         if (!darwinEvents)
             FatalError("Couldn't allocate event buffer\n");
