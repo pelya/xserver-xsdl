@@ -147,8 +147,6 @@ extern _X_EXPORT int glamor_egl_dri3_fd_name_from_tex(ScreenPtr, PixmapPtr,
                                                       unsigned int, Bool,
                                                       CARD16 *, CARD32 *);
 
-extern void glamor_egl_destroy_pixmap_image(PixmapPtr pixmap);
-
 extern _X_EXPORT void *glamor_egl_get_gbm_device(ScreenPtr screen);
 
 /* @glamor_supports_pixmap_import_export: Returns whether

@@ -400,11 +400,6 @@ xwl_screen_init_glamor(struct xwl_screen *xwl_screen,
     return TRUE;
 }
 
-void
-glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
-{
-}
-
 int
 glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
                                  PixmapPtr pixmap,

@@ -206,9 +206,6 @@ Bool
 glamor_destroy_pixmap(PixmapPtr pixmap)
 {
     if (pixmap->refcnt == 1) {
-#if GLAMOR_HAS_GBM
-        glamor_egl_destroy_pixmap_image(pixmap);
-#endif
         glamor_pixmap_destroy_fbo(pixmap);
     }
 
@@ -461,6 +458,9 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_priv->saved_procs.close_screen = screen->CloseScreen;
     screen->CloseScreen = glamor_close_screen;
 
+    glamor_priv->saved_procs.destroy_pixmap = screen->DestroyPixmap;
+    screen->DestroyPixmap = glamor_destroy_pixmap;
+
     /* If we are using egl screen, call egl screen init to
      * register correct close screen function. */
     if (flags & GLAMOR_USE_EGL_SCREEN) {
@@ -614,9 +614,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glamor_priv->saved_procs.create_pixmap = screen->CreatePixmap;
     screen->CreatePixmap = glamor_create_pixmap;
-
-    glamor_priv->saved_procs.destroy_pixmap = screen->DestroyPixmap;
-    screen->DestroyPixmap = glamor_destroy_pixmap;
 
     glamor_priv->saved_procs.get_spans = screen->GetSpans;
     screen->GetSpans = glamor_get_spans;

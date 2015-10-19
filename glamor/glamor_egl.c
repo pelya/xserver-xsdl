@@ -78,6 +78,7 @@ struct glamor_egl_screen_private {
     int dri3_capable;
 
     CloseScreenProcPtr saved_close_screen;
+    DestroyPixmapProcPtr saved_destroy_pixmap;
     xf86FreeScreenProc *saved_free_screen;
 };
 
@@ -598,20 +599,29 @@ glamor_pixmap_from_fd(ScreenPtr screen,
 #endif
 }
 
-void
-glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
+static Bool
+glamor_egl_destroy_pixmap(PixmapPtr pixmap)
 {
-    struct glamor_pixmap_private *pixmap_priv =
-        glamor_get_pixmap_private(pixmap);
+    ScreenPtr screen = pixmap->drawable.pScreen;
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    struct glamor_egl_screen_private *glamor_egl =
+        glamor_egl_get_screen_private(scrn);
+    Bool ret;
 
-    if (pixmap_priv->image) {
-        ScrnInfoPtr scrn = xf86ScreenToScrn(pixmap->drawable.pScreen);
-        struct glamor_egl_screen_private *glamor_egl =
-            glamor_egl_get_screen_private(scrn);
+    if (pixmap->refcnt == 1) {
+        struct glamor_pixmap_private *pixmap_priv =
+            glamor_get_pixmap_private(pixmap);
 
-        eglDestroyImageKHR(glamor_egl->display, pixmap_priv->image);
-        pixmap_priv->image = NULL;
+        if (pixmap_priv->image)
+            eglDestroyImageKHR(glamor_egl->display, pixmap_priv->image);
     }
+
+    screen->DestroyPixmap = glamor_egl->saved_destroy_pixmap;
+    ret = screen->DestroyPixmap(pixmap);
+    glamor_egl->saved_destroy_pixmap = screen->DestroyPixmap;
+    screen->DestroyPixmap = glamor_egl_destroy_pixmap;
+
+    return ret;
 }
 
 _X_EXPORT void
@@ -722,6 +732,9 @@ glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
 
     glamor_egl->saved_close_screen = screen->CloseScreen;
     screen->CloseScreen = glamor_egl_close_screen;
+
+    glamor_egl->saved_destroy_pixmap = screen->DestroyPixmap;
+    screen->DestroyPixmap = glamor_egl_destroy_pixmap;
 
     glamor_ctx->ctx = glamor_egl->context;
     glamor_ctx->display = glamor_egl->display;

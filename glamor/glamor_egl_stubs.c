@@ -35,11 +35,6 @@ glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
 {
 }
 
-void
-glamor_egl_destroy_pixmap_image(PixmapPtr pixmap)
-{
-}
-
 int
 glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
                                  PixmapPtr pixmap,
