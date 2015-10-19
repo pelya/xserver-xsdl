@@ -324,7 +324,6 @@ extern _X_EXPORT Bool
 
 extern _X_EXPORT void glamor_egl_screen_init(ScreenPtr screen,
                                              struct glamor_context *glamor_ctx);
-extern _X_EXPORT void glamor_egl_destroy_textured_pixmap(PixmapPtr pixmap);
 
 extern _X_EXPORT int glamor_create_gc(GCPtr gc);
 
