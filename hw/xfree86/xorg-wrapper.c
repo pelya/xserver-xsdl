@@ -194,6 +194,7 @@ int main(int argc, char *argv[])
     int total_cards = 0;
     int allowed = CONSOLE_ONLY;
     int needs_root_rights = -1;
+    char *const empty_envp[1] = { NULL, };
 
     progname = argv[0];
 
@@ -271,7 +272,10 @@ int main(int argc, char *argv[])
     }
 
     argv[0] = buf;
-    (void) execv(argv[0], argv);
+    if (getuid() == geteuid())
+        (void) execv(argv[0], argv);
+    else
+        (void) execve(argv[0], argv, empty_envp);
     fprintf(stderr, "%s: Failed to execute %s: %s\n",
         progname, buf, strerror(errno));
     exit(1);
