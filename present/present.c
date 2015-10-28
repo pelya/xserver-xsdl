@@ -871,7 +871,7 @@ present_pixmap(WindowPtr window,
 
     xorg_list_add(&vblank->event_queue, &present_exec_queue);
     vblank->queued = TRUE;
-    if ((pixmap && target_msc >= crtc_msc) || (!pixmap && target_msc > crtc_msc)) {
+    if (target_msc > crtc_msc) {
         ret = present_queue_vblank(screen, target_crtc, vblank->event_id, target_msc);
         if (ret == Success)
             return Success;
