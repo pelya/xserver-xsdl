@@ -53,8 +53,9 @@ listens on port
 .RI 6000+ n ,
 where
 .I n
-is the display number.  This connection type can be disabled with the
-.B \-nolisten
+is the display number.  This connection type is usually disabled by default,
+but may be enabled with the
+.B \-listen
 option (see the Xserver(1) man page for details).
 .SH OPTIONS
 .B Xorg
