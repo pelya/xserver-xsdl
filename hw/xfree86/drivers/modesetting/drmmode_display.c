@@ -421,12 +421,13 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
             fb_id = drmmode_crtc->rotate_fb_id;
             x = y = 0;
         }
-        ret = drmModeSetCrtc(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
-                             fb_id, x, y, output_ids, output_count, &kmode);
-        if (ret)
+        if (drmModeSetCrtc(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
+                           fb_id, x, y, output_ids, output_count, &kmode)) {
             xf86DrvMsg(crtc->scrn->scrnIndex, X_ERROR,
-                       "failed to set mode: %s", strerror(-ret));
-        else
+                       "failed to set mode: %s\n", strerror(errno));
+            ret = FALSE;
+            goto done;
+        } else
             ret = TRUE;
 
         if (crtc->scrn->pScreen)
