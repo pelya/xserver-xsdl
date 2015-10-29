@@ -340,7 +340,7 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
     int saved_x, saved_y;
     Rotation saved_rotation;
     DisplayModeRec saved_mode;
-    uint32_t *output_ids;
+    uint32_t *output_ids = NULL;
     int output_count = 0;
     Bool ret = TRUE;
     int i;
@@ -467,6 +467,8 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
     else
         crtc->active = TRUE;
 #endif
+
+    free(output_ids);
 
     return ret;
 }
