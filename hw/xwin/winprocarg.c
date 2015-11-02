@@ -577,11 +577,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
      * Look for the '-internalwm' argument
      */
     if (IS_OPTION("-internalwm")) {
-        if (!screenInfoPtr->fMultiMonitorOverride)
-            screenInfoPtr->fMultipleMonitors = TRUE;
-        screenInfoPtr->fMWExtWM = TRUE;
-        screenInfoPtr->fInternalWM = TRUE;
-
+        ErrorF("Ignoring obsolete -internalwm option\n");
+        /* Ignored, but we still accept the arg for backwards compatibility */
         /* Indicate that we have processed this argument */
         return 1;
     }

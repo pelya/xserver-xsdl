@@ -745,10 +745,6 @@ winUseMsg(void)
 
     ErrorF("-ignoreinput\n" "\tIgnore keyboard and mouse input.\n");
 
-#ifdef XWIN_MULTIWINDOWEXTWM
-    ErrorF("-internalwm\n" "\tRun the internal window manager.\n");
-#endif
-
 #ifdef XWIN_XF86CONFIG
     ErrorF("-keyboard\n"
            "\tSpecify a keyboard device from the configuration file.\n");

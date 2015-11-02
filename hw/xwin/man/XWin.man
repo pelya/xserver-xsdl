@@ -346,9 +346,6 @@ Color map manipulation is not supported, so the PseudoColor visual will
 not have the correct colors.
 This option is intended to allow applications which only work with a depth 8
 visual to operate in TrueColor modes.
-.TP 8
-.B \-internalwm
-Run the internal window manager.
 
 .SH LOG FILE
 As it runs \fIXWin\fP writes messages indicating the most relevant events
