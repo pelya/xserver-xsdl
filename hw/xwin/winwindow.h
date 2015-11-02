@@ -142,7 +142,7 @@ winInitWM(void **ppWMInfo,
           pthread_t * ptWMProc,
           pthread_t * ptXMsgProc,
           pthread_mutex_t * ppmServerStarted,
-          int dwScreen, HWND hwndScreen, BOOL allowOtherWM);
+          int dwScreen, HWND hwndScreen);
 
 void
  winDeinitMultiWindowWM(void);
