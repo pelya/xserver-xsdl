@@ -907,9 +907,6 @@ winMWExtWMWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (!wParam)
             return 0;
 
-        if (!pScreenInfo->fInternalWM)  //XXXX
-            return 0;
-
         winMWExtWMUpdateWindowDecoration(pRLWinPriv, pScreenInfo);
 
         if (winIsInternalWMRunning(pScreenInfo)) {

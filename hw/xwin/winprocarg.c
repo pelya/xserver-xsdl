@@ -130,7 +130,6 @@ winInitializeScreenDefaults(void)
     defaultScreenInfo.fDecoration = TRUE;
 #ifdef XWIN_MULTIWINDOWEXTWM
     defaultScreenInfo.fMWExtWM = FALSE;
-    defaultScreenInfo.fInternalWM = FALSE;
 #endif
     defaultScreenInfo.fRootless = FALSE;
 #ifdef XWIN_MULTIWINDOW

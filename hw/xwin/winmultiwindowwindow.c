@@ -811,9 +811,6 @@ winMinimizeWindow(Window id)
     WindowPtr pWin;
     winPrivWinPtr pWinPriv;
 
-#ifdef XWIN_MULTIWINDOWEXTWM
-    win32RootlessWindowPtr pRLWinPriv;
-#endif
     HWND hWnd;
     ScreenPtr pScreen = NULL;
     winPrivScreenPtr pScreenPriv = NULL;
@@ -833,16 +830,7 @@ winMinimizeWindow(Window id)
     if (pScreen)
         pScreenPriv = winGetScreenPriv(pScreen);
 
-#ifdef XWIN_MULTIWINDOWEXTWM
-    if (pScreenPriv && pScreenPriv->pScreenInfo->fInternalWM) {
-        pRLWinPriv =
-            (win32RootlessWindowPtr) RootlessFrameForWindow(pWin, FALSE);
-        hWnd = pRLWinPriv->hWnd;
-    }
-    else
-#else
     if (pScreenPriv)
-#endif
     {
         pWinPriv = winGetWindowPriv(pWin);
         hWnd = pWinPriv->hWnd;

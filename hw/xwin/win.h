@@ -404,7 +404,6 @@ typedef struct {
     Bool fDecoration;
 #ifdef XWIN_MULTIWINDOWEXTWM
     Bool fMWExtWM;
-    Bool fInternalWM;
     Bool fAnotherWMRunning;
 #endif
     Bool fRootless;

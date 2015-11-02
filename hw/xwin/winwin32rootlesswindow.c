@@ -350,7 +350,7 @@ winMWExtWMUpdateWindowDecoration(win32RootlessWindowPtr pRLWinPriv,
 Bool
 winIsInternalWMRunning(winScreenInfoPtr pScreenInfo)
 {
-    return pScreenInfo->fInternalWM && !pScreenInfo->fAnotherWMRunning;
+    return FALSE;
 }
 
 /*
