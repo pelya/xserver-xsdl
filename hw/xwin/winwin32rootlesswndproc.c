@@ -1072,14 +1072,6 @@ winMWExtWMWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                     - wBorderWidth(pWin) * 2);
         break;
 
-    case WM_MANAGE:
-        ErrorF("winMWExtWMWindowProc - WM_MANAGE\n");
-        break;
-
-    case WM_UNMANAGE:
-        ErrorF("winMWExtWMWindowProc - WM_UNMANAGE\n");
-        break;
-
     default:
         break;
     }

@@ -1192,7 +1192,7 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 #ifdef XWIN_MULTIWINDOWEXTWM
         if (s_pScreenPriv->fActive) {
             /* Restack all window unless using built-in wm. */
-            if (s_pScreenInfo->fAnotherWMRunning)
+            if (s_pScreenInfo->fMWExtWM)
                 winMWExtWMRestackWindows(s_pScreen);
         }
 #endif
@@ -1255,18 +1255,6 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             return TRUE;
         }
         break;
-
-#ifdef XWIN_MULTIWINDOWEXTWM
-    case WM_MANAGE:
-        ErrorF("winWindowProc - WM_MANAGE\n");
-        s_pScreenInfo->fAnotherWMRunning = FALSE;
-        break;
-
-    case WM_UNMANAGE:
-        ErrorF("winWindowProc - WM_UNMANAGE\n");
-        s_pScreenInfo->fAnotherWMRunning = TRUE;
-        break;
-#endif
 
     default:
         if (message == s_uTaskbarRestart) {
