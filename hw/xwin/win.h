@@ -1136,9 +1136,6 @@ winMWExtWMUpdateWindowDecoration(win32RootlessWindowPtr pRLWinPriv,
 
 wBOOL CALLBACK winMWExtWMDecorateWindow(HWND hwnd, LPARAM lParam);
 
-Bool
- winIsInternalWMRunning(winScreenInfoPtr pScreenInfo);
-
 void
  winMWExtWMRestackWindows(ScreenPtr pScreen);
 #endif
