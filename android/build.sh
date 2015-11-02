@@ -94,7 +94,7 @@ patch -p0 < ../../Xtrans.c.diff || exit 1
 autoreconf -v --install \
 || exit 1
 
-env CFLAGS="-isystem$BUILDDIR -include strings.h" \
+env CFLAGS="-isystem$BUILDDIR -include strings.h -DSO_REUSEADDR=1" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
