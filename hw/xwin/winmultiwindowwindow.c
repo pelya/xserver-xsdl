@@ -35,9 +35,11 @@
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>
 #endif
+
 #include "win.h"
 #include "dixevents.h"
 #include "winmultiwindowclass.h"
+#include "winmultiwindowicons.h"
 
 /*
  * Prototypes for local functions

@@ -48,6 +48,7 @@
 #include <X11/X.h>
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <X11/Xlib-xcb.h>
 #include <X11/Xlocale.h>
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
@@ -62,6 +63,7 @@
 #include "windowstr.h"
 #include "winglobals.h"
 #include "windisplay.h"
+#include "winmultiwindowicons.h"
 
 #ifdef XWIN_MULTIWINDOWEXTWM
 #include <X11/extensions/windowswmstr.h>
@@ -628,7 +630,7 @@ UpdateIcon(WMInfoPtr pWMInfo, Window iWindow)
         }
     }
 
-    winUpdateIcon(hWnd, pWMInfo->pDisplay, iWindow, hIconNew);
+    winUpdateIcon(hWnd, XGetXCBConnection(pWMInfo->pDisplay), iWindow, hIconNew);
 }
 
 /*
