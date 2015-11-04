@@ -836,19 +836,20 @@ present_pixmap(WindowPtr window,
     vblank->notifies = notifies;
     vblank->num_notifies = num_notifies;
 
-    if (!(options & PresentOptionAsync))
-        vblank->sync_flip = TRUE;
-
-    if (!(options & PresentOptionCopy) &&
-        !((options & PresentOptionAsync) &&
-          (!screen_priv->info ||
-           !(screen_priv->info->capabilities & PresentCapabilityAsync))) &&
-        pixmap != NULL &&
-        present_check_flip (target_crtc, window, pixmap, vblank->sync_flip, valid, x_off, y_off))
-    {
-        vblank->flip = TRUE;
-        if (vblank->sync_flip)
+    if (pixmap != NULL &&
+        !(options & PresentOptionCopy) &&
+        screen_priv->info) {
+        if (target_msc > crtc_msc &&
+            present_check_flip (target_crtc, window, pixmap, TRUE, valid, x_off, y_off))
+        {
+            vblank->flip = TRUE;
+            vblank->sync_flip = TRUE;
             target_msc--;
+        } else if ((screen_priv->info->capabilities & PresentCapabilityAsync) &&
+            present_check_flip (target_crtc, window, pixmap, FALSE, valid, x_off, y_off))
+        {
+            vblank->flip = TRUE;
+        }
     }
 
     if (wait_fence) {
