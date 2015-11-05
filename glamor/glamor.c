@@ -379,6 +379,13 @@ glamor_debug_output_callback(GLenum source,
                              const void *userParam)
 {
     ScreenPtr screen = (void *)userParam;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+
+    if (glamor_priv->suppress_gl_out_of_memory_logging &&
+        source == GL_DEBUG_SOURCE_API && type == GL_DEBUG_TYPE_ERROR) {
+        return;
+    }
+
     LogMessageVerb(X_ERROR, 0, "glamor%d: GL error: %*s\n",
                screen->myNum, length, message);
 }

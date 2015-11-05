@@ -347,9 +347,25 @@ _glamor_create_tex(glamor_screen_private *glamor_priv,
         glBindTexture(GL_TEXTURE_2D, tex);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glamor_priv->suppress_gl_out_of_memory_logging = true;
         glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0,
                      format, GL_UNSIGNED_BYTE, NULL);
+        glamor_priv->suppress_gl_out_of_memory_logging = false;
     }
+
+    if (glGetError() == GL_OUT_OF_MEMORY) {
+        if (!glamor_priv->logged_any_fbo_allocation_failure) {
+            LogMessageVerb(X_WARNING, 0, "glamor: Failed to allocate %dx%d "
+                           "FBO due to GL_OUT_OF_MEMORY.\n", w, h);
+            LogMessageVerb(X_WARNING, 0,
+                           "glamor: Expect reduced performance.\n");
+            glamor_priv->logged_any_fbo_allocation_failure = true;
+        }
+        glDeleteTextures(1, &tex);
+        return 0;
+    }
+
     return tex;
 }
 
@@ -368,6 +384,8 @@ glamor_create_fbo(glamor_screen_private *glamor_priv,
         return fbo;
  new_fbo:
     tex = _glamor_create_tex(glamor_priv, w, h, format, flag == CREATE_PIXMAP_USAGE_SHARED);
+    if (!tex)
+        return NULL;
     fbo = glamor_create_fbo_from_tex(glamor_priv, w, h, format, tex, flag);
 
     return fbo;
