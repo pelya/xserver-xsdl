@@ -156,6 +156,7 @@ WaitForSomething(int *pClientsReady)
     fd_set devicesReadable;
     CARD32 now = 0;
     Bool someReady = FALSE;
+    Bool someNotifyWriteReady = FALSE;
 
     FD_ZERO(&clientsReadable);
     FD_ZERO(&clientsWritable);
@@ -213,9 +214,10 @@ WaitForSomething(int *pClientsReady)
         /* keep this check close to select() call to minimize race */
         if (dispatchException)
             i = -1;
-        else if (AnyClientsWriteBlocked) {
-            XFD_COPYSET(&ClientsWriteBlocked, &clientsWritable);
-            i = Select(MaxClients, &LastSelectMask, &clientsWritable, NULL, wt);
+        else if (AnyWritesPending) {
+            XFD_COPYSET(&ClientsWriteBlocked, &LastSelectWriteMask);
+            XFD_ORSET(&LastSelectWriteMask, &NotifyWriteFds, &LastSelectWriteMask);
+            i = Select(MaxClients, &LastSelectMask, &LastSelectWriteMask, NULL, wt);
         }
         else {
             i = Select(MaxClients, &LastSelectMask, NULL, NULL, wt);
@@ -291,12 +293,20 @@ WaitForSomething(int *pClientsReady)
             }
             if (someReady)
                 XFD_ORSET(&LastSelectMask, &ClientsWithInput, &LastSelectMask);
-            if (AnyClientsWriteBlocked && XFD_ANYSET(&clientsWritable)) {
-                NewOutputPending = TRUE;
-                XFD_ORSET(&OutputPending, &clientsWritable, &OutputPending);
-                XFD_UNSET(&ClientsWriteBlocked, &clientsWritable);
-                if (!XFD_ANYSET(&ClientsWriteBlocked))
-                    AnyClientsWriteBlocked = FALSE;
+            if (AnyWritesPending) {
+                XFD_ANDSET(&clientsWritable, &LastSelectWriteMask, &ClientsWriteBlocked);
+                if (XFD_ANYSET(&clientsWritable)) {
+                    NewOutputPending = TRUE;
+                    XFD_ORSET(&OutputPending, &clientsWritable, &OutputPending);
+                    XFD_UNSET(&ClientsWriteBlocked, &clientsWritable);
+                    if (!XFD_ANYSET(&ClientsWriteBlocked) && NumNotifyWriteFd == 0)
+                        AnyWritesPending = FALSE;
+                }
+                if (NumNotifyWriteFd != 0) {
+                    XFD_ANDSET(&tmp_set, &LastSelectWriteMask, &NotifyWriteFds);
+                    if (XFD_ANYSET(&tmp_set))
+                        someNotifyWriteReady = TRUE;
+                }
             }
 
             XFD_ANDSET(&devicesReadable, &LastSelectMask, &EnabledDevices);
@@ -307,7 +317,7 @@ WaitForSomething(int *pClientsReady)
                               (void *) &LastSelectMask);
 
             XFD_ANDSET(&tmp_set, &LastSelectMask, &NotifyReadFds);
-            if (XFD_ANYSET(&tmp_set))
+            if (XFD_ANYSET(&tmp_set) || someNotifyWriteReady)
                 HandleNotifyFds();
 
             if (XFD_ANYSET(&devicesReadable) || XFD_ANYSET(&clientsReadable))
