@@ -121,7 +121,6 @@ SOFTWARE.
 
 static int lastfdesc;           /* maximum file descriptor */
 
-fd_set WellKnownConnections;    /* Listener mask */
 fd_set EnabledDevices;          /* mask for input devices that are on */
 fd_set NotifyReadFds;           /* mask for other file descriptors */
 fd_set NotifyWriteFds;          /* mask for other write file descriptors */
@@ -153,6 +152,9 @@ static fd_set SavedAllClients;
 static fd_set SavedAllSockets;
 static fd_set SavedClientsWithInput;
 int GrabInProgress = 0;
+
+static void
+QueueNewConnections(int curconn, int ready, void *data);
 
 #if !defined(WIN32)
 int *ConnectionTranslation = NULL;
@@ -403,8 +405,6 @@ CreateWellKnownSockets(void)
     ClearConnectionTranslation();
 #endif
 
-    FD_ZERO(&WellKnownConnections);
-
     /* display is initialized to "0" by main(). It is then set to the display
      * number if specified on the command line. */
 
@@ -441,13 +441,13 @@ CreateWellKnownSockets(void)
         int fd = _XSERVTransGetConnectionNumber(ListenTransConns[i]);
 
         ListenTransFds[i] = fd;
-        FD_SET(fd, &WellKnownConnections);
+        SetNotifyFd(fd, QueueNewConnections, X_NOTIFY_READ, NULL);
 
         if (!_XSERVTransIsLocal(ListenTransConns[i]))
             DefineSelf (fd);
     }
 
-    if (!XFD_ANYSET(&WellKnownConnections) && !NoListenAll)
+    if (ListenTransCount == 0 && !NoListenAll)
         FatalError
             ("Cannot establish any listening sockets - Make sure an X server isn't already running");
 
@@ -457,7 +457,6 @@ CreateWellKnownSockets(void)
 #endif
     OsSignal(SIGINT, GiveUp);
     OsSignal(SIGTERM, GiveUp);
-    XFD_COPYSET(&WellKnownConnections, &AllSockets);
     ResetHosts(display);
 
     InitParentProcess();
@@ -484,7 +483,7 @@ ResetWellKnownSockets(void)
                  * Remove it from out list.
                  */
 
-                FD_CLR(ListenTransFds[i], &WellKnownConnections);
+                RemoveNotifyFd(ListenTransFds[i]);
                 ListenTransFds[i] = ListenTransFds[ListenTransCount - 1];
                 ListenTransConns[i] = ListenTransConns[ListenTransCount - 1];
                 ListenTransCount -= 1;
@@ -497,12 +496,12 @@ ResetWellKnownSockets(void)
 
                 int newfd = _XSERVTransGetConnectionNumber(ListenTransConns[i]);
 
-                FD_CLR(ListenTransFds[i], &WellKnownConnections);
                 ListenTransFds[i] = newfd;
-                FD_SET(newfd, &WellKnownConnections);
             }
         }
     }
+    for (i = 0; i < ListenTransCount; i++)
+        SetNotifyFd(ListenTransFds[i], QueueNewConnections, X_NOTIFY_READ, NULL);
 
     ResetAuthorization();
     ResetHosts(display);
@@ -523,6 +522,7 @@ CloseWellKnownConnections(void)
         if (ListenTransConns[i] != NULL) {
             _XSERVTransClose(ListenTransConns[i]);
             ListenTransConns[i] = NULL;
+            RemoveNotifyFd(ListenTransFds[i]);
         }
     }
     ListenTransCount = 0;
@@ -810,22 +810,18 @@ AllocNewConnection(XtransConnInfo trans_conn, int fd, CARD32 conn_time)
  *    and AllSockets.
  *****************/
 
- /*ARGSUSED*/ Bool
+static Bool
 EstablishNewConnections(ClientPtr clientUnused, void *closure)
 {
-    fd_set readyconnections;    /* set of listeners that are ready */
-    int curconn;                /* fd of listener that's ready */
-    register int newconn;       /* fd of new client */
+    int curconn = (int) (intptr_t) closure;
+    int newconn;       /* fd of new client */
     CARD32 connect_time;
-    register int i;
-    register ClientPtr client;
-    register OsCommPtr oc;
-    fd_set tmask;
+    int i;
+    ClientPtr client;
+    OsCommPtr oc;
+    XtransConnInfo trans_conn, new_trans_conn;
+    int status;
 
-    XFD_ANDSET(&tmask, (fd_set *) closure, &WellKnownConnections);
-    XFD_COPYSET(&tmask, &readyconnections);
-    if (!XFD_ANYSET(&readyconnections))
-        return TRUE;
     connect_time = GetTimeInMillis();
     /* kill off stragglers */
     for (i = 1; i < currentMaxClients; i++) {
@@ -837,58 +833,43 @@ EstablishNewConnections(ClientPtr clientUnused, void *closure)
                 CloseDownClient(client);
         }
     }
-#ifndef WIN32
-    for (i = 0; i < howmany(XFD_SETSIZE, NFDBITS); i++) {
-        while (readyconnections.fds_bits[i])
-#else
-    for (i = 0; i < XFD_SETCOUNT(&readyconnections); i++)
-#endif
-    {
-        XtransConnInfo trans_conn, new_trans_conn;
-        int status;
 
-#ifndef WIN32
-        curconn = mffs(readyconnections.fds_bits[i]) - 1;
-        readyconnections.fds_bits[i] &= ~((fd_mask) 1 << curconn);
-        curconn += (i * (sizeof(fd_mask) * 8));
-#else
-        curconn = XFD_FD(&readyconnections, i);
-#endif
+    if ((trans_conn = lookup_trans_conn(curconn)) == NULL)
+        return TRUE;
 
-        if ((trans_conn = lookup_trans_conn(curconn)) == NULL)
-            continue;
+    if ((new_trans_conn = _XSERVTransAccept(trans_conn, &status)) == NULL)
+        return TRUE;
 
-        if ((new_trans_conn = _XSERVTransAccept(trans_conn, &status)) == NULL)
-            continue;
+    newconn = _XSERVTransGetConnectionNumber(new_trans_conn);
 
-        newconn = _XSERVTransGetConnectionNumber(new_trans_conn);
-
-        if (newconn < lastfdesc) {
-            int clientid;
+    if (newconn < lastfdesc) {
+        int clientid;
 
 #if !defined(WIN32)
-            clientid = ConnectionTranslation[newconn];
+        clientid = ConnectionTranslation[newconn];
 #else
-            clientid = GetConnectionTranslation(newconn);
+        clientid = GetConnectionTranslation(newconn);
 #endif
-            if (clientid && (client = clients[clientid]))
-                CloseDownClient(client);
-        }
-
-        _XSERVTransSetOption(new_trans_conn, TRANS_NONBLOCKING, 1);
-
-        if (trans_conn->flags & TRANS_NOXAUTH)
-            new_trans_conn->flags = new_trans_conn->flags | TRANS_NOXAUTH;
-
-        if (!AllocNewConnection(new_trans_conn, newconn, connect_time)) {
-            ErrorConnMax(new_trans_conn);
-            _XSERVTransClose(new_trans_conn);
-        }
+        if (clientid && (client = clients[clientid]))
+            CloseDownClient(client);
     }
-#ifndef WIN32
+
+    _XSERVTransSetOption(new_trans_conn, TRANS_NONBLOCKING, 1);
+
+    if (trans_conn->flags & TRANS_NOXAUTH)
+        new_trans_conn->flags = new_trans_conn->flags | TRANS_NOXAUTH;
+
+    if (!AllocNewConnection(new_trans_conn, newconn, connect_time)) {
+        ErrorConnMax(new_trans_conn);
+        _XSERVTransClose(new_trans_conn);
+    }
+    return TRUE;
 }
-#endif
-return TRUE;
+
+static void
+QueueNewConnections(int fd, int ready, void *data)
+{
+    QueueWorkProc(EstablishNewConnections, NULL, (void *) (intptr_t) fd);
 }
 
 #define NOROOM "Maximum number of clients reached"
@@ -1417,8 +1398,7 @@ ListenOnOpenFD(int fd, int noxauth)
     ListenTransConns[ListenTransCount] = ciptr;
     ListenTransFds[ListenTransCount] = fd;
 
-    FD_SET(fd, &WellKnownConnections);
-    FD_SET(fd, &AllSockets);
+    SetNotifyFd(fd, QueueNewConnections, X_NOTIFY_READ, NULL);
 
     /* Increment the count */
     ListenTransCount++;

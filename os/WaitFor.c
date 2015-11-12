@@ -311,10 +311,6 @@ WaitForSomething(int *pClientsReady)
 
             XFD_ANDSET(&devicesReadable, &LastSelectMask, &EnabledDevices);
             XFD_ANDSET(&clientsReadable, &LastSelectMask, &AllClients);
-            XFD_ANDSET(&tmp_set, &LastSelectMask, &WellKnownConnections);
-            if (XFD_ANYSET(&tmp_set))
-                QueueWorkProc(EstablishNewConnections, NULL,
-                              (void *) &LastSelectMask);
 
             XFD_ANDSET(&tmp_set, &LastSelectMask, &NotifyReadFds);
             if (XFD_ANYSET(&tmp_set) || someNotifyWriteReady)
