@@ -306,6 +306,10 @@ WaitForSomething(int *pClientsReady)
                 QueueWorkProc(EstablishNewConnections, NULL,
                               (void *) &LastSelectMask);
 
+            XFD_ANDSET(&tmp_set, &LastSelectMask, &NotifyReadFds);
+            if (XFD_ANYSET(&tmp_set))
+                HandleNotifyFds();
+
             if (XFD_ANYSET(&devicesReadable) || XFD_ANYSET(&clientsReadable))
                 break;
             /* check here for DDXes that queue events during Block/Wakeup */
