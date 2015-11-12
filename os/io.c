@@ -462,23 +462,14 @@ ReadRequestFromClient(ClientPtr client)
             )
             FD_SET(fd, &ClientsWithInput);
         else {
-            if (!SmartScheduleDisable)
-                FD_CLR(fd, &ClientsWithInput);
-            else
-                YieldControlNoInput(fd);
+            FD_CLR(fd, &ClientsWithInput);
         }
     }
     else {
         if (!gotnow)
             AvailableInput = oc;
-        if (!SmartScheduleDisable)
-            FD_CLR(fd, &ClientsWithInput);
-        else
-            YieldControlNoInput(fd);
+        FD_CLR(fd, &ClientsWithInput);
     }
-    if (SmartScheduleDisable)
-        if (++timesThisConnection >= MAX_TIMES_PER)
-            YieldControl();
     if (move_header) {
         request = (xReq *) oci->bufptr;
         oci->bufptr += (sizeof(xBigReq) - sizeof(xReq));

@@ -175,16 +175,10 @@ WaitForSomething(int *pClientsReady)
         if (workQueue)
             ProcessWorkQueue();
         if (XFD_ANYSET(&ClientsWithInput)) {
-            if (!SmartScheduleDisable) {
-                someReady = TRUE;
-                waittime.tv_sec = 0;
-                waittime.tv_usec = 0;
-                wt = &waittime;
-            }
-            else {
-                XFD_COPYSET(&ClientsWithInput, &clientsReadable);
-                break;
-            }
+            someReady = TRUE;
+            waittime.tv_sec = 0;
+            waittime.tv_usec = 0;
+            wt = &waittime;
         }
         if (someReady) {
             XFD_COPYSET(&AllSockets, &LastSelectMask);
