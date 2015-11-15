@@ -388,7 +388,6 @@ ms_platform_probe(DriverPtr driver,
         {
             DevUnion *pPriv;
             EntityInfoPtr pEnt;
-            modesettingEntPtr pMSEnt;
 
             xf86SetEntitySharable(entity_num);
 
@@ -401,13 +400,8 @@ ms_platform_probe(DriverPtr driver,
 
             xf86SetEntityInstanceForScreen(scrn, pEnt->index, xf86GetNumEntityInstances(pEnt->index) - 1);
 
-            if (!pPriv->ptr) {
+            if (!pPriv->ptr)
                 pPriv->ptr = xnfcalloc(sizeof(modesettingEntRec), 1);
-                pMSEnt = pPriv->ptr;
-            } else {
-                pMSEnt = pPriv->ptr;
-            }
-            pMSEnt->platform_dev = dev;
         }
 
     }
