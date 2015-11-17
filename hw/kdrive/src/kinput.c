@@ -34,7 +34,7 @@
 #endif
 #include <signal.h>
 #include <stdio.h>
-#ifdef sun
+#ifdef __sun
 #include <sys/file.h>           /* needed for FNONBLOCK & FASYNC */
 #endif
 
