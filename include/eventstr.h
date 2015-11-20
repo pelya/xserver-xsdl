@@ -83,6 +83,7 @@ enum EventType {
  */
 enum DeviceEventSource {
   EVENT_SOURCE_NORMAL = 0, /**< Default: from a user action (e.g. key press) */
+  EVENT_SOURCE_FOCUS, /**< Keys or buttons previously down on focus-in */
 };
 
 /**

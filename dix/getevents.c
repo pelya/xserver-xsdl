@@ -1101,6 +1101,11 @@ GetKeyboardEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
     }
 #endif
 
+    if (type == KeymapNotify) {
+        source_type = EVENT_SOURCE_FOCUS;
+        type = KeyPress;
+    }
+
     /* refuse events from disabled devices */
     if (!pDev->enabled)
         return 0;

@@ -1206,6 +1206,32 @@ XkbActionGetFilter(DeviceIntPtr dev, DeviceEvent *event, KeyCode key,
     XkbSrvInfoPtr xkbi = dev->key->xkbInfo;
     XkbFilterPtr filter;
 
+    /* For focus events, we only want to run actions which update our state to
+     * (hopefully vaguely kinda) match that of the host server, rather than
+     * actually execute anything. For example, if we enter our VT with
+     * Ctrl+Alt+Backspace held down, we don't want to terminate our server
+     * immediately, but we _do_ want Ctrl+Alt to be latched down, so if
+     * Backspace is released and then pressed again, the server will terminate.
+     *
+     * This is pretty flaky, and we should in fact inherit the complete state
+     * from the host server. There are some state combinations that we cannot
+     * express by running the state machine over every key, e.g. if AltGr+Shift
+     * generates a different state to Shift+AltGr. */
+    if (event->source_type == EVENT_SOURCE_FOCUS) {
+        switch (act->type) {
+        case XkbSA_SetMods:
+        case XkbSA_SetGroup:
+        case XkbSA_LatchMods:
+        case XkbSA_LatchGroup:
+        case XkbSA_LockMods:
+        case XkbSA_LockGroup:
+            break;
+        default:
+            *sendEvent = 1;
+            return;
+        }
+    }
+
     switch (act->type) {
     case XkbSA_SetMods:
     case XkbSA_SetGroup:
