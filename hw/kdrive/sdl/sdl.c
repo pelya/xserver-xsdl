@@ -705,18 +705,18 @@ static void sdlPollInput(void)
 						// SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
 						static int keyboard = 0;
 						keyboard++;
-						if (keyboard > 2)
+						if (keyboard > 1)
 							keyboard = 0;
 						SDL_HideScreenKeyboard(NULL);
 						//SDL_Delay(150);
 						SDL_Flip(SDL_GetVideoSurface());
-						if (keyboard == 1)
+						if (keyboard == 0)
 						{
 							SDL_Delay(100);
 							SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
 							SDL_Flip(SDL_GetVideoSurface());
 						}
-						if (keyboard == 2)
+						if (keyboard == 1)
 						{
 							SDL_Delay(100);
 							SDL_ANDROID_ToggleInternalScreenKeyboard(SDL_KEYBOARD_QWERTY);
@@ -1089,6 +1089,8 @@ void setScreenButtons(int mouseX)
 {
 #ifdef __ANDROID__
 	//printf ("setScreenButtons: kbShown %d sdlScreenButtons %d alignLeft %d", SDL_IsScreenKeyboardShown(NULL), sdlScreenButtons, mouseX > (((unsigned)SDL_GetVideoSurface()->w) >> 3));
+
+	return; // Disable screen buttons, we now have built-in SDL keyboard with sticky Ctrl/Alt/Shift keys
 
 	if ( SDL_ANDROID_GetScreenKeyboardRedefinedByUser() )
 		return;
