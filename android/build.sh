@@ -416,7 +416,7 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-env CFLAGS="-I$NDK/sources/android/cpufeatures" \
+env CFLAGS="-I$NDK/sources/android/cpufeatures -DSO_REUSEADDR=1" \
 LDFLAGS="-L$NDK/sources/android/libportable/libs/$TARGET_ARCH -lportable" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -449,7 +449,7 @@ cd $PKGDIR
 autoreconf -v --install \
 || exit 1
 
-env CFLAGS="-isystem$BUILDDIR -include strings.h" \
+env CFLAGS="-isystem$BUILDDIR -include strings.h -DSO_REUSEADDR=1" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -489,7 +489,7 @@ autoreconf -v --install \
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h \
 -I$BUILDDIR/../../../../../../jni/freetype/include \
--DNO_LOCALE" \
+-DNO_LOCALE -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -529,7 +529,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -566,7 +566,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -620,7 +620,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -674,7 +674,7 @@ autoreconf -v --install \
 
 env CFLAGS="-isystem$BUILDDIR \
 			-isystem$BUILDDIR/../android-shmem \
-			-include strings.h" \
+			-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 LIBS="-lXau -lXdmcp -landroid_support -landroid-shmem" \
@@ -718,7 +718,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -758,7 +758,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -798,7 +798,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -838,7 +838,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -878,7 +878,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h -Os" \
+-include strings.h -Os -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -914,7 +914,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h -Os" \
+-include strings.h -Os -DSO_REUSEADDR=1" \
 LDFLAGS="-pie -L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -956,7 +956,7 @@ autoreconf -v --install \
 #LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -995,7 +995,7 @@ autoreconf -v --install \
 #LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -1032,7 +1032,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -1076,7 +1076,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR \
--include strings.h" \
+-include strings.h -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lSM -lICE" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -1116,7 +1116,7 @@ autoreconf -v --install \
 
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h \
--Dsethostent=abs -Dendhostent=sync -Os" \
+-Dsethostent=abs -Dendhostent=sync -Os -DSO_REUSEADDR=1" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -1151,7 +1151,7 @@ autoreconf -v --install \
 
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h \
--Dsethostent=abs -Dendhostent=sync -Os" \
+-Dsethostent=abs -Dendhostent=sync -Os -DSO_REUSEADDR=1" \
 LDFLAGS="-pie -L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -1313,6 +1313,7 @@ env CFLAGS=" -DDEBUG \
 	-DFNONBLOCK=O_NONBLOCK \
 	-DFNDELAY=O_NDELAY \
 	-D_LINUX_IPC_H \
+	-DSO_REUSEADDR=1 \
 	-Dipc_perm=debian_ipc_perm \
 	-I$BUILDDIR/pixman-0.30.2/pixman \
 	-I$BUILDDIR/../../../../../../jni/sdl-1.2/include" \
