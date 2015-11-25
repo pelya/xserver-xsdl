@@ -701,7 +701,28 @@ static void sdlPollInput(void)
 				if (event.key.keysym.sym == SDLK_HELP)
 				{
 					if(event.type == SDL_KEYUP)
-						SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
+					{
+						// SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
+						static int keyboard = 0;
+						keyboard++;
+						if (keyboard > 2)
+							keyboard = 0;
+						SDL_HideScreenKeyboard(NULL);
+						//SDL_Delay(150);
+						SDL_Flip(SDL_GetVideoSurface());
+						if (keyboard == 1)
+						{
+							SDL_Delay(100);
+							SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
+							SDL_Flip(SDL_GetVideoSurface());
+						}
+						if (keyboard == 2)
+						{
+							SDL_Delay(100);
+							SDL_ANDROID_ToggleInternalScreenKeyboard(SDL_KEYBOARD_QWERTY);
+							SDL_Flip(SDL_GetVideoSurface());
+						}
+					}
 					setScreenButtons(10000);
 				}
 				else
