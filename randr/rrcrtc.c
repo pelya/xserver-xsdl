@@ -379,10 +379,7 @@ void
 RRCrtcDetachScanoutPixmap(RRCrtcPtr crtc)
 {
     ScreenPtr master = crtc->pScreen->current_master;
-    PixmapPtr mscreenpix;
     rrScrPriv(crtc->pScreen);
-
-    mscreenpix = master->GetScreenPixmap(master);
 
     pScrPriv->rrCrtcSetScanoutPixmap(crtc, NULL);
     if (crtc->scanout_pixmap) {
@@ -429,8 +426,6 @@ rrSetupPixmapSharing(RRCrtcPtr crtc, int width, int height,
     ScreenPtr master = crtc->pScreen->current_master;
     int depth;
     PixmapPtr mscreenpix;
-    PixmapPtr protopix = master->GetScreenPixmap(master);
-    rrScrPriv(crtc->pScreen);
     PixmapPtr spix;
 
     /* create a pixmap on the master screen,
@@ -442,7 +437,7 @@ rrSetupPixmapSharing(RRCrtcPtr crtc, int width, int height,
     */
 
     mscreenpix = master->GetScreenPixmap(master);
-    depth = protopix->drawable.depth;
+    depth = mscreenpix->drawable.depth;
 
     if (crtc->scanout_pixmap)
         RRCrtcDetachScanoutPixmap(crtc);
