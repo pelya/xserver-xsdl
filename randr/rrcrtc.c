@@ -392,17 +392,46 @@ RRCrtcDetachScanoutPixmap(RRCrtcPtr crtc)
     RRCrtcChanged(crtc, TRUE);
 }
 
-static Bool
-rrCreateSharedPixmap(RRCrtcPtr crtc, int width, int height,
+static PixmapPtr
+rrCreateSharedPixmap(RRCrtcPtr crtc, ScreenPtr master,
+                     int width, int height, int depth,
                      int x, int y, Rotation rotation)
 {
-    PixmapPtr mpix, spix;
-    ScreenPtr master = crtc->pScreen->current_master;
     Bool ret;
+    PixmapPtr mpix, spix;
+    rrScrPriv(crtc->pScreen);
+
+    mpix = master->CreatePixmap(master, width, height, depth,
+                                CREATE_PIXMAP_USAGE_SHARED);
+    if (!mpix)
+        return NULL;
+
+    spix = PixmapShareToSlave(mpix, crtc->pScreen);
+    if (spix == NULL) {
+        master->DestroyPixmap(mpix);
+        return NULL;
+    }
+
+    ret = pScrPriv->rrCrtcSetScanoutPixmap(crtc, spix);
+    if (ret == FALSE) {
+        rrDestroySharedPixmap(crtc, spix);
+        ErrorF("randr: failed to set shadow slave pixmap\n");
+        return NULL;
+    }
+
+    return spix;
+}
+
+static Bool
+rrSetupPixmapSharing(RRCrtcPtr crtc, int width, int height,
+                     int x, int y, Rotation rotation)
+{
+    ScreenPtr master = crtc->pScreen->current_master;
     int depth;
     PixmapPtr mscreenpix;
     PixmapPtr protopix = master->GetScreenPixmap(master);
     rrScrPriv(crtc->pScreen);
+    PixmapPtr spix;
 
     /* create a pixmap on the master screen,
        then get a shared handle for it
@@ -422,20 +451,10 @@ rrCreateSharedPixmap(RRCrtcPtr crtc, int width, int height,
         return TRUE;
     }
 
-    mpix = master->CreatePixmap(master, width, height, depth,
-                                CREATE_PIXMAP_USAGE_SHARED);
-    if (!mpix)
-        return FALSE;
-
-    spix = PixmapShareToSlave(mpix, crtc->pScreen);
+    spix = rrCreateSharedPixmap(crtc, master,
+                                width, height, depth,
+                                x, y, rotation);
     if (spix == NULL) {
-        master->DestroyPixmap(mpix);
-        return FALSE;
-    }
-
-    ret = pScrPriv->rrCrtcSetScanoutPixmap(crtc, spix);
-    if (ret == FALSE) {
-        ErrorF("randr: failed to set shadow slave pixmap\n");
         return FALSE;
     }
 
@@ -599,7 +618,7 @@ RRCrtcSet(RRCrtcPtr crtc,
                 return FALSE;
 
             if (pScreen->current_master) {
-                ret = rrCreateSharedPixmap(crtc, width, height, x, y, rotation);
+                ret = rrSetupPixmapSharing(crtc, width, height, x, y, rotation);
             }
         }
 #if RANDR_12_INTERFACE
