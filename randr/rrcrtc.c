@@ -361,6 +361,20 @@ RRComputeContiguity(ScreenPtr pScreen)
     pScrPriv->discontiguous = discontiguous;
 }
 
+static void
+rrDestroySharedPixmap(RRCrtcPtr crtc, PixmapPtr pPixmap) {
+    if (crtc->pScreen->current_master && pPixmap->master_pixmap) {
+        /*
+         * Unref the pixmap twice: once for the original reference, and once
+         * for the reference implicitly added by PixmapShareToSlave.
+         */
+        crtc->pScreen->current_master->DestroyPixmap(pPixmap->master_pixmap);
+        crtc->pScreen->current_master->DestroyPixmap(pPixmap->master_pixmap);
+    }
+
+    crtc->pScreen->DestroyPixmap(pPixmap);
+}
+
 void
 RRCrtcDetachScanoutPixmap(RRCrtcPtr crtc)
 {
@@ -372,14 +386,7 @@ RRCrtcDetachScanoutPixmap(RRCrtcPtr crtc)
 
     pScrPriv->rrCrtcSetScanoutPixmap(crtc, NULL);
     if (crtc->scanout_pixmap) {
-        master->StopPixmapTracking(mscreenpix, crtc->scanout_pixmap);
-        /*
-         * Unref the pixmap twice: once for the original reference, and once
-         * for the reference implicitly added by PixmapShareToSlave.
-         */
-        master->DestroyPixmap(crtc->scanout_pixmap->master_pixmap);
-        master->DestroyPixmap(crtc->scanout_pixmap->master_pixmap);
-        crtc->pScreen->DestroyPixmap(crtc->scanout_pixmap);
+        rrDestroySharedPixmap(crtc, crtc->scanout_pixmap);
     }
     crtc->scanout_pixmap = NULL;
     RRCrtcChanged(crtc, TRUE);
