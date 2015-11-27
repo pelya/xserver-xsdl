@@ -240,6 +240,11 @@ xwl_output_create(struct xwl_screen *xwl_screen, uint32_t id)
 
     xwl_output->output = wl_registry_bind(xwl_screen->registry, id,
                                           &wl_output_interface, 2);
+    if (!xwl_output->output) {
+        ErrorF("Failed binding wl_output\n");
+        goto err;
+    }
+
     xwl_output->server_output_id = id;
     wl_output_add_listener(xwl_output->output, &output_listener, xwl_output);
 
@@ -247,13 +252,31 @@ xwl_output_create(struct xwl_screen *xwl_screen, uint32_t id)
 
     xwl_output->xwl_screen = xwl_screen;
     xwl_output->randr_crtc = RRCrtcCreate(xwl_screen->screen, xwl_output);
+    if (!xwl_output->randr_crtc) {
+        ErrorF("Failed creating RandR CRTC\n");
+        goto err;
+    }
+
     xwl_output->randr_output = RROutputCreate(xwl_screen->screen, name,
                                               strlen(name), xwl_output);
+    if (!xwl_output->randr_output) {
+        ErrorF("Failed creating RandR Output\n");
+        goto err;
+    }
+
     RRCrtcGammaSetSize(xwl_output->randr_crtc, 256);
     RROutputSetCrtcs(xwl_output->randr_output, &xwl_output->randr_crtc, 1);
     RROutputSetConnection(xwl_output->randr_output, RR_Connected);
 
     return xwl_output;
+
+err:
+    if (xwl_output->randr_crtc)
+        RRCrtcDestroy(xwl_output->randr_crtc);
+    if (xwl_output->output)
+        wl_output_destroy(xwl_output->output);
+    free(xwl_output);
+    return NULL;
 }
 
 void
