@@ -363,13 +363,18 @@ RRComputeContiguity(ScreenPtr pScreen)
 
 static void
 rrDestroySharedPixmap(RRCrtcPtr crtc, PixmapPtr pPixmap) {
-    if (crtc->pScreen->current_master && pPixmap->master_pixmap) {
+    ScreenPtr master = crtc->pScreen->current_master;
+
+    if (master && pPixmap->master_pixmap) {
+        PixmapPtr mscreenpix = master->GetScreenPixmap(master);
+
+        master->StopPixmapTracking(mscreenpix, pPixmap);
         /*
          * Unref the pixmap twice: once for the original reference, and once
          * for the reference implicitly added by PixmapShareToSlave.
          */
-        crtc->pScreen->current_master->DestroyPixmap(pPixmap->master_pixmap);
-        crtc->pScreen->current_master->DestroyPixmap(pPixmap->master_pixmap);
+        master->DestroyPixmap(pPixmap->master_pixmap);
+        master->DestroyPixmap(pPixmap->master_pixmap);
     }
 
     crtc->pScreen->DestroyPixmap(pPixmap);
