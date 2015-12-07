@@ -47,8 +47,8 @@ SOFTWARE.
  *  Stuff to create connections --- OS dependent
  *
  *      EstablishNewConnections, CreateWellKnownSockets, ResetWellKnownSockets,
- *      CloseDownConnection, CheckConnections, AddEnabledDevice,
- *	RemoveEnabledDevice, OnlyListToOneClient,
+ *      CloseDownConnection, CheckConnections
+ *	OnlyListToOneClient,
  *      ListenToAllClients,
  *
  *      (WaitForSomething is in its own file)
@@ -121,7 +121,6 @@ SOFTWARE.
 
 static int lastfdesc;           /* maximum file descriptor */
 
-fd_set EnabledDevices;          /* mask for input devices that are on */
 fd_set NotifyReadFds;           /* mask for other file descriptors */
 fd_set NotifyWriteFds;          /* mask for other write file descriptors */
 fd_set AllSockets;              /* select on this */
@@ -1045,36 +1044,6 @@ CloseDownConnection(ClientPtr client)
         AuditF("client %d disconnected\n", client->index);
 }
 
-void
-AddGeneralSocket(int fd)
-{
-    FD_SET(fd, &AllSockets);
-    if (GrabInProgress)
-        FD_SET(fd, &SavedAllSockets);
-}
-
-void
-AddEnabledDevice(int fd)
-{
-    FD_SET(fd, &EnabledDevices);
-    AddGeneralSocket(fd);
-}
-
-void
-RemoveGeneralSocket(int fd)
-{
-    FD_CLR(fd, &AllSockets);
-    if (GrabInProgress)
-        FD_CLR(fd, &SavedAllSockets);
-}
-
-void
-RemoveEnabledDevice(int fd)
-{
-    FD_CLR(fd, &EnabledDevices);
-    RemoveGeneralSocket(fd);
-}
-
 struct notify_fd {
     struct xorg_list list;
     int fd;
@@ -1132,9 +1101,13 @@ SetNotifyFd(int fd, NotifyFdProcPtr notify, int mask, void *data)
     if (changes & X_NOTIFY_READ) {
         if (mask & X_NOTIFY_READ) {
             FD_SET(fd, &NotifyReadFds);
-            AddGeneralSocket(fd);
+            FD_SET(fd, &AllSockets);
+            if (GrabInProgress)
+                FD_SET(fd, &SavedAllSockets);
         } else {
-            RemoveGeneralSocket(fd);
+            FD_CLR(fd, &AllSockets);
+            if (GrabInProgress)
+                FD_CLR(fd, &SavedAllSockets);
             FD_CLR(fd, &NotifyReadFds);
         }
     }

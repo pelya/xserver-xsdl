@@ -153,7 +153,6 @@ WaitForSomething(int *pClientsReady)
     int curclient;
     int selecterr;
     static int nready;
-    fd_set devicesReadable;
     CARD32 now = 0;
     Bool someReady = FALSE;
     Bool someNotifyWriteReady = FALSE;
@@ -309,14 +308,13 @@ WaitForSomething(int *pClientsReady)
                 }
             }
 
-            XFD_ANDSET(&devicesReadable, &LastSelectMask, &EnabledDevices);
             XFD_ANDSET(&clientsReadable, &LastSelectMask, &AllClients);
 
             XFD_ANDSET(&tmp_set, &LastSelectMask, &NotifyReadFds);
             if (XFD_ANYSET(&tmp_set) || someNotifyWriteReady)
                 HandleNotifyFds();
 
-            if (XFD_ANYSET(&devicesReadable) || XFD_ANYSET(&clientsReadable))
+            if (XFD_ANYSET(&clientsReadable))
                 break;
             /* check here for DDXes that queue events during Block/Wakeup */
             if (*checkForInput[0] != *checkForInput[1])

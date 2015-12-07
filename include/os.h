@@ -146,14 +146,6 @@ extern _X_EXPORT void CheckConnections(void);
 
 extern _X_EXPORT void CloseDownConnection(ClientPtr /*client */ );
 
-extern _X_EXPORT void AddGeneralSocket(int /*fd */ );
-
-extern _X_EXPORT void RemoveGeneralSocket(int /*fd */ );
-
-extern _X_EXPORT void AddEnabledDevice(int /*fd */ );
-
-extern _X_EXPORT void RemoveEnabledDevice(int /*fd */ );
-
 typedef void (*NotifyFdProcPtr)(int fd, int ready, void *data);
 
 #define X_NOTIFY_NONE   0
