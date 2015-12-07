@@ -35,6 +35,7 @@ is" without express or implied warranty.
 #include "Pointer.h"
 #include "Keyboard.h"
 #include "Handlers.h"
+#include "Events.h"
 #include "Init.h"
 #include "Args.h"
 #include "Drawable.h"
@@ -86,6 +87,12 @@ InitOutput(ScreenInfo * screen_info, int argc, char *argv[])
     xnestDoFullGeneration = xnestFullGeneration;
 }
 
+static void
+xnestNotifyConnection(int fd, int ready, void *data)
+{
+    xnestCollectEvents();
+}
+
 void
 InitInput(int argc, char *argv[])
 {
@@ -101,7 +108,7 @@ InitInput(int argc, char *argv[])
 
     mieqInit();
 
-    AddEnabledDevice(XConnectionNumber(xnestDisplay));
+    SetNotifyFd(XConnectionNumber(xnestDisplay), xnestNotifyConnection, X_NOTIFY_READ, NULL);
 
     RegisterBlockAndWakeupHandlers(xnestBlockHandler, xnestWakeupHandler, NULL);
 }
