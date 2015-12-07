@@ -12078,7 +12078,7 @@ x86emuOp_opcFF_word_RM(u8 X86EMU_UNUSED(op1))
             break;
         case 2:                /* call word ptr ... */
             if (M.x86.mode & SYSMODE_PREFIX_DATA) {
-                destreg = DECODE_RM_LONG_REGISTER(rl);
+                destreg = (u16 *)DECODE_RM_LONG_REGISTER(rl);
                 DECODE_PRINTF("\n");
                 TRACE_AND_STEP();
                 push_long(M.x86.R_EIP);
