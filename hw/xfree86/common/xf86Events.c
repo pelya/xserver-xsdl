@@ -310,7 +310,7 @@ xf86ReadInput(int fd, int ready, void *closure)
 void
 xf86AddEnabledDevice(InputInfoPtr pInfo)
 {
-    SetNotifyFd(pInfo->fd, xf86ReadInput, X_NOTIFY_READ, pInfo);
+    InputThreadRegisterDev(pInfo->fd, xf86ReadInput, pInfo);
 }
 
 /*
@@ -320,7 +320,7 @@ xf86AddEnabledDevice(InputInfoPtr pInfo)
 void
 xf86RemoveEnabledDevice(InputInfoPtr pInfo)
 {
-    RemoveNotifyFd(pInfo->fd);
+    InputThreadUnregisterDev(pInfo->fd);
 }
 
 static int *xf86SignalIntercept = NULL;

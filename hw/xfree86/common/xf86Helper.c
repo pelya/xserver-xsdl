@@ -1719,15 +1719,9 @@ xf86SetSilkenMouse(ScreenPtr pScreen)
     }
     free(options);
     /*
-     * XXX quick hack to report correctly for OSs that can't do SilkenMouse
-     * yet.  Should handle this differently so that alternate async methods
-     * work correctly with this too.
+     * Use silken mouse if requested and if we have threaded input
      */
-    /* Disable this completely when removing SIGIO support. It
-     * will get re-enabled correctly when we add threaded input
-     * support
-     */
-    pScrn->silkenMouse = useSM && FALSE;
+    pScrn->silkenMouse = useSM && InputThreadEnable;
     if (serverGeneration == 1)
         xf86DrvMsg(pScreen->myNum, from, "Silken mouse %s\n",
                    pScrn->silkenMouse ? "enabled" : "disabled");

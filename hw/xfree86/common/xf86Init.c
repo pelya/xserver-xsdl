@@ -887,6 +887,9 @@ InitInput(int argc, char **argv)
 
     xf86Info.vtRequestsPending = FALSE;
 
+    /* Enable threaded input */
+    InputThreadPreInit();
+
     mieqInit();
 
     /* Initialize all configured input devices */
