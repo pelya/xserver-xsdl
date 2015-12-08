@@ -99,7 +99,7 @@ dmxSigioHook(void)
     sigaction(SIGIO, &a, 0);
 
     sigemptyset(&s);
-    sigprocmask(SIG_SETMASK, &s, 0);
+    xthread_sigmask(SIG_SETMASK, &s, 0);
 }
 
 static void

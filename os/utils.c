@@ -586,7 +586,7 @@ UseMsg(void)
     ErrorF("-xinerama              Disable XINERAMA extension\n");
 #endif
     ErrorF
-        ("-dumbSched             Disable smart scheduling, enable old behavior\n");
+        ("-dumbSched             Disable smart scheduling and threaded input, enable old behavior\n");
     ErrorF("-schedInterval int     Set scheduler interval in msec\n");
     ErrorF("-sigstop               Enable SIGSTOP based startup\n");
     ErrorF("+extension name        Enable extension\n");
@@ -1004,11 +1004,12 @@ ProcessCommandLine(int argc, char *argv[])
             i = skip - 1;
         }
 #endif
-#if HAVE_SETITIMER
         else if (strcmp(argv[i], "-dumbSched") == 0) {
+            InputThreadEnable = FALSE;
+#if HAVE_SETITIMER
             SmartScheduleSignalEnable = FALSE;
-        }
 #endif
+        }
         else if (strcmp(argv[i], "-schedInterval") == 0) {
             if (++i < argc) {
                 SmartScheduleInterval = atoi(argv[i]);
@@ -1304,7 +1305,6 @@ OsBlockSignals(void)
     if (BlockedSignalCount++ == 0) {
         sigset_t set;
 
-        input_lock();
         sigemptyset(&set);
         sigaddset(&set, SIGALRM);
         sigaddset(&set, SIGVTALRM);
@@ -1315,7 +1315,7 @@ OsBlockSignals(void)
         sigaddset(&set, SIGTTIN);
         sigaddset(&set, SIGTTOU);
         sigaddset(&set, SIGCHLD);
-        sigprocmask(SIG_BLOCK, &set, &PreviousSignalMask);
+        xthread_sigmask(SIG_BLOCK, &set, &PreviousSignalMask);
     }
 #endif
 }
@@ -1325,8 +1325,7 @@ OsReleaseSignals(void)
 {
 #ifdef SIG_BLOCK
     if (--BlockedSignalCount == 0) {
-        sigprocmask(SIG_SETMASK, &PreviousSignalMask, 0);
-        input_unlock();
+        xthread_sigmask(SIG_SETMASK, &PreviousSignalMask, 0);
     }
 #endif
 }

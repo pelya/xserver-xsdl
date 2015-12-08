@@ -121,12 +121,9 @@ Equipment Corporation.
 extern void Dispatch(void);
 
 #ifdef XQUARTZ
-#include <pthread.h>
-
-BOOL serverRunning = FALSE;
+BOOL serverRunning;
 pthread_mutex_t serverRunningMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t serverRunningCond = PTHREAD_COND_INITIALIZER;
-
 #endif
 
 CallbackListPtr RootWindowFinalizeCallback = NULL;
@@ -299,6 +296,8 @@ dix_main(int argc, char *argv[], char *envp[])
 
         NotifyParentProcess();
 
+        InputThreadInit();
+
         Dispatch();
 
 #ifdef XQUARTZ
@@ -330,6 +329,8 @@ dix_main(int argc, char *argv[], char *envp[])
 #endif
 
         CloseInput();
+
+        InputThreadFini();
 
         for (i = 0; i < screenInfo.numScreens; i++)
             screenInfo.screens[i]->root = NullWindow;

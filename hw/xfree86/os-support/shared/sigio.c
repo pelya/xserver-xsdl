@@ -137,7 +137,7 @@ xf86BlockSIGIO(void)
 
     sigemptyset(&set);
     sigaddset(&set, SIGIO);
-    sigprocmask(SIG_BLOCK, &set, NULL);
+    xthread_sigmask(SIG_BLOCK, &set, NULL);
 }
 
 static void
@@ -147,7 +147,7 @@ xf86ReleaseSIGIO(void)
 
     sigemptyset(&set);
     sigaddset(&set, SIGIO);
-    sigprocmask(SIG_UNBLOCK, &set, NULL);
+    xthread_sigmask(SIG_UNBLOCK, &set, NULL);
 }
 
 int

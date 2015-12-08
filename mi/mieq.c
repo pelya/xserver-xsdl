@@ -88,9 +88,6 @@ typedef struct _EventQueue {
 static EventQueueRec miEventQueue;
 
 #ifdef XQUARTZ
-#include  <pthread.h>
-static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
-
 extern BOOL serverRunning;
 extern pthread_mutex_t serverRunningMutex;
 extern pthread_cond_t serverRunningCond;
@@ -252,7 +249,6 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 
 #ifdef XQUARTZ
     wait_for_server_init();
-    pthread_mutex_lock(&miEventQueueMutex);
 #endif
 
     verify_internal_event(e);
@@ -296,9 +292,6 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
             xorg_backtrace();
         }
 
-#ifdef XQUARTZ
-        pthread_mutex_unlock(&miEventQueueMutex);
-#endif
         return;
     }
 
@@ -319,9 +312,6 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 
     miEventQueue.lastMotion = isMotion;
     miEventQueue.tail = (oldtail + 1) % miEventQueue.nevents;
-#ifdef XQUARTZ
-    pthread_mutex_unlock(&miEventQueueMutex);
-#endif
 }
 
 /**
@@ -342,31 +332,19 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 void
 mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool set_dequeue_screen)
 {
-#ifdef XQUARTZ
-    pthread_mutex_lock(&miEventQueueMutex);
-#endif
     EnqueueScreen(pDev) = pScreen;
     if (set_dequeue_screen)
         DequeueScreen(pDev) = pScreen;
-#ifdef XQUARTZ
-    pthread_mutex_unlock(&miEventQueueMutex);
-#endif
 }
 
 void
 mieqSetHandler(int event, mieqHandler handler)
 {
-#ifdef XQUARTZ
-    pthread_mutex_lock(&miEventQueueMutex);
-#endif
     if (handler && miEventQueue.handlers[event])
         ErrorF("[mi] mieq: warning: overriding existing handler %p with %p for "
                "event %d\n", miEventQueue.handlers[event], handler, event);
 
     miEventQueue.handlers[event] = handler;
-#ifdef XQUARTZ
-    pthread_mutex_unlock(&miEventQueueMutex);
-#endif
 }
 
 /**
@@ -581,9 +559,7 @@ mieqProcessInputEvents(void)
     size_t n_enqueued;
     static Bool inProcessInputEvents = FALSE;
 
-#ifdef XQUARTZ
-    pthread_mutex_lock(&miEventQueueMutex);
-#endif
+    input_lock();
 
     /*
      * report an error if mieqProcessInputEvents() is called recursively;
@@ -621,9 +597,7 @@ mieqProcessInputEvents(void)
 
         miEventQueue.head = (miEventQueue.head + 1) % miEventQueue.nevents;
 
-#ifdef XQUARTZ
-        pthread_mutex_unlock(&miEventQueueMutex);
-#endif
+        input_unlock();
 
         master = (dev) ? GetMaster(dev, MASTER_ATTACHED) : NULL;
 
@@ -647,14 +621,10 @@ mieqProcessInputEvents(void)
               event.device_event.flags & TOUCH_POINTER_EMULATED)))
             miPointerUpdateSprite(dev);
 
-#ifdef XQUARTZ
-        pthread_mutex_lock(&miEventQueueMutex);
-#endif
+        input_lock();
     }
 
     inProcessInputEvents = FALSE;
 
-#ifdef XQUARTZ
-    pthread_mutex_unlock(&miEventQueueMutex);
-#endif
+    input_unlock();
 }

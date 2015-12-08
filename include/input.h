@@ -56,6 +56,7 @@ SOFTWARE.
 #include "xkbrules.h"
 #include "events.h"
 #include "list.h"
+#include "os.h"
 #include <X11/extensions/XI2.h>
 
 #define DEVICE_INIT	0
@@ -714,13 +715,20 @@ extern _X_HIDDEN void input_constrain_cursor(DeviceIntPtr pDev, ScreenPtr screen
                                              int *out_x, int *out_y,
                                              int *nevents, InternalEvent* events);
 
-static inline void input_lock(void) {
-}
+extern _X_EXPORT void input_lock(void);
+extern _X_EXPORT void input_unlock(void);
+extern _X_EXPORT void input_force_unlock(void);
 
-static inline void input_unlock(void) {
-}
+extern void InputThreadPreInit(void);
+extern void InputThreadInit(void);
+extern void InputThreadFini(void);
 
-static inline void input_force_unlock(void) {
-}
+extern int InputThreadRegisterDev(int fd,
+                                  NotifyFdProcPtr readInputProc,
+                                  void *readInputArgs);
+
+extern int InputThreadUnregisterDev(int fd);
+
+extern _X_EXPORT Bool InputThreadEnable;
 
 #endif                          /* INPUT_H */

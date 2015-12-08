@@ -832,6 +832,25 @@ SDK_REQUIRED_MODULES="$XPROTO $RANDRPROTO $RENDERPROTO $XEXTPROTO $INPUTPROTO $K
 # Make SDK_REQUIRED_MODULES available for inclusion in xorg-server.pc
 AC_SUBST(SDK_REQUIRED_MODULES)
 
+AC_CHECK_DECL([PTHREAD_MUTEX_RECURSIVE], [HAVE_RECURSIVE_MUTEX=yes], [HAVE_RECURSIVE_MUTEX=no], [[#include <pthread.h>]])
+
+THREAD_DEFAULT=no
+
+if test "x$HAVE_RECURSIVE_MUTEX" = "xyes" ; then
+	THREAD_DEFAULT=yes
+fi
+
+AC_ARG_ENABLE(input-thread, AS_HELP_STRING([--enable-input-thread],
+	     [Enable input threads]),
+	     [INPUTTHREAD=$enableval], [INPUTTHREAD=$THREAD_DEFAULT])
+
+if test "x$INPUTTHREAD" = "xyes" ; then
+    AX_PTHREAD(,AC_MSG_ERROR([threaded input requested but no pthread support has been found]))
+    SYS_LIBS="$SYS_LIBS $PTHREAD_LIBS"
+    CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+    AC_DEFINE(INPUTTHREAD, 1, [Use a separate input thread])
+fi
+
 REQUIRED_MODULES="$FIXESPROTO $DAMAGEPROTO $XCMISCPROTO $XTRANS $BIGREQSPROTO $SDK_REQUIRED_MODULES"
 
 dnl systemd socket activation
