@@ -146,7 +146,7 @@ static void
 KdAddFd(int fd, int i)
 {
     KdNonBlockFd(fd);
-    SetNotifyFd(fd, KdNotifyFd, X_NOTIFY_READ, (void *) (intptr_t) i);
+    InputThreadRegisterDev(fd, KdNotifyFd, (void *) (intptr_t) i);
 }
 
 static void
@@ -154,7 +154,7 @@ KdRemoveFd(int fd)
 {
     int flags;
 
-    RemoveNotifyFd(fd);
+    InputThreadUnregisterDev(fd);
     flags = fcntl(fd, F_GETFL);
     flags &= ~(FASYNC | NOBLOCK);
     fcntl(fd, F_SETFL, flags);
@@ -1305,6 +1305,8 @@ KdInitInput(void)
     KdPointerInfo *pi;
     KdKeyboardInfo *ki;
     struct KdConfigDevice *dev;
+
+    InputThreadPreInit();
 
     kdInputEnabled = TRUE;
 
