@@ -818,11 +818,11 @@ ScreenPtr ephyrCursorScreen; /* screen containing the cursor */
 static void
 ephyrWarpCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
-    OsBlockSIGIO();
+    input_lock();
     ephyrCursorScreen = pScreen;
     miPointerWarpCursor(inputInfo.pointer, pScreen, x, y);
 
-    OsReleaseSIGIO();
+    input_unlock();
 }
 
 miPointerScreenFuncRec ephyrPointerScreenFuncs = {

@@ -807,27 +807,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
         xf86Msg(X_CONFIG, "Ignoring ABI Version\n");
     }
 
-    if (xf86SIGIOSupported()) {
-        xf86Info.useSIGIO =
-            xf86ReturnOptValBool(FlagOptions, FLAG_USE_SIGIO,
-                                 USE_SIGIO_BY_DEFAULT);
-        if (xf86IsOptionSet(FlagOptions, FLAG_USE_SIGIO)) {
-            from = X_CONFIG;
-        }
-        else {
-            from = X_DEFAULT;
-        }
-        if (!xf86Info.useSIGIO) {
-            xf86Msg(from, "Disabling SIGIO handlers for input devices\n");
-        }
-        else if (from == X_CONFIG) {
-            xf86Msg(from, "Enabling SIGIO handlers for input devices\n");
-        }
-    }
-    else {
-        xf86Info.useSIGIO = FALSE;
-    }
-
     if (xf86IsOptionSet(FlagOptions, FLAG_AUTO_ADD_DEVICES)) {
         xf86GetOptValBool(FlagOptions, FLAG_AUTO_ADD_DEVICES,
                           &xf86Info.autoAddDevices);

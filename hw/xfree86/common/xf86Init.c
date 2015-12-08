@@ -762,7 +762,7 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
             ioctl(xf86Info.consoleFd, VT_RELDISP, VT_ACKACQ);
 #endif
             xf86AccessEnter();
-            OsBlockSIGIO();
+            input_lock();
             sigio_blocked = TRUE;
         }
     }
@@ -864,7 +864,7 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
 
     xf86VGAarbiterWrapFunctions();
     if (sigio_blocked)
-        OsReleaseSIGIO();
+        input_unlock();
 
     xf86InitOrigins();
 
@@ -1010,7 +1010,7 @@ AbortDDX(enum ExitCode error)
 {
     int i;
 
-    OsBlockSIGIO();
+    input_lock();
 
     /*
      * try to restore the original video state

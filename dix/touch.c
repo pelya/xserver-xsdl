@@ -79,7 +79,7 @@ TouchResizeQueue(ClientPtr client, void *closure)
 {
     int i;
 
-    OsBlockSignals();
+    input_lock();
 
     /* first two ids are reserved */
     for (i = 2; i < MAXDEVICES; i++) {
@@ -112,7 +112,7 @@ TouchResizeQueue(ClientPtr client, void *closure)
         }
 
     }
-    OsReleaseSignals();
+    input_unlock();
 
     return TRUE;
 }
@@ -1077,7 +1077,7 @@ TouchEndPhysicallyActiveTouches(DeviceIntPtr dev)
     InternalEvent *eventlist = InitEventList(GetMaximumEventsNum());
     int i;
 
-    OsBlockSignals();
+    input_lock();
     mieqProcessInputEvents();
     for (i = 0; i < dev->last.num_touches; i++) {
         DDXTouchPointInfoPtr ddxti = dev->last.touches + i;
@@ -1091,7 +1091,7 @@ TouchEndPhysicallyActiveTouches(DeviceIntPtr dev)
                 mieqProcessDeviceEvent(dev, eventlist + j, NULL);
         }
     }
-    OsReleaseSignals();
+    input_unlock();
 
     FreeEventList(eventlist, GetMaximumEventsNum());
 }

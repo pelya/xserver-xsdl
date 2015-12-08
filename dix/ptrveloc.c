@@ -165,7 +165,7 @@ AccelerationDefaultCleanup(DeviceIntPtr dev)
          * AccelSchemeProc(), but that seems impossible. Schemes don't get
          * switched often anyway.
          */
-        OsBlockSignals();
+        input_lock();
         dev->valuator->accelScheme.AccelSchemeProc = NULL;
         FreeVelocityData(vel);
         free(vel);
@@ -175,7 +175,7 @@ AccelerationDefaultCleanup(DeviceIntPtr dev)
                                                 accelData);
         free(dev->valuator->accelScheme.accelData);
         dev->valuator->accelScheme.accelData = NULL;
-        OsReleaseSignals();
+        input_unlock();
     }
 }
 

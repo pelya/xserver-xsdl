@@ -108,38 +108,6 @@ extern const char *kdGlobalXkbLayout;
 extern const char *kdGlobalXkbVariant;
 extern const char *kdGlobalXkbOptions;
 
-static void
-KdSigio(int sig)
-{
-    int i;
-
-    for (i = 0; i < kdNumInputFds; i++)
-        (*kdInputFds[i].read) (kdInputFds[i].fd, kdInputFds[i].closure);
-}
-
-#ifdef DEBUG_SIGIO
-
-void
-KdAssertSigioBlocked(char *where)
-{
-    sigset_t set, old;
-
-    sigemptyset(&set);
-    sigprocmask(SIG_BLOCK, &set, &old);
-    if (!sigismember(&old, SIGIO)) {
-        ErrorF("SIGIO not blocked at %s\n", where);
-        KdBacktrace(0);
-    }
-}
-
-#else
-
-#define KdAssertSigioBlocked(s)
-
-#endif
-
-static int kdnFds;
-
 #ifdef FNONBLOCK
 #define NOBLOCK FNONBLOCK
 #else
@@ -171,49 +139,27 @@ static void
 KdNotifyFd(int fd, int ready, void *data)
 {
     int i = (int) (intptr_t) data;
-    OsBlockSIGIO();
+    input_lock();
     (*kdInputFds[i].read)(fd, kdInputFds[i].closure);
-    OsReleaseSIGIO();
+    input_unlock();
 }
 
 static void
 KdAddFd(int fd, int i)
 {
-    struct sigaction act;
-    sigset_t set;
-
-    kdnFds++;
-    fcntl(fd, F_SETOWN, getpid());
     KdNonBlockFd(fd);
     SetNotifyFd(fd, KdNotifyFd, X_NOTIFY_READ, (void *) (intptr_t) i);
-    memset(&act, '\0', sizeof act);
-    act.sa_handler = KdSigio;
-    sigemptyset(&act.sa_mask);
-    sigaddset(&act.sa_mask, SIGIO);
-    sigaddset(&act.sa_mask, SIGALRM);
-    sigaddset(&act.sa_mask, SIGVTALRM);
-    sigaction(SIGIO, &act, 0);
-    sigemptyset(&set);
-    sigprocmask(SIG_SETMASK, &set, 0);
 }
 
 static void
 KdRemoveFd(int fd)
 {
-    struct sigaction act;
     int flags;
 
-    kdnFds--;
     RemoveNotifyFd(fd);
     flags = fcntl(fd, F_GETFL);
     flags &= ~(FASYNC | NOBLOCK);
     fcntl(fd, F_SETFL, flags);
-    if (kdnFds == 0) {
-        memset(&act, '\0', sizeof act);
-        act.sa_handler = SIG_IGN;
-        sigemptyset(&act.sa_mask);
-        sigaction(SIGIO, &act, 0);
-    }
 }
 
 Bool
@@ -265,7 +211,7 @@ KdDisableInput(void)
     KdPointerInfo *pi;
     int found = 0, i = 0;
 
-    OsBlockSIGIO();
+    input_lock();
 
     for (ki = kdKeyboards; ki; ki = ki->next) {
         if (ki->driver && ki->driver->Disable)
@@ -348,7 +294,7 @@ KdEnableInput(void)
         NoticeEventTime (&ev, pi->dixdev);
     }
 
-    OsReleaseSIGIO();
+    input_unlock();
 }
 
 static KdKeyboardDriver *
@@ -1850,7 +1796,7 @@ KdReleaseAllKeys(void)
     int key;
     KdKeyboardInfo *ki;
 
-    OsBlockSIGIO();
+    input_lock();
 
     for (ki = kdKeyboards; ki; ki = ki->next) {
         for (key = ki->keySyms.minKeyCode; key < ki->keySyms.maxKeyCode; key++) {
@@ -1861,7 +1807,7 @@ KdReleaseAllKeys(void)
         }
     }
 
-    OsReleaseSIGIO();
+    input_unlock();
 #endif
 }
 
@@ -2049,9 +1995,9 @@ KdWakeupHandler(ScreenPtr pScreen, unsigned long lresult, void *readmask)
         if (pi->timeoutPending) {
             if ((long) (GetTimeInMillis() - pi->emulationTimeout) >= 0) {
                 pi->timeoutPending = FALSE;
-                OsBlockSIGIO();
+                input_lock();
                 KdReceiveTimeout(pi);
-                OsReleaseSIGIO();
+                input_unlock();
             }
         }
     }
@@ -2148,10 +2094,10 @@ int KdCurScreen;                /* current event screen */
 static void
 KdWarpCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
-    OsBlockSIGIO();
+    input_lock();
     KdCurScreen = pScreen->myNum;
     miPointerWarpCursor(pDev, pScreen, x, y);
-    OsReleaseSIGIO();
+    input_unlock();
 }
 
 miPointerScreenFuncRec kdPointerScreenFuncs = {

@@ -145,10 +145,10 @@ mieqGrowQueue(EventQueuePtr eventQueue, size_t new_nevents)
 
     n_enqueued = mieqNumEnqueued(eventQueue);
 
-    /* We block signals, so an mieqEnqueue triggered by SIGIO does not
+    /* We lock input, so an mieqEnqueue does not
      * write to our queue as we are modifying it.
      */
-    OsBlockSignals();
+    input_lock();
 
     /* First copy the existing events */
     first_hunk = eventQueue->nevents - eventQueue->head;
@@ -181,7 +181,7 @@ mieqGrowQueue(EventQueuePtr eventQueue, size_t new_nevents)
     free(eventQueue->events);
     eventQueue->events = new_events;
 
-    OsReleaseSignals();
+    input_unlock();
     return TRUE;
 }
 

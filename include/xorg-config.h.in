@@ -127,9 +127,6 @@
 /* Path to text files containing PCI IDs */
 #undef PCI_TXT_IDS_PATH
 
-/* Use SIGIO handlers for input device events by default */
-#undef USE_SIGIO_BY_DEFAULT
-
 /* Build with libdrm support */
 #undef WITH_LIBDRM
 

@@ -381,7 +381,6 @@ AM_CONDITIONAL(PPC_VIDEO, [test "x$PPC_VIDEO" = xyes])
 AM_CONDITIONAL(SPARC64_VIDEO, [test "x$SPARC64_VIDEO" = xyes])
 
 DRI=no
-USE_SIGIO_BY_DEFAULT="yes"
 dnl it would be nice to autodetect these *CONS_SUPPORTs
 case $host_os in
   *freebsd* | *dragonfly*)
@@ -411,9 +410,6 @@ case $host_os in
 	;;
   *solaris*)
 	PKG_CHECK_EXISTS(libdrm, DRI=yes, DRI=no)
-	# Disable use of SIGIO by default until some system bugs are
-	# fixed - see Sun/OpenSolaris bug id 6879897
-	USE_SIGIO_BY_DEFAULT="no"
 	;;
   darwin*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -446,9 +442,6 @@ AC_ARG_ENABLE(werror,        AS_HELP_STRING([--enable-werror],
 AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
 				  [Enable debugging (default: disabled)]),
 			        [DEBUGGING=$enableval], [DEBUGGING=no])
-AC_ARG_ENABLE(use-sigio-by-default, AS_HELP_STRING([--enable-use-sigio-by-default]
-  [Enable SIGIO input handlers by default (default: $USE_SIGIO_BY_DEFAULT)]),
-                                [USE_SIGIO_BY_DEFAULT=$enableval], [])
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
 				[INT10="$DEFAULT_INT10"])
@@ -967,13 +960,6 @@ if test "x$CONFIG_WSCONS" = xyes; then
 	AC_DEFINE(CONFIG_WSCONS, 1, [Use wscons for input auto configuration])
 fi
 
-if test "x$USE_SIGIO_BY_DEFAULT" = xyes; then
-	USE_SIGIO_BY_DEFAULT_VALUE=TRUE
-else
-	USE_SIGIO_BY_DEFAULT_VALUE=FALSE
-fi
-AC_DEFINE_UNQUOTED([USE_SIGIO_BY_DEFAULT], [$USE_SIGIO_BY_DEFAULT_VALUE],
-		   [Use SIGIO handlers for input device events by default])
 
 AC_MSG_CHECKING([for glibc...])
 AC_PREPROC_IFELSE([AC_LANG_SOURCE([

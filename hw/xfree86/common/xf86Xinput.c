@@ -931,7 +931,7 @@ xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL enable)
 
     /* Enable it if it's properly initialised and we're currently in the VT */
     if (enable && dev->inited && dev->startup && xf86VTOwner()) {
-        OsBlockSignals();
+        input_lock();
         EnableDevice(dev, TRUE);
         if (!dev->enabled) {
             OsReleaseSignals();
@@ -942,7 +942,7 @@ xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL enable)
         }
         /* send enter/leave event, update sprite window */
         CheckMotion(NULL, dev);
-        OsReleaseSignals();
+        input_unlock();
     }
 
     *pdev = dev;
@@ -1075,7 +1075,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
     if (pInfo)                  /* need to get these before RemoveDevice */
         drv = pInfo->drv;
 
-    OsBlockSignals();
+    input_lock();
     RemoveDevice(pDev, TRUE);
 
     if (!isMaster && pInfo != NULL) {
@@ -1084,7 +1084,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
         else
             xf86DeleteInput(pInfo, 0);
     }
-    OsReleaseSignals();
+    input_unlock();
 }
 
 /*

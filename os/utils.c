@@ -1304,9 +1304,7 @@ OsBlockSignals(void)
     if (BlockedSignalCount++ == 0) {
         sigset_t set;
 
-#ifdef SIGIO
-        OsBlockSIGIO();
-#endif
+        input_lock();
         sigemptyset(&set);
         sigaddset(&set, SIGALRM);
         sigaddset(&set, SIGVTALRM);
@@ -1322,57 +1320,13 @@ OsBlockSignals(void)
 #endif
 }
 
-#ifdef SIG_BLOCK
-static sig_atomic_t sigio_blocked;
-static sigset_t PreviousSigIOMask;
-#endif
-
-/**
- * returns zero if this call caused SIGIO to be blocked now, non-zero if it
- * was already blocked by a previous call to this function.
- */
-int
-OsBlockSIGIO(void)
-{
-#ifdef SIGIO
-#ifdef SIG_BLOCK
-    if (sigio_blocked++ == 0) {
-        sigset_t set;
-        int ret;
-
-        sigemptyset(&set);
-        sigaddset(&set, SIGIO);
-        sigprocmask(SIG_BLOCK, &set, &PreviousSigIOMask);
-        ret = sigismember(&PreviousSigIOMask, SIGIO);
-        return ret;
-    }
-#endif
-#endif
-    return 1;
-}
-
-void
-OsReleaseSIGIO(void)
-{
-#ifdef SIGIO
-#ifdef SIG_BLOCK
-    if (--sigio_blocked == 0) {
-        sigprocmask(SIG_SETMASK, &PreviousSigIOMask, 0);
-    } else if (sigio_blocked < 0) {
-        BUG_WARN(sigio_blocked < 0);
-        sigio_blocked = 0;
-    }
-#endif
-#endif
-}
-
 void
 OsReleaseSignals(void)
 {
 #ifdef SIG_BLOCK
     if (--BlockedSignalCount == 0) {
         sigprocmask(SIG_SETMASK, &PreviousSignalMask, 0);
-        OsReleaseSIGIO();
+        input_unlock();
     }
 #endif
 }
@@ -1383,10 +1337,7 @@ OsResetSignals(void)
 #ifdef SIG_BLOCK
     while (BlockedSignalCount > 0)
         OsReleaseSignals();
-#ifdef SIGIO
-    while (sigio_blocked > 0)
-        OsReleaseSIGIO();
-#endif
+    input_force_unlock();
 #endif
 }
 

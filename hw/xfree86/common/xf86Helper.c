@@ -1723,7 +1723,11 @@ xf86SetSilkenMouse(ScreenPtr pScreen)
      * yet.  Should handle this differently so that alternate async methods
      * work correctly with this too.
      */
-    pScrn->silkenMouse = useSM && xf86Info.useSIGIO && xf86SIGIOSupported();
+    /* Disable this completely when removing SIGIO support. It
+     * will get re-enabled correctly when we add threaded input
+     * support
+     */
+    pScrn->silkenMouse = useSM && FALSE;
     if (serverGeneration == 1)
         xf86DrvMsg(pScreen->myNum, from, "Silken mouse %s\n",
                    pScrn->silkenMouse ? "enabled" : "disabled");

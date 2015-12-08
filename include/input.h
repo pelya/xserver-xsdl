@@ -714,4 +714,13 @@ extern _X_HIDDEN void input_constrain_cursor(DeviceIntPtr pDev, ScreenPtr screen
                                              int *out_x, int *out_y,
                                              int *nevents, InternalEvent* events);
 
+static inline void input_lock(void) {
+}
+
+static inline void input_unlock(void) {
+}
+
+static inline void input_force_unlock(void) {
+}
+
 #endif                          /* INPUT_H */

@@ -493,14 +493,14 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
 
     FreeSprite(dev);
 
-    /* now that the device is disabled, we can reset the signal handler's
+    /* now that the device is disabled, we can reset the event reader's
      * last.slave */
-    OsBlockSignals();
+    input_lock();
     for (other = inputInfo.devices; other; other = other->next) {
         if (other->last.slave == dev)
             other->last.slave = NULL;
     }
-    OsReleaseSignals();
+    input_unlock();
 
     LeaveWindow(dev);
     SetFocusOut(dev);
@@ -1033,7 +1033,7 @@ CloseDownDevices(void)
 {
     DeviceIntPtr dev;
 
-    OsBlockSignals();
+    input_lock();
 
     /* Float all SDs before closing them. Note that at this point resources
      * (e.g. cursors) have been freed already, so we can't just call
@@ -1060,7 +1060,7 @@ CloseDownDevices(void)
     XkbDeleteRulesDflts();
     XkbDeleteRulesUsed();
 
-    OsReleaseSignals();
+    input_unlock();
 }
 
 /**

@@ -750,7 +750,7 @@ miPointerMove(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
                                POINTER_SCREEN | POINTER_ABSOLUTE |
                                POINTER_NORAW, &mask);
 
-    OsBlockSignals();
+    input_lock();
 #ifdef XQUARTZ
     darwinEvents_lock();
 #endif
@@ -759,5 +759,5 @@ miPointerMove(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 #ifdef XQUARTZ
     darwinEvents_unlock();
 #endif
-    OsReleaseSignals();
+    input_unlock();
 }
