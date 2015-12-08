@@ -38,9 +38,6 @@ extern Bool kdHasPointer;
 extern Bool kdHasKbd;
 extern Bool ephyr_glamor, ephyr_glamor_gles2;
 
-#ifdef GLXEXT
-extern Bool ephyrNoDRI;
-#endif
 extern Bool ephyrNoXV;
 
 #ifdef KDRIVE_EVDEV
@@ -154,9 +151,6 @@ ddxUseMsg(void)
     ErrorF
         ("-fakexa              Simulate acceleration using software rendering\n");
     ErrorF("-verbosity <level>   Set log verbosity level\n");
-#ifdef GLXEXT
-    ErrorF("-nodri               do not use DRI\n");
-#endif
     ErrorF("-noxv                do not use XV\n");
     ErrorF("-name [name]         define the name in the WM_CLASS property\n");
     ErrorF
@@ -314,13 +308,6 @@ ddxProcessArgument(int argc, char **argv, int i)
             exit(1);
         }
     }
-#ifdef GLXEXT
-    else if (!strcmp(argv[i], "-nodri")) {
-        ephyrNoDRI = TRUE;
-        EPHYR_LOG("no direct rendering enabled\n");
-        return 1;
-    }
-#endif
     else if (!strcmp(argv[i], "-noxv")) {
         ephyrNoXV = TRUE;
         EPHYR_LOG("no XVideo enabled\n");
