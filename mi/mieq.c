@@ -119,7 +119,7 @@ mieqNumEnqueued(EventQueuePtr eventQueue)
     return n_enqueued;
 }
 
-/* Pre-condition: Called with miEventQueueMutex held */
+/* Pre-condition: Called with input_lock held */
 static Bool
 mieqGrowQueue(EventQueuePtr eventQueue, size_t new_nevents)
 {
@@ -141,11 +141,6 @@ mieqGrowQueue(EventQueuePtr eventQueue, size_t new_nevents)
     }
 
     n_enqueued = mieqNumEnqueued(eventQueue);
-
-    /* We lock input, so an mieqEnqueue does not
-     * write to our queue as we are modifying it.
-     */
-    input_lock();
 
     /* First copy the existing events */
     first_hunk = eventQueue->nevents - eventQueue->head;
@@ -178,7 +173,6 @@ mieqGrowQueue(EventQueuePtr eventQueue, size_t new_nevents)
     free(eventQueue->events);
     eventQueue->events = new_events;
 
-    input_unlock();
     return TRUE;
 }
 
@@ -188,8 +182,10 @@ mieqInit(void)
     memset(&miEventQueue, 0, sizeof(miEventQueue));
     miEventQueue.lastEventTime = GetTimeInMillis();
 
+    input_lock();
     if (!mieqGrowQueue(&miEventQueue, QUEUE_INITIAL_SIZE))
         FatalError("Could not allocate event queue.\n");
+    input_unlock();
 
     SetInputCheck(&miEventQueue.head, &miEventQueue.tail);
     return TRUE;
@@ -209,32 +205,9 @@ mieqFini(void)
     free(miEventQueue.events);
 }
 
-/* This function will determine if the given event is allowed to used the reserved
- * queue space.
- */
-static Bool
-mieqReservedCandidate(InternalEvent *e)
-{
-    switch (e->any.type) {
-    case ET_KeyRelease:
-    case ET_ButtonRelease:
-#if XFreeXDGA
-    case ET_DGAEvent:
-#endif
-    case ET_RawKeyRelease:
-    case ET_RawButtonRelease:
-    case ET_XQuartz:
-        return TRUE;
-    default:
-        return FALSE;
-    }
-}
-
 /*
  * Must be reentrant with ProcessInputEvents.  Assumption: mieqEnqueue
- * will never be interrupted.  If this is called from both signal
- * handlers and regular code, make sure the signal is suspended when
- * called from regular code.
+ * will never be interrupted. Must be called with input_lock held
  */
 
 void
@@ -263,36 +236,36 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
         oldtail != miEventQueue.head) {
         oldtail = (oldtail - 1) % miEventQueue.nevents;
     }
-    else if ((n_enqueued + 1 == miEventQueue.nevents) ||
-             ((n_enqueued + 1 >= miEventQueue.nevents - QUEUE_RESERVED_SIZE) &&
-              !mieqReservedCandidate(e))) {
-        /* Toss events which come in late.  Usually this means your server's
-         * stuck in an infinite loop somewhere, but SIGIO is still getting
-         * handled.
-         */
-        miEventQueue.dropped++;
-        if (miEventQueue.dropped == 1) {
-            ErrorFSigSafe("[mi] EQ overflowing.  Additional events will be "
-                         "discarded until existing events are processed.\n");
-            xorg_backtrace();
-            ErrorFSigSafe("[mi] These backtraces from mieqEnqueue may point to "
-                         "a culprit higher up the stack.\n");
-            ErrorFSigSafe("[mi] mieq is *NOT* the cause.  It is a victim.\n");
-        }
-        else if (miEventQueue.dropped % QUEUE_DROP_BACKTRACE_FREQUENCY == 0 &&
-                 miEventQueue.dropped / QUEUE_DROP_BACKTRACE_FREQUENCY <=
-                 QUEUE_DROP_BACKTRACE_MAX) {
-            ErrorFSigSafe("[mi] EQ overflow continuing.  %zu events have been "
-                         "dropped.\n", miEventQueue.dropped);
-            if (miEventQueue.dropped / QUEUE_DROP_BACKTRACE_FREQUENCY ==
-                QUEUE_DROP_BACKTRACE_MAX) {
-                ErrorFSigSafe("[mi] No further overflow reports will be "
-                             "reported until the clog is cleared.\n");
+    else if (n_enqueued + 1 == miEventQueue.nevents) {
+        if (!mieqGrowQueue(&miEventQueue, miEventQueue.nevents << 1)) {
+            /* Toss events which come in late.  Usually this means your server's
+             * stuck in an infinite loop somewhere, but SIGIO is still getting
+             * handled.
+             */
+            miEventQueue.dropped++;
+            if (miEventQueue.dropped == 1) {
+                ErrorFSigSafe("[mi] EQ overflowing.  Additional events will be "
+                              "discarded until existing events are processed.\n");
+                xorg_backtrace();
+                ErrorFSigSafe("[mi] These backtraces from mieqEnqueue may point to "
+                              "a culprit higher up the stack.\n");
+                ErrorFSigSafe("[mi] mieq is *NOT* the cause.  It is a victim.\n");
             }
-            xorg_backtrace();
+            else if (miEventQueue.dropped % QUEUE_DROP_BACKTRACE_FREQUENCY == 0 &&
+                     miEventQueue.dropped / QUEUE_DROP_BACKTRACE_FREQUENCY <=
+                     QUEUE_DROP_BACKTRACE_MAX) {
+                ErrorFSigSafe("[mi] EQ overflow continuing.  %zu events have been "
+                              "dropped.\n", miEventQueue.dropped);
+                if (miEventQueue.dropped / QUEUE_DROP_BACKTRACE_FREQUENCY ==
+                    QUEUE_DROP_BACKTRACE_MAX) {
+                    ErrorFSigSafe("[mi] No further overflow reports will be "
+                                  "reported until the clog is cleared.\n");
+                }
+                xorg_backtrace();
+            }
+            return;
         }
-
-        return;
+        oldtail = miEventQueue.tail;
     }
 
     evlen = e->any.length;
@@ -556,7 +529,6 @@ mieqProcessInputEvents(void)
     ScreenPtr screen;
     InternalEvent event;
     DeviceIntPtr dev = NULL, master = NULL;
-    size_t n_enqueued;
     static Bool inProcessInputEvents = FALSE;
 
     input_lock();
@@ -568,17 +540,6 @@ mieqProcessInputEvents(void)
      */
     BUG_WARN_MSG(inProcessInputEvents, "[mi] mieqProcessInputEvents() called recursively.\n");
     inProcessInputEvents = TRUE;
-
-    /* Grow our queue if we are reaching capacity: < 2 * QUEUE_RESERVED_SIZE remaining */
-    n_enqueued = mieqNumEnqueued(&miEventQueue);
-    if (n_enqueued >= (miEventQueue.nevents - (2 * QUEUE_RESERVED_SIZE)) &&
-        miEventQueue.nevents < QUEUE_MAXIMUM_SIZE) {
-        ErrorF("[mi] Increasing EQ size to %lu to prevent dropped events.\n",
-               (unsigned long) (miEventQueue.nevents << 1));
-        if (!mieqGrowQueue(&miEventQueue, miEventQueue.nevents << 1)) {
-            ErrorF("[mi] Increasing the size of EQ failed.\n");
-        }
-    }
 
     if (miEventQueue.dropped) {
         ErrorF("[mi] EQ processing has resumed after %lu dropped events.\n",
