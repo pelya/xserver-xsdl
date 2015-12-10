@@ -540,21 +540,24 @@ MatchAttrToken(const char *attr, struct xorg_list *patterns,
     if (xorg_list_is_empty(patterns))
         return TRUE;
 
-    /* If there are patterns but no attribute, reject the match */
-    if (!attr)
-        return FALSE;
-
     /*
-     * Otherwise, iterate the list of patterns ensuring each entry has a
+     * Iterate the list of patterns ensuring each entry has a
      * match. Each list entry is a separate Match line of the same type.
      */
     xorg_list_for_each_entry(group, patterns, entry) {
         char *const *cur;
-        Bool match = FALSE;
+        Bool is_negated = group->is_negated;
+        Bool match = is_negated;
+
+        /* If there's a pattern but no attribute, we reject the match for a
+         * MatchFoo directive, and accept it for a NoMatchFoo directive
+         */
+        if (!attr)
+            return is_negated;
 
         for (cur = group->values; *cur; cur++)
             if ((*compare) (attr, *cur) == 0) {
-                match = TRUE;
+                match = !is_negated;
                 break;
             }
         if (!match)
