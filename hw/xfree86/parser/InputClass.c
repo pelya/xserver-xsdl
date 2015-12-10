@@ -158,8 +158,8 @@ xf86parseInputClassSection(void)
 
     parsePrologue(XF86ConfInputClassPtr, XF86ConfInputClassRec)
 
-        /* Initialize MatchGroup lists */
-        xorg_list_init(&ptr->match_product);
+    /* Initialize MatchGroup lists */
+    xorg_list_init(&ptr->match_product);
     xorg_list_init(&ptr->match_vendor);
     xorg_list_init(&ptr->match_device);
     xorg_list_init(&ptr->match_os);
