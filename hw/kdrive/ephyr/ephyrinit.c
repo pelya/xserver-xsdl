@@ -91,29 +91,30 @@ InitInput(int argc, char **argv)
     KdKeyboardInfo *ki;
     KdPointerInfo *pi;
 
-    KdAddKeyboardDriver(&EphyrKeyboardDriver);
 #ifdef KDRIVE_EVDEV
     KdAddKeyboardDriver(&LinuxEvdevKeyboardDriver);
-#endif
-    KdAddPointerDriver(&EphyrMouseDriver);
-#ifdef KDRIVE_EVDEV
     KdAddPointerDriver(&LinuxEvdevMouseDriver);
 #endif
 
-    if (!kdHasKbd) {
-        ki = KdNewKeyboard();
-        if (!ki)
-            FatalError("Couldn't create Xephyr keyboard\n");
-        ki->driver = &EphyrKeyboardDriver;
-        KdAddKeyboard(ki);
-    }
+    if (!SeatId) {
+        KdAddKeyboardDriver(&EphyrKeyboardDriver);
+        KdAddPointerDriver(&EphyrMouseDriver);
 
-    if (!kdHasPointer) {
-        pi = KdNewPointer();
-        if (!pi)
-            FatalError("Couldn't create Xephyr pointer\n");
-        pi->driver = &EphyrMouseDriver;
-        KdAddPointer(pi);
+        if (!kdHasKbd) {
+            ki = KdNewKeyboard();
+            if (!ki)
+                FatalError("Couldn't create Xephyr keyboard\n");
+            ki->driver = &EphyrKeyboardDriver;
+            KdAddKeyboard(ki);
+        }
+
+        if (!kdHasPointer) {
+            pi = KdNewPointer();
+            if (!pi)
+                FatalError("Couldn't create Xephyr pointer\n");
+            pi->driver = &EphyrMouseDriver;
+            KdAddPointer(pi);
+        }
     }
 
     KdInitInput();
