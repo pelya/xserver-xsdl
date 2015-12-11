@@ -2269,11 +2269,14 @@ drmmode_handle_uevents(int fd, void *closure)
     drmModeResPtr mode_res;
     xf86CrtcConfigPtr  config = XF86_CRTC_CONFIG_PTR(scrn);
     int i, j;
-    Bool found;
+    Bool found = FALSE;
     Bool changed = FALSE;
 
-    dev = udev_monitor_receive_device(drmmode->uevent_monitor);
-    if (!dev)
+    while ((dev = udev_monitor_receive_device(drmmode->uevent_monitor))) {
+        udev_device_unref(dev);
+        found = TRUE;
+    }
+    if (!found)
         return;
 
     mode_res = drmModeGetResources(drmmode->fd);
@@ -2339,7 +2342,6 @@ out_free_res:
     drmModeFreeResources(mode_res);
 out:
     RRGetInfo(xf86ScrnToScreen(scrn), TRUE);
-    udev_device_unref(dev);
 }
 #endif
 
