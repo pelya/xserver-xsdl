@@ -356,6 +356,13 @@ ddxProcessArgument(int argc, char **argv, int i)
         EphyrWantNoHostGrab = 1;
         return 1;
     }
+    else if (!strcmp(argv[i], "-sharevts") ||
+             !strcmp(argv[i], "-novtswitch")) {
+        return 1;
+    }
+    else if (!strcmp(argv[i], "-layout")) {
+        return 2;
+    }
 
     return KdProcessArgument(argc, argv, i);
 }
