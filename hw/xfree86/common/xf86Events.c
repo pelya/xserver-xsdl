@@ -298,12 +298,9 @@ xf86Wakeup(void *blockData, int err, void *pReadmask)
 static void
 xf86ReadInput(int fd, int ready, void *closure)
 {
-    int errno_save = errno;
     InputInfoPtr pInfo = closure;
 
     pInfo->read_input(pInfo);
-
-    errno = errno_save;
 }
 
 /*
