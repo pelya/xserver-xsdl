@@ -515,6 +515,7 @@ xf86_use_hw_cursor(ScreenPtr screen, CursorPtr cursor)
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     xf86CursorInfoPtr cursor_info = xf86_config->cursor_info;
+    int c;
 
     cursor = RefCursor(cursor);
     if (xf86_config->cursor)
@@ -524,6 +525,16 @@ xf86_use_hw_cursor(ScreenPtr screen, CursorPtr cursor)
     if (cursor->bits->width > cursor_info->MaxWidth ||
         cursor->bits->height > cursor_info->MaxHeight)
         return FALSE;
+
+    for (c = 0; c < xf86_config->num_crtc; c++) {
+        xf86CrtcPtr crtc = xf86_config->crtc[c];
+
+        if (!crtc->enabled)
+            continue;
+
+        if (crtc->transformPresent)
+            return FALSE;
+    }
 
     return TRUE;
 }
