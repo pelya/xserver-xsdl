@@ -394,24 +394,25 @@ xf86_crtc_set_cursor_position(xf86CrtcPtr crtc, int x, int y)
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     xf86CursorInfoPtr cursor_info = xf86_config->cursor_info;
     DisplayModePtr mode = &crtc->mode;
+    int crtc_x = x, crtc_y = y;
     Bool in_range;
 
     /*
      * Transform position of cursor on screen
      */
-    if (crtc->transform_in_use && !crtc->driverIsPerformingTransform)
-        xf86CrtcTransformCursorPos(crtc, &x, &y);
+    if (crtc->transform_in_use)
+        xf86CrtcTransformCursorPos(crtc, &crtc_x, &crtc_y);
     else {
-        x -= crtc->x;
-        y -= crtc->y;
+        crtc_x -= crtc->x;
+        crtc_y -= crtc->y;
     }
 
     /*
      * Disable the cursor when it is outside the viewport
      */
     in_range = TRUE;
-    if (x >= mode->HDisplay || y >= mode->VDisplay ||
-        x <= -cursor_info->MaxWidth || y <= -cursor_info->MaxHeight) {
+    if (crtc_x >= mode->HDisplay || crtc_y >= mode->VDisplay ||
+        crtc_x <= -cursor_info->MaxWidth || crtc_y <= -cursor_info->MaxHeight) {
         in_range = FALSE;
         x = 0;
         y = 0;
@@ -420,7 +421,10 @@ xf86_crtc_set_cursor_position(xf86CrtcPtr crtc, int x, int y)
     crtc->cursor_in_range = in_range;
 
     if (in_range) {
-        crtc->funcs->set_cursor_position(crtc, x, y);
+        if (crtc->driverIsPerformingTransform)
+            crtc->funcs->set_cursor_position(crtc, x, y);
+        else
+            crtc->funcs->set_cursor_position(crtc, crtc_x, crtc_y);
         xf86_crtc_show_cursor(crtc);
     }
     else
