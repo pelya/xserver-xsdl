@@ -523,7 +523,8 @@ CloseWellKnownConnections(void)
         if (ListenTransConns[i] != NULL) {
             _XSERVTransClose(ListenTransConns[i]);
             ListenTransConns[i] = NULL;
-            RemoveNotifyFd(ListenTransFds[i]);
+            if (ListenTransFds != NULL)
+                RemoveNotifyFd(ListenTransFds[i]);
         }
     }
     ListenTransCount = 0;
