@@ -365,6 +365,22 @@ InstallSignalHandlers(void)
     }
 }
 
+static void
+AddSeatId(CallbackListPtr *pcbl, void *data, void *screen)
+{
+    ScreenPtr pScreen = screen;
+    Atom SeatAtom = MakeAtom(SEAT_ATOM_NAME, sizeof(SEAT_ATOM_NAME) - 1, TRUE);
+    int err;
+
+    err = dixChangeWindowProperty(serverClient, pScreen->root, SeatAtom,
+                                  XA_STRING, 8, PropModeReplace,
+                                  strlen(data) + 1, data, FALSE);
+
+    if (err != Success)
+        xf86DrvMsg(pScreen->myNum, X_WARNING,
+                   "Failed to register seat property\n");
+}
+
 /* The memory storing the initial value of the XFree86_has_VT root window
  * property.  This has to remain available until server start-up, so we just
  * use a global. */
@@ -749,26 +765,6 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
             }
         }
 
-        if (SeatId) {
-            Atom SeatAtom;
-
-            SeatAtom =
-                MakeAtom(SEAT_ATOM_NAME, sizeof(SEAT_ATOM_NAME) - 1, TRUE);
-
-            for (i = 0; i < xf86NumScreens; i++) {
-                int ret;
-
-                ret = xf86RegisterRootWindowProperty(xf86Screens[i]->scrnIndex,
-                                                     SeatAtom, XA_STRING, 8,
-                                                     strlen(SeatId) + 1,
-                                                     SeatId);
-                if (ret != Success) {
-                    xf86DrvMsg(xf86Screens[i]->scrnIndex, X_WARNING,
-                               "Failed to register seat property\n");
-                }
-            }
-        }
-
         /* If a screen uses depth 24, show what the pixmap format is */
         for (i = 0; i < xf86NumScreens; i++) {
             if (xf86Screens[i]->depth == 24) {
@@ -801,6 +797,9 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
         if (xorgHWAccess)
             xf86EnableIO();
     }
+
+    if (SeatId)
+        AddCallback(&RootWindowFinalizeCallback, AddSeatId, SeatId);
 
     /*
      * Use the previously collected parts to setup pScreenInfo
