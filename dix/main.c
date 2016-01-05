@@ -129,6 +129,8 @@ pthread_cond_t serverRunningCond = PTHREAD_COND_INITIALIZER;
 
 #endif
 
+CallbackListPtr RootWindowFinalizeCallback = NULL;
+
 int
 dix_main(int argc, char *argv[], char *envp[])
 {
@@ -230,6 +232,7 @@ dix_main(int argc, char *argv[], char *envp[])
                 FatalError("failed to create default stipple");
             if (!CreateRootWindow(pScreen))
                 FatalError("failed to create root window");
+            CallCallbacks(&RootWindowFinalizeCallback, pScreen);
         }
 
         if (SetDefaultFontPath(defaultFontPath) != Success) {
