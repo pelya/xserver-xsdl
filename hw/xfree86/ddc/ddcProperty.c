@@ -76,17 +76,10 @@ addRootWindowProperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
 {
     int scrnIndex = pScrn->scrnIndex;
 
-    if (DDC->ver.version == 1) {
-        if (xf86Initialising)
-            edidMakeAtom(scrnIndex, EDID1_ATOM_NAME, DDC);
-        else
-            setRootWindowEDID(pScrn->pScreen, DDC);
-    }
-    else {
-        xf86DrvMsg(scrnIndex, X_PROBED, "unexpected EDID version %d.%d\n",
-                   DDC->ver.version, DDC->ver.revision);
-        return;
-    }
+    if (xf86Initialising)
+        edidMakeAtom(scrnIndex, EDID1_ATOM_NAME, DDC);
+    else
+        setRootWindowEDID(pScrn->pScreen, DDC);
 }
 
 Bool
