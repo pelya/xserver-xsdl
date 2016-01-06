@@ -53,11 +53,7 @@ addRootWindowProperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
 {
     int scrnIndex = pScrn->scrnIndex;
 
-    if (DDC->flags & MONITOR_DISPLAYID) {
-        /* Don't bother, use RANDR already */
-        return;
-    }
-    else if (DDC->ver.version == 1) {
+    if (DDC->ver.version == 1) {
         int size = 128 +
             (DDC->flags & EDID_COMPLETE_RAWDATA ? DDC->no_sections * 128 : 0);
 
@@ -76,9 +72,7 @@ xf86SetDDCproperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
     if (!pScrn || !pScrn->monitor || !DDC)
         return FALSE;
 
-    if (DDC->flags & MONITOR_DISPLAYID);
-    else
-        xf86EdidMonitorSet(pScrn->scrnIndex, pScrn->monitor, DDC);
+    xf86EdidMonitorSet(pScrn->scrnIndex, pScrn->monitor, DDC);
 
     addRootWindowProperties(pScrn, DDC);
 
