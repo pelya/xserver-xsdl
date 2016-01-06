@@ -218,7 +218,7 @@ LogFilePrep(const char *fname, const char *backup, const char *idstring)
         }
     }
     else {
-        if (remove(logFileName) != 0) {
+        if (remove(logFileName) != 0 && errno != ENOENT) {
             FatalError("Cannot remove old log file \"%s\": %s\n",
                        logFileName, strerror(errno));
         }
