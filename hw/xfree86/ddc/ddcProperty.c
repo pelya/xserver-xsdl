@@ -27,6 +27,7 @@
 
 #include "xf86.h"
 #include "xf86DDC.h"
+#include "xf86Priv.h"
 #include <X11/Xatom.h>
 #include "property.h"
 #include "propertyst.h"
@@ -34,17 +35,39 @@
 
 #define EDID1_ATOM_NAME         "XFree86_DDC_EDID1_RAWDATA"
 
+static int
+edidSize(const xf86MonPtr DDC)
+{
+    int ret = 128;
+
+    if (DDC->flags & EDID_COMPLETE_RAWDATA)
+       ret += DDC->no_sections * 128;
+
+    return ret;
+}
+
 static void
-edidMakeAtom(int i, const char *name, CARD8 *data, int size)
+setRootWindowEDID(ScreenPtr pScreen, xf86MonPtr DDC)
+{
+    Atom atom = MakeAtom(EDID1_ATOM_NAME, strlen(EDID1_ATOM_NAME), TRUE);
+
+    dixChangeWindowProperty(serverClient, pScreen->root, atom, XA_INTEGER,
+                            8, PropModeReplace, edidSize(DDC), DDC->rawData,
+                            FALSE);
+}
+
+static void
+edidMakeAtom(int i, const char *name, xf86MonPtr DDC)
 {
     Atom atom;
     unsigned char *atom_data;
+    int size = edidSize(DDC);
 
     if (!(atom_data = malloc(size * sizeof(CARD8))))
         return;
 
     atom = MakeAtom(name, strlen(name), TRUE);
-    memcpy(atom_data, data, size);
+    memcpy(atom_data, DDC->rawData, size);
     xf86RegisterRootWindowProperty(i, atom, XA_INTEGER, 8, size, atom_data);
 }
 
@@ -54,10 +77,10 @@ addRootWindowProperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
     int scrnIndex = pScrn->scrnIndex;
 
     if (DDC->ver.version == 1) {
-        int size = 128 +
-            (DDC->flags & EDID_COMPLETE_RAWDATA ? DDC->no_sections * 128 : 0);
-
-        edidMakeAtom(scrnIndex, EDID1_ATOM_NAME, DDC->rawData, size);
+        if (xf86Initialising)
+            edidMakeAtom(scrnIndex, EDID1_ATOM_NAME, DDC);
+        else
+            setRootWindowEDID(pScrn->pScreen, DDC);
     }
     else {
         xf86DrvMsg(scrnIndex, X_PROBED, "unexpected EDID version %d.%d\n",
