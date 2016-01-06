@@ -57,29 +57,13 @@ setRootWindowEDID(ScreenPtr pScreen, xf86MonPtr DDC)
 }
 
 static void
-edidMakeAtom(int i, const char *name, xf86MonPtr DDC)
+addEDIDProp(CallbackListPtr *pcbl, void *scrn, void *screen)
 {
-    Atom atom;
-    unsigned char *atom_data;
-    int size = edidSize(DDC);
+    ScreenPtr pScreen = screen;
+    ScrnInfoPtr pScrn = scrn;
 
-    if (!(atom_data = malloc(size * sizeof(CARD8))))
-        return;
-
-    atom = MakeAtom(name, strlen(name), TRUE);
-    memcpy(atom_data, DDC->rawData, size);
-    xf86RegisterRootWindowProperty(i, atom, XA_INTEGER, 8, size, atom_data);
-}
-
-static void
-addRootWindowProperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
-{
-    int scrnIndex = pScrn->scrnIndex;
-
-    if (xf86Initialising)
-        edidMakeAtom(scrnIndex, EDID1_ATOM_NAME, DDC);
-    else
-        setRootWindowEDID(pScrn->pScreen, DDC);
+    if (xf86ScreenToScrn(pScreen) == pScrn)
+        setRootWindowEDID(pScreen, pScrn->monitor->DDC);
 }
 
 Bool
@@ -90,7 +74,10 @@ xf86SetDDCproperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
 
     xf86EdidMonitorSet(pScrn->scrnIndex, pScrn->monitor, DDC);
 
-    addRootWindowProperties(pScrn, DDC);
+    if (xf86Initialising)
+        AddCallback(&RootWindowFinalizeCallback, addEDIDProp, pScrn);
+    else
+        setRootWindowEDID(pScrn->pScreen, DDC);
 
     return TRUE;
 }
