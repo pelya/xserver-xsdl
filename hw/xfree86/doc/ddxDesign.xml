@@ -2054,18 +2054,6 @@ functions is as follows:
 
       <blockquote><para>
 	  <programlisting>
-    Bool xf86ServerIsInitialising();
-	  </programlisting>
-	  <blockquote><para>
-      Returns <constant>TRUE</constant> if the server is at the beginning of
-      a generation and is in the process of initialising, and
-      <constant>FALSE</constant> otherwise.
-	    </para></blockquote>
-
-	</para></blockquote>
-
-      <blockquote><para>
-	  <programlisting>
     Bool xf86ServerIsOnlyProbing();
 	  </programlisting>
 	  <blockquote><para>

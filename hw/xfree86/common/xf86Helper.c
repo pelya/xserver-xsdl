@@ -1516,12 +1516,6 @@ xf86ServerIsResetting(void)
 }
 
 Bool
-xf86ServerIsInitialising(void)
-{
-    return xf86Initialising;
-}
-
-Bool
 xf86ServerIsOnlyDetecting(void)
 {
     return xf86DoConfigure;

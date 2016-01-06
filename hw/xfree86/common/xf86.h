@@ -306,8 +306,6 @@ xf86ServerIsExiting(void);
 extern _X_EXPORT Bool
 xf86ServerIsResetting(void);
 extern _X_EXPORT Bool
-xf86ServerIsInitialising(void);
-extern _X_EXPORT Bool
 xf86ServerIsOnlyDetecting(void);
 extern _X_EXPORT Bool
 xf86CaughtSignal(void);
