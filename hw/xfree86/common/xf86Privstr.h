@@ -115,16 +115,6 @@ typedef struct {
 } DPMSRec, *DPMSPtr;
 #endif
 
-/* Information for root window properties. */
-typedef struct _RootWinProp {
-    struct _RootWinProp *next;
-    const char *name;
-    Atom type;
-    short format;
-    long size;
-    void *data;
-} RootWinProp, *RootWinPropPtr;
-
 /* ISC's cc can't handle ~ of UL constants, so explicitly type cast them. */
 #define XLED1   ((unsigned long) 0x00000001)
 #define XLED2   ((unsigned long) 0x00000002)

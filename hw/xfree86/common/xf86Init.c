@@ -297,50 +297,6 @@ xf86PrivsElevated(void)
     return privsElevated;
 }
 
-static Bool
-xf86CreateRootWindow(WindowPtr pWin)
-{
-    int ret = TRUE;
-    int err = Success;
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    RootWinPropPtr pProp;
-    CreateWindowProcPtr create_window = (CreateWindowProcPtr)
-        dixLookupPrivate(&pScreen->devPrivates, xf86CreateRootWindowKey);
-
-    DebugF("xf86CreateRootWindow(%p)\n", pWin);
-
-    /* Unhook this function ... */
-    pScreen->CreateWindow = create_window;
-    dixSetPrivate(&pScreen->devPrivates, xf86CreateRootWindowKey, NULL);
-
-    /* ... and call the previous CreateWindow fuction, if any */
-    if (NULL != pScreen->CreateWindow) {
-        ret = (*pScreen->CreateWindow) (pWin);
-    }
-
-    /* Now do our stuff */
-    if (xf86RegisteredPropertiesTable != NULL) {
-        if (pWin->parent == NULL && xf86RegisteredPropertiesTable != NULL) {
-            for (pProp = xf86RegisteredPropertiesTable[pScreen->myNum];
-                 pProp != NULL && err == Success; pProp = pProp->next) {
-                Atom prop;
-
-                prop = MakeAtom(pProp->name, strlen(pProp->name), TRUE);
-                err = dixChangeWindowProperty(serverClient, pWin,
-                                              prop, pProp->type,
-                                              pProp->format, PropModeReplace,
-                                              pProp->size, pProp->data, FALSE);
-            }
-
-            /* Look at err */
-            ret &= (err == Success);
-
-        }
-    }
-
-    return ret;
-}
-
 static void
 InstallSignalHandlers(void)
 {
@@ -815,8 +771,7 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
         if (!xf86ColormapAllocatePrivates(xf86Screens[i]))
             FatalError("Cannot register DDX private keys");
 
-    if (!dixRegisterPrivateKey(&xf86ScreenKeyRec, PRIVATE_SCREEN, 0) ||
-        !dixRegisterPrivateKey(&xf86CreateRootWindowKeyRec, PRIVATE_SCREEN, 0))
+    if (!dixRegisterPrivateKey(&xf86ScreenKeyRec, PRIVATE_SCREEN, 0))
         FatalError("Cannot register DDX private keys");
 
     for (i = 0; i < xf86NumGPUScreens; i++) {
@@ -886,11 +841,6 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
                i, xf86Screens[i]->pScreen);
         DebugF("xf86Screens[%d]->pScreen->CreateWindow = %p\n",
                i, xf86Screens[i]->pScreen->CreateWindow);
-
-        dixSetPrivate(&screenInfo.screens[scr_index]->devPrivates,
-                      xf86CreateRootWindowKey,
-                      xf86Screens[i]->pScreen->CreateWindow);
-        xf86Screens[i]->pScreen->CreateWindow = xf86CreateRootWindow;
 
         if (PictureGetSubpixelOrder(xf86Screens[i]->pScreen) == SubPixelUnknown) {
             xf86MonPtr DDC = (xf86MonPtr) (xf86Screens[i]->monitor->DDC);
