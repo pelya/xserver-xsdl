@@ -217,6 +217,7 @@ typedef struct glamor_screen_private {
     Bool use_quads;
     Bool has_vertex_array_object;
     Bool has_dual_blend;
+    Bool is_core_profile;
     int max_fbo_size;
 
     GLuint one_channel_format;

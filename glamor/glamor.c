@@ -579,9 +579,15 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_priv->has_dual_blend =
         epoxy_has_gl_extension("GL_ARB_blend_func_extended");
 
+    /* assume a core profile if we are GL 3.1 and don't have ARB_compatibility */
+    glamor_priv->is_core_profile =
+        gl_version >= 31 && !epoxy_has_gl_extension("GL_ARB_compatibility");
+
     glamor_setup_debug_output(screen);
 
-    glamor_priv->use_quads = (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP);
+    glamor_priv->use_quads = (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) &&
+                             !glamor_priv->is_core_profile;
+
     /* Driver-specific hack: Avoid using GL_QUADS on VC4, where
      * they'll be emulated more expensively than we can with our
      * cached IB.
