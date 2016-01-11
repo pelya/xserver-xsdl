@@ -80,6 +80,11 @@ glamor_font_get(ScreenPtr screen, FontPtr font)
     overall_width = glyph_width_bytes * num_cols;
     overall_height = glyph_height * num_rows;
 
+    if (overall_width > glamor_priv->max_fbo_size ||
+        overall_height > glamor_priv->max_fbo_size) {
+        /* fallback if we don't fit inside a texture */
+        return NULL;
+    }
     bits = malloc(overall_width * overall_height);
     if (!bits)
         return NULL;
