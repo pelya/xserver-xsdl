@@ -109,7 +109,6 @@ typedef struct _WMMsgQueueRec {
     struct _WMMsgNodeRec *pTail;
     pthread_mutex_t pmMutex;
     pthread_cond_t pcNotEmpty;
-    int nQueueSize;
 } WMMsgQueueRec, *WMMsgQueuePtr;
 
 typedef struct _WMInfo {
@@ -289,34 +288,12 @@ PushMessage(WMMsgQueuePtr pQueue, WMMsgNodePtr pNode)
         pQueue->pHead = pNode;
     }
 
-    /* Increase the count of elements in the queue by one */
-    ++(pQueue->nQueueSize);
-
     /* Release the queue mutex */
     pthread_mutex_unlock(&pQueue->pmMutex);
 
     /* Signal that the queue is not empty */
     pthread_cond_signal(&pQueue->pcNotEmpty);
 }
-
-#if CYGMULTIWINDOW_DEBUG
-/*
- * QueueSize - Return the size of the queue
- */
-
-static int
-QueueSize(WMMsgQueuePtr pQueue)
-{
-    WMMsgNodePtr pNode;
-    int nSize = 0;
-
-    /* Loop through all elements in the queue */
-    for (pNode = pQueue->pHead; pNode != NULL; pNode = pNode->pNext)
-        ++nSize;
-
-    return nSize;
-}
-#endif
 
 /*
  * PopMessage - Pop a message from the queue
@@ -343,13 +320,6 @@ PopMessage(WMMsgQueuePtr pQueue, WMInfoPtr pWMInfo)
     if (pQueue->pTail == pNode) {
         pQueue->pTail = NULL;
     }
-
-    /* Drop the number of elements in the queue by one */
-    --(pQueue->nQueueSize);
-
-#if CYGMULTIWINDOW_DEBUG
-    ErrorF("Queue Size %d %d\n", pQueue->nQueueSize, QueueSize(pQueue));
-#endif
 
     /* Release the queue mutex */
     pthread_mutex_unlock(&pQueue->pmMutex);
@@ -393,14 +363,6 @@ InitQueue(WMMsgQueuePtr pQueue)
     /* Set the head and tail to NULL */
     pQueue->pHead = NULL;
     pQueue->pTail = NULL;
-
-    /* There are no elements initially */
-    pQueue->nQueueSize = 0;
-
-#if CYGMULTIWINDOW_DEBUG
-    winDebug("InitQueue - Queue Size %d %d\n", pQueue->nQueueSize,
-             QueueSize(pQueue));
-#endif
 
     winDebug("InitQueue - Calling pthread_mutex_init\n");
 
