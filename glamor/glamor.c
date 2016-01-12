@@ -576,6 +576,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
         epoxy_has_gl_extension("GL_NV_pack_subimage");
     glamor_priv->has_vertex_array_object =
         epoxy_has_gl_extension("GL_ARB_vertex_array_object");
+    glamor_priv->has_dual_blend =
+        epoxy_has_gl_extension("GL_ARB_blend_func_extended");
 
     glamor_setup_debug_output(screen);
 

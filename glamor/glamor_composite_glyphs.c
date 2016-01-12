@@ -186,7 +186,9 @@ static const glamor_facet glamor_facet_composite_glyphs_130 = {
     .vs_exec = ("       vec2 pos = primitive.zw * vec2(gl_VertexID&1, (gl_VertexID&2)>>1);\n"
                 GLAMOR_POS(gl_Position, (primitive.xy + pos))
                 "       glyph_pos = (source + pos) * ATLAS_DIM_INV;\n"),
-    .fs_vars = ("varying vec2 glyph_pos;\n"),
+    .fs_vars = ("varying vec2 glyph_pos;\n"
+                "out vec4 color0;\n"
+                "out vec4 color1;\n"),
     .fs_exec = ("       vec4 mask = texture2D(atlas, glyph_pos);\n"),
     .source_name = "source",
     .locations = glamor_program_location_atlas,

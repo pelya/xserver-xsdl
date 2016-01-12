@@ -86,6 +86,12 @@ typedef struct glamor_composite_shader {
     };
 } glamor_composite_shader;
 
+enum ca_state {
+    CA_NONE,
+    CA_TWO_PASS,
+    CA_DUAL_BLEND,
+};
+
 enum shader_source {
     SHADER_SOURCE_SOLID,
     SHADER_SOURCE_TEXTURE,
@@ -106,6 +112,7 @@ enum shader_in {
     SHADER_IN_NORMAL,
     SHADER_IN_CA_SOURCE,
     SHADER_IN_CA_ALPHA,
+    SHADER_IN_CA_DUAL_BLEND,
     SHADER_IN_COUNT,
 };
 
@@ -202,6 +209,7 @@ typedef struct glamor_screen_private {
     Bool has_rw_pbo;
     Bool use_quads;
     Bool has_vertex_array_object;
+    Bool has_dual_blend;
     int max_fbo_size;
 
     struct xorg_list

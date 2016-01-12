@@ -208,10 +208,24 @@ glamor_create_composite_fs(struct shader_key *key)
         "{\n"
         "	gl_FragColor = get_source().a * get_mask();\n"
         "}\n";
+    const char *in_ca_dual_blend =
+        GLAMOR_DEFAULT_PRECISION
+        "out vec4 color0;\n"
+        "out vec4 color1;\n"
+        "void main()\n"
+        "{\n"
+        "	color0 = get_source() * get_mask();\n"
+        "	color1 = get_source().a * get_mask();\n"
+        "}\n";
+    const char *header_ca_dual_blend =
+        "#version 130\n";
+
     char *source;
     const char *source_fetch;
     const char *mask_fetch = "";
     const char *in;
+    const char *header;
+    const char *header_norm = "";
     GLuint prog;
 
     switch (key->source) {
@@ -244,6 +258,7 @@ glamor_create_composite_fs(struct shader_key *key)
         FatalError("Bad composite shader mask");
     }
 
+    header = header_norm;
     switch (key->in) {
     case SHADER_IN_SOURCE_ONLY:
         in = in_source_only;
@@ -257,11 +272,15 @@ glamor_create_composite_fs(struct shader_key *key)
     case SHADER_IN_CA_ALPHA:
         in = in_ca_alpha;
         break;
+    case SHADER_IN_CA_DUAL_BLEND:
+        in = in_ca_dual_blend;
+        header = header_ca_dual_blend;
+        break;
     default:
         FatalError("Bad composite IN type");
     }
 
-    XNFasprintf(&source, "%s%s%s%s%s%s", repeat_define, relocate_texture,
+    XNFasprintf(&source, "%s%s%s%s%s%s%s", header, repeat_define, relocate_texture,
                 rel_sampler, source_fetch, mask_fetch, in);
 
     prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, source);
@@ -331,6 +350,10 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
     glBindAttribLocation(prog, GLAMOR_VERTEX_SOURCE, "v_texcoord0");
     glBindAttribLocation(prog, GLAMOR_VERTEX_MASK, "v_texcoord1");
 
+    if (key->in == SHADER_IN_CA_DUAL_BLEND) {
+        glBindFragDataLocationIndexed(prog, 0, 0, "color0");
+        glBindFragDataLocationIndexed(prog, 0, 1, "color1");
+    }
     glamor_link_glsl_prog(screen, prog, "composite");
 
     shader->prog = prog;
@@ -382,7 +405,8 @@ glamor_lookup_composite_shader(ScreenPtr screen, struct
 static Bool
 glamor_set_composite_op(ScreenPtr screen,
                         CARD8 op, struct blendinfo *op_info_result,
-                        PicturePtr dest, PicturePtr mask)
+                        PicturePtr dest, PicturePtr mask,
+                        enum ca_state ca_state)
 {
     GLenum source_blend, dest_blend;
     struct blendinfo *op_info;
@@ -391,6 +415,7 @@ glamor_set_composite_op(ScreenPtr screen,
         glamor_fallback("unsupported render op %d \n", op);
         return GL_FALSE;
     }
+
     op_info = &composite_op_info[op];
 
     source_blend = op_info->source_blend;
@@ -407,12 +432,25 @@ glamor_set_composite_op(ScreenPtr screen,
     }
 
     /* Set up the source alpha value for blending in component alpha mode. */
-    if (mask && mask->componentAlpha
-        && PICT_FORMAT_RGB(mask->format) != 0 && op_info->source_alpha) {
-        if (dest_blend == GL_SRC_ALPHA)
+    if (ca_state == CA_DUAL_BLEND) {
+        switch (dest_blend) {
+        case GL_SRC_ALPHA:
+            dest_blend = GL_SRC1_COLOR;
+            break;
+        case GL_ONE_MINUS_SRC_ALPHA:
+            dest_blend = GL_ONE_MINUS_SRC1_COLOR;
+            break;
+        }
+    } else if (mask && mask->componentAlpha
+               && PICT_FORMAT_RGB(mask->format) != 0 && op_info->source_alpha) {
+        switch (dest_blend) {
+        case GL_SRC_ALPHA:
             dest_blend = GL_SRC_COLOR;
-        else if (dest_blend == GL_ONE_MINUS_SRC_ALPHA)
+            break;
+        case GL_ONE_MINUS_SRC_ALPHA:
             dest_blend = GL_ONE_MINUS_SRC_COLOR;
+            break;
+        }
     }
 
     op_info_result->source_blend = source_blend;
@@ -623,6 +661,10 @@ combine_pict_format(PictFormatShort * des, const PictFormatShort src,
         src_type = PICT_TYPE_A;
         mask_type = PICT_FORMAT_TYPE(mask);
         break;
+    case SHADER_IN_CA_DUAL_BLEND:
+        src_type = PICT_FORMAT_TYPE(src);
+        mask_type = PICT_FORMAT_TYPE(mask);
+        break;
     default:
         return FALSE;
     }
@@ -715,9 +757,11 @@ glamor_composite_choose_shader(CARD8 op,
                                struct shader_key *s_key,
                                glamor_composite_shader ** shader,
                                struct blendinfo *op_info,
-                               PictFormatShort *psaved_source_format)
+                               PictFormatShort *psaved_source_format,
+                               enum ca_state ca_state)
 {
     ScreenPtr screen = dest->pDrawable->pScreen;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     enum glamor_pixmap_status source_status = GLAMOR_NONE;
     enum glamor_pixmap_status mask_status = GLAMOR_NONE;
     PictFormatShort saved_source_format = 0;
@@ -786,6 +830,8 @@ glamor_composite_choose_shader(CARD8 op,
         else {
             if (op == PictOpClear)
                 key.mask = SHADER_MASK_NONE;
+            else if (glamor_priv->has_dual_blend)
+                key.in = SHADER_IN_CA_DUAL_BLEND;
             else if (op == PictOpSrc || op == PictOpAdd
                      || op == PictOpIn || op == PictOpOut
                      || op == PictOpOverReverse)
@@ -933,7 +979,7 @@ glamor_composite_choose_shader(CARD8 op,
         goto fail;
     }
 
-    if (!glamor_set_composite_op(screen, op, op_info, dest, mask))
+    if (!glamor_set_composite_op(screen, op, op_info, dest, mask, ca_state))
         goto fail;
 
     *shader = glamor_lookup_composite_shader(screen, &key);
@@ -1025,7 +1071,7 @@ glamor_composite_with_shader(CARD8 op,
                              glamor_pixmap_private *mask_pixmap_priv,
                              glamor_pixmap_private *dest_pixmap_priv,
                              int nrect, glamor_composite_rect_t *rects,
-                             Bool two_pass_ca)
+                             enum ca_state ca_state)
 {
     ScreenPtr screen = dest->pDrawable->pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
@@ -1048,17 +1094,17 @@ glamor_composite_with_shader(CARD8 op,
                                         source_pixmap_priv, mask_pixmap_priv,
                                         dest_pixmap_priv,
                                         &key, &shader, &op_info,
-                                        &saved_source_format)) {
+                                        &saved_source_format, ca_state)) {
         glamor_fallback("glamor_composite_choose_shader failed\n");
         return ret;
     }
-    if (two_pass_ca) {
+    if (ca_state == CA_TWO_PASS) {
         if (!glamor_composite_choose_shader(PictOpAdd, source, mask, dest,
                                             source_pixmap, mask_pixmap, dest_pixmap,
                                             source_pixmap_priv,
                                             mask_pixmap_priv, dest_pixmap_priv,
                                             &key_ca, &shader_ca, &op_info_ca,
-                                            &saved_source_format)) {
+                                            &saved_source_format, ca_state)) {
             glamor_fallback("glamor_composite_choose_shader failed\n");
             return ret;
         }
@@ -1173,7 +1219,7 @@ glamor_composite_with_shader(CARD8 op,
         glamor_put_vbo_space(screen);
         glamor_flush_composite_rects(screen);
         nrect -= rect_processed;
-        if (two_pass_ca) {
+        if (ca_state == CA_TWO_PASS) {
             glamor_composite_set_shader_blend(glamor_priv, dest_pixmap_priv,
                                               &key_ca, shader_ca, &op_info_ca);
             glamor_flush_composite_rects(screen);
@@ -1278,6 +1324,7 @@ glamor_composite_clipped_region(CARD8 op,
     glamor_pixmap_private *source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
     glamor_pixmap_private *mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
     glamor_pixmap_private *dest_pixmap_priv = glamor_get_pixmap_private(dest_pixmap);
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(dest_pixmap->drawable.pScreen);
     ScreenPtr screen = dest->pDrawable->pScreen;
     PicturePtr temp_src = source, temp_mask = mask;
     PixmapPtr temp_src_pixmap = source_pixmap;
@@ -1295,7 +1342,7 @@ glamor_composite_clipped_region(CARD8 op,
     int height;
     BoxPtr box;
     int nbox;
-    Bool two_pass_ca = FALSE;
+    enum ca_state ca_state = CA_NONE;
 
     extent = RegionExtents(region);
     box = RegionRects(region);
@@ -1357,14 +1404,15 @@ glamor_composite_clipped_region(CARD8 op,
         x_temp_mask = -extent->x1 + x_dest + dest->pDrawable->x;
         y_temp_mask = -extent->y1 + y_dest + dest->pDrawable->y;
     }
-    /* Do two-pass PictOpOver componentAlpha, until we enable
-     * dual source color blending.
-     */
 
     if (mask && mask->componentAlpha) {
-        if (op == PictOpOver) {
-            two_pass_ca = TRUE;
-            op = PictOpOutReverse;
+        if (glamor_priv->has_dual_blend) {
+            ca_state = CA_DUAL_BLEND;
+        } else {
+            if (op == PictOpOver) {
+                ca_state = CA_TWO_PASS;
+                op = PictOpOutReverse;
+            }
         }
     }
 
@@ -1416,7 +1464,7 @@ glamor_composite_clipped_region(CARD8 op,
                                           temp_src_pixmap, temp_mask_pixmap, dest_pixmap,
                                           temp_src_priv, temp_mask_priv,
                                           dest_pixmap_priv,
-                                          box_cnt, prect, two_pass_ca);
+                                          box_cnt, prect, ca_state);
         if (!ok)
             break;
         nbox -= box_cnt;
@@ -1477,7 +1525,7 @@ glamor_composite(CARD8 op,
     if (op >= ARRAY_SIZE(composite_op_info))
         goto fail;
 
-    if (mask && mask->componentAlpha) {
+    if (mask && mask->componentAlpha && !glamor_priv->has_dual_blend) {
         if (op == PictOpAtop
             || op == PictOpAtopReverse
             || op == PictOpXor || op >= PictOpSaturate) {
