@@ -393,6 +393,9 @@ glamor_setup_debug_output(ScreenPtr screen)
         return;
 
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    /* Disable debugging messages other than GL API errors */
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL,
+                          GL_FALSE);
     glDebugMessageControl(GL_DEBUG_SOURCE_API,
                           GL_DEBUG_TYPE_ERROR,
                           GL_DONT_CARE,
