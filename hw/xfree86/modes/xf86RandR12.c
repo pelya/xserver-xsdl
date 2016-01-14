@@ -1748,6 +1748,7 @@ xf86RandR12CreateScreenResources12(ScreenPtr pScreen)
 {
     int c;
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    rrScrPrivPtr rp = rrGetScrPriv(pScreen);
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
 
     if (xf86RandR12Key == NULL)
@@ -1760,6 +1761,13 @@ xf86RandR12CreateScreenResources12(ScreenPtr pScreen)
                          config->maxWidth, config->maxHeight);
 
     xf86RandR12CreateMonitors(pScreen);
+
+    if (!pScreen->isGPU) {
+        rp->primaryOutput = config->output[0]->randr_output;
+        RROutputChanged(rp->primaryOutput, FALSE);
+        rp->layoutChanged = TRUE;
+    }
+
     return TRUE;
 }
 
