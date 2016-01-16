@@ -288,6 +288,75 @@ xwl_touch_proc(DeviceIntPtr device, int what)
 #undef NTOUCHPOINTS
 }
 
+static int
+xwl_tablet_proc(DeviceIntPtr device, int what)
+{
+#define NBUTTONS 9
+#define NAXES 6
+    Atom btn_labels[NBUTTONS] = { 0 };
+    Atom axes_labels[NAXES] = { 0 };
+    BYTE map[NBUTTONS + 1] = { 0 };
+    int i;
+
+    switch (what) {
+    case DEVICE_INIT:
+        device->public.on = FALSE;
+
+        for (i = 1; i <= NBUTTONS; i++)
+            map[i] = i;
+
+        axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_X);
+        axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_Y);
+        axes_labels[2] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_PRESSURE);
+        axes_labels[3] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_TILT_X);
+        axes_labels[4] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_TILT_Y);
+        axes_labels[5] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_WHEEL);
+
+        if (!InitValuatorClassDeviceStruct(device, NAXES, axes_labels,
+                                           GetMotionHistorySize(), Absolute))
+            return BadValue;
+
+        /* Valuators - match the xf86-input-wacom ranges */
+        InitValuatorAxisStruct(device, 0, axes_labels[0],
+                               0, 262143, 10000, 0, 10000, Absolute);
+        InitValuatorAxisStruct(device, 1, axes_labels[1],
+                               0, 262143, 10000, 0, 10000, Absolute);
+        /* pressure */
+        InitValuatorAxisStruct(device, 2, axes_labels[2],
+                               0, 65535, 1, 0, 1, Absolute);
+        /* tilt x */
+        InitValuatorAxisStruct(device, 3, axes_labels[3],
+                               -64, 63, 57, 0, 57, Absolute);
+        /* tilt y */
+        InitValuatorAxisStruct(device, 4, axes_labels[4],
+                               -64, 63, 57, 0, 57, Absolute);
+        /* abs wheel (airbrush) or rotation (artpen) */
+        InitValuatorAxisStruct(device, 5, axes_labels[5],
+                               -900, 899, 1, 0, 1, Absolute);
+
+        if (!InitPtrFeedbackClassDeviceStruct(device, xwl_pointer_control))
+            return BadValue;
+
+        if (!InitButtonClassDeviceStruct(device, NBUTTONS, btn_labels, map))
+            return BadValue;
+
+        return Success;
+
+    case DEVICE_ON:
+        device->public.on = TRUE;
+        return Success;
+
+    case DEVICE_OFF:
+    case DEVICE_CLOSE:
+        device->public.on = FALSE;
+        return Success;
+    }
+
+    return BadMatch;
+#undef NAXES
+#undef NBUTTONS
+}
+
 static void
 pointer_handle_enter(void *data, struct wl_pointer *pointer,
                      uint32_t serial, struct wl_surface *surface,
@@ -1183,6 +1252,77 @@ xwl_seat_destroy(struct xwl_seat *xwl_seat)
     free(xwl_seat);
 }
 
+static void
+tablet_handle_name(void *data, struct zwp_tablet_v2 *tablet, const char *name)
+{
+}
+
+static void
+tablet_handle_id(void *data, struct zwp_tablet_v2 *tablet, uint32_t vid,
+                  uint32_t pid)
+{
+}
+
+static void
+tablet_handle_path(void *data, struct zwp_tablet_v2 *tablet, const char *path)
+{
+}
+
+static void
+tablet_handle_done(void *data, struct zwp_tablet_v2 *tablet)
+{
+    struct xwl_tablet *xwl_tablet = data;
+    struct xwl_seat *xwl_seat = xwl_tablet->seat;
+
+    if (xwl_seat->stylus == NULL) {
+        xwl_seat->stylus = add_device(xwl_seat, "xwayland-stylus", xwl_tablet_proc);
+        ActivateDevice(xwl_seat->stylus, TRUE);
+    }
+    EnableDevice(xwl_seat->stylus, TRUE);
+
+    if (xwl_seat->eraser == NULL) {
+        xwl_seat->eraser = add_device(xwl_seat, "xwayland-eraser", xwl_tablet_proc);
+        ActivateDevice(xwl_seat->eraser, TRUE);
+    }
+    EnableDevice(xwl_seat->eraser, TRUE);
+
+    if (xwl_seat->puck == NULL) {
+        xwl_seat->puck = add_device(xwl_seat, "xwayland-cursor", xwl_tablet_proc);
+        ActivateDevice(xwl_seat->puck, TRUE);
+    }
+    EnableDevice(xwl_seat->puck, TRUE);
+}
+
+static void
+tablet_handle_removed(void *data, struct zwp_tablet_v2 *tablet)
+{
+    struct xwl_tablet *xwl_tablet = data;
+    struct xwl_seat *xwl_seat = xwl_tablet->seat;
+
+    xorg_list_del(&xwl_tablet->link);
+
+    /* The tablet is merely disabled, not removed. The next tablet
+       will re-use the same X devices */
+    if (xorg_list_is_empty(&xwl_seat->tablets)) {
+        if (xwl_seat->stylus)
+            DisableDevice(xwl_seat->stylus, TRUE);
+        if (xwl_seat->eraser)
+            DisableDevice(xwl_seat->eraser, TRUE);
+        if (xwl_seat->puck)
+            DisableDevice(xwl_seat->puck, TRUE);
+    }
+
+    zwp_tablet_v2_destroy(tablet);
+    free(xwl_tablet);
+}
+
+static const struct zwp_tablet_v2_listener tablet_listener = {
+    tablet_handle_name,
+    tablet_handle_id,
+    tablet_handle_path,
+    tablet_handle_done,
+    tablet_handle_removed
+};
 
 static void
 tablet_seat_handle_add_tablet(void *data, struct zwp_tablet_seat_v2 *tablet_seat,
@@ -1201,6 +1341,8 @@ tablet_seat_handle_add_tablet(void *data, struct zwp_tablet_seat_v2 *tablet_seat
     xwl_tablet->seat = xwl_seat;
 
     xorg_list_add(&xwl_tablet->link, &xwl_seat->tablets);
+
+    zwp_tablet_v2_add_listener(tablet, &tablet_listener, xwl_tablet);
 }
 
 static void

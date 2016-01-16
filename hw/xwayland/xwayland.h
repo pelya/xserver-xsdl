@@ -135,6 +135,9 @@ struct xwl_seat {
     DeviceIntPtr relative_pointer;
     DeviceIntPtr keyboard;
     DeviceIntPtr touch;
+    DeviceIntPtr stylus;
+    DeviceIntPtr eraser;
+    DeviceIntPtr puck;
     struct xwl_screen *xwl_screen;
     struct wl_seat *seat;
     struct wl_pointer *wl_pointer;
