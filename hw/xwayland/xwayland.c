@@ -222,6 +222,8 @@ xwl_close_screen(ScreenPtr screen)
                                   &xwl_screen->seat_list, link)
         xwl_seat_destroy(xwl_seat);
 
+    xwl_screen_release_tablet_manager(xwl_screen);
+
     RemoveNotifyFd(xwl_screen->wayland_fd);
 
     wl_display_disconnect(xwl_screen->display);

@@ -57,6 +57,12 @@ static void
 xwl_seat_destroy_confined_pointer(struct xwl_seat *xwl_seat);
 
 static void
+init_tablet_manager_seat(struct xwl_screen *xwl_screen,
+                         struct xwl_seat *xwl_seat);
+static void
+release_tablet_manager_seat(struct xwl_seat *xwl_seat);
+
+static void
 xwl_pointer_control(DeviceIntPtr device, PtrCtrl *ctrl)
 {
     /* Nothing to do, dix handles all settings */
@@ -1141,6 +1147,9 @@ create_input_device(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version
 
     xwl_seat->cursor = wl_compositor_create_surface(xwl_screen->compositor);
     wl_seat_add_listener(xwl_seat->seat, &seat_listener, xwl_seat);
+
+    init_tablet_manager_seat(xwl_screen, xwl_seat);
+
     wl_array_init(&xwl_seat->keys);
 
     xorg_list_init(&xwl_seat->touches);
@@ -1164,12 +1173,60 @@ xwl_seat_destroy(struct xwl_seat *xwl_seat)
         free (p);
     }
 
+    release_tablet_manager_seat(xwl_seat);
+
     wl_seat_destroy(xwl_seat->seat);
     wl_surface_destroy(xwl_seat->cursor);
     if (xwl_seat->cursor_frame_cb)
         wl_callback_destroy(xwl_seat->cursor_frame_cb);
     wl_array_release(&xwl_seat->keys);
     free(xwl_seat);
+}
+
+
+static void
+init_tablet_manager_seat(struct xwl_screen *xwl_screen,
+                         struct xwl_seat *xwl_seat)
+{
+    if (!xwl_screen->tablet_manager)
+        return;
+
+    xwl_seat->tablet_seat =
+        zwp_tablet_manager_v2_get_tablet_seat(xwl_screen->tablet_manager,
+                                              xwl_seat->seat);
+}
+
+static void
+release_tablet_manager_seat(struct xwl_seat *xwl_seat)
+{
+    if (xwl_seat->tablet_seat) {
+        zwp_tablet_seat_v2_destroy(xwl_seat->tablet_seat);
+        xwl_seat->tablet_seat = NULL;
+    }
+}
+
+static void
+init_tablet_manager(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version)
+{
+    struct xwl_seat *xwl_seat;
+
+    xwl_screen->tablet_manager = wl_registry_bind(xwl_screen->registry,
+                                                  id,
+                                                  &zwp_tablet_manager_v2_interface,
+                                                  min(version,1));
+
+    xorg_list_for_each_entry(xwl_seat, &xwl_screen->seat_list, link) {
+        init_tablet_manager_seat(xwl_screen, xwl_seat);
+    }
+}
+
+void
+xwl_screen_release_tablet_manager(struct xwl_screen *xwl_screen)
+{
+    if (xwl_screen->tablet_manager) {
+        zwp_tablet_manager_v2_destroy(xwl_screen->tablet_manager);
+        xwl_screen->tablet_manager = NULL;
+    }
 }
 
 static void
@@ -1205,6 +1262,8 @@ input_handler(void *data, struct wl_registry *registry, uint32_t id,
         init_relative_pointer_manager(xwl_screen, id, version);
     } else if (strcmp(interface, "zwp_pointer_constraints_v1") == 0) {
         init_pointer_constraints(xwl_screen, id, version);
+    } else if (strcmp(interface, "zwp_tablet_manager_v2") == 0) {
+        init_tablet_manager(xwl_screen, id, version);
     }
 }
 
