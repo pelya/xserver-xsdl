@@ -640,6 +640,9 @@ glamor_copy(DrawablePtr src,
             Pixel bitplane,
             void *closure)
 {
+    if (nbox == 0)
+	return;
+
     if (glamor_copy_gl(src, dst, gc, box, nbox, dx, dy, reverse, upsidedown, bitplane, closure))
         return;
     glamor_copy_bail(src, dst, gc, box, nbox, dx, dy, reverse, upsidedown, bitplane, closure);
