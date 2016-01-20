@@ -72,7 +72,6 @@ glamor_create_composite_fs(struct shader_key *key)
         "uniform int 			source_repeat_mode;\n"
         "uniform int 			mask_repeat_mode;\n";
     const char *relocate_texture =
-        GLAMOR_DEFAULT_PRECISION
         "vec2 rel_tex_coord(vec2 texture, vec4 wh, int repeat) \n"
         "{\n"
         "   vec2 rel_tex; \n"
@@ -119,14 +118,12 @@ glamor_create_composite_fs(struct shader_key *key)
         "}\n";
 
     const char *source_solid_fetch =
-        GLAMOR_DEFAULT_PRECISION
         "uniform vec4 source;\n"
         "vec4 get_source()\n"
         "{\n"
         "	return source;\n"
         "}\n";
     const char *source_alpha_pixmap_fetch =
-        GLAMOR_DEFAULT_PRECISION
         "varying vec2 source_texture;\n"
         "uniform sampler2D source_sampler;\n"
         "uniform vec4 source_wh;"
@@ -139,7 +136,6 @@ glamor_create_composite_fs(struct shader_key *key)
         "				   source_wh, source_repeat_mode, 0);\n"
         "}\n";
     const char *source_pixmap_fetch =
-        GLAMOR_DEFAULT_PRECISION
         "varying vec2 source_texture;\n"
         "uniform sampler2D source_sampler;\n"
         "uniform vec4 source_wh;\n"
@@ -152,14 +148,12 @@ glamor_create_composite_fs(struct shader_key *key)
         "				   source_wh, source_repeat_mode, 1);\n"
         "}\n";
     const char *mask_solid_fetch =
-        GLAMOR_DEFAULT_PRECISION
         "uniform vec4 mask;\n"
         "vec4 get_mask()\n"
         "{\n"
         "	return mask;\n"
         "}\n";
     const char *mask_alpha_pixmap_fetch =
-        GLAMOR_DEFAULT_PRECISION
         "varying vec2 mask_texture;\n"
         "uniform sampler2D mask_sampler;\n"
         "uniform vec4 mask_wh;\n"
@@ -172,7 +166,6 @@ glamor_create_composite_fs(struct shader_key *key)
         "				   mask_wh, mask_repeat_mode, 0);\n"
         "}\n";
     const char *mask_pixmap_fetch =
-        GLAMOR_DEFAULT_PRECISION
         "varying vec2 mask_texture;\n"
         "uniform sampler2D mask_sampler;\n"
         "uniform vec4 mask_wh;\n"
@@ -185,31 +178,26 @@ glamor_create_composite_fs(struct shader_key *key)
         "				   mask_wh, mask_repeat_mode, 1);\n"
         "}\n";
     const char *in_source_only =
-        GLAMOR_DEFAULT_PRECISION
         "void main()\n"
         "{\n"
         "	gl_FragColor = get_source();\n"
         "}\n";
     const char *in_normal =
-        GLAMOR_DEFAULT_PRECISION
         "void main()\n"
         "{\n"
         "	gl_FragColor = get_source() * get_mask().a;\n"
         "}\n";
     const char *in_ca_source =
-        GLAMOR_DEFAULT_PRECISION
         "void main()\n"
         "{\n"
         "	gl_FragColor = get_source() * get_mask();\n"
         "}\n";
     const char *in_ca_alpha =
-        GLAMOR_DEFAULT_PRECISION
         "void main()\n"
         "{\n"
         "	gl_FragColor = get_source().a * get_mask();\n"
         "}\n";
     const char *in_ca_dual_blend =
-        GLAMOR_DEFAULT_PRECISION
         "out vec4 color0;\n"
         "out vec4 color1;\n"
         "void main()\n"
@@ -280,7 +268,10 @@ glamor_create_composite_fs(struct shader_key *key)
         FatalError("Bad composite IN type");
     }
 
-    XNFasprintf(&source, "%s%s%s%s%s%s%s", header, repeat_define, relocate_texture,
+    XNFasprintf(&source,
+                "%s"
+                GLAMOR_DEFAULT_PRECISION
+                "%s%s%s%s%s%s", header, repeat_define, relocate_texture,
                 rel_sampler, source_fetch, mask_fetch, in);
 
     prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER, source);
