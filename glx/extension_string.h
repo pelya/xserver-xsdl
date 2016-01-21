@@ -45,6 +45,7 @@ enum {
     ARB_multisample_bit,
     EXT_create_context_es_profile_bit,
     EXT_create_context_es2_profile_bit,
+    EXT_fbconfig_packed_float_bit,
     EXT_import_context_bit,
     EXT_stereo_tree_bit,
     EXT_texture_from_pixmap_bit,
