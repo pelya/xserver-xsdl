@@ -508,41 +508,6 @@ glamor_set_composite_solid(float *color, GLint uniform_location)
     glUniform4fv(uniform_location, 1, color);
 }
 
-static int
-compatible_formats(CARD8 op, PicturePtr dst, PicturePtr src)
-{
-    if (op == PictOpSrc) {
-        /* We can't do direct copies between different depths at 16bpp
-         * because r,g,b are allocated to different bits.
-         */
-        if (dst->pDrawable->bitsPerPixel == 16 &&
-            dst->pDrawable->depth != src->pDrawable->depth) {
-            return 0;
-        }
-
-        if (src->format == dst->format)
-            return 1;
-
-        if (src->format == PICT_a8r8g8b8 && dst->format == PICT_x8r8g8b8)
-            return 1;
-
-        if (src->format == PICT_a8b8g8r8 && dst->format == PICT_x8b8g8r8)
-            return 1;
-    }
-    else if (op == PictOpOver) {
-        if (src->alphaMap || dst->alphaMap)
-            return 0;
-
-        if (src->format != dst->format)
-            return 0;
-
-        if (src->format == PICT_x8r8g8b8 || src->format == PICT_x8b8g8r8)
-            return 1;
-    }
-
-    return 0;
-}
-
 static char
 glamor_get_picture_location(PicturePtr picture)
 {
@@ -562,54 +527,6 @@ glamor_get_picture_location(PicturePtr picture)
         }
     }
     return glamor_get_drawable_location(picture->pDrawable);
-}
-
-static Bool
-glamor_composite_with_copy(CARD8 op,
-                           PicturePtr source,
-                           PicturePtr dest,
-                           INT16 x_source,
-                           INT16 y_source,
-                           INT16 x_dest, INT16 y_dest, RegionPtr region)
-{
-    int ret = FALSE;
-
-    if (!source->pDrawable)
-        return FALSE;
-
-    if (!compatible_formats(op, dest, source))
-        return FALSE;
-
-    if (source->repeat || source->transform) {
-        return FALSE;
-    }
-
-    x_dest += dest->pDrawable->x;
-    y_dest += dest->pDrawable->y;
-    x_source += source->pDrawable->x;
-    y_source += source->pDrawable->y;
-    if (PICT_FORMAT_A(source->format) == 0) {
-        /* Fallback if we sample outside the source so that we
-         * swizzle the correct clear color for out-of-bounds texels.
-         */
-        if (region->extents.x1 + x_source - x_dest < 0)
-            goto cleanup_region;
-        if (region->extents.x2 + x_source - x_dest > source->pDrawable->width)
-            goto cleanup_region;
-
-        if (region->extents.y1 + y_source - y_dest < 0)
-            goto cleanup_region;
-        if (region->extents.y2 + y_source - y_dest > source->pDrawable->height)
-            goto cleanup_region;
-    }
-    glamor_copy(source->pDrawable,
-                dest->pDrawable, NULL,
-                RegionRects(region), RegionNumRects(region),
-                x_source - x_dest, y_source - y_dest,
-                FALSE, FALSE, 0, NULL);
-    ret = TRUE;
- cleanup_region:
-    return ret;
 }
 
 static void *
@@ -1448,15 +1365,6 @@ glamor_composite_clipped_region(CARD8 op,
         if (op == PictOpOver) {
             two_pass_ca = TRUE;
             op = PictOpOutReverse;
-        }
-    }
-
-    if (!mask && temp_src) {
-        if (glamor_composite_with_copy(op, temp_src, dest,
-                                       x_temp_src, y_temp_src,
-                                       x_dest, y_dest, region)) {
-            ok = TRUE;
-            goto out;
         }
     }
 
