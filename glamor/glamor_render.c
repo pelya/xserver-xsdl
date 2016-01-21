@@ -512,6 +512,14 @@ static int
 compatible_formats(CARD8 op, PicturePtr dst, PicturePtr src)
 {
     if (op == PictOpSrc) {
+        /* We can't do direct copies between different depths at 16bpp
+         * because r,g,b are allocated to different bits.
+         */
+        if (dst->pDrawable->bitsPerPixel == 16 &&
+            dst->pDrawable->depth != src->pDrawable->depth) {
+            return 0;
+        }
+
         if (src->format == dst->format)
             return 1;
 
