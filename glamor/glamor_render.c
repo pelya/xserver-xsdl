@@ -1577,8 +1577,10 @@ glamor_composite(CARD8 op,
     if (!glamor_pixmap_has_fbo(dest_pixmap))
         goto fail;
 
-    if (op >= ARRAY_SIZE(composite_op_info))
+    if (op >= ARRAY_SIZE(composite_op_info)) {
+        glamor_fallback("Unsupported composite op %x\n", op);
         goto fail;
+    }
 
     if (mask && mask->componentAlpha && !glamor_priv->has_dual_blend) {
         if (op == PictOpAtop
