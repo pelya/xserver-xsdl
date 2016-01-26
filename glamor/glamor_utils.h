@@ -852,26 +852,6 @@ glamor_get_rgba_from_pixel(CARD32 pixel,
 }
 
 inline static Bool
-glamor_pict_format_is_compatible(PicturePtr picture)
-{
-    GLenum iformat;
-    PixmapPtr pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
-
-    iformat = gl_iformat_for_pixmap(pixmap);
-    switch (iformat) {
-    case GL_RGBA:
-        return (picture->format == PICT_a8r8g8b8 ||
-                picture->format == PICT_x8r8g8b8);
-    case GL_ALPHA:
-    case GL_RED:
-    case GL_LUMINANCE:
-        return (picture->format == PICT_a8);
-    default:
-        return FALSE;
-    }
-}
-
-inline static Bool
 glamor_is_large_pixmap(PixmapPtr pixmap)
 {
     glamor_pixmap_private *priv;
