@@ -318,7 +318,7 @@ typedef struct glamor_screen_private {
     Bool logged_any_fbo_allocation_failure;
 
     /* xv */
-    GLint xv_prog;
+    glamor_program xv_prog;
 
     struct glamor_context ctx;
 } glamor_screen_private;
