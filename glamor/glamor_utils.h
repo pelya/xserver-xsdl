@@ -36,10 +36,8 @@
 #include "mipict.h"
 
 #define v_from_x_coord_x(_xscale_, _x_)          ( 2 * (_x_) * (_xscale_) - 1.0)
-#define v_from_x_coord_y(_yscale_, _y_)          (-2 * (_y_) * (_yscale_) + 1.0)
 #define v_from_x_coord_y_inverted(_yscale_, _y_) (2 * (_y_) * (_yscale_) - 1.0)
 #define t_from_x_coord_x(_xscale_, _x_)          ((_x_) * (_xscale_))
-#define t_from_x_coord_y(_yscale_, _y_)          (1.0 - (_y_) * (_yscale_))
 #define t_from_x_coord_y_inverted(_yscale_, _y_) ((_y_) * (_yscale_))
 
 #define pixmap_priv_get_dest_scale(pixmap, _pixmap_priv_, _pxscale_, _pyscale_) \
