@@ -107,14 +107,6 @@ enum shader_mask {
     SHADER_MASK_COUNT,
 };
 
-enum shader_in {
-    SHADER_IN_NORMAL,
-    SHADER_IN_CA_SOURCE,
-    SHADER_IN_CA_ALPHA,
-    SHADER_IN_CA_DUAL_BLEND,
-    SHADER_IN_COUNT,
-};
-
 enum shader_dest_swizzle {
     SHADER_DEST_SWIZZLE_DEFAULT,
     SHADER_DEST_SWIZZLE_ALPHA_TO_RED,
@@ -124,7 +116,7 @@ enum shader_dest_swizzle {
 struct shader_key {
     enum shader_source source;
     enum shader_mask mask;
-    enum shader_in in;
+    glamor_program_alpha in;
     enum shader_dest_swizzle dest_swizzle;
 };
 
@@ -291,7 +283,7 @@ typedef struct glamor_screen_private {
     int render_nr_quads;
     glamor_composite_shader composite_shader[SHADER_SOURCE_COUNT]
         [SHADER_MASK_COUNT]
-        [SHADER_IN_COUNT]
+        [glamor_program_alpha_count]
         [SHADER_DEST_SWIZZLE_COUNT];
 
     /* shaders to restore a texture to another texture. */

@@ -278,16 +278,16 @@ glamor_create_composite_fs(struct shader_key *key)
 
     header = header_norm;
     switch (key->in) {
-    case SHADER_IN_NORMAL:
+    case glamor_program_alpha_normal:
         in = in_normal;
         break;
-    case SHADER_IN_CA_SOURCE:
+    case glamor_program_alpha_ca_first:
         in = in_ca_source;
         break;
-    case SHADER_IN_CA_ALPHA:
+    case glamor_program_alpha_ca_second:
         in = in_ca_alpha;
         break;
-    case SHADER_IN_CA_DUAL_BLEND:
+    case glamor_program_alpha_dual_blend:
         in = in_ca_dual_blend;
         header = header_ca_dual_blend;
         break;
@@ -368,7 +368,7 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key,
     glBindAttribLocation(prog, GLAMOR_VERTEX_SOURCE, "v_texcoord0");
     glBindAttribLocation(prog, GLAMOR_VERTEX_MASK, "v_texcoord1");
 
-    if (key->in == SHADER_IN_CA_DUAL_BLEND) {
+    if (key->in == glamor_program_alpha_dual_blend) {
         glBindFragDataLocationIndexed(prog, 0, 0, "color0");
         glBindFragDataLocationIndexed(prog, 0, 1, "color1");
     }
@@ -674,7 +674,7 @@ static const int pict_format_combine_tab[][3] = {
 
 static Bool
 combine_pict_format(PictFormatShort * des, const PictFormatShort src,
-                    const PictFormatShort mask, enum shader_in in_ca)
+                    const PictFormatShort mask, glamor_program_alpha in_ca)
 {
     PictFormatShort new_vis;
     int src_type, mask_type, src_bpp;
@@ -691,19 +691,19 @@ combine_pict_format(PictFormatShort * des, const PictFormatShort src,
     new_vis = PICT_FORMAT_VIS(src) | PICT_FORMAT_VIS(mask);
 
     switch (in_ca) {
-    case SHADER_IN_NORMAL:
+    case glamor_program_alpha_normal:
         src_type = PICT_FORMAT_TYPE(src);
         mask_type = PICT_TYPE_A;
         break;
-    case SHADER_IN_CA_SOURCE:
+    case glamor_program_alpha_ca_first:
         src_type = PICT_FORMAT_TYPE(src);
         mask_type = PICT_FORMAT_TYPE(mask);
         break;
-    case SHADER_IN_CA_ALPHA:
+    case glamor_program_alpha_ca_second:
         src_type = PICT_TYPE_A;
         mask_type = PICT_FORMAT_TYPE(mask);
         break;
-    case SHADER_IN_CA_DUAL_BLEND:
+    case glamor_program_alpha_dual_blend:
         src_type = PICT_FORMAT_TYPE(src);
         mask_type = PICT_FORMAT_TYPE(mask);
         break;
@@ -867,19 +867,19 @@ glamor_composite_choose_shader(CARD8 op,
         }
 
         if (!mask->componentAlpha) {
-            key.in = SHADER_IN_NORMAL;
+            key.in = glamor_program_alpha_normal;
         }
         else {
             if (op == PictOpClear)
                 key.mask = SHADER_MASK_NONE;
             else if (glamor_priv->has_dual_blend)
-                key.in = SHADER_IN_CA_DUAL_BLEND;
+                key.in = glamor_program_alpha_dual_blend;
             else if (op == PictOpSrc || op == PictOpAdd
                      || op == PictOpIn || op == PictOpOut
                      || op == PictOpOverReverse)
-                key.in = SHADER_IN_CA_SOURCE;
+                key.in = glamor_program_alpha_ca_second;
             else if (op == PictOpOutReverse || op == PictOpInReverse) {
-                key.in = SHADER_IN_CA_ALPHA;
+                key.in = glamor_program_alpha_ca_first;
             }
             else {
                 glamor_fallback("Unsupported component alpha op: %d\n", op);
