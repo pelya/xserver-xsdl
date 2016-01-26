@@ -77,8 +77,6 @@ glamor_set_destination_drawable(DrawablePtr     drawable,
      *  gl_x = (render_x + drawable->x + off_x) * 2 / width - 1
      *
      *  gl_x = (render_x) * 2 / width + (drawable->x + off_x) * 2 / width - 1
-     *
-     * I'll think about yInverted later, when I have some way to test
      */
 
     if (do_drawable_translate) {
