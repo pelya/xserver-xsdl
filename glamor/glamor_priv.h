@@ -108,7 +108,6 @@ enum shader_mask {
 };
 
 enum shader_in {
-    SHADER_IN_SOURCE_ONLY,
     SHADER_IN_NORMAL,
     SHADER_IN_CA_SOURCE,
     SHADER_IN_CA_ALPHA,

@@ -147,6 +147,11 @@ glamor_create_composite_fs(struct shader_key *key)
         "		return rel_sampler(source_sampler, source_texture,\n"
         "				   source_wh, source_repeat_mode, 1);\n"
         "}\n";
+    const char *mask_none =
+        "vec4 get_mask()\n"
+        "{\n"
+        "	return vec4(0.0, 0.0, 0.0, 1.0);\n"
+        "}\n";
     const char *mask_solid_fetch =
         "uniform vec4 mask;\n"
         "vec4 get_mask()\n"
@@ -190,11 +195,6 @@ glamor_create_composite_fs(struct shader_key *key)
         "	return vec4(color.a, undef, undef, undef);"
         "}";
 
-    const char *in_source_only =
-        "void main()\n"
-        "{\n"
-        "	gl_FragColor = dest_swizzle(get_source());\n"
-        "}\n";
     const char *in_normal =
         "void main()\n"
         "{\n"
@@ -246,6 +246,7 @@ glamor_create_composite_fs(struct shader_key *key)
 
     switch (key->mask) {
     case SHADER_MASK_NONE:
+        mask_fetch = mask_none;
         break;
     case SHADER_MASK_SOLID:
         mask_fetch = mask_solid_fetch;
@@ -277,9 +278,6 @@ glamor_create_composite_fs(struct shader_key *key)
 
     header = header_norm;
     switch (key->in) {
-    case SHADER_IN_SOURCE_ONLY:
-        in = in_source_only;
-        break;
     case SHADER_IN_NORMAL:
         in = in_normal;
         break;
@@ -693,8 +691,6 @@ combine_pict_format(PictFormatShort * des, const PictFormatShort src,
     new_vis = PICT_FORMAT_VIS(src) | PICT_FORMAT_VIS(mask);
 
     switch (in_ca) {
-    case SHADER_IN_SOURCE_ONLY:
-        return TRUE;
     case SHADER_IN_NORMAL:
         src_type = PICT_FORMAT_TYPE(src);
         mask_type = PICT_TYPE_A;
@@ -893,7 +889,6 @@ glamor_composite_choose_shader(CARD8 op,
     }
     else {
         key.mask = SHADER_MASK_NONE;
-        key.in = SHADER_IN_SOURCE_ONLY;
     }
 
     if (dest_pixmap->drawable.bitsPerPixel <= 8 &&
