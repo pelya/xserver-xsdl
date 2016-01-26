@@ -114,7 +114,7 @@ static void
 glamor_init_xv_shader(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv;
-    GLint fs_prog, vs_prog;
+    GLint fs_prog, vs_prog, sampler_loc;
 
     glamor_priv = glamor_get_screen_private(screen);
     glamor_make_current(glamor_priv);
@@ -130,6 +130,15 @@ glamor_init_xv_shader(ScreenPtr screen)
     glBindAttribLocation(glamor_priv->xv_prog,
                          GLAMOR_VERTEX_SOURCE, "v_texcoord0");
     glamor_link_glsl_prog(screen, glamor_priv->xv_prog, "xv");
+
+    glUseProgram(glamor_priv->xv_prog);
+    sampler_loc = glGetUniformLocation(glamor_priv->xv_prog, "y_sampler");
+    glUniform1i(sampler_loc, 0);
+    sampler_loc = glGetUniformLocation(glamor_priv->xv_prog, "u_sampler");
+    glUniform1i(sampler_loc, 1);
+    sampler_loc = glGetUniformLocation(glamor_priv->xv_prog, "v_sampler");
+    glUniform1i(sampler_loc, 2);
+
 }
 
 #define ClipValue(v,min,max) ((v) < (min) ? (min) : (v) > (max) ? (max) : (v))
@@ -258,7 +267,7 @@ glamor_xv_render(glamor_port_private *port_priv)
     float uco[3], vco[3], off[3];
     float bright, cont, gamma;
     int ref = port_priv->transform_index;
-    GLint uloc, sampler_loc;
+    GLint uloc;
     GLfloat *v;
     char *vbo_offset;
 
@@ -328,13 +337,6 @@ glamor_xv_render(glamor_port_private *port_priv)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    sampler_loc = glGetUniformLocation(glamor_priv->xv_prog, "y_sampler");
-    glUniform1i(sampler_loc, 0);
-    sampler_loc = glGetUniformLocation(glamor_priv->xv_prog, "u_sampler");
-    glUniform1i(sampler_loc, 1);
-    sampler_loc = glGetUniformLocation(glamor_priv->xv_prog, "v_sampler");
-    glUniform1i(sampler_loc, 2);
 
     glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
     glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
