@@ -343,45 +343,36 @@ glamor_xv_render(glamor_port_private *port_priv)
 
     glEnable(GL_SCISSOR_TEST);
 
-    v = glamor_get_vbo_space(screen, 16 * sizeof(GLfloat) * nBox, &vbo_offset);
+    v = glamor_get_vbo_space(screen, 3 * 4 * sizeof(GLfloat), &vbo_offset);
 
-    for (i = 0; i < nBox; i++) {
-        float off_x = box[i].x1 - port_priv->drw_x;
-        float off_y = box[i].y1 - port_priv->drw_y;
-        float diff_x = (float) port_priv->src_w / (float) port_priv->dst_w;
-        float diff_y = (float) port_priv->src_h / (float) port_priv->dst_h;
-        float srcx, srcy, srcw, srch;
-        int dstx, dsty, dstw, dsth;
-        GLfloat *vptr = v + (i * 8);
-        GLfloat *tptr = vptr + (8 * nBox);
+    /* Set up a single primitive covering the area being drawn.  We'll
+     * clip it to port_priv->clip using GL scissors instead of just
+     * emitting a GL_QUAD per box, because this way we hopefully avoid
+     * diagonal tearing between the two trangles used to rasterize a
+     * GL_QUAD.
+     */
+    i = 0;
+    v[i++] = v_from_x_coord_x(dst_xscale, port_priv->drw_x + dst_x_off);
+    v[i++] = v_from_x_coord_y(dst_yscale, port_priv->drw_y + dst_y_off);
 
-        dstx = box[i].x1 + dst_x_off;
-        dsty = box[i].y1 + dst_y_off;
-        dstw = box[i].x2 - box[i].x1;
-        dsth = box[i].y2 - box[i].y1;
+    v[i++] = v_from_x_coord_x(dst_xscale, port_priv->drw_x + dst_x_off +
+                              port_priv->dst_w * 2);
+    v[i++] = v_from_x_coord_y(dst_yscale, port_priv->drw_y + dst_y_off);
 
-        srcx = port_priv->src_x + off_x * diff_x;
-        srcy = port_priv->src_y + off_y * diff_y;
-        srcw = (port_priv->src_w * dstw) / (float) port_priv->dst_w;
-        srch = (port_priv->src_h * dsth) / (float) port_priv->dst_h;
+    v[i++] = v_from_x_coord_x(dst_xscale, port_priv->drw_x + dst_x_off);
+    v[i++] = v_from_x_coord_y(dst_yscale, port_priv->drw_y + dst_y_off +
+                              port_priv->dst_h * 2);
 
-        glamor_set_normalize_vcoords(pixmap_priv,
-                                     dst_xscale, dst_yscale,
-                                     dstx - dstw,
-                                     dsty,
-                                     dstx + dstw,
-                                     dsty + dsth * 2,
-                                     vptr);
+    v[i++] = t_from_x_coord_x(src_xscale[0], port_priv->src_x);
+    v[i++] = t_from_x_coord_y(src_yscale[0], port_priv->src_y);
 
-        glamor_set_normalize_tcoords(src_pixmap_priv[0],
-                                     src_xscale[0],
-                                     src_yscale[0],
-                                     srcx - srcw,
-                                     srcy,
-                                     srcx + srcw,
-                                     srcy + srch * 2,
-                                     tptr);
-    }
+    v[i++] = t_from_x_coord_x(src_xscale[0], port_priv->src_x +
+                              port_priv->src_w * 2);
+    v[i++] = t_from_x_coord_y(src_yscale[0], port_priv->src_y);
+
+    v[i++] = t_from_x_coord_x(src_xscale[0], port_priv->src_x);
+    v[i++] = t_from_x_coord_y(src_yscale[0], port_priv->src_y +
+                              port_priv->src_h * 2);
 
     glVertexAttribPointer(GLAMOR_VERTEX_POS, 2,
                           GL_FLOAT, GL_FALSE,
@@ -389,10 +380,11 @@ glamor_xv_render(glamor_port_private *port_priv)
 
     glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2,
                           GL_FLOAT, GL_FALSE,
-                          2 * sizeof(float), vbo_offset + (nBox * 8 * sizeof(GLfloat)));
+                          2 * sizeof(float), vbo_offset + 6 * sizeof(GLfloat));
 
     glamor_put_vbo_space(screen);
 
+    /* Now draw our big triangle, clipped to each of the clip boxes. */
     for (i = 0; i < nBox; i++) {
         int dstx, dsty, dstw, dsth;
 
@@ -402,7 +394,7 @@ glamor_xv_render(glamor_port_private *port_priv)
         dsth = box[i].y2 - box[i].y1;
 
         glScissor(dstx, dsty, dstw, dsth);
-        glDrawArrays(GL_TRIANGLE_FAN, i * 4, 3);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 3);
     }
     glDisable(GL_SCISSOR_TEST);
 
