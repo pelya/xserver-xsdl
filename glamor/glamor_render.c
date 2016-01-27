@@ -565,22 +565,15 @@ glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
      *  GLES2 doesn't support RepeatNone. We need to fix it anyway.
      *
      **/
-    if (repeat_type != RepeatNone)
-        repeat_type += RepeatFix;
-    else if (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-             || glamor_pixmap_priv_is_large(pixmap_priv)) {
-        if (picture->transform)
-            repeat_type += RepeatFix;
-    }
-    if (repeat_type >= RepeatFix) {
+    if (glamor_pixmap_priv_is_large(pixmap_priv) ||
+        (glamor_priv->gl_flavor == GLAMOR_GL_ES2 && repeat_type == RepeatNone &&
+         picture->transform)) {
         glamor_pixmap_fbo_fix_wh_ratio(wh, pixmap, pixmap_priv);
-        if ((wh[0] != 1.0 || wh[1] != 1.0)
-            || (glamor_priv->gl_flavor == GLAMOR_GL_ES2
-                && repeat_type == RepeatFix))
-            glUniform4fv(wh_location, 1, wh);
-        else
-            repeat_type -= RepeatFix;
+        glUniform4fv(wh_location, 1, wh);
+
+        repeat_type += RepeatFix;
     }
+
     glUniform1i(repeat_location, repeat_type);
 }
 
