@@ -35,8 +35,7 @@
 
 void
 glamor_set_destination_drawable(DrawablePtr     drawable,
-                                int             box_x,
-                                int             box_y,
+                                int             box_index,
                                 Bool            do_drawable_translate,
                                 Bool            center_offset,
                                 GLint           matrix_uniform_location,
@@ -48,7 +47,7 @@ glamor_set_destination_drawable(DrawablePtr     drawable,
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     int off_x, off_y;
-    BoxPtr box = glamor_pixmap_box_at(pixmap_priv, box_x, box_y);
+    BoxPtr box = glamor_pixmap_box_at(pixmap_priv, box_index);
     int w = box->x2 - box->x1;
     int h = box->y2 - box->y1;
     float scale_x = 2.0f / (float) w;
@@ -95,7 +94,7 @@ glamor_set_destination_drawable(DrawablePtr     drawable,
                 scale_x, (off_x + center_adjust) * scale_x - 1.0f,
                 scale_y, (off_y + center_adjust) * scale_y - 1.0f);
 
-    glamor_set_destination_pixmap_fbo(glamor_priv, glamor_pixmap_fbo_at(pixmap_priv, box_x, box_y),
+    glamor_set_destination_pixmap_fbo(glamor_priv, glamor_pixmap_fbo_at(pixmap_priv, box_index),
                                       0, 0, w, h);
 }
 

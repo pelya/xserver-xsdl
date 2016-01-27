@@ -258,7 +258,7 @@ glamor_xv_render(glamor_port_private *port_priv)
     GLint uloc;
     GLfloat *v;
     char *vbo_offset;
-    int dst_box_x, dst_box_y;
+    int dst_box_index;
 
     if (!glamor_priv->xv_prog.prog)
         glamor_init_xv_shader(screen);
@@ -368,11 +368,11 @@ glamor_xv_render(glamor_port_private *port_priv)
     glamor_put_vbo_space(screen);
 
     /* Now draw our big triangle, clipped to each of the clip boxes. */
-    glamor_pixmap_loop(pixmap_priv, dst_box_x, dst_box_y) {
+    glamor_pixmap_loop(pixmap_priv, dst_box_index) {
         int dst_off_x, dst_off_y;
 
         glamor_set_destination_drawable(port_priv->pDraw,
-                                        dst_box_x, dst_box_y,
+                                        dst_box_index,
                                         FALSE, FALSE,
                                         glamor_priv->xv_prog.matrix_uniform,
                                         &dst_off_x, &dst_off_y);

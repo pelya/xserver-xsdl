@@ -485,19 +485,17 @@ glamor_set_pixmap_fbo_current(glamor_pixmap_private *priv, int idx)
 }
 
 static inline glamor_pixmap_fbo *
-glamor_pixmap_fbo_at(glamor_pixmap_private *priv, int x, int y)
+glamor_pixmap_fbo_at(glamor_pixmap_private *priv, int box)
 {
-    assert(x < priv->block_wcnt);
-    assert(y < priv->block_hcnt);
-    return priv->fbo_array[y * priv->block_wcnt + x];
+    assert(box < priv->block_wcnt * priv->block_hcnt);
+    return priv->fbo_array[box];
 }
 
 static inline BoxPtr
-glamor_pixmap_box_at(glamor_pixmap_private *priv, int x, int y)
+glamor_pixmap_box_at(glamor_pixmap_private *priv, int box)
 {
-    assert(x < priv->block_wcnt);
-    assert(y < priv->block_hcnt);
-    return &priv->box_array[y * priv->block_wcnt + x];
+    assert(box < priv->block_wcnt * priv->block_hcnt);
+    return &priv->box_array[box];
 }
 
 static inline int
@@ -512,9 +510,9 @@ glamor_pixmap_hcnt(glamor_pixmap_private *priv)
     return priv->block_hcnt;
 }
 
-#define glamor_pixmap_loop(priv, x, y)                  \
-    for (y = 0; y < glamor_pixmap_hcnt(priv); y++)      \
-        for (x = 0; x < glamor_pixmap_wcnt(priv); x++)
+#define glamor_pixmap_loop(priv, box_index)                            \
+    for (box_index = 0; box_index < glamor_pixmap_hcnt(priv) *         \
+             glamor_pixmap_wcnt(priv); box_index++)                    \
 
 /**
  * Pixmap upload status, used by glamor_render.c's support for
