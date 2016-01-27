@@ -105,19 +105,18 @@ glamor_create_composite_fs(struct shader_key *key)
     /* The texture and the pixmap size is not match eaxctly, so can't sample it directly.
      * rel_sampler will recalculate the texture coords.*/
     const char *rel_sampler =
-        " vec4 rel_sampler(sampler2D tex_image, vec2 tex, vec4 wh, int repeat, int set_alpha)\n"
+        " vec4 rel_sampler(sampler2D tex_image, vec2 tex, vec4 wh, int repeat)\n"
         "{\n"
-        "	tex = rel_tex_coord(tex, wh, repeat);\n"
-        "	if (repeat == RepeatFix + RepeatNone) {\n"
-        "		if (!(tex.x >= 0.0 && tex.x < 1.0 \n"
-        "		    && tex.y >= 0.0 && tex.y < 1.0))\n"
-        "			return vec4(0.0, 0.0, 0.0, set_alpha);\n"
-        "		tex = (fract(tex) / wh.xy);\n"
+        "	if (repeat >= RepeatFix) {\n"
+        "		tex = rel_tex_coord(tex, wh, repeat);\n"
+        "		if (repeat == RepeatFix + RepeatNone) {\n"
+        "			if (!(tex.x >= 0.0 && tex.x < 1.0 && \n"
+        "			      tex.y >= 0.0 && tex.y < 1.0))\n"
+        "				return vec4(0.0, 0.0, 0.0, 0.0);\n"
+        "			tex = (fract(tex) / wh.xy);\n"
+        "		}\n"
         "	}\n"
-        "	if (set_alpha != 1)\n"
-        "		return texture2D(tex_image, tex);\n"
-        "	else\n"
-        "		return vec4(texture2D(tex_image, tex).rgb, 1.0);\n"
+        "	return texture2D(tex_image, tex);\n"
         "}\n";
 
     const char *source_solid_fetch =
@@ -132,11 +131,8 @@ glamor_create_composite_fs(struct shader_key *key)
         "uniform vec4 source_wh;"
         "vec4 get_source()\n"
         "{\n"
-        "	if (source_repeat_mode < RepeatFix)\n"
-        "		return texture2D(source_sampler, source_texture);\n"
-        "	else \n"
-        "		return rel_sampler(source_sampler, source_texture,\n"
-        "				   source_wh, source_repeat_mode, 0);\n"
+        "	return rel_sampler(source_sampler, source_texture,\n"
+        "			   source_wh, source_repeat_mode);\n"
         "}\n";
     const char *source_pixmap_fetch =
         "varying vec2 source_texture;\n"
@@ -144,11 +140,9 @@ glamor_create_composite_fs(struct shader_key *key)
         "uniform vec4 source_wh;\n"
         "vec4 get_source()\n"
         "{\n"
-        "	if (source_repeat_mode < RepeatFix) \n"
-        "		return vec4(texture2D(source_sampler, source_texture).rgb, 1);\n"
-        "	else \n"
-        "		return rel_sampler(source_sampler, source_texture,\n"
-        "				   source_wh, source_repeat_mode, 1);\n"
+        "	return vec4(rel_sampler(source_sampler, source_texture,\n"
+        "				source_wh, source_repeat_mode).rgb,\n"
+        "				1.0);\n"
         "}\n";
     const char *mask_none =
         "vec4 get_mask()\n"
@@ -167,11 +161,8 @@ glamor_create_composite_fs(struct shader_key *key)
         "uniform vec4 mask_wh;\n"
         "vec4 get_mask()\n"
         "{\n"
-        "	if (mask_repeat_mode < RepeatFix) \n"
-        "		return texture2D(mask_sampler, mask_texture);\n"
-        "	else \n"
-        "		return rel_sampler(mask_sampler, mask_texture,\n"
-        "				   mask_wh, mask_repeat_mode, 0);\n"
+        "	return rel_sampler(mask_sampler, mask_texture,\n"
+        "			   mask_wh, mask_repeat_mode);\n"
         "}\n";
     const char *mask_pixmap_fetch =
         "varying vec2 mask_texture;\n"
@@ -179,11 +170,8 @@ glamor_create_composite_fs(struct shader_key *key)
         "uniform vec4 mask_wh;\n"
         "vec4 get_mask()\n"
         "{\n"
-        "	if (mask_repeat_mode < RepeatFix) \n"
-        "		return vec4(texture2D(mask_sampler, mask_texture).rgb, 1);\n"
-        "	else \n"
-        "		return rel_sampler(mask_sampler, mask_texture,\n"
-        "				   mask_wh, mask_repeat_mode, 1);\n"
+        "	return vec4(rel_sampler(mask_sampler, mask_texture,\n"
+        "				mask_wh, mask_repeat_mode).rgb, 1.0);\n"
         "}\n";
 
     const char *dest_swizzle_default =
