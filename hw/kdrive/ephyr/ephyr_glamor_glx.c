@@ -280,9 +280,16 @@ ephyr_glamor_process_event(xcb_generic_event_t *xev)
     XUnlockDisplay(dpy);
 }
 
+static int
+ephyr_glx_error_handler(Display * _dpy, XErrorEvent * ev)
+{
+    return 0;
+}
+
 struct ephyr_glamor *
 ephyr_glamor_glx_screen_init(xcb_window_t win)
 {
+    int (*oldErrorHandler) (Display *, XErrorEvent *);
     static const float position[] = {
         -1, -1,
          1, -1,
@@ -332,8 +339,11 @@ ephyr_glamor_glx_screen_init(xcb_window_t win)
             GLAMOR_GL_CORE_VER_MINOR,
             0,
         };
+        oldErrorHandler = XSetErrorHandler(ephyr_glx_error_handler);
         ctx = glXCreateContextAttribsARB(dpy, fb_config, NULL, True,
                                          context_attribs);
+        XSync(dpy, False);
+        XSetErrorHandler(oldErrorHandler);
         if (!ctx)
             ctx = glXCreateContext(dpy, visual_info, NULL, True);
     }
