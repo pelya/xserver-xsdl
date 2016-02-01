@@ -204,21 +204,26 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
     return TRUE;
 }
 
-static void *
-glamor_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int stride)
+/**
+ * Takes a set of source bits with a given format and returns an
+ * in-memory pixman image of those bits in a destination format.
+ */
+static pixman_image_t *
+glamor_get_converted_image(PictFormatShort dst_format,
+                           PictFormatShort src_format,
+                           void *src_bits,
+                           int src_stride,
+                           int w, int h)
 {
-    PictFormatShort dst_format = PICT_a8, src_format = PICT_a1;
     pixman_image_t *dst_image;
     pixman_image_t *src_image;
-    int src_stride = PixmapBytePad(w, 1);
 
-    dst_image = pixman_image_create_bits(dst_format, w, h, dst_bits, stride);
+    dst_image = pixman_image_create_bits(dst_format, w, h, NULL, 0);
     if (dst_image == NULL) {
         return NULL;
     }
 
-    src_image = pixman_image_create_bits(src_format,
-                                         w, h, src_bits, src_stride);
+    src_image = pixman_image_create_bits(src_format, w, h, src_bits, src_stride);
 
     if (src_image == NULL) {
         pixman_image_unref(dst_image);
@@ -229,8 +234,7 @@ glamor_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int stride)
                            0, 0, 0, 0, 0, 0, w, h);
 
     pixman_image_unref(src_image);
-    pixman_image_unref(dst_image);
-    return dst_bits;
+    return dst_image;
 }
 
 /**
@@ -302,34 +306,21 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
         glamor_get_screen_private(pixmap->drawable.pScreen);
     float dst_xscale, dst_yscale;
     GLuint tex = 0;
-    int need_free_bits = 0;
+    pixman_image_t *converted_image = NULL;
 
     if (bits == NULL)
         goto ready_to_upload;
 
     if (revert == REVERT_UPLOADING_A1) {
-        /* XXX if we are restoring the pixmap, then we may not need to allocate
-         * new buffer */
-        void *converted_bits;
-
-        if (pixmap->drawable.depth == 1)
-            stride = (((w * 8 + 7) / 8) + 3) & ~3;
-
-        converted_bits = xallocarray(h, stride);
-
-        if (converted_bits == NULL)
+        converted_image = glamor_get_converted_image(PICT_a8,
+                                                     PICT_a1,
+                                                     bits,
+                                                     PixmapBytePad(w, 1),
+                                                     w, h);
+        if (!converted_image)
             return FALSE;
-        bits = glamor_convert_a1_a8(bits, converted_bits, w, h, stride);
-        if (bits == NULL) {
-            free(converted_bits);
-            ErrorF("Failed to convert pixmap no_alpha %d,"
-                   "revert mode %d, swap mode %d\n", no_alpha, revert, swap_rb);
-            return FALSE;
-        }
-        no_alpha = 0;
-        revert = REVERT_NONE;
-        swap_rb = SWAP_NONE_UPLOADING;
-        need_free_bits = TRUE;
+
+        bits = pixman_image_get_data(converted_image);
     }
 
  ready_to_upload:
@@ -355,8 +346,8 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
                                                x + fbo_x_off, y + fbo_y_off,
                                                w, h,
                                                bits, pbo)) {
-            if (need_free_bits)
-                free(bits);
+            if (converted_image)
+                pixman_image_unref(bits);
             return FALSE;
         }
     } else {
@@ -382,8 +373,8 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
         if (!__glamor_upload_pixmap_to_texture(pixmap, &tex,
                                                format, type, 0, 0, w, h, bits,
                                                pbo)) {
-            if (need_free_bits)
-                free(bits);
+            if (converted_image)
+                pixman_image_unref(bits);
             return FALSE;
         }
 
@@ -416,8 +407,8 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    if (need_free_bits)
-        free(bits);
+    if (converted_image)
+        pixman_image_unref(bits);
     return TRUE;
 }
 
