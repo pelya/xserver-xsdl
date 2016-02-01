@@ -514,22 +514,6 @@ glamor_pixmap_hcnt(glamor_pixmap_private *priv)
     for (box_index = 0; box_index < glamor_pixmap_hcnt(priv) *         \
              glamor_pixmap_wcnt(priv); box_index++)                    \
 
-/**
- * Pixmap upload status, used by glamor_render.c's support for
- * temporarily uploading pixmaps to GL textures to get a Composite
- * operation done.
- */
-typedef enum glamor_pixmap_status {
-    /** initial status, don't need to do anything. */
-    GLAMOR_NONE,
-    /** marked as need to be uploaded to gl texture. */
-    GLAMOR_UPLOAD_PENDING,
-    /** the pixmap has been uploaded successfully. */
-    GLAMOR_UPLOAD_DONE,
-    /** fail to upload the pixmap. */
-    GLAMOR_UPLOAD_FAILED
-} glamor_pixmap_status_t;
-
 /* GC private structure. Currently holds only any computed dash pixmap */
 
 typedef struct {
@@ -739,7 +723,7 @@ Bool glamor_composite_largepixmap_region(CARD8 op,
  * Upload a picture to gl texture. Similar to the
  * glamor_upload_pixmap_to_texture. Used in rendering.
  **/
-enum glamor_pixmap_status glamor_upload_picture_to_texture(PicturePtr picture);
+Bool glamor_upload_picture_to_texture(PicturePtr picture);
 
 void glamor_add_traps(PicturePtr pPicture,
                       INT16 x_off, INT16 y_off, int ntrap, xTrap *traps);

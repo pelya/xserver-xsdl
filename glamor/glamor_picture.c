@@ -797,11 +797,15 @@ glamor_put_bits(char *dst_bits, int dst_stride, char *src_bits,
     }
 }
 
-static Bool
-glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
-                                    int h, int stride, void *bits, int pbo,
-                                    PictFormatShort pict_format)
+/* Upload picture to texture.  We may need to flip the y axis or
+ * wire alpha to 1. So we may conditional create fbo for the picture.
+ * */
+Bool
+glamor_upload_picture_to_texture(PicturePtr picture)
 {
+    PixmapPtr pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
+    void *bits = pixmap->devPrivate.ptr;
+    int stride = pixmap->devKind;
     ScreenPtr screen = pixmap->drawable.pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     GLenum format, type;
@@ -810,7 +814,7 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
     Bool force_clip;
 
     if (glamor_get_tex_format_type_from_pixmap(pixmap,
-                                               pict_format,
+                                               picture->format,
                                                &format,
                                                &type,
                                                &no_alpha,
@@ -822,8 +826,7 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
         return FALSE;
 
     pixmap_priv = glamor_get_pixmap_private(pixmap);
-    force_clip = glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP
-        && !glamor_check_fbo_size(glamor_priv, w, h);
+    force_clip = glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP;
 
     if (glamor_pixmap_priv_is_large(pixmap_priv) || force_clip) {
         RegionRec region;
@@ -833,13 +836,13 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
         void *sub_bits;
         int i, j;
 
-        sub_bits = xallocarray(h, stride);
+        sub_bits = xallocarray(pixmap->drawable.height, stride);
         if (sub_bits == NULL)
             return FALSE;
-        box.x1 = x;
-        box.y1 = y;
-        box.x2 = x + w;
-        box.y2 = y + h;
+        box.x1 = 0;
+        box.y1 = 0;
+        box.x2 = pixmap->drawable.width;
+        box.y2 = pixmap->drawable.height;
         RegionInitBoxes(&region, &box, 1);
         if (!force_clip)
             clipped_regions =
@@ -860,8 +863,6 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
             int temp_stride;
             void *temp_bits;
 
-            assert(pbo == 0);
-
             glamor_set_pixmap_fbo_current(pixmap_priv, clipped_regions[i].block_idx);
 
             boxes = RegionRects(clipped_regions[i].region);
@@ -871,26 +872,26 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
                 temp_stride = PixmapBytePad(boxes[j].x2 - boxes[j].x1,
                                             pixmap->drawable.depth);
 
-                if (boxes[j].x1 == x && temp_stride == stride) {
-                    temp_bits = (char *) bits + (boxes[j].y1 - y) * stride;
+                if (boxes[j].x1 == 0 && temp_stride == stride) {
+                    temp_bits = (char *) bits + boxes[j].y1 * stride;
                 }
                 else {
                     temp_bits = sub_bits;
                     glamor_put_bits(temp_bits, temp_stride, bits, stride,
                                     pixmap->drawable.bitsPerPixel,
-                                    boxes[j].x1 - x, boxes[j].y1 - y,
+                                    boxes[j].x1, boxes[j].y1,
                                     boxes[j].x2 - boxes[j].x1,
                                     boxes[j].y2 - boxes[j].y1);
                 }
                 DEBUGF("upload x %d y %d w %d h %d temp stride %d \n",
-                       boxes[j].x1 - x, boxes[j].y1 - y,
+                       boxes[j].x1, boxes[j].y1,
                        boxes[j].x2 - boxes[j].x1,
                        boxes[j].y2 - boxes[j].y1, temp_stride);
                 if (_glamor_upload_bits_to_pixmap_texture
                     (pixmap, format, type, no_alpha, revert, swap_rb,
                      boxes[j].x1, boxes[j].y1, boxes[j].x2 - boxes[j].x1,
                      boxes[j].y2 - boxes[j].y1, temp_stride, temp_bits,
-                     pbo) == FALSE) {
+                     0) == FALSE) {
                     RegionUninit(&region);
                     free(sub_bits);
                     assert(0);
@@ -907,28 +908,9 @@ glamor_upload_sub_pixmap_to_texture(PixmapPtr pixmap, int x, int y, int w,
     else
         return _glamor_upload_bits_to_pixmap_texture(pixmap, format, type,
                                                      no_alpha, revert, swap_rb,
-                                                     x, y, w, h, stride, bits,
-                                                     pbo);
-}
-
-/* Upload picture to texture.  We may need to flip the y axis or
- * wire alpha to 1. So we may conditional create fbo for the picture.
- * */
-enum glamor_pixmap_status
-glamor_upload_picture_to_texture(PicturePtr picture)
-{
-    PixmapPtr pixmap;
-
-    assert(picture->pDrawable);
-    pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
-
-    if (glamor_upload_sub_pixmap_to_texture(pixmap, 0, 0,
-                                            pixmap->drawable.width,
-                                            pixmap->drawable.height,
-                                            pixmap->devKind,
-                                            pixmap->devPrivate.ptr, 0,
-                                            picture->format))
-        return GLAMOR_UPLOAD_DONE;
-    else
-        return GLAMOR_UPLOAD_FAILED;
+                                                     0, 0,
+                                                     pixmap->drawable.width,
+                                                     pixmap->drawable.height,
+                                                     stride, bits,
+                                                     0);
 }
