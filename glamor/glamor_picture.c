@@ -151,11 +151,7 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
             *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
         } else {
-            *tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
-            if (is_little_endian)
-                *revert = REVERT_UPLOADING_1_5_5_5;
-            else
-                *revert = REVERT_NONE;
+            return FALSE;
         }
         break;
 
@@ -166,13 +162,7 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
             *tex_format = GL_BGRA;
             *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
         } else {
-            *tex_format = GL_RGBA;
-            *tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
-            if (is_little_endian)
-                *revert = REVERT_UPLOADING_1_5_5_5;
-            else
-                *revert = REVERT_NONE;
-            *swap_rb = SWAP_UPLOADING;
+            return FALSE;
         }
         break;
 
@@ -215,8 +205,7 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
 }
 
 static void *
-_glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h,
-                            int stride)
+glamor_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h, int stride)
 {
     PictFormatShort dst_format = PICT_a8, src_format = PICT_a1;
     pixman_image_t *dst_image;
@@ -242,107 +231,6 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h,
     pixman_image_unref(src_image);
     pixman_image_unref(dst_image);
     return dst_bits;
-}
-
-#define ADJUST_BITS(d, src_bits, dst_bits)	(((dst_bits) == (src_bits)) ? (d) : 				\
-							(((dst_bits) > (src_bits)) ? 				\
-							  (((d) << ((dst_bits) - (src_bits))) 			\
-								   + (( 1 << ((dst_bits) - (src_bits))) >> 1))	\
-								:  ((d) >> ((src_bits) - (dst_bits)))))
-
-#define GLAMOR_DO_CONVERT(src, dst, no_alpha, swap,		\
-			  a_shift_src, a_bits_src,		\
-			  b_shift_src, b_bits_src,		\
-			  g_shift_src, g_bits_src,		\
-			  r_shift_src, r_bits_src,		\
-			  a_shift, a_bits,			\
-			  b_shift, b_bits,			\
-			  g_shift, g_bits,			\
-			  r_shift, r_bits)			\
-	do {								\
-		typeof(src) a,b,g,r;					\
-		typeof(src) a_mask_src, b_mask_src, g_mask_src, r_mask_src;\
-		a_mask_src = (((1 << (a_bits_src)) - 1) << a_shift_src);\
-		b_mask_src = (((1 << (b_bits_src)) - 1) << b_shift_src);\
-		g_mask_src = (((1 << (g_bits_src)) - 1) << g_shift_src);\
-		r_mask_src = (((1 << (r_bits_src)) - 1) << r_shift_src);\
-		if (no_alpha)						\
-			a = (a_mask_src) >> (a_shift_src);			\
-		else							\
-			a = ((src) & (a_mask_src)) >> (a_shift_src);	\
-		b = ((src) & (b_mask_src)) >> (b_shift_src);		\
-		g = ((src) & (g_mask_src)) >> (g_shift_src);		\
-		r = ((src) & (r_mask_src)) >> (r_shift_src);		\
-		a = ADJUST_BITS(a, a_bits_src, a_bits);			\
-		b = ADJUST_BITS(b, b_bits_src, b_bits);			\
-		g = ADJUST_BITS(g, g_bits_src, g_bits);			\
-		r = ADJUST_BITS(r, r_bits_src, r_bits);			\
-		if (swap == 0)						\
-			(*dst) = ((a) << (a_shift)) | ((b) << (b_shift)) | ((g) << (g_shift)) | ((r) << (r_shift)); \
-		else 												    \
-			(*dst) = ((a) << (a_shift)) | ((r) << (b_shift)) | ((g) << (g_shift)) | ((b) << (r_shift)); \
-	} while (0)
-
-
-static void *
-_glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h,
-                              int stride, int no_alpha, int swap_rb)
-{
-    int x, y;
-    unsigned short *words, *saved_words, *source_words;
-    int swap = swap_rb != SWAP_NONE_UPLOADING;
-
-    words = dst_bits;
-    source_words = src_bits;
-    saved_words = words;
-
-    for (y = 0; y < h; y++) {
-        DEBUGF("Line %d :  ", y);
-        for (x = 0; x < w; x++) {
-            unsigned short pixel = source_words[x];
-
-            GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
-                              15, 1, 10, 5, 5, 5, 0, 5,
-                              0, 1, 1, 5, 6, 5, 11, 5);
-            DEBUGF("%04x:%04x ", pixel, words[x]);
-        }
-        DEBUGF("\n");
-        words += stride / sizeof(*words);
-        source_words += stride / sizeof(*words);
-    }
-    DEBUGF("\n");
-    return saved_words;
-}
-
-/*
- * This function is to convert an unsupported color format to/from a
- * supported GL format.
- * Here are the current scenarios:
- *
- * @no_alpha:
- * 	If it is set, then we need to wire the alpha value to 1.
- * @revert:
-	REVERT_UPLOADING_A1		: convert an A1 buffer to an Alpha8 buffer
-	REVERT_UPLOADING_1_5_5_5    	: convert X1R5G5B5 to B5G5R5X1
-   @swap_rb: if we have the swap_rb set, then we need to swap the R and B's position.
- *
- */
-
-static void *
-glamor_color_convert_to_bits(void *src_bits, void *dst_bits, int w, int h,
-                             int stride, int no_alpha, int revert, int swap_rb)
-{
-    if (revert == REVERT_UPLOADING_A1) {
-        return _glamor_color_convert_a1_a8(src_bits, dst_bits, w, h, stride);
-    }
-    else if (revert == REVERT_UPLOADING_1_5_5_5) {
-        return _glamor_color_revert_x1b5g5r5(src_bits, dst_bits, w, h, stride,
-                                             no_alpha, swap_rb);
-    }
-    else
-        ErrorF("convert a non-supported mode %x.\n", revert);
-
-    return NULL;
 }
 
 /**
@@ -419,7 +307,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
     if (bits == NULL)
         goto ready_to_upload;
 
-    if (revert > REVERT_NORMAL) {
+    if (revert == REVERT_UPLOADING_A1) {
         /* XXX if we are restoring the pixmap, then we may not need to allocate
          * new buffer */
         void *converted_bits;
@@ -431,8 +319,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
 
         if (converted_bits == NULL)
             return FALSE;
-        bits = glamor_color_convert_to_bits(bits, converted_bits, w, h,
-                                            stride, no_alpha, revert, swap_rb);
+        bits = glamor_convert_a1_a8(bits, converted_bits, w, h, stride);
         if (bits == NULL) {
             free(converted_bits);
             ErrorF("Failed to convert pixmap no_alpha %d,"
