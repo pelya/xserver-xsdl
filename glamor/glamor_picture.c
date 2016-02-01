@@ -47,17 +47,17 @@ glamor_get_tex_format_type_from_pictformat_gl(ScreenPtr pScreen,
                                               GLenum *tex_type,
                                               int *no_alpha,
                                               int *revert,
-                                              int *swap_rb, int is_upload)
+                                              int *swap_rb)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(pScreen);
     *no_alpha = 0;
     *revert = REVERT_NONE;
-    *swap_rb = is_upload ? SWAP_NONE_UPLOADING : SWAP_NONE_DOWNLOADING;
+    *swap_rb = SWAP_NONE_UPLOADING;
     switch (format) {
     case PICT_a1:
         *tex_format = glamor_priv->one_channel_format;
         *tex_type = GL_UNSIGNED_BYTE;
-        *revert = is_upload ? REVERT_UPLOADING_A1 : REVERT_DOWNLOADING_A1;
+        *revert = REVERT_UPLOADING_A1;
         break;
     case PICT_b8g8r8x8:
         *no_alpha = 1;
@@ -145,7 +145,7 @@ glamor_get_tex_format_type_from_pictformat_gles2(ScreenPtr pScreen,
                                                  GLenum *tex_type,
                                                  int *no_alpha,
                                                  int *revert,
-                                                 int *swap_rb, int is_upload)
+                                                 int *swap_rb)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(pScreen);
     int need_swap_rb = 0;
@@ -186,20 +186,10 @@ glamor_get_tex_format_type_from_pictformat_gles2(ScreenPtr pScreen,
          * we have to use GL_UNSIGNED_BYTE and do the conversion in
          * shader latter.*/
         *tex_type = GL_UNSIGNED_BYTE;
-        if (is_upload == 1) {
-            if (!IS_LITTLE_ENDIAN)
-                *revert = REVERT_UPLOADING_10_10_10_2;
-            else
-                *revert = REVERT_UPLOADING_2_10_10_10;
-        }
-        else {
-            if (!IS_LITTLE_ENDIAN) {
-                *revert = REVERT_DOWNLOADING_10_10_10_2;
-            }
-            else {
-                *revert = REVERT_DOWNLOADING_2_10_10_10;
-            }
-        }
+        if (!IS_LITTLE_ENDIAN)
+            *revert = REVERT_UPLOADING_10_10_10_2;
+        else
+            *revert = REVERT_UPLOADING_2_10_10_10;
         need_swap_rb = 1;
 
         break;
@@ -209,20 +199,10 @@ glamor_get_tex_format_type_from_pictformat_gles2(ScreenPtr pScreen,
     case PICT_a2b10g10r10:
         *tex_format = GL_RGBA;
         *tex_type = GL_UNSIGNED_BYTE;
-        if (is_upload == 1) {
-            if (!IS_LITTLE_ENDIAN)
-                *revert = REVERT_UPLOADING_10_10_10_2;
-            else
-                *revert = REVERT_UPLOADING_2_10_10_10;
-        }
-        else {
-            if (!IS_LITTLE_ENDIAN) {
-                *revert = REVERT_DOWNLOADING_10_10_10_2;
-            }
-            else {
-                *revert = REVERT_DOWNLOADING_2_10_10_10;
-            }
-        }
+        if (!IS_LITTLE_ENDIAN)
+            *revert = REVERT_UPLOADING_10_10_10_2;
+        else
+            *revert = REVERT_UPLOADING_2_10_10_10;
         break;
 
     case PICT_r5g6b5:
@@ -243,11 +223,8 @@ glamor_get_tex_format_type_from_pictformat_gles2(ScreenPtr pScreen,
     case PICT_a1b5g5r5:
         *tex_format = GL_RGBA;
         *tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
-        if (IS_LITTLE_ENDIAN) {
-            *revert =
-                is_upload ? REVERT_UPLOADING_1_5_5_5 :
-                REVERT_DOWNLOADING_1_5_5_5;
-        }
+        if (IS_LITTLE_ENDIAN)
+            *revert = REVERT_UPLOADING_1_5_5_5;
         else
             *revert = REVERT_NONE;
         break;
@@ -257,11 +234,8 @@ glamor_get_tex_format_type_from_pictformat_gles2(ScreenPtr pScreen,
     case PICT_a1r5g5b5:
         *tex_format = GL_RGBA;
         *tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
-        if (IS_LITTLE_ENDIAN) {
-            *revert =
-                is_upload ? REVERT_UPLOADING_1_5_5_5 :
-                REVERT_DOWNLOADING_1_5_5_5;
-        }
+        if (IS_LITTLE_ENDIAN)
+            *revert = REVERT_UPLOADING_1_5_5_5;
         else
             *revert = REVERT_NONE;
         need_swap_rb = 1;
@@ -270,7 +244,7 @@ glamor_get_tex_format_type_from_pictformat_gles2(ScreenPtr pScreen,
     case PICT_a1:
         *tex_format = glamor_priv->one_channel_format;
         *tex_type = GL_UNSIGNED_BYTE;
-        *revert = is_upload ? REVERT_UPLOADING_A1 : REVERT_DOWNLOADING_A1;
+        *revert = REVERT_UPLOADING_A1;
         break;
 
     case PICT_a8:
@@ -303,9 +277,9 @@ glamor_get_tex_format_type_from_pictformat_gles2(ScreenPtr pScreen,
     }
 
     if (need_swap_rb)
-        *swap_rb = is_upload ? SWAP_UPLOADING : SWAP_DOWNLOADING;
+        *swap_rb = SWAP_UPLOADING;
     else
-        *swap_rb = is_upload ? SWAP_NONE_UPLOADING : SWAP_NONE_DOWNLOADING;
+        *swap_rb = SWAP_NONE_UPLOADING;
     return 0;
 }
 
@@ -315,7 +289,7 @@ glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
                                        GLenum *format,
                                        GLenum *type,
                                        int *no_alpha,
-                                       int *revert, int *swap_rb, int is_upload)
+                                       int *revert, int *swap_rb)
 {
     glamor_screen_private *glamor_priv =
         glamor_get_screen_private(pixmap->drawable.pScreen);
@@ -326,38 +300,25 @@ glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
                                                              format, type,
                                                              no_alpha,
                                                              revert,
-                                                             swap_rb,
-                                                             is_upload);
+                                                             swap_rb);
     } else {
         return glamor_get_tex_format_type_from_pictformat_gles2(pixmap->drawable.pScreen,
                                                                 pict_format,
                                                                 format, type,
                                                                 no_alpha,
                                                                 revert,
-                                                                swap_rb,
-                                                                is_upload);
+                                                                swap_rb);
     }
 }
 
 static void *
 _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h,
-                            int stride, int revert)
+                            int stride)
 {
-    PictFormatShort dst_format, src_format;
+    PictFormatShort dst_format = PICT_a8, src_format = PICT_a1;
     pixman_image_t *dst_image;
     pixman_image_t *src_image;
-    int src_stride;
-
-    if (revert == REVERT_UPLOADING_A1) {
-        src_format = PICT_a1;
-        dst_format = PICT_a8;
-        src_stride = PixmapBytePad(w, 1);
-    }
-    else {
-        dst_format = PICT_a1;
-        src_format = PICT_a8;
-        src_stride = (((w * 8 + 7) / 8) + 3) & ~3;
-    }
+    int src_stride = PixmapBytePad(w, 1);
 
     dst_image = pixman_image_create_bits(dst_format, w, h, dst_bits, stride);
     if (dst_image == NULL) {
@@ -421,13 +382,12 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h,
 
 static void *
 _glamor_color_revert_x2b10g10r10(void *src_bits, void *dst_bits, int w, int h,
-                                 int stride, int no_alpha, int revert,
+                                 int stride, int no_alpha,
                                  int swap_rb)
 {
     int x, y;
     unsigned int *words, *saved_words, *source_words;
-    int swap = !(swap_rb == SWAP_NONE_DOWNLOADING ||
-                 swap_rb == SWAP_NONE_UPLOADING);
+    int swap = swap_rb != SWAP_NONE_UPLOADING;
 
     source_words = src_bits;
     words = dst_bits;
@@ -438,14 +398,9 @@ _glamor_color_revert_x2b10g10r10(void *src_bits, void *dst_bits, int w, int h,
         for (x = 0; x < w; x++) {
             unsigned int pixel = source_words[x];
 
-            if (revert == REVERT_DOWNLOADING_2_10_10_10)
-                GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
-                                  24, 8, 16, 8, 8, 8, 0, 8,
-                                  30, 2, 20, 10, 10, 10, 0, 10);
-            else
-                GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
-                                  30, 2, 20, 10, 10, 10, 0, 10,
-                                  24, 8, 16, 8, 8, 8, 0, 8);
+            GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
+                              30, 2, 20, 10, 10, 10, 0, 10,
+                              24, 8, 16, 8, 8, 8, 0, 8);
             DEBUGF("%x:%x ", pixel, words[x]);
         }
         DEBUGF("\n");
@@ -459,12 +414,11 @@ _glamor_color_revert_x2b10g10r10(void *src_bits, void *dst_bits, int w, int h,
 
 static void *
 _glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h,
-                              int stride, int no_alpha, int revert, int swap_rb)
+                              int stride, int no_alpha, int swap_rb)
 {
     int x, y;
     unsigned short *words, *saved_words, *source_words;
-    int swap = !(swap_rb == SWAP_NONE_DOWNLOADING ||
-                 swap_rb == SWAP_NONE_UPLOADING);
+    int swap = swap_rb != SWAP_NONE_UPLOADING;
 
     words = dst_bits;
     source_words = src_bits;
@@ -475,14 +429,9 @@ _glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h,
         for (x = 0; x < w; x++) {
             unsigned short pixel = source_words[x];
 
-            if (revert == REVERT_DOWNLOADING_1_5_5_5)
-                GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
-                                  0, 1, 1, 5, 6, 5, 11, 5,
-                                  15, 1, 10, 5, 5, 5, 0, 5);
-            else
-                GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
-                                  15, 1, 10, 5, 5, 5, 0, 5,
-                                  0, 1, 1, 5, 6, 5, 11, 5);
+            GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
+                              15, 1, 10, 5, 5, 5, 0, 5,
+                              0, 1, 1, 5, 6, 5, 11, 5);
             DEBUGF("%04x:%04x ", pixel, words[x]);
         }
         DEBUGF("\n");
@@ -501,11 +450,8 @@ _glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h,
  * @no_alpha:
  * 	If it is set, then we need to wire the alpha value to 1.
  * @revert:
-	REVERT_DOWNLOADING_A1		: convert an Alpha8 buffer to a A1 buffer.
 	REVERT_UPLOADING_A1		: convert an A1 buffer to an Alpha8 buffer
-	REVERT_DOWNLOADING_2_10_10_10 	: convert r10G10b10X2 to X2B10G10R10
 	REVERT_UPLOADING_2_10_10_10 	: convert X2B10G10R10 to R10G10B10X2
-	REVERT_DOWNLOADING_1_5_5_5  	: convert B5G5R5X1 to X1R5G5B5
 	REVERT_UPLOADING_1_5_5_5    	: convert X1R5G5B5 to B5G5R5X1
    @swap_rb: if we have the swap_rb set, then we need to swap the R and B's position.
  *
@@ -515,20 +461,16 @@ static void *
 glamor_color_convert_to_bits(void *src_bits, void *dst_bits, int w, int h,
                              int stride, int no_alpha, int revert, int swap_rb)
 {
-    if (revert == REVERT_DOWNLOADING_A1 || revert == REVERT_UPLOADING_A1) {
-        return _glamor_color_convert_a1_a8(src_bits, dst_bits, w, h, stride,
-                                           revert);
+    if (revert == REVERT_UPLOADING_A1) {
+        return _glamor_color_convert_a1_a8(src_bits, dst_bits, w, h, stride);
     }
-    else if (revert == REVERT_DOWNLOADING_2_10_10_10 ||
-             revert == REVERT_UPLOADING_2_10_10_10) {
+    else if (revert == REVERT_UPLOADING_2_10_10_10) {
         return _glamor_color_revert_x2b10g10r10(src_bits, dst_bits, w, h,
-                                                stride, no_alpha, revert,
-                                                swap_rb);
+                                                stride, no_alpha, swap_rb);
     }
-    else if (revert == REVERT_DOWNLOADING_1_5_5_5 ||
-             revert == REVERT_UPLOADING_1_5_5_5) {
+    else if (revert == REVERT_UPLOADING_1_5_5_5) {
         return _glamor_color_revert_x1b5g5r5(src_bits, dst_bits, w, h, stride,
-                                             no_alpha, revert, swap_rb);
+                                             no_alpha, swap_rb);
     }
     else
         ErrorF("convert a non-supported mode %x.\n", revert);
@@ -801,7 +743,7 @@ glamor_upload_picture_to_texture(PicturePtr picture)
                                                &format,
                                                &type,
                                                &no_alpha,
-                                               &revert, &swap_rb, 1)) {
+                                               &revert, &swap_rb)) {
         glamor_fallback("Unknown pixmap depth %d.\n", pixmap->drawable.depth);
         return FALSE;
     }
