@@ -246,7 +246,7 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, unsigned int *tex,
                                   GLenum format,
                                   GLenum type,
                                   int x, int y, int w, int h,
-                                  void *bits, int pbo)
+                                  void *bits)
 {
     glamor_screen_private *glamor_priv =
         glamor_get_screen_private(pixmap->drawable.pScreen);
@@ -269,11 +269,6 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, unsigned int *tex,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-    assert(pbo || bits != 0);
-    if (bits == NULL) {
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
-        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-    }
     glamor_priv->suppress_gl_out_of_memory_logging = true;
     if (non_sub)
         glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, bits);
@@ -288,9 +283,6 @@ __glamor_upload_pixmap_to_texture(PixmapPtr pixmap, unsigned int *tex,
         return FALSE;
     }
 
-    if (bits == NULL)
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
     return TRUE;
 }
 
@@ -298,7 +290,7 @@ static Bool
 _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
                                       GLenum type, int no_alpha, int revert,
                                       int swap_rb, int x, int y, int w, int h,
-                                      int stride, void *bits, int pbo)
+                                      int stride, void *bits)
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
@@ -307,9 +299,6 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
     float dst_xscale, dst_yscale;
     GLuint tex = 0;
     pixman_image_t *converted_image = NULL;
-
-    if (bits == NULL)
-        goto ready_to_upload;
 
     if (revert == REVERT_UPLOADING_A1) {
         converted_image = glamor_get_converted_image(PICT_a8,
@@ -322,8 +311,6 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
 
         bits = pixman_image_get_data(converted_image);
     }
-
- ready_to_upload:
 
     /* Try fast path firstly, upload the pixmap to the texture attached
      * to the fbo directly. */
@@ -345,7 +332,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
                                                format, type,
                                                x + fbo_x_off, y + fbo_y_off,
                                                w, h,
-                                               bits, pbo)) {
+                                               bits)) {
             if (converted_image)
                 pixman_image_unref(bits);
             return FALSE;
@@ -371,8 +358,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
         glamor_make_current(glamor_priv);
 
         if (!__glamor_upload_pixmap_to_texture(pixmap, &tex,
-                                               format, type, 0, 0, w, h, bits,
-                                               pbo)) {
+                                               format, type, 0, 0, w, h, bits)) {
             if (converted_image)
                 pixman_image_unref(bits);
             return FALSE;
@@ -556,11 +542,10 @@ glamor_upload_picture_to_texture(PicturePtr picture)
                        boxes[j].x1, boxes[j].y1,
                        boxes[j].x2 - boxes[j].x1,
                        boxes[j].y2 - boxes[j].y1, temp_stride);
-                if (_glamor_upload_bits_to_pixmap_texture
+                if (!_glamor_upload_bits_to_pixmap_texture
                     (pixmap, format, type, no_alpha, revert, swap_rb,
                      boxes[j].x1, boxes[j].y1, boxes[j].x2 - boxes[j].x1,
-                     boxes[j].y2 - boxes[j].y1, temp_stride, temp_bits,
-                     0) == FALSE) {
+                     boxes[j].y2 - boxes[j].y1, temp_stride, temp_bits)) {
                     RegionUninit(&region);
                     free(sub_bits);
                     assert(0);
@@ -580,6 +565,5 @@ glamor_upload_picture_to_texture(PicturePtr picture)
                                                      0, 0,
                                                      pixmap->drawable.width,
                                                      pixmap->drawable.height,
-                                                     stride, bits,
-                                                     0);
+                                                     stride, bits);
 }
