@@ -768,9 +768,7 @@ format_for_pixmap(PixmapPtr pixmap)
 #define REVERT_NONE       		0
 #define REVERT_NORMAL     		1
 #define REVERT_UPLOADING_A1		3
-#define REVERT_UPLOADING_2_10_10_10 	5
 #define REVERT_UPLOADING_1_5_5_5    	8
-#define REVERT_UPLOADING_10_10_10_2 	10
 
 #define SWAP_UPLOADING	  	2
 #define SWAP_NONE_UPLOADING	3

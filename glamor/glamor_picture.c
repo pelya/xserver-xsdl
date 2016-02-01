@@ -111,18 +111,7 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
             *tex_format = GL_BGRA;
             *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
         } else {
-            /* glReadPixmap doesn't support
-             * GL_UNSIGNED_INT_10_10_10_2.  We have to use
-             * GL_UNSIGNED_BYTE and do the conversion in a shader
-             * later.
-             */
-            *tex_format = GL_RGBA;
-            *tex_type = GL_UNSIGNED_BYTE;
-            if (!is_little_endian)
-                *revert = REVERT_UPLOADING_10_10_10_2;
-            else
-                *revert = REVERT_UPLOADING_2_10_10_10;
-            *swap_rb = SWAP_UPLOADING;
+            return FALSE;
         }
         break;
 
@@ -133,13 +122,7 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
             *tex_format = GL_RGBA;
             *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
         } else {
-            *tex_format = GL_RGBA;
-            *tex_type = GL_UNSIGNED_BYTE;
-            if (!is_little_endian)
-                *revert = REVERT_UPLOADING_10_10_10_2;
-            else
-                *revert = REVERT_UPLOADING_2_10_10_10;
-            break;
+            return FALSE;
         }
         break;
 
@@ -300,37 +283,6 @@ _glamor_color_convert_a1_a8(void *src_bits, void *dst_bits, int w, int h,
 			(*dst) = ((a) << (a_shift)) | ((r) << (b_shift)) | ((g) << (g_shift)) | ((b) << (r_shift)); \
 	} while (0)
 
-static void *
-_glamor_color_revert_x2b10g10r10(void *src_bits, void *dst_bits, int w, int h,
-                                 int stride, int no_alpha,
-                                 int swap_rb)
-{
-    int x, y;
-    unsigned int *words, *saved_words, *source_words;
-    int swap = swap_rb != SWAP_NONE_UPLOADING;
-
-    source_words = src_bits;
-    words = dst_bits;
-    saved_words = words;
-
-    for (y = 0; y < h; y++) {
-        DEBUGF("Line %d :  ", y);
-        for (x = 0; x < w; x++) {
-            unsigned int pixel = source_words[x];
-
-            GLAMOR_DO_CONVERT(pixel, &words[x], no_alpha, swap,
-                              30, 2, 20, 10, 10, 10, 0, 10,
-                              24, 8, 16, 8, 8, 8, 0, 8);
-            DEBUGF("%x:%x ", pixel, words[x]);
-        }
-        DEBUGF("\n");
-        words += stride / sizeof(*words);
-        source_words += stride / sizeof(*words);
-    }
-    DEBUGF("\n");
-    return saved_words;
-
-}
 
 static void *
 _glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h,
@@ -371,7 +323,6 @@ _glamor_color_revert_x1b5g5r5(void *src_bits, void *dst_bits, int w, int h,
  * 	If it is set, then we need to wire the alpha value to 1.
  * @revert:
 	REVERT_UPLOADING_A1		: convert an A1 buffer to an Alpha8 buffer
-	REVERT_UPLOADING_2_10_10_10 	: convert X2B10G10R10 to R10G10B10X2
 	REVERT_UPLOADING_1_5_5_5    	: convert X1R5G5B5 to B5G5R5X1
    @swap_rb: if we have the swap_rb set, then we need to swap the R and B's position.
  *
@@ -383,10 +334,6 @@ glamor_color_convert_to_bits(void *src_bits, void *dst_bits, int w, int h,
 {
     if (revert == REVERT_UPLOADING_A1) {
         return _glamor_color_convert_a1_a8(src_bits, dst_bits, w, h, stride);
-    }
-    else if (revert == REVERT_UPLOADING_2_10_10_10) {
-        return _glamor_color_revert_x2b10g10r10(src_bits, dst_bits, w, h,
-                                                stride, no_alpha, swap_rb);
     }
     else if (revert == REVERT_UPLOADING_1_5_5_5) {
         return _glamor_color_revert_x1b5g5r5(src_bits, dst_bits, w, h, stride,
