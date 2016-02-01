@@ -926,7 +926,6 @@ void glamor_xv_render(glamor_port_private *port_priv);
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
 #define GLAMOR_GRADIENT_SHADER
 #define GLAMOR_TEXTURED_LARGE_PIXMAP 1
-#define WALKAROUND_LARGE_TEXTURE_MAP
 #if 0
 #define MAX_FBO_SIZE 32         /* For test purpose only. */
 #endif

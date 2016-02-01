@@ -315,11 +315,7 @@ _glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
     /* Try fast path firstly, upload the pixmap to the texture attached
      * to the fbo directly. */
     if (no_alpha == 0
-        && revert == REVERT_NONE && swap_rb == SWAP_NONE_UPLOADING
-#ifdef WALKAROUND_LARGE_TEXTURE_MAP
-        && glamor_pixmap_priv_is_small(pixmap_priv)
-#endif
-        ) {
+        && revert == REVERT_NONE && swap_rb == SWAP_NONE_UPLOADING) {
         int fbo_x_off, fbo_y_off;
 
         assert(pixmap_priv->fbo->tex);
@@ -429,26 +425,6 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha,
     return 0;
 }
 
-/*
- * upload sub region to a large region.
- * */
-static void
-glamor_put_bits(char *dst_bits, int dst_stride, char *src_bits,
-                int src_stride, int bpp, int x, int y, int w, int h)
-{
-    int j;
-    int byte_per_pixel;
-
-    byte_per_pixel = bpp / 8;
-    src_bits += y * src_stride + (x * byte_per_pixel);
-
-    for (j = y; j < y + h; j++) {
-        memcpy(dst_bits, src_bits, w * byte_per_pixel);
-        src_bits += src_stride;
-        dst_bits += dst_stride;
-    }
-}
-
 /**
  * Uploads a picture based on a GLAMOR_MEMORY pixmap to a texture in a
  * temporary FBO.
@@ -464,10 +440,18 @@ glamor_upload_picture_to_texture(PicturePtr picture)
     GLenum format, type;
     int no_alpha, revert, swap_rb;
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    Bool force_clip;
 
     assert(glamor_pixmap_is_memory(pixmap));
     assert(!pixmap_priv->fbo);
+
+    /* No handling of large pixmap pictures here (would need to make
+     * an FBO array and split the uploads across it).
+     */
+    if (!glamor_check_fbo_size(glamor_priv,
+                               pixmap->drawable.width,
+                               pixmap->drawable.height)) {
+        return FALSE;
+    }
 
     if (!glamor_get_tex_format_type_from_pictformat(screen,
                                                     picture->format,
@@ -481,89 +465,10 @@ glamor_upload_picture_to_texture(PicturePtr picture)
     if (glamor_pixmap_upload_prepare(pixmap, format, no_alpha, revert, swap_rb))
         return FALSE;
 
-    force_clip = glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP;
-
-    if (glamor_pixmap_priv_is_large(pixmap_priv) || force_clip) {
-        RegionRec region;
-        BoxRec box;
-        int n_region;
-        glamor_pixmap_clipped_regions *clipped_regions;
-        void *sub_bits;
-        int i, j;
-
-        sub_bits = xallocarray(pixmap->drawable.height, stride);
-        if (sub_bits == NULL)
-            return FALSE;
-        box.x1 = 0;
-        box.y1 = 0;
-        box.x2 = pixmap->drawable.width;
-        box.y2 = pixmap->drawable.height;
-        RegionInitBoxes(&region, &box, 1);
-        if (!force_clip)
-            clipped_regions =
-                glamor_compute_clipped_regions(pixmap, &region, &n_region,
-                                               0, 0, 0);
-        else
-            clipped_regions =
-                glamor_compute_clipped_regions_ext(pixmap, &region,
-                                                   &n_region,
-                                                   pixmap_priv->block_w,
-                                                   pixmap_priv->block_h,
-                                                   0,
-                                                   0);
-        DEBUGF("prepare upload %dx%d to a large pixmap %p\n", w, h, pixmap);
-        for (i = 0; i < n_region; i++) {
-            BoxPtr boxes;
-            int nbox;
-            int temp_stride;
-            void *temp_bits;
-
-            glamor_set_pixmap_fbo_current(pixmap_priv, clipped_regions[i].block_idx);
-
-            boxes = RegionRects(clipped_regions[i].region);
-            nbox = RegionNumRects(clipped_regions[i].region);
-            DEBUGF("split to %d boxes\n", nbox);
-            for (j = 0; j < nbox; j++) {
-                temp_stride = PixmapBytePad(boxes[j].x2 - boxes[j].x1,
-                                            pixmap->drawable.depth);
-
-                if (boxes[j].x1 == 0 && temp_stride == stride) {
-                    temp_bits = (char *) bits + boxes[j].y1 * stride;
-                }
-                else {
-                    temp_bits = sub_bits;
-                    glamor_put_bits(temp_bits, temp_stride, bits, stride,
-                                    pixmap->drawable.bitsPerPixel,
-                                    boxes[j].x1, boxes[j].y1,
-                                    boxes[j].x2 - boxes[j].x1,
-                                    boxes[j].y2 - boxes[j].y1);
-                }
-                DEBUGF("upload x %d y %d w %d h %d temp stride %d \n",
-                       boxes[j].x1, boxes[j].y1,
-                       boxes[j].x2 - boxes[j].x1,
-                       boxes[j].y2 - boxes[j].y1, temp_stride);
-                if (!_glamor_upload_bits_to_pixmap_texture
-                    (pixmap, format, type, no_alpha, revert, swap_rb,
-                     boxes[j].x1, boxes[j].y1, boxes[j].x2 - boxes[j].x1,
-                     boxes[j].y2 - boxes[j].y1, temp_stride, temp_bits)) {
-                    RegionUninit(&region);
-                    free(sub_bits);
-                    assert(0);
-                    return FALSE;
-                }
-            }
-            RegionDestroy(clipped_regions[i].region);
-        }
-        free(sub_bits);
-        free(clipped_regions);
-        RegionUninit(&region);
-        return TRUE;
-    }
-    else
-        return _glamor_upload_bits_to_pixmap_texture(pixmap, format, type,
-                                                     no_alpha, revert, swap_rb,
-                                                     0, 0,
-                                                     pixmap->drawable.width,
-                                                     pixmap->drawable.height,
-                                                     stride, bits);
+    return _glamor_upload_bits_to_pixmap_texture(pixmap, format, type,
+                                                 no_alpha, revert, swap_rb,
+                                                 0, 0,
+                                                 pixmap->drawable.width,
+                                                 pixmap->drawable.height,
+                                                 stride, bits);
 }
