@@ -170,6 +170,17 @@ glamor_pixmap_fbo_cache_put(glamor_screen_private *glamor_priv,
         ("Put cache entry %p to cache %p w %d h %d format %x fbo %d tex %d \n",
          fbo, cache, fbo->width, fbo->height, fbo->format, fbo->fb, fbo->tex);
 
+    /* Reset the texture swizzle that may have been set by
+     * glamor_picture.c.  Don't reset GL_RED -> GL_ALPHA swizzle, though
+     */
+    if (glamor_priv->has_texture_swizzle && n_format != 2) {
+        glBindTexture(GL_TEXTURE_2D, fbo->tex);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_RED);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_BLUE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, GL_ALPHA);
+    }
+
     glamor_priv->fbo_cache_watermark += fbo->width * fbo->height;
     xorg_list_add(&fbo->list, cache);
     fbo->expire = glamor_priv->tick + GLAMOR_CACHE_EXPIRE_MAX;

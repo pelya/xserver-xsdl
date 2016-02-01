@@ -1,4 +1,5 @@
 /*
+ * Copyright © 2016 Broadcom
  * Copyright © 2009 Intel Corporation
  * Copyright © 1998 Keith Packard
  *
@@ -20,10 +21,19 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
+ */
+
+/**
+ * @file glamor_picture.c
  *
- * Authors:
- *    Zhigang Gong <zhigang.gong@gmail.com>
+ * Implements temporary uploads of GL_MEMORY Pixmaps to a texture that
+ * is swizzled appropriately for a given Render picture format.
+ * laid *
  *
+ * This is important because GTK likes to use SHM Pixmaps for Render
+ * blending operations, and we don't want a blend operation to fall
+ * back to software (readback is more expensive than the upload we do
+ * here, and you'd have to re-upload the fallback output anyway).
  */
 
 #include <stdlib.h>
@@ -31,40 +41,54 @@
 #include "glamor_priv.h"
 #include "mipict.h"
 
-/*
- * Map picture's format to the correct gl texture format and type.
- * no_alpha is used to indicate whehter we need to wire alpha to 1.
+static void byte_swap_swizzle(GLenum *swizzle)
+{
+    GLenum temp;
+
+    temp = swizzle[0];
+    swizzle[0] = swizzle[3];
+    swizzle[3] = temp;
+
+    temp = swizzle[1];
+    swizzle[1] = swizzle[2];
+    swizzle[2] = temp;
+}
+
+/**
+ * Returns the GL format and type for uploading our bits to a given PictFormat.
  *
- * Although opengl support A1/GL_BITMAP, we still don't use it
- * here, it seems that mesa has bugs when uploading a A1 bitmap.
- *
- * Return 0 if find a matched texture type. Otherwise return -1.
- **/
+ * We may need to tell the caller to translate the bits to another
+ * format, as in PICT_a1 (which GL doesn't support).  We may also need
+ * to tell the GL to swizzle the texture on sampling, because GLES3
+ * doesn't support the GL_UNSIGNED_INT_8_8_8_8{,_REV} types, so we
+ * don't have enough channel reordering options at upload time without
+ * it.
+ */
 static Bool
 glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
                                            PictFormatShort format,
+                                           PictFormatShort *temp_format,
                                            GLenum *tex_format,
                                            GLenum *tex_type,
-                                           int *no_alpha,
-                                           int *revert,
-                                           int *swap_rb)
+                                           GLenum *swizzle)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(pScreen);
     Bool is_little_endian = IMAGE_BYTE_ORDER == LSBFirst;
 
-    *no_alpha = 0;
-    *revert = REVERT_NONE;
-    *swap_rb = SWAP_NONE_UPLOADING;
+    *temp_format = format;
+    swizzle[0] = GL_RED;
+    swizzle[1] = GL_GREEN;
+    swizzle[2] = GL_BLUE;
+    swizzle[3] = GL_ALPHA;
 
     switch (format) {
     case PICT_a1:
         *tex_format = glamor_priv->one_channel_format;
         *tex_type = GL_UNSIGNED_BYTE;
-        *revert = REVERT_UPLOADING_A1;
+        *temp_format = PICT_a8;
         break;
 
     case PICT_b8g8r8x8:
-        *no_alpha = 1;
     case PICT_b8g8r8a8:
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
             *tex_format = GL_BGRA;
@@ -72,13 +96,18 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
         } else {
             *tex_format = GL_RGBA;
             *tex_type = GL_UNSIGNED_BYTE;
-            *swap_rb = SWAP_UPLOADING;
-            *revert = is_little_endian ? REVERT_NORMAL : REVERT_NONE;
+
+            swizzle[0] = GL_GREEN;
+            swizzle[1] = GL_BLUE;
+            swizzle[2] = GL_ALPHA;
+            swizzle[3] = GL_RED;
+
+            if (!is_little_endian)
+                byte_swap_swizzle(swizzle);
         }
         break;
 
     case PICT_x8r8g8b8:
-        *no_alpha = 1;
     case PICT_a8r8g8b8:
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
             *tex_format = GL_BGRA;
@@ -86,26 +115,31 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
         } else {
             *tex_format = GL_RGBA;
             *tex_type = GL_UNSIGNED_BYTE;
-            *swap_rb = SWAP_UPLOADING;
-            *revert = is_little_endian ? REVERT_NONE : REVERT_NORMAL;
+
+            swizzle[0] = GL_BLUE;
+            swizzle[2] = GL_RED;
+
+            if (!is_little_endian)
+                byte_swap_swizzle(swizzle);
             break;
         }
         break;
 
     case PICT_x8b8g8r8:
-        *no_alpha = 1;
     case PICT_a8b8g8r8:
         *tex_format = GL_RGBA;
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
             *tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
         } else {
+            *tex_format = GL_RGBA;
             *tex_type = GL_UNSIGNED_BYTE;
-            *revert = is_little_endian ? REVERT_NONE : REVERT_NORMAL;
+
+            if (!is_little_endian)
+                byte_swap_swizzle(swizzle);
         }
         break;
 
     case PICT_x2r10g10b10:
-        *no_alpha = 1;
     case PICT_a2r10g10b10:
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
             *tex_format = GL_BGRA;
@@ -116,7 +150,6 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
         break;
 
     case PICT_x2b10g10r10:
-        *no_alpha = 1;
     case PICT_a2b10g10r10:
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
             *tex_format = GL_RGBA;
@@ -129,8 +162,6 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
     case PICT_r5g6b5:
         *tex_format = GL_RGB;
         *tex_type = GL_UNSIGNED_SHORT_5_6_5;
-        if (glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP)
-            *revert = is_little_endian ? REVERT_NONE : REVERT_NORMAL;
         break;
     case PICT_b5g6r5:
         *tex_format = GL_RGB;
@@ -138,14 +169,12 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
             *tex_type = GL_UNSIGNED_SHORT_5_6_5_REV;
         } else {
             *tex_type = GL_UNSIGNED_SHORT_5_6_5;
-            if (is_little_endian)
-                *swap_rb = SWAP_UPLOADING;
-            *revert = is_little_endian ? REVERT_NONE : REVERT_NORMAL;
+            swizzle[0] = GL_BLUE;
+            swizzle[2] = GL_RED;
         }
         break;
 
     case PICT_x1b5g5r5:
-        *no_alpha = 1;
     case PICT_a1b5g5r5:
         *tex_format = GL_RGBA;
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
@@ -156,7 +185,6 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
         break;
 
     case PICT_x1r5g5b5:
-        *no_alpha = 1;
     case PICT_a1r5g5b5:
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
             *tex_format = GL_BGRA;
@@ -172,35 +200,36 @@ glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
         break;
 
     case PICT_x4r4g4b4:
-        *no_alpha = 1;
     case PICT_a4r4g4b4:
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
             *tex_format = GL_BGRA;
             *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
         } else {
+            /* XXX */
             *tex_format = GL_RGBA;
             *tex_type = GL_UNSIGNED_SHORT_4_4_4_4;
-            *revert = is_little_endian ? REVERT_NORMAL : REVERT_NONE;
-            *swap_rb = SWAP_UPLOADING;
         }
         break;
 
     case PICT_x4b4g4r4:
-        *no_alpha = 1;
     case PICT_a4b4g4r4:
         if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
             *tex_format = GL_RGBA;
             *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
         } else {
+            /* XXX */
             *tex_format = GL_RGBA;
             *tex_type = GL_UNSIGNED_SHORT_4_4_4_4;
-            *revert = is_little_endian ? REVERT_NORMAL : REVERT_NONE;
         }
         break;
 
     default:
         return FALSE;
     }
+
+    if (!PICT_FORMAT_A(format))
+        swizzle[3] = GL_ONE;
+
     return TRUE;
 }
 
@@ -238,194 +267,6 @@ glamor_get_converted_image(PictFormatShort dst_format,
 }
 
 /**
- * Upload pixmap to a specified texture.
- * This texture may not be the one attached to it.
- **/
-static Bool
-__glamor_upload_pixmap_to_texture(PixmapPtr pixmap, unsigned int *tex,
-                                  GLenum format,
-                                  GLenum type,
-                                  int x, int y, int w, int h,
-                                  void *bits)
-{
-    glamor_screen_private *glamor_priv =
-        glamor_get_screen_private(pixmap->drawable.pScreen);
-    int non_sub = 0;
-    unsigned int iformat = 0;
-
-    glamor_make_current(glamor_priv);
-    if (*tex == 0) {
-        glGenTextures(1, tex);
-        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
-            iformat = gl_iformat_for_pixmap(pixmap);
-        else
-            iformat = format;
-        non_sub = 1;
-        assert(x == 0 && y == 0);
-    }
-
-    glBindTexture(GL_TEXTURE_2D, *tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
-    glamor_priv->suppress_gl_out_of_memory_logging = true;
-    if (non_sub)
-        glTexImage2D(GL_TEXTURE_2D, 0, iformat, w, h, 0, format, type, bits);
-    else
-        glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, format, type, bits);
-    glamor_priv->suppress_gl_out_of_memory_logging = false;
-    if (glGetError() == GL_OUT_OF_MEMORY) {
-        if (non_sub) {
-            glDeleteTextures(1, tex);
-            *tex = 0;
-        }
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-static Bool
-_glamor_upload_bits_to_pixmap_texture(PixmapPtr pixmap, GLenum format,
-                                      GLenum type, int no_alpha, int revert,
-                                      int swap_rb, int x, int y, int w, int h,
-                                      int stride, void *bits)
-{
-    ScreenPtr screen = pixmap->drawable.pScreen;
-    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    glamor_screen_private *glamor_priv =
-        glamor_get_screen_private(pixmap->drawable.pScreen);
-    float dst_xscale, dst_yscale;
-    GLuint tex = 0;
-    pixman_image_t *converted_image = NULL;
-
-    if (revert == REVERT_UPLOADING_A1) {
-        converted_image = glamor_get_converted_image(PICT_a8,
-                                                     PICT_a1,
-                                                     bits,
-                                                     PixmapBytePad(w, 1),
-                                                     w, h);
-        if (!converted_image)
-            return FALSE;
-
-        bits = pixman_image_get_data(converted_image);
-    }
-
-    /* Try fast path firstly, upload the pixmap to the texture attached
-     * to the fbo directly. */
-    if (no_alpha == 0
-        && revert == REVERT_NONE && swap_rb == SWAP_NONE_UPLOADING) {
-        int fbo_x_off, fbo_y_off;
-
-        assert(pixmap_priv->fbo->tex);
-        pixmap_priv_get_fbo_off(pixmap_priv, &fbo_x_off, &fbo_y_off);
-
-        assert(x + fbo_x_off >= 0 && y + fbo_y_off >= 0);
-        assert(x + fbo_x_off + w <= pixmap_priv->fbo->width);
-        assert(y + fbo_y_off + h <= pixmap_priv->fbo->height);
-        if (!__glamor_upload_pixmap_to_texture(pixmap, &pixmap_priv->fbo->tex,
-                                               format, type,
-                                               x + fbo_x_off, y + fbo_y_off,
-                                               w, h,
-                                               bits)) {
-            if (converted_image)
-                pixman_image_unref(bits);
-            return FALSE;
-        }
-    } else {
-        static const float texcoords_inv[8] = { 0, 0,
-                                                1, 0,
-                                                1, 1,
-                                                0, 1
-        };
-        GLfloat *v;
-        char *vbo_offset;
-
-        v = glamor_get_vbo_space(screen, 16 * sizeof(GLfloat), &vbo_offset);
-
-        pixmap_priv_get_dest_scale(pixmap, pixmap_priv, &dst_xscale, &dst_yscale);
-        glamor_set_normalize_vcoords(pixmap_priv, dst_xscale,
-                                     dst_yscale,
-                                     x, y,
-                                     x + w, y + h,
-                                     v);
-        /* Slow path, we need to flip y or wire alpha to 1. */
-        glamor_make_current(glamor_priv);
-
-        if (!__glamor_upload_pixmap_to_texture(pixmap, &tex,
-                                               format, type, 0, 0, w, h, bits)) {
-            if (converted_image)
-                pixman_image_unref(bits);
-            return FALSE;
-        }
-
-        memcpy(&v[8], texcoords_inv, 8 * sizeof(GLfloat));
-
-        glVertexAttribPointer(GLAMOR_VERTEX_POS, 2, GL_FLOAT,
-                              GL_FALSE, 2 * sizeof(float), vbo_offset);
-        glEnableVertexAttribArray(GLAMOR_VERTEX_POS);
-        glVertexAttribPointer(GLAMOR_VERTEX_SOURCE, 2, GL_FLOAT,
-                              GL_FALSE, 2 * sizeof(float), vbo_offset + 8 * sizeof(GLfloat));
-        glEnableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-
-        glamor_put_vbo_space(screen);
-        glamor_set_destination_pixmap_priv_nc(glamor_priv, pixmap, pixmap_priv);
-        glamor_set_alu(screen, GXcopy);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, tex);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glUseProgram(glamor_priv->finish_access_prog[no_alpha]);
-        glUniform1i(glamor_priv->finish_access_revert[no_alpha], revert);
-        glUniform1i(glamor_priv->finish_access_swap_rb[no_alpha], swap_rb);
-
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-        glDisableVertexAttribArray(GLAMOR_VERTEX_POS);
-        glDisableVertexAttribArray(GLAMOR_VERTEX_SOURCE);
-        glDeleteTextures(1, &tex);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-
-    if (converted_image)
-        pixman_image_unref(bits);
-    return TRUE;
-}
-
-/*
- * Prepare to upload a pixmap to texture memory.
- * no_alpha equals 1 means the format needs to wire alpha to 1.
- */
-static int
-glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha,
-                             int revert, int swap_rb)
-{
-    int flag = 0;
-    glamor_screen_private *glamor_priv =
-        glamor_get_screen_private(pixmap->drawable.pScreen);
-    GLenum iformat;
-
-    if (!(no_alpha || (revert == REVERT_NORMAL)
-          || (swap_rb != SWAP_NONE_UPLOADING))) {
-        /* We don't need a fbo, a simple texture uploading should work. */
-
-        flag = GLAMOR_CREATE_FBO_NO_FBO;
-    }
-
-    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
-        iformat = gl_iformat_for_pixmap(pixmap);
-    else
-        iformat = format;
-
-    if (!glamor_pixmap_ensure_fbo(pixmap, iformat, flag))
-        return -1;
-
-    return 0;
-}
-
-/**
  * Uploads a picture based on a GLAMOR_MEMORY pixmap to a texture in a
  * temporary FBO.
  */
@@ -433,16 +274,23 @@ Bool
 glamor_upload_picture_to_texture(PicturePtr picture)
 {
     PixmapPtr pixmap = glamor_get_drawable_pixmap(picture->pDrawable);
-    void *bits = pixmap->devPrivate.ptr;
-    int stride = pixmap->devKind;
     ScreenPtr screen = pixmap->drawable.pScreen;
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-    GLenum format, type;
-    int no_alpha, revert, swap_rb;
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+    PictFormatShort converted_format;
+    void *bits = pixmap->devPrivate.ptr;
+    int stride = pixmap->devKind;
+    GLenum format, type;
+    GLenum swizzle[4];
+    GLenum iformat;
+    Bool ret = TRUE;
+    Bool needs_swizzle;
+    pixman_image_t *converted_image = NULL;
 
     assert(glamor_pixmap_is_memory(pixmap));
     assert(!pixmap_priv->fbo);
+
+    glamor_make_current(glamor_priv);
 
     /* No handling of large pixmap pictures here (would need to make
      * an FBO array and split the uploads across it).
@@ -455,20 +303,73 @@ glamor_upload_picture_to_texture(PicturePtr picture)
 
     if (!glamor_get_tex_format_type_from_pictformat(screen,
                                                     picture->format,
+                                                    &converted_format,
                                                     &format,
                                                     &type,
-                                                    &no_alpha,
-                                                    &revert, &swap_rb)) {
+                                                    swizzle)) {
         glamor_fallback("Unknown pixmap depth %d.\n", pixmap->drawable.depth);
         return FALSE;
     }
-    if (glamor_pixmap_upload_prepare(pixmap, format, no_alpha, revert, swap_rb))
-        return FALSE;
 
-    return _glamor_upload_bits_to_pixmap_texture(pixmap, format, type,
-                                                 no_alpha, revert, swap_rb,
-                                                 0, 0,
-                                                 pixmap->drawable.width,
-                                                 pixmap->drawable.height,
-                                                 stride, bits);
+    needs_swizzle = (swizzle[0] != GL_RED ||
+                     swizzle[1] != GL_GREEN ||
+                     swizzle[2] != GL_BLUE ||
+                     swizzle[3] != GL_ALPHA);
+
+    if (!glamor_priv->has_texture_swizzle && needs_swizzle) {
+        glamor_fallback("Couldn't upload temporary picture due to missing "
+                        "GL_ARB_texture_swizzle.\n");
+        return FALSE;
+    }
+
+    if (converted_format != picture->format) {
+        converted_image = glamor_get_converted_image(converted_format,
+                                                     picture->format,
+                                                     bits, stride,
+                                                     pixmap->drawable.width,
+                                                     pixmap->drawable.height);
+        if (!converted_image)
+            return FALSE;
+
+        bits = pixman_image_get_data(converted_image);
+        stride = pixman_image_get_stride(converted_image);
+    }
+
+    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
+        iformat = gl_iformat_for_pixmap(pixmap);
+    else
+        iformat = format;
+
+    if (!glamor_pixmap_ensure_fbo(pixmap, iformat, GLAMOR_CREATE_FBO_NO_FBO))
+        goto fail;
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+    glamor_priv->suppress_gl_out_of_memory_logging = true;
+
+    /* We can't use glamor_pixmap_loop() because GLAMOR_MEMORY pixmaps
+     * don't have initialized boxes.
+     */
+    glBindTexture(GL_TEXTURE_2D, pixmap_priv->fbo->tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, iformat,
+                 pixmap->drawable.width, pixmap->drawable.height, 0,
+                 format, type, bits);
+
+    if (needs_swizzle) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, swizzle[0]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, swizzle[1]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, swizzle[2]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, swizzle[3]);
+    }
+
+    glamor_priv->suppress_gl_out_of_memory_logging = false;
+    if (glGetError() == GL_OUT_OF_MEMORY) {
+        ret = FALSE;
+    }
+
+fail:
+    if (converted_image)
+        pixman_image_unref(converted_image);
+
+    return ret;
 }

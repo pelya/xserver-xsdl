@@ -208,6 +208,7 @@ typedef struct glamor_screen_private {
     Bool use_quads;
     Bool has_vertex_array_object;
     Bool has_dual_blend;
+    Bool has_texture_swizzle;
     Bool is_core_profile;
     int max_fbo_size;
 
@@ -285,11 +286,6 @@ typedef struct glamor_screen_private {
         [SHADER_MASK_COUNT]
         [glamor_program_alpha_count]
         [SHADER_DEST_SWIZZLE_COUNT];
-
-    /* shaders to restore a texture to another texture. */
-    GLint finish_access_prog[2];
-    GLint finish_access_revert[2];
-    GLint finish_access_swap_rb[2];
 
     /* glamor gradient, 0 for small nstops, 1 for
        large nstops and 2 for dynamic generate. */
@@ -586,8 +582,6 @@ void glamor_gldrawarrays_quads_using_indices(glamor_screen_private *glamor_priv,
                                              unsigned count);
 
 /* glamor_core.c */
-void glamor_init_finish_access_shaders(ScreenPtr screen);
-
 Bool glamor_get_drawable_location(const DrawablePtr drawable);
 void glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
                                 int *x, int *y);
