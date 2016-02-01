@@ -40,275 +40,195 @@
  *
  * Return 0 if find a matched texture type. Otherwise return -1.
  **/
-static int
-glamor_get_tex_format_type_from_pictformat_gl(ScreenPtr pScreen,
-                                              PictFormatShort format,
-                                              GLenum *tex_format,
-                                              GLenum *tex_type,
-                                              int *no_alpha,
-                                              int *revert,
-                                              int *swap_rb)
+static Bool
+glamor_get_tex_format_type_from_pictformat(ScreenPtr pScreen,
+                                           PictFormatShort format,
+                                           GLenum *tex_format,
+                                           GLenum *tex_type,
+                                           int *no_alpha,
+                                           int *revert,
+                                           int *swap_rb)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(pScreen);
+    Bool is_little_endian = IMAGE_BYTE_ORDER == LSBFirst;
+
     *no_alpha = 0;
     *revert = REVERT_NONE;
     *swap_rb = SWAP_NONE_UPLOADING;
+
     switch (format) {
     case PICT_a1:
         *tex_format = glamor_priv->one_channel_format;
         *tex_type = GL_UNSIGNED_BYTE;
         *revert = REVERT_UPLOADING_A1;
         break;
+
     case PICT_b8g8r8x8:
         *no_alpha = 1;
     case PICT_b8g8r8a8:
-        *tex_format = GL_BGRA;
-        *tex_type = GL_UNSIGNED_INT_8_8_8_8;
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_format = GL_BGRA;
+            *tex_type = GL_UNSIGNED_INT_8_8_8_8;
+        } else {
+            *tex_format = GL_RGBA;
+            *tex_type = GL_UNSIGNED_BYTE;
+            *swap_rb = SWAP_UPLOADING;
+            *revert = is_little_endian ? REVERT_NORMAL : REVERT_NONE;
+        }
         break;
 
     case PICT_x8r8g8b8:
         *no_alpha = 1;
     case PICT_a8r8g8b8:
-        *tex_format = GL_BGRA;
-        *tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
-        break;
-    case PICT_x8b8g8r8:
-        *no_alpha = 1;
-    case PICT_a8b8g8r8:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
-        break;
-    case PICT_x2r10g10b10:
-        *no_alpha = 1;
-    case PICT_a2r10g10b10:
-        *tex_format = GL_BGRA;
-        *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
-        break;
-    case PICT_x2b10g10r10:
-        *no_alpha = 1;
-    case PICT_a2b10g10r10:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
-        break;
-
-    case PICT_r5g6b5:
-        *tex_format = GL_RGB;
-        *tex_type = GL_UNSIGNED_SHORT_5_6_5;
-        break;
-    case PICT_b5g6r5:
-        *tex_format = GL_RGB;
-        *tex_type = GL_UNSIGNED_SHORT_5_6_5_REV;
-        break;
-    case PICT_x1b5g5r5:
-        *no_alpha = 1;
-    case PICT_a1b5g5r5:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-        break;
-
-    case PICT_x1r5g5b5:
-        *no_alpha = 1;
-    case PICT_a1r5g5b5:
-        *tex_format = GL_BGRA;
-        *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-        break;
-    case PICT_a8:
-        *tex_format = glamor_priv->one_channel_format;
-        *tex_type = GL_UNSIGNED_BYTE;
-        break;
-    case PICT_x4r4g4b4:
-        *no_alpha = 1;
-    case PICT_a4r4g4b4:
-        *tex_format = GL_BGRA;
-        *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
-        break;
-
-    case PICT_x4b4g4r4:
-        *no_alpha = 1;
-    case PICT_a4b4g4r4:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
-        break;
-
-    default:
-        return -1;
-    }
-    return 0;
-}
-
-#define IS_LITTLE_ENDIAN  (IMAGE_BYTE_ORDER == LSBFirst)
-
-static int
-glamor_get_tex_format_type_from_pictformat_gles2(ScreenPtr pScreen,
-                                                 PictFormatShort format,
-                                                 GLenum *tex_format,
-                                                 GLenum *tex_type,
-                                                 int *no_alpha,
-                                                 int *revert,
-                                                 int *swap_rb)
-{
-    glamor_screen_private *glamor_priv = glamor_get_screen_private(pScreen);
-    int need_swap_rb = 0;
-
-    *no_alpha = 0;
-    *revert = IS_LITTLE_ENDIAN ? REVERT_NONE : REVERT_NORMAL;
-
-    switch (format) {
-    case PICT_b8g8r8x8:
-        *no_alpha = 1;
-    case PICT_b8g8r8a8:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_BYTE;
-        need_swap_rb = 1;
-        *revert = IS_LITTLE_ENDIAN ? REVERT_NORMAL : REVERT_NONE;
-        break;
-
-    case PICT_x8r8g8b8:
-        *no_alpha = 1;
-    case PICT_a8r8g8b8:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_BYTE;
-        need_swap_rb = 1;
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_format = GL_BGRA;
+            *tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+        } else {
+            *tex_format = GL_RGBA;
+            *tex_type = GL_UNSIGNED_BYTE;
+            *swap_rb = SWAP_UPLOADING;
+            *revert = is_little_endian ? REVERT_NONE : REVERT_NORMAL;
+            break;
+        }
         break;
 
     case PICT_x8b8g8r8:
         *no_alpha = 1;
     case PICT_a8b8g8r8:
         *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_BYTE;
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+        } else {
+            *tex_type = GL_UNSIGNED_BYTE;
+            *revert = is_little_endian ? REVERT_NONE : REVERT_NORMAL;
+        }
         break;
 
     case PICT_x2r10g10b10:
         *no_alpha = 1;
     case PICT_a2r10g10b10:
-        *tex_format = GL_RGBA;
-        /* glReadPixmap doesn't support GL_UNSIGNED_INT_10_10_10_2.
-         * we have to use GL_UNSIGNED_BYTE and do the conversion in
-         * shader latter.*/
-        *tex_type = GL_UNSIGNED_BYTE;
-        if (!IS_LITTLE_ENDIAN)
-            *revert = REVERT_UPLOADING_10_10_10_2;
-        else
-            *revert = REVERT_UPLOADING_2_10_10_10;
-        need_swap_rb = 1;
-
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_format = GL_BGRA;
+            *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
+        } else {
+            /* glReadPixmap doesn't support
+             * GL_UNSIGNED_INT_10_10_10_2.  We have to use
+             * GL_UNSIGNED_BYTE and do the conversion in a shader
+             * later.
+             */
+            *tex_format = GL_RGBA;
+            *tex_type = GL_UNSIGNED_BYTE;
+            if (!is_little_endian)
+                *revert = REVERT_UPLOADING_10_10_10_2;
+            else
+                *revert = REVERT_UPLOADING_2_10_10_10;
+            *swap_rb = SWAP_UPLOADING;
+        }
         break;
 
     case PICT_x2b10g10r10:
         *no_alpha = 1;
     case PICT_a2b10g10r10:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_BYTE;
-        if (!IS_LITTLE_ENDIAN)
-            *revert = REVERT_UPLOADING_10_10_10_2;
-        else
-            *revert = REVERT_UPLOADING_2_10_10_10;
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_format = GL_RGBA;
+            *tex_type = GL_UNSIGNED_INT_2_10_10_10_REV;
+        } else {
+            *tex_format = GL_RGBA;
+            *tex_type = GL_UNSIGNED_BYTE;
+            if (!is_little_endian)
+                *revert = REVERT_UPLOADING_10_10_10_2;
+            else
+                *revert = REVERT_UPLOADING_2_10_10_10;
+            break;
+        }
         break;
 
     case PICT_r5g6b5:
         *tex_format = GL_RGB;
         *tex_type = GL_UNSIGNED_SHORT_5_6_5;
-        *revert = IS_LITTLE_ENDIAN ? REVERT_NONE : REVERT_NORMAL;
-
+        if (glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP)
+            *revert = is_little_endian ? REVERT_NONE : REVERT_NORMAL;
         break;
-
     case PICT_b5g6r5:
         *tex_format = GL_RGB;
-        *tex_type = GL_UNSIGNED_SHORT_5_6_5;
-        need_swap_rb = IS_LITTLE_ENDIAN ? 1 : 0;
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_type = GL_UNSIGNED_SHORT_5_6_5_REV;
+        } else {
+            *tex_type = GL_UNSIGNED_SHORT_5_6_5;
+            if (is_little_endian)
+                *swap_rb = SWAP_UPLOADING;
+            *revert = is_little_endian ? REVERT_NONE : REVERT_NORMAL;
+        }
         break;
 
     case PICT_x1b5g5r5:
         *no_alpha = 1;
     case PICT_a1b5g5r5:
         *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
-        if (IS_LITTLE_ENDIAN)
-            *revert = REVERT_UPLOADING_1_5_5_5;
-        else
-            *revert = REVERT_NONE;
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+        } else {
+            *tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
+            if (is_little_endian)
+                *revert = REVERT_UPLOADING_1_5_5_5;
+            else
+                *revert = REVERT_NONE;
+        }
         break;
 
     case PICT_x1r5g5b5:
         *no_alpha = 1;
     case PICT_a1r5g5b5:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
-        if (IS_LITTLE_ENDIAN)
-            *revert = REVERT_UPLOADING_1_5_5_5;
-        else
-            *revert = REVERT_NONE;
-        need_swap_rb = 1;
-        break;
-
-    case PICT_a1:
-        *tex_format = glamor_priv->one_channel_format;
-        *tex_type = GL_UNSIGNED_BYTE;
-        *revert = REVERT_UPLOADING_A1;
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_format = GL_BGRA;
+            *tex_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+        } else {
+            *tex_format = GL_RGBA;
+            *tex_type = GL_UNSIGNED_SHORT_5_5_5_1;
+            if (is_little_endian)
+                *revert = REVERT_UPLOADING_1_5_5_5;
+            else
+                *revert = REVERT_NONE;
+            *swap_rb = SWAP_UPLOADING;
+        }
         break;
 
     case PICT_a8:
         *tex_format = glamor_priv->one_channel_format;
         *tex_type = GL_UNSIGNED_BYTE;
-        *revert = REVERT_NONE;
         break;
 
     case PICT_x4r4g4b4:
         *no_alpha = 1;
     case PICT_a4r4g4b4:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_SHORT_4_4_4_4;
-        *revert = IS_LITTLE_ENDIAN ? REVERT_NORMAL : REVERT_NONE;
-        need_swap_rb = 1;
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_format = GL_BGRA;
+            *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
+        } else {
+            *tex_format = GL_RGBA;
+            *tex_type = GL_UNSIGNED_SHORT_4_4_4_4;
+            *revert = is_little_endian ? REVERT_NORMAL : REVERT_NONE;
+            *swap_rb = SWAP_UPLOADING;
+        }
         break;
 
     case PICT_x4b4g4r4:
         *no_alpha = 1;
     case PICT_a4b4g4r4:
-        *tex_format = GL_RGBA;
-        *tex_type = GL_UNSIGNED_SHORT_4_4_4_4;
-        *revert = IS_LITTLE_ENDIAN ? REVERT_NORMAL : REVERT_NONE;
+        if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
+            *tex_format = GL_RGBA;
+            *tex_type = GL_UNSIGNED_SHORT_4_4_4_4_REV;
+        } else {
+            *tex_format = GL_RGBA;
+            *tex_type = GL_UNSIGNED_SHORT_4_4_4_4;
+            *revert = is_little_endian ? REVERT_NORMAL : REVERT_NONE;
+        }
         break;
 
     default:
-        LogMessageVerb(X_INFO, 0,
-                       "fail to get matched format for %x \n", format);
-        return -1;
+        return FALSE;
     }
-
-    if (need_swap_rb)
-        *swap_rb = SWAP_UPLOADING;
-    else
-        *swap_rb = SWAP_NONE_UPLOADING;
-    return 0;
-}
-
-static int
-glamor_get_tex_format_type_from_pixmap(PixmapPtr pixmap,
-                                       PictFormatShort pict_format,
-                                       GLenum *format,
-                                       GLenum *type,
-                                       int *no_alpha,
-                                       int *revert, int *swap_rb)
-{
-    glamor_screen_private *glamor_priv =
-        glamor_get_screen_private(pixmap->drawable.pScreen);
-
-    if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) {
-        return glamor_get_tex_format_type_from_pictformat_gl(pixmap->drawable.pScreen,
-                                                             pict_format,
-                                                             format, type,
-                                                             no_alpha,
-                                                             revert,
-                                                             swap_rb);
-    } else {
-        return glamor_get_tex_format_type_from_pictformat_gles2(pixmap->drawable.pScreen,
-                                                                pict_format,
-                                                                format, type,
-                                                                no_alpha,
-                                                                revert,
-                                                                swap_rb);
-    }
+    return TRUE;
 }
 
 static void *
@@ -738,12 +658,12 @@ glamor_upload_picture_to_texture(PicturePtr picture)
     assert(glamor_pixmap_is_memory(pixmap));
     assert(!pixmap_priv->fbo);
 
-    if (glamor_get_tex_format_type_from_pixmap(pixmap,
-                                               picture->format,
-                                               &format,
-                                               &type,
-                                               &no_alpha,
-                                               &revert, &swap_rb)) {
+    if (!glamor_get_tex_format_type_from_pictformat(screen,
+                                                    picture->format,
+                                                    &format,
+                                                    &type,
+                                                    &no_alpha,
+                                                    &revert, &swap_rb)) {
         glamor_fallback("Unknown pixmap depth %d.\n", pixmap->drawable.depth);
         return FALSE;
     }
