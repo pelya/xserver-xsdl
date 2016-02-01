@@ -510,6 +510,7 @@ glamor_pixmap_destroy_fbo(PixmapPtr pixmap)
         for (i = 0; i < priv->block_wcnt * priv->block_hcnt; i++)
             glamor_destroy_fbo(glamor_priv, priv->fbo_array[i]);
         free(priv->fbo_array);
+        priv->fbo_array = NULL;
     }
     else {
         fbo = glamor_pixmap_detach_fbo(priv);

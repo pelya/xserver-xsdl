@@ -797,9 +797,10 @@ glamor_put_bits(char *dst_bits, int dst_stride, char *src_bits,
     }
 }
 
-/* Upload picture to texture.  We may need to flip the y axis or
- * wire alpha to 1. So we may conditional create fbo for the picture.
- * */
+/**
+ * Uploads a picture based on a GLAMOR_MEMORY pixmap to a texture in a
+ * temporary FBO.
+ */
 Bool
 glamor_upload_picture_to_texture(PicturePtr picture)
 {
@@ -810,8 +811,11 @@ glamor_upload_picture_to_texture(PicturePtr picture)
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     GLenum format, type;
     int no_alpha, revert, swap_rb;
-    glamor_pixmap_private *pixmap_priv;
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     Bool force_clip;
+
+    assert(glamor_pixmap_is_memory(pixmap));
+    assert(!pixmap_priv->fbo);
 
     if (glamor_get_tex_format_type_from_pixmap(pixmap,
                                                picture->format,
@@ -825,7 +829,6 @@ glamor_upload_picture_to_texture(PicturePtr picture)
     if (glamor_pixmap_upload_prepare(pixmap, format, no_alpha, revert, swap_rb))
         return FALSE;
 
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
     force_clip = glamor_priv->gl_flavor != GLAMOR_GL_DESKTOP;
 
     if (glamor_pixmap_priv_is_large(pixmap_priv) || force_clip) {
