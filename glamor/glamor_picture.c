@@ -734,26 +734,9 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha,
                              int revert, int swap_rb)
 {
     int flag = 0;
-    glamor_pixmap_private *pixmap_priv;
-    glamor_screen_private *glamor_priv;
-    glamor_pixmap_fbo *fbo;
+    glamor_screen_private *glamor_priv =
+        glamor_get_screen_private(pixmap->drawable.pScreen);
     GLenum iformat;
-
-    pixmap_priv = glamor_get_pixmap_private(pixmap);
-    glamor_priv = glamor_get_screen_private(pixmap->drawable.pScreen);
-
-    if (pixmap_priv->gl_fbo != GLAMOR_FBO_UNATTACHED)
-        return 0;
-
-    if (pixmap_priv->fbo
-        && (pixmap_priv->fbo->width < pixmap->drawable.width
-            || pixmap_priv->fbo->height < pixmap->drawable.height)) {
-        fbo = glamor_pixmap_detach_fbo(pixmap_priv);
-        glamor_destroy_fbo(glamor_priv, fbo);
-    }
-
-    if (pixmap_priv->fbo && pixmap_priv->fbo->fb)
-        return 0;
 
     if (!(no_alpha || (revert == REVERT_NORMAL)
           || (swap_rb != SWAP_NONE_UPLOADING))) {
@@ -761,10 +744,6 @@ glamor_pixmap_upload_prepare(PixmapPtr pixmap, GLenum format, int no_alpha,
 
         flag = GLAMOR_CREATE_FBO_NO_FBO;
     }
-
-    if ((flag == GLAMOR_CREATE_FBO_NO_FBO
-         && pixmap_priv->fbo && pixmap_priv->fbo->tex))
-        return 0;
 
     if (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP)
         iformat = gl_iformat_for_pixmap(pixmap);
