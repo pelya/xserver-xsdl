@@ -54,7 +54,7 @@
 static Rotation
 xf86_crtc_cursor_rotation(xf86CrtcPtr crtc)
 {
-    if (crtc->driverIsPerformingTransform)
+    if (crtc->driverIsPerformingTransform & XF86DriverTransformCursorImage)
         return RR_Rotate_0;
     return crtc->rotation;
 }
@@ -357,8 +357,8 @@ xf86_show_cursors(ScrnInfoPtr scrn)
     }
 }
 
-void
-xf86CrtcTransformCursorPos(xf86CrtcPtr crtc, int *x, int *y)
+static void
+xf86_crtc_transform_cursor_position(xf86CrtcPtr crtc, int *x, int *y)
 {
     ScrnInfoPtr scrn = crtc->scrn;
     ScreenPtr screen = scrn->pScreen;
@@ -401,7 +401,7 @@ xf86_crtc_set_cursor_position(xf86CrtcPtr crtc, int x, int y)
      * Transform position of cursor on screen
      */
     if (crtc->transform_in_use)
-        xf86CrtcTransformCursorPos(crtc, &crtc_x, &crtc_y);
+        xf86_crtc_transform_cursor_position(crtc, &crtc_x, &crtc_y);
     else {
         crtc_x -= crtc->x;
         crtc_y -= crtc->y;
@@ -421,7 +421,7 @@ xf86_crtc_set_cursor_position(xf86CrtcPtr crtc, int x, int y)
     crtc->cursor_in_range = in_range;
 
     if (in_range) {
-        if (crtc->driverIsPerformingTransform)
+        if (crtc->driverIsPerformingTransform & XF86DriverTransformCursorPosition)
             crtc->funcs->set_cursor_position(crtc, x, y);
         else
             crtc->funcs->set_cursor_position(crtc, crtc_x, crtc_y);
