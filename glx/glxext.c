@@ -336,6 +336,23 @@ checkScreenVisuals(void)
     return False;
 }
 
+static void
+GetGLXDrawableBytes(void *value, XID id, ResourceSizePtr size)
+{
+    __GLXdrawable *draw = value;
+
+    size->resourceSize = 0;
+    size->pixmapRefSize = 0;
+    size->refCnt = 1;
+
+    if (draw->type == GLX_DRAWABLE_PIXMAP) {
+        SizeType pixmapSizeFunc = GetResourceTypeSizeFunc(RT_PIXMAP);
+        ResourceSizeRec pixmapSize = { 0, };
+        pixmapSizeFunc((PixmapPtr)draw->pDraw, draw->pDraw->id, &pixmapSize);
+        size->pixmapRefSize += pixmapSize.pixmapRefSize;
+    }
+}
+
 /*
 ** Initialize the GLX extension.
 */
@@ -364,6 +381,8 @@ GlxExtensionInit(void)
                                              "GLXDrawable");
     if (!__glXContextRes || !__glXDrawableRes)
         return;
+
+    SetResourceTypeSizeFunc(__glXDrawableRes, GetGLXDrawableBytes);
 
     if (!dixRegisterPrivateKey
         (&glxClientPrivateKeyRec, PRIVATE_CLIENT, sizeof(__GLXclientState)))
