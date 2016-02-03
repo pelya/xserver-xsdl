@@ -413,6 +413,9 @@ DRI2DrawableGone(void *p, XID id)
         (*pDraw->pScreen->DestroyPixmap)(pPriv->redirectpixmap);
     }
 
+    if (pPriv->blockedClient)
+        AttendClient(pPriv->blockedClient);
+
     free(pPriv);
 
     return Success;
