@@ -1385,8 +1385,7 @@ DRI2ConfigNotify(WindowPtr pWin, int x, int y, int w, int h, int bw,
 static void
 DRI2SetWindowPixmap(WindowPtr pWin, PixmapPtr pPix)
 {
-    DrawablePtr pDraw = (DrawablePtr) pWin;
-    ScreenPtr pScreen = pDraw->pScreen;
+    ScreenPtr pScreen = pWin->drawable.pScreen;
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
 
     pScreen->SetWindowPixmap = ds->SetWindowPixmap;
@@ -1394,7 +1393,7 @@ DRI2SetWindowPixmap(WindowPtr pWin, PixmapPtr pPix)
     ds->SetWindowPixmap = pScreen->SetWindowPixmap;
     pScreen->SetWindowPixmap = DRI2SetWindowPixmap;
 
-    DRI2InvalidateDrawableAll(pDraw);
+    DRI2InvalidateDrawable(&pWin->drawable);
 }
 
 #define MAX_PRIME DRI2DriverPrimeMask
