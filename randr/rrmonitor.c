@@ -326,7 +326,7 @@ RRMonitorMakeList(ScreenPtr screen, Bool get_active, RRMonitorPtr *monitors_ret,
         RRMonitorSetFromClient(pScrPriv->monitors[list.client_primary], mon);
         mon++;
     } else if (list.server_primary >= 0) {
-        RRMonitorSetFromServer(pScrPriv->crtcs[list.server_primary], mon);
+        RRMonitorSetFromServer(list.server_crtc[list.server_primary], mon);
         mon++;
     }
 
@@ -354,8 +354,8 @@ RRMonitorMakeList(ScreenPtr screen, Bool get_active, RRMonitorPtr *monitors_ret,
 
     /* And finish with the list of crtc-inspired monitors
      */
-    for (c = 0; c < pScrPriv->numCrtcs; c++) {
-        RRCrtcPtr crtc = pScrPriv->crtcs[c];
+    for (c = 0; c < list.num_crtcs; c++) {
+        RRCrtcPtr crtc = list.server_crtc[c];
         if (c == list.server_primary && list.client_primary < 0)
             continue;
 
