@@ -49,7 +49,6 @@
 
 static DevPrivateKeyRec VidModeKeyRec;
 #define VidModeKey (&VidModeKeyRec)
-static Bool VidModeClose(ScreenPtr pScreen);
 
 #define VMPTR(p) ((VidModePtr)dixLookupPrivate(&(p)->devPrivates, VidModeKey))
 
@@ -73,8 +72,6 @@ VidModeExtensionInit(ScreenPtr pScreen)
 
     pVidMode->Flags = 0;
     pVidMode->Next = NULL;
-    pVidMode->CloseScreen = pScreen->CloseScreen;
-    pScreen->CloseScreen = VidModeClose;
 
     return TRUE;
 #else
@@ -84,20 +81,6 @@ VidModeExtensionInit(ScreenPtr pScreen)
 }
 
 #ifdef XF86VIDMODE
-
-static Bool
-VidModeClose(ScreenPtr pScreen)
-{
-    VidModePtr pVidMode = VMPTR(pScreen);
-
-    /* This shouldn't happen */
-    if (!pVidMode)
-        return FALSE;
-
-    pScreen->CloseScreen = pVidMode->CloseScreen;
-
-    return pScreen->CloseScreen(pScreen);
-}
 
 static Bool
 VidModeAvailable(int scrnIndex)

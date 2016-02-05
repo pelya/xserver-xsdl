@@ -121,7 +121,6 @@ typedef struct {
     DisplayModePtr First;
     DisplayModePtr Next;
     int Flags;
-    CloseScreenProcPtr CloseScreen;
 } VidModeRec, *VidModePtr;
 #endif
 
