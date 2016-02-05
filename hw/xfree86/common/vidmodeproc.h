@@ -39,40 +39,40 @@ typedef union {
     float f;
 } vidMonitorValue;
 
-extern Bool VidModeExtensionInit(ScreenPtr pScreen);
+extern Bool xf86VidModeExtensionInit(ScreenPtr pScreen);
 
-extern Bool VidModeGetCurrentModeline(ScreenPtr pScreen, DisplayModePtr *mode,
-                                      int *dotClock);
-extern Bool VidModeGetFirstModeline(ScreenPtr pScreen, DisplayModePtr *mode,
-                                    int *dotClock);
-extern Bool VidModeGetNextModeline(ScreenPtr pScreen, DisplayModePtr *mode,
-                                   int *dotClock);
-extern Bool VidModeDeleteModeline(ScreenPtr pScreen, DisplayModePtr mode);
-extern Bool VidModeZoomViewport(ScreenPtr pScreen, int zoom);
-extern Bool VidModeGetViewPort(ScreenPtr pScreen, int *x, int *y);
-extern Bool VidModeSetViewPort(ScreenPtr pScreen, int x, int y);
-extern Bool VidModeSwitchMode(ScreenPtr pScreen, DisplayModePtr mode);
-extern Bool VidModeLockZoom(ScreenPtr pScreen, Bool lock);
-extern int VidModeGetNumOfClocks(ScreenPtr pScreen, Bool *progClock);
-extern Bool VidModeGetClocks(ScreenPtr pScreen, int *Clocks);
-extern ModeStatus VidModeCheckModeForMonitor(ScreenPtr pScreen,
-                                             DisplayModePtr mode);
-extern ModeStatus VidModeCheckModeForDriver(ScreenPtr pScreen,
-                                            DisplayModePtr mode);
-extern void VidModeSetCrtcForMode(ScreenPtr pScreen, DisplayModePtr mode);
-extern Bool VidModeAddModeline(ScreenPtr pScreen, DisplayModePtr mode);
-extern int VidModeGetDotClock(ScreenPtr pScreen, int Clock);
-extern int VidModeGetNumOfModes(ScreenPtr pScreen);
-extern Bool VidModeSetGamma(ScreenPtr pScreen, float red, float green,
-                            float blue);
-extern Bool VidModeGetGamma(ScreenPtr pScreen, float *red, float *green,
-                            float *blue);
-extern vidMonitorValue VidModeGetMonitorValue(ScreenPtr pScreen,
-                                              int valtyp, int indx);
-extern Bool VidModeSetGammaRamp(ScreenPtr, int, CARD16 *, CARD16 *,
-                                CARD16 *);
-extern Bool VidModeGetGammaRamp(ScreenPtr, int, CARD16 *, CARD16 *,
-                                CARD16 *);
-extern int VidModeGetGammaRampSize(ScreenPtr pScreen);
+extern Bool xf86VidModeGetCurrentModeline(ScreenPtr pScreen, DisplayModePtr *mode,
+                                          int *dotClock);
+extern Bool xf86VidModeGetFirstModeline(ScreenPtr pScreen, DisplayModePtr *mode,
+                                        int *dotClock);
+extern Bool xf86VidModeGetNextModeline(ScreenPtr pScreen, DisplayModePtr *mode,
+                                       int *dotClock);
+extern Bool xf86VidModeDeleteModeline(ScreenPtr pScreen, DisplayModePtr mode);
+extern Bool xf86VidModeZoomViewport(ScreenPtr pScreen, int zoom);
+extern Bool xf86VidModeGetViewPort(ScreenPtr pScreen, int *x, int *y);
+extern Bool xf86VidModeSetViewPort(ScreenPtr pScreen, int x, int y);
+extern Bool xf86VidModeSwitchMode(ScreenPtr pScreen, DisplayModePtr mode);
+extern Bool xf86VidModeLockZoom(ScreenPtr pScreen, Bool lock);
+extern int xf86VidModeGetNumOfClocks(ScreenPtr pScreen, Bool *progClock);
+extern Bool xf86VidModeGetClocks(ScreenPtr pScreen, int *Clocks);
+extern ModeStatus xf86VidModeCheckModeForMonitor(ScreenPtr pScreen,
+                                                 DisplayModePtr mode);
+extern ModeStatus xf86VidModeCheckModeForDriver(ScreenPtr pScreen,
+                                                DisplayModePtr mode);
+extern void xf86VidModeSetCrtcForMode(ScreenPtr pScreen, DisplayModePtr mode);
+extern Bool xf86VidModeAddModeline(ScreenPtr pScreen, DisplayModePtr mode);
+extern int xf86VidModeGetDotClock(ScreenPtr pScreen, int Clock);
+extern int xf86VidModeGetNumOfModes(ScreenPtr pScreen);
+extern Bool xf86VidModeSetGamma(ScreenPtr pScreen, float red, float green,
+                                float blue);
+extern Bool xf86VidModeGetGamma(ScreenPtr pScreen, float *red, float *green,
+                                float *blue);
+extern vidMonitorValue xf86VidModeGetMonitorValue(ScreenPtr pScreen,
+                                                  int valtyp, int indx);
+extern Bool xf86VidModeSetGammaRamp(ScreenPtr, int, CARD16 *, CARD16 *,
+                                    CARD16 *);
+extern Bool xf86VidModeGetGammaRamp(ScreenPtr, int, CARD16 *, CARD16 *,
+                                    CARD16 *);
+extern int xf86VidModeGetGammaRampSize(ScreenPtr pScreen);
 
 #endif
