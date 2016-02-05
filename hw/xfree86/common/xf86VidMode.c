@@ -393,12 +393,6 @@ xf86VidModeGetGammaRamp(ScreenPtr pScreen, int size, CARD16 *r, CARD16 *g, CARD1
     return TRUE;
 }
 
-static int
-xf86VidModeGetGammaRampSize(ScreenPtr pScreen)
-{
-    return xf86GetGammaRampSize(pScreen);
-}
-
 static Bool
 xf86VidModeInit(ScreenPtr pScreen)
 {
@@ -438,7 +432,7 @@ xf86VidModeInit(ScreenPtr pScreen)
     pVidMode->GetGamma = xf86VidModeGetGamma;
     pVidMode->SetGammaRamp = xf86VidModeSetGammaRamp;
     pVidMode->GetGammaRamp = xf86VidModeGetGammaRamp;
-    pVidMode->GetGammaRampSize = xf86VidModeGetGammaRampSize;
+    pVidMode->GetGammaRampSize = xf86GetGammaRampSize; /* use xf86cmap API directly */
 
     return TRUE;
 }
