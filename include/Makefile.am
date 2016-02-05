@@ -53,6 +53,7 @@ sdk_HEADERS =		\
 	servermd.h	\
 	site.h		\
 	validate.h	\
+	displaymode.h    \
 	window.h	\
 	windowstr.h	\
 	xkbfile.h	\
