@@ -48,8 +48,7 @@
 #include "xf86cmap.h"
 
 static DevPrivateKeyRec VidModeKeyRec;
-static DevPrivateKey VidModeKey;
-static int VidModeCount = 0;
+#define VidModeKey (&VidModeKeyRec)
 static Bool VidModeClose(ScreenPtr pScreen);
 
 #define VMPTR(p) ((VidModePtr)dixLookupPrivate(&(p)->devPrivates, VidModeKey))
@@ -67,22 +66,16 @@ VidModeExtensionInit(ScreenPtr pScreen)
         return FALSE;
     }
 
-    VidModeKey = &VidModeKeyRec;
-
-    if (!dixRegisterPrivateKey(&VidModeKeyRec, PRIVATE_SCREEN, 0))
+    if (!dixRegisterPrivateKey(&VidModeKeyRec, PRIVATE_SCREEN, sizeof(VidModeRec)))
         return FALSE;
 
-    pVidMode = calloc(sizeof(VidModeRec), 1);
-    if (!pVidMode)
-        return FALSE;
-
-    dixSetPrivate(&pScreen->devPrivates, VidModeKey, pVidMode);
+    pVidMode = VMPTR(pScreen);
 
     pVidMode->Flags = 0;
     pVidMode->Next = NULL;
     pVidMode->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = VidModeClose;
-    VidModeCount++;
+
     return TRUE;
 #else
     DebugF("no vidmode extension\n");
@@ -103,11 +96,6 @@ VidModeClose(ScreenPtr pScreen)
 
     pScreen->CloseScreen = pVidMode->CloseScreen;
 
-    if (--VidModeCount == 0) {
-        free(dixLookupPrivate(&pScreen->devPrivates, VidModeKey));
-        dixSetPrivate(&pScreen->devPrivates, VidModeKey, NULL);
-        VidModeKey = NULL;
-    }
     return pScreen->CloseScreen(pScreen);
 }
 
@@ -116,11 +104,6 @@ VidModeAvailable(int scrnIndex)
 {
     ScrnInfoPtr pScrn;
     VidModePtr pVidMode;
-
-    if (VidModeKey == NULL) {
-        DebugF("VidModeKey == NULL\n");
-        return FALSE;
-    }
 
     pScrn = xf86Screens[scrnIndex];
     if (pScrn == NULL) {
