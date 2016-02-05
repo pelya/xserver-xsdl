@@ -53,7 +53,6 @@ extern Bool VidModeGetViewPort(ScreenPtr pScreen, int *x, int *y);
 extern Bool VidModeSetViewPort(ScreenPtr pScreen, int x, int y);
 extern Bool VidModeSwitchMode(ScreenPtr pScreen, void *mode);
 extern Bool VidModeLockZoom(ScreenPtr pScreen, Bool lock);
-extern Bool VidModeGetMonitor(ScreenPtr pScreen, void **monitor);
 extern int VidModeGetNumOfClocks(ScreenPtr pScreen, Bool *progClock);
 extern Bool VidModeGetClocks(ScreenPtr pScreen, int *Clocks);
 extern ModeStatus VidModeCheckModeForMonitor(ScreenPtr pScreen,
@@ -72,7 +71,7 @@ extern void *VidModeCreateMode(void);
 extern void VidModeCopyMode(void *modefrom, void *modeto);
 extern int VidModeGetModeValue(void *mode, int valtyp);
 extern void VidModeSetModeValue(void *mode, int valtyp, int val);
-extern vidMonitorValue VidModeGetMonitorValue(void *monitor,
+extern vidMonitorValue VidModeGetMonitorValue(ScreenPtr pScreen,
                                               int valtyp, int indx);
 extern Bool VidModeSetGammaRamp(ScreenPtr, int, CARD16 *, CARD16 *,
                                 CARD16 *);

@@ -313,20 +313,6 @@ VidModeLockZoom(ScreenPtr pScreen, Bool lock)
     return TRUE;
 }
 
-Bool
-VidModeGetMonitor(ScreenPtr pScreen, void **monitor)
-{
-    ScrnInfoPtr pScrn;
-
-    if (!VidModeAvailable(pScreen))
-        return FALSE;
-
-    pScrn = xf86ScreenToScrn(pScreen);
-    *monitor = (void *) (pScrn->monitor);
-
-    return TRUE;
-}
-
 ModeStatus
 VidModeCheckModeForMonitor(ScreenPtr pScreen, void *mode)
 {
@@ -577,34 +563,42 @@ VidModeSetModeValue(void *mode, int valtyp, int val)
 }
 
 vidMonitorValue
-VidModeGetMonitorValue(void *monitor, int valtyp, int indx)
+VidModeGetMonitorValue(ScreenPtr pScreen, int valtyp, int indx)
 {
     vidMonitorValue ret = { NULL, };
+    MonPtr monitor;
+    ScrnInfoPtr pScrn;
+
+    if (!VidModeAvailable(pScreen))
+        return ret;
+
+    pScrn = xf86ScreenToScrn(pScreen);
+    monitor = pScrn->monitor;
 
     switch (valtyp) {
     case VIDMODE_MON_VENDOR:
-        ret.ptr = (((MonPtr) monitor)->vendor);
+        ret.ptr = monitor->vendor;
         break;
     case VIDMODE_MON_MODEL:
-        ret.ptr = (((MonPtr) monitor)->model);
+        ret.ptr = monitor->model;
         break;
     case VIDMODE_MON_NHSYNC:
-        ret.i = ((MonPtr) monitor)->nHsync;
+        ret.i = monitor->nHsync;
         break;
     case VIDMODE_MON_NVREFRESH:
-        ret.i = ((MonPtr) monitor)->nVrefresh;
+        ret.i = monitor->nVrefresh;
         break;
     case VIDMODE_MON_HSYNC_LO:
-        ret.f = (100.0 * ((MonPtr) monitor)->hsync[indx].lo);
+        ret.f = (100.0 * monitor->hsync[indx].lo);
         break;
     case VIDMODE_MON_HSYNC_HI:
-        ret.f = (100.0 * ((MonPtr) monitor)->hsync[indx].hi);
+        ret.f = (100.0 * monitor->hsync[indx].hi);
         break;
     case VIDMODE_MON_VREFRESH_LO:
-        ret.f = (100.0 * ((MonPtr) monitor)->vrefresh[indx].lo);
+        ret.f = (100.0 * monitor->vrefresh[indx].lo);
         break;
     case VIDMODE_MON_VREFRESH_HI:
-        ret.f = (100.0 * ((MonPtr) monitor)->vrefresh[indx].hi);
+        ret.f = (100.0 * monitor->vrefresh[indx].hi);
         break;
     }
     return ret;

@@ -1029,7 +1029,6 @@ ProcXF86VidModeGetMonitor(ClientPtr client)
     };
     CARD32 *hsyncdata, *vsyncdata;
     int i, nHsync, nVrefresh;
-    void *monitor;
     ScreenPtr pScreen;
 
     DEBUG_P("XF86VidModeGetMonitor");
@@ -1040,20 +1039,17 @@ ProcXF86VidModeGetMonitor(ClientPtr client)
         return BadValue;
     pScreen = screenInfo.screens[stuff->screen];
 
-    if (!VidModeGetMonitor(pScreen, &monitor))
-        return BadValue;
+    nHsync = VidModeGetMonitorValue(pScreen, VIDMODE_MON_NHSYNC, 0).i;
+    nVrefresh = VidModeGetMonitorValue(pScreen, VIDMODE_MON_NVREFRESH, 0).i;
 
-    nHsync = VidModeGetMonitorValue(monitor, VIDMODE_MON_NHSYNC, 0).i;
-    nVrefresh = VidModeGetMonitorValue(monitor, VIDMODE_MON_NVREFRESH, 0).i;
-
-    if ((char *) (VidModeGetMonitorValue(monitor, VIDMODE_MON_VENDOR, 0)).ptr)
-        rep.vendorLength = strlen((char *) (VidModeGetMonitorValue(monitor,
+    if ((char *) (VidModeGetMonitorValue(pScreen, VIDMODE_MON_VENDOR, 0)).ptr)
+        rep.vendorLength = strlen((char *) (VidModeGetMonitorValue(pScreen,
                                                                    VIDMODE_MON_VENDOR,
                                                                    0)).ptr);
     else
         rep.vendorLength = 0;
-    if ((char *) (VidModeGetMonitorValue(monitor, VIDMODE_MON_MODEL, 0)).ptr)
-        rep.modelLength = strlen((char *) (VidModeGetMonitorValue(monitor,
+    if ((char *) (VidModeGetMonitorValue(pScreen, VIDMODE_MON_MODEL, 0)).ptr)
+        rep.modelLength = strlen((char *) (VidModeGetMonitorValue(pScreen,
                                                                   VIDMODE_MON_MODEL,
                                                                   0)).ptr);
     else
@@ -1078,19 +1074,19 @@ ProcXF86VidModeGetMonitor(ClientPtr client)
     }
 
     for (i = 0; i < nHsync; i++) {
-        hsyncdata[i] = (unsigned short) (VidModeGetMonitorValue(monitor,
+        hsyncdata[i] = (unsigned short) (VidModeGetMonitorValue(pScreen,
                                                                 VIDMODE_MON_HSYNC_LO,
                                                                 i)).f |
             (unsigned
-             short) (VidModeGetMonitorValue(monitor, VIDMODE_MON_HSYNC_HI,
+             short) (VidModeGetMonitorValue(pScreen, VIDMODE_MON_HSYNC_HI,
                                             i)).f << 16;
     }
     for (i = 0; i < nVrefresh; i++) {
-        vsyncdata[i] = (unsigned short) (VidModeGetMonitorValue(monitor,
+        vsyncdata[i] = (unsigned short) (VidModeGetMonitorValue(pScreen,
                                                                 VIDMODE_MON_VREFRESH_LO,
                                                                 i)).f |
             (unsigned
-             short) (VidModeGetMonitorValue(monitor, VIDMODE_MON_VREFRESH_HI,
+             short) (VidModeGetMonitorValue(pScreen, VIDMODE_MON_VREFRESH_HI,
                                             i)).f << 16;
     }
 
@@ -1104,10 +1100,10 @@ ProcXF86VidModeGetMonitor(ClientPtr client)
     WriteSwappedDataToClient(client, nVrefresh * sizeof(CARD32), vsyncdata);
     if (rep.vendorLength)
         WriteToClient(client, rep.vendorLength,
-                 (VidModeGetMonitorValue(monitor, VIDMODE_MON_VENDOR, 0)).ptr);
+                 (VidModeGetMonitorValue(pScreen, VIDMODE_MON_VENDOR, 0)).ptr);
     if (rep.modelLength)
         WriteToClient(client, rep.modelLength,
-                 (VidModeGetMonitorValue(monitor, VIDMODE_MON_MODEL, 0)).ptr);
+                 (VidModeGetMonitorValue(pScreen, VIDMODE_MON_MODEL, 0)).ptr);
 
     free(hsyncdata);
     free(vsyncdata);
