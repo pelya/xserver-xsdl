@@ -67,10 +67,6 @@ extern Bool VidModeSetGamma(ScreenPtr pScreen, float red, float green,
                             float blue);
 extern Bool VidModeGetGamma(ScreenPtr pScreen, float *red, float *green,
                             float *blue);
-extern DisplayModePtr VidModeCreateMode(void);
-extern void VidModeCopyMode(DisplayModePtr modefrom, DisplayModePtr modeto);
-extern int VidModeGetModeValue(DisplayModePtr mode, int valtyp);
-extern void VidModeSetModeValue(DisplayModePtr mode, int valtyp, int val);
 extern vidMonitorValue VidModeGetMonitorValue(ScreenPtr pScreen,
                                               int valtyp, int indx);
 extern Bool VidModeSetGammaRamp(ScreenPtr, int, CARD16 *, CARD16 *,

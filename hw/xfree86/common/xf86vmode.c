@@ -76,7 +76,114 @@ static unsigned char XF86VidModeReqCode = 0;
 #else
 #define DEBUG_P(x) /**/
 #endif
-    static int
+
+static DisplayModePtr
+VidModeCreateMode(void)
+{
+    DisplayModePtr mode;
+
+    mode = malloc(sizeof(DisplayModeRec));
+    if (mode != NULL) {
+        mode->name = "";
+        mode->VScan = 1;        /* divides refresh rate. default = 1 */
+        mode->Private = NULL;
+        mode->next = mode;
+        mode->prev = mode;
+    }
+    return mode;
+}
+
+static void
+VidModeCopyMode(DisplayModePtr modefrom, DisplayModePtr modeto)
+{
+    memcpy(modeto, modefrom, sizeof(DisplayModeRec));
+}
+
+static int
+VidModeGetModeValue(DisplayModePtr mode, int valtyp)
+{
+    int ret = 0;
+
+    switch (valtyp) {
+    case VIDMODE_H_DISPLAY:
+        ret = mode->HDisplay;
+        break;
+    case VIDMODE_H_SYNCSTART:
+        ret = mode->HSyncStart;
+        break;
+    case VIDMODE_H_SYNCEND:
+        ret = mode->HSyncEnd;
+        break;
+    case VIDMODE_H_TOTAL:
+        ret = mode->HTotal;
+        break;
+    case VIDMODE_H_SKEW:
+        ret = mode->HSkew;
+        break;
+    case VIDMODE_V_DISPLAY:
+        ret = mode->VDisplay;
+        break;
+    case VIDMODE_V_SYNCSTART:
+        ret = mode->VSyncStart;
+        break;
+    case VIDMODE_V_SYNCEND:
+        ret = mode->VSyncEnd;
+        break;
+    case VIDMODE_V_TOTAL:
+        ret = mode->VTotal;
+        break;
+    case VIDMODE_FLAGS:
+        ret = mode->Flags;
+        break;
+    case VIDMODE_CLOCK:
+        ret = mode->Clock;
+        break;
+    }
+    return ret;
+}
+
+static void
+VidModeSetModeValue(DisplayModePtr mode, int valtyp, int val)
+{
+    switch (valtyp) {
+    case VIDMODE_H_DISPLAY:
+        mode->HDisplay = val;
+        break;
+    case VIDMODE_H_SYNCSTART:
+        mode->HSyncStart = val;
+        break;
+    case VIDMODE_H_SYNCEND:
+        mode->HSyncEnd = val;
+        break;
+    case VIDMODE_H_TOTAL:
+        mode->HTotal = val;
+        break;
+    case VIDMODE_H_SKEW:
+        mode->HSkew = val;
+        break;
+    case VIDMODE_V_DISPLAY:
+        mode->VDisplay = val;
+        break;
+    case VIDMODE_V_SYNCSTART:
+        mode->VSyncStart = val;
+        break;
+    case VIDMODE_V_SYNCEND:
+        mode->VSyncEnd = val;
+        break;
+    case VIDMODE_V_TOTAL:
+        mode->VTotal = val;
+        break;
+    case VIDMODE_FLAGS:
+        mode->Flags = val;
+        break;
+    case VIDMODE_CLOCK:
+        mode->Clock = val;
+        break;
+    }
+    return;
+}
+
+static int
 ClientMajorVersion(ClientPtr client)
 {
     VidModePrivPtr pPriv;
