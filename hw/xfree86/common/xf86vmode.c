@@ -122,7 +122,7 @@ ProcXF86VidModeGetModeLine(ClientPtr client)
         .sequenceNumber = client->sequence
     };
     ScreenPtr pScreen;
-    void *mode;
+    DisplayModePtr mode;
     int dotClock;
     int ver;
 
@@ -223,7 +223,7 @@ ProcXF86VidModeGetAllModeLines(ClientPtr client)
     REQUEST(xXF86VidModeGetAllModeLinesReq);
     xXF86VidModeGetAllModeLinesReply rep;
     ScreenPtr pScreen;
-    void *mode;
+    DisplayModePtr mode;
     int modecount, dotClock;
     int ver;
 
@@ -335,7 +335,7 @@ ProcXF86VidModeAddModeLine(ClientPtr client)
         (xXF86OldVidModeAddModeLineReq *) client->requestBuffer;
     xXF86VidModeAddModeLineReq newstuff;
     ScreenPtr pScreen;
-    void *mode;
+    DisplayModePtr mode;
     int len;
     int dotClock;
     int ver;
@@ -501,7 +501,7 @@ ProcXF86VidModeDeleteModeLine(ClientPtr client)
         (xXF86OldVidModeDeleteModeLineReq *) client->requestBuffer;
     xXF86VidModeDeleteModeLineReq newstuff;
     ScreenPtr pScreen;
-    void *mode;
+    DisplayModePtr mode;
     int len, dotClock;
     int ver;
 
@@ -628,7 +628,7 @@ ProcXF86VidModeModModeLine(ClientPtr client)
         (xXF86OldVidModeModModeLineReq *) client->requestBuffer;
     xXF86VidModeModModeLineReq newstuff;
     ScreenPtr pScreen;
-    void *mode, *modetmp;
+    DisplayModePtr mode, modetmp;
     int len, dotClock;
     int ver;
 
@@ -759,7 +759,7 @@ ProcXF86VidModeValidateModeLine(ClientPtr client)
     xXF86VidModeValidateModeLineReq newstuff;
     xXF86VidModeValidateModeLineReply rep;
     ScreenPtr pScreen;
-    void *mode, *modetmp = NULL;
+    DisplayModePtr mode, modetmp = NULL;
     int len, status, dotClock;
     int ver;
 
@@ -901,7 +901,7 @@ ProcXF86VidModeSwitchToMode(ClientPtr client)
         (xXF86OldVidModeSwitchToModeReq *) client->requestBuffer;
     xXF86VidModeSwitchToModeReq newstuff;
     ScreenPtr pScreen;
-    void *mode;
+    DisplayModePtr mode;
     int len, dotClock;
     int ver;
 

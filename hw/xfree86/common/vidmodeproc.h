@@ -41,36 +41,36 @@ typedef union {
 
 extern Bool VidModeExtensionInit(ScreenPtr pScreen);
 
-extern Bool VidModeGetCurrentModeline(ScreenPtr pScreen, void **mode,
+extern Bool VidModeGetCurrentModeline(ScreenPtr pScreen, DisplayModePtr *mode,
                                       int *dotClock);
-extern Bool VidModeGetFirstModeline(ScreenPtr pScreen, void **mode,
+extern Bool VidModeGetFirstModeline(ScreenPtr pScreen, DisplayModePtr *mode,
                                     int *dotClock);
-extern Bool VidModeGetNextModeline(ScreenPtr pScreen, void **mode,
+extern Bool VidModeGetNextModeline(ScreenPtr pScreen, DisplayModePtr *mode,
                                    int *dotClock);
-extern Bool VidModeDeleteModeline(ScreenPtr pScreen, void *mode);
+extern Bool VidModeDeleteModeline(ScreenPtr pScreen, DisplayModePtr mode);
 extern Bool VidModeZoomViewport(ScreenPtr pScreen, int zoom);
 extern Bool VidModeGetViewPort(ScreenPtr pScreen, int *x, int *y);
 extern Bool VidModeSetViewPort(ScreenPtr pScreen, int x, int y);
-extern Bool VidModeSwitchMode(ScreenPtr pScreen, void *mode);
+extern Bool VidModeSwitchMode(ScreenPtr pScreen, DisplayModePtr mode);
 extern Bool VidModeLockZoom(ScreenPtr pScreen, Bool lock);
 extern int VidModeGetNumOfClocks(ScreenPtr pScreen, Bool *progClock);
 extern Bool VidModeGetClocks(ScreenPtr pScreen, int *Clocks);
 extern ModeStatus VidModeCheckModeForMonitor(ScreenPtr pScreen,
-                                             void *mode);
+                                             DisplayModePtr mode);
 extern ModeStatus VidModeCheckModeForDriver(ScreenPtr pScreen,
-                                            void *mode);
-extern void VidModeSetCrtcForMode(ScreenPtr pScreen, void *mode);
-extern Bool VidModeAddModeline(ScreenPtr pScreen, void *mode);
+                                            DisplayModePtr mode);
+extern void VidModeSetCrtcForMode(ScreenPtr pScreen, DisplayModePtr mode);
+extern Bool VidModeAddModeline(ScreenPtr pScreen, DisplayModePtr mode);
 extern int VidModeGetDotClock(ScreenPtr pScreen, int Clock);
 extern int VidModeGetNumOfModes(ScreenPtr pScreen);
 extern Bool VidModeSetGamma(ScreenPtr pScreen, float red, float green,
                             float blue);
 extern Bool VidModeGetGamma(ScreenPtr pScreen, float *red, float *green,
                             float *blue);
-extern void *VidModeCreateMode(void);
-extern void VidModeCopyMode(void *modefrom, void *modeto);
-extern int VidModeGetModeValue(void *mode, int valtyp);
-extern void VidModeSetModeValue(void *mode, int valtyp, int val);
+extern DisplayModePtr VidModeCreateMode(void);
+extern void VidModeCopyMode(DisplayModePtr modefrom, DisplayModePtr modeto);
+extern int VidModeGetModeValue(DisplayModePtr mode, int valtyp);
+extern void VidModeSetModeValue(DisplayModePtr mode, int valtyp, int val);
 extern vidMonitorValue VidModeGetMonitorValue(ScreenPtr pScreen,
                                               int valtyp, int indx);
 extern Bool VidModeSetGammaRamp(ScreenPtr, int, CARD16 *, CARD16 *,
