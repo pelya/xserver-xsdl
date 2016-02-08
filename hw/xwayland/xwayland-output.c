@@ -297,6 +297,7 @@ xwl_output_destroy(struct xwl_output *xwl_output)
 
     wl_output_destroy(xwl_output->output);
     xorg_list_del(&xwl_output->link);
+    RRCrtcDestroy(xwl_output->randr_crtc);
     RROutputDestroy(xwl_output->randr_output);
 
     xorg_list_for_each_entry(it, &xwl_screen->output_list, link)
