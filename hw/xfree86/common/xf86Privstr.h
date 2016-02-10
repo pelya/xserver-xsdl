@@ -115,15 +115,6 @@ typedef struct {
 } DPMSRec, *DPMSPtr;
 #endif
 
-#ifdef XF86VIDMODE
-/* Private info for Video Mode Extentsion */
-typedef struct {
-    DisplayModePtr First;
-    DisplayModePtr Next;
-    int Flags;
-} VidModeRec, *VidModePtr;
-#endif
-
 /* Information for root window properties. */
 typedef struct _RootWinProp {
     struct _RootWinProp *next;

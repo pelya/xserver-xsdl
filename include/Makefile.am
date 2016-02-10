@@ -76,4 +76,5 @@ EXTRA_DIST = 	\
 	swaprep.h \
 	swapreq.h \
 	systemd-logind.h \
+        vidmodestr.h \
 	xsha1.h
