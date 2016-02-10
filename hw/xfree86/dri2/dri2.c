@@ -260,8 +260,7 @@ DRI2SwapLimit(DrawablePtr pDraw, int swap_limit)
 
     if (pPriv->target_sbc == -1 && !pPriv->blockedOnMsc) {
         if (pPriv->blockedClient) {
-            AttendClient(pPriv->blockedClient);
-            pPriv->blockedClient = NULL;
+            ClientSignal(pPriv->blockedClient);
         }
     }
 
@@ -414,7 +413,7 @@ DRI2DrawableGone(void *p, XID id)
     }
 
     if (pPriv->blockedClient)
-        AttendClient(pPriv->blockedClient);
+        ClientSignal(pPriv->blockedClient);
 
     free(pPriv);
 
@@ -690,6 +689,15 @@ DRI2InvalidateDrawable(DrawablePtr pDraw)
         ref->invalidate(pDraw, ref->priv, ref->id);
 }
 
+static Bool
+dri2ClientWake(ClientPtr client, void *closure)
+{
+    DRI2DrawablePtr pPriv = closure;
+    ClientWakeup(client);
+    pPriv->blockedClient = NULL;
+    return TRUE;
+}
+
 /*
  * In the direct rendered case, we throttle the clients that have more
  * than their share of outstanding swaps (and thus busy buffers) when a
@@ -710,7 +718,7 @@ DRI2ThrottleClient(ClientPtr client, DrawablePtr pDraw)
     if ((pPriv->swapsPending >= pPriv->swap_limit) && !pPriv->blockedClient) {
         ResetCurrentRequest(client);
         client->sequence--;
-        IgnoreClient(client);
+        ClientSleep(client, dri2ClientWake, pPriv);
         pPriv->blockedClient = client;
         return TRUE;
     }
@@ -722,7 +730,7 @@ static void
 __DRI2BlockClient(ClientPtr client, DRI2DrawablePtr pPriv)
 {
     if (pPriv->blockedClient == NULL) {
-        IgnoreClient(client);
+        ClientSleep(client, dri2ClientWake, pPriv);
         pPriv->blockedClient = client;
     }
 }
@@ -971,9 +979,8 @@ DRI2WaitMSCComplete(ClientPtr client, DrawablePtr pDraw, int frame,
                          frame, pPriv->swap_count);
 
     if (pPriv->blockedClient)
-        AttendClient(pPriv->blockedClient);
+        ClientSignal(pPriv->blockedClient);
 
-    pPriv->blockedClient = NULL;
     pPriv->blockedOnMsc = FALSE;
 }
 
@@ -1003,14 +1010,11 @@ DRI2WakeClient(ClientPtr client, DrawablePtr pDraw, int frame,
         ProcDRI2WaitMSCReply(client, ((CARD64) tv_sec * 1000000) + tv_usec,
                              frame, pPriv->swap_count);
         pPriv->target_sbc = -1;
-
-        AttendClient(pPriv->blockedClient);
-        pPriv->blockedClient = NULL;
+        ClientSignal(pPriv->blockedClient);
     }
     else if (pPriv->target_sbc == -1 && !pPriv->blockedOnMsc) {
         if (pPriv->blockedClient) {
-            AttendClient(pPriv->blockedClient);
-            pPriv->blockedClient = NULL;
+            ClientSignal(pPriv->blockedClient);
         }
     }
 }
