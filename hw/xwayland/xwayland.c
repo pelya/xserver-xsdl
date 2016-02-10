@@ -33,6 +33,11 @@
 #include <compositeext.h>
 #include <glx_extinit.h>
 
+#ifdef XF86VIDMODE
+#include <X11/extensions/xf86vmproto.h>
+_X_EXPORT Bool noXFree86VidModeExtension;
+#endif
+
 void
 ddxGiveUp(enum ExitCode error)
 {
@@ -711,6 +716,9 @@ xwl_log_handler(const char *format, va_list args)
 static const ExtensionModule xwayland_extensions[] = {
 #ifdef GLXEXT
     { GlxExtensionInit, "GLX", &noGlxExtension },
+#endif
+#ifdef XF86VIDMODE
+    { xwlVidModeExtensionInit, XF86VIDMODENAME, &noXFree86VidModeExtension },
 #endif
 };
 
