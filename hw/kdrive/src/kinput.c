@@ -51,6 +51,10 @@
 #include "inpututils.h"
 #include "optionstr.h"
 
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+#include <hotplug.h>
+#endif
+
 #ifdef KDRIVE_EVDEV
 #define DEV_INPUT_EVENT_PREFIX "/dev/input/event"
 #define DEV_INPUT_EVENT_PREFIX_LEN (sizeof(DEV_INPUT_EVENT_PREFIX) - 1)
@@ -407,7 +411,8 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
 #endif
         if (!pi->driver) {
             if (!pi->driverPrivate) {
-                ErrorF("no driver specified for %s\n", pi->name);
+                ErrorF("no driver specified for pointer device \"%s\" (%s)\n",
+                       pi->name ? pi->name : "(unnamed)", pi->path);
                 return BadImplementation;
             }
 
@@ -727,7 +732,8 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
 #endif
         if (!ki->driver) {
             if (!ki->driverPrivate) {
-                ErrorF("no driver specified!\n");
+                ErrorF("no driver specified for keyboard device \"%s\" (%s)\n",
+                       ki->name ? ki->name : "(unnamed)", ki->path);
                 return BadImplementation;
             }
 
@@ -901,6 +907,8 @@ KdNewKeyboard(void)
     ki->bellDuration = 200;
     ki->next = NULL;
     ki->options = NULL;
+    ki->name = strdup("Generic Keyboard");
+    ki->path = NULL;
     ki->xkbRules = strdup(XKB_DFLT_RULES);
     ki->xkbModel = strdup(XKB_DFLT_MODEL);
     ki->xkbLayout = strdup(XKB_DFLT_LAYOUT);
@@ -1084,18 +1092,52 @@ KdParseKbdOptions(KdKeyboardInfo * ki)
         const char *key = input_option_get_key(option);
         const char *value = input_option_get_value(option);
 
-        if (strcasecmp(key, "XkbRules") == 0)
+        if (
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+            strcasecmp(key, "xkb_rules") == 0 ||
+#endif
+            strcasecmp(key, "XkbRules") == 0)
             ki->xkbRules = strdup(value);
-        else if (strcasecmp(key, "XkbModel") == 0)
+        else if (
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+                 strcasecmp(key, "xkb_model") == 0 ||
+#endif
+                 strcasecmp(key, "XkbModel") == 0)
             ki->xkbModel = strdup(value);
-        else if (strcasecmp(key, "XkbLayout") == 0)
+        else if (
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+                 strcasecmp(key, "xkb_layout") == 0 ||
+#endif
+                 strcasecmp(key, "XkbLayout") == 0)
             ki->xkbLayout = strdup(value);
-        else if (strcasecmp(key, "XkbVariant") == 0)
+        else if (
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+                 strcasecmp(key, "xkb_variant") == 0 ||
+#endif
+                 strcasecmp(key, "XkbVariant") == 0)
             ki->xkbVariant = strdup(value);
-        else if (strcasecmp(key, "XkbOptions") == 0)
+        else if (
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+                 strcasecmp(key, "xkb_options") == 0 ||
+#endif
+                 strcasecmp(key, "XkbOptions") == 0)
             ki->xkbOptions = strdup(value);
-        else if (!strcasecmp(key, "device"))
+        else if (!strcasecmp(key, "device")) {
+            if (ki->path != NULL)
+                free(ki->path);
             ki->path = strdup(value);
+        }
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+        else if (!strcasecmp(key, "path")) {
+            if (ki->path != NULL)
+                free(ki->path);
+            ki->path = strdup(value);
+        }
+        else if (!strcasecmp(key, "name")) {
+            free(ki->name);
+            ki->name = strdup(value);
+        }
+#endif
         else if (!strcasecmp(key, "driver"))
             ki->driver = KdFindKeyboardDriver(value);
         else
@@ -1196,8 +1238,22 @@ KdParsePointerOptions(KdPointerInfo * pi)
             pi->transformCoordinates = TRUE;
         else if (!strcasecmp(key, "rawcoord"))
             pi->transformCoordinates = FALSE;
-        else if (!strcasecmp(key, "device"))
+        else if (!strcasecmp(key, "device")) {
+            if (pi->path != NULL)
+                free(pi->path);
             pi->path = strdup(value);
+        }
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+        else if (!strcasecmp(key, "path")) {
+            if (pi->path != NULL)
+                free(pi->path);
+            pi->path = strdup(value);
+        }
+        else if (!strcasecmp(key, "name")) {
+            free(pi->name);
+            pi->name = strdup(value);
+        }
+#endif
         else if (!strcasecmp(key, "protocol"))
             pi->protocol = strdup(value);
         else if (!strcasecmp(key, "driver"))
@@ -1320,11 +1376,21 @@ KdInitInput(void)
     }
 
     mieqInit();
+
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+    if (SeatId) /* Enable input hot-plugging */
+        config_init();
+#endif
 }
 
 void
 KdCloseInput(void)
 {
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+    if (SeatId) /* Input hot-plugging is enabled */
+        config_fini();
+#endif
+
     mieqFini();
 }
 
@@ -2141,24 +2207,29 @@ int
 NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
                       DeviceIntPtr *pdev)
 {
-    InputOption *option = NULL;
+    InputOption *option = NULL, *optionsdup = NULL;
     KdPointerInfo *pi = NULL;
     KdKeyboardInfo *ki = NULL;
 
     nt_list_for_each_entry(option, options, list.next) {
         const char *key = input_option_get_key(option);
         const char *value = input_option_get_value(option);
+        optionsdup = input_option_new(optionsdup, key, value);
 
         if (strcmp(key, "type") == 0) {
             if (strcmp(value, "pointer") == 0) {
                 pi = KdNewPointer();
-                if (!pi)
+                if (!pi) {
+                    input_option_free_list(&optionsdup);
                     return BadAlloc;
+                }
             }
             else if (strcmp(value, "keyboard") == 0) {
                 ki = KdNewKeyboard();
-                if (!ki)
+                if (!ki) {
+                    input_option_free_list(&optionsdup);
                     return BadAlloc;
+                }
             }
             else {
                 ErrorF("unrecognised device type!\n");
@@ -2168,25 +2239,66 @@ NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
 #ifdef CONFIG_HAL
         else if (strcmp(key, "_source") == 0 &&
                  strcmp(value, "server/hal") == 0) {
-            ErrorF("Ignoring device from HAL.\n");
-            return BadValue;
+            if (SeatId) {
+                /* Input hot-plugging is enabled */
+                if (attrs->flags & ATTR_POINTER) {
+                    pi = KdNewPointer();
+                    if (!pi) {
+                        input_option_free_list(&optionsdup);
+                        return BadAlloc;
+                    }
+                }
+                else if (attrs->flags & ATTR_KEYBOARD) {
+                    ki = KdNewKeyboard();
+                    if (!ki) {
+                        input_option_free_list(&optionsdup);
+                        return BadAlloc;
+                    }
+                }
+            }
+            else {
+                ErrorF("Ignoring device from HAL.\n");
+                input_option_free_list(&optionsdup);
+                return BadValue;
+            }
         }
 #endif
 #ifdef CONFIG_UDEV
         else if (strcmp(key, "_source") == 0 &&
                  strcmp(value, "server/udev") == 0) {
-            ErrorF("Ignoring device from udev.\n");
-            return BadValue;
+            if (SeatId) {
+                /* Input hot-plugging is enabled */
+                if (attrs->flags & ATTR_POINTER) {
+                    pi = KdNewPointer();
+                    if (!pi) {
+                        input_option_free_list(&optionsdup);
+                        return BadAlloc;
+                    }
+                }
+                else if (attrs->flags & ATTR_KEYBOARD) {
+                    ki = KdNewKeyboard();
+                    if (!ki) {
+                        input_option_free_list(&optionsdup);
+                        return BadAlloc;
+                    }
+                }
+            }
+            else {
+                ErrorF("Ignoring device from udev.\n");
+                input_option_free_list(&optionsdup);
+                return BadValue;
+            }
         }
 #endif
     }
 
     if (pi) {
-        pi->options = options;
+        pi->options = optionsdup;
         KdParsePointerOptions(pi);
 
         if (!pi->driver) {
-            ErrorF("couldn't find driver!\n");
+            ErrorF("couldn't find driver for pointer device \"%s\" (%s)\n",
+                   pi->name ? pi->name : "(unnamed)", pi->path);
             KdFreePointer(pi);
             return BadValue;
         }
@@ -2194,18 +2306,21 @@ NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
         if (KdAddPointer(pi) != Success ||
             ActivateDevice(pi->dixdev, TRUE) != Success ||
             EnableDevice(pi->dixdev, TRUE) != TRUE) {
-            ErrorF("couldn't add or enable pointer\n");
+            ErrorF("couldn't add or enable pointer \"%s\" (%s)\n",
+                   pi->name ? pi->name : "(unnamed)", pi->path);
+            KdFreePointer(pi);
             return BadImplementation;
         }
 
         *pdev = pi->dixdev;
     }
     else if (ki) {
-        ki->options = options;
+        ki->options = optionsdup;
         KdParseKbdOptions(ki);
 
         if (!ki->driver) {
-            ErrorF("couldn't find driver!\n");
+            ErrorF("couldn't find driver for keyboard device \"%s\" (%s)\n",
+                   ki->name ? ki->name : "(unnamed)", ki->path);
             KdFreeKeyboard(ki);
             return BadValue;
         }
@@ -2213,7 +2328,9 @@ NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
         if (KdAddKeyboard(ki) != Success ||
             ActivateDevice(ki->dixdev, TRUE) != Success ||
             EnableDevice(ki->dixdev, TRUE) != TRUE) {
-            ErrorF("couldn't add or enable keyboard\n");
+            ErrorF("couldn't add or enable keyboard \"%s\" (%s)\n",
+                   ki->name ? ki->name : "(unnamed)", ki->path);
+            KdFreeKeyboard(ki);
             return BadImplementation;
         }
 
@@ -2221,6 +2338,7 @@ NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
     }
     else {
         ErrorF("unrecognised device identifier!\n");
+        input_option_free_list(&optionsdup);
         return BadValue;
     }
 

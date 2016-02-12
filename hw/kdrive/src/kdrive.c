@@ -45,6 +45,14 @@
 
 #include <signal.h>
 
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+#include <hotplug.h>
+#endif
+
+/* This stub can be safely removed once we can
+ * split input and GPU parts in hotplug.h et al. */
+#include <systemd-logind.h>
+
 typedef struct _kdDepths {
     CARD8 depth;
     CARD8 bpp;
@@ -1125,6 +1133,11 @@ KdInitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
             KdAddScreen(pScreenInfo, screen, argc, argv);
 
     OsRegisterSigWrapper(KdSignalWrapper);
+
+#if defined(CONFIG_UDEV) || defined(CONFIG_HAL)
+    if (SeatId) /* Enable input hot-plugging */
+        config_pre_init();
+#endif
 }
 
 void
@@ -1143,3 +1156,36 @@ DPMSSupported(void)
 {
     return FALSE;
 }
+
+/* These stubs can be safely removed once we can
+ * split input and GPU parts in hotplug.h et al. */
+#ifdef CONFIG_UDEV_KMS
+void
+NewGPUDeviceRequest(struct OdevAttributes *attribs)
+{
+}
+
+void
+DeleteGPUDeviceRequest(struct OdevAttributes *attribs)
+{
+}
+#endif
+
+struct xf86_platform_device *
+xf86_find_platform_device_by_devnum(int major, int minor)
+{
+    return NULL;
+}
+
+#ifdef SYSTEMD_LOGIND
+void
+systemd_logind_vtenter(void)
+{
+}
+
+void
+systemd_logind_release_fd(int major, int minor, int fd)
+{
+    close(fd);
+}
+#endif
