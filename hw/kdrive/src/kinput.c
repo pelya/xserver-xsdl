@@ -2343,7 +2343,9 @@ NewInputDeviceRequest(InputOption *options, InputAttributes * attrs,
         *pdev = ki->dixdev;
     }
     else {
-        ErrorF("unrecognised device identifier!\n");
+        ErrorF("unrecognised device identifier: %s\n",
+               input_option_get_value(input_option_find(optionsdup,
+                                                        "device")));
         input_option_free_list(&optionsdup);
         return BadValue;
     }
