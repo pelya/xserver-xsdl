@@ -102,6 +102,12 @@ static int kdNumInputFds;
 
 extern Bool kdRawPointerCoordinates;
 
+extern const char *kdGlobalXkbRules;
+extern const char *kdGlobalXkbModel;
+extern const char *kdGlobalXkbLayout;
+extern const char *kdGlobalXkbVariant;
+extern const char *kdGlobalXkbOptions;
+
 static void
 KdSigio(int sig)
 {
@@ -909,11 +915,11 @@ KdNewKeyboard(void)
     ki->options = NULL;
     ki->name = strdup("Generic Keyboard");
     ki->path = NULL;
-    ki->xkbRules = strdup(XKB_DFLT_RULES);
-    ki->xkbModel = strdup(XKB_DFLT_MODEL);
-    ki->xkbLayout = strdup(XKB_DFLT_LAYOUT);
-    ki->xkbVariant = strdup(XKB_DFLT_VARIANT);
-    ki->xkbOptions = strdup(XKB_DFLT_OPTIONS);
+    ki->xkbRules = strdup(kdGlobalXkbRules ? kdGlobalXkbRules : XKB_DFLT_RULES);
+    ki->xkbModel = strdup(kdGlobalXkbModel ? kdGlobalXkbModel : XKB_DFLT_MODEL);
+    ki->xkbLayout = strdup(kdGlobalXkbLayout ? kdGlobalXkbLayout : XKB_DFLT_LAYOUT);
+    ki->xkbVariant = strdup(kdGlobalXkbVariant ? kdGlobalXkbVariant :XKB_DFLT_VARIANT);
+    ki->xkbOptions = strdup(kdGlobalXkbOptions ? kdGlobalXkbOptions : XKB_DFLT_OPTIONS);
 
     return ki;
 }

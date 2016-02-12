@@ -89,6 +89,11 @@ char *kdSwitchCmd;
 DDXPointRec kdOrigin;
 Bool kdHasPointer = FALSE;
 Bool kdHasKbd = FALSE;
+const char *kdGlobalXkbRules = NULL;
+const char *kdGlobalXkbModel = NULL;
+const char *kdGlobalXkbLayout = NULL;
+const char *kdGlobalXkbVariant = NULL;
+const char *kdGlobalXkbOptions = NULL;
 
 static Bool kdCaughtSignal = FALSE;
 
@@ -455,6 +460,11 @@ KdUseMsg(void)
         ("-mouse driver [,n,,options]    Specify the pointer driver and its options (n is the number of buttons)\n");
     ErrorF
         ("-keybd driver [,,options]      Specify the keyboard driver and its options\n");
+    ErrorF("-xkb-rules       Set default XkbRules value (can be overriden by -keybd options)\n");
+    ErrorF("-xkb-model       Set default XkbModel value (can be overriden by -keybd options)\n");
+    ErrorF("-xkb-layout      Set default XkbLayout value (can be overriden by -keybd options)\n");
+    ErrorF("-xkb-variant     Set default XkbVariant value (can be overriden by -keybd options)\n");
+    ErrorF("-xkb-options     Set default XkbOptions value (can be overriden by -keybd options)\n");
     ErrorF("-zaphod          Disable cursor screen switching\n");
     ErrorF("-2button         Emulate 3 button mouse\n");
     ErrorF("-3button         Disable 3 button mouse emulation\n");
@@ -562,6 +572,46 @@ KdProcessArgument(int argc, char **argv, int i)
     if (!strncmp(argv[i], "vt", 2) &&
         sscanf(argv[i], "vt%2d", &kdVirtualTerminal) == 1) {
         return 1;
+    }
+    if (!strcmp(argv[i], "-xkb-rules")) {
+        if (i + 1 >= argc) {
+            UseMsg();
+            FatalError("Missing argument for option -xkb-rules.\n");
+        }
+        kdGlobalXkbRules = argv[i + 1];
+        return 2;
+    }
+    if (!strcmp(argv[i], "-xkb-model")) {
+        if (i + 1 >= argc) {
+            UseMsg();
+            FatalError("Missing argument for option -xkb-model.\n");
+        }
+        kdGlobalXkbModel = argv[i + 1];
+        return 2;
+    }
+    if (!strcmp(argv[i], "-xkb-layout")) {
+        if (i + 1 >= argc) {
+            UseMsg();
+            FatalError("Missing argument for option -xkb-layout.\n");
+        }
+        kdGlobalXkbLayout = argv[i + 1];
+        return 2;
+    }
+    if (!strcmp(argv[i], "-xkb-variant")) {
+        if (i + 1 >= argc) {
+            UseMsg();
+            FatalError("Missing argument for option -xkb-variant.\n");
+        }
+        kdGlobalXkbVariant = argv[i + 1];
+        return 2;
+    }
+    if (!strcmp(argv[i], "-xkb-options")) {
+        if (i + 1 >= argc) {
+            UseMsg();
+            FatalError("Missing argument for option -xkb-options.\n");
+        }
+        kdGlobalXkbOptions = argv[i + 1];
+        return 2;
     }
     if (!strcmp(argv[i], "-mouse") || !strcmp(argv[i], "-pointer")) {
         if (i + 1 >= argc)
