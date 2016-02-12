@@ -49,6 +49,7 @@ struct xwl_screen {
     ScreenPtr screen;
     WindowPtr pointer_limbo_window;
     int expecting_event;
+    enum RootClipMode root_clip_mode;
 
     int wm_fd;
     int listen_fds[5];

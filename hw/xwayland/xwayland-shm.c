@@ -279,16 +279,16 @@ xwl_shm_create_screen_resources(ScreenPtr screen)
     if (!ret)
         return ret;
 
-    if (xwl_screen->rootless) {
+    if (xwl_screen->rootless)
         screen->devPrivate =
             fbCreatePixmap(screen, 0, 0, screen->rootDepth, 0);
-        SetRootClip(screen, FALSE);
-    }
     else
         screen->devPrivate =
             xwl_shm_create_pixmap(screen, screen->width, screen->height,
                                   screen->rootDepth,
                                   CREATE_PIXMAP_USAGE_BACKING_PIXMAP);
+
+    SetRootClip(screen, xwl_screen->root_clip_mode);
 
     return screen->devPrivate != NULL;
 }

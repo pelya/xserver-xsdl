@@ -590,6 +590,13 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
         }
     }
 
+    /* In rootless mode, we don't have any screen storage, and the only
+     * rendering should be to redirected mode. */
+    if (xwl_screen->rootless)
+        xwl_screen->root_clip_mode = ROOT_CLIP_INPUT_ONLY;
+    else
+        xwl_screen->root_clip_mode = ROOT_CLIP_FULL;
+
     if (xwl_screen->listen_fd_count > 0) {
         if (xwl_screen->wm_fd >= 0)
             AddCallback(&SelectionCallback, wm_selection_callback, xwl_screen);

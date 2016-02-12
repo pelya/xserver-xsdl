@@ -99,7 +99,7 @@ KdDisableScreen(ScreenPtr pScreen)
     if (!pScreenPriv->enabled)
         return;
     if (!pScreenPriv->closed)
-        SetRootClip(pScreen, FALSE);
+        SetRootClip(pScreen, ROOT_CLIP_NONE);
     KdDisableColormap(pScreen);
     if (!pScreenPriv->screen->dumb && pScreenPriv->card->cfuncs->disableAccel)
         (*pScreenPriv->card->cfuncs->disableAccel) (pScreen);
@@ -182,7 +182,7 @@ KdEnableScreen(ScreenPtr pScreen)
     if (!pScreenPriv->screen->dumb && pScreenPriv->card->cfuncs->enableAccel)
         (*pScreenPriv->card->cfuncs->enableAccel) (pScreen);
     KdEnableColormap(pScreen);
-    SetRootClip(pScreen, TRUE);
+    SetRootClip(pScreen, ROOT_CLIP_FULL);
     if (pScreenPriv->card->cfuncs->dpms)
         (*pScreenPriv->card->cfuncs->dpms) (pScreen, pScreenPriv->dpmsState);
     return TRUE;
