@@ -721,7 +721,9 @@ ProcRRSetMonitor(ClientPtr client)
     monitor->geometry.mmHeight = stuff->monitor.heightInMillimeters;
 
     r = RRMonitorAdd(client, screen, monitor);
-    if (r != Success)
+    if (r == Success)
+        RRSendConfigNotify(screen);
+    else
         RRMonitorFree(monitor);
     return r;
 }
@@ -745,5 +747,8 @@ ProcRRDeleteMonitor(ClientPtr client)
         return BadAtom;
     }
 
-    return RRMonitorDelete(client, screen, stuff->name);
+    r = RRMonitorDelete(client, screen, stuff->name);
+    if (r == Success)
+        RRSendConfigNotify(screen);
+    return r;
 }
