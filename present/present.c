@@ -443,6 +443,15 @@ present_unflip(ScreenPtr screen)
     assert (!screen_priv->unflip_event_id);
     assert (!screen_priv->flip_pending);
 
+    /* Update the screen pixmap with the current flip pixmap contents
+     * Only do this the first time for a particular unflip operation, or
+     * we'll probably scribble over other windows
+     */
+    if (screen->GetWindowPixmap(screen->root) == screen_priv->flip_pixmap) {
+        present_copy_region(&pixmap->drawable, screen_priv->flip_pixmap,
+                            NULL, 0, 0);
+    }
+
     if (screen_priv->flip_pixmap && screen_priv->flip_window)
         present_set_tree_pixmap(screen_priv->flip_window,
                                 screen_priv->flip_pixmap,
@@ -450,13 +459,6 @@ present_unflip(ScreenPtr screen)
 
     present_set_tree_pixmap(screen->root, NULL, pixmap);
 
-    /* Update the screen pixmap with the current flip pixmap contents
-     */
-    if (screen_priv->flip_pixmap && screen_priv->flip_window) {
-        present_copy_region(&pixmap->drawable,
-                            screen_priv->flip_pixmap,
-                            NULL, 0, 0);
-    }
     screen_priv->unflip_event_id = ++present_event_id;
     DebugPresent(("u %lld\n", screen_priv->unflip_event_id));
     (*screen_priv->info->unflip) (screen, screen_priv->unflip_event_id);
