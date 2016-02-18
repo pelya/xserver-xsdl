@@ -414,6 +414,28 @@ present_set_tree_pixmap(WindowPtr window,
 }
 
 static void
+present_restore_screen_pixmap(ScreenPtr screen)
+{
+    present_screen_priv_ptr screen_priv = present_screen_priv(screen);
+    PixmapPtr screen_pixmap = (*screen->GetScreenPixmap)(screen);
+    PixmapPtr flip_pixmap = screen_priv->flip_pixmap;
+    WindowPtr flip_window = screen_priv->flip_window;
+
+    assert (flip_pixmap);
+
+    /* Update the screen pixmap with the current flip pixmap contents
+     * Only do this the first time for a particular unflip operation, or
+     * we'll probably scribble over other windows
+     */
+    if (screen->GetWindowPixmap(screen->root) == flip_pixmap)
+        present_copy_region(&screen_pixmap->drawable, flip_pixmap, NULL, 0, 0);
+
+    if (flip_window)
+        present_set_tree_pixmap(flip_window, flip_pixmap, screen_pixmap);
+    present_set_tree_pixmap(screen->root, NULL, screen_pixmap);
+}
+
+static void
 present_set_abort_flip(ScreenPtr screen)
 {
     present_screen_priv_ptr screen_priv = present_screen_priv(screen);
@@ -438,26 +460,11 @@ static void
 present_unflip(ScreenPtr screen)
 {
     present_screen_priv_ptr screen_priv = present_screen_priv(screen);
-    PixmapPtr pixmap = (*screen->GetScreenPixmap)(screen);
 
     assert (!screen_priv->unflip_event_id);
     assert (!screen_priv->flip_pending);
 
-    /* Update the screen pixmap with the current flip pixmap contents
-     * Only do this the first time for a particular unflip operation, or
-     * we'll probably scribble over other windows
-     */
-    if (screen->GetWindowPixmap(screen->root) == screen_priv->flip_pixmap) {
-        present_copy_region(&pixmap->drawable, screen_priv->flip_pixmap,
-                            NULL, 0, 0);
-    }
-
-    if (screen_priv->flip_pixmap && screen_priv->flip_window)
-        present_set_tree_pixmap(screen_priv->flip_window,
-                                screen_priv->flip_pixmap,
-                                pixmap);
-
-    present_set_tree_pixmap(screen->root, NULL, pixmap);
+    present_restore_screen_pixmap(screen);
 
     screen_priv->unflip_event_id = ++present_event_id;
     DebugPresent(("u %lld\n", screen_priv->unflip_event_id));
