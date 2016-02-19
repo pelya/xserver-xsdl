@@ -109,7 +109,7 @@ create_tmpfile_cloexec(char *tmpname)
 static int
 os_create_anonymous_file(off_t size)
 {
-    static const char template[] = "/weston-shared-XXXXXX";
+    static const char template[] = "/xwayland-shared-XXXXXX";
     const char *path;
     char *name;
     int fd;
