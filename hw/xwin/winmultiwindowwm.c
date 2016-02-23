@@ -243,9 +243,6 @@ MessageName(winWMMessagePtr msg)
     case WM_WM_CHANGE_STATE:
       return "WM_WM_CHANGE_STATE";
       break;
-    case WM_WM_MAP:
-      return "WM_WM_MAP";
-      break;
     case WM_WM_MAP2:
       return "WM_WM_MAP2";
       break;
@@ -770,16 +767,6 @@ winMultiWindowWMProc(void *pArg)
         case WM_WM_LOWER:
             /* Lower the window */
             XLowerWindow(pWMInfo->pDisplay, pNode->msg.iWindow);
-            break;
-
-        case WM_WM_MAP:
-            /* Put a note as to the HWND associated with this Window */
-            XChangeProperty(pWMInfo->pDisplay, pNode->msg.iWindow, pWMInfo->atmPrivMap, XA_INTEGER,
-                            32,
-                            PropModeReplace,
-                            (unsigned char *) &(pNode->msg.hwndWindow), sizeof(HWND)/4);
-            UpdateName(pWMInfo, pNode->msg.iWindow);
-            UpdateIcon(pWMInfo, pNode->msg.iWindow);
             break;
 
         case WM_WM_MAP2:

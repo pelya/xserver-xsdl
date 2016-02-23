@@ -102,7 +102,6 @@ typedef struct _winWMMessageRec {
 #define		WM_WM_SIZE		(WM_USER + 2)
 #define		WM_WM_RAISE		(WM_USER + 3)
 #define		WM_WM_LOWER		(WM_USER + 4)
-#define		WM_WM_MAP		(WM_USER + 5)
 #define		WM_WM_UNMAP		(WM_USER + 6)
 #define		WM_WM_KILL		(WM_USER + 7)
 #define		WM_WM_ACTIVATE		(WM_USER + 8)
