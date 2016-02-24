@@ -712,6 +712,20 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
             if (window == screen_priv->flip_window)
                 present_unflip(screen);
         }
+
+        /* If present_flip failed, we may have to requeue for the target MSC */
+        if (msc_is_after(vblank->target_msc, crtc_msc) &&
+            Success == present_queue_vblank(screen,
+                                            vblank->crtc,
+                                            vblank->event_id,
+                                            vblank->target_msc)) {
+            xorg_list_add(&vblank->event_queue, &present_exec_queue);
+            xorg_list_append(&vblank->window_list,
+                             &present_get_window_priv(window, TRUE)->vblank);
+            vblank->queued = TRUE;
+            return;
+        }
+
         present_copy_region(&window->drawable, vblank->pixmap, vblank->update, vblank->x_off, vblank->y_off);
 
         /* present_copy_region sticks the region into a scratch GC,
