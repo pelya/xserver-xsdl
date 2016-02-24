@@ -46,6 +46,28 @@ static void
 present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc);
 
 /*
+ * Returns:
+ * TRUE if the first MSC value is after the second one
+ * FALSE if the first MSC value is equal to or before the second one
+ */
+static Bool
+msc_is_after(uint64_t test, uint64_t reference)
+{
+    return (int64_t)(test - reference) > 0;
+}
+
+/*
+ * Returns:
+ * TRUE if the first MSC value is equal to or after the second one
+ * FALSE if the first MSC value is before the second one
+ */
+static Bool
+msc_is_equal_or_after(uint64_t test, uint64_t reference)
+{
+    return (int64_t)(test - reference) >= 0;
+}
+
+/*
  * Copies the update region from a pixmap to the target drawable
  */
 static void
@@ -715,28 +737,6 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
 
     present_vblank_notify(vblank, vblank->kind, mode, ust, crtc_msc);
     present_vblank_destroy(vblank);
-}
-
-/*
- * Returns:
- * TRUE if the first MSC value is after the second one
- * FALSE if the first MSC value is equal to or before the second one
- */
-static Bool
-msc_is_after(uint64_t test, uint64_t reference)
-{
-    return (int64_t)(test - reference) > 0;
-}
-
-/*
- * Returns:
- * TRUE if the first MSC value is equal to or after the second one
- * FALSE if the first MSC value is before the second one
- */
-static Bool
-msc_is_equal_or_after(uint64_t test, uint64_t reference)
-{
-    return (int64_t)(test - reference) >= 0;
 }
 
 int
