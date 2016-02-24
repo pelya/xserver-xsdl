@@ -582,10 +582,8 @@ present_check_flip_window (WindowPtr window)
     xorg_list_for_each_entry(vblank, &window_priv->vblank, window_list) {
         if (vblank->queued && vblank->flip && !present_check_flip(vblank->crtc, window, vblank->pixmap, vblank->sync_flip, NULL, 0, 0)) {
             vblank->flip = FALSE;
-            if (vblank->sync_flip) {
+            if (vblank->sync_flip)
                 vblank->requeue = TRUE;
-                vblank->target_msc++;
-            }
         }
     }
 }
@@ -622,7 +620,8 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
 
     if (vblank->requeue) {
         vblank->requeue = FALSE;
-        if (Success == present_queue_vblank(screen,
+        if (msc_is_after(vblank->target_msc, crtc_msc) &&
+            Success == present_queue_vblank(screen,
                                             vblank->crtc,
                                             vblank->event_id,
                                             vblank->target_msc))
