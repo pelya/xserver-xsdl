@@ -759,10 +759,6 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
             return BadImplementation;
         }
 
-        if ((*ki->driver->Init) (ki) != Success) {
-            return !Success;
-        }
-
         memset(&rmlvo, 0, sizeof(rmlvo));
         rmlvo.rules = ki->xkbRules;
         rmlvo.model = ki->xkbModel;
@@ -773,6 +769,10 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
         if (!ret) {
             ErrorF("Couldn't initialise keyboard %s\n", ki->name);
             return BadImplementation;
+        }
+
+        if ((*ki->driver->Init) (ki) != Success) {
+            return !Success;
         }
 
         xiclass = AtomFromName(XI_KEYBOARD);
