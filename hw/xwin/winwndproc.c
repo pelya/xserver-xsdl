@@ -1215,7 +1215,7 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         default:
             /* It's probably one of the custom menus... */
-            if (HandleCustomWM_COMMAND(0, LOWORD(wParam)))
+            if (HandleCustomWM_COMMAND(0, LOWORD(wParam), s_pScreenPriv))
                 return 0;
         }
         break;
