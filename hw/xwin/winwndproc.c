@@ -162,7 +162,7 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
          * their own mode when they become active.
          */
         if (s_pScreenInfo->fFullScreen
-            || (s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL)) {
+            && (s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL)) {
             break;
         }
 
