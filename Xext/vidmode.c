@@ -33,6 +33,8 @@ from Kaleb S. KEITHLEY
 #include <dix-config.h>
 #endif
 
+#ifdef XF86VIDMODE
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/extensions/xf86vmproto.h>
@@ -2145,3 +2147,5 @@ VidModePtr VidModeInit(ScreenPtr pScreen)
 
     return VidModeGetPtr(pScreen);
 }
+
+#endif /* XF86VIDMODE */
