@@ -844,7 +844,8 @@ XvdiSelectVideoNotify(ClientPtr client, DrawablePtr pDraw, BOOL onoff)
 
     tpn->client = NULL;
     tpn->id = FakeClientID(client->index);
-    AddResource(tpn->id, XvRTVideoNotify, tpn);
+    if (!AddResource(tpn->id, XvRTVideoNotify, tpn))
+        return BadAlloc;
 
     tpn->client = client;
     return Success;
@@ -893,7 +894,8 @@ XvdiSelectPortNotify(ClientPtr client, XvPortPtr pPort, BOOL onoff)
 
     tpn->client = client;
     tpn->id = FakeClientID(client->index);
-    AddResource(tpn->id, XvRTPortNotify, tpn);
+    if (!AddResource(tpn->id, XvRTPortNotify, tpn))
+        return BadAlloc;
 
     return Success;
 
