@@ -49,13 +49,6 @@
 #define NULL ((void *)0)
 #endif
 
-typedef enum {
-    LD_RESOLV_IFDONE = 0,       /* only check if no more
-                                   delays pending */
-    LD_RESOLV_NOW = 1,          /* finish one delay step */
-    LD_RESOLV_FORCE = 2         /* force checking... */
-} LoaderResolveOptions;
-
 #define DEFAULT_LIST ((char *)-1)
 
 /* Built-in ABI classes.  These definitions must not be changed. */
@@ -92,19 +85,13 @@ typedef enum {
 #define MODULEVENDORSTRING	"X.Org Foundation"
 #endif
 
-/* Error return codes for errmaj.  New codes must only be added at the end. */
+/* Error return codes for errmaj */
 typedef enum {
     LDR_NOERROR = 0,
     LDR_NOMEM,                  /* memory allocation failed */
     LDR_NOENT,                  /* Module file does not exist */
-    LDR_NOSUBENT,               /* pre-requsite file to be sub-loaded does not exist */
-    LDR_NOSPACE,                /* internal module array full */
-    LDR_NOMODOPEN,              /* module file could not be opened (check errmin) */
-    LDR_UNKTYPE,                /* file is not a recognized module type */
     LDR_NOLOAD,                 /* type specific loader failed */
     LDR_ONCEONLY,               /* Module should only be loaded once (not an error) */
-    LDR_NOPORTOPEN,             /* could not open port (check errmin) */
-    LDR_NOHARDWARE,             /* could not query/initialize the hardware device */
     LDR_MISMATCH,               /* the module didn't match the spec'd requirments */
     LDR_BADUSAGE,               /* LoadModule is called with bad arguments */
     LDR_INVALID,                /* The module doesn't have a valid ModuleData object */

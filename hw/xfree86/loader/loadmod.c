@@ -1094,30 +1094,12 @@ LoaderErrorMsg(const char *name, const char *modname, int errmaj, int errmin)
     case LDR_NOENT:
         msg = "module does not exist";
         break;
-    case LDR_NOSUBENT:
-        msg = "a required submodule could not be loaded";
-        break;
-    case LDR_NOSPACE:
-        msg = "too many modules";
-        break;
-    case LDR_NOMODOPEN:
-        msg = "open failed";
-        break;
-    case LDR_UNKTYPE:
-        msg = "unknown module type";
-        break;
     case LDR_NOLOAD:
         msg = "loader failed";
         break;
     case LDR_ONCEONLY:
         msg = "already loaded";
         type = X_INFO;
-        break;
-    case LDR_NOPORTOPEN:
-        msg = "port open failed";
-        break;
-    case LDR_NOHARDWARE:
-        msg = "no hardware found";
         break;
     case LDR_MISMATCH:
         msg = "module requirement mismatch";
