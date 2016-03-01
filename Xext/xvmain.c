@@ -800,10 +800,9 @@ XvdiSelectVideoNotify(ClientPtr client, DrawablePtr pDraw, BOOL onoff)
         if (!(tpn = malloc(sizeof(XvVideoNotifyRec))))
             return BadAlloc;
         tpn->next = NULL;
-        if (!AddResource(pDraw->id, XvRTVideoNotifyList, tpn)) {
-            free(tpn);
+        tpn->client = NULL;
+        if (!AddResource(pDraw->id, XvRTVideoNotifyList, tpn))
             return BadAlloc;
-        }
     }
     else {
         /* LOOK TO SEE IF ENTRY ALREADY EXISTS */
