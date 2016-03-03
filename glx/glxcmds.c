@@ -1931,7 +1931,7 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     xGLXGetDrawableAttributesReply reply;
     __GLXdrawable *pGlxDraw = NULL;
     DrawablePtr pDraw;
-    CARD32 attributes[14];
+    CARD32 attributes[16];
     int num = 0, error;
 
     if (!validGlxDrawable(client, drawId, GLX_DRAWABLE_ANY,
@@ -1954,6 +1954,7 @@ DoGetDrawableAttributes(__GLXclientState * cl, XID drawId)
     ATTRIB(GLX_Y_INVERTED_EXT, GL_FALSE);
     ATTRIB(GLX_WIDTH, pDraw->width);
     ATTRIB(GLX_HEIGHT, pDraw->height);
+    ATTRIB(GLX_SCREEN, pDraw->pScreen->myNum);
     if (pGlxDraw) {
         ATTRIB(GLX_TEXTURE_TARGET_EXT,
                pGlxDraw->target == GL_TEXTURE_2D ?
