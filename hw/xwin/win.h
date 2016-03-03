@@ -293,15 +293,6 @@ typedef Bool (*winReleasePrimarySurfaceProcPtr) (ScreenPtr);
 typedef Bool (*winCreateScreenResourcesProc) (ScreenPtr);
 
 /*
- * GC (graphics context) privates
- */
-
-typedef struct {
-    HDC hdc;
-    HDC hdcMem;
-} winPrivGCRec, *winPrivGCPtr;
-
-/*
  * Pixmap privates
  */
 
@@ -323,6 +314,7 @@ typedef struct {
     RGBQUAD rgbColors[WIN_NUM_PALETTE_ENTRIES];
     PALETTEENTRY peColors[WIN_NUM_PALETTE_ENTRIES];
 } winPrivCmapRec, *winPrivCmapPtr;
+
 
 /*
  * Windows Cursor handling.
