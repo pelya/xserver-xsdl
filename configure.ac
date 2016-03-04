@@ -1510,6 +1510,14 @@ if test "x$XDMAUTH" = xyes; then
 	fi
 fi
 
+if test "x$XF86VIDMODE" = xauto; then
+	PKG_CHECK_EXISTS($VIDMODEPROTO, [XF86VIDMODE=yes], [XF86VIDMODE=no])
+fi
+if test "x$XF86VIDMODE" = xyes; then
+	AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
+fi
+AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
+
 AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
 AC_DEFINE_DIR(SERVER_MISC_CONFIG_PATH, SERVERCONFIG, [Server miscellaneous config path])
 AC_DEFINE_DIR(BASE_FONT_PATH, FONTROOTDIR, [Default base font path])
@@ -2019,13 +2027,8 @@ if test "x$XORG" = xyes; then
 		AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
 	fi
 
-	if test "x$XF86VIDMODE" = xauto; then
-		PKG_CHECK_MODULES(XF86VIDMODE, $VIDMODEPROTO, [XF86VIDMODE=yes], [XF86VIDMODE=no])
-	fi
 	if test "x$XF86VIDMODE" = xyes; then
 		XORG_MODULES="$XORG_MODULES $VIDMODEPROTO"
-		PKG_CHECK_MODULES(XF86VIDMODE, $VIDMODEPROTO)
-		AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
 	fi
 
 	if test -n "$XORG_MODULES"; then
@@ -2107,7 +2110,6 @@ AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])
 AM_CONDITIONAL([LNXAPM], [test "x$linux_apm" = xyes])
 AM_CONDITIONAL([SOLARIS_VT], [test "x$solaris_vt" = xyes])
 AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
-AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 AM_CONDITIONAL([XORG_BUS_PLATFORM], [test "x$CONFIG_UDEV_KMS" = xyes])
 AM_CONDITIONAL([XORG_DRIVER_MODESETTING], [test "x$XORG_DRIVER_MODESETTING" = xyes])
 
@@ -2453,7 +2455,11 @@ AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 
 dnl Xwayland DDX
 
-PKG_CHECK_MODULES(XWAYLANDMODULES, [wayland-client >= 1.3.0 libdrm epoxy], [have_xwayland=yes], [have_xwayland=no])
+XWAYLANDMODULES="wayland-client >= 1.3.0 libdrm epoxy"
+if test "x$XF86VIDMODE" = xyes; then
+	XWAYLANDMODULES="$XWAYLANDMODULES $VIDMODEPROTO"
+fi
+PKG_CHECK_MODULES(XWAYLANDMODULES, [$XWAYLANDMODULES], [have_xwayland=yes], [have_xwayland=no])
 AC_MSG_CHECKING([whether to build Xwayland DDX])
 if test "x$XWAYLAND" = xauto; then
    XWAYLAND="$have_xwayland"
