@@ -544,7 +544,6 @@ __glXGetDrawable(__GLXcontext * glxc, GLXDrawable drawId, ClientPtr client,
 
     /* since we are creating the drawablePrivate, drawId should be new */
     if (!AddResource(drawId, __glXDrawableRes, pGlxDraw)) {
-        pGlxDraw->destroy(pGlxDraw);
         *error = BadAlloc;
         return NULL;
     }
@@ -1239,20 +1238,16 @@ DoCreateGLXDrawable(ClientPtr client, __GLXscreen * pGlxScreen,
     if (pGlxDraw == NULL)
         return BadAlloc;
 
-    if (!AddResource(glxDrawableId, __glXDrawableRes, pGlxDraw)) {
-        pGlxDraw->destroy(pGlxDraw);
+    if (!AddResource(glxDrawableId, __glXDrawableRes, pGlxDraw))
         return BadAlloc;
-    }
 
     /*
      * Windows aren't refcounted, so track both the X and the GLX window
      * so we get called regardless of destruction order.
      */
     if (drawableId != glxDrawableId && type == GLX_DRAWABLE_WINDOW &&
-        !AddResource(pDraw->id, __glXDrawableRes, pGlxDraw)) {
-        pGlxDraw->destroy(pGlxDraw);
+        !AddResource(pDraw->id, __glXDrawableRes, pGlxDraw))
         return BadAlloc;
-    }
 
     return Success;
 }
