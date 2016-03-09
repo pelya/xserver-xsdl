@@ -89,6 +89,7 @@ AccessXInit(DeviceIntPtr keybd)
     xkbi->repeatKeyTimer = NULL;
     xkbi->krgTimer = NULL;
     xkbi->beepTimer = NULL;
+    xkbi->checkRepeat = NULL;
     ctrls->repeat_delay = XkbDfltRepeatDelay;
     ctrls->repeat_interval = XkbDfltRepeatInterval;
     ctrls->debounce_delay = 300;
@@ -317,7 +318,8 @@ AccessXRepeatKeyExpire(OsTimerPtr timer, CARD32 now, void *arg)
     if (xkbi->repeatKey == 0)
         return 0;
 
-    AccessXKeyboardEvent(dev, ET_KeyPress, xkbi->repeatKey, TRUE);
+    if (xkbi->checkRepeat == NULL || xkbi->checkRepeat (dev, xkbi, xkbi->repeatKey))
+        AccessXKeyboardEvent(dev, ET_KeyPress, xkbi->repeatKey, TRUE);
 
     return xkbi->desc->ctrls->repeat_interval;
 }

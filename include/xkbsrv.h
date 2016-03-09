@@ -142,6 +142,10 @@ typedef struct _XkbFilter {
     struct _XkbFilter *next;
 } XkbFilterRec, *XkbFilterPtr;
 
+typedef Bool (*XkbSrvCheckRepeatPtr) (DeviceIntPtr dev,
+                                      struct _XkbSrvInfo * /* xkbi */ ,
+                                      unsigned /* keycode */);
+
 typedef struct _XkbSrvInfo {
     XkbStateRec prev_state;
     XkbStateRec state;
@@ -189,6 +193,8 @@ typedef struct _XkbSrvInfo {
 
     int szFilters;
     XkbFilterPtr filters;
+
+    XkbSrvCheckRepeatPtr checkRepeat;
 } XkbSrvInfoRec, *XkbSrvInfoPtr;
 
 #define	XkbSLI_IsDefault	(1L<<0)
