@@ -519,6 +519,13 @@ block_handler(void *data, OSTimePtr pTimeout, void *pRead)
     xwl_dispatch_events (xwl_screen);
 }
 
+void
+xwl_sync_events (struct xwl_screen *xwl_screen)
+{
+    xwl_dispatch_events (xwl_screen);
+    xwl_read_events (xwl_screen);
+}
+
 static CARD32
 add_client_fd(OsTimerPtr timer, CARD32 time, void *arg)
 {

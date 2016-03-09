@@ -155,6 +155,8 @@ struct xwl_output {
 
 struct xwl_pixmap;
 
+void xwl_sync_events (struct xwl_screen *xwl_screen);
+
 Bool xwl_screen_init_cursor(struct xwl_screen *xwl_screen);
 
 struct xwl_screen *xwl_screen_get(ScreenPtr screen);

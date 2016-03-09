@@ -560,6 +560,9 @@ keyboard_check_repeat (DeviceIntPtr dev, XkbSrvInfoPtr xkbi, unsigned key)
     struct wl_callback *callback;
     struct sync_pending *p;
 
+    /* Make sure we didn't miss a possible reply from the compositor */
+    xwl_sync_events (xwl_screen);
+
     xorg_list_for_each_entry(p, &xwl_seat->sync_pending, l) {
         if (p->pending_dev == dev) {
             ErrorF("Key repeat discarded, Wayland compositor doesn't "
