@@ -287,7 +287,7 @@ xf86_set_cursor_colors(ScrnInfoPtr scrn, int bg, int fg)
 {
     ScreenPtr screen = scrn->pScreen;
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
-    CursorPtr cursor = xf86_config->cursor;
+    CursorPtr cursor = xf86CurrentCursor(screen);
     int c;
     CARD8 *bits = cursor ?
         dixLookupScreenPrivate(&cursor->devPrivates, CursorScreenKey, screen)
@@ -456,6 +456,7 @@ xf86_crtc_load_cursor_image(xf86CrtcPtr crtc, CARD8 *src)
     CARD8 *cursor_image;
     const Rotation rotation = xf86_crtc_cursor_rotation(crtc);
 
+    xf86_config->cursor = xf86CurrentCursor(xf86ScrnToScreen(scrn));
     crtc->cursor_argb = FALSE;
 
     if (rotation == RR_Rotate_0)
@@ -516,11 +517,6 @@ xf86_use_hw_cursor(ScreenPtr screen, CursorPtr cursor)
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     xf86CursorInfoPtr cursor_info = xf86_config->cursor_info;
     int c;
-
-    cursor = RefCursor(cursor);
-    if (xf86_config->cursor)
-        FreeCursor(xf86_config->cursor, None);
-    xf86_config->cursor = cursor;
 
     if (cursor->bits->width > cursor_info->MaxWidth ||
         cursor->bits->height > cursor_info->MaxHeight)
@@ -593,6 +589,7 @@ xf86_load_cursor_argb(ScrnInfoPtr scrn, CursorPtr cursor)
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     int c;
 
+    xf86_config->cursor = cursor;
     for (c = 0; c < xf86_config->num_crtc; c++) {
         xf86CrtcPtr crtc = xf86_config->crtc[c];
 
@@ -638,7 +635,6 @@ xf86_cursors_init(ScreenPtr screen, int max_width, int max_height, int flags)
         cursor_info->LoadCursorARGBCheck = xf86_load_cursor_argb;
     }
 
-    xf86_config->cursor = NULL;
     xf86_hide_cursors(scrn);
 
     return xf86InitCursor(screen, cursor_info);
@@ -681,7 +677,7 @@ xf86_reload_cursors(ScreenPtr screen)
     if (!cursor_info)
         return;
 
-    cursor = xf86_config->cursor;
+    cursor = xf86CurrentCursor(screen);
     GetSpritePosition(inputInfo.pointer, &x, &y);
     if (!(cursor_info->Flags & HARDWARE_CURSOR_UPDATE_UNHIDDEN))
         (*cursor_info->HideCursor) (scrn);
@@ -716,8 +712,5 @@ xf86_cursors_fini(ScreenPtr screen)
     }
     free(xf86_config->cursor_image);
     xf86_config->cursor_image = NULL;
-    if (xf86_config->cursor) {
-        FreeCursor(xf86_config->cursor, None);
-        xf86_config->cursor = NULL;
-    }
+    xf86_config->cursor = NULL;
 }
