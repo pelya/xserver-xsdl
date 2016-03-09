@@ -1379,6 +1379,9 @@ DeliverTouchEmulatedEvent(DeviceIntPtr dev, TouchPointInfoPtr ti,
     if (!TouchResourceIsOwner(ti, listener->listener))
         return !Success;
 
+    if (!ti->emulate_pointer)
+        return !Success;
+
     nevents = TouchConvertToPointerEvent(ev, &motion, &button);
     BUG_RETURN_VAL(nevents == 0, BadValue);
 
