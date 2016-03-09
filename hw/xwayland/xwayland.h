@@ -138,6 +138,8 @@ struct xwl_seat {
     size_t keymap_size;
     char *keymap;
     struct wl_surface *keyboard_focus;
+
+    struct xorg_list sync_pending;
 };
 
 struct xwl_output {

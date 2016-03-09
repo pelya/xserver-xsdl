@@ -41,6 +41,11 @@
         (miPointerPtr)dixLookupPrivate(&(dev)->devPrivates, miPointerPrivKey): \
         (miPointerPtr)dixLookupPrivate(&(GetMaster(dev, MASTER_POINTER))->devPrivates, miPointerPrivKey))
 
+struct sync_pending {
+    struct xorg_list l;
+    DeviceIntPtr pending_dev;
+};
+
 static void
 xwl_pointer_control(DeviceIntPtr device, PtrCtrl *ctrl)
 {
@@ -520,6 +525,61 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
 }
 
 static void
+remove_sync_pending(DeviceIntPtr dev)
+{
+    struct xwl_seat *xwl_seat = dev->public.devicePrivate;
+    struct sync_pending *p, *npd;
+
+    xorg_list_for_each_entry_safe(p, npd, &xwl_seat->sync_pending, l) {
+        if (p->pending_dev == dev) {
+            xorg_list_del(&xwl_seat->sync_pending);
+            free (p);
+            return;
+        }
+    }
+}
+
+static void
+sync_callback(void *data, struct wl_callback *callback, uint32_t serial)
+{
+    DeviceIntPtr dev = (DeviceIntPtr) data;
+
+    remove_sync_pending(dev);
+    wl_callback_destroy(callback);
+}
+
+static const struct wl_callback_listener sync_listener = {
+   sync_callback
+};
+
+static Bool
+keyboard_check_repeat (DeviceIntPtr dev, XkbSrvInfoPtr xkbi, unsigned key)
+{
+    struct xwl_seat *xwl_seat = dev->public.devicePrivate;
+    struct xwl_screen *xwl_screen = xwl_seat->xwl_screen;
+    struct wl_callback *callback;
+    struct sync_pending *p;
+
+    xorg_list_for_each_entry(p, &xwl_seat->sync_pending, l) {
+        if (p->pending_dev == dev) {
+            ErrorF("Key repeat discarded, Wayland compositor doesn't "
+                   "seem to be processing events fast enough!\n");
+
+            return FALSE;
+        }
+    }
+
+    p = xnfalloc(sizeof(struct sync_pending));
+    p->pending_dev = dev;
+    callback = wl_display_sync (xwl_screen->display);
+    xorg_list_add(&p->l, &xwl_seat->sync_pending);
+
+    wl_callback_add_listener(callback, &sync_listener, dev);
+
+    return TRUE;
+}
+
+static void
 keyboard_handle_repeat_info (void *data, struct wl_keyboard *keyboard,
                              int32_t rate, int32_t delay)
 {
@@ -709,6 +769,7 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
                          enum wl_seat_capability caps)
 {
     struct xwl_seat *xwl_seat = data;
+    DeviceIntPtr master;
 
     if (caps & WL_SEAT_CAPABILITY_POINTER && xwl_seat->wl_pointer == NULL) {
         xwl_seat->wl_pointer = wl_seat_get_pointer(seat);
@@ -741,12 +802,18 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
             ActivateDevice(xwl_seat->keyboard, TRUE);
         }
         EnableDevice(xwl_seat->keyboard, TRUE);
+        xwl_seat->keyboard->key->xkbInfo->checkRepeat = keyboard_check_repeat;
+        master = GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD);
+        if (master)
+            master->key->xkbInfo->checkRepeat = keyboard_check_repeat;
     } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD) && xwl_seat->wl_keyboard) {
         wl_keyboard_release(xwl_seat->wl_keyboard);
         xwl_seat->wl_keyboard = NULL;
 
-        if (xwl_seat->keyboard)
+        if (xwl_seat->keyboard) {
+            remove_sync_pending(xwl_seat->keyboard);
             DisableDevice(xwl_seat->keyboard, TRUE);
+        }
     }
 
     if (caps & WL_SEAT_CAPABILITY_TOUCH && xwl_seat->wl_touch == NULL) {
@@ -807,17 +874,24 @@ create_input_device(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version
     wl_array_init(&xwl_seat->keys);
 
     xorg_list_init(&xwl_seat->touches);
+    xorg_list_init(&xwl_seat->sync_pending);
 }
 
 void
 xwl_seat_destroy(struct xwl_seat *xwl_seat)
 {
     struct xwl_touch *xwl_touch, *next_xwl_touch;
+    struct sync_pending *p, *npd;
 
     xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
                                   &xwl_seat->touches, link_touch) {
         xorg_list_del(&xwl_touch->link_touch);
         free(xwl_touch);
+    }
+
+    xorg_list_for_each_entry_safe(p, npd, &xwl_seat->sync_pending, l) {
+        xorg_list_del(&xwl_seat->sync_pending);
+        free (p);
     }
 
     wl_seat_destroy(xwl_seat->seat);
