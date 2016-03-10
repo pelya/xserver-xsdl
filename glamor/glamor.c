@@ -813,3 +813,12 @@ glamor_name_from_pixmap(PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
     }
     return -1;
 }
+
+void
+glamor_finish(ScreenPtr screen)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+
+    glamor_make_current(glamor_priv);
+    glFinish();
+}
