@@ -174,6 +174,7 @@ glamor_pixmap_fbo_cache_put(glamor_screen_private *glamor_priv,
      * glamor_picture.c.  Don't reset GL_RED -> GL_ALPHA swizzle, though
      */
     if (glamor_priv->has_texture_swizzle && n_format != 2) {
+        glamor_make_current(glamor_priv);
         glBindTexture(GL_TEXTURE_2D, fbo->tex);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_RED);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
