@@ -5560,10 +5560,6 @@ The fields are used as follows:
 		    <term><constant>ABI_CLASS_EXTENSION</constant></term>
 		    <listitem><para>requires the extension module ABI
 		      </para></listitem></varlistentry>
-		  <varlistentry>
-		    <term><constant>ABI_CLASS_FONT</constant></term>
-		    <listitem><para>requires the font module ABI
-		      </para></listitem></varlistentry>
 		</variablelist>
 
 	      </para></listitem></varlistentry>
@@ -5583,7 +5579,6 @@ The fields are used as follows:
                    ABI_VIDEODRV_VERSION
                    ABI_XINPUT_VERSION
                    ABI_EXTENSION_VERSION
-                   ABI_FONT_VERSION
 		  </constant></literallayout>
 
 	      </para></listitem></varlistentry>
@@ -5603,7 +5598,6 @@ The fields are used as follows:
                    MOD_CLASS_NONE
                    MOD_CLASS_VIDEODRV
                    MOD_CLASS_XINPUT
-                   MOD_CLASS_FONT
                    MOD_CLASS_EXTENSION
 		  </constant></literallayout>
 
