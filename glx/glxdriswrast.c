@@ -487,6 +487,9 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
                                                GLX_PIXMAP_BIT |
                                                GLX_PBUFFER_BIT);
 
+#if !defined(XQUARTZ) && !defined(WIN32)
+    screen->base.glvnd = strdup("mesa");
+#endif
     __glXScreenInit(&screen->base, pScreen);
 
     __glXsetGetProcAddress(glXGetProcAddressARB);

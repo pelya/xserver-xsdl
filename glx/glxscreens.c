@@ -384,6 +384,9 @@ __glXScreenInit(__GLXscreen * pGlxScreen, ScreenPtr pScreen)
 
     dixSetPrivate(&pScreen->devPrivates, glxScreenPrivateKey, pGlxScreen);
 
+    if (pGlxScreen->glvnd)
+        __glXEnableExtension(pGlxScreen->glx_enable_bits, "GLX_EXT_libglvnd");
+
     i = __glXGetExtensionString(pGlxScreen->glx_enable_bits, NULL);
     if (i > 0) {
         pGlxScreen->GLXextensions = xnfalloc(i);
@@ -396,6 +399,7 @@ __glXScreenInit(__GLXscreen * pGlxScreen, ScreenPtr pScreen)
 void
 __glXScreenDestroy(__GLXscreen * screen)
 {
+    free(screen->glvnd);
     free(screen->GLXextensions);
     free(screen->GLextensions);
     free(screen->visuals);

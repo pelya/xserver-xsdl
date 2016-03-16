@@ -2039,6 +2039,12 @@ Note that disabling an operation will have no effect if the operation is
 not accelerated (whether due to lack of support in the hardware or in the
 driver).
 .TP 7
+.BI "Option \*qGlxVendorLibrary\*q \*q" string \*q
+This option specifies a space-separated list of OpenGL vendor libraries to
+use for the screen. This may be used to select an alternate implementation
+for development, debugging, or alternate feature sets.
+Default: mesa.
+.TP 7
 .BI "Option \*qInitPrimary\*q \*q" boolean \*q
 Use the Int10 module to initialize the primary graphics card.
 Normally, only secondary cards are soft-booted using the Int10 module, as the

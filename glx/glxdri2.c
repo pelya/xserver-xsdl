@@ -934,12 +934,23 @@ initializeExtensions(__GLXscreen * screen)
 /* white lie */
 extern glx_func_ptr glXGetProcAddressARB(const char *);
 
+enum {
+    GLXOPT_VENDOR_LIBRARY,
+};
+
+static const OptionInfoRec GLXOptions[] = {
+    { GLXOPT_VENDOR_LIBRARY, "GlxVendorLibrary", OPTV_STRING, {0}, FALSE },
+    { -1, NULL, OPTV_NONE, {0}, FALSE },
+};
+
 static __GLXscreen *
 __glXDRIscreenProbe(ScreenPtr pScreen)
 {
     const char *driverName, *deviceName;
     __GLXDRIscreen *screen;
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    const char *glvnd = NULL;
+    OptionInfoPtr options;
 
     screen = calloc(1, sizeof *screen);
     if (screen == NULL)
@@ -984,6 +995,17 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
                                                GLX_WINDOW_BIT |
                                                GLX_PIXMAP_BIT |
                                                GLX_PBUFFER_BIT);
+
+    options = xnfalloc(sizeof(GLXOptions));
+    memcpy(options, GLXOptions, sizeof(GLXOptions));
+    xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, options);
+    glvnd = xf86GetOptValString(options, GLXOPT_VENDOR_LIBRARY);
+    if (glvnd)
+        screen->base.glvnd = xnfstrdup(glvnd);
+    free(options);
+
+    if (!screen->base.glvnd)
+        screen->base.glvnd = strdup("mesa");
 
     __glXScreenInit(&screen->base, pScreen);
 

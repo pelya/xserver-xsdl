@@ -2444,6 +2444,10 @@ __glXDisp_QueryExtensionsString(__GLXclientState * cl, GLbyte * pc)
     return Success;
 }
 
+#ifndef GLX_VENDOR_NAMES_EXT
+#define GLX_VENDOR_NAMES_EXT 0x20F6
+#endif
+
 int
 __glXDisp_QueryServerString(__GLXclientState * cl, GLbyte * pc)
 {
@@ -2471,6 +2475,12 @@ __glXDisp_QueryServerString(__GLXclientState * cl, GLbyte * pc)
     case GLX_EXTENSIONS:
         ptr = pGlxScreen->GLXextensions;
         break;
+    case GLX_VENDOR_NAMES_EXT:
+        if (pGlxScreen->glvnd) {
+            ptr = pGlxScreen->glvnd;
+            break;
+        }
+        /* else fall through */
     default:
         return BadValue;
     }
