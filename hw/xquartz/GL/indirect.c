@@ -566,8 +566,6 @@ __glXAquaScreenProbe(ScreenPtr pScreen)
         unsigned int buffer_size =
             __glXGetExtensionString(screen->glx_enable_bits, NULL);
         if (buffer_size > 0) {
-            free(screen->base.GLXextensions);
-
             screen->base.GLXextensions = xnfalloc(buffer_size);
             __glXGetExtensionString(screen->glx_enable_bits,
                                     screen->base.GLXextensions);
