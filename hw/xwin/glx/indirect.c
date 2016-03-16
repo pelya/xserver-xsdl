@@ -628,16 +628,6 @@ glxWinScreenProbe(ScreenPtr pScreen)
     // those screens to be accelerated in XP and earlier...
 
     {
-        // testing facility to not use any WGL extensions
-        char *envptr = getenv("GLWIN_NO_WGL_EXTENSIONS");
-
-        if ((envptr != NULL) && (atoi(envptr) != 0)) {
-            ErrorF("GLWIN_NO_WGL_EXTENSIONS is set, ignoring WGL_EXTENSIONS\n");
-            wgl_extensions = "";
-        }
-    }
-
-    {
         //
         // Based on the WGL extensions available, enable various GLX extensions
         // XXX: make this table-driven ?
