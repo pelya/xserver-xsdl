@@ -387,6 +387,9 @@ __glXAquaContextMakeCurrent(__GLXcontext *baseContext)
 
     GLAQUA_DEBUG_MSG("glAquaMakeCurrent (ctx 0x%p)\n", baseContext);
 
+    if (context->base.drawPriv != context->base.readPriv)
+        return 0;
+
     if (attach(context, drawPriv))
         return /*error*/ 0;
 
