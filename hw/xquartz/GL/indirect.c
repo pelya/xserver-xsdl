@@ -545,21 +545,11 @@ __glXAquaScreenProbe(ScreenPtr pScreen)
     screen->base.fbconfigs = __glXAquaCreateVisualConfigs(
         &screen->base.numFBConfigs, pScreen->myNum);
 
+    __glXInitExtensionEnableBits(screen->glx_enable_bits);
     __glXScreenInit(&screen->base, pScreen);
 
     screen->base.GLXmajor = 1;
     screen->base.GLXminor = 4;
-
-    memset(screen->glx_enable_bits, 0, __GLX_EXT_BYTES);
-
-    __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_visual_info");
-    __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_visual_rating");
-    __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_import_context");
-    __glXEnableExtension(screen->glx_enable_bits, "GLX_OML_swap_method");
-    __glXEnableExtension(screen->glx_enable_bits, "GLX_SGIX_fbconfig");
-
-    __glXEnableExtension(screen->glx_enable_bits, "GLX_SGIS_multisample");
-    __glXEnableExtension(screen->glx_enable_bits, "GLX_ARB_multisample");
 
     //__glXEnableExtension(screen->glx_enable_bits, "GLX_ARB_create_context");
     //__glXEnableExtension(screen->glx_enable_bits, "GLX_ARB_create_context_profile");

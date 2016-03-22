@@ -642,17 +642,12 @@ glxWinScreenProbe(ScreenPtr pScreen)
         // Based on the WGL extensions available, enable various GLX extensions
         // XXX: make this table-driven ?
         //
-        memset(screen->glx_enable_bits, 0, __GLX_EXT_BYTES);
-
-        __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_visual_info");
-        __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_visual_rating");
-        __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_import_context");
-        __glXEnableExtension(screen->glx_enable_bits, "GLX_OML_swap_method");
-        __glXEnableExtension(screen->glx_enable_bits, "GLX_SGIX_fbconfig");
-        __glXEnableExtension(screen->glx_enable_bits, "GLX_SGI_make_current_read");
+        __glXInitExtensionEnableBits(screen->glx_enable_bits);
 
         if (strstr(wgl_extensions, "WGL_ARB_make_current_read"))
             screen->has_WGL_ARB_make_current_read = TRUE;
+        else
+            LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_make_current_read\n")
 
         if (strstr(gl_extensions, "GL_WIN_swap_hint")) {
             __glXEnableExtension(screen->glx_enable_bits,
@@ -674,21 +669,15 @@ glxWinScreenProbe(ScreenPtr pScreen)
 /*           screen->has_WGL_ARB_render_texture = TRUE; */
 /*         } */
 
-        if (strstr(wgl_extensions, "WGL_ARB_pbuffer")) {
-            __glXEnableExtension(screen->glx_enable_bits, "GLX_SGIX_pbuffer");
-            LogMessage(X_INFO, "AIGLX: enabled GLX_SGIX_pbuffer\n");
+        if (strstr(wgl_extensions, "WGL_ARB_pbuffer"))
             screen->has_WGL_ARB_pbuffer = TRUE;
-        }
+        else
+            LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_pbuffer\n")
 
-        if (strstr(wgl_extensions, "WGL_ARB_multisample")) {
-            __glXEnableExtension(screen->glx_enable_bits,
-                                 "GLX_ARB_multisample");
-            __glXEnableExtension(screen->glx_enable_bits,
-                                 "GLX_SGIS_multisample");
-            LogMessage(X_INFO,
-                       "AIGLX: enabled GLX_ARB_multisample and GLX_SGIS_multisample\n");
+        if (strstr(wgl_extensions, "WGL_ARB_multisample"))
             screen->has_WGL_ARB_multisample = TRUE;
-        }
+        else
+            LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_multisample\n")
 
         screen->base.destroy = glxWinScreenDestroy;
         screen->base.createContext = glxWinCreateContext;
