@@ -667,10 +667,7 @@ glxWinScreenProbe(ScreenPtr pScreen)
         if (strstr(wgl_extensions, "WGL_EXT_swap_control")) {
             __glXEnableExtension(screen->glx_enable_bits,
                                  "GLX_SGI_swap_control");
-            __glXEnableExtension(screen->glx_enable_bits,
-                                 "GLX_MESA_swap_control");
-            LogMessage(X_INFO,
-                       "AIGLX: enabled GLX_SGI_swap_control and GLX_MESA_swap_control\n");
+            LogMessage(X_INFO, "AIGLX: enabled GLX_SGI_swap_control\n");
         }
 
 /*       // Hmm?  screen->texOffset */
