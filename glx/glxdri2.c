@@ -909,7 +909,8 @@ initializeExtensions(__GLXDRIscreen * screen)
 
         if (strcmp(extensions[i]->name, __DRI_TEX_BUFFER) == 0) {
             screen->texBuffer = (const __DRItexBufferExtension *) extensions[i];
-            /* GLX_EXT_texture_from_pixmap is always enabled. */
+            __glXEnableExtension(screen->glx_enable_bits,
+                                 "GLX_EXT_texture_from_pixmap");
             LogMessage(X_INFO,
                        "AIGLX: GLX_EXT_texture_from_pixmap backed by buffer objects\n");
         }
