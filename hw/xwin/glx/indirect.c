@@ -136,9 +136,6 @@ struct __GLXWinDrawable {
 struct __GLXWinScreen {
     __GLXscreen base;
 
-    /* Supported GLX extensions */
-    unsigned char glx_enable_bits[__GLX_EXT_BYTES];
-
     Bool has_WGL_ARB_multisample;
     Bool has_WGL_ARB_pixel_format;
     Bool has_WGL_ARB_pbuffer;
@@ -632,7 +629,7 @@ glxWinScreenProbe(ScreenPtr pScreen)
         // Based on the WGL extensions available, enable various GLX extensions
         // XXX: make this table-driven ?
         //
-        __glXInitExtensionEnableBits(screen->glx_enable_bits);
+        __glXInitExtensionEnableBits(screen->base.glx_enable_bits);
 
         if (strstr(wgl_extensions, "WGL_ARB_make_current_read"))
             screen->has_WGL_ARB_make_current_read = TRUE;
@@ -640,13 +637,13 @@ glxWinScreenProbe(ScreenPtr pScreen)
             LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_make_current_read\n")
 
         if (strstr(gl_extensions, "GL_WIN_swap_hint")) {
-            __glXEnableExtension(screen->glx_enable_bits,
+            __glXEnableExtension(screen->base.glx_enable_bits,
                                  "GLX_MESA_copy_sub_buffer");
             LogMessage(X_INFO, "AIGLX: enabled GLX_MESA_copy_sub_buffer\n");
         }
 
         if (strstr(wgl_extensions, "WGL_EXT_swap_control")) {
-            __glXEnableExtension(screen->glx_enable_bits,
+            __glXEnableExtension(screen->base.glx_enable_bits,
                                  "GLX_SGI_swap_control");
             LogMessage(X_INFO, "AIGLX: enabled GLX_SGI_swap_control\n");
         }
@@ -654,7 +651,7 @@ glxWinScreenProbe(ScreenPtr pScreen)
 /*       // Hmm?  screen->texOffset */
 /*       if (strstr(wgl_extensions, "WGL_ARB_render_texture")) */
 /*         { */
-/*           __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_texture_from_pixmap"); */
+/*           __glXEnableExtension(screen->base.glx_enable_bits, "GLX_EXT_texture_from_pixmap"); */
 /*           LogMessage(X_INFO, "AIGLX: GLX_EXT_texture_from_pixmap backed by buffer objects\n"); */
 /*           screen->has_WGL_ARB_render_texture = TRUE; */
 /*         } */
@@ -713,10 +710,10 @@ glxWinScreenProbe(ScreenPtr pScreen)
         // Generate the GLX extensions string (overrides that set by __glXScreenInit())
         {
             unsigned int buffer_size =
-                __glXGetExtensionString(screen->glx_enable_bits, NULL);
+                __glXGetExtensionString(screen->base.glx_enable_bits, NULL);
             if (buffer_size > 0) {
                 screen->base.GLXextensions = xnfalloc(buffer_size);
-                __glXGetExtensionString(screen->glx_enable_bits,
+                __glXGetExtensionString(screen->base.glx_enable_bits,
                                         screen->base.GLXextensions);
             }
         }

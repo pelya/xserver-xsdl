@@ -35,6 +35,8 @@
  * Silicon Graphics, Inc.
  */
 
+#include "extension_string.h"
+
 typedef struct __GLXconfig __GLXconfig;
 struct __GLXconfig {
     __GLXconfig *next;
@@ -141,6 +143,7 @@ struct __GLXscreen {
 
     char *GLextensions;
     char *GLXextensions;
+    unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 
     Bool (*CloseScreen) (ScreenPtr pScreen);
 };

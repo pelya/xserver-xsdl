@@ -75,8 +75,6 @@ struct __GLXDRIscreen {
     const __DRIswapControlExtension *swapControl;
     const __DRItexBufferExtension *texBuffer;
     const __DRIconfig **driConfigs;
-
-    unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 };
 
 struct __GLXDRIcontext {
@@ -847,18 +845,19 @@ glxDRILeaveVT(ScrnInfoPtr scrn)
  * @param screen The screen where glx_enable_bits are to be set.
  */
 static void
-initializeExtensions(__GLXDRIscreen * screen)
+initializeExtensions(__GLXscreen * screen)
 {
-    ScreenPtr pScreen = screen->base.pScreen;
+    ScreenPtr pScreen = screen->pScreen;
+    __GLXDRIscreen *dri = (__GLXDRIscreen *)screen;
     const __DRIextension **extensions;
     int i;
 
-    extensions = screen->core->getExtensions(screen->driScreen);
+    extensions = dri->core->getExtensions(dri->driScreen);
 
     __glXEnableExtension(screen->glx_enable_bits, "GLX_MESA_copy_sub_buffer");
     LogMessage(X_INFO, "AIGLX: enabled GLX_MESA_copy_sub_buffer\n");
 
-    if (screen->dri2->base.version >= 3) {
+    if (dri->dri2->base.version >= 3) {
         __glXEnableExtension(screen->glx_enable_bits,
                              "GLX_ARB_create_context");
         __glXEnableExtension(screen->glx_enable_bits,
@@ -901,7 +900,7 @@ initializeExtensions(__GLXDRIscreen * screen)
 
     for (i = 0; extensions[i]; i++) {
         if (strcmp(extensions[i]->name, __DRI_TEX_BUFFER) == 0) {
-            screen->texBuffer = (const __DRItexBufferExtension *) extensions[i];
+            dri->texBuffer = (const __DRItexBufferExtension *) extensions[i];
             __glXEnableExtension(screen->glx_enable_bits,
                                  "GLX_EXT_texture_from_pixmap");
             LogMessage(X_INFO,
@@ -910,11 +909,11 @@ initializeExtensions(__GLXDRIscreen * screen)
 
         if (strcmp(extensions[i]->name, __DRI2_FLUSH) == 0 &&
             extensions[i]->version >= 3) {
-            screen->flush = (__DRI2flushExtension *) extensions[i];
+            dri->flush = (__DRI2flushExtension *) extensions[i];
         }
 
         if (strcmp(extensions[i]->name, __DRI2_ROBUSTNESS) == 0 &&
-            screen->dri2->base.version >= 3) {
+            dri->dri2->base.version >= 3) {
             __glXEnableExtension(screen->glx_enable_bits,
                                  "GLX_ARB_create_context_robustness");
             LogMessage(X_INFO,
@@ -960,7 +959,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     screen->base.swapInterval = __glXDRIdrawableSwapInterval;
     screen->base.pScreen = pScreen;
 
-    __glXInitExtensionEnableBits(screen->glx_enable_bits);
+    __glXInitExtensionEnableBits(screen->base.glx_enable_bits);
 
     screen->driver =
         glxProbeDriver(driverName, (void **) &screen->core, __DRI_CORE, 1,
@@ -980,7 +979,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
         goto handle_error;
     }
 
-    initializeExtensions(screen);
+    initializeExtensions(&screen->base);
 
     screen->base.fbconfigs = glxConvertConfigs(screen->core, screen->driConfigs,
                                                GLX_WINDOW_BIT |
@@ -993,10 +992,10 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
      * This allows us to allocate some memory to hold the extension string,
      * but it requires that we call __glXGetExtensionString a second time.
      */
-    buffer_size = __glXGetExtensionString(screen->glx_enable_bits, NULL);
+    buffer_size = __glXGetExtensionString(screen->base.glx_enable_bits, NULL);
     if (buffer_size > 0) {
         screen->base.GLXextensions = xnfalloc(buffer_size);
-        (void) __glXGetExtensionString(screen->glx_enable_bits,
+        (void) __glXGetExtensionString(screen->base.glx_enable_bits,
                                        screen->base.GLXextensions);
     }
 

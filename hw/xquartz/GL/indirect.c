@@ -112,9 +112,6 @@ typedef struct __GLXAquaDrawable __GLXAquaDrawable;
  */
 struct __GLXAquaScreen {
     __GLXscreen base;
-
-    /* Supported GLX extensions */
-    unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 };
 
 struct __GLXAquaContext {
@@ -542,19 +539,19 @@ __glXAquaScreenProbe(ScreenPtr pScreen)
     screen->base.fbconfigs = __glXAquaCreateVisualConfigs(
         &screen->base.numFBConfigs, pScreen->myNum);
 
-    __glXInitExtensionEnableBits(screen->glx_enable_bits);
+    __glXInitExtensionEnableBits(screen->base.glx_enable_bits);
     __glXScreenInit(&screen->base, pScreen);
 
-    //__glXEnableExtension(screen->glx_enable_bits, "GLX_ARB_create_context");
-    //__glXEnableExtension(screen->glx_enable_bits, "GLX_ARB_create_context_profile");
+    //__glXEnableExtension(screen->base.glx_enable_bits, "GLX_ARB_create_context");
+    //__glXEnableExtension(screen->base.glx_enable_bits, "GLX_ARB_create_context_profile");
 
     // Generate the GLX extensions string (overrides that set by __glXScreenInit())
     {
         unsigned int buffer_size =
-            __glXGetExtensionString(screen->glx_enable_bits, NULL);
+            __glXGetExtensionString(screen->base.glx_enable_bits, NULL);
         if (buffer_size > 0) {
             screen->base.GLXextensions = xnfalloc(buffer_size);
-            __glXGetExtensionString(screen->glx_enable_bits,
+            __glXGetExtensionString(screen->base.glx_enable_bits,
                                     screen->base.GLXextensions);
         }
     }
