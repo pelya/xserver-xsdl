@@ -706,17 +706,6 @@ glxWinScreenProbe(ScreenPtr pScreen)
         screen->base.numVisuals = 0;
 
         __glXScreenInit(&screen->base, pScreen);
-
-        // Generate the GLX extensions string (overrides that set by __glXScreenInit())
-        {
-            unsigned int buffer_size =
-                __glXGetExtensionString(screen->base.glx_enable_bits, NULL);
-            if (buffer_size > 0) {
-                screen->base.GLXextensions = xnfalloc(buffer_size);
-                __glXGetExtensionString(screen->base.glx_enable_bits,
-                                        screen->base.GLXextensions);
-            }
-        }
     }
 
     wglMakeCurrent(NULL, NULL);

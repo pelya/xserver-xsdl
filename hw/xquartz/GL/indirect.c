@@ -542,20 +542,6 @@ __glXAquaScreenProbe(ScreenPtr pScreen)
     __glXInitExtensionEnableBits(screen->base.glx_enable_bits);
     __glXScreenInit(&screen->base, pScreen);
 
-    //__glXEnableExtension(screen->base.glx_enable_bits, "GLX_ARB_create_context");
-    //__glXEnableExtension(screen->base.glx_enable_bits, "GLX_ARB_create_context_profile");
-
-    // Generate the GLX extensions string (overrides that set by __glXScreenInit())
-    {
-        unsigned int buffer_size =
-            __glXGetExtensionString(screen->base.glx_enable_bits, NULL);
-        if (buffer_size > 0) {
-            screen->base.GLXextensions = xnfalloc(buffer_size);
-            __glXGetExtensionString(screen->base.glx_enable_bits,
-                                    screen->base.GLXextensions);
-        }
-    }
-
     return &screen->base;
 }
 

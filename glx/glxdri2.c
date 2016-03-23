@@ -939,7 +939,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 {
     const char *driverName, *deviceName;
     __GLXDRIscreen *screen;
-    size_t buffer_size;
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
 
     screen = calloc(1, sizeof *screen);
@@ -987,17 +986,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
                                                GLX_PBUFFER_BIT);
 
     __glXScreenInit(&screen->base, pScreen);
-
-    /* The first call simply determines the length of the extension string.
-     * This allows us to allocate some memory to hold the extension string,
-     * but it requires that we call __glXGetExtensionString a second time.
-     */
-    buffer_size = __glXGetExtensionString(screen->base.glx_enable_bits, NULL);
-    if (buffer_size > 0) {
-        screen->base.GLXextensions = xnfalloc(buffer_size);
-        (void) __glXGetExtensionString(screen->base.glx_enable_bits,
-                                       screen->base.GLXextensions);
-    }
 
     screen->enterVT = pScrn->EnterVT;
     pScrn->EnterVT = glxDRIEnterVT;

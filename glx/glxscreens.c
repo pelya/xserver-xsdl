@@ -383,6 +383,14 @@ __glXScreenInit(__GLXscreen * pGlxScreen, ScreenPtr pScreen)
     }
 
     dixSetPrivate(&pScreen->devPrivates, glxScreenPrivateKey, pGlxScreen);
+
+    i = __glXGetExtensionString(pGlxScreen->glx_enable_bits, NULL);
+    if (i > 0) {
+        pGlxScreen->GLXextensions = xnfalloc(i);
+        (void) __glXGetExtensionString(pGlxScreen->glx_enable_bits,
+                                       pGlxScreen->GLXextensions);
+    }
+
 }
 
 void
