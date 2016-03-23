@@ -880,7 +880,7 @@ if test "x$CONFIG_UDEV" = xyes; then
 	fi
 	SAVE_LIBS=$LIBS
 	SAVE_CFLAGS=$CFLAGS
-	CFLAGS=$UDEV_CFLAGS
+	CFLAGS="$CFLAGS $UDEV_CFLAGS"
 	LIBS=$UDEV_LIBS
 	AC_CHECK_FUNCS([udev_monitor_filter_add_match_tag])
 	AC_CHECK_FUNCS([udev_enumerate_add_match_tag])
@@ -1293,7 +1293,7 @@ fi
 
 if test "x$DRI2" = xyes; then
 	save_CFLAGS=$CFLAGS
-	CFLAGS="$GL_CFLAGS $LIBDRM_CFLAGS"
+	CFLAGS="$CFLAGS $GL_CFLAGS $LIBDRM_CFLAGS"
 	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[#include <GL/gl.h>
 #include <GL/internal/dri_interface.h>
 #ifndef __DRI_DRI2
