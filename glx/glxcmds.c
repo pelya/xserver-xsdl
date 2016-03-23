@@ -45,6 +45,7 @@
 #include "indirect_dispatch.h"
 #include "indirect_table.h"
 #include "indirect_util.h"
+#include "protocol-versions.h"
 
 static char GLXServerVendorName[] = "SGI";
 
@@ -797,8 +798,8 @@ __glXDisp_QueryVersion(__GLXclientState * cl, GLbyte * pc)
         .type = X_Reply,
         .sequenceNumber = client->sequence,
         .length = 0,
-        .majorVersion = glxMajorVersion,
-        .minorVersion = glxMinorVersion
+        .majorVersion = SERVER_GLX_MAJOR_VERSION,
+        .minorVersion = SERVER_GLX_MINOR_VERSION
     };
 
     if (client->swapped) {
@@ -2454,7 +2455,6 @@ __glXDisp_QueryServerString(__GLXclientState * cl, GLbyte * pc)
     char *buf;
     __GLXscreen *pGlxScreen;
     int err;
-    char ver_str[16];
 
     REQUEST_SIZE_MATCH(xGLXQueryServerStringReq);
 
@@ -2466,11 +2466,7 @@ __glXDisp_QueryServerString(__GLXclientState * cl, GLbyte * pc)
         ptr = GLXServerVendorName;
         break;
     case GLX_VERSION:
-        /* Return to the server version rather than the screen version
-         * to prevent confusion when they do not match.
-         */
-        snprintf(ver_str, 16, "%d.%d", glxMajorVersion, glxMinorVersion);
-        ptr = ver_str;
+        ptr = "1.4";
         break;
     case GLX_EXTENSIONS:
         ptr = pGlxScreen->GLXextensions;

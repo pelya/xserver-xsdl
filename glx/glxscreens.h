@@ -140,19 +140,7 @@ struct __GLXscreen {
     GLint numVisuals;
 
     char *GLextensions;
-
     char *GLXextensions;
-
-    /**
-     * \name GLX version supported by this screen.
-     *
-     * Since the GLX version advertised by the server is for the whole server,
-     * the GLX protocol code uses the minimum version supported on all screens.
-     */
-    /*@{ */
-    unsigned GLXmajor;
-    unsigned GLXminor;
-    /*@} */
 
     Bool (*CloseScreen) (ScreenPtr pScreen);
 };

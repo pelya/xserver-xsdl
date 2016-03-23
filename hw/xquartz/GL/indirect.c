@@ -548,9 +548,6 @@ __glXAquaScreenProbe(ScreenPtr pScreen)
     __glXInitExtensionEnableBits(screen->glx_enable_bits);
     __glXScreenInit(&screen->base, pScreen);
 
-    screen->base.GLXmajor = 1;
-    screen->base.GLXminor = 4;
-
     //__glXEnableExtension(screen->glx_enable_bits, "GLX_ARB_create_context");
     //__glXEnableExtension(screen->glx_enable_bits, "GLX_ARB_create_context_profile");
 

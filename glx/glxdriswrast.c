@@ -500,9 +500,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
                                        screen->base.GLXextensions);
     }
 
-    screen->base.GLXmajor = 1;
-    screen->base.GLXminor = 4;
-
     __glXsetGetProcAddress(glXGetProcAddressARB);
 
     LogMessage(X_INFO, "AIGLX: Loaded and initialized %s\n", driverName);

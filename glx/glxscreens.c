@@ -154,9 +154,6 @@ static const char GLServerExtensions[] =
     "GL_SGIX_shadow_ambient "
     "GL_SUN_slice_accum ";
 
-unsigned glxMajorVersion = SERVER_GLX_MAJOR_VERSION;
-unsigned glxMinorVersion = SERVER_GLX_MINOR_VERSION;
-
 static Bool
 glxCloseScreen(ScreenPtr pScreen)
 {
@@ -312,15 +309,6 @@ __glXScreenInit(__GLXscreen * pGlxScreen, ScreenPtr pScreen)
     pGlxScreen->pScreen = pScreen;
     pGlxScreen->GLextensions = strdup(GLServerExtensions);
     pGlxScreen->GLXextensions = NULL;
-
-    /* All GLX providers must support all of the functionality required for at
-     * least GLX 1.2.  If the provider supports a higher version, the GLXminor
-     * version can be changed in the provider's screen-probe routine.  For
-     * most providers, the screen-probe routine is the caller of this
-     * function.
-     */
-    pGlxScreen->GLXmajor = 1;
-    pGlxScreen->GLXminor = 2;
 
     pGlxScreen->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = glxCloseScreen;
