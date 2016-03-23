@@ -115,9 +115,6 @@ struct __GLXAquaScreen {
 
     /* Supported GLX extensions */
     unsigned char glx_enable_bits[__GLX_EXT_BYTES];
-
-    int index;
-    int num_vis;
 };
 
 struct __GLXAquaContext {
