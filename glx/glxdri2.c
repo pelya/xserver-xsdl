@@ -900,13 +900,6 @@ initializeExtensions(__GLXDRIscreen * screen)
     }
 
     for (i = 0; extensions[i]; i++) {
-        if (strcmp(extensions[i]->name, __DRI_READ_DRAWABLE) == 0) {
-            __glXEnableExtension(screen->glx_enable_bits,
-                                 "GLX_SGI_make_current_read");
-
-            LogMessage(X_INFO, "AIGLX: enabled GLX_SGI_make_current_read\n");
-        }
-
         if (strcmp(extensions[i]->name, __DRI_TEX_BUFFER) == 0) {
             screen->texBuffer = (const __DRItexBufferExtension *) extensions[i];
             __glXEnableExtension(screen->glx_enable_bits,
