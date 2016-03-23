@@ -143,6 +143,7 @@ struct __GLXWinScreen {
     Bool has_WGL_ARB_pixel_format;
     Bool has_WGL_ARB_pbuffer;
     Bool has_WGL_ARB_render_texture;
+    Bool has_WGL_ARB_make_current_read;
 
     /* wrapped screen functions */
     RealizeWindowProcPtr RealizeWindow;
@@ -637,8 +638,6 @@ glxWinScreenProbe(ScreenPtr pScreen)
     }
 
     {
-        Bool glx_sgi_make_current_read = FALSE;
-
         //
         // Based on the WGL extensions available, enable various GLX extensions
         // XXX: make this table-driven ?
@@ -650,13 +649,10 @@ glxWinScreenProbe(ScreenPtr pScreen)
         __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_import_context");
         __glXEnableExtension(screen->glx_enable_bits, "GLX_OML_swap_method");
         __glXEnableExtension(screen->glx_enable_bits, "GLX_SGIX_fbconfig");
+        __glXEnableExtension(screen->glx_enable_bits, "GLX_SGI_make_current_read");
 
-        if (strstr(wgl_extensions, "WGL_ARB_make_current_read")) {
-            __glXEnableExtension(screen->glx_enable_bits,
-                                 "GLX_SGI_make_current_read");
-            LogMessage(X_INFO, "AIGLX: enabled GLX_SGI_make_current_read\n");
-            glx_sgi_make_current_read = TRUE;
-        }
+        if (strstr(wgl_extensions, "WGL_ARB_make_current_read"))
+            screen->has_WGL_ARB_make_current_read = TRUE;
 
         if (strstr(gl_extensions, "GL_WIN_swap_hint")) {
             __glXEnableExtension(screen->glx_enable_bits,
@@ -753,7 +749,7 @@ glxWinScreenProbe(ScreenPtr pScreen)
         // SGIX_fbconfig && SGIX_pbuffer && SGI_make_current_read -> 1.3
         // ARB_multisample -> 1.4
         //
-        if (screen->has_WGL_ARB_pbuffer && glx_sgi_make_current_read) {
+        if (screen->has_WGL_ARB_pbuffer) {
             if (screen->has_WGL_ARB_multisample) {
                 screen->base.GLXmajor = 1;
                 screen->base.GLXminor = 4;
@@ -1429,6 +1425,7 @@ static int
 glxWinContextMakeCurrent(__GLXcontext * base)
 {
     __GLXWinContext *gc = (__GLXWinContext *) base;
+    glxWinScreen *scr = (glxWinScreen *)base->pGlxScreen;
     BOOL ret;
     HDC drawDC;
     HDC readDC = NULL;
@@ -1461,7 +1458,14 @@ glxWinContextMakeCurrent(__GLXcontext * base)
     }
 
     if ((gc->base.readPriv != NULL) && (gc->base.readPriv != gc->base.drawPriv)) {
-        // XXX: should only occur with WGL_ARB_make_current_read
+        /*
+         * We enable GLX_SGI_make_current_read unconditionally, but the
+         * renderer might not support it. It's fairly rare to use this
+         * feature so just error out if it can't work.
+         */
+        if (!scr->has_WGL_ARB_make_current_read)
+            return False;
+
         /*
            If there is a separate read drawable, create a separate read DC, and
            use the wglMakeContextCurrent extension to make the context current drawing
