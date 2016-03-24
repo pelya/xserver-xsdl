@@ -726,7 +726,7 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
         }
 
         /* If present_flip failed, we may have to requeue for the target MSC */
-        if (msc_is_after(vblank->target_msc, crtc_msc) &&
+        if (vblank->target_msc == crtc_msc + 1 &&
             Success == present_queue_vblank(screen,
                                             vblank->crtc,
                                             vblank->event_id,
