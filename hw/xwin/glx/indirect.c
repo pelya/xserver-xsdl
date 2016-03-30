@@ -634,7 +634,7 @@ glxWinScreenProbe(ScreenPtr pScreen)
         if (strstr(wgl_extensions, "WGL_ARB_make_current_read"))
             screen->has_WGL_ARB_make_current_read = TRUE;
         else
-            LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_make_current_read\n")
+            LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_make_current_read\n");
 
         if (strstr(gl_extensions, "GL_WIN_swap_hint")) {
             __glXEnableExtension(screen->base.glx_enable_bits,
@@ -659,12 +659,12 @@ glxWinScreenProbe(ScreenPtr pScreen)
         if (strstr(wgl_extensions, "WGL_ARB_pbuffer"))
             screen->has_WGL_ARB_pbuffer = TRUE;
         else
-            LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_pbuffer\n")
+            LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_pbuffer\n");
 
         if (strstr(wgl_extensions, "WGL_ARB_multisample"))
             screen->has_WGL_ARB_multisample = TRUE;
         else
-            LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_multisample\n")
+            LogMessage(X_WARNING, "AIGLX: missing WGL_ARB_multisample\n");
 
         screen->base.destroy = glxWinScreenDestroy;
         screen->base.createContext = glxWinCreateContext;
