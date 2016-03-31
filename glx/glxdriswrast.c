@@ -89,6 +89,9 @@ struct __GLXDRIdrawable {
     GCPtr swapgc;               /* GC for swapping the color buffers */
 };
 
+/* white lie */
+extern glx_func_ptr glXGetProcAddressARB(const char *);
+
 static void
 __glXDRIdrawableDestroy(__GLXdrawable * drawable)
 {
@@ -209,28 +212,6 @@ static __GLXtextureFromPixmap __glXDRItextureFromPixmap = {
     __glXDRIbindTexImage,
     __glXDRIreleaseTexImage
 };
-
-static void
-__glXDRIscreenDestroy(__GLXscreen * baseScreen)
-{
-    int i;
-
-    __GLXDRIscreen *screen = (__GLXDRIscreen *) baseScreen;
-
-    (*screen->core->destroyScreen) (screen->driScreen);
-
-    dlclose(screen->driver);
-
-    __glXScreenDestroy(baseScreen);
-
-    if (screen->driConfigs) {
-        for (i = 0; screen->driConfigs[i] != NULL; i++)
-            free((__DRIconfig **) screen->driConfigs[i]);
-        free(screen->driConfigs);
-    }
-
-    free(screen);
-}
 
 static __GLXcontext *
 __glXDRIscreenCreateContext(__GLXscreen * baseScreen,
@@ -440,8 +421,27 @@ initializeExtensions(__GLXscreen * screen)
     }
 }
 
-/* white lie */
-extern glx_func_ptr glXGetProcAddressARB(const char *);
+static void
+__glXDRIscreenDestroy(__GLXscreen * baseScreen)
+{
+    int i;
+
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) baseScreen;
+
+    (*screen->core->destroyScreen) (screen->driScreen);
+
+    dlclose(screen->driver);
+
+    __glXScreenDestroy(baseScreen);
+
+    if (screen->driConfigs) {
+        for (i = 0; screen->driConfigs[i] != NULL; i++)
+            free((__DRIconfig **) screen->driConfigs[i]);
+        free(screen->driConfigs);
+    }
+
+    free(screen);
+}
 
 static __GLXscreen *
 __glXDRIscreenProbe(ScreenPtr pScreen)

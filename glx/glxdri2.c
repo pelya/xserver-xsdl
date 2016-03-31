@@ -98,21 +98,6 @@ struct __GLXDRIdrawable {
 };
 
 static void
-__glXDRIdrawableDestroy(__GLXdrawable * drawable)
-{
-    __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
-    const __DRIcoreExtension *core = private->screen->core;
-
-    FreeResource(private->dri2_id, FALSE);
-
-    (*core->destroyDrawable) (private->driDrawable);
-
-    __glXDrawableRelease(drawable);
-
-    free(private);
-}
-
-static void
 copy_box(__GLXdrawable * drawable,
          int dst, int src,
          int x, int y, int w, int h)
@@ -132,6 +117,24 @@ copy_box(__GLXdrawable * drawable,
         lastGLContext = cx;
         cx->makeCurrent(cx);
     }
+}
+
+/* white lie */
+extern glx_func_ptr glXGetProcAddressARB(const char *);
+
+static void
+__glXDRIdrawableDestroy(__GLXdrawable * drawable)
+{
+    __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
+    const __DRIcoreExtension *core = private->screen->core;
+
+    FreeResource(private->dri2_id, FALSE);
+
+    (*core->destroyDrawable) (private->driDrawable);
+
+    __glXDrawableRelease(drawable);
+
+    free(private);
 }
 
 static void
@@ -338,32 +341,6 @@ static __GLXtextureFromPixmap __glXDRItextureFromPixmap = {
     __glXDRIbindTexImage,
     __glXDRIreleaseTexImage
 };
-
-static void
-__glXDRIscreenDestroy(__GLXscreen * baseScreen)
-{
-    int i;
-
-    ScrnInfoPtr pScrn = xf86ScreenToScrn(baseScreen->pScreen);
-    __GLXDRIscreen *screen = (__GLXDRIscreen *) baseScreen;
-
-    (*screen->core->destroyScreen) (screen->driScreen);
-
-    dlclose(screen->driver);
-
-    __glXScreenDestroy(baseScreen);
-
-    if (screen->driConfigs) {
-        for (i = 0; screen->driConfigs[i] != NULL; i++)
-            free((__DRIconfig **) screen->driConfigs[i]);
-        free(screen->driConfigs);
-    }
-
-    pScrn->EnterVT = screen->enterVT;
-    pScrn->LeaveVT = screen->leaveVT;
-
-    free(screen);
-}
 
 static Bool
 dri2_convert_glx_attribs(__GLXDRIscreen *screen, unsigned num_attribs,
@@ -931,8 +908,31 @@ initializeExtensions(__GLXscreen * screen)
     }
 }
 
-/* white lie */
-extern glx_func_ptr glXGetProcAddressARB(const char *);
+static void
+__glXDRIscreenDestroy(__GLXscreen * baseScreen)
+{
+    int i;
+
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(baseScreen->pScreen);
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) baseScreen;
+
+    (*screen->core->destroyScreen) (screen->driScreen);
+
+    dlclose(screen->driver);
+
+    __glXScreenDestroy(baseScreen);
+
+    if (screen->driConfigs) {
+        for (i = 0; screen->driConfigs[i] != NULL; i++)
+            free((__DRIconfig **) screen->driConfigs[i]);
+        free(screen->driConfigs);
+    }
+
+    pScrn->EnterVT = screen->enterVT;
+    pScrn->LeaveVT = screen->leaveVT;
+
+    free(screen);
+}
 
 enum {
     GLXOPT_VENDOR_LIBRARY,
