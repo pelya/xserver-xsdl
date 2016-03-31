@@ -636,10 +636,9 @@ DoMakeCurrent(__GLXclientState * cl,
         if (prevglxc->releaseBehavior == GLX_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB)
             need_flush = GL_FALSE;
 #endif
-        if (prevglxc->hasUnflushedCommands && need_flush) {
+        if (need_flush) {
             if (__glXForceCurrent(cl, tag, (int *) &error)) {
                 glFlush();
-                prevglxc->hasUnflushedCommands = GL_FALSE;
             }
             else {
                 return error;
@@ -922,7 +921,6 @@ __glXDisp_CopyContext(__GLXclientState * cl, GLbyte * pc)
              ** in both streams are completed before the copy is executed.
              */
             glFinish();
-            tagcx->hasUnflushedCommands = GL_FALSE;
         }
         else {
             return error;
@@ -1696,7 +1694,6 @@ __glXDisp_SwapBuffers(__GLXclientState * cl, GLbyte * pc)
              ** in both streams are completed before the swap is executed.
              */
             glFinish();
-            glxc->hasUnflushedCommands = GL_FALSE;
         }
         else {
             return error;
@@ -1893,7 +1890,6 @@ __glXDisp_CopySubBufferMESA(__GLXclientState * cl, GLbyte * pc)
              ** in both streams are completed before the swap is executed.
              */
             glFinish();
-            glxc->hasUnflushedCommands = GL_FALSE;
         }
         else {
             return error;
@@ -2116,7 +2112,6 @@ __glXDisp_Render(__GLXclientState * cl, GLbyte * pc)
         left -= cmdlen;
         commandsDone++;
     }
-    glxc->hasUnflushedCommands = GL_TRUE;
     return Success;
 }
 
@@ -2327,7 +2322,6 @@ __glXDisp_RenderLarge(__GLXclientState * cl, GLbyte * pc)
              ** Skip over the header and execute the command.
              */
             (*proc) (cl->largeCmdBuf + __GLX_RENDER_LARGE_HDR_SIZE);
-            glxc->hasUnflushedCommands = GL_TRUE;
 
             /*
              ** Reset for the next RenderLarge series.
