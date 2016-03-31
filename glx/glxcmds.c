@@ -314,16 +314,8 @@ DoCreateContext(__GLXclientState * cl, GLXContextID gcId,
     glxc->id = gcId;
     glxc->share_id = shareList;
     glxc->idExists = GL_TRUE;
-    glxc->currentClient = NULL;
     glxc->isDirect = isDirect;
-    glxc->hasUnflushedCommands = GL_FALSE;
     glxc->renderMode = GL_RENDER;
-    glxc->feedbackBuf = NULL;
-    glxc->feedbackBufSize = 0;
-    glxc->selectBuf = NULL;
-    glxc->selectBufSize = 0;
-    glxc->drawPriv = NULL;
-    glxc->readPriv = NULL;
 
     /* The GLX_ARB_create_context_robustness spec says:
      *
