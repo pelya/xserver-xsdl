@@ -754,8 +754,11 @@ dri2GetBuffersWithFormat(__DRIdrawable * driDrawable,
 static void
 dri2FlushFrontBuffer(__DRIdrawable * driDrawable, void *loaderPrivate)
 {
+    __GLXDRIdrawable *private = (__GLXDRIdrawable *) loaderPrivate;
     (void) driDrawable;
-    __glXDRIdrawableWaitGL((__GLXdrawable *) loaderPrivate);
+
+    copy_box(loaderPrivate, DRI2BufferFrontLeft, DRI2BufferFakeFrontLeft,
+             0, 0, private->width, private->height);
 }
 
 static const __DRIdri2LoaderExtension loaderExtension = {
