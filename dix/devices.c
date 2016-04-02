@@ -281,6 +281,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     dev->startup = autoStart;
 
     /* device grab defaults */
+    UpdateCurrentTimeIf();
     dev->deviceGrab.grabTime = currentTime;
     dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
     dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
@@ -336,12 +337,13 @@ void
 SendDevicePresenceEvent(int deviceid, int type)
 {
     DeviceIntRec dummyDev = { .id =  XIAllDevices };
-    devicePresenceNotify ev = {
-        .type = DevicePresenceNotify,
-        .time = currentTime.milliseconds,
-        .devchange = type,
-        .deviceid = deviceid
-    };
+    devicePresenceNotify ev;
+
+    UpdateCurrentTimeIf();
+    ev.type = DevicePresenceNotify;
+    ev.time = currentTime.milliseconds;
+    ev.devchange = type;
+    ev.deviceid = deviceid;
 
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
@@ -1403,6 +1405,7 @@ InitFocusClassDeviceStruct(DeviceIntPtr dev)
     focc = malloc(sizeof(FocusClassRec));
     if (!focc)
         return FALSE;
+    UpdateCurrentTimeIf();
     focc->win = PointerRootWin;
     focc->revert = None;
     focc->time = currentTime;
@@ -2354,6 +2357,7 @@ ProcGetMotionEvents(ClientPtr client)
     if (rc != Success)
         return rc;
 
+    UpdateCurrentTimeIf();
     if (mouse->valuator->motionHintWindow)
         MaybeStopHint(mouse, client);
     rep = (xGetMotionEventsReply) {

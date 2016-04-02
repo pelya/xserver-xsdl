@@ -676,6 +676,7 @@ ProcRRDispatch(ClientPtr client)
     REQUEST(xReq);
     if (stuff->data >= RRNumberRequests || !ProcRandrVector[stuff->data])
         return BadRequest;
+    UpdateCurrentTimeIf();
     return (*ProcRandrVector[stuff->data]) (client);
 }
 
@@ -685,5 +686,6 @@ SProcRRDispatch(ClientPtr client)
     REQUEST(xReq);
     if (stuff->data >= RRNumberRequests || !SProcRandrVector[stuff->data])
         return BadRequest;
+    UpdateCurrentTimeIf();
     return (*SProcRandrVector[stuff->data]) (client);
 }

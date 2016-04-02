@@ -406,6 +406,7 @@ ProcIDispatch(ClientPtr client)
     if (stuff->data >= ARRAY_SIZE(ProcIVector) || !ProcIVector[stuff->data])
         return BadRequest;
 
+    UpdateCurrentTimeIf();
     return (*ProcIVector[stuff->data]) (client);
 }
 
@@ -425,6 +426,7 @@ SProcIDispatch(ClientPtr client)
     if (stuff->data >= ARRAY_SIZE(SProcIVector) || !SProcIVector[stuff->data])
         return BadRequest;
 
+    UpdateCurrentTimeIf();
     return (*SProcIVector[stuff->data]) (client);
 }
 

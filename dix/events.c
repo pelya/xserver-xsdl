@@ -1822,6 +1822,7 @@ ProcAllowEvents(ClientPtr client)
     REQUEST(xAllowEventsReq);
 
     REQUEST_SIZE_MATCH(xAllowEventsReq);
+    UpdateCurrentTime();
     time = ClientTimeToServerTime(stuff->time);
 
     mouse = PickPointer(client);
@@ -2241,6 +2242,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
                                    this mask is the mask of the grab. */
     int type = pEvents->u.u.type;
 
+    UpdateCurrentTimeIf();
     /* Deliver to window owner */
     if ((filter == CantBeFiltered) || core_get_type(pEvents) != 0) {
         enum EventDeliveryState rc;
@@ -4952,6 +4954,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
         return Success;
     if (!SameClient(grab, client))
         return Success;
+    UpdateCurrentTime();
     time = ClientTimeToServerTime(stuff->time);
     if ((CompareTimeStamps(time, currentTime) == LATER) ||
         (CompareTimeStamps(time, device->deviceGrab.grabTime) == EARLIER))
@@ -5132,6 +5135,7 @@ ProcGrabKeyboard(ClientPtr client)
     GrabMask mask;
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
+    UpdateCurrentTime();
 
     mask.core = KeyPressMask | KeyReleaseMask;
 
@@ -5544,6 +5548,7 @@ ProcGrabButton(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xGrabButtonReq);
+    UpdateCurrentTime();
     if ((stuff->pointerMode != GrabModeSync) &&
         (stuff->pointerMode != GrabModeAsync)) {
         client->errorValue = stuff->pointerMode;
@@ -5632,6 +5637,7 @@ ProcUngrabButton(ClientPtr client)
     DeviceIntPtr ptr;
 
     REQUEST_SIZE_MATCH(xUngrabButtonReq);
+    UpdateCurrentTime();
     if ((stuff->modifiers != AnyModifier) &&
         (stuff->modifiers & ~AllModifiersMask)) {
         client->errorValue = stuff->modifiers;
