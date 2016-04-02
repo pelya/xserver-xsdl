@@ -1481,7 +1481,7 @@ glamor_composite_clipped_region(CARD8 op,
              && (mask_pixmap->drawable.width != width
                  || mask_pixmap->drawable.height != height)))) {
         /* XXX if mask->pDrawable is the same as source->pDrawable, we have an opportunity
-         * to do reduce one convertion. */
+         * to do reduce one conversion. */
         temp_mask =
             glamor_convert_gradient_picture(screen, mask,
                                             extent->x1 + x_mask - x_dest - dest->pDrawable->x,
