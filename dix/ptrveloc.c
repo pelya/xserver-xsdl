@@ -134,13 +134,19 @@ InitPredictableAccelerationScheme(DeviceIntPtr dev,
     scheme = *protoScheme;
     vel = calloc(1, sizeof(DeviceVelocityRec));
     schemeData = calloc(1, sizeof(PredictableAccelSchemeRec));
-    if (!vel || !schemeData)
+    if (!vel || !schemeData) {
+        free(vel);
+        free(schemeData);
         return FALSE;
+    }
     InitVelocityData(vel);
     schemeData->vel = vel;
     scheme.accelData = schemeData;
-    if (!InitializePredictableAccelerationProperties(dev, vel, schemeData))
+    if (!InitializePredictableAccelerationProperties(dev, vel, schemeData)) {
+        free(vel);
+        free(schemeData);
         return FALSE;
+    }
     /* all fine, assign scheme to device */
     dev->valuator->accelScheme = scheme;
     return TRUE;
