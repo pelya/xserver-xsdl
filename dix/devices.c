@@ -1682,8 +1682,7 @@ ProcSetModifierMapping(ClientPtr client)
                        stuff->numKeyPerModifier);
     if (rc == MappingFailed || rc == -1)
         return BadValue;
-    if (rc != Success && rc != MappingSuccess && rc != MappingFailed &&
-        rc != MappingBusy)
+    if (rc != MappingSuccess && rc != MappingFailed && rc != MappingBusy)
         return rc;
 
     rep.success = rc;
