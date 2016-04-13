@@ -399,10 +399,9 @@ configureModuleSection(void)
 {
     const char **elist, **el;
 
-    /* Find the list of extension & font modules. */
+    /* Find the list of extension modules. */
     const char *esubdirs[] = {
         "extensions",
-        "fonts",
         NULL
     };
     parsePrologue(XF86ConfModulePtr, XF86ConfModuleRec);
