@@ -617,32 +617,24 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
 
     /* Check against requirements that the caller has specified */
     if (req) {
-        if (req->majorversion != MAJOR_UNSPEC) {
-            if (data->majorversion != req->majorversion) {
-                LogMessageVerb(X_WARNING, 2, "%s: module major version (%d) "
-                               "doesn't match required major version (%d)\n",
-                               module, data->majorversion, req->majorversion);
-                return FALSE;
-            }
-            else if (req->minorversion != MINOR_UNSPEC) {
-                if (data->minorversion < req->minorversion) {
-                    LogMessageVerb(X_WARNING, 2, "%s: module minor version "
-                                   "(%d) is less than the required minor "
-                                   "version (%d)\n", module,
-                                  data->minorversion, req->minorversion);
-                    return FALSE;
-                }
-                else if (data->minorversion == req->minorversion &&
-                         req->patchlevel != PATCH_UNSPEC) {
-                    if (data->patchlevel < req->patchlevel) {
-                        LogMessageVerb(X_WARNING, 2, "%sL module patch level "
-                                       "(%d) is less than the required patch "
-                                       "level (%d)\n", module, data->patchlevel,
-                                       req->patchlevel);
-                        return FALSE;
-                    }
-                }
-            }
+        if (data->majorversion != req->majorversion) {
+            LogMessageVerb(X_WARNING, 2, "%s: module major version (%d) "
+                           "doesn't match required major version (%d)\n",
+                           module, data->majorversion, req->majorversion);
+            return FALSE;
+        }
+        else if (data->minorversion < req->minorversion) {
+            LogMessageVerb(X_WARNING, 2, "%s: module minor version (%d) is "
+                          "less than the required minor version (%d)\n",
+                          module, data->minorversion, req->minorversion);
+            return FALSE;
+        }
+        else if (data->minorversion == req->minorversion &&
+                 data->patchlevel < req->patchlevel) {
+            LogMessageVerb(X_WARNING, 2, "%s: module patch level (%d) "
+                           "is less than the required patch level "
+                           "(%d)\n", module, data->patchlevel, req->patchlevel);
+            return FALSE;
         }
         if (req->moduleclass) {
             if (!data->moduleclass ||
@@ -663,8 +655,7 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
                 return FALSE;
             }
         }
-        if ((req->abiclass != ABI_CLASS_NONE) &&
-            req->abiversion != ABI_VERS_UNSPEC) {
+        if (req->abiclass != ABI_CLASS_NONE) {
             int reqmaj, reqmin, maj, min;
 
             reqmaj = GET_ABI_MAJOR(req->abiversion);

@@ -141,12 +141,6 @@ typedef struct {
     const char *moduleclass;    /* module class */
 } XF86ModReqInfo;
 
-/* values to indicate unspecified fields in XF86ModReqInfo. */
-#define MAJOR_UNSPEC		0xFF
-#define MINOR_UNSPEC		0xFF
-#define PATCH_UNSPEC		0xFFFF
-#define ABI_VERS_UNSPEC		0xFFFFFFFF
-
 #define MODULE_VERSION_NUMERIC(maj, min, patch) \
 	((((maj) & 0xFF) << 24) | (((min) & 0xFF) << 16) | (patch & 0xFFFF))
 #define GET_MODULE_MAJOR_VERSION(vers)	(((vers) >> 24) & 0xFF)

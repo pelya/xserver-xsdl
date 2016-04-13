@@ -5293,12 +5293,12 @@ XFree86 common layer.
 		  as follows:
 		      <programlisting>
 typedef struct {
-	CARD8        majorversion;  /* MAJOR_UNSPEC */
-	CARD8        minorversion;  /* MINOR_UNSPEC */
-	CARD16       patchlevel;    /* PATCH_UNSPEC */
-	const char * abiclass;      /* ABI_CLASS_NONE */
-	CARD32       abiversion;    /* ABI_VERS_UNSPEC */
-	const char * moduleclass;   /* MOD_CLASS_NONE */
+	CARD8        majorversion;
+	CARD8        minorversion;
+	CARD16       patchlevel;
+	const char * abiclass;
+	CARD32       abiversion;
+	const char * moduleclass;
 } XF86ModReqInfo;
 			</programlisting>
 
@@ -5323,8 +5323,8 @@ typedef struct {
 				   The module's minor version must be
 				   no less than this value.  This
 				   comparison is only made if
-				   <structfield>majorversion</structfield> is
-				   specified and matches.
+				   <structfield>majorversion</structfield>
+                                   matches.
 			    </para></listitem></varlistentry>
 
 			<varlistentry>
@@ -5333,8 +5333,8 @@ typedef struct {
 				   The module's patchlevel must be no
 				   less than this value.  This comparison
 				   is only made if
-				   <structfield>minorversion</structfield> is
-				   specified and matches.
+				   <structfield>minorversion</structfield>
+				   matches.
 			    </para></listitem></varlistentry>
 
 			<varlistentry>
