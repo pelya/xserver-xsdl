@@ -335,10 +335,7 @@ FindModule(const char *module, const char *dirname, PatternPtr patterns)
         return NULL;
 
     for (s = stdSubdirs; *s; s++) {
-        if ((strlen(dirname) + strlen(*s)) > PATH_MAX)
-            continue;
-        strcpy(buf, dirname);
-        strcat(buf, *s);
+        snprintf(buf, PATH_MAX, "%s%s", dirname, *s);
         if ((name = FindModuleInSubdir(buf, module)))
             break;
     }
@@ -371,11 +368,7 @@ LoaderListDir(const char *subdir, const char **patternlist)
         goto bail;
 
     for (elem = pathlist; *elem; elem++) {
-        if ((dirlen = strlen(*elem) + strlen(subdir) + 1) > PATH_MAX)
-            continue;
-        strcpy(buf, *elem);
-        strcat(buf, "/");
-        strcat(buf, subdir);
+        dirlen = snprintf(buf, PATH_MAX, "%s/%s", *elem, subdir);
         fp = buf + dirlen;
         if (stat(buf, &stat_buf) == 0 && S_ISDIR(stat_buf.st_mode) &&
             (d = opendir(buf))) {
