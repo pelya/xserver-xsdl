@@ -600,17 +600,6 @@ LoadSubModule(void *_parent, const char *module,
     return submod;
 }
 
-static ModuleDescPtr
-NewModuleDesc(const char *name)
-{
-    ModuleDescPtr mdp = calloc(1, sizeof(ModuleDesc));
-
-    if (mdp)
-        mdp->name = xstrdup(name);
-
-    return mdp;
-}
-
 ModuleDescPtr
 DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent)
 {
@@ -619,7 +608,7 @@ DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent)
     if (!mod)
         return NULL;
 
-    ret = NewModuleDesc(mod->name);
+    ret = calloc(1, sizeof(ModuleDesc));
     if (ret == NULL)
         return NULL;
 
@@ -632,7 +621,6 @@ DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent)
     ret->sib = DuplicateModule(mod->sib, parent);
     ret->parent = parent;
     ret->VersionInfo = mod->VersionInfo;
-    ret->path = strdup(mod->path);
 
     return ret;
 }
@@ -726,7 +714,7 @@ LoadModule(const char *module, void *options, const XF86ModReqInfo *modreq,
             *errmaj = LDR_BADUSAGE;
         goto LoadModule_fail;
     }
-    ret = NewModuleDesc(name);
+    ret = calloc(1, sizeof(ModuleDesc));
     if (!ret) {
         if (errmaj)
             *errmaj = LDR_NOMEM;
@@ -773,7 +761,6 @@ LoadModule(const char *module, void *options, const XF86ModReqInfo *modreq,
     ret->handle = LoaderOpen(found, errmaj);
     if (ret->handle == NULL)
         goto LoadModule_fail;
-    ret->path = strdup(found);
 
     /* drop any explicit suffix from the module name */
     p = strchr(name, '.');
@@ -857,31 +844,31 @@ void
 UnloadModule(void *_mod)
 {
     ModuleDescPtr mod = _mod;
+    const char *name;
 
     if (mod == (ModuleDescPtr) 1)
         return;
 
-    if (mod == NULL || mod->name == NULL)
+    if (mod == NULL)
         return;
 
+    name = mod->VersionInfo->modname;
+
     if (mod->parent)
-        LogMessageVerbSigSafe(X_INFO, 3, "UnloadSubModule: \"%s\"\n",
-                              mod->name);
+        LogMessageVerbSigSafe(X_INFO, 3, "UnloadSubModule: \"%s\"\n", name);
     else
-        LogMessageVerbSigSafe(X_INFO, 3, "UnloadModule: \"%s\"\n", mod->name);
+        LogMessageVerbSigSafe(X_INFO, 3, "UnloadModule: \"%s\"\n", name);
 
     if (mod->TearDownData != ModuleDuplicated) {
         if ((mod->TearDownProc) && (mod->TearDownData))
             mod->TearDownProc(mod->TearDownData);
-        LoaderUnload(mod->name, mod->handle);
+        LoaderUnload(name, mod->handle);
     }
 
     if (mod->child)
         UnloadModule(mod->child);
     if (mod->sib)
         UnloadModule(mod->sib);
-    free(mod->path);
-    free(mod->name);
     free(mod);
 }
 

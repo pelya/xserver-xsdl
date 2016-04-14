@@ -59,8 +59,6 @@ typedef struct module_desc {
     struct module_desc *child;
     struct module_desc *sib;
     struct module_desc *parent;
-    char *name;
-    char *path;
     void *handle;
     ModuleSetupProc SetupProc;
     ModuleTearDownProc TearDownProc;
