@@ -448,13 +448,11 @@ FindModule(const char *module, const char *dirname, const char **subdirlist,
 }
 
 const char **
-LoaderListDirs(const char **subdirlist, const char **patternlist)
+LoaderListDir(const char *subdir, const char **patternlist)
 {
     char buf[PATH_MAX + 1];
     char **pathlist;
     char **elem;
-    const char **subdirs;
-    const char **s;
     PatternPtr patterns = NULL;
     PatternPtr p;
     DIR *d;
@@ -470,62 +468,56 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
 
     if (!(pathlist = defaultPathList))
         return NULL;
-    if (!(subdirs = InitSubdirs(subdirlist)))
-        goto bail;
     if (!(patterns = InitPatterns(patternlist)))
         goto bail;
 
     for (elem = pathlist; *elem; elem++) {
-        for (s = subdirs; *s; s++) {
-            if ((dirlen = strlen(*elem) + strlen(*s)) > PATH_MAX)
-                continue;
-            strcpy(buf, *elem);
-            strcat(buf, *s);
-            fp = buf + dirlen;
-            if (stat(buf, &stat_buf) == 0 && S_ISDIR(stat_buf.st_mode) &&
-                (d = opendir(buf))) {
-                if (buf[dirlen - 1] != '/') {
-                    buf[dirlen++] = '/';
-                    fp++;
-                }
-                while ((dp = readdir(d))) {
-                    if (dirlen + strlen(dp->d_name) > PATH_MAX)
-                        continue;
-                    strcpy(fp, dp->d_name);
-                    if (!(stat(buf, &stat_buf) == 0 &&
-                          S_ISREG(stat_buf.st_mode)))
-                        continue;
-                    for (p = patterns; p->pattern; p++) {
-                        if (regexec(&p->rex, dp->d_name, 2, match, 0) == 0 &&
-                            match[1].rm_so != -1) {
-                            len = match[1].rm_eo - match[1].rm_so;
-                            save = listing;
-                            listing = reallocarray(listing, n + 2,
-                                                   sizeof(char *));
-                            if (!listing) {
-                                if (save) {
-                                    save[n] = NULL;
-                                    FreeStringList(save);
-                                }
-                                closedir(d);
-                                goto bail;
+        if ((dirlen = strlen(*elem) + strlen(subdir) + 1) > PATH_MAX)
+            continue;
+        strcpy(buf, *elem);
+        strcat(buf, "/");
+        strcat(buf, subdir);
+        fp = buf + dirlen;
+        if (stat(buf, &stat_buf) == 0 && S_ISDIR(stat_buf.st_mode) &&
+            (d = opendir(buf))) {
+            if (buf[dirlen - 1] != '/') {
+                buf[dirlen++] = '/';
+                fp++;
+            }
+            while ((dp = readdir(d))) {
+                if (dirlen + strlen(dp->d_name) > PATH_MAX)
+                    continue;
+                strcpy(fp, dp->d_name);
+                if (!(stat(buf, &stat_buf) == 0 && S_ISREG(stat_buf.st_mode)))
+                    continue;
+                for (p = patterns; p->pattern; p++) {
+                    if (regexec(&p->rex, dp->d_name, 2, match, 0) == 0 &&
+                        match[1].rm_so != -1) {
+                        len = match[1].rm_eo - match[1].rm_so;
+                        save = listing;
+                        listing = reallocarray(listing, n + 2, sizeof(char *));
+                        if (!listing) {
+                            if (save) {
+                                save[n] = NULL;
+                                FreeStringList(save);
                             }
-                            listing[n] = malloc(len + 1);
-                            if (!listing[n]) {
-                                FreeStringList(listing);
-                                closedir(d);
-                                goto bail;
-                            }
-                            strncpy(listing[n], dp->d_name + match[1].rm_so,
-                                    len);
-                            listing[n][len] = '\0';
-                            n++;
-                            break;
+                            closedir(d);
+                            goto bail;
                         }
+                        listing[n] = malloc(len + 1);
+                        if (!listing[n]) {
+                            FreeStringList(listing);
+                            closedir(d);
+                            goto bail;
+                        }
+                        strncpy(listing[n], dp->d_name + match[1].rm_so, len);
+                        listing[n][len] = '\0';
+                        n++;
+                        break;
                     }
                 }
-                closedir(d);
             }
+            closedir(d);
         }
     }
     if (listing)
@@ -534,14 +526,7 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
 
  bail:
     FreePatterns(patterns);
-    FreeSubdirs(subdirs);
     return (const char **) ret;
-}
-
-void
-LoaderFreeDirList(char **list)
-{
-    FreeStringList(list);
 }
 
 static Bool
