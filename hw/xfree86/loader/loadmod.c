@@ -67,7 +67,7 @@ typedef struct _pattern {
 } PatternRec, *PatternPtr;
 
 /* Prototypes for static functions */
-static char *FindModule(const char *, const char *, const char **, PatternPtr);
+static char *FindModule(const char *, const char *, PatternPtr);
 static Bool CheckVersion(const char *, XF86ModuleVersionInfo *,
                          const XF86ModReqInfo *);
 static char *LoaderGetCanonicalName(const char *, PatternPtr);
@@ -261,99 +261,6 @@ FreePatterns(PatternPtr patterns)
         free(patterns);
 }
 
-static const char **
-InitSubdirs(const char **subdirlist)
-{
-    int i;
-    const char **tmp_subdirlist = NULL;
-    char **subdirs = NULL;
-    const char **s, **stmp = NULL;
-    int len;
-    Bool indefault;
-
-    if (subdirlist == NULL) {
-        subdirlist = tmp_subdirlist = malloc(2 * sizeof(char *));
-        if (subdirlist == NULL)
-            return NULL;
-        subdirlist[0] = DEFAULT_LIST;
-        subdirlist[1] = NULL;
-    }
-
-    {
-        /* Count number of entries and check for invalid paths */
-        for (i = 0, s = subdirlist; *s; i++, s++) {
-            if (*s == DEFAULT_LIST) {
-                i += sizeof(stdSubdirs) / sizeof(stdSubdirs[0]) - 1 - 1;
-            }
-            else {
-                /*
-                 * Path validity check.  Don't allow absolute paths, or
-                 * paths containing "..".  To catch absolute paths on
-                 * platforms that use driver letters, don't allow the ':'
-                 * character to appear at all.
-                 */
-                if (**s == '/' || **s == '\\' || strchr(*s, ':') ||
-                    strstr(*s, "..")) {
-                    LogMessage(X_ERROR, "InitSubdirs: Bad subdir \"%s\"\n", *s);
-                    free(tmp_subdirlist);
-                    return NULL;
-                }
-            }
-        }
-        subdirs = xallocarray(i * 2 + 1, sizeof(char *));
-        if (!subdirs) {
-            free(tmp_subdirlist);
-            return NULL;
-        }
-        i = 0;
-        s = subdirlist;
-        indefault = FALSE;
-        while (*s) {
-            if (*s == DEFAULT_LIST) {
-                /* Divert to the default list */
-                indefault = TRUE;
-                stmp = ++s;
-                s = stdSubdirs;
-            }
-            len = strlen(*s);
-            if (**s && (*s)[len - 1] != '/') {
-                len++;
-            }
-            if (!(subdirs[i] = malloc(len))) {
-                while (--i >= 0)
-                    free(subdirs[i]);
-                free(subdirs);
-                free(tmp_subdirlist);
-                return NULL;
-            }
-            /* path as given */
-            subdirs[i] = strdup(*s);
-            i++;
-            s++;
-            if (indefault && !s) {
-                /* revert back to the main list */
-                indefault = FALSE;
-                s = stmp;
-            }
-        }
-        subdirs[i] = NULL;
-    }
-    free(tmp_subdirlist);
-    return (const char **) subdirs;
-}
-
-static void
-FreeSubdirs(const char **subdirs)
-{
-    const char **s;
-
-    if (subdirs) {
-        for (s = subdirs; *s; s++)
-            free((char *) *s);
-        free(subdirs);
-    }
-}
-
 static char *
 FindModuleInSubdir(const char *dirpath, const char *module)
 {
@@ -418,22 +325,16 @@ FindModuleInSubdir(const char *dirpath, const char *module)
 }
 
 static char *
-FindModule(const char *module, const char *dirname, const char **subdirlist,
-           PatternPtr patterns)
+FindModule(const char *module, const char *dirname, PatternPtr patterns)
 {
     char buf[PATH_MAX + 1];
     char *name = NULL;
-    const char **subdirs = NULL;
     const char **s;
 
     if (strlen(dirname) > PATH_MAX)
         return NULL;
 
-    subdirs = InitSubdirs(subdirlist);
-    if (!subdirs)
-        return NULL;
-
-    for (s = subdirs; *s; s++) {
+    for (s = stdSubdirs; *s; s++) {
         if ((strlen(dirname) + strlen(*s)) > PATH_MAX)
             continue;
         strcpy(buf, dirname);
@@ -441,8 +342,6 @@ FindModule(const char *module, const char *dirname, const char **subdirlist,
         if ((name = FindModuleInSubdir(buf, module)))
             break;
     }
-
-    FreeSubdirs(subdirs);
 
     return name;
 }
@@ -693,8 +592,7 @@ LoadSubModule(void *_parent, const char *module,
         return NULL;
     }
 
-    submod = LoadModule(module, subdirlist, patternlist, options,
-                        modreq, errmaj, errmin);
+    submod = LoadModule(module, options, modreq, errmaj);
     if (submod && submod != (ModuleDescPtr) 1) {
         parent->child = AddSibling(parent->child, submod);
         submod->parent = parent;
@@ -763,15 +661,6 @@ static const char *compiled_in_modules[] = {
  * module       The module name.  Normally this is not a filename but the
  *              module's "canonical name.  A full pathname is, however,
  *              also accepted.
- * subdirlist   A NULL terminated list of subdirectories to search.  When
- *              NULL, the default "stdSubdirs" list is used.  The default
- *              list is also substituted for entries with value DEFAULT_LIST.
- * patternlist  A NULL terminated list of regular expressions used to find
- *              module filenames.  Each regex should contain exactly one
- *              subexpression that corresponds to the canonical module name.
- *              When NULL, the default "stdPatterns" list is used.  The
- *              default list is also substituted for entries with value
- *              DEFAULT_LIST.
  * options      A NULL terminated list of Options that are passed to the
  *              module's SetupProc function.
  * modreq       An optional XF86ModReqInfo* containing
@@ -790,13 +679,11 @@ static const char *compiled_in_modules[] = {
  *                               string
  *              "don't care" values are ~0 for numbers, and NULL for strings
  * errmaj       Major error return.
- * errmin       Minor error return.
  *
  */
 ModuleDescPtr
-LoadModule(const char *module, const char **subdirlist,
-           const char **patternlist, void *options,
-           const XF86ModReqInfo * modreq, int *errmaj, int *errmin)
+LoadModule(const char *module, void *options, const XF86ModReqInfo *modreq,
+           int *errmaj)
 {
     XF86ModuleData *initdata = NULL;
     char **pathlist = NULL;
@@ -812,7 +699,7 @@ LoadModule(const char *module, const char **subdirlist,
 
     LogMessageVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
 
-    patterns = InitPatterns(patternlist);
+    patterns = InitPatterns(NULL);
     name = LoaderGetCanonicalName(module, patterns);
     noncanonical = (name && strcmp(module, name) != 0);
     if (noncanonical) {
@@ -837,16 +724,12 @@ LoadModule(const char *module, const char **subdirlist,
     if (!name) {
         if (errmaj)
             *errmaj = LDR_BADUSAGE;
-        if (errmin)
-            *errmin = 0;
         goto LoadModule_fail;
     }
     ret = NewModuleDesc(name);
     if (!ret) {
         if (errmaj)
             *errmaj = LDR_NOMEM;
-        if (errmin)
-            *errmin = 0;
         goto LoadModule_fail;
     }
 
@@ -855,8 +738,6 @@ LoadModule(const char *module, const char **subdirlist,
         /* This could be a malloc failure too */
         if (errmaj)
             *errmaj = LDR_BADUSAGE;
-        if (errmin)
-            *errmin = 1;
         goto LoadModule_fail;
     }
 
@@ -868,7 +749,7 @@ LoadModule(const char *module, const char **subdirlist,
         found = xstrdup(module);
     path_elem = pathlist;
     while (!found && *path_elem != NULL) {
-        found = FindModule(m, *path_elem, subdirlist, patterns);
+        found = FindModule(m, *path_elem, patterns);
         path_elem++;
         /*
          * When the module name isn't the canonical name, search for the
@@ -887,11 +768,9 @@ LoadModule(const char *module, const char **subdirlist,
         LogMessage(X_WARNING, "Warning, couldn't open module %s\n", module);
         if (errmaj)
             *errmaj = LDR_NOENT;
-        if (errmin)
-            *errmin = 0;
         goto LoadModule_fail;
     }
-    ret->handle = LoaderOpen(found, errmaj, errmin);
+    ret->handle = LoaderOpen(found, errmaj);
     if (ret->handle == NULL)
         goto LoadModule_fail;
     ret->path = strdup(found);
@@ -909,8 +788,6 @@ LoadModule(const char *module, const char **subdirlist,
         p = NULL;
         if (errmaj)
             *errmaj = LDR_NOMEM;
-        if (errmin)
-            *errmin = 0;
         goto LoadModule_fail;
     }
     initdata = LoaderSymbolFromModule(ret->handle, p);
@@ -927,8 +804,6 @@ LoadModule(const char *module, const char **subdirlist,
             if (!CheckVersion(module, vers, modreq)) {
                 if (errmaj)
                     *errmaj = LDR_MISMATCH;
-                if (errmin)
-                    *errmin = 0;
                 goto LoadModule_fail;
             }
         }
@@ -937,8 +812,6 @@ LoadModule(const char *module, const char **subdirlist,
                        " version information\n", module);
             if (errmaj)
                 *errmaj = LDR_INVALID;
-            if (errmin)
-                *errmin = 0;
             goto LoadModule_fail;
         }
         if (setup)
@@ -953,12 +826,10 @@ LoadModule(const char *module, const char **subdirlist,
                    "data object.\n", module, p);
         if (errmaj)
             *errmaj = LDR_INVALID;
-        if (errmin)
-            *errmin = 0;
         goto LoadModule_fail;
     }
     if (ret->SetupProc) {
-        ret->TearDownData = ret->SetupProc(ret, options, errmaj, errmin);
+        ret->TearDownData = ret->SetupProc(ret, options, errmaj, NULL);
         if (!ret->TearDownData) {
             goto LoadModule_fail;
         }

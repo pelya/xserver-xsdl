@@ -5210,10 +5210,8 @@ XFree86 common layer.
 
       <blockquote><para>
 	  <programlisting>
-    pointer LoadModule(const char *module,
-                       const char **subdirlist, const char **patternlist,
-                       pointer options, const XF86ModReqInfo * modreq,
-                       int *errmaj, int *errmin);
+    pointer LoadModule(const char *module, pointer options,
+                       const XF86ModReqInfo * modreq, int *errmaj);
 	  </programlisting>
 	  <blockquote><para>
     The <function>LoadModule()</function> function loads the module called
@@ -5226,42 +5224,6 @@ XFree86 common layer.
     This might change.  The other parameters are:
 
 	      <variablelist>
-
-
-		<varlistentry>
-		  <term><parameter>subdirlist</parameter></term>
-		  <listitem><para>
-		  An optional <constant>NULL</constant> terminated list of
-		  subdirectories to search.  When <constant>NULL</constant>,
-		  the default built-in list is used (refer to
-		  <varname>stdSubdirs</varname> in <filename>loadmod.c</filename>).
-		  The default list is also substituted for entries in
-		  <parameter>subdirlist</parameter> with the value
-		  <constant>DEFAULT_LIST</constant>.  This makes is possible
-		  to augment the default list instead of replacing it.
-		  Subdir elements must be relative, and must not contain
-		  <literal remap="tt">".."</literal>.  If any violate this requirement,
-		  the load fails.
-		    </para></listitem></varlistentry>
-
-
-		<varlistentry>
-		  <term><parameter>patternlist</parameter></term>
-		  <listitem><para>
-		  An optional <constant>NULL</constant> terminated list of
-		  POSIX regular expressions used to connect module
-		  filenames with canonical module names.  Each regex
-		  should contain exactly one subexpression that corresponds
-		  to the canonical module name.  When <constant>NULL</constant>,
-		  the default built-in list is used (refer to
-		  <varname>stdPatterns</varname> in
-		  <filename>loadmod.c</filename>).  The default list is also
-		  substituted for entries in <parameter>patternlist</parameter>
-		  with the value <constant>DEFAULT_LIST</constant>.  This
-		  makes it possible to augment the default list instead
-		  of replacing it.
-		    </para></listitem></varlistentry>
-
 
 		<varlistentry>
 		  <term><parameter>options</parameter></term>
@@ -5369,13 +5331,6 @@ typedef struct {
 		  part or the error code.  When provided,
 		  <parameter>*errmaj</parameter> is filled in when
 		  <function>LoadModule()</function> fails.
-		    </para></listitem></varlistentry>
-
-		<varlistentry>
-		  <term><parameter>errmin</parameter></term>
-		  <listitem><para>
-		  Like <parameter>errmaj</parameter>, but for the minor part
-		  of the error code.
 		    </para></listitem></varlistentry>
 
 	      </variablelist>

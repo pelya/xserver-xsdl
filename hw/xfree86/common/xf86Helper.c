@@ -1590,7 +1590,7 @@ xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name)
 void *
 xf86LoadOneModule(const char *name, void *opt)
 {
-    int errmaj, errmin;
+    int errmaj;
     char *Name;
     void *mod;
 
@@ -1608,9 +1608,9 @@ xf86LoadOneModule(const char *name, void *opt)
         return NULL;
     }
 
-    mod = LoadModule(Name, NULL, NULL, opt, NULL, &errmaj, &errmin);
+    mod = LoadModule(Name, opt, NULL, &errmaj);
     if (!mod)
-        LoaderErrorMsg(NULL, Name, errmaj, errmin);
+        LoaderErrorMsg(NULL, Name, errmaj, 0);
     free(Name);
     return mod;
 }

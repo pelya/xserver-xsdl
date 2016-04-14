@@ -89,7 +89,7 @@ LoaderInit(void)
 /* Public Interface to the loader. */
 
 void *
-LoaderOpen(const char *module, int *errmaj, int *errmin)
+LoaderOpen(const char *module, int *errmaj)
 {
     void *ret;
 
@@ -103,8 +103,6 @@ LoaderOpen(const char *module, int *errmaj, int *errmin)
         LogMessage(X_ERROR, "Failed to load %s: %s\n", module, dlerror());
         if (errmaj)
             *errmaj = LDR_NOLOAD;
-        if (errmin)
-            *errmin = LDR_NOLOAD;
         return NULL;
     }
 
