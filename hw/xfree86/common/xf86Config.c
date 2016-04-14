@@ -60,8 +60,8 @@
 #include "globals.h"
 #include "extension.h"
 #include "xf86pciBus.h"
-
 #include "xf86Xinput.h"
+#include "loaderProcs.h"
 
 #include "xkbsrv.h"
 

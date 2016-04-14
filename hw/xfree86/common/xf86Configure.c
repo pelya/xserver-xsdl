@@ -40,6 +40,7 @@
 #include "xf86Sbus.h"
 #endif
 #include "misc.h"
+#include "loaderProcs.h"
 
 typedef struct _DevToConfig {
     GDevRec GDev;
