@@ -5689,11 +5689,7 @@ the server, and may also be used from within modules.
     described above, except that the module loaded is registered as a
     child of the calling module.  The <parameter>parent</parameter> parameter
     is the calling module's handle.  Modules loaded with this function
-    are automatically unloaded when the parent module is unloaded.  The
-    other difference is that the path parameter may not be specified.
-    The module search path used for modules loaded with this function
-    is the default search path as initialised with
-    <function>LoaderSetPath()</function>.
+    are automatically unloaded when the parent module is unloaded.
 	    </para>
 
 	  </blockquote></para></blockquote>
