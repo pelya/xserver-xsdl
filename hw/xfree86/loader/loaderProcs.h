@@ -72,8 +72,6 @@ typedef struct module_desc {
 
 void LoaderInit(void);
 
-ModuleDescPtr LoadDriver(const char *, const char *, int, void *, int *,
-                         int *);
 ModuleDescPtr LoadModule(const char *, const char **,
                          const char **, void *, const XF86ModReqInfo *,
                          int *, int *);
