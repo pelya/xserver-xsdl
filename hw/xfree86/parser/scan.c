@@ -441,14 +441,8 @@ xf86getToken(const xf86ConfigSymTabRec * tab)
     /*
      * Joop, at last we have to lookup the token ...
      */
-    if (tab) {
-        i = 0;
-        while (tab[i].token != -1)
-            if (xf86nameCompare(configRBuf, tab[i].name) == 0)
-                return tab[i].token;
-            else
-                i++;
-    }
+    if (tab)
+        return StringToToken(configRBuf, tab);
 
     return ERROR_TOKEN;         /* Error catcher */
 }
