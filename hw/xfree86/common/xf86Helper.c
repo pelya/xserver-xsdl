@@ -1615,7 +1615,7 @@ xf86LoadOneModule(const char *name, void *opt)
         return NULL;
     }
 
-    mod = LoadModule(Name, NULL, NULL, NULL, opt, NULL, &errmaj, &errmin);
+    mod = LoadModule(Name, NULL, NULL, opt, NULL, &errmaj, &errmin);
     if (!mod)
         LoaderErrorMsg(NULL, Name, errmaj, errmin);
     free(Name);

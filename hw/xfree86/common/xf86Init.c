@@ -1503,7 +1503,7 @@ xf86LoadModules(const char **list, void **optlist)
         else
             opt = NULL;
 
-        if (!LoadModule(name, NULL, NULL, NULL, opt, NULL, &errmaj, &errmin)) {
+        if (!LoadModule(name, NULL, NULL, opt, NULL, &errmaj, &errmin)) {
             LoaderErrorMsg(NULL, name, errmaj, errmin);
             failed = TRUE;
         }

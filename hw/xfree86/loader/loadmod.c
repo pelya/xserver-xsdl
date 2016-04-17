@@ -751,7 +751,7 @@ LoadSubModule(void *_parent, const char *module,
         return NULL;
     }
 
-    submod = LoadModule(module, NULL, subdirlist, patternlist, options,
+    submod = LoadModule(module, subdirlist, patternlist, options,
                         modreq, errmaj, errmin);
     if (submod && submod != (ModuleDescPtr) 1) {
         parent->child = AddSibling(parent->child, submod);
@@ -821,7 +821,6 @@ static const char *compiled_in_modules[] = {
  * module       The module name.  Normally this is not a filename but the
  *              module's "canonical name.  A full pathname is, however,
  *              also accepted.
- * path         A comma separated list of module directories.
  * subdirlist   A NULL terminated list of subdirectories to search.  When
  *              NULL, the default "stdSubdirs" list is used.  The default
  *              list is also substituted for entries with value DEFAULT_LIST.
@@ -853,7 +852,7 @@ static const char *compiled_in_modules[] = {
  *
  */
 ModuleDescPtr
-LoadModule(const char *module, const char *path, const char **subdirlist,
+LoadModule(const char *module, const char **subdirlist,
            const char **patternlist, void *options,
            const XF86ModReqInfo * modreq, int *errmaj, int *errmin)
 {
@@ -909,7 +908,7 @@ LoadModule(const char *module, const char *path, const char **subdirlist,
         goto LoadModule_fail;
     }
 
-    pathlist = InitPathList(path);
+    pathlist = InitPathList(NULL);
     if (!pathlist) {
         /* This could be a malloc failure too */
         if (errmaj)

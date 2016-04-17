@@ -5210,7 +5210,7 @@ XFree86 common layer.
 
       <blockquote><para>
 	  <programlisting>
-    pointer LoadModule(const char *module, const char *path,
+    pointer LoadModule(const char *module,
                        const char **subdirlist, const char **patternlist,
                        pointer options, const XF86ModReqInfo * modreq,
                        int *errmaj, int *errmin);
@@ -5226,12 +5226,6 @@ XFree86 common layer.
     This might change.  The other parameters are:
 
 	      <variablelist>
-		<varlistentry>
-		  <term><parameter>path</parameter></term>
-		  <listitem><para>
-		  An optional comma-separated list of module search paths.
-		  When <constant>NULL</constant>, the default search path is used.
-		    </para></listitem></varlistentry>
 
 
 		<varlistentry>
