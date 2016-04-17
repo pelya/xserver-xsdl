@@ -127,9 +127,6 @@ InitPathList(const char *path)
     int addslash;
     int n = 0;
 
-    if (!path)
-        return defaultPathList;
-
     fullpath = strdup(path);
     if (!fullpath)
         return NULL;
@@ -169,13 +166,6 @@ InitPathList(const char *path)
         list[n] = NULL;
     free(fullpath);
     return list;
-}
-
-static void
-FreePathList(char **pathlist)
-{
-    if (pathlist && pathlist != defaultPathList)
-        FreeStringList(pathlist);
 }
 
 void
@@ -498,7 +488,7 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
     char **ret = NULL;
     int n = 0;
 
-    if (!(pathlist = InitPathList(NULL)))
+    if (!(pathlist = defaultPathList))
         return NULL;
     if (!(subdirs = InitSubdirs(subdirlist)))
         goto bail;
@@ -565,7 +555,6 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
  bail:
     FreePatterns(patterns);
     FreeSubdirs(subdirs);
-    FreePathList(pathlist);
     return (const char **) ret;
 }
 
@@ -908,7 +897,7 @@ LoadModule(const char *module, const char **subdirlist,
         goto LoadModule_fail;
     }
 
-    pathlist = InitPathList(NULL);
+    pathlist = defaultPathList;
     if (!pathlist) {
         /* This could be a malloc failure too */
         if (errmaj)
@@ -1033,7 +1022,6 @@ LoadModule(const char *module, const char **subdirlist,
     ret = NULL;
 
  LoadModule_exit:
-    FreePathList(pathlist);
     FreePatterns(patterns);
     free(found);
     free(name);
