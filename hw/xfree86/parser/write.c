@@ -73,14 +73,7 @@
 #define HAS_NO_UIDS
 #endif
 
-#ifdef HAS_NO_UIDS
-#define doWriteConfigFile xf86writeConfigFile
-#define Local /**/
-#else
-#define Local static
-#endif
-
-Local int
+static int
 doWriteConfigFile(const char *filename, XF86ConfigPtr cptr)
 {
     FILE *cf;
@@ -134,24 +127,19 @@ doWriteConfigFile(const char *filename, XF86ConfigPtr cptr)
     return 1;
 }
 
-#ifndef HAS_NO_UIDS
-
 int
 xf86writeConfigFile(const char *filename, XF86ConfigPtr cptr)
 {
+#ifndef HAS_NO_UIDS
     int ret;
-
-#if !defined(HAS_SAVED_IDS_AND_SETEUID)
-    int pid, p;
-    int status;
-    void (*csig) (int);
-#else
-    int ruid, euid;
-#endif
 
     if (getuid() != geteuid()) {
 
 #if !defined(HAS_SAVED_IDS_AND_SETEUID)
+        int pid, p;
+        int status;
+        void (*csig) (int);
+
         /* Need to fork to change ruid without loosing euid */
         csig = signal(SIGCHLD, SIG_DFL);
         switch ((pid = fork())) {
@@ -178,6 +166,7 @@ xf86writeConfigFile(const char *filename, XF86ConfigPtr cptr)
             return 0;
 
 #else                           /* HAS_SAVED_IDS_AND_SETEUID */
+        int ruid, euid;
 
         ruid = getuid();
         euid = geteuid();
@@ -198,9 +187,7 @@ xf86writeConfigFile(const char *filename, XF86ConfigPtr cptr)
 #endif                          /* HAS_SAVED_IDS_AND_SETEUID */
 
     }
-    else {
-        return doWriteConfigFile(filename, cptr);
-    }
-}
-
+    else
 #endif                          /* !HAS_NO_UIDS */
+        return doWriteConfigFile(filename, cptr);
+}
