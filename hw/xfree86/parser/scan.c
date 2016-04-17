@@ -87,7 +87,7 @@
 #define CONFIG_BUF_LEN     1024
 #define CONFIG_MAX_FILES   64
 
-static int StringToToken(const char *, xf86ConfigSymTabRec *);
+static int StringToToken(const char *, const xf86ConfigSymTabRec *);
 
 static struct {
     FILE *file;
@@ -247,7 +247,7 @@ xf86getNextLine(void)
  *      pushToken.
  */
 int
-xf86getToken(xf86ConfigSymTabRec * tab)
+xf86getToken(const xf86ConfigSymTabRec * tab)
 {
     int c, i;
 
@@ -460,7 +460,7 @@ xf86getSubToken(char **comment)
  /*NOTREACHED*/}
 
 int
-xf86getSubTokenWithTab(char **comment, xf86ConfigSymTabRec * tab)
+xf86getSubTokenWithTab(char **comment, const xf86ConfigSymTabRec * tab)
 {
     int token;
 
@@ -1023,13 +1023,13 @@ xf86setSection(const char *section)
  *  Lookup a string if it is actually a token in disguise.
  */
 int
-xf86getStringToken(xf86ConfigSymTabRec * tab)
+xf86getStringToken(const xf86ConfigSymTabRec * tab)
 {
     return StringToToken(xf86_lex_val.str, tab);
 }
 
 static int
-StringToToken(const char *str, xf86ConfigSymTabRec * tab)
+StringToToken(const char *str, const xf86ConfigSymTabRec * tab)
 {
     int i;
 
