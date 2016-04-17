@@ -87,8 +87,6 @@
 #define CONFIG_BUF_LEN     1024
 #define CONFIG_MAX_FILES   64
 
-static int StringToToken(const char *, const xf86ConfigSymTabRec *);
-
 static struct {
     FILE *file;
     char *path;
@@ -239,6 +237,18 @@ xf86getNextLine(void)
     } while (!eolFound);
 
     return ret;
+}
+
+static int
+StringToToken(const char *str, const xf86ConfigSymTabRec * tab)
+{
+    int i;
+
+    for (i = 0; tab[i].token != -1; i++) {
+        if (!xf86nameCompare(tab[i].name, str))
+            return tab[i].token;
+    }
+    return ERROR_TOKEN;
 }
 
 /*
@@ -1026,18 +1036,6 @@ int
 xf86getStringToken(const xf86ConfigSymTabRec * tab)
 {
     return StringToToken(xf86_lex_val.str, tab);
-}
-
-static int
-StringToToken(const char *str, const xf86ConfigSymTabRec * tab)
-{
-    int i;
-
-    for (i = 0; tab[i].token != -1; i++) {
-        if (!xf86nameCompare(tab[i].name, str))
-            return tab[i].token;
-    }
-    return ERROR_TOKEN;
 }
 
 /*
