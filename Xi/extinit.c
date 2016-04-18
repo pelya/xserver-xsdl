@@ -380,18 +380,6 @@ DevPrivateKeyRec XIClientPrivateKeyRec;
  *
  */
 
-static void
-XIClientCallback(CallbackListPtr *list, void *closure, void *data)
-{
-    NewClientInfoRec *clientinfo = (NewClientInfoRec *) data;
-    ClientPtr pClient = clientinfo->client;
-    XIClientPtr pXIClient;
-
-    pXIClient = dixLookupPrivate(&pClient->devPrivates, XIClientPrivateKey);
-    pXIClient->major_version = 0;
-    pXIClient->minor_version = 0;
-}
-
 /*************************************************************************
  *
  * ProcIDispatch - main dispatch routine for requests to this extension.
@@ -1297,9 +1285,6 @@ XInputExtensionInit(void)
     if (!dixRegisterPrivateKey
         (&XIClientPrivateKeyRec, PRIVATE_CLIENT, sizeof(XIClientRec)))
         FatalError("Cannot request private for XI.\n");
-
-    if (!AddCallback(&ClientStateCallback, XIClientCallback, 0))
-        FatalError("Failed to add callback to XI.\n");
 
     if (!XIBarrierInit())
         FatalError("Could not initialize barriers.\n");

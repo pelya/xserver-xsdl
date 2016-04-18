@@ -66,17 +66,6 @@ typedef struct _CompositeClient {
 #define GetCompositeClient(pClient) ((CompositeClientPtr) \
     dixLookupPrivate(&(pClient)->devPrivates, CompositeClientPrivateKey))
 
-static void
-CompositeClientCallback(CallbackListPtr *list, void *closure, void *data)
-{
-    NewClientInfoRec *clientinfo = (NewClientInfoRec *) data;
-    ClientPtr pClient = clientinfo->client;
-    CompositeClientPtr pCompositeClient = GetCompositeClient(pClient);
-
-    pCompositeClient->major_version = 0;
-    pCompositeClient->minor_version = 0;
-}
-
 static int
 FreeCompositeClientWindow(void *value, XID ccwid)
 {
@@ -578,9 +567,6 @@ CompositeExtensionInit(void)
 
     if (!dixRegisterPrivateKey(&CompositeClientPrivateKeyRec, PRIVATE_CLIENT,
                                sizeof(CompositeClientRec)))
-        return;
-
-    if (!AddCallback(&ClientStateCallback, CompositeClientCallback, 0))
         return;
 
     for (s = 0; s < screenInfo.numScreens; s++)
