@@ -646,6 +646,9 @@ InputClassMatches(const XF86ConfInputClassPtr iclass, const InputInfoPtr idev,
     if (iclass->is_tablet.set &&
         iclass->is_tablet.val != ! !(attrs->flags & ATTR_TABLET))
         return FALSE;
+    if (iclass->is_tablet_pad.set &&
+        iclass->is_tablet_pad.val != ! !(attrs->flags & ATTR_TABLET_PAD))
+        return FALSE;
     if (iclass->is_touchpad.set &&
         iclass->is_touchpad.val != ! !(attrs->flags & ATTR_TOUCHPAD))
         return FALSE;

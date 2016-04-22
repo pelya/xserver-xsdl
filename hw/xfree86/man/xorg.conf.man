@@ -1188,6 +1188,8 @@ entries.
 .TP 7
 .BI "MatchIsTablet       \*q" bool \*q
 .TP 7
+.BI "MatchIsTabletPad    \*q" bool \*q
+.TP 7
 .BI "MatchIsTouchpad     \*q" bool \*q
 .TP 7
 .BI "MatchIsTouchscreen  \*q" bool \*q

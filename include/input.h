@@ -237,6 +237,7 @@ typedef struct _InputAttributes {
 #define ATTR_TOUCHPAD (1<<4)
 #define ATTR_TOUCHSCREEN (1<<5)
 #define ATTR_KEY (1<<6)
+#define ATTR_TABLET_PAD (1<<7)
 
 /* Key/Button has been run through all input processing and events sent to clients. */
 #define KEY_PROCESSED 1
