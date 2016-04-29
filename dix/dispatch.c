@@ -426,7 +426,6 @@ Dispatch(void)
                     if (result == Success)
                         result =
                             (*client->requestVector[client->majorOp]) (client);
-                    XaceHookAuditEnd(client, result);
                 }
                 if (!SmartScheduleSignalEnable)
                     SmartScheduleTime = GetTimeInMillis();
