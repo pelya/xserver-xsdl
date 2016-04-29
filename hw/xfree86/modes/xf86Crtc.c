@@ -3285,7 +3285,8 @@ xf86OutputSetEDID(xf86OutputPtr output, xf86MonPtr edid_mon)
     }
 
     /* Set the DDC properties for the 'compat' output */
-    if (output == xf86CompatOutput(scrn))
+    /* GPU screens don't have a root window */
+    if (output == xf86CompatOutput(scrn) && !scrn->is_gpu)
         xf86SetDDCproperties(scrn, edid_mon);
 
 #ifdef RANDR_12_INTERFACE
