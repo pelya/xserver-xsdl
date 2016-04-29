@@ -568,32 +568,32 @@ static void
 redisplay_dirty(ScreenPtr screen, PixmapDirtyUpdatePtr dirty)
 {
 
-        RegionRec pixregion;
+    RegionRec pixregion;
 
-        PixmapRegionInit(&pixregion, dirty->slave_dst);
-        DamageRegionAppend(&dirty->slave_dst->drawable, &pixregion);
-        PixmapSyncDirtyHelper(dirty);
+    PixmapRegionInit(&pixregion, dirty->slave_dst);
+    DamageRegionAppend(&dirty->slave_dst->drawable, &pixregion);
+    PixmapSyncDirtyHelper(dirty);
 
-        DamageRegionProcessPending(&dirty->slave_dst->drawable);
-        RegionUninit(&pixregion);
+    DamageRegionProcessPending(&dirty->slave_dst->drawable);
+    RegionUninit(&pixregion);
 }
 
 static void
 ms_dirty_update(ScreenPtr screen)
 {
-        RegionPtr region;
-        PixmapDirtyUpdatePtr ent;
+    RegionPtr region;
+    PixmapDirtyUpdatePtr ent;
 
-        if (xorg_list_is_empty(&screen->pixmap_dirty_list))
-                return;
+    if (xorg_list_is_empty(&screen->pixmap_dirty_list))
+        return;
 
-        xorg_list_for_each_entry(ent, &screen->pixmap_dirty_list, ent) {
-                region = DamageRegion(ent->damage);
-                if (RegionNotEmpty(region)) {
-                        redisplay_dirty(screen, ent);
-                        DamageEmpty(ent->damage);
-                }
+    xorg_list_for_each_entry(ent, &screen->pixmap_dirty_list, ent) {
+        region = DamageRegion(ent->damage);
+        if (RegionNotEmpty(region)) {
+            redisplay_dirty(screen, ent);
+            DamageEmpty(ent->damage);
         }
+    }
 }
 
 static void
