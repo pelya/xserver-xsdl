@@ -325,6 +325,8 @@ ProcRRSetProviderOffloadSink(ClientPtr client)
     VERIFY_RR_PROVIDER(stuff->provider, provider, DixReadAccess);
     if (!(provider->capabilities & RR_Capability_SourceOffload))
         return BadValue;
+    if (!provider->pScreen->isGPU)
+        return BadValue;
 
     if (stuff->sink_provider) {
         VERIFY_RR_PROVIDER(stuff->sink_provider, sink_provider, DixReadAccess);
