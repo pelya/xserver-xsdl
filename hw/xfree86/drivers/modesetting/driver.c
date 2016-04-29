@@ -820,18 +820,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
         return FALSE;
     ms->drmmode.fd = ms->fd;
 
-    pScrn->capabilities = 0;
-#ifdef DRM_CAP_PRIME
-    ret = drmGetCap(ms->fd, DRM_CAP_PRIME, &value);
-    if (ret == 0) {
-        if (value & DRM_PRIME_CAP_IMPORT)
-            pScrn->capabilities |= RR_Capability_SinkOutput;
-#if GLAMOR_HAS_GBM_LINEAR
-        if (value & DRM_PRIME_CAP_EXPORT)
-            pScrn->capabilities |= RR_Capability_SourceOutput;
-#endif
-    }
-#endif
     drmmode_get_default_bpp(pScrn, &ms->drmmode, &defaultdepth, &defaultbpp);
     if (defaultdepth == 24 && defaultbpp == 24)
         bppflags = SupportConvert32to24 | Support24bppFb;
@@ -906,6 +894,22 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
         ms->drmmode.pageflip = FALSE;
     }
+
+    pScrn->capabilities = 0;
+#ifdef DRM_CAP_PRIME
+    ret = drmGetCap(ms->fd, DRM_CAP_PRIME, &value);
+    if (ret == 0) {
+        if (value & DRM_PRIME_CAP_IMPORT) {
+            pScrn->capabilities |= RR_Capability_SinkOutput;
+            if (ms->drmmode.glamor)
+                pScrn->capabilities |= RR_Capability_SourceOffload;
+        }
+#if GLAMOR_HAS_GBM_LINEAR
+        if (value & DRM_PRIME_CAP_EXPORT && ms->drmmode.glamor)
+            pScrn->capabilities |= RR_Capability_SourceOutput | RR_Capability_SinkOffload;
+#endif
+    }
+#endif
 
     if (drmmode_pre_init(pScrn, &ms->drmmode, pScrn->bitsPerPixel / 8) == FALSE) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "KMS setup failed\n");
