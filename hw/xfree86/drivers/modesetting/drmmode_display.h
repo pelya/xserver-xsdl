@@ -87,6 +87,8 @@ typedef struct {
     Bool reverse_prime_offload_mode;
 
     Bool is_secondary;
+
+    PixmapPtr fbcon_pixmap;
 } drmmode_rec, *drmmode_ptr;
 
 typedef struct {
@@ -174,7 +176,7 @@ void drmmode_free_bos(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 void drmmode_get_default_bpp(ScrnInfoPtr pScrn, drmmode_ptr drmmmode,
                              int *depth, int *bpp);
 
-
+void drmmode_copy_fb(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 #ifndef DRM_CAP_DUMB_PREFERRED_DEPTH
 #define DRM_CAP_DUMB_PREFERRED_DEPTH 3
 #endif

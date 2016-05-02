@@ -51,7 +51,9 @@
 #include "driver.h"
 
 static Bool drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height);
-
+static PixmapPtr drmmode_create_pixmap_header(ScreenPtr pScreen, int width, int height,
+                                              int depth, int bitsPerPixel, int devKind,
+                                              void *pPixData);
 static Bool
 drmmode_zaphod_string_matches(ScrnInfoPtr scrn, const char *s, char *output_name)
 {
@@ -285,49 +287,101 @@ drmmode_crtc_dpms(xf86CrtcPtr crtc, int mode)
     drmmode_crtc->dpms_mode = mode;
 }
 
-#if 0
 static PixmapPtr
-create_pixmap_for_fbcon(drmmode_ptr drmmode, ScrnInfoPtr pScrn, int crtc_id)
+create_pixmap_for_fbcon(drmmode_ptr drmmode, ScrnInfoPtr pScrn, int fbcon_id)
 {
-    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
-    drmmode_crtc_private_ptr drmmode_crtc;
-    ScreenPtr pScreen = pScrn->pScreen;
-    PixmapPtr pixmap;
-    struct radeon_bo *bo;
+    PixmapPtr pixmap = drmmode->fbcon_pixmap;
     drmModeFBPtr fbcon;
     struct drm_gem_flink flink;
+    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
+    Bool ret;
 
-    drmmode_crtc = xf86_config->crtc[crtc_id]->driver_private;
+    if (pixmap)
+        return pixmap;
 
-    fbcon = drmModeGetFB(drmmode->fd, drmmode_crtc->mode_crtc->buffer_id);
+    fbcon = drmModeGetFB(drmmode->fd, fbcon_id);
     if (fbcon == NULL)
         return NULL;
+
+    if (fbcon->depth != pScrn->depth ||
+        fbcon->width != pScrn->virtualX ||
+        fbcon->height != pScrn->virtualY)
+        goto out_free_fb;
 
     flink.handle = fbcon->handle;
     if (ioctl(drmmode->fd, DRM_IOCTL_GEM_FLINK, &flink) < 0) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Couldn't flink fbcon handle\n");
-        return NULL;
+        goto out_free_fb;
     }
 
-    bo = radeon_bo_open(drmmode->bufmgr, flink.name, 0, 0, 0, 0);
-    if (bo == NULL) {
-        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-                   "Couldn't allocate bo for fbcon handle\n");
-        return NULL;
-    }
-
-    pixmap = drmmode_create_bo_pixmap(pScreen, fbcon->width, fbcon->height,
-                                      fbcon->depth, fbcon->bpp,
-                                      fbcon->pitch, bo);
+    pixmap = drmmode_create_pixmap_header(pScreen, fbcon->width,
+                                          fbcon->height, fbcon->depth,
+                                          fbcon->bpp, fbcon->pitch, NULL);
     if (!pixmap)
-        return NULL;
+        goto out_free_fb;
 
-    radeon_bo_unref(bo);
+    ret = glamor_egl_create_textured_pixmap(pixmap, fbcon->handle, fbcon->pitch);
+    if (!ret) {
+      FreePixmap(pixmap);
+      pixmap = NULL;
+    }
+
+    drmmode->fbcon_pixmap = pixmap;
+out_free_fb:
     drmModeFreeFB(fbcon);
     return pixmap;
 }
 
-#endif
+void
+drmmode_copy_fb(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
+{
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
+    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
+    PixmapPtr src, dst;
+    int fbcon_id = 0;
+    GCPtr gc;
+    int i;
+
+    for (i = 0; i < xf86_config->num_crtc; i++) {
+        drmmode_crtc_private_ptr drmmode_crtc = xf86_config->crtc[i]->driver_private;
+        if (drmmode_crtc->mode_crtc->buffer_id)
+            fbcon_id = drmmode_crtc->mode_crtc->buffer_id;
+    }
+
+    if (!fbcon_id)
+        return;
+
+    if (fbcon_id == drmmode->fb_id) {
+        /* in some rare case there might be no fbcon and we might already
+         * be the one with the current fb to avoid a false deadlck in
+         * kernel ttm code just do nothing as anyway there is nothing
+         * to do
+         */
+        return;
+    }
+
+    src = create_pixmap_for_fbcon(drmmode, pScrn, fbcon_id);
+    if (!src)
+        return;
+
+    dst = pScreen->GetScreenPixmap(pScreen);
+
+    gc = GetScratchGC(pScrn->depth, pScreen);
+    ValidateGC(&dst->drawable, gc);
+
+    (*gc->ops->CopyArea)(&src->drawable, &dst->drawable, gc, 0, 0,
+                         pScrn->virtualX, pScrn->virtualY, 0, 0);
+
+    FreeScratchGC(gc);
+
+    glamor_finish(pScreen);
+
+    pScreen->canDoBGNoneRoot = TRUE;
+
+    if (drmmode->fbcon_pixmap)
+        pScrn->pScreen->DestroyPixmap(drmmode->fbcon_pixmap);
+    drmmode->fbcon_pixmap = NULL;
+}
 
 static Bool
 drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,

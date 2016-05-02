@@ -1098,6 +1098,25 @@ SetMaster(ScrnInfoPtr pScrn)
     return ret == 0;
 }
 
+/* When the root window is created, initialize the screen contents from
+ * console if -background none was specified on the command line
+ */
+static Bool
+CreateWindow_oneshot(WindowPtr pWin)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    modesettingPtr ms = modesettingPTR(pScrn);
+    Bool ret;
+
+    pScreen->CreateWindow = ms->CreateWindow;
+    ret = pScreen->CreateWindow(pWin);
+
+    if (ret)
+        drmmode_copy_fb(pScrn, &ms->drmmode);
+    return ret;
+}
+
 static Bool
 ScreenInit(ScreenPtr pScreen, int argc, char **argv)
 {
@@ -1205,6 +1224,11 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
     /* Must force it before EnterVT, so we are in control of VT and
      * later memory should be bound when allocating, e.g rotate_mem */
     pScrn->vtSema = TRUE;
+
+    if (serverGeneration == 1 && bgNoneRoot && ms->drmmode.glamor) {
+        ms->CreateWindow = pScreen->CreateWindow;
+        pScreen->CreateWindow = CreateWindow_oneshot;
+    }
 
     pScreen->SaveScreen = xf86SaveScreen;
     ms->CloseScreen = pScreen->CloseScreen;
