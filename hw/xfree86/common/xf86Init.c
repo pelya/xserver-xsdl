@@ -1120,33 +1120,29 @@ ddxProcessArgument(int argc, char **argv, int i)
     }
 
     /* First the options that are not allowed with elevated privileges */
-    if (!strcmp(argv[i], "-modulepath") || !strcmp(argv[i], "-logfile")) {
-        if (xf86PrivsElevated()) {
-            FatalError("The '%s' option cannot be used with "
-                       "elevated privileges.\n", argv[i]);
-        }
-        else if (!strcmp(argv[i], "-modulepath")) {
-            char *mp;
+    if (!strcmp(argv[i], "-modulepath")) {
+        char *mp;
 
-            CHECK_FOR_REQUIRED_ARGUMENT();
-            mp = strdup(argv[i + 1]);
-            if (!mp)
-                FatalError("Can't allocate memory for ModulePath\n");
-            xf86ModulePath = mp;
-            xf86ModPathFrom = X_CMDLINE;
-            return 2;
-        }
-        else if (!strcmp(argv[i], "-logfile")) {
-            char *lf;
+        CHECK_FOR_REQUIRED_ARGUMENT();
+        xf86CheckPrivs(argv[i], argv[i + 1]);
+        mp = strdup(argv[i + 1]);
+        if (!mp)
+            FatalError("Can't allocate memory for ModulePath\n");
+        xf86ModulePath = mp;
+        xf86ModPathFrom = X_CMDLINE;
+        return 2;
+    }
+    if (!strcmp(argv[i], "-logfile")) {
+        char *lf;
 
-            CHECK_FOR_REQUIRED_ARGUMENT();
-            lf = strdup(argv[i + 1]);
-            if (!lf)
-                FatalError("Can't allocate memory for LogFile\n");
-            xf86LogFile = lf;
-            xf86LogFileFrom = X_CMDLINE;
-            return 2;
-        }
+        CHECK_FOR_REQUIRED_ARGUMENT();
+        xf86CheckPrivs(argv[i], argv[i + 1]);
+        lf = strdup(argv[i + 1]);
+        if (!lf)
+            FatalError("Can't allocate memory for LogFile\n");
+        xf86LogFile = lf;
+        xf86LogFileFrom = X_CMDLINE;
+        return 2;
     }
     if (!strcmp(argv[i], "-config") || !strcmp(argv[i], "-xf86config")) {
         CHECK_FOR_REQUIRED_ARGUMENT();
