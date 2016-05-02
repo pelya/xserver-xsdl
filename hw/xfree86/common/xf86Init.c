@@ -1121,26 +1121,16 @@ ddxProcessArgument(int argc, char **argv, int i)
 
     /* First the options that are not allowed with elevated privileges */
     if (!strcmp(argv[i], "-modulepath")) {
-        char *mp;
-
         CHECK_FOR_REQUIRED_ARGUMENT();
         xf86CheckPrivs(argv[i], argv[i + 1]);
-        mp = strdup(argv[i + 1]);
-        if (!mp)
-            FatalError("Can't allocate memory for ModulePath\n");
-        xf86ModulePath = mp;
+        xf86ModulePath = argv[i + 1];
         xf86ModPathFrom = X_CMDLINE;
         return 2;
     }
     if (!strcmp(argv[i], "-logfile")) {
-        char *lf;
-
         CHECK_FOR_REQUIRED_ARGUMENT();
         xf86CheckPrivs(argv[i], argv[i + 1]);
-        lf = strdup(argv[i + 1]);
-        if (!lf)
-            FatalError("Can't allocate memory for LogFile\n");
-        xf86LogFile = lf;
+        xf86LogFile = argv[i + 1];
         xf86LogFileFrom = X_CMDLINE;
         return 2;
     }
