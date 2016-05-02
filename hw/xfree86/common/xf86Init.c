@@ -1090,6 +1090,16 @@ xf86PrintDefaultLibraryPath(void)
     ErrorF("%s\n", DEFAULT_LIBRARY_PATH);
 }
 
+static void
+xf86CheckPrivs(const char *option, const char *arg)
+{
+    if (xf86PrivsElevated() && !xf86PathIsSafe(arg)) {
+        FatalError("\nInvalid argument for %s - \"%s\"\n"
+                    "\tWith elevated privileges %s must specify a relative path\n"
+                    "\twithout any \"..\" elements.\n\n", option, arg, option);
+    }
+}
+
 /*
  * ddxProcessArgument --
  *	Process device-dependent command line args. Returns 0 if argument is
@@ -1140,25 +1150,13 @@ ddxProcessArgument(int argc, char **argv, int i)
     }
     if (!strcmp(argv[i], "-config") || !strcmp(argv[i], "-xf86config")) {
         CHECK_FOR_REQUIRED_ARGUMENT();
-        if (xf86PrivsElevated() && !xf86PathIsSafe(argv[i + 1])) {
-            FatalError("\nInvalid argument for %s\n"
-                       "\tWith elevated privileges, the file specified with %s must be\n"
-                       "\ta relative path and must not contain any \"..\" elements.\n"
-                       "\tUsing default " __XCONFIGFILE__ " search path.\n\n",
-                       argv[i], argv[i]);
-        }
+        xf86CheckPrivs(argv[i], argv[i + 1]);
         xf86ConfigFile = argv[i + 1];
         return 2;
     }
     if (!strcmp(argv[i], "-configdir")) {
         CHECK_FOR_REQUIRED_ARGUMENT();
-        if (xf86PrivsElevated() && !xf86PathIsSafe(argv[i + 1])) {
-            FatalError("\nInvalid argument for %s\n"
-                       "\tWith elevated privileges, the file specified with %s must be\n"
-                       "\ta relative path and must not contain any \"..\" elements.\n"
-                       "\tUsing default " __XCONFIGDIR__ " search path.\n\n",
-                       argv[i], argv[i]);
-        }
+        xf86CheckPrivs(argv[i], argv[i + 1]);
         xf86ConfigDir = argv[i + 1];
         return 2;
     }
