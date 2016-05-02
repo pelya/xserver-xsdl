@@ -614,6 +614,17 @@ msBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
 }
 
 static void
+msBlockHandler_oneshot(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
+{
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    modesettingPtr ms = modesettingPTR(pScrn);
+
+    msBlockHandler(pScreen, pTimeout, pReadmask);
+
+    drmmode_set_desired_modes(pScrn, &ms->drmmode, TRUE);
+}
+
+static void
 FreeRec(ScrnInfoPtr pScrn)
 {
     modesettingPtr ms;
@@ -972,7 +983,7 @@ CreateScreenResources(ScreenPtr pScreen)
     ret = pScreen->CreateScreenResources(pScreen);
     pScreen->CreateScreenResources = CreateScreenResources;
 
-    if (!drmmode_set_desired_modes(pScrn, &ms->drmmode))
+    if (!drmmode_set_desired_modes(pScrn, &ms->drmmode, pScrn->is_gpu))
         return FALSE;
 
     if (!drmmode_glamor_handle_new_screen_pixmap(&ms->drmmode))
@@ -1235,7 +1246,7 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pScreen->CloseScreen = CloseScreen;
 
     ms->BlockHandler = pScreen->BlockHandler;
-    pScreen->BlockHandler = msBlockHandler;
+    pScreen->BlockHandler = msBlockHandler_oneshot;
 
     pScreen->SharePixmapBacking = msSharePixmapBacking;
     pScreen->SetSharedPixmapBacking = msSetSharedPixmapBacking;
@@ -1289,7 +1300,9 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
     }
 #endif
 
-    return EnterVT(pScrn);
+    pScrn->vtSema = TRUE;
+
+    return TRUE;
 }
 
 static void
@@ -1336,7 +1349,7 @@ EnterVT(ScrnInfoPtr pScrn)
 
     SetMaster(pScrn);
 
-    if (!drmmode_set_desired_modes(pScrn, &ms->drmmode))
+    if (!drmmode_set_desired_modes(pScrn, &ms->drmmode, TRUE))
         return FALSE;
 
     return TRUE;

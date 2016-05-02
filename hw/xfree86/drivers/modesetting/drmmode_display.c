@@ -1853,7 +1853,7 @@ drmmode_adjust_frame(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int x, int y)
 }
 
 Bool
-drmmode_set_desired_modes(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
+drmmode_set_desired_modes(ScrnInfoPtr pScrn, drmmode_ptr drmmode, Bool set_hw)
 {
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
     int c;
@@ -1866,8 +1866,10 @@ drmmode_set_desired_modes(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 
         /* Skip disabled CRTCs */
         if (!crtc->enabled) {
-            drmModeSetCrtc(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
-                           0, 0, 0, NULL, 0, NULL);
+            if (set_hw) {
+                drmModeSetCrtc(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
+                               0, 0, 0, NULL, 0, NULL);
+            }
             continue;
         }
 
@@ -1898,10 +1900,19 @@ drmmode_set_desired_modes(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
             crtc->desiredY = 0;
         }
 
-        if (!crtc->funcs->
-            set_mode_major(crtc, &crtc->desiredMode, crtc->desiredRotation,
-                           crtc->desiredX, crtc->desiredY))
-            return FALSE;
+        if (set_hw) {
+            if (!crtc->funcs->
+                set_mode_major(crtc, &crtc->desiredMode, crtc->desiredRotation,
+                               crtc->desiredX, crtc->desiredY))
+                return FALSE;
+        } else {
+            crtc->mode = crtc->desiredMode;
+            crtc->rotation = crtc->desiredRotation;
+            crtc->x = crtc->desiredX;
+            crtc->y = crtc->desiredY;
+            if (!xf86CrtcRotate(crtc))
+                return FALSE;
+        }
     }
     return TRUE;
 }
