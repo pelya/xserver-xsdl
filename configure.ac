@@ -559,6 +559,16 @@ AC_ARG_WITH(bundle-id-prefix,  AS_HELP_STRING([--with-bundle-id-prefix=RDNS_PREF
                                [ BUNDLE_ID_PREFIX="${withval}" ])
 AC_SUBST([BUNDLE_ID_PREFIX])
 AC_DEFINE_UNQUOTED(BUNDLE_ID_PREFIX, "$BUNDLE_ID_PREFIX", [Prefix to use for bundle identifiers])
+DEFAULT_BUNDLE_VERSION=`echo ${PACKAGE_VERSION} | cut -f1-3 -d.`
+m4_define(DEFAULT_BUNDLE_VERSION, m4_esyscmd([echo ]AC_PACKAGE_VERSION[ | cut -f1-3 -d.]))
+AC_ARG_WITH(bundle-version,    AS_HELP_STRING([--with-bundle-version=VERSION], [Version to use for X11.app's CFBundleVersion (default: ]DEFAULT_BUNDLE_VERSION[)]),
+                               [ BUNDLE_VERSION="${withval}" ],
+                               [ BUNDLE_VERSION="${DEFAULT_BUNDLE_VERSION}" ])
+AC_SUBST([BUNDLE_VERSION])
+AC_ARG_WITH(bundle-version-string, AS_HELP_STRING([--with-bundle-version-string=VERSION], [Version to use for X11.app's CFBundleShortVersionString (default: ]AC_PACKAGE_VERSION[)]),
+                               [ BUNDLE_VERSION_STRING="${withval}" ],
+                               [ BUNDLE_VERSION_STRING="${PACKAGE_VERSION}" ])
+AC_SUBST([BUNDLE_VERSION_STRING])
 AC_ARG_ENABLE(sparkle,AS_HELP_STRING([--enable-sparkle], [Enable updating of X11.app using the Sparkle Framework (default: disabled)]),
 				[ XQUARTZ_SPARKLE="${enableval}" ],
 				[ XQUARTZ_SPARKLE="no" ])
