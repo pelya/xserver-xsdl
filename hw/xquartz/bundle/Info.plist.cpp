@@ -34,7 +34,7 @@
 	<key>SUPublicDSAKeyFile</key>
 		<string>sparkle.pem</string>
         <key>SUFeedURL</key>
-                <string>https://www.xquartz.org/releases/sparkle/release.xml</string>
+                <string>XQUARTZ_SPARKLE_FEED_URL</string>
 #endif
 	<key>LSApplicationCategoryType</key>
 		<string>public.app-category.utilities</string>

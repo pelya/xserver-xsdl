@@ -563,6 +563,10 @@ AC_ARG_ENABLE(sparkle,AS_HELP_STRING([--enable-sparkle], [Enable updating of X11
 				[ XQUARTZ_SPARKLE="${enableval}" ],
 				[ XQUARTZ_SPARKLE="no" ])
 AC_SUBST([XQUARTZ_SPARKLE])
+AC_ARG_WITH(sparkle-feed-url,  AS_HELP_STRING([--with-sparkle-feed-url=URL], [URL for the Sparkle feed (default: https://www.xquartz.org/releases/sparkle/release.xml)]),
+                               [ XQUARTZ_SPARKLE_FEED_URL="${withval}" ],
+                               [ XQUARTZ_SPARKLE_FEED_URL="https://www.xquartz.org/releases/sparkle/release.xml" ])
+AC_SUBST([XQUARTZ_SPARKLE_FEED_URL])
 AC_ARG_ENABLE(visibility,     AS_HELP_STRING([--enable-visibility], [Enable symbol visibility (default: auto)]),
 				[SYMBOL_VISIBILITY=$enableval],
 				[SYMBOL_VISIBILITY=auto])
