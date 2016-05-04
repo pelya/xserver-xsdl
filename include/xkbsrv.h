@@ -496,6 +496,10 @@ extern _X_EXPORT void XkbUpdateIndicators(DeviceIntPtr /* keybd */ ,
                                           XkbEventCausePtr      /* cause */
     );
 
+extern _X_EXPORT void XkbUpdateAllDeviceIndicators(XkbChangesPtr /* changes */,
+                                                   XkbEventCausePtr /* cause */
+    );
+
 extern _X_EXPORT XkbSrvLedInfoPtr XkbAllocSrvLedInfo(DeviceIntPtr /* dev */ ,
                                                      KbdFeedbackPtr /* kf */ ,
                                                      LedFeedbackPtr /* lf */ ,
