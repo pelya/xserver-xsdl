@@ -555,9 +555,6 @@ AC_ARG_WITH(apple-application-name,AS_HELP_STRING([--with-apple-application-name
 				[ APPLE_APPLICATION_NAME="${withval}" ],
 				[ APPLE_APPLICATION_NAME="X11" ])
 AC_SUBST([APPLE_APPLICATION_NAME])
-AC_ARG_WITH(launchd-id-prefix,  AS_HELP_STRING([--with-launchd-id-prefix=PATH], [Deprecated: Use --with-bundle-id-prefix.]),
-                                [ BUNDLE_ID_PREFIX="${withval}" ],
-                                [ BUNDLE_ID_PREFIX="org.x" ])
 AC_ARG_WITH(bundle-id-prefix,  AS_HELP_STRING([--with-bundle-id-prefix=PATH], [Prefix to use for bundle identifiers (default: org.x)]),
                                [ BUNDLE_ID_PREFIX="${withval}" ])
 AC_SUBST([BUNDLE_ID_PREFIX])
