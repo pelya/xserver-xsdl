@@ -287,6 +287,7 @@ drmmode_crtc_dpms(xf86CrtcPtr crtc, int mode)
     drmmode_crtc->dpms_mode = mode;
 }
 
+#ifdef GLAMOR
 static PixmapPtr
 create_pixmap_for_fbcon(drmmode_ptr drmmode, ScrnInfoPtr pScrn, int fbcon_id)
 {
@@ -331,10 +332,12 @@ out_free_fb:
     drmModeFreeFB(fbcon);
     return pixmap;
 }
+#endif
 
 void
 drmmode_copy_fb(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 {
+#ifdef GLAMOR
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
     ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
     PixmapPtr src, dst;
@@ -381,6 +384,7 @@ drmmode_copy_fb(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
     if (drmmode->fbcon_pixmap)
         pScrn->pScreen->DestroyPixmap(drmmode->fbcon_pixmap);
     drmmode->fbcon_pixmap = NULL;
+#endif
 }
 
 static Bool
