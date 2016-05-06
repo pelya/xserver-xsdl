@@ -373,6 +373,8 @@ rrDestroySharedPixmap(RRCrtcPtr crtc, PixmapPtr pPixmap) {
          * Unref the pixmap twice: once for the original reference, and once
          * for the reference implicitly added by PixmapShareToSlave.
          */
+        PixmapUnshareSlavePixmap(pPixmap);
+
         master->DestroyPixmap(pPixmap->master_pixmap);
         master->DestroyPixmap(pPixmap->master_pixmap);
     }

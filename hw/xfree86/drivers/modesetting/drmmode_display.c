@@ -214,6 +214,12 @@ drmmode_SetSlaveBO(PixmapPtr ppix,
 {
     msPixmapPrivPtr ppriv = msGetPixmapPriv(drmmode, ppix);
 
+    if (fd_handle == -1) {
+        dumb_bo_destroy(drmmode->fd, ppriv->backing_bo);
+        ppriv->backing_bo = NULL;
+        return TRUE;
+    }
+
     ppriv->backing_bo =
         dumb_get_bo_from_fd(drmmode->fd, fd_handle, pitch, size);
     if (!ppriv->backing_bo)

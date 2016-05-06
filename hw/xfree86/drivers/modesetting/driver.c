@@ -1074,6 +1074,10 @@ msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
     Bool ret;
     int ihandle = (int) (long) fd_handle;
 
+    if (ihandle == -1)
+        if (!ms->drmmode.reverse_prime_offload_mode)
+           return drmmode_SetSlaveBO(ppix, &ms->drmmode, ihandle, 0, 0);
+
     if (ms->drmmode.reverse_prime_offload_mode) {
         ret = glamor_back_pixmap_from_fd(ppix, ihandle,
                                          ppix->drawable.width,
