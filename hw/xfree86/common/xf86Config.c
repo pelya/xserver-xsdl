@@ -898,11 +898,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 
     xf86Info.aiglx = TRUE;
     xf86Info.aiglxFrom = X_DEFAULT;
-    if (xf86GetOptValBool(FlagOptions, FLAG_AIGLX, &value)) {
-        xf86Info.aiglx = value;
-        xf86Info.aiglxFrom = X_CONFIG;
-    }
-
 #ifdef GLXEXT
     xf86Info.glxVisuals = XF86_GlxVisualsTypical;
     xf86Info.glxVisualsFrom = X_DEFAULT;
