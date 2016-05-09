@@ -89,6 +89,7 @@ typedef struct {
     MessageType randRFrom;
     Bool aiglx;
     MessageType aiglxFrom;
+    MessageType iglxFrom;
     XF86_GlxVisuals glxVisuals;
     MessageType glxVisualsFrom;
 

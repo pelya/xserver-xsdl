@@ -1373,6 +1373,10 @@ ddxProcessArgument(int argc, char **argv, int i)
         xf86Info.ShareVTs = TRUE;
         return 1;
     }
+    if (!strcmp(argv[i], "-iglx") || !strcmp(argv[i], "+iglx")) {
+        xf86Info.iglxFrom = X_CMDLINE;
+        return 1;
+    }
 
     /* OS-specific processing */
     return xf86ProcessArgument(argc, argv, i);

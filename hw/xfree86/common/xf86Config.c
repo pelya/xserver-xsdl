@@ -700,6 +700,7 @@ typedef enum {
     FLAG_USE_SIGIO,
     FLAG_AUTO_ADD_GPU,
     FLAG_MAX_CLIENTS,
+    FLAG_IGLX,
 } FlagValues;
 
 /**
@@ -761,6 +762,8 @@ static OptionInfoRec FlagOptions[] = {
      {0}, FALSE},
     {FLAG_MAX_CLIENTS, "MaxClients", OPTV_INTEGER,
      {0}, FALSE },
+    {FLAG_IGLX, "IndirectGLX", OPTV_BOOLEAN,
+     {0}, FALSE},
     {-1, NULL, OPTV_NONE,
      {0}, FALSE},
 };
@@ -942,6 +945,12 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     if (xf86GetOptValBool(FlagOptions, FLAG_AIGLX, &value)) {
         xf86Info.aiglx = value;
         xf86Info.aiglxFrom = X_CONFIG;
+    }
+    if (xf86Info.iglxFrom != X_CMDLINE) {
+        if (xf86GetOptValBool(FlagOptions, FLAG_IGLX, &value)) {
+            enableIndirectGLX = value;
+            xf86Info.iglxFrom = X_CONFIG;
+        }
     }
 #endif
 
