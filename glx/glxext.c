@@ -466,6 +466,12 @@ __glXForceCurrent(__GLXclientState * cl, GLXContextTag tag, int *error)
 
     /* Make this context the current one for the GL. */
     if (!cx->isDirect) {
+        /*
+         * If it is being forced, it means that this context was already made
+         * current. So it cannot just be made current again without decrementing
+         * refcount's
+         */
+        (*cx->loseCurrent) (cx);
         lastGLContext = cx;
         if (!(*cx->makeCurrent) (cx)) {
             /* Bind failed, and set the error code.  Bummer */
