@@ -899,11 +899,6 @@ InitInput(int argc, char *argv[])
     xwl_screen->input_registry = wl_display_get_registry(xwl_screen->display);
     wl_registry_add_listener(xwl_screen->input_registry, &input_listener,
                              xwl_screen);
-
-    xwl_screen->expecting_event = 0;
-    wl_display_roundtrip(xwl_screen->display);
-    while (xwl_screen->expecting_event)
-        wl_display_roundtrip(xwl_screen->display);
 }
 
 void
