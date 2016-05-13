@@ -531,6 +531,7 @@ use_source_picture(CARD8 op, PicturePtr src, PicturePtr dst, glamor_program *pro
     glamor_set_blend(op, prog->alpha, dst);
 
     return glamor_set_texture((PixmapPtr) src->pDrawable,
+                              glamor_picture_red_is_alpha(dst),
                               0, 0,
                               prog->fill_offset_uniform,
                               prog->fill_size_inv_uniform);
@@ -549,7 +550,8 @@ use_source_1x1_picture(CARD8 op, PicturePtr src, PicturePtr dst, glamor_program 
 {
     glamor_set_blend(op, prog->alpha, dst);
 
-    return glamor_set_texture_pixmap((PixmapPtr) src->pDrawable);
+    return glamor_set_texture_pixmap((PixmapPtr) src->pDrawable,
+                                     glamor_picture_red_is_alpha(dst));
 }
 
 static const glamor_facet glamor_source_1x1_picture = {

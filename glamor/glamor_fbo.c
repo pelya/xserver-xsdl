@@ -352,10 +352,8 @@ _glamor_create_tex(glamor_screen_private *glamor_priv,
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    if (format == glamor_priv->one_channel_format && format == GL_RED) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_ZERO);
+    if (format == glamor_priv->one_channel_format && format == GL_RED)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, GL_RED);
-    }
     glamor_priv->suppress_gl_out_of_memory_logging = true;
     glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0,
                  format, GL_UNSIGNED_BYTE, NULL);

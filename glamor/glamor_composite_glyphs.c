@@ -246,8 +246,7 @@ glamor_glyphs_flush(CARD8 op, PicturePtr src, PicturePtr dst,
     glamor_put_vbo_space(drawable->pScreen);
 
     glEnable(GL_SCISSOR_TEST);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, atlas_fbo->tex);
+    glamor_bind_texture(glamor_priv, GL_TEXTURE1, atlas_fbo, FALSE);
 
     for (;;) {
         if (!glamor_use_program_render(prog, op, src, dst))

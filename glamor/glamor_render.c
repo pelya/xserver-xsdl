@@ -512,15 +512,24 @@ static void
 glamor_set_composite_texture(glamor_screen_private *glamor_priv, int unit,
                              PicturePtr picture,
                              PixmapPtr pixmap,
-                             GLuint wh_location, GLuint repeat_location)
+                             GLuint wh_location, GLuint repeat_location,
+                             glamor_pixmap_private *dest_priv)
 {
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+    glamor_pixmap_fbo *fbo = pixmap_priv->fbo;
     float wh[4];
     int repeat_type;
 
     glamor_make_current(glamor_priv);
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, pixmap_priv->fbo->tex);
+
+    /* The red channel swizzling doesn't depend on whether we're using
+     * 'fbo' as source or mask as we must have the same answer in case
+     * the same fbo is being used for both. That means the mask
+     * channel will sometimes get red bits in the R channel, and
+     * sometimes get zero bits in the R channel, which is harmless.
+     */
+    glamor_bind_texture(glamor_priv, GL_TEXTURE0 + unit, fbo,
+                        glamor_fbo_red_is_alpha(glamor_priv, dest_priv->fbo));
     repeat_type = picture->repeatType;
     switch (picture->repeatType) {
     case RepeatNone:
@@ -1075,7 +1084,8 @@ glamor_composite_set_shader_blend(glamor_screen_private *glamor_priv,
         glamor_set_composite_texture(glamor_priv, 0,
                                      shader->source,
                                      shader->source_pixmap, shader->source_wh,
-                                     shader->source_repeat_mode);
+                                     shader->source_repeat_mode,
+                                     dest_priv);
     }
 
     if (key->mask != SHADER_MASK_NONE) {
@@ -1087,7 +1097,8 @@ glamor_composite_set_shader_blend(glamor_screen_private *glamor_priv,
             glamor_set_composite_texture(glamor_priv, 1,
                                          shader->mask,
                                          shader->mask_pixmap, shader->mask_wh,
-                                         shader->mask_repeat_mode);
+                                         shader->mask_repeat_mode,
+                                         dest_priv);
         }
     }
 
