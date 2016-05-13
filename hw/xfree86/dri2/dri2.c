@@ -186,11 +186,14 @@ static ScreenPtr
 GetScreenPrime(ScreenPtr master, int prime_id)
 {
     ScreenPtr slave;
-    if (prime_id == 0 || xorg_list_is_empty(&master->offload_slave_list)) {
+    if (prime_id == 0) {
         return master;
     }
-    xorg_list_for_each_entry(slave, &master->offload_slave_list, offload_head) {
+    xorg_list_for_each_entry(slave, &master->slave_list, slave_head) {
         DRI2ScreenPtr ds;
+
+        if (!slave->is_offload_slave)
+            continue;
 
         ds = DRI2GetScreen(slave);
         if (ds == NULL)
