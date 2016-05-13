@@ -41,6 +41,9 @@ RREditConnectionInfo(ScreenPtr pScreen)
     int screen = 0;
     int d;
 
+    if (ConnectionInfo == NULL)
+        return;
+
     connSetup = (xConnSetup *) ConnectionInfo;
     vendor = (char *) connSetup + sizeof(xConnSetup);
     formats = (xPixmapFormat *) ((char *) vendor +
