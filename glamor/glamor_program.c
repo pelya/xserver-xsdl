@@ -445,6 +445,7 @@ static struct blendinfo composite_op_info[] = {
 static void
 glamor_set_blend(CARD8 op, glamor_program_alpha alpha, PicturePtr dst)
 {
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(dst->pDrawable->pScreen);
     GLenum src_blend, dst_blend;
     struct blendinfo *op_info;
 
@@ -458,6 +459,9 @@ glamor_set_blend(CARD8 op, glamor_program_alpha alpha, PicturePtr dst)
     default:
         break;
     }
+
+    if (glamor_priv->gl_flavor != GLAMOR_GL_ES2)
+        glDisable(GL_COLOR_LOGIC_OP);
 
     if (op == PictOpSrc)
         return;

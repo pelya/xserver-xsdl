@@ -1091,6 +1091,9 @@ glamor_composite_set_shader_blend(glamor_screen_private *glamor_priv,
         }
     }
 
+    if (glamor_priv->gl_flavor != GLAMOR_GL_ES2)
+        glDisable(GL_COLOR_LOGIC_OP);
+
     if (op_info->source_blend == GL_ONE && op_info->dest_blend == GL_ZERO) {
         glDisable(GL_BLEND);
     }
