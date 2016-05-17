@@ -185,7 +185,6 @@ KdAddFd(int fd, int i)
     kdnFds++;
     fcntl(fd, F_SETOWN, getpid());
     KdNonBlockFd(fd);
-    AddEnabledDevice(fd);
     SetNotifyFd(fd, KdNotifyFd, X_NOTIFY_READ, (void *) (intptr_t) i);
     memset(&act, '\0', sizeof act);
     act.sa_handler = KdSigio;
@@ -205,7 +204,6 @@ KdRemoveFd(int fd)
     int flags;
 
     kdnFds--;
-    RemoveEnabledDevice(fd);
     RemoveNotifyFd(fd);
     flags = fcntl(fd, F_GETFL);
     flags &= ~(FASYNC | NOBLOCK);
