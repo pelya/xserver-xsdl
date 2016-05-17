@@ -139,9 +139,7 @@ static void
 KdNotifyFd(int fd, int ready, void *data)
 {
     int i = (int) (intptr_t) data;
-    input_lock();
     (*kdInputFds[i].read)(fd, kdInputFds[i].closure);
-    input_unlock();
 }
 
 static void
