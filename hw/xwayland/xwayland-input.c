@@ -219,7 +219,6 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     struct xwl_seat *xwl_seat = data;
     DeviceIntPtr dev = xwl_seat->pointer;
     DeviceIntPtr master;
-    miPointerPtr mipointer;
     int i;
     int sx = wl_fixed_to_int(sx_w);
     int sy = wl_fixed_to_int(sy_w);
@@ -243,13 +242,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     master = GetMaster(dev, POINTER_OR_FLOAT);
     (*pScreen->SetCursorPosition) (dev, pScreen, sx, sy, TRUE);
 
-    /* X is very likely to have the wrong idea of what the actual cursor
-     * sprite is, so in order to force updating the cursor lets set the
-     * current sprite to some invalid cursor behind its back so that it
-     * always will think it changed to the not invalid cursor.
-     */
-    mipointer = MIPOINTER(master);
-    mipointer->pSpriteCursor = (CursorPtr) 1;
+    miPointerInvalidateSprite(master);
 
     CheckMotion(NULL, master);
 

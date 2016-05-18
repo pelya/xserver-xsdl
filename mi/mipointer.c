@@ -468,6 +468,21 @@ miPointerUpdateSprite(DeviceIntPtr pDev)
 }
 
 /**
+ * Invalidate the current sprite and force it to be reloaded on next cursor setting
+ * operation
+ *
+ * @param pDev The device to invalidate the sprite fore
+ */
+void
+miPointerInvalidateSprite(DeviceIntPtr pDev)
+{
+    miPointerPtr pPointer;
+
+    pPointer = MIPOINTER(pDev);
+    pPointer->pSpriteCursor = (CursorPtr) 1;
+}
+
+/**
  * Set the device to the coordinates on the given screen.
  *
  * @param pDev The device to move
