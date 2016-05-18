@@ -65,6 +65,18 @@ in this Software without prior written authorization from The Open Group.
 #include   "inpututils.h"
 #include   "eventstr.h"
 
+typedef struct {
+    ScreenPtr pScreen;          /* current screen */
+    ScreenPtr pSpriteScreen;    /* screen containing current sprite */
+    CursorPtr pCursor;          /* current cursor */
+    CursorPtr pSpriteCursor;    /* cursor on screen */
+    BoxRec limits;              /* current constraints */
+    Bool confined;              /* pointer can't change screens */
+    int x, y;                   /* hot spot location */
+    int devx, devy;             /* sprite position */
+    Bool generateEvent;         /* generate an event during warping? */
+} miPointerRec, *miPointerPtr;
+
 DevPrivateKeyRec miPointerScreenKeyRec;
 
 #define GetScreenPrivate(s) ((miPointerScreenPtr) \
