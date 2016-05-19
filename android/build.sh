@@ -1196,14 +1196,17 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-echo "SRCS = bright.c clip.c cmuwmrast.c compress.c dither.c faces.c fbm.c \
+echo "SRCS := bright.c clip.c cmuwmrast.c compress.c dither.c faces.c fbm.c \
       fill.c  g3.c gif.c halftone.c imagetypes.c img.c mac.c mcidas.c \
       mc_tables.c merge.c misc.c new.c options.c path.c pbm.c pcx.c \
       reduce.c jpeg.c jpeglib.c rle.c rlelib.c root.c rotate.c send.c smooth.c \
       sunraster.c value.c window.c xbitmap.c xli.c \
       xpixmap.c xwd.c zio.c zoom.c ddxli.c doslib.c tga.c bmp.c pcd.c " > Makefile
-echo 'xli: $(SRCS)' >> Makefile
-echo '	$(CC) $(CFLAGS) $(SRCS) -Os -o xli $(LDFLAGS) $(PIE) -lX11 -lxcb -lXau -lXdmcp -landroid_support -lm' >> Makefile
+echo 'OBJS := $(SRCS:%.c=%.o)' >> Makefile
+echo '%.o: %.c' >> Makefile
+echo '	$(CC) $(CFLAGS) $(PIE) $(if $(filter compress.c, $+), -O0) -c $+ -o $@' >> Makefile
+echo 'xli: $(OBJS)' >> Makefile
+echo '	$(CC) $(CFLAGS) $+ -o $@ $(LDFLAGS) $(PIE) -lX11 -lxcb -lXau -lXdmcp -landroid_support -lm' >> Makefile
 
 echo '#include <stdarg.h>' > varargs.h
 
@@ -1215,7 +1218,8 @@ env CFLAGS="-isystem$BUILDDIR \
 -include math.h \
 -include stdlib.h \
 -include string.h \
--Drindex=strchr \
+-Dindex=strchr \
+-Drindex=strrchr \
 -isystem . \
 -Os" \
 LDFLAGS="-L$BUILDDIR" \
@@ -1244,7 +1248,8 @@ env CFLAGS="-isystem$BUILDDIR \
 -include math.h \
 -include stdlib.h \
 -include string.h \
--Drindex=strchr \
+-Dindex=strchr \
+-Drindex=strrchr \
 -isystem . \
 -Os" \
 LDFLAGS="-L$BUILDDIR" \
@@ -1326,10 +1331,11 @@ env CFLAGS=" -DDEBUG \
 	-DSO_REUSEADDR=1 \
 	-Dipc_perm=debian_ipc_perm \
 	-I$BUILDDIR/pixman-0.30.2/pixman \
-	-I$BUILDDIR/../../../../../../jni/sdl-1.2/include" \
-LDFLAGS="-L$BUILDDIR" \
+	-I$BUILDDIR/../../../../../../jni/sdl-1.2/include \
+	-I$BUILDDIR/../../../../../../jni/crypto/include" \
+LDFLAGS="-L$BUILDDIR -L$BUILDDIR/../../../../../../jni/crypto/lib-$TARGET_ARCH" \
 ./setCrossEnvironment.sh \
-LIBS="-lfontenc -lfreetype -llog -lSDL -lGLESv1_CM -landroid-shmem" \
+LIBS="-lfontenc -lfreetype -llog -lSDL -lGLESv1_CM -landroid-shmem -lcrypto" \
 ../../configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
