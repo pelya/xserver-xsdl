@@ -244,15 +244,13 @@ void Dispatch(void);
 static int
 SmartScheduleClient(int *clientReady, int nready)
 {
-    ClientPtr pClient;
     int i;
     int client;
-    int bestPrio, best = 0;
+    ClientPtr pClient, best = NULL;
     int bestRobin, robin;
     long now = SmartScheduleTime;
     long idle;
 
-    bestPrio = -0x7fffffff;
     bestRobin = 0;
     idle = 2 * SmartScheduleSlice;
     for (i = 0; i < nready; i++) {
@@ -269,11 +267,16 @@ SmartScheduleClient(int *clientReady, int nready)
             (pClient->index -
              SmartLastIndex[pClient->smart_priority -
                             SMART_MIN_PRIORITY]) & 0xff;
-        if (pClient->smart_priority > bestPrio ||
-            (pClient->smart_priority == bestPrio && robin > bestRobin)) {
-            bestPrio = pClient->smart_priority;
+
+        /* pick the best client */
+        if (!best ||
+            pClient->priority > best->priority ||
+            (pClient->priority == best->priority &&
+             (pClient->smart_priority > best->smart_priority ||
+              (pClient->smart_priority == best->smart_priority && robin > bestRobin))))
+        {
+            best = pClient;
             bestRobin = robin;
-            best = client;
         }
 #ifdef SMART_DEBUG
         if ((now - SmartLastPrint) >= 5000)
@@ -286,8 +289,7 @@ SmartScheduleClient(int *clientReady, int nready)
         SmartLastPrint = now;
     }
 #endif
-    pClient = clients[best];
-    SmartLastIndex[bestPrio - SMART_MIN_PRIORITY] = pClient->index;
+    SmartLastIndex[best->smart_priority - SMART_MIN_PRIORITY] = best->index;
     /*
      * Set current client pointer
      */
@@ -312,7 +314,7 @@ SmartScheduleClient(int *clientReady, int nready)
     else {
         SmartScheduleSlice = SmartScheduleInterval;
     }
-    return best;
+    return best->index;
 }
 
 void
