@@ -282,10 +282,10 @@ InitConnectionLimits(void)
     lastfdesc = sysconf(_SC_OPEN_MAX) - 1;
 #endif
 
-#ifdef HAS_GETDTABLESIZE
-    if (lastfdesc < 0)
-	lastfdesc = getdtablesize() - 1;
-#endif
+//#ifdef HAS_GETDTABLESIZE
+//    if (lastfdesc < 0)
+//	lastfdesc = getdtablesize() - 1;
+//#endif
 
 #ifdef _NFILE
     if (lastfdesc < 0)
