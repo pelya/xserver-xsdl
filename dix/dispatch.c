@@ -151,7 +151,6 @@ static ClientPtr grabClient;
 
 #define GrabNone 0
 #define GrabActive 1
-#define GrabKickout 2
 static int grabState = GrabNone;
 static long grabWaiters[mskcnt];
 CallbackListPtr ServerGrabCallback = NULL;
@@ -374,11 +373,6 @@ Dispatch(void)
             if (!client) {
                 /* KillClient can cause this to happen */
                 continue;
-            }
-            /* GrabServer activation can cause this to be true */
-            if (grabState == GrabKickout) {
-                grabState = GrabActive;
-                break;
             }
             isItTimeToYield = FALSE;
 
@@ -1059,7 +1053,7 @@ ProcGrabServer(ClientPtr client)
     rc = OnlyListenToOneClient(client);
     if (rc != Success)
         return rc;
-    grabState = GrabKickout;
+    grabState = GrabActive;
     grabClient = client;
 
     if (ServerGrabCallback) {
