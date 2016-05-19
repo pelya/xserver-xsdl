@@ -142,8 +142,8 @@ static volatile OsTimerPtr timers = NULL;
  *     pClientsReady is an array to store ready client->index values into.
  *****************/
 
-int
-WaitForSomething(int *pClientsReady)
+Bool
+WaitForSomething(Bool are_ready)
 {
     int i;
     struct timeval waittime, *wt;
@@ -154,7 +154,6 @@ WaitForSomething(int *pClientsReady)
     int selecterr;
     static int nready;
     CARD32 now = 0;
-    Bool someReady = FALSE;
     Bool someNotifyWriteReady = FALSE;
 
     FD_ZERO(&clientsReadable);
@@ -174,11 +173,9 @@ WaitForSomething(int *pClientsReady)
         /* deal with any blocked jobs */
         if (workQueue)
             ProcessWorkQueue();
-        if (XFD_ANYSET(&ClientsWithInput)) {
+
+        if (are_ready) {
             timeout = 0;
-            someReady = TRUE;
-        }
-        if (someReady) {
             XFD_COPYSET(&AllSockets, &LastSelectMask);
             XFD_UNSET(&LastSelectMask, &ClientsWithInput);
         }
@@ -227,12 +224,12 @@ WaitForSomething(int *pClientsReady)
         WakeupHandler(i);
         if (i <= 0) {           /* An error or timeout occurred */
             if (dispatchException)
-                return 0;
+                return FALSE;
             if (i < 0) {
                 if (selecterr == EBADF) {       /* Some client disconnected */
                     CheckConnections();
                     if (!XFD_ANYSET(&AllClients))
-                        return 0;
+                        return FALSE;
                 }
                 else if (selecterr == EINVAL) {
                     FatalError("WaitForSomething(): select: %s\n",
@@ -243,7 +240,7 @@ WaitForSomething(int *pClientsReady)
                            strerror(selecterr));
                 }
             }
-            else if (someReady) {
+            else if (are_ready) {
                 /*
                  * If no-one else is home, bail quickly
                  */
@@ -252,7 +249,7 @@ WaitForSomething(int *pClientsReady)
                 break;
             }
             if (*checkForInput[0] != *checkForInput[1])
-                return 0;
+                return FALSE;
 
             if (timers) {
                 int expired = 0;
@@ -267,7 +264,7 @@ WaitForSomething(int *pClientsReady)
                         DoTimer(timers, now, &timers);
                     OsReleaseSignals();
 
-                    return 0;
+                    return FALSE;
                 }
             }
         }
@@ -288,12 +285,11 @@ WaitForSomething(int *pClientsReady)
                             DoTimer(timers, now, &timers);
                         OsReleaseSignals();
 
-                        return 0;
+                        return FALSE;
                     }
                 }
             }
-            if (someReady)
-                XFD_ORSET(&LastSelectMask, &ClientsWithInput, &LastSelectMask);
+
             if (AnyWritesPending) {
                 XFD_ANDSET(&clientsWritable, &LastSelectWriteMask, &ClientsWriteBlocked);
                 if (XFD_ANYSET(&clientsWritable)) {
@@ -316,11 +312,12 @@ WaitForSomething(int *pClientsReady)
             if (XFD_ANYSET(&tmp_set) || someNotifyWriteReady)
                 HandleNotifyFds();
 
-            if (XFD_ANYSET(&clientsReadable))
+            if (are_ready || XFD_ANYSET(&clientsReadable))
                 break;
+
             /* check here for DDXes that queue events during Block/Wakeup */
             if (*checkForInput[0] != *checkForInput[1])
-                return 0;
+                return FALSE;
         }
     }
 
@@ -345,7 +342,8 @@ WaitForSomething(int *pClientsReady)
             curclient = XFD_FD(&savedClientsReadable, i);
             client_index = GetConnectionTranslation(curclient);
 #endif
-            pClientsReady[nready++] = client_index;
+            nready++;
+            mark_client_ready(clients[client_index]);
 #ifndef WIN32
             clientsReadable.fds_bits[i] &= ~(((fd_mask) 1L) << curclient);
         }
@@ -358,7 +356,7 @@ WaitForSomething(int *pClientsReady)
     if (nready)
         SmartScheduleStartTimer();
 
-    return nready;
+    return TRUE;
 }
 
 void

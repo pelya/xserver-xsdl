@@ -1232,6 +1232,7 @@ IgnoreClient(ClientPtr client)
         return;
 
     isItTimeToYield = TRUE;
+    mark_client_not_ready(client);
     if (!GrabInProgress || FD_ISSET(connection, &AllClients)) {
         if (FD_ISSET(connection, &ClientsWithInput))
             FD_SET(connection, &IgnoredClientsWithInput);
@@ -1273,8 +1274,10 @@ AttendClient(ClientPtr client)
         FD_SET(connection, &AllClients);
         FD_SET(connection, &AllSockets);
         FD_SET(connection, &LastSelectMask);
-        if (FD_ISSET(connection, &IgnoredClientsWithInput))
+        if (FD_ISSET(connection, &IgnoredClientsWithInput)) {
             FD_SET(connection, &ClientsWithInput);
+            mark_client_ready(client);
+        }
     }
     else {
         FD_SET(connection, &SavedAllClients);

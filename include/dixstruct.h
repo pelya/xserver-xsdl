@@ -76,6 +76,7 @@ typedef struct _saveSet {
 typedef struct _Client {
     void *requestBuffer;
     void *osPrivate;             /* for OS layer, including scheduler */
+    struct xorg_list ready;      /* List of clients ready to run */
     Mask clientAsMask;
     short index;
     unsigned char majorOp, minorOp;
@@ -137,6 +138,20 @@ extern Bool SmartScheduleSignalEnable;
 #endif
 extern void SmartScheduleStartTimer(void);
 extern void SmartScheduleStopTimer(void);
+
+/* Client has requests queued or data on the network */
+void mark_client_ready(ClientPtr client);
+
+/* Client has no requests queued and no data on network */
+void mark_client_not_ready(ClientPtr client);
+
+static inline Bool client_is_ready(ClientPtr client)
+{
+    return !xorg_list_is_empty(&client->ready);
+}
+
+Bool
+clients_are_ready(void);
 
 #define SMART_MAX_PRIORITY  (20)
 #define SMART_MIN_PRIORITY  (-20)
