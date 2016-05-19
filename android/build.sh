@@ -406,6 +406,16 @@ ln -sf ../$F X11/extensions/
 done
 } || exit 1
 
+# =========== libportable.a ===========
+[ -e libportable.a ] || {
+	rm -rf libportable
+	mkdir -p libportable
+	$BUILDDIR/setCrossEnvironment.sh \
+	sh -c 'cd libportable && \
+	$CC $CFLAGS -c '"$NDK/sources/android/cpufeatures/*.c"' && \
+	ar rcs ../libportable.a *.o' || exit 1
+} || exit 1
+
 # =========== libpixman-1.a ===========
 
 [ -e libpixman-1.a ] || {
@@ -417,7 +427,7 @@ tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 env CFLAGS="-I$NDK/sources/android/cpufeatures -DSO_REUSEADDR=1" \
-LDFLAGS="-L$NDK/sources/android/libportable/libs/$TARGET_ARCH -lportable" \
+LDFLAGS="-L$BUILDDIR -lportable" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -1299,8 +1309,8 @@ cd $BUILDDIR
 # =========== xsdl ==========
 
 ln -sf $BUILDDIR/../../../../../../libs/$TARGET_ARCH/libsdl-1.2.so $BUILDDIR/libSDL.so
-ln -sf $NDK/sources/android/libportable/libs/$TARGET_ARCH/libportable.a $BUILDDIR/libpthread.a # dummy
-ln -sf $NDK/sources/android/libportable/libs/$TARGET_ARCH/libportable.a $BUILDDIR/libts.a # dummy
+ln -sf $BUILDDIR/libportable.a $BUILDDIR/libpthread.a # dummy
+ln -sf $BUILDDIR/libportable.a $BUILDDIR/libts.a # dummy
 
 [ -z "$PACKAGE_NAME" ] && PACKAGE_NAME=X.org.server
 
