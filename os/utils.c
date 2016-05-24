@@ -210,6 +210,10 @@ sig_atomic_t inSignalContext = FALSE;
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
 
+#ifdef MONOTONIC_CLOCK
+static clockid_t clockid;
+#endif
+
 OsSigHandlerPtr
 OsSignal(int sig, OsSigHandlerPtr handler)
 {
@@ -427,6 +431,24 @@ GiveUp(int sig)
     errno = olderrno;
 }
 
+#ifdef MONOTONIC_CLOCK
+void
+ForceClockId(clockid_t forced_clockid)
+{
+    struct timespec tp;
+
+    BUG_RETURN (clockid);
+
+    clockid = forced_clockid;
+
+    if (clock_gettime(clockid, &tp) != 0) {
+        FatalError("Forced clock id failed to retrieve current time: %s\n",
+                   strerror(errno));
+        return;
+    }
+}
+#endif
+
 #if (defined WIN32 && defined __MINGW32__) || defined(__CYGWIN__)
 CARD32
 GetTimeInMillis(void)
@@ -446,7 +468,6 @@ GetTimeInMillis(void)
 
 #ifdef MONOTONIC_CLOCK
     struct timespec tp;
-    static clockid_t clockid;
 
     if (!clockid) {
 #ifdef CLOCK_MONOTONIC_COARSE
@@ -475,7 +496,6 @@ GetTimeInMicros(void)
     struct timeval tv;
 #ifdef MONOTONIC_CLOCK
     struct timespec tp;
-    static clockid_t clockid;
 
     if (!clockid) {
         if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)

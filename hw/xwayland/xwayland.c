@@ -32,6 +32,7 @@
 #include <misyncshm.h>
 #include <compositeext.h>
 #include <glx_extinit.h>
+#include <os.h>
 
 #ifdef XF86VIDMODE
 #include <X11/extensions/xf86vmproto.h>
@@ -52,6 +53,7 @@ AbortDDX(enum ExitCode error)
 void
 OsVendorInit(void)
 {
+    ForceClockId(CLOCK_MONOTONIC);
 }
 
 void

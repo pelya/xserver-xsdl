@@ -2492,6 +2492,10 @@ if test "x$XWAYLAND" = xyes; then
 	AC_SUBST([XWAYLAND_LIBS])
 	AC_SUBST([XWAYLAND_SYS_LIBS])
 
+	if test "x$MONOTONIC_CLOCK" != xyes; then
+		AC_MSG_ERROR([Xwayland requires CLOCK_MONOTONIC support.])
+	fi
+
 	WAYLAND_PREFIX=`$PKG_CONFIG --variable=prefix wayland-client`
 	AC_PATH_PROG([WAYLAND_SCANNER], [wayland-scanner],,
 		     [${WAYLAND_PREFIX}/bin$PATH_SEPARATOR$PATH])
