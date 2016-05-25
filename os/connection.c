@@ -104,7 +104,6 @@ SOFTWARE.
 #endif                          /* WIN32 */
 #include "misc.h"               /* for typedef of pointer */
 #include "osdep.h"
-#include <X11/Xpoll.h>
 #include "opaque.h"
 #include "dixstruct.h"
 #include "xace.h"
@@ -120,7 +119,6 @@ SOFTWARE.
 
 #include "probes.h"
 
-static int lastfdesc;           /* maximum file descriptor */
 struct ospoll   *server_poll;
 
 int MaxClients = 0;
@@ -133,8 +131,6 @@ Bool RunFromSigStopParent;      /* send SIGSTOP to our own process; Upstart (or
 static char dynamic_display[7]; /* display name */
 Bool PartialNetwork;            /* continue even if unable to bind all addrs */
 static Pid_t ParentProcess;
-
-static Bool debug_conns = FALSE;
 
 int GrabInProgress = 0;
 
@@ -149,18 +145,14 @@ set_poll_clients(void);
 
 #if !defined(WIN32)
 int *ConnectionTranslation = NULL;
+int ConnectionTranslationSize = 0;
 #else
 /*
- * On NT fds are not between 0 and MAXSOCKS, they are unrelated, and there is
+ * On NT fds are not small integers, they are unrelated, and there is
  * not even a known maximum value, so use something quite arbitrary for now.
  * Do storage is a hash table of size 256. Collisions are handled in a linked
  * list.
  */
-
-#undef MAXSOCKS
-#define MAXSOCKS 512
-#undef MAXSELECT
-#define MAXSELECT 512
 
 struct _ct_node {
     struct _ct_node *next;
@@ -266,47 +258,17 @@ lookup_trans_conn(int fd)
 void
 InitConnectionLimits(void)
 {
-    lastfdesc = -1;
-
-#ifndef __CYGWIN__
-
-#if !defined(XNO_SYSCONF) && defined(_SC_OPEN_MAX)
-    lastfdesc = sysconf(_SC_OPEN_MAX) - 1;
-#endif
-
-#ifdef HAVE_GETDTABLESIZE
-    if (lastfdesc < 0)
-        lastfdesc = getdtablesize() - 1;
-#endif
-
-#ifdef _NFILE
-    if (lastfdesc < 0)
-        lastfdesc = _NFILE - 1;
-#endif
-
-#endif                          /* __CYGWIN__ */
-
-    /* This is the fallback */
-    if (lastfdesc < 0)
-        lastfdesc = MAXSOCKS;
-
-    if (lastfdesc > MAXSELECT)
-        lastfdesc = MAXSELECT;
-
-    if (lastfdesc > MAXCLIENTS) {
-        lastfdesc = MAXCLIENTS;
-        if (debug_conns)
-            ErrorF("REACHED MAXIMUM CLIENTS LIMIT %d\n", LimitClients);
-    }
-    MaxClients = lastfdesc;
+    MaxClients = MAXCLIENTS;
 
 #ifdef DEBUG
     ErrorF("InitConnectionLimits: MaxClients = %d\n", MaxClients);
 #endif
 
 #if !defined(WIN32)
-    if (!ConnectionTranslation)
-        ConnectionTranslation = xnfallocarray(lastfdesc + 1, sizeof(int));
+    if (!ConnectionTranslation) {
+        ConnectionTranslation = xnfallocarray(MaxClients, sizeof(int));
+        ConnectionTranslationSize = MaxClients;
+    }
 #else
     InitConnectionTranslation();
 #endif
@@ -385,7 +347,7 @@ CreateWellKnownSockets(void)
     int partial;
 
 #if !defined(WIN32)
-    for (i = 0; i < MaxClients; i++)
+    for (i = 0; i < ConnectionTranslationSize; i++)
         ConnectionTranslation[i] = 0;
 #else
     ClearConnectionTranslation();
@@ -761,14 +723,6 @@ AllocNewConnection(XtransConnInfo trans_conn, int fd, CARD32 conn_time)
     OsCommPtr oc;
     ClientPtr client;
 
-    if (
-#ifndef WIN32
-           fd >= lastfdesc
-#else
-           XFD_SETCOUNT(&AllClients) >= MaxClients
-#endif
-        )
-        return NullClient;
     oc = malloc(sizeof(OsCommRec));
     if (!oc)
         return NullClient;
@@ -785,6 +739,10 @@ AllocNewConnection(XtransConnInfo trans_conn, int fd, CARD32 conn_time)
     }
     client->local = ComputeLocalClient(client);
 #if !defined(WIN32)
+    if (fd >= ConnectionTranslationSize) {
+        ConnectionTranslationSize *= 2;
+        ConnectionTranslation = xnfreallocarray(ConnectionTranslation, ConnectionTranslationSize, sizeof (int));
+    }
     ConnectionTranslation[fd] = client->index;
 #else
     SetConnectionTranslation(fd, client->index);
@@ -824,6 +782,7 @@ EstablishNewConnections(ClientPtr clientUnused, void *closure)
     OsCommPtr oc;
     XtransConnInfo trans_conn, new_trans_conn;
     int status;
+    int clientid;
 
     connect_time = GetTimeInMillis();
     /* kill off stragglers */
@@ -845,17 +804,9 @@ EstablishNewConnections(ClientPtr clientUnused, void *closure)
 
     newconn = _XSERVTransGetConnectionNumber(new_trans_conn);
 
-    if (newconn < lastfdesc) {
-        int clientid;
-
-#if !defined(WIN32)
-        clientid = ConnectionTranslation[newconn];
-#else
-        clientid = GetConnectionTranslation(newconn);
-#endif
-        if (clientid && (client = clients[clientid]))
-            CloseDownClient(client);
-    }
+    clientid = GetConnectionTranslation(newconn);
+    if (clientid && (client = clients[clientid]))
+        CloseDownClient(client);
 
     _XSERVTransSetOption(new_trans_conn, TRANS_NONBLOCKING, 1);
 

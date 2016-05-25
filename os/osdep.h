@@ -63,42 +63,8 @@ SOFTWARE.
 #undef _POSIX_SOURCE
 #endif
 
-#ifndef OPEN_MAX
-#ifdef SVR4
-#define OPEN_MAX 512
-#else
-#include <sys/param.h>
-#ifndef OPEN_MAX
-#if defined(NOFILE) && !defined(NOFILES_MAX)
-#define OPEN_MAX NOFILE
-#else
-#if !defined(WIN32) || defined(__CYGWIN__)
-#define OPEN_MAX NOFILES_MAX
-#else
-#define OPEN_MAX 512
-#endif
-#endif
-#endif
-#endif
-#endif
-
-#include <X11/Xpoll.h>
-
-/*
- * MAXSOCKS is used only for initialising MaxClients when no other method
- * like sysconf(_SC_OPEN_MAX) is not supported.
- */
-
-#if OPEN_MAX <= 512
-#define MAXSOCKS (OPEN_MAX - 1)
-#else
-#define MAXSOCKS 512
-#endif
-
-/* MAXSELECT is the number of fds that select() can handle */
-#define MAXSELECT (sizeof(fd_set) * NBBY)
-
 #include <stddef.h>
+#include <X11/Xos.h>
 
 /* If EAGAIN and EWOULDBLOCK are distinct errno values, then we check errno
  * for both EAGAIN and EWOULDBLOCK, because some supposedly POSIX
@@ -187,6 +153,12 @@ listen_to_client(ClientPtr client);
 
 #if !defined(WIN32) || defined(__CYGWIN__)
 extern int *ConnectionTranslation;
+extern int ConnectionTranslationSize;
+static inline int GetConnectionTranslation(int conn) {
+    if (conn >= ConnectionTranslationSize)
+        return 0;
+    return ConnectionTranslation[conn];
+}
 #else
 extern int GetConnectionTranslation(int conn);
 extern void SetConnectionTranslation(int conn, int client);
