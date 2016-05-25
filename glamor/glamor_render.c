@@ -1406,6 +1406,29 @@ glamor_composite_clipped_region(CARD8 op,
     DEBUGF("clipped (%d %d) (%d %d) (%d %d) width %d height %d \n",
            x_source, y_source, x_mask, y_mask, x_dest, y_dest, width, height);
 
+    /* Is the composite operation equivalent to a copy? */
+    if (!mask && !source->alphaMap && !dest->alphaMap
+        && source->pDrawable && !source->transform
+        && ((op == PictOpSrc
+             && ((source->format == dest->format
+                  || (PICT_FORMAT_COLOR(dest->format)
+                      && PICT_FORMAT_COLOR(source->format)
+                      && dest->format == PICT_FORMAT(PICT_FORMAT_BPP(source->format),
+                                                     PICT_FORMAT_TYPE(source->format),
+                                                     0,
+                                                     PICT_FORMAT_R(source->format),
+                                                     PICT_FORMAT_G(source->format),
+                                                     PICT_FORMAT_B(source->format))))
+                 || (op == PictOpOver
+                     && source->format == dest->format
+                     && !PICT_FORMAT_A(source->format)))))) {
+        glamor_copy(source->pDrawable, dest->pDrawable, NULL,
+                    box, nbox, x_source - x_dest,
+                    y_source - y_dest, FALSE, FALSE, 0, NULL);
+        ok = TRUE;
+        goto out;
+    }
+
     /* XXX is it possible source mask have non-zero drawable.x/y? */
     if (source
         && ((!source->pDrawable
