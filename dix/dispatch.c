@@ -242,12 +242,14 @@ void Dispatch(void);
 
 static struct xorg_list ready_clients;
 static struct xorg_list saved_ready_clients;
+struct xorg_list output_pending_clients;
 
 static void
 init_client_ready(void)
 {
     xorg_list_init(&ready_clients);
     xorg_list_init(&saved_ready_clients);
+    xorg_list_init(&output_pending_clients);
 }
 
 Bool
@@ -3411,6 +3413,7 @@ CloseDownClient(ClientPtr client)
             UngrabServer(client);
         }
         mark_client_not_ready(client);
+        xorg_list_del(&client->output_pending);
         BITCLEAR(grabWaiters, client->index);
         DeleteClientFromAnySelections(client);
         ReleaseActiveGrabs(client);
@@ -3501,6 +3504,7 @@ InitClient(ClientPtr client, int i, void *ospriv)
 {
     client->index = i;
     xorg_list_init(&client->ready);
+    xorg_list_init(&client->output_pending);
     client->clientAsMask = ((Mask) i) << CLIENTOFFSET;
     client->closeDownMode = i ? DestroyAll : RetainPermanent;
     client->requestVector = InitialVector;

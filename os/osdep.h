@@ -162,7 +162,11 @@ typedef struct _osComm {
     XID auth_id;                /* authorization id */
     CARD32 conn_time;           /* timestamp if not established, else 0  */
     struct _XtransConnInfo *trans_conn; /* transport connection object */
+    int flags;
 } OsCommRec, *OsCommPtr;
+
+#define OS_COMM_GRAB_IMPERVIOUS 1
+#define OS_COMM_IGNORED         2
 
 extern int FlushClient(ClientPtr /*who */ ,
                        OsCommPtr /*oc */ ,
@@ -173,24 +177,13 @@ extern int FlushClient(ClientPtr /*who */ ,
 extern void FreeOsBuffers(OsCommPtr     /*oc */
     );
 
-extern void InitNotifyFds(void);
-
-extern void HandleNotifyFds(void);
-
 #include "dix.h"
+#include "ospoll.h"
 
-extern fd_set AllSockets;
-extern fd_set AllClients;
-extern fd_set LastSelectMask;
-extern fd_set LastSelectWriteMask;
-extern fd_set WellKnownConnections;
-extern fd_set EnabledDevices;
-extern fd_set NotifyReadFds;
-extern fd_set NotifyWriteFds;
-extern fd_set ClientsWithInput;
-extern fd_set ClientsWriteBlocked;
-extern fd_set OutputPending;
-extern fd_set IgnoredClientsWithInput;
+extern struct ospoll    *server_poll;
+
+Bool
+listen_to_client(ClientPtr client);
 
 #if !defined(WIN32) || defined(__CYGWIN__)
 extern int *ConnectionTranslation;
@@ -201,8 +194,6 @@ extern void ClearConnectionTranslation(void);
 #endif
 
 extern Bool NewOutputPending;
-extern Bool AnyWritesPending;
-extern Bool NumNotifyWriteFd;
 
 extern WorkQueuePtr workQueue;
 

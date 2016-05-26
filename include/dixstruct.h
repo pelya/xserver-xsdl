@@ -77,6 +77,7 @@ typedef struct _Client {
     void *requestBuffer;
     void *osPrivate;             /* for OS layer, including scheduler */
     struct xorg_list ready;      /* List of clients ready to run */
+    struct xorg_list output_pending; /* List of clients with output queued */
     Mask clientAsMask;
     short index;
     unsigned char majorOp, minorOp;
@@ -152,6 +153,25 @@ static inline Bool client_is_ready(ClientPtr client)
 
 Bool
 clients_are_ready(void);
+
+extern struct xorg_list output_pending_clients;
+
+static inline void
+output_pending_mark(ClientPtr client)
+{
+    if (xorg_list_is_empty(&client->output_pending))
+        xorg_list_append(&client->output_pending, &output_pending_clients);
+}
+
+static inline void
+output_pending_clear(ClientPtr client)
+{
+    xorg_list_del(&client->output_pending);
+}
+
+static inline Bool any_output_pending(void) {
+    return !xorg_list_is_empty(&output_pending_clients);
+}
 
 #define SMART_MAX_PRIORITY  (20)
 #define SMART_MIN_PRIORITY  (-20)

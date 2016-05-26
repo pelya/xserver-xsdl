@@ -195,7 +195,9 @@ OsInit(void)
 #ifdef BUSFAULT
         busfault_init();
 #endif
-        InitNotifyFds();
+        server_poll = ospoll_create();
+        if (!server_poll)
+            FatalError("failed to allocate poll structure");
 
 #ifdef HAVE_BACKTRACE
         /*

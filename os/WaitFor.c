@@ -66,7 +66,6 @@ SOFTWARE.
 #include "misc.h"
 
 #include "osdep.h"
-#include <X11/Xpoll.h>
 #include "dixstruct.h"
 #include "opaque.h"
 #ifdef DPMSExtension
@@ -146,22 +145,20 @@ Bool
 WaitForSomething(Bool are_ready)
 {
     int i;
-    struct timeval waittime, *wt;
     int timeout;
-    fd_set clientsReadable;
-    fd_set clientsWritable;
-    int curclient;
-    int selecterr;
-    static int nready;
+    int pollerr;
+    static Bool were_ready;
+    Bool timer_is_running;
     CARD32 now = 0;
-    Bool someNotifyWriteReady = FALSE;
 
-    FD_ZERO(&clientsReadable);
-    FD_ZERO(&clientsWritable);
+    timer_is_running = were_ready;
 
-    if (nready)
+    if (were_ready && !are_ready) {
+        timer_is_running = FALSE;
         SmartScheduleStopTimer();
-    nready = 0;
+    }
+
+    were_ready = FALSE;
 
 #ifdef BUSFAULT
     busfault_check();
@@ -176,8 +173,6 @@ WaitForSomething(Bool are_ready)
 
         if (are_ready) {
             timeout = 0;
-            XFD_COPYSET(&AllSockets, &LastSelectMask);
-            XFD_UNSET(&LastSelectMask, &ClientsWithInput);
         }
         else {
             timeout = -1;
@@ -195,57 +190,39 @@ WaitForSomething(Bool are_ready)
                         timeout = 0;
                 }
             }
-            XFD_COPYSET(&AllSockets, &LastSelectMask);
         }
 
         BlockHandler(&timeout);
-        if (timeout < 0)
-            wt = NULL;
-        else {
-            waittime.tv_sec = timeout / MILLI_PER_SECOND;
-            waittime.tv_usec = (timeout % MILLI_PER_SECOND) *
-                (1000000 / MILLI_PER_SECOND);
-            wt = &waittime;
-        }
         if (NewOutputPending)
             FlushAllOutput();
         /* keep this check close to select() call to minimize race */
         if (dispatchException)
             i = -1;
-        else if (AnyWritesPending) {
-            XFD_COPYSET(&ClientsWriteBlocked, &LastSelectWriteMask);
-            XFD_ORSET(&LastSelectWriteMask, &NotifyWriteFds, &LastSelectWriteMask);
-            i = Select(MaxClients, &LastSelectMask, &LastSelectWriteMask, NULL, wt);
-        }
-        else {
-            i = Select(MaxClients, &LastSelectMask, NULL, NULL, wt);
-        }
-        selecterr = GetErrno();
+        else
+            i = ospoll_wait(server_poll, timeout);
+        pollerr = GetErrno();
         WakeupHandler(i);
         if (i <= 0) {           /* An error or timeout occurred */
             if (dispatchException)
                 return FALSE;
             if (i < 0) {
-                if (selecterr == EBADF) {       /* Some client disconnected */
+                if (pollerr == EBADF) {       /* Some client disconnected */
                     CheckConnections();
-                    if (!XFD_ANYSET(&AllClients))
-                        return FALSE;
+                    return FALSE;
                 }
-                else if (selecterr == EINVAL) {
-                    FatalError("WaitForSomething(): select: %s\n",
-                               strerror(selecterr));
+                else if (pollerr == EINVAL) {
+                    FatalError("WaitForSomething(): poll: %s\n",
+                               strerror(pollerr));
                 }
-                else if (selecterr != EINTR && selecterr != EAGAIN) {
-                    ErrorF("WaitForSomething(): select: %s\n",
-                           strerror(selecterr));
+                else if (pollerr != EINTR && pollerr != EAGAIN) {
+                    ErrorF("WaitForSomething(): poll: %s\n",
+                           strerror(pollerr));
                 }
             }
             else if (are_ready) {
                 /*
                  * If no-one else is home, bail quickly
                  */
-                XFD_COPYSET(&ClientsWithInput, &LastSelectMask);
-                XFD_COPYSET(&ClientsWithInput, &clientsReadable);
                 break;
             }
             if (*checkForInput[0] != *checkForInput[1])
@@ -269,92 +246,38 @@ WaitForSomething(Bool are_ready)
             }
         }
         else {
-            fd_set tmp_set;
-
-            if (*checkForInput[0] == *checkForInput[1]) {
-                if (timers) {
-                    int expired = 0;
-
-                    now = GetTimeInMillis();
-                    if ((int) (timers->expires - now) <= 0)
-                        expired = 1;
-
-                    if (expired) {
-                        OsBlockSignals();
-                        while (timers && (int) (timers->expires - now) <= 0)
-                            DoTimer(timers, now, &timers);
-                        OsReleaseSignals();
-
-                        return FALSE;
-                    }
-                }
-            }
-
-            if (AnyWritesPending) {
-                XFD_ANDSET(&clientsWritable, &LastSelectWriteMask, &ClientsWriteBlocked);
-                if (XFD_ANYSET(&clientsWritable)) {
-                    NewOutputPending = TRUE;
-                    XFD_ORSET(&OutputPending, &clientsWritable, &OutputPending);
-                    XFD_UNSET(&ClientsWriteBlocked, &clientsWritable);
-                    if (!XFD_ANYSET(&ClientsWriteBlocked) && NumNotifyWriteFd == 0)
-                        AnyWritesPending = FALSE;
-                }
-                if (NumNotifyWriteFd != 0) {
-                    XFD_ANDSET(&tmp_set, &LastSelectWriteMask, &NotifyWriteFds);
-                    if (XFD_ANYSET(&tmp_set))
-                        someNotifyWriteReady = TRUE;
-                }
-            }
-
-            XFD_ANDSET(&clientsReadable, &LastSelectMask, &AllClients);
-
-            XFD_ANDSET(&tmp_set, &LastSelectMask, &NotifyReadFds);
-            if (XFD_ANYSET(&tmp_set) || someNotifyWriteReady)
-                HandleNotifyFds();
-
-            if (are_ready || XFD_ANYSET(&clientsReadable))
-                break;
-
             /* check here for DDXes that queue events during Block/Wakeup */
             if (*checkForInput[0] != *checkForInput[1])
                 return FALSE;
+
+            if (timers) {
+                int expired = 0;
+
+                now = GetTimeInMillis();
+                if ((int) (timers->expires - now) <= 0)
+                    expired = 1;
+
+                if (expired) {
+                    OsBlockSignals();
+                    while (timers && (int) (timers->expires - now) <= 0)
+                        DoTimer(timers, now, &timers);
+                    OsReleaseSignals();
+
+                    return FALSE;
+                }
+            }
+
+            are_ready = clients_are_ready();
+            if (are_ready)
+                break;
         }
     }
 
-    nready = 0;
-    if (XFD_ANYSET(&clientsReadable)) {
-#ifndef WIN32
-        for (i = 0; i < howmany(XFD_SETSIZE, NFDBITS); i++) {
-            while (clientsReadable.fds_bits[i]) {
-                int client_index;
-
-                curclient = mffs(clientsReadable.fds_bits[i]) - 1;
-                client_index =  /* raphael: modified */
-                    ConnectionTranslation[curclient +
-                                          (i * (sizeof(fd_mask) * 8))];
-#else
-        fd_set savedClientsReadable;
-
-        XFD_COPYSET(&clientsReadable, &savedClientsReadable);
-        for (i = 0; i < XFD_SETCOUNT(&savedClientsReadable); i++) {
-            int client_priority, client_index;
-
-            curclient = XFD_FD(&savedClientsReadable, i);
-            client_index = GetConnectionTranslation(curclient);
-#endif
-            nready++;
-            mark_client_ready(clients[client_index]);
-#ifndef WIN32
-            clientsReadable.fds_bits[i] &= ~(((fd_mask) 1L) << curclient);
-        }
-#else
-            FD_CLR(curclient, &clientsReadable);
-#endif
-        }
+    if (are_ready) {
+        were_ready = TRUE;
+        if (!timer_is_running)
+            SmartScheduleStartTimer();
     }
-
-    if (nready)
-        SmartScheduleStartTimer();
 
     return TRUE;
 }
