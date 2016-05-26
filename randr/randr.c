@@ -580,6 +580,18 @@ RRTellChanged(ScreenPtr pScreen)
         mastersp = pScrPriv;
     }
 
+    xorg_list_for_each_entry(iter, &master->slave_list, slave_head) {
+        pSlaveScrPriv = rrGetScrPriv(iter);
+
+        if (!iter->is_output_slave)
+            continue;
+
+        if (CompareTimeStamps(mastersp->lastSetTime,
+                              pSlaveScrPriv->lastSetTime) == EARLIER) {
+            mastersp->lastSetTime = pSlaveScrPriv->lastSetTime;
+        }
+    }
+
     if (mastersp->changed) {
         UpdateCurrentTimeIf();
         if (mastersp->configChanged) {
