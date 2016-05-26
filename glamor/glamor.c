@@ -264,13 +264,13 @@ _glamor_block_handler(ScreenPtr screen, void *timeout, void *readmask)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
 
+    glamor_make_current(glamor_priv);
+    glFlush();
+
     screen->BlockHandler = glamor_priv->saved_procs.block_handler;
     screen->BlockHandler(screen, timeout, readmask);
     glamor_priv->saved_procs.block_handler = screen->BlockHandler;
     screen->BlockHandler = _glamor_block_handler;
-
-    glamor_make_current(glamor_priv);
-    glFlush();
 }
 
 static void

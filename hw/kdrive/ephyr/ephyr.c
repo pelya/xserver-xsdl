@@ -337,17 +337,29 @@ ephyrInternalDamageRedisplay(ScreenPtr pScreen)
 }
 
 static void
-ephyrInternalDamageBlockHandler(void *data, OSTimePtr pTimeout, void *pRead)
+ephyrScreenBlockHandler(ScreenPtr pScreen, void *timeout, void *pRead)
 {
-    ScreenPtr pScreen = (ScreenPtr) data;
+    KdScreenPriv(pScreen);
+    KdScreenInfo *screen = pScreenPriv->screen;
+    EphyrScrPriv *scrpriv = screen->driver;
 
-    ephyrInternalDamageRedisplay(pScreen);
-}
+    pScreen->BlockHandler = scrpriv->BlockHandler;
+    (*pScreen->BlockHandler)(pScreen, timeout, pRead);
 
-static void
-ephyrInternalDamageWakeupHandler(void *data, int i, void *LastSelectMask)
-{
-    /* FIXME: Not needed ? */
+    if (scrpriv->pDamage) {
+
+        /* Re-wrap if we're still tracking damage
+         */
+        scrpriv->BlockHandler = pScreen->BlockHandler;
+        pScreen->BlockHandler = ephyrScreenBlockHandler;
+        ephyrInternalDamageRedisplay(pScreen);
+    } else {
+
+        /* Done tracking damage, note that we've left
+         * the block handler unwrapped
+         */
+        scrpriv->BlockHandler = NULL;
+    }
 }
 
 Bool
@@ -362,10 +374,11 @@ ephyrSetInternalDamage(ScreenPtr pScreen)
                                     (DamageDestroyFunc) 0,
                                     DamageReportNone, TRUE, pScreen, pScreen);
 
-    if (!RegisterBlockAndWakeupHandlers(ephyrInternalDamageBlockHandler,
-                                        ephyrInternalDamageWakeupHandler,
-                                        (void *) pScreen))
-        return FALSE;
+    /* Wrap only once */
+    if (scrpriv->BlockHandler == NULL) {
+        scrpriv->BlockHandler = pScreen->BlockHandler;
+        pScreen->BlockHandler = ephyrScreenBlockHandler;
+    }
 
     pPixmap = (*pScreen->GetScreenPixmap) (pScreen);
 
@@ -382,10 +395,7 @@ ephyrUnsetInternalDamage(ScreenPtr pScreen)
     EphyrScrPriv *scrpriv = screen->driver;
 
     DamageDestroy(scrpriv->pDamage);
-
-    RemoveBlockAndWakeupHandlers(ephyrInternalDamageBlockHandler,
-                                 ephyrInternalDamageWakeupHandler,
-                                 (void *) pScreen);
+    scrpriv->pDamage = NULL;
 }
 
 #ifdef RANDR
@@ -736,6 +746,7 @@ ephyrScreenFini(KdScreenInfo * screen)
     if (scrpriv->shadow) {
         KdShadowFbFree(screen);
     }
+    scrpriv->BlockHandler = NULL;
 }
 
 void

@@ -84,6 +84,8 @@ typedef struct _ephyrScrPriv {
     int mynum;                  /* Screen number */
     unsigned long cmap[256];
 
+    ScreenBlockHandlerProcPtr   BlockHandler;
+
     /**
      * Per-screen Xlib-using state for glamor (private to
      * ephyr_glamor_glx.c)
