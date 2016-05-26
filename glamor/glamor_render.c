@@ -1424,18 +1424,21 @@ glamor_composite_clipped_region(CARD8 op,
     if (!mask && !source->alphaMap && !dest->alphaMap
         && source->pDrawable && !source->transform
         && ((op == PictOpSrc
-             && ((source->format == dest->format
-                  || (PICT_FORMAT_COLOR(dest->format)
-                      && PICT_FORMAT_COLOR(source->format)
-                      && dest->format == PICT_FORMAT(PICT_FORMAT_BPP(source->format),
-                                                     PICT_FORMAT_TYPE(source->format),
-                                                     0,
-                                                     PICT_FORMAT_R(source->format),
-                                                     PICT_FORMAT_G(source->format),
-                                                     PICT_FORMAT_B(source->format))))
-                 || (op == PictOpOver
-                     && source->format == dest->format
-                     && !PICT_FORMAT_A(source->format)))))) {
+             && (source->format == dest->format
+                 || (PICT_FORMAT_COLOR(dest->format)
+                     && PICT_FORMAT_COLOR(source->format)
+                     && dest->format == PICT_FORMAT(PICT_FORMAT_BPP(source->format),
+                                                    PICT_FORMAT_TYPE(source->format),
+                                                    0,
+                                                    PICT_FORMAT_R(source->format),
+                                                    PICT_FORMAT_G(source->format),
+                                                    PICT_FORMAT_B(source->format)))))
+            || (op == PictOpOver
+                && source->format == dest->format
+                && !PICT_FORMAT_A(source->format)))
+        && x_source >= 0 && y_source >= 0
+        && (x_source + width) <= source->pDrawable->width
+        && (y_source + height) <= source->pDrawable->height) {
         x_source += source->pDrawable->x;
         y_source += source->pDrawable->y;
         x_dest += dest->pDrawable->x;
