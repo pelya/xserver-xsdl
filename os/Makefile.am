@@ -22,6 +22,7 @@ libos_la_SOURCES = 	\
 	oscolor.c	\
 	osdep.h		\
 	osinit.c	\
+	ospoll.c	\
 	utils.c		\
 	xdmauth.c	\
 	xsha1.c		\
