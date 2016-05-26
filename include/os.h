@@ -182,8 +182,7 @@ extern void ForceClockId(clockid_t /* forced_clockid */);
 extern _X_EXPORT CARD32 GetTimeInMillis(void);
 extern _X_EXPORT CARD64 GetTimeInMicros(void);
 
-extern _X_EXPORT void AdjustWaitForDelay(void *waitTime,
-                                         unsigned long newdelay);
+extern _X_EXPORT void AdjustWaitForDelay(void *waitTime, int newdelay);
 
 typedef struct _OsTimerRec *OsTimerPtr;
 

@@ -147,7 +147,7 @@ WaitForSomething(int *pClientsReady)
 {
     int i;
     struct timeval waittime, *wt;
-    INT32 timeout = 0;
+    int timeout;
     fd_set clientsReadable;
     fd_set clientsWritable;
     int curclient;
@@ -175,17 +175,15 @@ WaitForSomething(int *pClientsReady)
         if (workQueue)
             ProcessWorkQueue();
         if (XFD_ANYSET(&ClientsWithInput)) {
+            timeout = 0;
             someReady = TRUE;
-            waittime.tv_sec = 0;
-            waittime.tv_usec = 0;
-            wt = &waittime;
         }
         if (someReady) {
             XFD_COPYSET(&AllSockets, &LastSelectMask);
             XFD_UNSET(&LastSelectMask, &ClientsWithInput);
         }
         else {
-            wt = NULL;
+            timeout = -1;
             if (timers) {
                 now = GetTimeInMillis();
                 timeout = timers->expires - now;
@@ -198,16 +196,20 @@ WaitForSomething(int *pClientsReady)
                     timeout = timers->expires - now;
                     if (timeout < 0)
                         timeout = 0;
-                    waittime.tv_sec = timeout / MILLI_PER_SECOND;
-                    waittime.tv_usec = (timeout % MILLI_PER_SECOND) *
-                        (1000000 / MILLI_PER_SECOND);
-                    wt = &waittime;
                 }
             }
             XFD_COPYSET(&AllSockets, &LastSelectMask);
         }
 
-        BlockHandler(&wt);
+        BlockHandler(&timeout);
+        if (timeout < 0)
+            wt = NULL;
+        else {
+            waittime.tv_sec = timeout / MILLI_PER_SECOND;
+            waittime.tv_usec = (timeout % MILLI_PER_SECOND) *
+                (1000000 / MILLI_PER_SECOND);
+            wt = &waittime;
+        }
         if (NewOutputPending)
             FlushAllOutput();
         /* keep this check close to select() call to minimize race */
@@ -357,6 +359,16 @@ WaitForSomething(int *pClientsReady)
         SmartScheduleStartTimer();
 
     return nready;
+}
+
+void
+AdjustWaitForDelay(void *waitTime, int newdelay)
+{
+    int *timeoutp = waitTime;
+    int timeout = *timeoutp;
+
+    if (timeout < 0 || newdelay < timeout)
+        *timeoutp = newdelay;
 }
 
 /* If time has rewound, re-run every affected timer.
