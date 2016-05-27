@@ -1436,6 +1436,10 @@ glamor_composite_clipped_region(CARD8 op,
                  || (op == PictOpOver
                      && source->format == dest->format
                      && !PICT_FORMAT_A(source->format)))))) {
+        x_source += source->pDrawable->x;
+        y_source += source->pDrawable->y;
+        x_dest += dest->pDrawable->x;
+        y_dest += dest->pDrawable->y;
         glamor_copy(source->pDrawable, dest->pDrawable, NULL,
                     box, nbox, x_source - x_dest,
                     y_source - y_dest, FALSE, FALSE, 0, NULL);
