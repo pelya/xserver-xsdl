@@ -456,7 +456,6 @@ xf86_crtc_load_cursor_image(xf86CrtcPtr crtc, CARD8 *src)
     CARD8 *cursor_image;
     const Rotation rotation = xf86_crtc_cursor_rotation(crtc);
 
-    xf86_config->cursor = xf86CurrentCursor(xf86ScrnToScreen(scrn));
     crtc->cursor_argb = FALSE;
 
     if (rotation == RR_Rotate_0)
@@ -493,6 +492,7 @@ xf86_load_cursor_image(ScrnInfoPtr scrn, unsigned char *src)
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     int c;
 
+    xf86_config->cursor = xf86CurrentCursor(scrn->pScreen);
     for (c = 0; c < xf86_config->num_crtc; c++) {
         xf86CrtcPtr crtc = xf86_config->crtc[c];
 
