@@ -553,8 +553,7 @@ drmmode_set_cursor(xf86CrtcPtr crtc)
     int ret;
 
     if (use_set_cursor2) {
-        xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
-        CursorPtr cursor = xf86_config->cursor;
+        CursorPtr cursor = xf86CurrentCursor(crtc->scrn->pScreen);
 
         ret =
             drmModeSetCursor2(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
