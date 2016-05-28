@@ -247,34 +247,6 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 void
 xf86Wakeup(void *blockData, int err, void *pReadmask)
 {
-    fd_set *LastSelectMask = (fd_set *) pReadmask;
-    fd_set devicesWithInput;
-    InputInfoPtr pInfo;
-
-    if (err >= 0) {
-
-        XFD_ANDSET(&devicesWithInput, LastSelectMask, &EnabledDevices);
-        if (XFD_ANYSET(&devicesWithInput)) {
-            pInfo = xf86InputDevs;
-            while (pInfo) {
-                if (pInfo->read_input && pInfo->fd >= 0 &&
-                    (FD_ISSET(pInfo->fd, &devicesWithInput) != 0)) {
-                    input_lock();
-
-                    /*
-                     * Remove the descriptior from the set because more than one
-                     * device may share the same file descriptor.
-                     */
-                    FD_CLR(pInfo->fd, &devicesWithInput);
-
-                    pInfo->read_input(pInfo);
-                    input_unlock();
-                }
-                pInfo = pInfo->next;
-            }
-        }
-    }
-
     if (err >= 0) {             /* we don't want the handlers called if select() */
         IHPtr ih, ih_tmp;       /* returned with an error condition, do we?      */
 
