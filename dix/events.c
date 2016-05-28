@@ -2242,7 +2242,6 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
                                    this mask is the mask of the grab. */
     int type = pEvents->u.u.type;
 
-    UpdateCurrentTimeIf();
     /* Deliver to window owner */
     if ((filter == CantBeFiltered) || core_get_type(pEvents) != 0) {
         enum EventDeliveryState rc;

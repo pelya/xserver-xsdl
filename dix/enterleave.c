@@ -782,7 +782,6 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     DeviceIntPtr mouse;
     int btlen, len, i;
 
-    UpdateCurrentTimeIf();
     mouse = IsFloating(dev) ? dev : GetMaster(dev, MASTER_POINTER);
 
     /* XI 2 event */
