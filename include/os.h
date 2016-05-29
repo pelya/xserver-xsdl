@@ -148,9 +148,10 @@ extern _X_EXPORT void CloseDownConnection(ClientPtr /*client */ );
 
 typedef void (*NotifyFdProcPtr)(int fd, int ready, void *data);
 
-#define X_NOTIFY_NONE   0
-#define X_NOTIFY_READ   1
-#define X_NOTIFY_WRITE  2
+#define X_NOTIFY_NONE   0x0
+#define X_NOTIFY_READ   0x1
+#define X_NOTIFY_WRITE  0x2
+#define X_NOTIFY_ERROR  0x4     /* don't need to select for, always reported */
 
 extern _X_EXPORT Bool SetNotifyFd(int fd, NotifyFdProcPtr notify_fd, int mask, void *data);
 
