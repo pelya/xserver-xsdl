@@ -109,9 +109,10 @@ void
 input_force_unlock(void)
 {
     if (pthread_mutex_trylock(&input_mutex) == 0) {
+        input_mutex_count++;
         /* unlock +1 times for the trylock */
-        while (input_mutex_count-- >= 0)
-            pthread_mutex_unlock(&input_mutex);
+        while (input_mutex_count > 0)
+            input_unlock();
     }
 }
 
