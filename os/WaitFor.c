@@ -206,11 +206,7 @@ WaitForSomething(Bool are_ready)
             if (dispatchException)
                 return FALSE;
             if (i < 0) {
-                if (pollerr == EBADF) {       /* Some client disconnected */
-                    CheckConnections();
-                    return FALSE;
-                }
-                else if (pollerr == EINVAL) {
+                if (pollerr == EINVAL) {
                     FatalError("WaitForSomething(): poll: %s\n",
                                strerror(pollerr));
                 }

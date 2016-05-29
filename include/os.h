@@ -141,8 +141,6 @@ extern _X_EXPORT const char *ClientAuthorized(ClientPtr /*client */ ,
                                               unsigned int /*string_n */ ,
                                               char * /*auth_string */ );
 
-extern _X_EXPORT void CheckConnections(void);
-
 extern _X_EXPORT void CloseDownConnection(ClientPtr /*client */ );
 
 typedef void (*NotifyFdProcPtr)(int fd, int ready, void *data);

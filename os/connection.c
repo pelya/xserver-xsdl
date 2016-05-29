@@ -47,7 +47,7 @@ SOFTWARE.
  *  Stuff to create connections --- OS dependent
  *
  *      EstablishNewConnections, CreateWellKnownSockets, ResetWellKnownSockets,
- *      CloseDownConnection, CheckConnections
+ *      CloseDownConnection,
  *	OnlyListToOneClient,
  *      ListenToAllClients,
  *
@@ -78,7 +78,6 @@ SOFTWARE.
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <poll.h>
 
 #ifndef WIN32
 #include <sys/socket.h>
@@ -896,39 +895,6 @@ CloseDownFileDescriptor(OsCommPtr oc)
     SetConnectionTranslation(connection, 0);
 #endif
     ospoll_remove(server_poll, connection);
-}
-
-/*****************
- * CheckConnections
- *    Some connection has died, go find which one and shut it down
- *    The file descriptor has been closed, but is still in AllClients.
- *    If would truly be wonderful if select() would put the bogus
- *    file descriptors in the exception mask, but nooooo.  So we have
- *    to check each and every socket individually.
- *****************/
-
-void
-CheckConnections(void)
-{
-    int i;
-    int r;
-
-    for (i = 1; i < currentMaxClients; i++) {
-        ClientPtr client = clients[i];
-        if (!client->clientGone) {
-            OsCommPtr           oc = (OsCommPtr) client->osPrivate;
-            struct pollfd       poll_fd;
-
-            poll_fd.fd = oc->fd;
-            poll_fd.events = POLLIN|POLLOUT;
-
-            do {
-                r = poll(&poll_fd, 1, 0);
-            } while (r < 0 && (errno == EINTR || errno == EAGAIN));
-            if (r < 0)
-                CloseDownClient(client);
-        }
-    }
 }
 
 /*****************
