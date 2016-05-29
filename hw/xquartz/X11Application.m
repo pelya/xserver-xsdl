@@ -366,6 +366,15 @@ message_kit_thread(SEL selector, NSObject *arg)
                 else {
                     /* No kit window is focused, so send it to X. */
                     for_appkit = NO;
+
+                    /* Reset our swallow state if we're seeing the same keyCode again.
+                     * This can happen if we become !_x_active when the keyCode we
+                     * intended to swallow is delivered.  See:
+                     * https://bugs.freedesktop.org/show_bug.cgi?id=92648
+                     */
+                    if ([e keyCode] == swallow_keycode) {
+                        do_swallow = NO;
+                    }
                 }
             }
             else {       /* KeyUp */
