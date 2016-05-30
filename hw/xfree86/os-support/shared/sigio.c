@@ -131,7 +131,7 @@ xf86IsPipe(int fd)
 }
 
 static void
-xf86BlockSIGIO(void)
+block_sigio(void)
 {
     sigset_t set;
 
@@ -141,7 +141,7 @@ xf86BlockSIGIO(void)
 }
 
 static void
-xf86ReleaseSIGIO(void)
+release_sigio(void)
 {
     sigset_t set;
 
@@ -165,7 +165,7 @@ xf86InstallSIGIOHandler(int fd, void (*f) (int, void *), void *closure)
         if (!xf86SigIOFuncs[i].f) {
             if (xf86IsPipe(fd))
                 return 0;
-            xf86BlockSIGIO();
+            block_sigio();
 #ifdef O_ASYNC
             if (fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_ASYNC) == -1) {
                 xf86Msg(X_WARNING, "fcntl(%d, O_ASYNC): %s\n",
@@ -193,7 +193,7 @@ xf86InstallSIGIOHandler(int fd, void (*f) (int, void *), void *closure)
             }
 #endif
             if (!installed) {
-                xf86ReleaseSIGIO();
+                release_sigio();
                 return 0;
             }
             sigemptyset(&sa.sa_mask);
@@ -209,7 +209,7 @@ xf86InstallSIGIOHandler(int fd, void (*f) (int, void *), void *closure)
             if (fd >= xf86SigIOMaxFd)
                 xf86SigIOMaxFd = fd + 1;
             FD_SET(fd, &xf86SigIOMask);
-            xf86ReleaseSIGIO();
+            release_sigio();
             return 1;
         }
         /* Allow overwriting of the closure and callback */
