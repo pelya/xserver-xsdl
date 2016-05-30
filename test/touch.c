@@ -143,7 +143,7 @@ touch_find_ddxid(void)
     ti = TouchFindByDDXID(&dev, 30, TRUE);
     assert(ti != NULL);
     ti2 = TouchFindByDDXID(&dev, 30, TRUE);
-    assert(ti == ti);
+    assert(ti == ti2);
     /* make sure we have resized */
     assert(dev.last.num_touches == 8); /* EQ grows from 5 to 8 */
 
