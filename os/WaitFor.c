@@ -121,6 +121,7 @@ struct _OsTimerRec {
 };
 
 static void DoTimer(OsTimerPtr timer, CARD32 now);
+static void DoTimers(CARD32 now);
 static void CheckAllTimers(void);
 static volatile struct xorg_list timers;
 
@@ -131,6 +132,33 @@ first_timer(void)
     if (timers.next == &timers)
         return NULL;
     return xorg_list_first_entry(&timers, struct _OsTimerRec, list);
+}
+
+/*
+ * Compute timeout until next timer, running
+ * any expired timers
+ */
+static int
+check_timers(void)
+{
+    OsTimerPtr timer;
+
+    while ((timer = first_timer()) != NULL) {
+        CARD32 now = GetTimeInMillis();
+        int timeout = timer->expires - now;
+
+        if (timeout <= 0) {
+            DoTimers(now);
+        } else {
+            /* Make sure the timeout is sane */
+            if (timeout < timer->delta + 250)
+                return timeout;
+
+            /* time has rewound.  reset the timers. */
+            CheckAllTimers();
+        }
+    }
+    return -1;
 }
 
 /*****************
@@ -158,8 +186,6 @@ WaitForSomething(Bool are_ready)
     int pollerr;
     static Bool were_ready;
     Bool timer_is_running;
-    CARD32 now = 0;
-    OsTimerPtr timer;
 
     timer_is_running = were_ready;
 
@@ -181,27 +207,10 @@ WaitForSomething(Bool are_ready)
         if (workQueue)
             ProcessWorkQueue();
 
-        if (are_ready) {
+        if (are_ready)
             timeout = 0;
-        }
-        else {
-            timeout = -1;
-            if ((timer = first_timer()) != NULL) {
-                now = GetTimeInMillis();
-                timeout = timer->expires - now;
-                if (timeout > 0 && timeout > timer->delta + 250) {
-                    /* time has rewound.  reset the timers. */
-                    CheckAllTimers();
-                    timer = first_timer();
-                }
-
-                if (timer) {
-                    timeout = timer->expires - now;
-                    if (timeout < 0)
-                        timeout = 0;
-                }
-            }
-        }
+        else
+            timeout = check_timers();
 
         BlockHandler(&timeout);
         if (NewOutputPending)
@@ -217,76 +226,24 @@ WaitForSomething(Bool are_ready)
             if (dispatchException)
                 return FALSE;
             if (i < 0) {
-                if (pollerr == EINVAL) {
-                    FatalError("WaitForSomething(): poll: %s\n",
-                               strerror(pollerr));
-                }
-                else if (pollerr != EINTR && pollerr != EAGAIN) {
+                if (pollerr != EINTR && !ETEST(pollerr)) {
                     ErrorF("WaitForSomething(): poll: %s\n",
                            strerror(pollerr));
                 }
             }
-            else if (are_ready) {
-                /*
-                 * If no-one else is home, bail quickly
-                 */
-                break;
-            }
-            if (*checkForInput[0] != *checkForInput[1])
-                return FALSE;
-
-            if ((timer = first_timer()) != NULL) {
-                int expired = 0;
-
-                now = GetTimeInMillis();
-                if ((int) (timer->expires - now) <= 0)
-                    expired = 1;
-
-                if (expired) {
-                    OsBlockSignals();
-                    while ((timer = first_timer()) != NULL && (int) (timer->expires - now) <= 0)
-                        DoTimer(timer, now);
-                    OsReleaseSignals();
-
-                    return FALSE;
-                }
-            }
-        }
-        else {
-            /* check here for DDXes that queue events during Block/Wakeup */
-            if (*checkForInput[0] != *checkForInput[1])
-                return FALSE;
-
-            if ((timer = first_timer()) != NULL) {
-                int expired = 0;
-
-                now = GetTimeInMillis();
-                if ((int) (timer->expires - now) <= 0)
-                    expired = 1;
-
-                if (expired) {
-                    OsBlockSignals();
-                    while ((timer = first_timer()) != NULL && (int) (timer->expires - now) <= 0)
-                        DoTimer(timer, now);
-                    OsReleaseSignals();
-
-                    return FALSE;
-                }
-            }
-
+        } else
             are_ready = clients_are_ready();
-            if (are_ready)
-                break;
+
+        if (*checkForInput[0] != *checkForInput[1])
+            return FALSE;
+
+        if (are_ready) {
+            were_ready = TRUE;
+            if (!timer_is_running)
+                SmartScheduleStartTimer();
+            return TRUE;
         }
     }
-
-    if (are_ready) {
-        were_ready = TRUE;
-        if (!timer_is_running)
-            SmartScheduleStartTimer();
-    }
-
-    return TRUE;
 }
 
 void
