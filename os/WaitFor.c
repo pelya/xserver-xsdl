@@ -113,16 +113,25 @@ mffs(fd_mask mask)
 #endif
 
 struct _OsTimerRec {
-    OsTimerPtr next;
+    struct xorg_list list;
     CARD32 expires;
     CARD32 delta;
     OsTimerCallback callback;
     void *arg;
 };
 
-static void DoTimer(OsTimerPtr timer, CARD32 now, volatile OsTimerPtr *prev);
+static void DoTimer(OsTimerPtr timer, CARD32 now);
 static void CheckAllTimers(void);
-static volatile OsTimerPtr timers = NULL;
+static volatile struct xorg_list timers;
+
+static inline OsTimerPtr
+first_timer(void)
+{
+    /* inline xorg_list_is_empty which can't handle volatile */
+    if (timers.next == &timers)
+        return NULL;
+    return xorg_list_first_entry(&timers, struct _OsTimerRec, list);
+}
 
 /*****************
  * WaitForSomething:
@@ -150,6 +159,7 @@ WaitForSomething(Bool are_ready)
     static Bool were_ready;
     Bool timer_is_running;
     CARD32 now = 0;
+    OsTimerPtr timer;
 
     timer_is_running = were_ready;
 
@@ -176,16 +186,17 @@ WaitForSomething(Bool are_ready)
         }
         else {
             timeout = -1;
-            if (timers) {
+            if ((timer = first_timer()) != NULL) {
                 now = GetTimeInMillis();
-                timeout = timers->expires - now;
-                if (timeout > 0 && timeout > timers->delta + 250) {
+                timeout = timer->expires - now;
+                if (timeout > 0 && timeout > timer->delta + 250) {
                     /* time has rewound.  reset the timers. */
                     CheckAllTimers();
+                    timer = first_timer();
                 }
 
-                if (timers) {
-                    timeout = timers->expires - now;
+                if (timer) {
+                    timeout = timer->expires - now;
                     if (timeout < 0)
                         timeout = 0;
                 }
@@ -224,17 +235,17 @@ WaitForSomething(Bool are_ready)
             if (*checkForInput[0] != *checkForInput[1])
                 return FALSE;
 
-            if (timers) {
+            if ((timer = first_timer()) != NULL) {
                 int expired = 0;
 
                 now = GetTimeInMillis();
-                if ((int) (timers->expires - now) <= 0)
+                if ((int) (timer->expires - now) <= 0)
                     expired = 1;
 
                 if (expired) {
                     OsBlockSignals();
-                    while (timers && (int) (timers->expires - now) <= 0)
-                        DoTimer(timers, now, &timers);
+                    while ((timer = first_timer()) != NULL && (int) (timer->expires - now) <= 0)
+                        DoTimer(timer, now);
                     OsReleaseSignals();
 
                     return FALSE;
@@ -246,17 +257,17 @@ WaitForSomething(Bool are_ready)
             if (*checkForInput[0] != *checkForInput[1])
                 return FALSE;
 
-            if (timers) {
+            if ((timer = first_timer()) != NULL) {
                 int expired = 0;
 
                 now = GetTimeInMillis();
-                if ((int) (timers->expires - now) <= 0)
+                if ((int) (timer->expires - now) <= 0)
                     expired = 1;
 
                 if (expired) {
                     OsBlockSignals();
-                    while (timers && (int) (timers->expires - now) <= 0)
-                        DoTimer(timers, now, &timers);
+                    while ((timer = first_timer()) != NULL && (int) (timer->expires - now) <= 0)
+                        DoTimer(timer, now);
                     OsReleaseSignals();
 
                     return FALSE;
@@ -288,6 +299,10 @@ AdjustWaitForDelay(void *waitTime, int newdelay)
         *timeoutp = newdelay;
 }
 
+static inline Bool timer_pending(OsTimerPtr timer) {
+    return !xorg_list_is_empty(&timer->list);
+}
+
 /* If time has rewound, re-run every affected timer.
  * Timers might drop out of the list, so we have to restart every time. */
 static void
@@ -300,9 +315,9 @@ CheckAllTimers(void)
  start:
     now = GetTimeInMillis();
 
-    for (timer = timers; timer; timer = timer->next) {
+    xorg_list_for_each_entry(timer, &timers, list) {
         if (timer->expires - now > timer->delta + 250) {
-            TimerForce(timer);
+            DoTimer(timer, now);
             goto start;
         }
     }
@@ -310,41 +325,49 @@ CheckAllTimers(void)
 }
 
 static void
-DoTimer(OsTimerPtr timer, CARD32 now, volatile OsTimerPtr *prev)
+DoTimer(OsTimerPtr timer, CARD32 now)
 {
     CARD32 newTime;
 
-    input_lock();
-    *prev = timer->next;
-    timer->next = NULL;
-    input_unlock();
-
+    xorg_list_del(&timer->list);
     newTime = (*timer->callback) (timer, now, timer->arg);
     if (newTime)
         TimerSet(timer, 0, newTime, timer->callback, timer->arg);
+}
+
+static void
+DoTimers(CARD32 now)
+{
+    OsTimerPtr  timer;
+
+    input_lock();
+    while ((timer = first_timer())) {
+        if ((int) (timer->expires - now) > 0)
+            break;
+        DoTimer(timer, now);
+    }
+    input_unlock();
 }
 
 OsTimerPtr
 TimerSet(OsTimerPtr timer, int flags, CARD32 millis,
          OsTimerCallback func, void *arg)
 {
-    volatile OsTimerPtr *prev;
+    OsTimerPtr existing, tmp;
     CARD32 now = GetTimeInMillis();
 
     if (!timer) {
-        timer = malloc(sizeof(struct _OsTimerRec));
+        timer = calloc(1, sizeof(struct _OsTimerRec));
         if (!timer)
             return NULL;
+        xorg_list_init(&timer->list);
     }
     else {
         input_lock();
-        for (prev = &timers; *prev; prev = &(*prev)->next) {
-            if (*prev == timer) {
-                *prev = timer->next;
-                if (flags & TimerForceOld)
-                    (void) (*timer->callback) (timer, now, timer->arg);
-                break;
-            }
+        if (timer_pending(timer)) {
+            xorg_list_del(&timer->list);
+            if (flags & TimerForceOld)
+                (void) (*timer->callback) (timer, now, timer->arg);
         }
         input_unlock();
     }
@@ -360,18 +383,19 @@ TimerSet(OsTimerPtr timer, int flags, CARD32 millis,
     timer->expires = millis;
     timer->callback = func;
     timer->arg = arg;
-    if ((int) (millis - now) <= 0) {
-        timer->next = NULL;
-        millis = (*timer->callback) (timer, now, timer->arg);
-        if (!millis)
-            return timer;
-    }
     input_lock();
-    for (prev = &timers;
-         *prev && (int) ((*prev)->expires - millis) <= 0;
-         prev = &(*prev)->next);
-    timer->next = *prev;
-    *prev = timer;
+
+    /* Sort into list */
+    xorg_list_for_each_entry_safe(existing, tmp, &timers, list)
+        if ((int) (existing->expires - millis) > 0)
+            break;
+    /* This even works at the end of the list -- existing->list will be timers */
+    xorg_list_add(&timer->list, existing->list.prev);
+
+    /* Check to see if the timer is ready to run now */
+    if ((int) (millis - now) <= 0)
+        DoTimer(timer, now);
+
     input_unlock();
     return timer;
 }
@@ -379,35 +403,23 @@ TimerSet(OsTimerPtr timer, int flags, CARD32 millis,
 Bool
 TimerForce(OsTimerPtr timer)
 {
-    int rc = FALSE;
-    volatile OsTimerPtr *prev;
+    int pending;
 
     input_lock();
-    for (prev = &timers; *prev; prev = &(*prev)->next) {
-        if (*prev == timer) {
-            DoTimer(timer, GetTimeInMillis(), prev);
-            rc = TRUE;
-            break;
-        }
-    }
+    pending = timer_pending(timer);
+    if (pending)
+        DoTimer(timer, GetTimeInMillis());
     input_unlock();
-    return rc;
+    return pending;
 }
 
 void
 TimerCancel(OsTimerPtr timer)
 {
-    volatile OsTimerPtr *prev;
-
     if (!timer)
         return;
     input_lock();
-    for (prev = &timers; *prev; prev = &(*prev)->next) {
-        if (*prev == timer) {
-            *prev = timer->next;
-            break;
-        }
-    }
+    xorg_list_del(&timer->list);
     input_unlock();
 }
 
@@ -423,23 +435,22 @@ TimerFree(OsTimerPtr timer)
 void
 TimerCheck(void)
 {
-    CARD32 now = GetTimeInMillis();
-
-    if (timers && (int) (timers->expires - now) <= 0) {
-        input_lock();
-        while (timers && (int) (timers->expires - now) <= 0)
-            DoTimer(timers, now, &timers);
-        input_unlock();
-    }
+    DoTimers(GetTimeInMillis());
 }
 
 void
 TimerInit(void)
 {
-    OsTimerPtr timer;
+    static Bool been_here;
+    OsTimerPtr timer, tmp;
 
-    while ((timer = timers)) {
-        timers = timer->next;
+    if (!been_here) {
+        been_here = TRUE;
+        xorg_list_init((struct xorg_list*) &timers);
+    }
+
+    xorg_list_for_each_entry_safe(timer, tmp, &timers, list) {
+        xorg_list_del(&timer->list);
         free(timer);
     }
 }
