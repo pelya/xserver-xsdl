@@ -132,12 +132,3 @@ Bool explicit_display = FALSE;
 char *ConnectionInfo;
 
 CARD32 TimeOutValue = DEFAULT_TIMEOUT * MILLI_PER_SECOND;
-
-#if DEBUG_INPUT_MUTEX
-#define INPUT_MUTEX_INITIALIZER PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP
-#else
-#define INPUT_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
-#endif
-
-pthread_mutex_t input_mutex = INPUT_MUTEX_INITIALIZER;
-__thread int input_mutex_count;
