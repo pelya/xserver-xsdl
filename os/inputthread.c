@@ -197,12 +197,14 @@ InputThreadRegisterDev(int fd,
     dev->readInputProc = readInputProc;
     dev->readInputArgs = readInputArgs;
 
+    input_lock();
     xorg_list_add(&dev->node, &inputThreadInfo->devs);
 
     FD_SET(fd, &inputThreadInfo->fds);
 
     InputThreadFillPipe(hotplugPipeWrite);
     DebugF("input-thread: registered device %d\n", fd);
+    input_unlock();
 
     return 1;
 }
@@ -228,6 +230,7 @@ InputThreadUnregisterDev(int fd)
         return 1;
     }
 
+    input_lock();
     xorg_list_for_each_entry(dev, &inputThreadInfo->devs, node)
         if (dev->fd == fd) {
             found_device = TRUE;
@@ -235,12 +238,17 @@ InputThreadUnregisterDev(int fd)
         }
 
     /* fd didn't match any registered device. */
-    if (!found_device)
+    if (!found_device) {
+        input_unlock();
         return 0;
+    }
 
     xorg_list_del(&dev->node);
 
     FD_CLR(fd, &inputThreadInfo->fds);
+
+    input_unlock();
+
     free(dev);
 
     InputThreadFillPipe(hotplugPipeWrite);
@@ -292,14 +300,14 @@ InputThreadDoWork(void *arg)
 
         DebugF("input-thread: %s generating events\n", __func__);
 
+        input_lock();
         /* Call the device drivers to generate input events for us */
         xorg_list_for_each_entry_safe(dev, next, &inputThreadInfo->devs, node) {
             if (FD_ISSET(dev->fd, &readyFds) && dev->readInputProc) {
-                input_lock();
                 dev->readInputProc(dev->fd, X_NOTIFY_READ, dev->readInputArgs);
-                input_unlock();
             }
         }
+        input_unlock();
 
         /* Kick main thread to process the generated input events and drain
          * events from hotplug pipe */
