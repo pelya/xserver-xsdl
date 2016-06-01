@@ -1697,7 +1697,6 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
         drmmode_crtc = xf86_config->crtc[0]->driver_private;
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
     drmmode_bo old_front;
-    Bool ret;
     ScreenPtr screen = xf86ScrnToScreen(scrn);
     uint32_t old_fb_id;
     int i, pitch, old_width, old_height, old_pitch;
@@ -1719,8 +1718,9 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
     old_width = scrn->virtualX;
     old_height = scrn->virtualY;
     old_pitch = drmmode_bo_get_pitch(&drmmode->front_bo);
-    old_fb_id = drmmode->fb_id;
     old_front = drmmode->front_bo;
+    old_fb_id = drmmode->fb_id;
+    drmmode->fb_id = 0;
 
     if (!drmmode_create_bo(drmmode, &drmmode->front_bo,
                            width, height, scrn->bitsPerPixel))
@@ -1731,13 +1731,6 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
     scrn->virtualX = width;
     scrn->virtualY = height;
     scrn->displayWidth = pitch / cpp;
-
-    ret = drmModeAddFB(drmmode->fd, width, height, scrn->depth,
-                       scrn->bitsPerPixel, pitch,
-                       drmmode_bo_get_handle(&drmmode->front_bo),
-                       &drmmode->fb_id);
-    if (ret)
-        goto fail;
 
     if (!drmmode->gbm) {
         new_pixels = drmmode_map_front_bo(drmmode);
