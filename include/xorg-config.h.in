@@ -148,4 +148,7 @@
 /* Support APM/ACPI power management in the server */
 #undef XF86PM
 
+/* Fallback input driver if the assigned driver fails */
+#undef FALLBACK_INPUT_DRIVER
+
 #endif /* _XORG_CONFIG_H_ */

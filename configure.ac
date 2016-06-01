@@ -486,6 +486,25 @@ AC_ARG_ENABLE(listen-local,  AS_HELP_STRING([--disable-listen-local],
                                             [Listen on local by default (default:enabled)]),
                                 [LISTEN_LOCAL=$enableval], [LISTEN_LOCAL=yes])
 
+case $host_os in
+    linux*)
+        FALLBACK_INPUT_DRIVER="libinput"
+        ;;
+    *)
+        FALLBACK_INPUT_DRIVER=""
+        ;;
+esac
+AC_ARG_WITH(fallback-input-driver,
+            AC_HELP_STRING([--with-fallback-input-driver=$FALLBACK_INPUT_DRIVER],
+                           [Input driver fallback if the requested driver for a device is unavailable]),
+                           [ FALLBACK_INPUT_DRIVER=$withval ], [])
+if test "x$FALLBACK_INPUT_DRIVER" = "xno"; then
+    FALLBACK_INPUT_DRIVER=""
+fi
+AC_MSG_CHECKING([for fallback input driver])
+AC_MSG_RESULT([$FALLBACK_INPUT_DRIVER])
+AC_DEFINE_UNQUOTED(FALLBACK_INPUT_DRIVER, ["$FALLBACK_INPUT_DRIVER"], [ Fallback input driver ])
+
 dnl Determine font path
 XORG_FONTROOTDIR
 XORG_FONTSUBDIR(FONTMISCDIR, fontmiscdir, misc)

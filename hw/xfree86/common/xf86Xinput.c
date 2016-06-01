@@ -825,6 +825,22 @@ xf86stat(const char *path, int *maj, int *min)
     *min = minor(st.st_rdev);
 }
 
+static inline InputDriverPtr
+xf86LoadInputDriver(const char *driver_name)
+{
+    InputDriverPtr drv = NULL;
+
+    /* Memory leak for every attached device if we don't
+     * test if the module is already loaded first */
+    drv = xf86LookupInputDriver(driver_name);
+    if (!drv) {
+        if (xf86LoadOneModule(driver_name, NULL))
+            drv = xf86LookupInputDriver(driver_name);
+    }
+
+    return drv;
+}
+
 /**
  * Create a new input device, activate and enable it.
  *
@@ -851,16 +867,23 @@ xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL enable)
     int rval;
     char *path = NULL;
 
-    /* Memory leak for every attached device if we don't
-     * test if the module is already loaded first */
-    drv = xf86LookupInputDriver(pInfo->driver);
-    if (!drv)
-        if (xf86LoadOneModule(pInfo->driver, NULL))
-            drv = xf86LookupInputDriver(pInfo->driver);
+    drv = xf86LoadInputDriver(pInfo->driver);
     if (!drv) {
         xf86Msg(X_ERROR, "No input driver matching `%s'\n", pInfo->driver);
-        rval = BadName;
-        goto unwind;
+
+        if (strlen(FALLBACK_INPUT_DRIVER) > 0) {
+            xf86Msg(X_INFO, "Falling back to input driver `%s'\n",
+                    FALLBACK_INPUT_DRIVER);
+            drv = xf86LoadInputDriver(FALLBACK_INPUT_DRIVER);
+            if (drv) {
+                free(pInfo->driver);
+                pInfo->driver = strdup(FALLBACK_INPUT_DRIVER);
+            }
+        }
+        if (!drv) {
+            rval = BadName;
+            goto unwind;
+        }
     }
 
     xf86Msg(X_INFO, "Using input driver '%s' for '%s'\n", drv->driverName,
