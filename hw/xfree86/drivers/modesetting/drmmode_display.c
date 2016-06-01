@@ -693,6 +693,7 @@ drmmode_set_scanout_pixmap_cpu(xf86CrtcPtr crtc, PixmapPtr ppix)
         if (crtc->randr_crtc->scanout_pixmap) {
             ppriv = msGetPixmapPriv(drmmode, crtc->randr_crtc->scanout_pixmap);
             drmModeRmFB(drmmode->fd, ppriv->fb_id);
+            ppriv->fb_id = 0;
         }
         if (drmmode_crtc->slave_damage) {
             DamageUnregister(drmmode_crtc->slave_damage);
