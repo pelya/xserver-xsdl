@@ -408,24 +408,8 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
     int output_count = 0;
     Bool ret = TRUE;
     int i;
-    uint32_t fb_id;
+    uint32_t fb_id = 0;
     drmModeModeInfo kmode;
-    int height;
-
-    height = pScrn->virtualY;
-
-    if (drmmode->fb_id == 0) {
-        ret = drmModeAddFB(drmmode->fd,
-                           pScrn->virtualX, height,
-                           pScrn->depth, pScrn->bitsPerPixel,
-                           drmmode_bo_get_pitch(&drmmode->front_bo),
-                           drmmode_bo_get_handle(&drmmode->front_bo),
-                           &drmmode->fb_id);
-        if (ret < 0) {
-            ErrorF("failed to add fb %d\n", ret);
-            return FALSE;
-        }
-    }
 
     saved_mode = crtc->mode;
     saved_x = crtc->x;
@@ -484,6 +468,22 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
             fb_id = drmmode_crtc->rotate_fb_id;
             x = y = 0;
         }
+
+        if (fb_id == 0) {
+            ret = drmModeAddFB(drmmode->fd,
+                               pScrn->virtualX, pScrn->virtualY,
+                               pScrn->depth, pScrn->bitsPerPixel,
+                               drmmode_bo_get_pitch(&drmmode->front_bo),
+                               drmmode_bo_get_handle(&drmmode->front_bo),
+                               &drmmode->fb_id);
+            if (ret < 0) {
+                ErrorF("failed to add fb %d\n", ret);
+                ret = FALSE;
+                goto done;
+            }
+            fb_id = drmmode->fb_id;
+        }
+
         if (drmModeSetCrtc(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
                            fb_id, x, y, output_ids, output_count, &kmode)) {
             xf86DrvMsg(crtc->scrn->scrnIndex, X_ERROR,
