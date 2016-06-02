@@ -1131,19 +1131,20 @@ ComputeLocalClient(ClientPtr client)
      * is forwarded from another host via SSH
      */
     if (cmdname) {
-        char **cmd;
+        char *cmd = strdup(cmdname);
         Bool ret;
 
         /* Cut off any colon and whatever comes after it, see
          * https://lists.freedesktop.org/archives/xorg-devel/2015-December/048164.html
          */
-        cmd = xstrtokenize(cmdname, ":");
+        cmd = strtok(cmd, ":");
 
 #if !defined(WIN32) || defined(__CYGWIN__)
-        cmd[0] = basename(cmd[0]);
+        ret = strcmp(basename(cmd), "ssh") != 0;
+#else
+        ret = strcmp(cmd, "ssh") != 0;
 #endif
 
-        ret = strcmp(cmd[0], "ssh") != 0;
         free(cmd);
 
         return ret;

@@ -456,7 +456,6 @@ xf86_crtc_load_cursor_image(xf86CrtcPtr crtc, CARD8 *src)
     CARD8 *cursor_image;
     const Rotation rotation = xf86_crtc_cursor_rotation(crtc);
 
-    xf86_config->cursor = xf86CurrentCursor(xf86ScrnToScreen(scrn));
     crtc->cursor_argb = FALSE;
 
     if (rotation == RR_Rotate_0)
@@ -493,6 +492,7 @@ xf86_load_cursor_image(ScrnInfoPtr scrn, unsigned char *src)
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     int c;
 
+    xf86_config->cursor = xf86CurrentCursor(scrn->pScreen);
     for (c = 0; c < xf86_config->num_crtc; c++) {
         xf86CrtcPtr crtc = xf86_config->crtc[c];
 
@@ -638,63 +638,6 @@ xf86_cursors_init(ScreenPtr screen, int max_width, int max_height, int flags)
     xf86_hide_cursors(scrn);
 
     return xf86InitCursor(screen, cursor_info);
-}
-
-/**
- * Called when anything on the screen is reconfigured.
- *
- * Reloads cursor images as needed, then adjusts cursor positions
- * @note We assume that all hardware cursors to be loaded have already been
- *       found to be usable by the hardware.
- */
-
-void
-xf86_reload_cursors(ScreenPtr screen)
-{
-    ScrnInfoPtr scrn;
-    xf86CrtcConfigPtr xf86_config;
-    xf86CursorInfoPtr cursor_info;
-    CursorPtr cursor;
-    int x, y;
-    xf86CursorScreenPtr cursor_screen_priv;
-
-    /* initial mode setting will not have set a screen yet.
-       May be called before the devices are initialised.
-     */
-    if (!screen || !inputInfo.pointer)
-        return;
-    cursor_screen_priv = dixLookupPrivate(&screen->devPrivates,
-                                          xf86CursorScreenKey);
-    /* return if HW cursor is inactive, to avoid displaying two cursors */
-    if (!cursor_screen_priv || !cursor_screen_priv->isUp)
-        return;
-
-    scrn = xf86ScreenToScrn(screen);
-    xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
-
-    /* make sure the cursor code has been initialized */
-    cursor_info = xf86_config->cursor_info;
-    if (!cursor_info)
-        return;
-
-    cursor = xf86CurrentCursor(screen);
-    GetSpritePosition(inputInfo.pointer, &x, &y);
-    if (!(cursor_info->Flags & HARDWARE_CURSOR_UPDATE_UNHIDDEN))
-        (*cursor_info->HideCursor) (scrn);
-
-    if (cursor) {
-        void *src =
-            dixLookupScreenPrivate(&cursor->devPrivates, CursorScreenKey,
-                                   screen);
-        if (cursor->bits->argb && xf86DriverHasLoadCursorARGB(cursor_info))
-            xf86DriverLoadCursorARGB(cursor_info, cursor);
-        else if (src)
-            xf86DriverLoadCursorImage(cursor_info, src);
-
-        x += scrn->frameX0 + cursor_screen_priv->HotX;
-        y += scrn->frameY0 + cursor_screen_priv->HotY;
-        (*cursor_info->SetCursorPosition) (scrn, x, y);
-    }
 }
 
 /**

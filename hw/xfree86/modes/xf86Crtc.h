@@ -968,14 +968,10 @@ extern _X_EXPORT Bool
  xf86_cursors_init(ScreenPtr screen, int max_width, int max_height, int flags);
 
 /**
- * Called when anything on the screen is reconfigured.
- *
- * Reloads cursor images as needed, then adjusts cursor positions.
- *
- * Driver should call this from crtc commit function.
+ * Superseeded by xf86CursorResetCursor, which is getting called
+ * automatically when necessary.
  */
-extern _X_EXPORT void
- xf86_reload_cursors(ScreenPtr screen);
+static _X_INLINE _X_DEPRECATED void xf86_reload_cursors(ScreenPtr screen) {}
 
 /**
  * Called from EnterVT to turn the cursors back on
