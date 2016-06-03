@@ -298,11 +298,12 @@ xwl_drm_init_egl(struct xwl_screen *xwl_screen)
         return;
     }
 
-    eglBindAPI(EGL_OPENGL_API);
     if (!eglInitialize(xwl_screen->egl_display, &major, &minor)) {
         ErrorF("eglInitialize() failed\n");
         return;
     }
+
+    eglBindAPI(EGL_OPENGL_API);
 
     version = eglQueryString(xwl_screen->egl_display, EGL_VERSION);
     ErrorF("glamor: EGL version %s:\n", version);
