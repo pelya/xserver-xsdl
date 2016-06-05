@@ -337,6 +337,16 @@ ephyrInternalDamageRedisplay(ScreenPtr pScreen)
 }
 
 static void
+ephyrXcbProcessEvents(Bool queued_only);
+
+static Bool
+ephyrEventWorkProc(ClientPtr client, void *closure)
+{
+    ephyrXcbProcessEvents(TRUE);
+    return TRUE;
+}
+
+static void
 ephyrScreenBlockHandler(ScreenPtr pScreen, void *timeout, void *pRead)
 {
     KdScreenPriv(pScreen);
@@ -345,20 +355,16 @@ ephyrScreenBlockHandler(ScreenPtr pScreen, void *timeout, void *pRead)
 
     pScreen->BlockHandler = scrpriv->BlockHandler;
     (*pScreen->BlockHandler)(pScreen, timeout, pRead);
+    scrpriv->BlockHandler = pScreen->BlockHandler;
+    pScreen->BlockHandler = ephyrScreenBlockHandler;
 
-    if (scrpriv->pDamage) {
-
-        /* Re-wrap if we're still tracking damage
-         */
-        scrpriv->BlockHandler = pScreen->BlockHandler;
-        pScreen->BlockHandler = ephyrScreenBlockHandler;
+    if (scrpriv->pDamage)
         ephyrInternalDamageRedisplay(pScreen);
-    } else {
 
-        /* Done tracking damage, note that we've left
-         * the block handler unwrapped
-         */
-        scrpriv->BlockHandler = NULL;
+    if (hostx_has_queued_event()) {
+        if (!QueueWorkProc(ephyrEventWorkProc, NULL, NULL))
+            FatalError("cannot queue event processing in ephyr block handler");
+        AdjustWaitForDelay(timeout, 0);
     }
 }
 
@@ -373,12 +379,6 @@ ephyrSetInternalDamage(ScreenPtr pScreen)
     scrpriv->pDamage = DamageCreate((DamageReportFunc) 0,
                                     (DamageDestroyFunc) 0,
                                     DamageReportNone, TRUE, pScreen, pScreen);
-
-    /* Wrap only once */
-    if (scrpriv->BlockHandler == NULL) {
-        scrpriv->BlockHandler = pScreen->BlockHandler;
-        pScreen->BlockHandler = ephyrScreenBlockHandler;
-    }
 
     pPixmap = (*pScreen->GetScreenPixmap) (pScreen);
 
@@ -682,6 +682,10 @@ ephyrInitScreen(ScreenPtr pScreen)
 Bool
 ephyrFinishInitScreen(ScreenPtr pScreen)
 {
+    KdScreenPriv(pScreen);
+    KdScreenInfo *screen = pScreenPriv->screen;
+    EphyrScrPriv *scrpriv = screen->driver;
+
     /* FIXME: Calling this even if not using shadow.
      * Seems harmless enough. But may be safer elsewhere.
      */
@@ -692,6 +696,9 @@ ephyrFinishInitScreen(ScreenPtr pScreen)
     if (!ephyrRandRInit(pScreen))
         return FALSE;
 #endif
+
+    scrpriv->BlockHandler = pScreen->BlockHandler;
+    pScreen->BlockHandler = ephyrScreenBlockHandler;
 
     return TRUE;
 }
@@ -1131,12 +1138,13 @@ ephyrProcessConfigureNotify(xcb_generic_event_t *xev)
 }
 
 static void
-ephyrXcbNotify(int fd, int ready, void *data)
+ephyrXcbProcessEvents(Bool queued_only)
 {
     xcb_connection_t *conn = hostx_get_xcbconn();
 
     while (TRUE) {
-        xcb_generic_event_t *xev = xcb_poll_for_event(conn);
+        xcb_generic_event_t *xev = hostx_get_event(queued_only);
+
         if (!xev) {
             /* If our XCB connection has died (for example, our window was
              * closed), exit now.
@@ -1189,6 +1197,12 @@ ephyrXcbNotify(int fd, int ready, void *data)
 
         free(xev);
     }
+}
+
+static void
+ephyrXcbNotify(int fd, int ready, void *data)
+{
+    ephyrXcbProcessEvents(FALSE);
 }
 
 void

@@ -70,6 +70,7 @@ struct EphyrHostXVars {
     xcb_gcontext_t  gc;
     xcb_render_pictformat_t argb_format;
     xcb_cursor_t empty_cursor;
+    xcb_generic_event_t *saved_event;
     int depth;
     Bool use_sw_cursor;
     Bool use_fullscreen;
@@ -1225,6 +1226,31 @@ xcb_connection_t *
 hostx_get_xcbconn(void)
 {
     return HostX.conn;
+}
+
+xcb_generic_event_t *
+hostx_get_event(Bool queued_only)
+{
+    xcb_generic_event_t *xev;
+
+    if (HostX.saved_event) {
+        xev = HostX.saved_event;
+        HostX.saved_event = NULL;
+    } else {
+        if (queued_only)
+            xev = xcb_poll_for_queued_event(HostX.conn);
+        else
+            xev = xcb_poll_for_event(HostX.conn);
+    }
+    return xev;
+}
+
+Bool
+hostx_has_queued_event(void)
+{
+    if (!HostX.saved_event)
+        HostX.saved_event = xcb_poll_for_queued_event(HostX.conn);
+    return HostX.saved_event != NULL;
 }
 
 int
