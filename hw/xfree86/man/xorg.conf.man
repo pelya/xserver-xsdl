@@ -511,15 +511,6 @@ core file.
 In general you never want to use this option unless you are debugging an Xorg
 server problem and know how to deal with the consequences.
 .TP 7
-.BI "Option \*qUseSIGIO\*q  \*q" boolean \*q
-This controls whether the Xorg server requests that events from
-input devices be reported via a SIGIO signal handler (also known as SIGPOLL
-on some platforms), or only reported via the standard select(3) loop.
-The default behaviour is platform specific.   In general you do not want to
-use this option unless you are debugging the Xorg server, or
-working around a specific bug until it is fixed, and understand the
-consequences.
-.TP 7
 .BI "Option \*qDontVTSwitch\*q  \*q" boolean \*q
 This disallows the use of the
 .BI Ctrl+Alt+F n
