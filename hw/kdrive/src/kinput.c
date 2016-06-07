@@ -32,7 +32,6 @@
 #if HAVE_X11_XF86KEYSYM_H
 #include <X11/XF86keysym.h>
 #endif
-#include <signal.h>
 #include <stdio.h>
 #ifdef __sun
 #include <sys/file.h>           /* needed for FNONBLOCK & FASYNC */

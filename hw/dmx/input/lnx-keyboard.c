@@ -158,7 +158,6 @@
 #include <X11/Xos.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-#include <signal.h>
 #include <sys/vt.h>
 #include <sys/kd.h>
 #include <termios.h>
@@ -505,7 +504,7 @@ kbdLinuxVTSignalHandler(int sig)
 {
     myPrivate *priv = PRIV;
 
-    signal(sig, kbdLinuxVTSignalHandler);
+    OsSignal(sig, kbdLinuxVTSignalHandler);
     if (priv) {
         ioctl(priv->fd, VT_RELDISP, VT_ACKACQ);
         priv->switched = !priv->switched;
@@ -537,7 +536,7 @@ kbdLinuxActivate(int fd, int vtno, int setSig)
         VT.acqsig = SIGUSR1;
         if (ioctl(fd, VT_SETMODE, &VT))
             FATAL0("kbdLinuxActivate: VT_SETMODE VT_PROCESS failed\n");
-        signal(SIGUSR1, kbdLinuxVTSignalHandler);
+        OsSignal(SIGUSR1, kbdLinuxVTSignalHandler);
     }
     return Success;
 }

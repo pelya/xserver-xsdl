@@ -1395,7 +1395,7 @@ System(const char *command)
     if (!command)
         return 1;
 
-    csig = signal(SIGCHLD, SIG_DFL);
+    csig = OsSignal(SIGCHLD, SIG_DFL);
     if (csig == SIG_ERR) {
         perror("signal");
         return -1;
@@ -1420,7 +1420,7 @@ System(const char *command)
 
     }
 
-    if (signal(SIGCHLD, csig) == SIG_ERR) {
+    if (OsSignal(SIGCHLD, csig) == SIG_ERR) {
         perror("signal");
         return -1;
     }

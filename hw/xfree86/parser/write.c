@@ -63,7 +63,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
 #include <errno.h>
 
 #if defined(HAVE_SETEUID) && defined(_POSIX_SAVED_IDS) && _POSIX_SAVED_IDS > 0
@@ -141,7 +140,7 @@ xf86writeConfigFile(const char *filename, XF86ConfigPtr cptr)
         void (*csig) (int);
 
         /* Need to fork to change ruid without loosing euid */
-        csig = signal(SIGCHLD, SIG_DFL);
+        csig = OsSignal(SIGCHLD, SIG_DFL);
         switch ((pid = fork())) {
         case -1:
             ErrorF("xf86writeConfigFile(): fork failed (%s)\n",
@@ -159,7 +158,7 @@ xf86writeConfigFile(const char *filename, XF86ConfigPtr cptr)
                 p = waitpid(pid, &status, 0);
             } while (p == -1 && errno == EINTR);
         }
-        signal(SIGCHLD, csig);
+        OsSignal(SIGCHLD, csig);
         if (p != -1 && WIFEXITED(status) && WEXITSTATUS(status) == 0)
             return 1;           /* success */
         else

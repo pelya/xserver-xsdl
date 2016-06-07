@@ -27,7 +27,6 @@
 #define _EPHYR_H_
 #include <stdio.h>
 #include <unistd.h>
-#include <signal.h>
 #include <libgen.h>
 #include <xcb/xcb_image.h>
 

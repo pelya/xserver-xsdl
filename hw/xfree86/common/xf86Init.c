@@ -308,16 +308,16 @@ InstallSignalHandlers(void)
         OsRegisterSigWrapper(xf86SigWrapper);
     }
     else {
-        signal(SIGSEGV, SIG_DFL);
-        signal(SIGILL, SIG_DFL);
+        OsSignal(SIGSEGV, SIG_DFL);
+        OsSignal(SIGILL, SIG_DFL);
 #ifdef SIGEMT
-        signal(SIGEMT, SIG_DFL);
+        OsSignal(SIGEMT, SIG_DFL);
 #endif
-        signal(SIGFPE, SIG_DFL);
-        signal(SIGBUS, SIG_DFL);
-        signal(SIGSYS, SIG_DFL);
-        signal(SIGXCPU, SIG_DFL);
-        signal(SIGXFSZ, SIG_DFL);
+        OsSignal(SIGFPE, SIG_DFL);
+        OsSignal(SIGBUS, SIG_DFL);
+        OsSignal(SIGSYS, SIG_DFL);
+        OsSignal(SIGXCPU, SIG_DFL);
+        OsSignal(SIGXFSZ, SIG_DFL);
     }
 }
 
@@ -924,7 +924,7 @@ OsVendorInit(void)
 {
     static Bool beenHere = FALSE;
 
-    signal(SIGCHLD, SIG_DFL);   /* Need to wait for child processes */
+    OsSignal(SIGCHLD, SIG_DFL);   /* Need to wait for child processes */
 
     if (!beenHere) {
         umask(022);
