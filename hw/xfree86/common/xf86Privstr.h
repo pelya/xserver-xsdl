@@ -80,8 +80,7 @@ typedef struct {
     Bool miscModInDevEnabled;   /* Allow input devices to be
                                  * changed */
     Bool miscModInDevAllowNonLocal;
-    Bool useSIGIO;              /* Use SIGIO for handling
-                                   input device events */
+    Bool useSIGIO;              /* Use SIGIO for handling DRI1 swaps */
     Pix24Flags pixmap24;
     MessageType pix24From;
     Bool pmFlag;

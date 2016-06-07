@@ -38,7 +38,7 @@ typedef struct {
     miPointerSpriteFuncPtr spriteFuncs; /* sprite-specific methods */
     miPointerScreenFuncPtr screenFuncs; /* screen-specific methods */
     CloseScreenProcPtr CloseScreen;
-    Bool waitForUpdate;         /* don't move cursor in SIGIO */
+    Bool waitForUpdate;         /* don't move cursor from input thread */
     Bool showTransparent;       /* show empty cursors */
 } miPointerScreenRec, *miPointerScreenPtr;
 #endif                          /* MIPOINTRST_H */

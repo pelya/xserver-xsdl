@@ -239,8 +239,7 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
     else if (n_enqueued + 1 == miEventQueue.nevents) {
         if (!mieqGrowQueue(&miEventQueue, miEventQueue.nevents << 1)) {
             /* Toss events which come in late.  Usually this means your server's
-             * stuck in an infinite loop somewhere, but SIGIO is still getting
-             * handled.
+             * stuck in an infinite loop in the main thread.
              */
             miEventQueue.dropped++;
             if (miEventQueue.dropped == 1) {

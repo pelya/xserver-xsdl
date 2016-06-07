@@ -585,7 +585,7 @@ dmxInvalidateGlobalPosition(void)
  * \a DMX_ABSOLUTE_CONFINED (in the latter case, the pointer will not be
  * allowed to move outside the global boundaires).
  *
- * If \a block is set to \a DMX_BLOCK, then the SIGIO handler will be
+ * If \a block is set to \a DMX_BLOCK, then the input thread will be
  * blocked around calls to \a enqueueMotion(). */
 void
 dmxMotion(DevicePtr pDev, int *v, int firstAxes, int axesCount,
@@ -689,7 +689,7 @@ dmxFixup(DevicePtr pDev, int detail, KeySym keySym)
  * KeyRelease event, then the \a keySym is also specified.
  *
  * FIXME: make the code do what the comment says, or remove this comment.
- * If \a block is set to \a DMX_BLOCK, then the SIGIO handler will be
+ * If \a block is set to \a DMX_BLOCK, then the input thread will be
  * blocked around calls to dmxeqEnqueue(). */
 
 void
