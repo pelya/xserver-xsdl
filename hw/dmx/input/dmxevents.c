@@ -47,7 +47,6 @@
 #include "dmxcommon.h"
 #include "dmxcursor.h"
 #include "dmxmotion.h"
-#include "dmxsigio.h"
 #include "dmxmap.h"
 
 #include <X11/keysym.h>
