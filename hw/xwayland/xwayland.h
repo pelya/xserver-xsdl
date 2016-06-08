@@ -47,7 +47,6 @@ struct xwl_screen {
     int height;
     int depth;
     ScreenPtr screen;
-    WindowPtr pointer_limbo_window;
     int expecting_event;
     enum RootClipMode root_clip_mode;
 
