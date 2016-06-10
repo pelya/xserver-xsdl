@@ -130,7 +130,7 @@ ProcessVelocityConfiguration(DeviceIntPtr pDev, const char *devname, void *list,
 
     /* common settings (available via device properties) */
     tempf = xf86SetRealOption(list, "ConstantDeceleration", 1.0);
-    if (tempf > 1.0) {
+    if (tempf != 1.0) {
         xf86Msg(X_CONFIG, "%s: (accel) constant deceleration by %.1f\n",
                 devname, tempf);
         prop = XIGetKnownProperty(ACCEL_PROP_CONSTANT_DECELERATION);
