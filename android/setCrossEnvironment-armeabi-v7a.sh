@@ -21,7 +21,7 @@ NDK=`readlink -f $NDK`
 [ -z "$NDK" ] && { echo "You need Andorid NDK r8 or newer installed to run this script" ; exit 1 ; }
 GCCPREFIX=arm-linux-androideabi
 GCCVER=${GCCVER:-4.9}
-PLATFORMVER=android-9
+PLATFORMVER=${PLATFORMVER:-android-14}
 LOCAL_PATH=`dirname $0`
 if which realpath > /dev/null ; then
 	LOCAL_PATH=`realpath $LOCAL_PATH`
