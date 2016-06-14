@@ -151,6 +151,9 @@ hostx_paint_rect(KdScreenInfo *screen,
 Bool
 hostx_load_keymap(KeySymsPtr keySyms, CARD8 *modmap, XkbControlsPtr controls);
 
+void
+hostx_size_set_from_configure(Bool);
+
 xcb_connection_t *
 hostx_get_xcbconn(void);
 

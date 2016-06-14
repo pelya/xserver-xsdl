@@ -613,7 +613,9 @@ ephyrResizeScreen (ScreenPtr           pScreen,
     size.width = newwidth;
     size.height = newheight;
 
+    hostx_size_set_from_configure(TRUE);
     ret = ephyrRandRSetConfig (pScreen, screen->randr, 0, &size);
+    hostx_size_set_from_configure(FALSE);
     if (ret) {
         RROutputPtr output;
 

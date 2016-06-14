@@ -79,6 +79,7 @@ struct EphyrHostXVars {
     KdScreenInfo **screens;
 
     long damage_debug_msec;
+    Bool size_set_from_configure;
 };
 
 /* memset ( missing> ) instead of below  */
@@ -878,6 +879,7 @@ hostx_screen_init(KdScreenInfo *screen,
             xallocarray(scrpriv->ximg->stride, buffer_height);
     }
 
+    if (!HostX.size_set_from_configure)
     {
         uint32_t mask = XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT;
         uint32_t values[2] = {width, height};
@@ -1211,6 +1213,12 @@ hostx_load_keymap(KeySymsPtr keySyms, CARD8 *modmap, XkbControlsPtr controls)
     free(controls_r);
 
     return TRUE;
+}
+
+void
+hostx_size_set_from_configure(Bool ss)
+{
+    HostX.size_set_from_configure = ss;
 }
 
 xcb_connection_t *
