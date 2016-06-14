@@ -1141,6 +1141,7 @@ static void
 ephyrXcbProcessEvents(Bool queued_only)
 {
     xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_generic_event_t *expose = NULL, *configure = NULL;
 
     while (TRUE) {
         xcb_generic_event_t *xev = hostx_get_event(queued_only);
@@ -1164,7 +1165,9 @@ ephyrXcbProcessEvents(Bool queued_only)
             break;
 
         case XCB_EXPOSE:
-            ephyrProcessExpose(xev);
+            free(expose);
+            expose = xev;
+            xev = NULL;
             break;
 
         case XCB_MOTION_NOTIFY:
@@ -1188,14 +1191,28 @@ ephyrXcbProcessEvents(Bool queued_only)
             break;
 
         case XCB_CONFIGURE_NOTIFY:
-            ephyrProcessConfigureNotify(xev);
+            free(configure);
+            configure = xev;
+            xev = NULL;
             break;
         }
 
-        if (ephyr_glamor)
-            ephyr_glamor_process_event(xev);
+        if (xev) {
+            if (ephyr_glamor)
+                ephyr_glamor_process_event(xev);
 
-        free(xev);
+            free(xev);
+        }
+    }
+
+    if (configure) {
+        ephyrProcessConfigureNotify(configure);
+        free(configure);
+    }
+
+    if (expose) {
+        ephyrProcessExpose(expose);
+        free(expose);
     }
 }
 
