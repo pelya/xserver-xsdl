@@ -1486,13 +1486,25 @@ ephyr_glamor_init(ScreenPtr screen)
     return TRUE;
 }
 
+static int
+ephyrSetPixmapVisitWindow(WindowPtr window, void *data)
+{
+    ScreenPtr screen = window->drawable.pScreen;
+
+    if (screen->GetWindowPixmap(window) == data) {
+        screen->SetWindowPixmap(window, screen->GetScreenPixmap(screen));
+        return WT_WALKCHILDREN;
+    }
+    return WT_DONTWALKCHILDREN;
+}
+
 Bool
 ephyr_glamor_create_screen_resources(ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
     KdScreenInfo *kd_screen = pScreenPriv->screen;
     EphyrScrPriv *scrpriv = kd_screen->driver;
-    PixmapPtr screen_pixmap;
+    PixmapPtr old_screen_pixmap, screen_pixmap;
     uint32_t tex;
 
     if (!ephyr_glamor)
@@ -1509,8 +1521,8 @@ ephyr_glamor_create_screen_resources(ScreenPtr pScreen)
      *
      * Thus, delete the current screen pixmap, and put a fresh one in.
      */
-    screen_pixmap = pScreen->GetScreenPixmap(pScreen);
-    pScreen->DestroyPixmap(screen_pixmap);
+    old_screen_pixmap = pScreen->GetScreenPixmap(pScreen);
+    pScreen->DestroyPixmap(old_screen_pixmap);
 
     screen_pixmap = pScreen->CreatePixmap(pScreen,
                                           pScreen->width,
@@ -1519,6 +1531,8 @@ ephyr_glamor_create_screen_resources(ScreenPtr pScreen)
                                           GLAMOR_CREATE_NO_LARGE);
 
     pScreen->SetScreenPixmap(screen_pixmap);
+    if (pScreen->root && pScreen->SetWindowPixmap)
+        TraverseTree(pScreen->root, ephyrSetPixmapVisitWindow, old_screen_pixmap);
 
     /* Tell the GLX code what to GL texture to read from. */
     tex = glamor_get_pixmap_texture(screen_pixmap);

@@ -510,6 +510,14 @@ ephyrRandRSetConfig(ScreenPtr pScreen,
     screen->width = newwidth;
     screen->height = newheight;
 
+    scrpriv->win_width = screen->width;
+    scrpriv->win_height = screen->height;
+#ifdef GLAMOR
+    ephyr_glamor_set_window_size(scrpriv->glamor,
+                                 scrpriv->win_width,
+                                 scrpriv->win_height);
+#endif
+
     if (!ephyrMapFramebuffer(screen))
         goto bail4;
 
@@ -520,12 +528,18 @@ ephyrRandRSetConfig(ScreenPtr pScreen,
     else
         ephyrUnsetInternalDamage(screen->pScreen);
 
+    ephyrSetScreenSizes(screen->pScreen);
+
     if (scrpriv->shadow) {
         if (!KdShadowSet(screen->pScreen,
                          scrpriv->randr, ephyrShadowUpdate, ephyrWindowLinear))
             goto bail4;
     }
     else {
+#ifdef GLAMOR
+        if (ephyr_glamor)
+            ephyr_glamor_create_screen_resources(pScreen);
+#endif
         /* Without shadow fb ( non rotated ) we need
          * to use damage to efficiently update display
          * via signal regions what to copy from 'fb'.
@@ -533,8 +547,6 @@ ephyrRandRSetConfig(ScreenPtr pScreen,
         if (!ephyrSetInternalDamage(screen->pScreen))
             goto bail4;
     }
-
-    ephyrSetScreenSizes(screen->pScreen);
 
     /*
      * Set frame buffer mapping
