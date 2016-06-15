@@ -1305,7 +1305,8 @@ KdInitInput(void)
     KdKeyboardInfo *ki;
     struct KdConfigDevice *dev;
 
-    InputThreadPreInit();
+    if (kdConfigPointers || kdConfigKeyboards)
+        InputThreadPreInit();
 
     kdInputEnabled = TRUE;
 
