@@ -557,7 +557,7 @@ glamor_free_glyph_atlas(struct glamor_glyph_atlas *atlas)
     if (!atlas)
         return;
     if (atlas->atlas)
-        FreePicture(atlas->atlas, 0);
+        (*atlas->atlas->drawable.pScreen->DestroyPixmap)(atlas->atlas);
     free (atlas);
 }
 
