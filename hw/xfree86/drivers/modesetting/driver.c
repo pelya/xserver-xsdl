@@ -978,11 +978,11 @@ PreInit(ScrnInfoPtr pScrn, int flags)
         if (value & DRM_PRIME_CAP_IMPORT) {
             pScrn->capabilities |= RR_Capability_SinkOutput;
             if (ms->drmmode.glamor)
-                pScrn->capabilities |= RR_Capability_SourceOffload;
+                pScrn->capabilities |= RR_Capability_SinkOffload;
         }
 #if GLAMOR_HAS_GBM_LINEAR
         if (value & DRM_PRIME_CAP_EXPORT && ms->drmmode.glamor)
-            pScrn->capabilities |= RR_Capability_SourceOutput | RR_Capability_SinkOffload;
+            pScrn->capabilities |= RR_Capability_SourceOutput | RR_Capability_SourceOffload;
 #endif
     }
 #endif
