@@ -347,7 +347,7 @@ xwl_drm_handle_device(void *data, struct wl_drm *drm, const char *device)
    xwl_screen->drm_fd = open(xwl_screen->device_name, O_RDWR | O_CLOEXEC);
    if (xwl_screen->drm_fd == -1) {
        ErrorF("wayland-egl: could not open %s (%s)\n",
-	      xwl_screen->device_name, strerror(errno));
+              xwl_screen->device_name, strerror(errno));
        return;
    }
 

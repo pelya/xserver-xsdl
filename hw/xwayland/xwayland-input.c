@@ -591,8 +591,8 @@ keyboard_handle_repeat_info (void *data, struct wl_keyboard *keyboard,
     XkbControlsPtr ctrl;
 
     if (rate < 0 || delay < 0) {
-	ErrorF("Wrong rate/delay: %d, %d\n", rate, delay);
-	return;
+        ErrorF("Wrong rate/delay: %d, %d\n", rate, delay);
+        return;
     }
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
@@ -600,15 +600,15 @@ keyboard_handle_repeat_info (void *data, struct wl_keyboard *keyboard,
             dev != GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD))
             continue;
 
-	if (rate != 0) {
+        if (rate != 0) {
             ctrl = dev->key->xkbInfo->desc->ctrls;
             ctrl->repeat_delay = delay;
             /* rate is number of keys per second */
             ctrl->repeat_interval = 1000 / rate;
 
-	    XkbSetRepeatKeys(dev, -1, AutoRepeatModeOn);
-	} else
-	    XkbSetRepeatKeys(dev, -1, AutoRepeatModeOff);
+            XkbSetRepeatKeys(dev, -1, AutoRepeatModeOn);
+        } else
+            XkbSetRepeatKeys(dev, -1, AutoRepeatModeOff);
     }
 }
 
@@ -843,7 +843,7 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
 
 static void
 seat_handle_name(void *data, struct wl_seat *seat,
-		 const char *name)
+                 const char *name)
 {
 
 }
