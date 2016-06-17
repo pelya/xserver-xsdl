@@ -1385,9 +1385,22 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
             xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                        "Failed to initialize the Present extension.\n");
         }
-        /* enable reverse prime if we are a GPU screen, and accelerated */
-        if (pScreen->isGPU)
+        /* enable reverse prime if we are a GPU screen, and accelerated, and not
+         * i915. i915 is happy scanning out from sysmem. */
+        if (pScreen->isGPU) {
+            drmVersionPtr version;
+
+            /* enable if we are an accelerated GPU screen */
             ms->drmmode.reverse_prime_offload_mode = TRUE;
+
+            /* disable if we detect i915 */
+            if ((version = drmGetVersion(ms->drmmode.fd))) {
+                if (!strncmp("i915", version->name, version->name_len)) {
+                    ms->drmmode.reverse_prime_offload_mode = FALSE;
+                }
+                drmFreeVersion(version);
+            }
+        }
     }
 #endif
 
