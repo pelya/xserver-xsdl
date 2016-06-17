@@ -532,10 +532,10 @@ static void
 dispatch_dirty_crtc(ScrnInfoPtr scrn, xf86CrtcPtr crtc)
 {
     modesettingPtr ms = modesettingPTR(scrn);
-    PixmapPtr pixmap = crtc->randr_crtc->scanout_pixmap;
-    msPixmapPrivPtr ppriv = msGetPixmapPriv(&ms->drmmode, pixmap);
     drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    PixmapPtr pixmap = drmmode_crtc->prime_pixmap;
     DamagePtr damage = drmmode_crtc->slave_damage;
+    msPixmapPrivPtr ppriv = msGetPixmapPriv(&ms->drmmode, pixmap);
     int fb_id = ppriv->fb_id;
     int ret;
 
@@ -554,10 +554,11 @@ dispatch_slave_dirty(ScreenPtr pScreen)
 
     for (c = 0; c < xf86_config->num_crtc; c++) {
         xf86CrtcPtr crtc = xf86_config->crtc[c];
+        drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 
-        if (!crtc->randr_crtc)
+        if (!drmmode_crtc)
             continue;
-        if (!crtc->randr_crtc->scanout_pixmap)
+        if (!drmmode_crtc->prime_pixmap)
             continue;
 
         dispatch_dirty_crtc(scrn, crtc);

@@ -103,7 +103,10 @@ typedef struct {
 
     drmmode_bo rotate_bo;
     unsigned rotate_fb_id;
+
+    PixmapPtr prime_pixmap;
     unsigned prime_pixmap_x;
+
     /**
      * @{ MSC (vblank count) handling for the PRESENT extension.
      *

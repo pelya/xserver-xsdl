@@ -454,10 +454,10 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
         drmmode_ConvertToKMode(crtc->scrn, &kmode, mode);
 
         fb_id = drmmode->fb_id;
-        if (crtc->randr_crtc->scanout_pixmap) {
+        if (drmmode_crtc->prime_pixmap) {
             if (!drmmode->reverse_prime_offload_mode) {
                 msPixmapPrivPtr ppriv =
-                    msGetPixmapPriv(drmmode, crtc->randr_crtc->scanout_pixmap);
+                    msGetPixmapPriv(drmmode, drmmode_crtc->prime_pixmap);
                 fb_id = ppriv->fb_id;
                 x = 0;
             } else
@@ -639,8 +639,8 @@ drmmode_set_scanout_pixmap_gpu(xf86CrtcPtr crtc, PixmapPtr ppix)
     int c, total_width = 0, max_height = 0, this_x = 0;
 
     if (!ppix) {
-        if (crtc->randr_crtc->scanout_pixmap) {
-            PixmapStopDirtyTracking(crtc->randr_crtc->scanout_pixmap, screenpix);
+        if (drmmode_crtc->prime_pixmap) {
+            PixmapStopDirtyTracking(drmmode_crtc->prime_pixmap, screenpix);
             if (drmmode->fb_id) {
                 drmModeRmFB(drmmode->fd, drmmode->fb_id);
                 drmmode->fb_id = 0;
@@ -690,8 +690,8 @@ drmmode_set_scanout_pixmap_cpu(xf86CrtcPtr crtc, PixmapPtr ppix)
     void *ptr;
 
     if (!ppix) {
-        if (crtc->randr_crtc->scanout_pixmap) {
-            ppriv = msGetPixmapPriv(drmmode, crtc->randr_crtc->scanout_pixmap);
+        if (drmmode_crtc->prime_pixmap) {
+            ppriv = msGetPixmapPriv(drmmode, drmmode_crtc->prime_pixmap);
             drmModeRmFB(drmmode->fd, ppriv->fb_id);
             ppriv->fb_id = 0;
         }
@@ -727,13 +727,19 @@ drmmode_set_scanout_pixmap_cpu(xf86CrtcPtr crtc, PixmapPtr ppix)
 static Bool
 drmmode_set_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix)
 {
+    Bool ret;
     drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
 
     if (drmmode->reverse_prime_offload_mode)
-        return drmmode_set_scanout_pixmap_gpu(crtc, ppix);
+        ret = drmmode_set_scanout_pixmap_gpu(crtc, ppix);
     else
-        return drmmode_set_scanout_pixmap_cpu(crtc, ppix);
+        ret = drmmode_set_scanout_pixmap_cpu(crtc, ppix);
+
+    if (ret)
+        drmmode_crtc->prime_pixmap = ppix;
+
+    return ret;
 }
 
 static void *
