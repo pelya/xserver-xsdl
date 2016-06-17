@@ -83,7 +83,7 @@ xwl_pointer_proc(DeviceIntPtr device, int what)
         axes_labels[2] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_HWHEEL);
         axes_labels[3] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_WHEEL);
 
-        if (!InitValuatorClassDeviceStruct(device, NAXES, btn_labels,
+        if (!InitValuatorClassDeviceStruct(device, NAXES, axes_labels,
                                            GetMotionHistorySize(), Absolute))
             return BadValue;
 
