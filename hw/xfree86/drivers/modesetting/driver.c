@@ -577,6 +577,8 @@ redisplay_dirty(ScreenPtr screen, PixmapDirtyUpdatePtr dirty)
 static void
 ms_dirty_update(ScreenPtr screen)
 {
+    modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(screen));
+
     RegionPtr region;
     PixmapDirtyUpdatePtr ent;
 
@@ -586,10 +588,40 @@ ms_dirty_update(ScreenPtr screen)
     xorg_list_for_each_entry(ent, &screen->pixmap_dirty_list, ent) {
         region = DamageRegion(ent->damage);
         if (RegionNotEmpty(region)) {
+            msPixmapPrivPtr ppriv =
+                msGetPixmapPriv(&ms->drmmode, ent->slave_dst);
+
+            if (ppriv->notify_on_damage) {
+                ppriv->notify_on_damage = FALSE;
+
+                ent->slave_dst->drawable.pScreen->
+                    SharedPixmapNotifyDamage(ent->slave_dst);
+            }
+
+            /* Requested manual updating */
+            if (ppriv->defer_dirty_update)
+                continue;
+
             redisplay_dirty(screen, ent);
             DamageEmpty(ent->damage);
         }
     }
+}
+
+static PixmapDirtyUpdatePtr
+ms_dirty_get_ent(ScreenPtr screen, PixmapPtr slave_dst)
+{
+    PixmapDirtyUpdatePtr ent;
+
+    if (xorg_list_is_empty(&screen->pixmap_dirty_list))
+        return NULL;
+
+    xorg_list_for_each_entry(ent, &screen->pixmap_dirty_list, ent) {
+        if (ent->slave_dst == slave_dst)
+            return ent;
+    }
+
+    return NULL;
 }
 
 static void
@@ -1017,6 +1049,90 @@ msDisableSharedPixmapFlipping(RRCrtcPtr crtc)
 }
 
 static Bool
+msStartFlippingPixmapTracking(RRCrtcPtr crtc, PixmapPtr src,
+                              PixmapPtr slave_dst1, PixmapPtr slave_dst2,
+                              int x, int y, int dst_x, int dst_y,
+                              Rotation rotation)
+{
+    ScreenPtr pScreen = src->drawable.pScreen;
+    modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(pScreen));
+
+    msPixmapPrivPtr ppriv1 = msGetPixmapPriv(&ms->drmmode, slave_dst1),
+                    ppriv2 = msGetPixmapPriv(&ms->drmmode, slave_dst2);
+
+    if (!PixmapStartDirtyTracking(src, slave_dst1, x, y,
+                                  dst_x, dst_y, rotation)) {
+        return FALSE;
+    }
+
+    if (!PixmapStartDirtyTracking(src, slave_dst2, x, y,
+                                  dst_x, dst_y, rotation)) {
+        PixmapStopDirtyTracking(src, slave_dst1);
+        return FALSE;
+    }
+
+    ppriv1->slave_src = src;
+    ppriv2->slave_src = src;
+
+    ppriv1->dirty = ms_dirty_get_ent(pScreen, slave_dst1);
+    ppriv2->dirty = ms_dirty_get_ent(pScreen, slave_dst2);
+
+    ppriv1->defer_dirty_update = TRUE;
+    ppriv2->defer_dirty_update = TRUE;
+
+    return TRUE;
+}
+
+static Bool
+msPresentSharedPixmap(PixmapPtr slave_dst)
+{
+    ScreenPtr pScreen = slave_dst->drawable.pScreen;
+    modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(pScreen));
+
+    msPixmapPrivPtr ppriv = msGetPixmapPriv(&ms->drmmode, slave_dst);
+
+    RegionPtr region = DamageRegion(ppriv->dirty->damage);
+
+    if (RegionNotEmpty(region)) {
+        redisplay_dirty(ppriv->slave_src->drawable.pScreen, ppriv->dirty);
+        DamageEmpty(ppriv->dirty->damage);
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static Bool
+msStopFlippingPixmapTracking(PixmapPtr src,
+                             PixmapPtr slave_dst1, PixmapPtr slave_dst2)
+{
+    ScreenPtr pScreen = src->drawable.pScreen;
+    modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(pScreen));
+
+    msPixmapPrivPtr ppriv1 = msGetPixmapPriv(&ms->drmmode, slave_dst1),
+                    ppriv2 = msGetPixmapPriv(&ms->drmmode, slave_dst2);
+
+    Bool ret = TRUE;
+
+    ret &= PixmapStopDirtyTracking(src, slave_dst1);
+    ret &= PixmapStopDirtyTracking(src, slave_dst2);
+
+    if (ret) {
+        ppriv1->slave_src = NULL;
+        ppriv2->slave_src = NULL;
+
+        ppriv1->dirty = NULL;
+        ppriv2->dirty = NULL;
+
+        ppriv1->defer_dirty_update = FALSE;
+        ppriv2->defer_dirty_update = FALSE;
+    }
+
+    return ret;
+}
+
+static Bool
 CreateScreenResources(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
@@ -1083,6 +1199,8 @@ CreateScreenResources(ScreenPtr pScreen)
     pScrPriv->rrEnableSharedPixmapFlipping = msEnableSharedPixmapFlipping;
     pScrPriv->rrDisableSharedPixmapFlipping = msDisableSharedPixmapFlipping;
 
+    pScrPriv->rrStartFlippingPixmapTracking = msStartFlippingPixmapTracking;
+
     return ret;
 }
 
@@ -1143,6 +1261,20 @@ msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
 #else
     return FALSE;
 #endif
+}
+
+static Bool
+msRequestSharedPixmapNotifyDamage(PixmapPtr ppix)
+{
+    ScreenPtr screen = ppix->drawable.pScreen;
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    modesettingPtr ms = modesettingPTR(scrn);
+
+    msPixmapPrivPtr ppriv = msGetPixmapPriv(&ms->drmmode, ppix);
+
+    ppriv->notify_on_damage = TRUE;
+
+    return TRUE;
 }
 
 static Bool
@@ -1343,6 +1475,11 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pScreen->StopPixmapTracking = PixmapStopDirtyTracking;
 
     pScreen->SharedPixmapNotifyDamage = msSharedPixmapNotifyDamage;
+    pScreen->RequestSharedPixmapNotifyDamage =
+        msRequestSharedPixmapNotifyDamage;
+
+    pScreen->PresentSharedPixmap = msPresentSharedPixmap;
+    pScreen->StopFlippingPixmapTracking = msStopFlippingPixmapTracking;
 
     if (!xf86CrtcScreenInit(pScreen))
         return FALSE;

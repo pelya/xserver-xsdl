@@ -152,9 +152,15 @@ typedef struct _msPixmapPriv {
 
     DamagePtr slave_damage;
 
-    /** Fields for flipping shared pixmaps */
+    /** Sink fields for flipping shared pixmaps */
     int flip_seq; /* seq of current page flip event handler */
     Bool wait_for_damage; /* if we have requested damage notification from source */
+
+    /** Source fields for flipping shared pixmaps */
+    Bool defer_dirty_update; /* if we want to manually update */
+    PixmapDirtyUpdatePtr dirty; /* cached dirty ent to avoid searching list */
+    PixmapPtr slave_src; /* if we exported shared pixmap, dirty tracking src */
+    Bool notify_on_damage; /* if sink has requested damage notification */
 } msPixmapPrivRec, *msPixmapPrivPtr;
 
 extern DevPrivateKeyRec msPixmapPrivateKeyRec;
