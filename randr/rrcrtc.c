@@ -25,6 +25,8 @@
 #include "swaprep.h"
 #include "mipointer.h"
 
+#include <X11/Xatom.h>
+
 RESTYPE RRCrtcType;
 
 /*
@@ -432,8 +434,59 @@ rrCreateSharedPixmap(RRCrtcPtr crtc, ScreenPtr master,
 }
 
 static Bool
+rrGetPixmapSharingSyncProp(int numOutputs, RROutputPtr * outputs)
+{
+    /* Determine if the user wants prime syncing */
+    int o;
+    const char *syncStr = PRIME_SYNC_PROP;
+    Atom syncProp = MakeAtom(syncStr, strlen(syncStr), FALSE);
+    if (syncProp == None)
+        return TRUE;
+
+    /* If one output doesn't want sync, no sync */
+    for (o = 0; o < numOutputs; o++) {
+        RRPropertyValuePtr val;
+
+        /* Try pending value first, then current value */
+        if ((val = RRGetOutputProperty(outputs[o], syncProp, TRUE)) &&
+            val->data) {
+            if (!(*(char *) val->data))
+                return FALSE;
+            continue;
+        }
+
+        if ((val = RRGetOutputProperty(outputs[o], syncProp, FALSE)) &&
+            val->data) {
+            if (!(*(char *) val->data))
+                return FALSE;
+            continue;
+        }
+    }
+
+    return TRUE;
+}
+
+static void
+rrSetPixmapSharingSyncProp(char val, int numOutputs, RROutputPtr * outputs)
+{
+    int o;
+    const char *syncStr = PRIME_SYNC_PROP;
+    Atom syncProp = MakeAtom(syncStr, strlen(syncStr), FALSE);
+    if (syncProp == None)
+        return;
+
+    for (o = 0; o < numOutputs; o++) {
+        RRPropertyPtr prop = RRQueryOutputProperty(outputs[o], syncProp);
+        if (prop)
+            RRChangeOutputProperty(outputs[o], syncProp, XA_INTEGER,
+                                   8, PropModeReplace, 1, &val, FALSE, TRUE);
+    }
+}
+
+static Bool
 rrSetupPixmapSharing(RRCrtcPtr crtc, int width, int height,
-                     int x, int y, Rotation rotation)
+                     int x, int y, Rotation rotation, Bool sync,
+                     int numOutputs, RROutputPtr * outputs)
 {
     ScreenPtr master = crtc->pScreen->current_master;
     rrScrPrivPtr pMasterScrPriv = rrGetScrPriv(master);
@@ -480,7 +533,8 @@ rrSetupPixmapSharing(RRCrtcPtr crtc, int width, int height,
     }
 
     /* Both source and sink must support required ABI funcs for flipping */
-    if (pSlaveScrPriv->rrEnableSharedPixmapFlipping &&
+    if (sync &&
+        pSlaveScrPriv->rrEnableSharedPixmapFlipping &&
         pSlaveScrPriv->rrDisableSharedPixmapFlipping &&
         pMasterScrPriv->rrStartFlippingPixmapTracking &&
         master->PresentSharedPixmap &&
@@ -520,7 +574,12 @@ fail: /* If flipping funcs fail, just fall back to unsynchronized */
         crtc->scanout_pixmap_back = NULL;
     }
 
-    ErrorF("randr: falling back to unsynchronized pixmap sharing\n");
+    if (sync) { /* Wanted sync, didn't get it */
+        ErrorF("randr: falling back to unsynchronized pixmap sharing\n");
+
+        /* Set output property to 0 to indicate to user */
+        rrSetPixmapSharingSyncProp(0, numOutputs, outputs);
+    }
 
     if (!pSlaveScrPriv->rrCrtcSetScanoutPixmap(crtc, spix_front)) {
         rrDestroySharedPixmap(crtc, spix_front);
@@ -692,7 +751,10 @@ RRCrtcSet(RRCrtcPtr crtc,
                 return FALSE;
 
             if (pScreen->current_master) {
-                ret = rrSetupPixmapSharing(crtc, width, height, x, y, rotation);
+                Bool sync = rrGetPixmapSharingSyncProp(numOutputs, outputs);
+                ret = rrSetupPixmapSharing(crtc, width, height,
+                                           x, y, rotation, sync,
+                                           numOutputs, outputs);
             }
         }
 #if RANDR_12_INTERFACE
