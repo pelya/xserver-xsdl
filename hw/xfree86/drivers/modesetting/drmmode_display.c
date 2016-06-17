@@ -638,17 +638,18 @@ drmmode_set_scanout_pixmap_gpu(xf86CrtcPtr crtc, PixmapPtr ppix)
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
     int c, total_width = 0, max_height = 0, this_x = 0;
 
-    if (!ppix) {
-        if (drmmode_crtc->prime_pixmap) {
-            PixmapStopDirtyTracking(drmmode_crtc->prime_pixmap, screenpix);
-            if (drmmode->fb_id) {
-                drmModeRmFB(drmmode->fd, drmmode->fb_id);
-                drmmode->fb_id = 0;
-            }
+    if (drmmode_crtc->prime_pixmap) {
+        PixmapStopDirtyTracking(drmmode_crtc->prime_pixmap, screenpix);
+        if (drmmode->fb_id) {
+            drmModeRmFB(drmmode->fd, drmmode->fb_id);
+            drmmode->fb_id = 0;
         }
         drmmode_crtc->prime_pixmap_x = 0;
-        return TRUE;
     }
+
+    if (!ppix)
+        return TRUE;
+
     /* iterate over all the attached crtcs to work out the bounding box */
     for (c = 0; c < xf86_config->num_crtc; c++) {
         xf86CrtcPtr iter = xf86_config->crtc[c];
@@ -689,18 +690,18 @@ drmmode_set_scanout_pixmap_cpu(xf86CrtcPtr crtc, PixmapPtr ppix)
     msPixmapPrivPtr ppriv;
     void *ptr;
 
-    if (!ppix) {
-        if (drmmode_crtc->prime_pixmap) {
-            ppriv = msGetPixmapPriv(drmmode, drmmode_crtc->prime_pixmap);
-            drmModeRmFB(drmmode->fd, ppriv->fb_id);
-            ppriv->fb_id = 0;
-        }
-        if (drmmode_crtc->slave_damage) {
-            DamageUnregister(drmmode_crtc->slave_damage);
-            drmmode_crtc->slave_damage = NULL;
-        }
-        return TRUE;
+    if (drmmode_crtc->prime_pixmap) {
+        ppriv = msGetPixmapPriv(drmmode, drmmode_crtc->prime_pixmap);
+        drmModeRmFB(drmmode->fd, ppriv->fb_id);
+        ppriv->fb_id = 0;
     }
+    if (drmmode_crtc->slave_damage) {
+        DamageUnregister(drmmode_crtc->slave_damage);
+        drmmode_crtc->slave_damage = NULL;
+    }
+
+    if (!ppix)
+        return TRUE;
 
     ppriv = msGetPixmapPriv(drmmode, ppix);
     if (!drmmode_crtc->slave_damage) {
