@@ -99,12 +99,12 @@ typedef struct {
     struct dumb_bo *cursor_bo;
     Bool cursor_up;
     uint16_t lut_r[256], lut_g[256], lut_b[256];
-    DamagePtr slave_damage;
 
     drmmode_bo rotate_bo;
     unsigned rotate_fb_id;
 
     PixmapPtr prime_pixmap;
+    PixmapPtr prime_pixmap_back;
     unsigned prime_pixmap_x;
 
     /**
@@ -120,6 +120,9 @@ typedef struct {
     /** @} */
 
     Bool need_modeset;
+
+    Bool enable_flipping;
+    Bool flipping_active;
 } drmmode_crtc_private_rec, *drmmode_crtc_private_ptr;
 
 typedef struct {
@@ -146,6 +149,12 @@ typedef struct {
 typedef struct _msPixmapPriv {
     uint32_t fb_id;
     struct dumb_bo *backing_bo; /* if this pixmap is backed by a dumb bo */
+
+    DamagePtr slave_damage;
+
+    /** Fields for flipping shared pixmaps */
+    int flip_seq; /* seq of current page flip event handler */
+    Bool wait_for_damage; /* if we have requested damage notification from source */
 } msPixmapPrivRec, *msPixmapPrivPtr;
 
 extern DevPrivateKeyRec msPixmapPrivateKeyRec;
@@ -163,6 +172,14 @@ void *drmmode_map_slave_bo(drmmode_ptr drmmode, msPixmapPrivPtr ppriv);
 Bool drmmode_SetSlaveBO(PixmapPtr ppix,
                         drmmode_ptr drmmode,
                         int fd_handle, int pitch, int size);
+
+Bool drmmode_EnableSharedPixmapFlipping(xf86CrtcPtr crtc, drmmode_ptr drmmode,
+                                        PixmapPtr front, PixmapPtr back);
+Bool drmmode_SharedPixmapPresentOnVBlank(PixmapPtr frontTarget, xf86CrtcPtr crtc,
+                                         drmmode_ptr drmmode);
+Bool drmmode_SharedPixmapFlip(PixmapPtr frontTarget, xf86CrtcPtr crtc,
+                              drmmode_ptr drmmode);
+void drmmode_DisableSharedPixmapFlipping(xf86CrtcPtr crtc, drmmode_ptr drmmode);
 
 extern Bool drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp);
 void drmmode_adjust_frame(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int x, int y);

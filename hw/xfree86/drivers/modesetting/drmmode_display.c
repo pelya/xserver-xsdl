@@ -229,6 +229,239 @@ drmmode_SetSlaveBO(PixmapPtr ppix,
     return TRUE;
 }
 
+static Bool
+drmmode_SharedPixmapPresent(PixmapPtr ppix, xf86CrtcPtr crtc,
+                            drmmode_ptr drmmode)
+{
+    ScreenPtr master = crtc->randr_crtc->pScreen->current_master;
+
+    if (master->PresentSharedPixmap(ppix)) {
+        /* Success, queue flip to back target */
+        if (drmmode_SharedPixmapFlip(ppix, crtc, drmmode))
+            return TRUE;
+
+        xf86DrvMsg(drmmode->scrn->scrnIndex, X_WARNING,
+                   "drmmode_SharedPixmapFlip() failed, trying again next vblank\n");
+
+        return drmmode_SharedPixmapPresentOnVBlank(ppix, crtc, drmmode);
+    }
+
+    /* Failed to present, try again on next vblank after damage */
+    if (master->RequestSharedPixmapNotifyDamage) {
+        msPixmapPrivPtr ppriv = msGetPixmapPriv(drmmode, ppix);
+
+        /* Set flag first in case we are immediately notified */
+        ppriv->wait_for_damage = TRUE;
+
+        if (master->RequestSharedPixmapNotifyDamage(ppix))
+            return TRUE;
+        else
+            ppriv->wait_for_damage = FALSE;
+    }
+
+    /* Damage notification not available, just try again on vblank */
+    return drmmode_SharedPixmapPresentOnVBlank(ppix, crtc, drmmode);
+}
+
+struct vblank_event_args {
+    PixmapPtr frontTarget;
+    PixmapPtr backTarget;
+    xf86CrtcPtr crtc;
+    drmmode_ptr drmmode;
+    Bool flip;
+};
+static void
+drmmode_SharedPixmapVBlankEventHandler(uint64_t frame, uint64_t usec,
+                                       void *data)
+{
+    struct vblank_event_args *args = data;
+
+    drmmode_crtc_private_ptr drmmode_crtc = args->crtc->driver_private;
+
+    if (args->flip) {
+        /* frontTarget is being displayed, update crtc to reflect */
+        drmmode_crtc->prime_pixmap = args->frontTarget;
+        drmmode_crtc->prime_pixmap_back = args->backTarget;
+
+        /* Safe to present on backTarget, no longer displayed */
+        drmmode_SharedPixmapPresent(args->backTarget, args->crtc, args->drmmode);
+    } else {
+        /* backTarget is still being displayed, present on frontTarget */
+        drmmode_SharedPixmapPresent(args->frontTarget, args->crtc, args->drmmode);
+    }
+
+    free(args);
+}
+
+static void
+drmmode_SharedPixmapVBlankEventAbort(void *data)
+{
+    struct vblank_event_args *args = data;
+
+    msGetPixmapPriv(args->drmmode, args->frontTarget)->flip_seq = 0;
+
+    free(args);
+}
+
+Bool
+drmmode_SharedPixmapPresentOnVBlank(PixmapPtr ppix, xf86CrtcPtr crtc,
+                                    drmmode_ptr drmmode)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    msPixmapPrivPtr ppriv = msGetPixmapPriv(drmmode, ppix);
+
+    drmVBlank vbl;
+    struct vblank_event_args *event_args;
+
+    if (ppix == drmmode_crtc->prime_pixmap)
+        return FALSE; /* Already flipped to this pixmap */
+    if (ppix != drmmode_crtc->prime_pixmap_back)
+        return FALSE; /* Pixmap is not a scanout pixmap for CRTC */
+
+    event_args = calloc(1, sizeof(*event_args));
+    if (!event_args)
+        return FALSE;
+
+    event_args->frontTarget = ppix;
+    event_args->backTarget = drmmode_crtc->prime_pixmap;
+    event_args->crtc = crtc;
+    event_args->drmmode = drmmode;
+    event_args->flip = FALSE;
+
+    ppriv->flip_seq =
+        ms_drm_queue_alloc(crtc, event_args,
+                           drmmode_SharedPixmapVBlankEventHandler,
+                           drmmode_SharedPixmapVBlankEventAbort);
+
+    vbl.request.type =
+        DRM_VBLANK_RELATIVE | DRM_VBLANK_EVENT | drmmode_crtc->vblank_pipe;
+    vbl.request.sequence = 1;
+    vbl.request.signal = (unsigned long) ppriv->flip_seq;
+
+    return drmWaitVBlank(drmmode->fd, &vbl) >= 0;
+}
+
+Bool
+drmmode_SharedPixmapFlip(PixmapPtr frontTarget, xf86CrtcPtr crtc,
+                         drmmode_ptr drmmode)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    msPixmapPrivPtr ppriv_front = msGetPixmapPriv(drmmode, frontTarget);
+
+    struct vblank_event_args *event_args;
+
+    event_args = calloc(1, sizeof(*event_args));
+    if (!event_args)
+        return FALSE;
+
+    event_args->frontTarget = frontTarget;
+    event_args->backTarget = drmmode_crtc->prime_pixmap;
+    event_args->crtc = crtc;
+    event_args->drmmode = drmmode;
+    event_args->flip = TRUE;
+
+    ppriv_front->flip_seq =
+        ms_drm_queue_alloc(crtc, event_args,
+                           drmmode_SharedPixmapVBlankEventHandler,
+                           drmmode_SharedPixmapVBlankEventAbort);
+
+    if (drmModePageFlip(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
+                        ppriv_front->fb_id, DRM_MODE_PAGE_FLIP_EVENT,
+                        (void *)(intptr_t) ppriv_front->flip_seq) < 0) {
+        ms_drm_abort_seq(crtc->scrn, ppriv_front->flip_seq);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static Bool
+drmmode_InitSharedPixmapFlipping(xf86CrtcPtr crtc, drmmode_ptr drmmode)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+    if (!drmmode_crtc->enable_flipping)
+        return FALSE;
+
+    if (drmmode_crtc->flipping_active)
+        return TRUE;
+
+    drmmode_crtc->flipping_active =
+        drmmode_SharedPixmapPresent(drmmode_crtc->prime_pixmap_back,
+                                    crtc, drmmode);
+
+    return drmmode_crtc->flipping_active;
+}
+
+static void
+drmmode_FiniSharedPixmapFlipping(xf86CrtcPtr crtc, drmmode_ptr drmmode)
+{
+    uint32_t seq;
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+    if (!drmmode_crtc->flipping_active)
+        return;
+
+    drmmode_crtc->flipping_active = FALSE;
+
+    /* Abort page flip event handler on prime_pixmap */
+    seq = msGetPixmapPriv(drmmode, drmmode_crtc->prime_pixmap)->flip_seq;
+    if (seq)
+        ms_drm_abort_seq(crtc->scrn, seq);
+
+    /* Abort page flip event handler on prime_pixmap_back */
+    seq = msGetPixmapPriv(drmmode,
+                          drmmode_crtc->prime_pixmap_back)->flip_seq;
+    if (seq)
+        ms_drm_abort_seq(crtc->scrn, seq);
+}
+
+static Bool drmmode_set_target_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix,
+                                              PixmapPtr *target);
+
+Bool
+drmmode_EnableSharedPixmapFlipping(xf86CrtcPtr crtc, drmmode_ptr drmmode,
+                                   PixmapPtr front, PixmapPtr back)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+    drmmode_crtc->enable_flipping = TRUE;
+
+    /* Set front scanout pixmap */
+    drmmode_crtc->enable_flipping &=
+        drmmode_set_target_scanout_pixmap(crtc, front,
+                                          &drmmode_crtc->prime_pixmap);
+    if (!drmmode_crtc->enable_flipping)
+        return FALSE;
+
+    /* Set back scanout pixmap */
+    drmmode_crtc->enable_flipping &=
+        drmmode_set_target_scanout_pixmap(crtc, back,
+                                          &drmmode_crtc->prime_pixmap_back);
+    if (!drmmode_crtc->enable_flipping) {
+        drmmode_set_target_scanout_pixmap(crtc, NULL,
+                                          &drmmode_crtc->prime_pixmap);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+void
+drmmode_DisableSharedPixmapFlipping(xf86CrtcPtr crtc, drmmode_ptr drmmode)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+    drmmode_crtc->enable_flipping = FALSE;
+
+    drmmode_FiniSharedPixmapFlipping(crtc, drmmode);
+
+    drmmode_set_target_scanout_pixmap(crtc, NULL, &drmmode_crtc->prime_pixmap);
+
+    drmmode_set_target_scanout_pixmap(crtc, NULL,
+                                      &drmmode_crtc->prime_pixmap_back);
+}
+
 static void
 drmmode_ConvertFromKMode(ScrnInfoPtr scrn,
                          drmModeModeInfo * kmode, DisplayModePtr mode)
@@ -499,6 +732,9 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
         drmmode_crtc->need_modeset = FALSE;
         crtc->funcs->dpms(crtc, DPMSModeOn);
 
+        if (drmmode_crtc->prime_pixmap_back)
+            drmmode_InitSharedPixmapFlipping(crtc, drmmode);
+
         /* go through all the outputs and force DPMS them back on? */
         for (i = 0; i < xf86_config->num_output; i++) {
             xf86OutputPtr output = xf86_config->output[i];
@@ -629,7 +865,8 @@ drmmode_crtc_gamma_set(xf86CrtcPtr crtc, uint16_t * red, uint16_t * green,
 }
 
 static Bool
-drmmode_set_scanout_pixmap_gpu(xf86CrtcPtr crtc, PixmapPtr ppix)
+drmmode_set_target_scanout_pixmap_gpu(xf86CrtcPtr crtc, PixmapPtr ppix,
+                                      PixmapPtr *target)
 {
     ScreenPtr screen = xf86ScrnToScreen(crtc->scrn);
     PixmapPtr screenpix = screen->GetScreenPixmap(screen);
@@ -638,13 +875,14 @@ drmmode_set_scanout_pixmap_gpu(xf86CrtcPtr crtc, PixmapPtr ppix)
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
     int c, total_width = 0, max_height = 0, this_x = 0;
 
-    if (drmmode_crtc->prime_pixmap) {
-        PixmapStopDirtyTracking(drmmode_crtc->prime_pixmap, screenpix);
+    if (*target) {
+        PixmapStopDirtyTracking(*target, screenpix);
         if (drmmode->fb_id) {
             drmModeRmFB(drmmode->fd, drmmode->fb_id);
             drmmode->fb_id = 0;
         }
         drmmode_crtc->prime_pixmap_x = 0;
+        *target = NULL;
     }
 
     if (!ppix)
@@ -679,41 +917,43 @@ drmmode_set_scanout_pixmap_gpu(xf86CrtcPtr crtc, PixmapPtr ppix)
     }
     drmmode_crtc->prime_pixmap_x = this_x;
     PixmapStartDirtyTracking(ppix, screenpix, 0, 0, this_x, 0, RR_Rotate_0);
+    *target = ppix;
     return TRUE;
 }
 
 static Bool
-drmmode_set_scanout_pixmap_cpu(xf86CrtcPtr crtc, PixmapPtr ppix)
+drmmode_set_target_scanout_pixmap_cpu(xf86CrtcPtr crtc, PixmapPtr ppix,
+                                      PixmapPtr *target)
 {
     drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
     msPixmapPrivPtr ppriv;
     void *ptr;
 
-    if (drmmode_crtc->prime_pixmap) {
-        ppriv = msGetPixmapPriv(drmmode, drmmode_crtc->prime_pixmap);
+    if (*target) {
+        ppriv = msGetPixmapPriv(drmmode, *target);
         drmModeRmFB(drmmode->fd, ppriv->fb_id);
         ppriv->fb_id = 0;
-    }
-    if (drmmode_crtc->slave_damage) {
-        DamageUnregister(drmmode_crtc->slave_damage);
-        drmmode_crtc->slave_damage = NULL;
+        if (ppriv->slave_damage) {
+            DamageUnregister(ppriv->slave_damage);
+            ppriv->slave_damage = NULL;
+        }
     }
 
     if (!ppix)
         return TRUE;
 
     ppriv = msGetPixmapPriv(drmmode, ppix);
-    if (!drmmode_crtc->slave_damage) {
-        drmmode_crtc->slave_damage = DamageCreate(NULL, NULL,
-                                                  DamageReportNone,
-                                                  TRUE,
-                                                  crtc->randr_crtc->pScreen,
-                                                  NULL);
+    if (!ppriv->slave_damage) {
+        ppriv->slave_damage = DamageCreate(NULL, NULL,
+                                           DamageReportNone,
+                                           TRUE,
+                                           crtc->randr_crtc->pScreen,
+                                           NULL);
     }
     ptr = drmmode_map_slave_bo(drmmode, ppriv);
     ppix->devPrivate.ptr = ptr;
-    DamageRegister(&ppix->drawable, drmmode_crtc->slave_damage);
+    DamageRegister(&ppix->drawable, ppriv->slave_damage);
 
     if (ppriv->fb_id == 0) {
         drmModeAddFB(drmmode->fd, ppix->drawable.width,
@@ -722,25 +962,34 @@ drmmode_set_scanout_pixmap_cpu(xf86CrtcPtr crtc, PixmapPtr ppix)
                      ppix->drawable.bitsPerPixel,
                      ppix->devKind, ppriv->backing_bo->handle, &ppriv->fb_id);
     }
+    *target = ppix;
     return TRUE;
+}
+
+static Bool
+drmmode_set_target_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix,
+                                  PixmapPtr *target)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    drmmode_ptr drmmode = drmmode_crtc->drmmode;
+
+    if (drmmode->reverse_prime_offload_mode)
+        return drmmode_set_target_scanout_pixmap_gpu(crtc, ppix, target);
+    else
+        return drmmode_set_target_scanout_pixmap_cpu(crtc, ppix, target);
 }
 
 static Bool
 drmmode_set_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix)
 {
-    Bool ret;
     drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
-    drmmode_ptr drmmode = drmmode_crtc->drmmode;
 
-    if (drmmode->reverse_prime_offload_mode)
-        ret = drmmode_set_scanout_pixmap_gpu(crtc, ppix);
-    else
-        ret = drmmode_set_scanout_pixmap_cpu(crtc, ppix);
+    /* Use DisableSharedPixmapFlipping before switching to single buf */
+    if (drmmode_crtc->enable_flipping)
+        return FALSE;
 
-    if (ret)
-        drmmode_crtc->prime_pixmap = ppix;
-
-    return ret;
+    return drmmode_set_target_scanout_pixmap(crtc, ppix,
+                                             &drmmode_crtc->prime_pixmap);
 }
 
 static void *

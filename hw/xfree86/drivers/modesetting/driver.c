@@ -529,20 +529,14 @@ dispatch_dirty(ScreenPtr pScreen)
 }
 
 static void
-dispatch_dirty_crtc(ScrnInfoPtr scrn, xf86CrtcPtr crtc)
+dispatch_dirty_pixmap(ScrnInfoPtr scrn, xf86CrtcPtr crtc, PixmapPtr ppix)
 {
     modesettingPtr ms = modesettingPTR(scrn);
-    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
-    PixmapPtr pixmap = drmmode_crtc->prime_pixmap;
-    DamagePtr damage = drmmode_crtc->slave_damage;
-    msPixmapPrivPtr ppriv = msGetPixmapPriv(&ms->drmmode, pixmap);
+    msPixmapPrivPtr ppriv = msGetPixmapPriv(&ms->drmmode, ppix);
+    DamagePtr damage = ppriv->slave_damage;
     int fb_id = ppriv->fb_id;
-    int ret;
 
-    ret = dispatch_dirty_region(scrn, pixmap, damage, fb_id);
-    if (ret) {
-
-    }
+    dispatch_dirty_region(scrn, ppix, damage, fb_id);
 }
 
 static void
@@ -558,10 +552,11 @@ dispatch_slave_dirty(ScreenPtr pScreen)
 
         if (!drmmode_crtc)
             continue;
-        if (!drmmode_crtc->prime_pixmap)
-            continue;
 
-        dispatch_dirty_crtc(scrn, crtc);
+        if (drmmode_crtc->prime_pixmap)
+            dispatch_dirty_pixmap(scrn, crtc, drmmode_crtc->prime_pixmap);
+        if (drmmode_crtc->prime_pixmap_back)
+            dispatch_dirty_pixmap(scrn, crtc, drmmode_crtc->prime_pixmap_back);
     }
 }
 
@@ -973,9 +968,45 @@ msUpdatePacked(ScreenPtr pScreen, shadowBufPtr pBuf)
 }
 
 static Bool
+msEnableSharedPixmapFlipping(RRCrtcPtr crtc, PixmapPtr front, PixmapPtr back)
+{
+    ScreenPtr screen = crtc->pScreen;
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    modesettingPtr ms = modesettingPTR(scrn);
+    xf86CrtcPtr xf86Crtc = crtc->devPrivate;
+
+    if (!xf86Crtc)
+        return FALSE;
+
+    /* Not supported if we can't flip */
+    if (!ms->drmmode.pageflip)
+        return FALSE;
+
+    /* Not currently supported with reverse PRIME */
+    if (ms->drmmode.reverse_prime_offload_mode)
+        return FALSE;
+
+    return drmmode_EnableSharedPixmapFlipping(xf86Crtc, &ms->drmmode,
+                                              front, back);
+}
+
+static void
+msDisableSharedPixmapFlipping(RRCrtcPtr crtc)
+{
+    ScreenPtr screen = crtc->pScreen;
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    modesettingPtr ms = modesettingPTR(scrn);
+    xf86CrtcPtr xf86Crtc = crtc->devPrivate;
+
+    if (xf86Crtc)
+        drmmode_DisableSharedPixmapFlipping(xf86Crtc, &ms->drmmode);
+}
+
+static Bool
 CreateScreenResources(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    rrScrPrivPtr pScrPriv = rrGetScrPriv(pScreen);
     modesettingPtr ms = modesettingPTR(pScrn);
     PixmapPtr rootPixmap;
     Bool ret;
@@ -1034,6 +1065,10 @@ CreateScreenResources(ScreenPtr pScreen)
             return FALSE;
         }
     }
+
+    pScrPriv->rrEnableSharedPixmapFlipping = msEnableSharedPixmapFlipping;
+    pScrPriv->rrDisableSharedPixmapFlipping = msDisableSharedPixmapFlipping;
+
     return ret;
 }
 
@@ -1094,6 +1129,39 @@ msSetSharedPixmapBacking(PixmapPtr ppix, void *fd_handle)
 #else
     return FALSE;
 #endif
+}
+
+static Bool
+msSharedPixmapNotifyDamage(PixmapPtr ppix)
+{
+    Bool ret = FALSE;
+    int c;
+
+    ScreenPtr screen = ppix->drawable.pScreen;
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    modesettingPtr ms = modesettingPTR(scrn);
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+
+    msPixmapPrivPtr ppriv = msGetPixmapPriv(&ms->drmmode, ppix);
+
+    if (!ppriv->wait_for_damage)
+        return ret;
+    ppriv->wait_for_damage = FALSE;
+
+    for (c = 0; c < xf86_config->num_crtc; c++) {
+        xf86CrtcPtr crtc = xf86_config->crtc[c];
+        drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+        if (!drmmode_crtc)
+            continue;
+        if (!(drmmode_crtc->prime_pixmap && drmmode_crtc->prime_pixmap_back))
+            continue;
+
+        // Received damage on master screen pixmap, schedule present on vblank
+        ret |= drmmode_SharedPixmapPresentOnVBlank(ppix, crtc, &ms->drmmode);
+    }
+
+    return ret;
 }
 
 static Bool
@@ -1259,6 +1327,8 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pScreen->SetSharedPixmapBacking = msSetSharedPixmapBacking;
     pScreen->StartPixmapTracking = PixmapStartDirtyTracking;
     pScreen->StopPixmapTracking = PixmapStopDirtyTracking;
+
+    pScreen->SharedPixmapNotifyDamage = msSharedPixmapNotifyDamage;
 
     if (!xf86CrtcScreenInit(pScreen))
         return FALSE;
