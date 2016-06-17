@@ -103,7 +103,7 @@ xwl_pointer_proc(DeviceIntPtr device, int what)
         if (!InitPtrFeedbackClassDeviceStruct(device, xwl_pointer_control))
             return BadValue;
 
-        if (!InitButtonClassDeviceStruct(device, 3, btn_labels, map))
+        if (!InitButtonClassDeviceStruct(device, NBUTTONS, btn_labels, map))
             return BadValue;
 
         return Success;
