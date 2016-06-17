@@ -1405,12 +1405,22 @@ drmmode_output_dpms(xf86OutputPtr output, int mode)
     drmModeConnectorSetProperty(drmmode->fd, koutput->connector_id,
                                 drmmode_output->dpms_enum_id, mode);
 
-    if (mode == DPMSModeOn && crtc) {
+    if (crtc) {
         drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
-        if (drmmode_crtc->need_modeset)
-            drmmode_set_mode_major(crtc, &crtc->mode, crtc->rotation,
-                                   crtc->x, crtc->y);
+
+        if (mode == DPMSModeOn) {
+            if (drmmode_crtc->need_modeset)
+                drmmode_set_mode_major(crtc, &crtc->mode, crtc->rotation,
+                                       crtc->x, crtc->y);
+
+            if (drmmode_crtc->enable_flipping)
+                drmmode_InitSharedPixmapFlipping(crtc, drmmode_crtc->drmmode);
+        } else {
+            if (drmmode_crtc->enable_flipping)
+                drmmode_FiniSharedPixmapFlipping(crtc, drmmode_crtc->drmmode);
+        }
     }
+
     return;
 }
 
