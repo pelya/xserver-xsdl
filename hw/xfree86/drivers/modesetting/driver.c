@@ -973,6 +973,7 @@ msEnableSharedPixmapFlipping(RRCrtcPtr crtc, PixmapPtr front, PixmapPtr back)
     ScreenPtr screen = crtc->pScreen;
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     modesettingPtr ms = modesettingPTR(scrn);
+    EntityInfoPtr pEnt = ms->pEnt;
     xf86CrtcPtr xf86Crtc = crtc->devPrivate;
 
     if (!xf86Crtc)
@@ -985,6 +986,19 @@ msEnableSharedPixmapFlipping(RRCrtcPtr crtc, PixmapPtr front, PixmapPtr back)
     /* Not currently supported with reverse PRIME */
     if (ms->drmmode.reverse_prime_offload_mode)
         return FALSE;
+
+#if XSERVER_PLATFORM_BUS
+    if (pEnt->location.type == BUS_PLATFORM) {
+        char *syspath =
+            xf86_platform_device_odev_attributes(pEnt->location.id.plat)->
+            syspath;
+
+        /* Not supported for devices using USB transport due to misbehaved
+         * vblank events */
+        if (syspath && strstr(syspath, "usb"))
+            return FALSE;
+    }
+#endif
 
     return drmmode_EnableSharedPixmapFlipping(xf86Crtc, &ms->drmmode,
                                               front, back);
