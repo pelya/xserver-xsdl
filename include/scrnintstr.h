@@ -349,7 +349,16 @@ typedef Bool (*StartPixmapTrackingProcPtr)(PixmapPtr, PixmapPtr,
                                            int dst_x, int dst_y,
                                            Rotation rotation);
 
+typedef Bool (*PresentSharedPixmapProcPtr)(PixmapPtr);
+
+typedef Bool (*RequestSharedPixmapNotifyDamageProcPtr)(PixmapPtr);
+
 typedef Bool (*StopPixmapTrackingProcPtr)(PixmapPtr, PixmapPtr);
+
+typedef Bool (*StopFlippingPixmapTrackingProcPtr)(PixmapPtr,
+                                                  PixmapPtr, PixmapPtr);
+
+typedef Bool (*SharedPixmapNotifyDamageProcPtr)(PixmapPtr);
 
 typedef Bool (*ReplaceScanoutPixmapProcPtr)(DrawablePtr, PixmapPtr, Bool);
 
@@ -604,6 +613,11 @@ typedef struct _Screen {
 
     StartPixmapTrackingProcPtr StartPixmapTracking;
     StopPixmapTrackingProcPtr StopPixmapTracking;
+
+    SharedPixmapNotifyDamageProcPtr SharedPixmapNotifyDamage;
+    RequestSharedPixmapNotifyDamageProcPtr RequestSharedPixmapNotifyDamage;
+    PresentSharedPixmapProcPtr PresentSharedPixmap;
+    StopFlippingPixmapTrackingProcPtr StopFlippingPixmapTracking;
 
     struct xorg_list pixmap_dirty_list;
 
