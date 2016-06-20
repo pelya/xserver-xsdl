@@ -408,24 +408,8 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
     int output_count = 0;
     Bool ret = TRUE;
     int i;
-    uint32_t fb_id;
+    uint32_t fb_id = 0;
     drmModeModeInfo kmode;
-    int height;
-
-    height = pScrn->virtualY;
-
-    if (drmmode->fb_id == 0) {
-        ret = drmModeAddFB(drmmode->fd,
-                           pScrn->virtualX, height,
-                           pScrn->depth, pScrn->bitsPerPixel,
-                           drmmode_bo_get_pitch(&drmmode->front_bo),
-                           drmmode_bo_get_handle(&drmmode->front_bo),
-                           &drmmode->fb_id);
-        if (ret < 0) {
-            ErrorF("failed to add fb %d\n", ret);
-            return FALSE;
-        }
-    }
 
     saved_mode = crtc->mode;
     saved_x = crtc->x;
@@ -484,6 +468,22 @@ drmmode_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode,
             fb_id = drmmode_crtc->rotate_fb_id;
             x = y = 0;
         }
+
+        if (fb_id == 0) {
+            ret = drmModeAddFB(drmmode->fd,
+                               pScrn->virtualX, pScrn->virtualY,
+                               pScrn->depth, pScrn->bitsPerPixel,
+                               drmmode_bo_get_pitch(&drmmode->front_bo),
+                               drmmode_bo_get_handle(&drmmode->front_bo),
+                               &drmmode->fb_id);
+            if (ret < 0) {
+                ErrorF("failed to add fb %d\n", ret);
+                ret = FALSE;
+                goto done;
+            }
+            fb_id = drmmode->fb_id;
+        }
+
         if (drmModeSetCrtc(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
                            fb_id, x, y, output_ids, output_count, &kmode)) {
             xf86DrvMsg(crtc->scrn->scrnIndex, X_ERROR,
@@ -635,11 +635,17 @@ drmmode_set_scanout_pixmap_gpu(xf86CrtcPtr crtc, PixmapPtr ppix)
     PixmapPtr screenpix = screen->GetScreenPixmap(screen);
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
     drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    drmmode_ptr drmmode = drmmode_crtc->drmmode;
     int c, total_width = 0, max_height = 0, this_x = 0;
 
     if (!ppix) {
-        if (crtc->randr_crtc->scanout_pixmap)
+        if (crtc->randr_crtc->scanout_pixmap) {
             PixmapStopDirtyTracking(crtc->randr_crtc->scanout_pixmap, screenpix);
+            if (drmmode->fb_id) {
+                drmModeRmFB(drmmode->fd, drmmode->fb_id);
+                drmmode->fb_id = 0;
+            }
+        }
         drmmode_crtc->prime_pixmap_x = 0;
         return TRUE;
     }
@@ -687,6 +693,7 @@ drmmode_set_scanout_pixmap_cpu(xf86CrtcPtr crtc, PixmapPtr ppix)
         if (crtc->randr_crtc->scanout_pixmap) {
             ppriv = msGetPixmapPriv(drmmode, crtc->randr_crtc->scanout_pixmap);
             drmModeRmFB(drmmode->fd, ppriv->fb_id);
+            ppriv->fb_id = 0;
         }
         if (drmmode_crtc->slave_damage) {
             DamageUnregister(drmmode_crtc->slave_damage);
@@ -1690,7 +1697,6 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
         drmmode_crtc = xf86_config->crtc[0]->driver_private;
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
     drmmode_bo old_front;
-    Bool ret;
     ScreenPtr screen = xf86ScrnToScreen(scrn);
     uint32_t old_fb_id;
     int i, pitch, old_width, old_height, old_pitch;
@@ -1712,8 +1718,9 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
     old_width = scrn->virtualX;
     old_height = scrn->virtualY;
     old_pitch = drmmode_bo_get_pitch(&drmmode->front_bo);
-    old_fb_id = drmmode->fb_id;
     old_front = drmmode->front_bo;
+    old_fb_id = drmmode->fb_id;
+    drmmode->fb_id = 0;
 
     if (!drmmode_create_bo(drmmode, &drmmode->front_bo,
                            width, height, scrn->bitsPerPixel))
@@ -1724,13 +1731,6 @@ drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height)
     scrn->virtualX = width;
     scrn->virtualY = height;
     scrn->displayWidth = pitch / cpp;
-
-    ret = drmModeAddFB(drmmode->fd, width, height, scrn->depth,
-                       scrn->bitsPerPixel, pitch,
-                       drmmode_bo_get_handle(&drmmode->front_bo),
-                       &drmmode->fb_id);
-    if (ret)
-        goto fail;
 
     if (!drmmode->gbm) {
         new_pixels = drmmode_map_front_bo(drmmode);

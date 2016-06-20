@@ -3789,9 +3789,7 @@ static int init_screen(ScreenPtr pScreen, int i, Bool gpu)
     pScreen->CreateScreenResources = 0;
 
     xorg_list_init(&pScreen->pixmap_dirty_list);
-    xorg_list_init(&pScreen->unattached_list);
-    xorg_list_init(&pScreen->output_slave_list);
-    xorg_list_init(&pScreen->offload_slave_list);
+    xorg_list_init(&pScreen->slave_list);
 
     /*
      * This loop gets run once for every Screen that gets added,
@@ -3950,7 +3948,7 @@ AttachUnboundGPU(ScreenPtr pScreen, ScreenPtr new)
 {
     assert(new->isGPU);
     assert(!new->current_master);
-    xorg_list_add(&new->unattached_head, &pScreen->unattached_list);
+    xorg_list_add(&new->slave_head, &pScreen->slave_list);
     new->current_master = pScreen;
 }
 
@@ -3958,7 +3956,9 @@ void
 DetachUnboundGPU(ScreenPtr slave)
 {
     assert(slave->isGPU);
-    xorg_list_del(&slave->unattached_head);
+    assert(!slave->is_output_slave);
+    assert(!slave->is_offload_slave);
+    xorg_list_del(&slave->slave_head);
     slave->current_master = NULL;
 }
 
@@ -3966,31 +3966,35 @@ void
 AttachOutputGPU(ScreenPtr pScreen, ScreenPtr new)
 {
     assert(new->isGPU);
-    xorg_list_add(&new->output_head, &pScreen->output_slave_list);
-    new->current_master = pScreen;
+    assert(!new->is_output_slave);
+    assert(new->current_master == pScreen);
+    new->is_output_slave = TRUE;
+    new->current_master->output_slaves++;
 }
 
 void
 DetachOutputGPU(ScreenPtr slave)
 {
     assert(slave->isGPU);
-    xorg_list_del(&slave->output_head);
-    slave->current_master = NULL;
+    assert(slave->is_output_slave);
+    slave->current_master->output_slaves--;
+    slave->is_output_slave = FALSE;
 }
 
 void
 AttachOffloadGPU(ScreenPtr pScreen, ScreenPtr new)
 {
     assert(new->isGPU);
-    xorg_list_add(&new->offload_head, &pScreen->offload_slave_list);
-    new->current_master = pScreen;
+    assert(!new->is_offload_slave);
+    assert(new->current_master == pScreen);
+    new->is_offload_slave = TRUE;
 }
 
 void
 DetachOffloadGPU(ScreenPtr slave)
 {
     assert(slave->isGPU);
-    xorg_list_del(&slave->offload_head);
-    slave->current_master = NULL;
+    assert(slave->is_offload_slave);
+    slave->is_offload_slave = FALSE;
 }
 
