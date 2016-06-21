@@ -827,9 +827,7 @@ DefineSelf(int fd)
 
             /*
              * ignore 'localhost' entries as they're not useful
-             * on the other end of the wire and because on hosts
-             * with shared home dirs they'll result in conflicting
-             * entries in ~/.Xauthority
+             * on the other end of the wire
              */
             if (ifr->ifa_flags & IFF_LOOPBACK)
                 continue;
@@ -850,14 +848,6 @@ DefineSelf(int fd)
             else if (family == FamilyInternet6 &&
                      IN6_IS_ADDR_LOOPBACK((struct in6_addr *) addr))
                 continue;
-
-      /* Ignore IPv6 link local addresses (fe80::/10), because
-       * they need a scope identifier, which we have no way
-       * of telling to the other end.
-       */
-      if (family == FamilyInternet6 &&
-         IN6_IS_ADDR_LINKLOCAL((struct in6_addr *)addr))
-         continue;
 #endif
             XdmcpRegisterConnection(family, (char *) addr, len);
 #if defined(IPv6) && defined(AF_INET6)
