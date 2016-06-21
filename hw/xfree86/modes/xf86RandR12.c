@@ -1313,6 +1313,116 @@ xf86RandR12CrtcGetGamma(ScreenPtr pScreen, RRCrtcPtr randr_crtc)
     return TRUE;
 }
 
+static void
+init_one_component(CARD16 *comp, unsigned size, unsigned shift, float gamma)
+{
+    int i;
+
+    if (gamma == 1.0) {
+        for (i = 0; i < size; i++)
+            comp[i] = i << shift;
+    } else {
+        for (i = 0; i < size; i++)
+            comp[i] = (CARD16) (pow((double) i / (double) (size - 1),
+                                   1. / (double) gamma) *
+                               (double) (size - 1) * (1 << shift));
+    }
+}
+
+static Bool
+xf86RandR12CrtcInitGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
+                         float gamma_blue)
+{
+    unsigned size = crtc->randr_crtc->gammaSize, shift;
+    CARD16 *red, *green, *blue;
+
+    if (!crtc->funcs->gamma_set &&
+        (gamma_red != 1.0f || gamma_green != 1.0f || gamma_blue != 1.0f))
+        return FALSE;
+
+    red = xallocarray(size, 3 * sizeof(CARD16));
+    if (!red)
+        return FALSE;
+
+    green = red + size;
+    blue = green + size;
+
+    for (shift = 0; (size << shift) < (1 << 16); shift++);
+
+    init_one_component(red, size, shift, gamma_red);
+    init_one_component(green, size, shift, gamma_green);
+    init_one_component(blue, size, shift, gamma_blue);
+
+    RRCrtcGammaSet(crtc->randr_crtc, red, green, blue);
+    free(red);
+
+    return TRUE;
+}
+
+static Bool
+xf86RandR12OutputInitGamma(xf86OutputPtr output)
+{
+    XF86ConfMonitorPtr mon = output->conf_monitor;
+    float gamma_red = 1.0, gamma_green = 1.0, gamma_blue = 1.0;
+
+    if (!mon)
+        return TRUE;
+
+    /* Get configured values, where they exist. */
+    if (mon->mon_gamma_red >= GAMMA_MIN && mon->mon_gamma_red <= GAMMA_MAX)
+        gamma_red = mon->mon_gamma_red;
+
+    if (mon->mon_gamma_green >= GAMMA_MIN && mon->mon_gamma_green <= GAMMA_MAX)
+        gamma_green = mon->mon_gamma_green;
+
+    if (mon->mon_gamma_blue >= GAMMA_MIN && mon->mon_gamma_blue <= GAMMA_MAX)
+        gamma_blue = mon->mon_gamma_blue;
+
+    /* Don't set gamma 1.0 if another cloned output on this CRTC already set a
+     * different gamma
+     */
+    if (gamma_red != 1.0 || gamma_green != 1.0 || gamma_blue != 1.0) {
+        xf86DrvMsg(output->scrn->scrnIndex, X_INFO,
+                   "Output %s wants gamma correction (%.1f, %.1f, %.1f)\n",
+                   output->name, gamma_red, gamma_green, gamma_blue);
+        return xf86RandR12CrtcInitGamma(output->crtc, gamma_red, gamma_green,
+                                        gamma_blue);
+    }
+
+    return TRUE;
+}
+
+static Bool
+xf86RandR12InitGamma(ScrnInfoPtr pScrn, unsigned gammaSize) {
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
+    int o, c;
+
+    /* Set default gamma for all CRTCs
+     * This is done to avoid problems later on with cloned outputs
+     */
+    for (c = 0; c < config->num_crtc; c++) {
+        xf86CrtcPtr crtc = config->crtc[c];
+
+        if (!RRCrtcGammaSetSize(crtc->randr_crtc, gammaSize) ||
+            !xf86RandR12CrtcInitGamma(crtc, 1.0f, 1.0f, 1.0f))
+            return FALSE;
+    }
+
+    /* Set initial gamma per monitor configuration
+     */
+    for (o = 0; o < config->num_output; o++) {
+        xf86OutputPtr output = config->output[o];
+
+        if (output->crtc &&
+            !xf86RandR12OutputInitGamma(output))
+            xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
+                       "Initial gamma correction for output %s: failed.\n",
+                       output->name);
+    }
+
+    return TRUE;
+}
+
 static Bool
 xf86RandR12OutputSetProperty(ScreenPtr pScreen,
                              RROutputPtr randr_output,
@@ -1533,7 +1643,6 @@ xf86RandR12CreateObjects12(ScreenPtr pScreen)
         xf86CrtcPtr crtc = config->crtc[c];
 
         crtc->randr_crtc = RRCrtcCreate(pScreen, crtc);
-        RRCrtcGammaSetSize(crtc->randr_crtc, 256);
     }
     /*
      * Configure outputs
@@ -2011,6 +2120,10 @@ xf86RandR12Init12(ScreenPtr pScreen)
      */
     if (!xf86RandR12SetInfo12(pScreen))
         return FALSE;
+
+    if (!xf86RandR12InitGamma(pScrn, 256))
+        return FALSE;
+
     for (i = 0; i < rp->numCrtcs; i++) {
         xf86RandR12CrtcGetGamma(pScreen, rp->crtcs[i]);
     }
