@@ -1279,40 +1279,6 @@ xf86RandR12CrtcSetGamma(ScreenPtr pScreen, RRCrtcPtr randr_crtc)
     return TRUE;
 }
 
-static Bool
-xf86RandR12CrtcGetGamma(ScreenPtr pScreen, RRCrtcPtr randr_crtc)
-{
-    xf86CrtcPtr crtc = randr_crtc->devPrivate;
-
-    if (!crtc->gamma_size)
-        return FALSE;
-
-    if (!crtc->gamma_red || !crtc->gamma_green || !crtc->gamma_blue)
-        return FALSE;
-
-    /* Realloc randr gamma if needed. */
-    if (randr_crtc->gammaSize != crtc->gamma_size) {
-        CARD16 *tmp_ptr;
-
-        tmp_ptr = reallocarray(randr_crtc->gammaRed,
-                               crtc->gamma_size, 3 * sizeof(CARD16));
-        if (!tmp_ptr)
-            return FALSE;
-        randr_crtc->gammaRed = tmp_ptr;
-        randr_crtc->gammaGreen = randr_crtc->gammaRed + crtc->gamma_size;
-        randr_crtc->gammaBlue = randr_crtc->gammaGreen + crtc->gamma_size;
-    }
-    randr_crtc->gammaSize = crtc->gamma_size;
-    memcpy(randr_crtc->gammaRed, crtc->gamma_red,
-           crtc->gamma_size * sizeof(CARD16));
-    memcpy(randr_crtc->gammaGreen, crtc->gamma_green,
-           crtc->gamma_size * sizeof(CARD16));
-    memcpy(randr_crtc->gammaBlue, crtc->gamma_blue,
-           crtc->gamma_size * sizeof(CARD16));
-
-    return TRUE;
-}
-
 static void
 init_one_component(CARD16 *comp, unsigned size, unsigned shift, float gamma)
 {
@@ -2077,13 +2043,11 @@ xf86RandR12Init12(ScreenPtr pScreen)
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     rrScrPrivPtr rp = rrGetScrPriv(pScreen);
     XF86RandRInfoPtr randrp = XF86RANDRINFO(pScreen);
-    int i;
 
     rp->rrGetInfo = xf86RandR12GetInfo12;
     rp->rrScreenSetSize = xf86RandR12ScreenSetSize;
     rp->rrCrtcSet = xf86RandR12CrtcSet;
     rp->rrCrtcSetGamma = xf86RandR12CrtcSetGamma;
-    rp->rrCrtcGetGamma = xf86RandR12CrtcGetGamma;
     rp->rrOutputSetProperty = xf86RandR12OutputSetProperty;
     rp->rrOutputValidateMode = xf86RandR12OutputValidateMode;
 #if RANDR_13_INTERFACE
@@ -2124,9 +2088,6 @@ xf86RandR12Init12(ScreenPtr pScreen)
     if (!xf86RandR12InitGamma(pScrn, 256))
         return FALSE;
 
-    for (i = 0; i < rp->numCrtcs; i++) {
-        xf86RandR12CrtcGetGamma(pScreen, rp->crtcs[i]);
-    }
     return TRUE;
 }
 
