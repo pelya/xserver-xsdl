@@ -132,6 +132,7 @@ struct xwl_seat {
     struct wl_surface *cursor;
     struct wl_callback *cursor_frame_cb;
     Bool cursor_needs_update;
+    WindowPtr last_xwindow;
 
     struct xorg_list touches;
 

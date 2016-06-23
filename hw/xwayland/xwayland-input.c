@@ -959,7 +959,7 @@ xwl_xy_to_window(ScreenPtr screen, SpritePtr sprite, int x, int y)
         }
     }
 
-    if (xwl_seat == NULL || !xwl_seat->focus_window) {
+    if (xwl_seat == NULL) {
         sprite->spriteTraceGood = 1;
         return sprite->spriteTrace[0];
     }
@@ -968,6 +968,19 @@ xwl_xy_to_window(ScreenPtr screen, SpritePtr sprite, int x, int y)
     ret = screen->XYToWindow(screen, sprite, x, y);
     xwl_seat->xwl_screen->XYToWindow = screen->XYToWindow;
     screen->XYToWindow = xwl_xy_to_window;
+
+    /* If the pointer has left the Wayland surface but the DIX still
+     * finds the pointer within the previous X11 window, it means that
+     * the pointer has crossed to another native Wayland window, in this
+     * case, pretend we entered the root window so that a LeaveNotify
+     * event is emitted.
+     */
+    if (xwl_seat->focus_window == NULL && xwl_seat->last_xwindow == ret) {
+        sprite->spriteTraceGood = 1;
+        return sprite->spriteTrace[0];
+    }
+
+    xwl_seat->last_xwindow = ret;
 
     return ret;
 }
