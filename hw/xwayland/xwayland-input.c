@@ -494,6 +494,8 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
     xkbStateNotify sn;
     CARD16 changed;
 
+    mieqProcessInputEvents();
+
     for (dev = inputInfo.devices; dev; dev = dev->next) {
         if (dev != xwl_seat->keyboard &&
             dev != GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD))
@@ -502,12 +504,11 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
         old_state = dev->key->xkbInfo->state;
         new_state = &dev->key->xkbInfo->state;
 
-        if (!xwl_seat->keyboard_focus) {
-            new_state->locked_mods = mods_locked & XkbAllModifiersMask;
-            XkbLatchModifiers(dev, XkbAllModifiersMask,
-                              mods_latched & XkbAllModifiersMask);
-        }
         new_state->locked_group = group & XkbAllGroupsMask;
+        new_state->base_mods = mods_depressed & XkbAllModifiersMask;
+        new_state->locked_mods = mods_locked & XkbAllModifiersMask;
+        XkbLatchModifiers(dev, XkbAllModifiersMask,
+                          mods_latched & XkbAllModifiersMask);
 
         XkbComputeDerivedState(dev->key->xkbInfo);
 
