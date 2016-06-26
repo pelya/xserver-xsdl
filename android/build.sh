@@ -1011,6 +1011,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
+--without-libuuid \
 || exit 1
 
 cp -f `which libtool` ./
@@ -1335,7 +1336,9 @@ env CFLAGS=" -DDEBUG \
 	-I$BUILDDIR/../../../../../../jni/crypto/include" \
 LDFLAGS="-L$BUILDDIR -L$BUILDDIR/../../../../../../jni/crypto/lib-$TARGET_ARCH" \
 ./setCrossEnvironment.sh \
-LIBS="-lfontenc -lfreetype -llog -lSDL -lGLESv1_CM -landroid-shmem -lcrypto" \
+LIBS="-lfontenc -lfreetype -llog -lSDL -lGLESv1_CM -landroid-shmem -l:libcrypto.so.sdl.0.so" \
+OPENSSL_LIBS=-l:libcrypto.so.sdl.0.so \
+LIBSHA1_LIBS=-l:libcrypto.so.sdl.0.so \
 ../../configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
