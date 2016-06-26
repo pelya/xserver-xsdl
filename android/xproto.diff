@@ -1,5 +1,14 @@
 --- Xos_r.h	2013-03-30 01:21:00.000000000 +0200
 +++ Xos_r.h	2013-11-01 19:59:53.048246394 +0200
+@@ -232,7 +232,7 @@
+ # define _XGetpwuid(u,p)	getpwuid((u))
+ # define _XGetpwnam(u,p)	getpwnam((u))
+ 
+-#elif !defined(XOS_USE_MTSAFE_PWDAPI) || defined(XNO_MTSAFE_PWDAPI)
++#elif !defined(XOS_USE_MTSAFE_PWDAPI) || defined(XNO_MTSAFE_PWDAPI) || defined(__ANDROID__)
+ /* UnixWare 2.0, or other systems with thread support but no _r API. */
+ # define X_NEEDS_PWPARAMS
+ typedef struct {
 @@ -289,16 +289,7 @@
      ((p).pws.pw_passwd = (p).pws.pw_name + (p).len + 1), \
      ((p).len = strlen((p).pwp->pw_passwd)), \
