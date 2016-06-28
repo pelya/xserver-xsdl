@@ -297,7 +297,7 @@ __glXDRIcontextWait(__GLXcontext * baseContext,
     }
 
     if (ret) {
-        *error = cl->client->noClientException;
+        *error = -1;
         return TRUE;
     }
 
