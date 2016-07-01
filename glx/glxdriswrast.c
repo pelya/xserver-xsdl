@@ -396,6 +396,7 @@ initializeExtensions(__GLXscreen * screen)
     __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_framebuffer_sRGB");
     __glXEnableExtension(screen->glx_enable_bits, "GLX_ARB_fbconfig_float");
     __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_fbconfig_packed_float");
+    __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_texture_from_pixmap");
 
     extensions = dri->core->getExtensions(dri->driScreen);
 
@@ -407,8 +408,6 @@ initializeExtensions(__GLXscreen * screen)
 
         if (strcmp(extensions[i]->name, __DRI_TEX_BUFFER) == 0) {
             dri->texBuffer = (const __DRItexBufferExtension *) extensions[i];
-            __glXEnableExtension(screen->glx_enable_bits,
-                                 "GLX_EXT_texture_from_pixmap\n");
         }
 
 #ifdef __DRI2_FLUSH_CONTROL
