@@ -956,6 +956,7 @@ drmmode_set_target_scanout_pixmap_cpu(xf86CrtcPtr crtc, PixmapPtr ppix,
             DamageUnregister(ppriv->slave_damage);
             ppriv->slave_damage = NULL;
         }
+        *target = NULL;
     }
 
     if (!ppix)
