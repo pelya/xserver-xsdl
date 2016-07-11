@@ -527,4 +527,7 @@
 /* Use input thread */
 #undef INPUTTHREAD
 
+/* Have poll() */
+#undef HAVE_POLL
+
 #endif /* _DIX_CONFIG_H_ */

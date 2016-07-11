@@ -7,6 +7,8 @@ XDMCP_SRCS = xdmcp.c
 XORG_SRCS = log.c
 BUSFAULT_SRCS = busfault.c
 
+XSERVER_POLL_SRCS=xserver_poll.c
+
 libos_la_SOURCES = 	\
 	WaitFor.c	\
 	access.c	\
@@ -30,6 +32,11 @@ libos_la_LIBADD = @SHA1_LIBS@ $(DLOPEN_LIBS) $(LTLIBOBJS)
 
 if SECURE_RPC
 libos_la_SOURCES += $(SECURERPC_SRCS)
+endif
+
+if POLL
+else
+libos_la_SOURCES += $(XSERVER_POLL_SRCS)
 endif
 
 if XDMCP
