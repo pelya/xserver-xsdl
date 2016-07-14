@@ -79,14 +79,7 @@ xf86AddDriver(DriverPtr driver, void *module, int flags)
     xf86DriverList = xnfreallocarray(xf86DriverList,
                                      xf86NumDrivers, sizeof(DriverPtr));
     xf86DriverList[xf86NumDrivers - 1] = xnfalloc(sizeof(DriverRec));
-    if (flags & HaveDriverFuncs)
-        *xf86DriverList[xf86NumDrivers - 1] = *driver;
-    else {
-        (void) memset(xf86DriverList[xf86NumDrivers - 1], 0, sizeof(DriverRec));
-        (void) memcpy(xf86DriverList[xf86NumDrivers - 1], driver,
-                      sizeof(DriverRec1));
-
-    }
+    *xf86DriverList[xf86NumDrivers - 1] = *driver;
     xf86DriverList[xf86NumDrivers - 1]->module = module;
     xf86DriverList[xf86NumDrivers - 1]->refCount = 0;
 }
