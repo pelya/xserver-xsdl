@@ -515,6 +515,15 @@ dispatch_dirty_region(ScrnInfoPtr scrn,
 
         /* TODO query connector property to see if this is needed */
         ret = drmModeDirtyFB(ms->fd, fb_id, clip, num_cliprects);
+
+        /* if we're swamping it with work, try one at a time */
+        if (ret == -EINVAL) {
+            for (i = 0; i < num_cliprects; i++) {
+                if ((ret = drmModeDirtyFB(ms->fd, fb_id, &clip[i], 1)) < 0)
+                    break;
+            }
+        }
+
         free(clip);
         DamageEmpty(damage);
     }
