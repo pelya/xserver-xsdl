@@ -717,8 +717,7 @@ void winSetAuthorization(void);
 
 void
 
-winBlockHandler(ScreenPtr pScreen,
-                void *pTimeout, void *pReadMask);
+winBlockHandler(ScreenPtr pScreen, void *pTimeout);
 
 #ifdef XWIN_CLIPBOARD
 /*
