@@ -1310,8 +1310,16 @@ xf86RandR12CrtcSetGamma(ScreenPtr pScreen, RRCrtcPtr randr_crtc)
 
     if (randrp->palette_size) {
         xf86RandR12CrtcComputeGamma(pScreen, randr_crtc);
-        xf86RandR12CrtcReloadGamma(randr_crtc);
+    } else {
+        memcpy(crtc->gamma_red, randr_crtc->gammaRed,
+               crtc->gamma_size * sizeof(crtc->gamma_red[0]));
+        memcpy(crtc->gamma_green, randr_crtc->gammaGreen,
+               crtc->gamma_size * sizeof(crtc->gamma_green[0]));
+        memcpy(crtc->gamma_blue, randr_crtc->gammaBlue,
+               crtc->gamma_size * sizeof(crtc->gamma_blue[0]));
     }
+
+    xf86RandR12CrtcReloadGamma(randr_crtc);
 
     return TRUE;
 }
