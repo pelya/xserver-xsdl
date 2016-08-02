@@ -364,6 +364,8 @@ frame_callback(void *data,
                uint32_t time)
 {
     struct xwl_window *xwl_window = data;
+
+    wl_callback_destroy (xwl_window->frame_callback);
     xwl_window->frame_callback = NULL;
 }
 
