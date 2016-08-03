@@ -417,7 +417,7 @@ present_set_tree_pixmap(WindowPtr window,
     TraverseTree(window, present_set_tree_pixmap_visit, &visit);
 }
 
-static void
+void
 present_restore_screen_pixmap(ScreenPtr screen)
 {
     present_screen_priv_ptr screen_priv = present_screen_priv(screen);
@@ -451,7 +451,7 @@ present_restore_screen_pixmap(ScreenPtr screen)
         present_set_tree_pixmap(screen->root, NULL, screen_pixmap);
 }
 
-static void
+void
 present_set_abort_flip(ScreenPtr screen)
 {
     present_screen_priv_ptr screen_priv = present_screen_priv(screen);
