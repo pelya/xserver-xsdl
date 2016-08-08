@@ -453,7 +453,7 @@ global_remove(void *data, struct wl_registry *registry, uint32_t name)
     xorg_list_for_each_entry_safe(xwl_output, tmp_xwl_output,
                                   &xwl_screen->output_list, link) {
         if (xwl_output->server_output_id == name) {
-            xwl_output_destroy(xwl_output);
+            xwl_output_remove(xwl_output);
             break;
         }
     }

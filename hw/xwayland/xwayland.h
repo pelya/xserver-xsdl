@@ -174,6 +174,8 @@ struct xwl_output *xwl_output_create(struct xwl_screen *xwl_screen,
 
 void xwl_output_destroy(struct xwl_output *xwl_output);
 
+void xwl_output_remove(struct xwl_output *xwl_output);
+
 RRModePtr xwayland_cvt(int HDisplay, int VDisplay,
                        float VRefresh, Bool Reduced, Bool Interlaced);
 
