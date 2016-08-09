@@ -205,7 +205,7 @@ InputThreadRegisterDev(int fd,
     dev->state = device_state_added;
 
     input_lock();
-    xorg_list_add(&dev->node, &inputThreadInfo->devs);
+    xorg_list_append(&dev->node, &inputThreadInfo->devs);
 
     inputThreadInfo->changed = TRUE;
 
