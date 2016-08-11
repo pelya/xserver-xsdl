@@ -188,24 +188,38 @@ InputThreadRegisterDev(int fd,
                        NotifyFdProcPtr readInputProc,
                        void *readInputArgs)
 {
-    InputThreadDevice *dev;
+    InputThreadDevice *dev, *old;
 
     if (!inputThreadInfo)
         return SetNotifyFd(fd, readInputProc, X_NOTIFY_READ, readInputArgs);
 
-    dev = calloc(1, sizeof(InputThreadDevice));
-    if (dev == NULL) {
-        DebugF("input-thread: could not register device\n");
-        return 0;
+    input_lock();
+
+    dev = NULL;
+    xorg_list_for_each_entry(old, &inputThreadInfo->devs, node) {
+        if (old->fd == fd) {
+            dev = old;
+            break;
+        }
     }
 
-    dev->fd = fd;
-    dev->readInputProc = readInputProc;
-    dev->readInputArgs = readInputArgs;
-    dev->state = device_state_added;
+    if (dev) {
+        dev->readInputProc = readInputProc;
+        dev->readInputArgs = readInputArgs;
+    } else {
+        dev = calloc(1, sizeof(InputThreadDevice));
+        if (dev == NULL) {
+            DebugF("input-thread: could not register device\n");
+            input_unlock();
+            return 0;
+        }
 
-    input_lock();
-    xorg_list_append(&dev->node, &inputThreadInfo->devs);
+        dev->fd = fd;
+        dev->readInputProc = readInputProc;
+        dev->readInputArgs = readInputArgs;
+        dev->state = device_state_added;
+        xorg_list_append(&dev->node, &inputThreadInfo->devs);
+    }
 
     inputThreadInfo->changed = TRUE;
 
