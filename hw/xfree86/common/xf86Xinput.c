@@ -957,10 +957,10 @@ xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL enable)
         input_lock();
         EnableDevice(dev, TRUE);
         if (!dev->enabled) {
-            OsReleaseSignals();
             xf86Msg(X_ERROR, "Couldn't init device \"%s\"\n", pInfo->name);
             RemoveDevice(dev, TRUE);
             rval = BadMatch;
+            input_unlock();
             goto unwind;
         }
         /* send enter/leave event, update sprite window */
