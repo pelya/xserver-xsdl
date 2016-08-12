@@ -54,6 +54,7 @@ struct ospollfd {
     enum ospoll_trigger trigger;
     void                (*callback)(int fd, int xevents, void *data);
     void                *data;
+    struct xorg_list    deleted;
 };
 
 struct ospoll {
@@ -61,6 +62,7 @@ struct ospoll {
     struct ospollfd     **fds;
     int                 num;
     int                 size;
+    struct xorg_list    deleted;
 };
 
 #endif
@@ -115,6 +117,19 @@ ospoll_find(struct ospoll *ospoll, int fd)
     return -(lo + 1);
 }
 
+#if EPOLL
+static void
+ospoll_clean_deleted(struct ospoll *ospoll)
+{
+    struct ospollfd     *osfd, *tmp;
+
+    xorg_list_for_each_entry_safe(osfd, tmp, &ospoll->deleted, deleted) {
+        xorg_list_del(&osfd->deleted);
+        free(osfd);
+    }
+}
+#endif
+
 /* Insert an element into an array
  *
  * base: base address of array
@@ -160,6 +175,7 @@ ospoll_create(void)
         free (ospoll);
         return NULL;
     }
+    xorg_list_init(&ospoll->deleted);
     return ospoll;
 #endif
 #if POLL
@@ -174,6 +190,7 @@ ospoll_destroy(struct ospoll *ospoll)
     if (ospoll) {
         assert (ospoll->num == 0);
         close(ospoll->epoll_fd);
+        ospoll_clean_deleted(ospoll);
         free(ospoll->fds);
         free(ospoll);
     }
@@ -291,7 +308,9 @@ ospoll_remove(struct ospoll *ospoll, int fd)
 
         array_delete(ospoll->fds, ospoll->num, sizeof (ospoll->fds[0]), pos);
         ospoll->num--;
-        free (osfd);
+        osfd->callback = NULL;
+        osfd->data = NULL;
+        xorg_list_add(&osfd->deleted, &ospoll->deleted);
 #endif
 #if POLL
         array_delete(ospoll->fds, ospoll->num, sizeof (ospoll->fds[0]), pos);
@@ -382,8 +401,10 @@ ospoll_wait(struct ospoll *ospoll, int timeout)
         if (revents & (~(EPOLLIN|EPOLLOUT)))
             xevents |= X_NOTIFY_ERROR;
 
-        osfd->callback(osfd->fd, xevents, osfd->data);
+        if (osfd->callback)
+            osfd->callback(osfd->fd, xevents, osfd->data);
     }
+    ospoll_clean_deleted(ospoll);
 #endif
 #if POLL
     nready = xserver_poll(ospoll->fds, ospoll->num, timeout);
