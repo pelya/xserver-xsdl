@@ -926,7 +926,9 @@ xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL enable)
 
     xf86AddInput(drv, pInfo);
 
+    input_lock();
     rval = drv->PreInit(drv, pInfo, 0);
+    input_unlock();
 
     if (rval != Success) {
         xf86Msg(X_ERROR, "PreInit returned %d for \"%s\"\n", rval, pInfo->name);
