@@ -82,6 +82,7 @@ struct ospoll {
     struct ospollfd     *osfds;
     int                 num;
     int                 size;
+    Bool                changed;
 };
 
 #endif
@@ -279,6 +280,7 @@ ospoll_add(struct ospoll *ospoll, int fd,
         array_insert(ospoll->fds, ospoll->num, sizeof (ospoll->fds[0]), pos);
         array_insert(ospoll->osfds, ospoll->num, sizeof (ospoll->osfds[0]), pos);
         ospoll->num++;
+        ospoll->changed = TRUE;
 
         ospoll->fds[pos].fd = fd;
         ospoll->fds[pos].events = 0;
@@ -316,6 +318,7 @@ ospoll_remove(struct ospoll *ospoll, int fd)
         array_delete(ospoll->fds, ospoll->num, sizeof (ospoll->fds[0]), pos);
         array_delete(ospoll->osfds, ospoll->num, sizeof (ospoll->osfds[0]), pos);
         ospoll->num--;
+        ospoll->changed = TRUE;
 #endif
     }
 }
@@ -408,6 +411,7 @@ ospoll_wait(struct ospoll *ospoll, int timeout)
 #endif
 #if POLL
     nready = xserver_poll(ospoll->fds, ospoll->num, timeout);
+    ospoll->changed = FALSE;
     if (nready > 0) {
         int f;
         for (f = 0; f < ospoll->num; f++) {
@@ -427,6 +431,12 @@ ospoll_wait(struct ospoll *ospoll, int timeout)
                     xevents |= X_NOTIFY_ERROR;
                 ospoll->osfds[f].callback(ospoll->fds[f].fd, xevents,
                                           ospoll->osfds[f].data);
+
+                /* Check to see if the arrays have changed, and just go back
+                 * around again
+                 */
+                if (ospoll->changed)
+                    break;
             }
         }
     }
