@@ -118,17 +118,6 @@ get_drawable_pixmap(DrawablePtr drawable)
         return screen->GetWindowPixmap((WindowPtr) drawable);
 }
 
-static PixmapPtr
-get_front_buffer(DrawablePtr drawable)
-{
-    PixmapPtr pixmap;
-
-    pixmap = get_drawable_pixmap(drawable);
-    pixmap->refcnt++;
-
-    return pixmap;
-}
-
 static DRI2Buffer2Ptr
 ms_dri2_create_buffer(DrawablePtr drawable, unsigned int attachment,
                       unsigned int format)
@@ -152,8 +141,13 @@ ms_dri2_create_buffer(DrawablePtr drawable, unsigned int attachment,
     }
 
     pixmap = NULL;
-    if (attachment == DRI2BufferFrontLeft)
-        pixmap = get_front_buffer(drawable);
+    if (attachment == DRI2BufferFrontLeft) {
+        pixmap = get_drawable_pixmap(drawable);
+        if (pixmap && pixmap->drawable.pScreen != screen)
+            pixmap = NULL;
+        if (pixmap)
+            pixmap->refcnt++;
+    }
 
     if (pixmap == NULL) {
         int pixmap_width = drawable->width;
