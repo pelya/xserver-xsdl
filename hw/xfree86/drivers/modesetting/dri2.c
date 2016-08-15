@@ -193,8 +193,6 @@ ms_dri2_create_buffer(DrawablePtr drawable, unsigned int attachment,
                                       pixmap_cpp,
                                       0);
         if (pixmap == NULL) {
-            if (pixmap)
-                screen->DestroyPixmap(pixmap);
             free(private);
             free(buffer);
             return NULL;
