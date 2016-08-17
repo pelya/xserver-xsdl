@@ -1382,7 +1382,8 @@ msSharePixmapBacking(PixmapPtr ppix, ScreenPtr screen, void **handle)
     int ret;
     CARD16 stride;
     CARD32 size;
-    ret = glamor_fd_from_pixmap(ppix->drawable.pScreen, ppix, &stride, &size);
+    ret = glamor_shareable_fd_from_pixmap(ppix->drawable.pScreen, ppix,
+                                          &stride, &size);
     if (ret == -1)
         return FALSE;
 
