@@ -53,6 +53,7 @@
 
 struct ms_present_vblank_event {
     uint64_t        event_id;
+    Bool            unflip;
 };
 
 static RRCrtcPtr
@@ -197,13 +198,17 @@ ms_present_flush(WindowPtr window)
  * Notify the extension code
  */
 static void
-ms_present_flip_handler(uint64_t msc, uint64_t ust, void *data)
+ms_present_flip_handler(modesettingPtr ms, uint64_t msc,
+                        uint64_t ust, void *data)
 {
     struct ms_present_vblank_event *event = data;
 
     DebugPresent(("\t\tms:fc %lld msc %llu ust %llu\n",
                   (long long) event->event_id,
                   (long long) msc, (long long) ust));
+
+    if (event->unflip)
+        ms->drmmode.present_flipping = FALSE;
 
     ms_present_vblank_handler(msc, ust, event);
 }
@@ -212,7 +217,7 @@ ms_present_flip_handler(uint64_t msc, uint64_t ust, void *data)
  * Callback for the DRM queue abort code.  A flip has been aborted.
  */
 static void
-ms_present_flip_abort(void *data)
+ms_present_flip_abort(modesettingPtr ms, void *data)
 {
     struct ms_present_vblank_event *event = data;
 
@@ -238,6 +243,9 @@ ms_present_check_flip(RRCrtcPtr crtc,
     int i;
 
     if (!ms->drmmode.pageflip)
+        return FALSE;
+
+    if (ms->drmmode.dri2_flipping)
         return FALSE;
 
     if (!scrn->vtSema)
@@ -286,6 +294,7 @@ ms_present_flip(RRCrtcPtr crtc,
 {
     ScreenPtr screen = crtc->pScreen;
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    modesettingPtr ms = modesettingPTR(scrn);
     xf86CrtcPtr xf86_crtc = crtc->devPrivate;
     drmmode_crtc_private_ptr drmmode_crtc = xf86_crtc->driver_private;
     Bool ret;
@@ -302,10 +311,14 @@ ms_present_flip(RRCrtcPtr crtc,
                   (long long) event_id, (long long) target_msc));
 
     event->event_id = event_id;
+    event->unflip = FALSE;
+
     ret = ms_do_pageflip(screen, pixmap, event, drmmode_crtc->vblank_pipe, !sync_flip,
                          ms_present_flip_handler, ms_present_flip_abort);
     if (!ret)
         xf86DrvMsg(scrn->scrnIndex, X_ERROR, "present flip failed\n");
+    else
+        ms->drmmode.present_flipping = TRUE;
 
     return ret;
 }
@@ -317,6 +330,7 @@ static void
 ms_present_unflip(ScreenPtr screen, uint64_t event_id)
 {
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    modesettingPtr ms = modesettingPTR(scrn);
     PixmapPtr pixmap = screen->GetScreenPixmap(screen);
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(scrn);
     int i;
@@ -327,6 +341,7 @@ ms_present_unflip(ScreenPtr screen, uint64_t event_id)
         return;
 
     event->event_id = event_id;
+    event->unflip = TRUE;
 
     if (ms_present_check_flip(NULL, screen->root, pixmap, TRUE) &&
         ms_do_pageflip(screen, pixmap, event, -1, FALSE,
@@ -358,6 +373,7 @@ ms_present_unflip(ScreenPtr screen, uint64_t event_id)
     }
 
     present_event_notify(event_id, 0, 0);
+    ms->drmmode.present_flipping = FALSE;
 }
 #endif
 

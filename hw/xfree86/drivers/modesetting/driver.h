@@ -156,11 +156,12 @@ Bool ms_present_screen_init(ScreenPtr screen);
 
 #ifdef GLAMOR
 
-typedef void (*ms_pageflip_handler_proc)(uint64_t frame,
+typedef void (*ms_pageflip_handler_proc)(modesettingPtr ms,
+                                         uint64_t frame,
                                          uint64_t usec,
                                          void *data);
 
-typedef void (*ms_pageflip_abort_proc)(void *data);
+typedef void (*ms_pageflip_abort_proc)(modesettingPtr ms, void *data);
 
 int ms_flush_drm_events(ScreenPtr screen);
 

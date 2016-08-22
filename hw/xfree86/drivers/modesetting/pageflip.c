@@ -98,7 +98,7 @@ ms_pageflip_handler(uint64_t msc, uint64_t ust, void *data)
     }
 
     if (flipdata->flip_count == 1) {
-        flipdata->event_handler(flipdata->fe_msc,
+        flipdata->event_handler(ms, flipdata->fe_msc,
                                 flipdata->fe_usec,
                                 flipdata->event);
 
@@ -115,9 +115,12 @@ ms_pageflip_abort(void *data)
 {
     struct ms_crtc_pageflip *flip = data;
     struct ms_flipdata *flipdata = flip->flipdata;
+    ScreenPtr screen = flipdata->screen;
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    modesettingPtr ms = modesettingPTR(scrn);
 
     if (flipdata->flip_count == 1)
-        flipdata->abort_handler(flipdata->event);
+        flipdata->abort_handler(ms, flipdata->event);
 
     ms_pageflip_free(flip);
 }
