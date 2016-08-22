@@ -235,7 +235,7 @@ ms_present_flush(WindowPtr window)
  */
 struct ms_flipdata {
     ScreenPtr screen;
-    struct ms_present_vblank_event *event;
+    void *event;
     /* number of CRTC events referencing this */
     int flip_count;
     uint64_t fe_msc;
@@ -253,6 +253,12 @@ struct ms_crtc_pageflip {
     /* reference to the ms_flipdata */
     struct ms_flipdata *flipdata;
 };
+
+typedef void (*ms_pageflip_handler_proc)(uint64_t frame,
+                                         uint64_t usec,
+                                         void *data);
+
+typedef void (*ms_pageflip_abort_proc)(void *data);
 
 /**
  * Free an ms_crtc_pageflip.
@@ -277,7 +283,7 @@ ms_present_flip_free(struct ms_crtc_pageflip *flip)
  * extension code telling it when that happened
  */
 static void
-ms_flip_handler(uint64_t msc, uint64_t ust, void *data)
+ms_present_flip_handler(uint64_t msc, uint64_t ust, void *data)
 {
     struct ms_crtc_pageflip *flip = data;
     ScreenPtr screen = flip->flipdata->screen;
@@ -331,7 +337,9 @@ ms_present_flip_abort(void *data)
 static Bool
 queue_flip_on_crtc(ScreenPtr screen, xf86CrtcPtr crtc,
                    struct ms_flipdata *flipdata,
-                   int ref_crtc_vblank_pipe, uint32_t flags)
+                   int ref_crtc_vblank_pipe, uint32_t flags,
+                   ms_pageflip_handler_proc pageflip_handler,
+                   ms_pageflip_abort_proc pageflip_abort)
 {
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     modesettingPtr ms = modesettingPTR(scrn);
@@ -353,16 +361,11 @@ queue_flip_on_crtc(ScreenPtr screen, xf86CrtcPtr crtc,
     flip->on_reference_crtc = (drmmode_crtc->vblank_pipe == ref_crtc_vblank_pipe);
     flip->flipdata = flipdata;
 
-    seq = ms_drm_queue_alloc(crtc, flip, ms_flip_handler, ms_present_flip_abort);
+    seq = ms_drm_queue_alloc(crtc, flip, pageflip_handler, pageflip_abort);
     if (!seq) {
         free(flip);
         return FALSE;
     }
-
-    DebugPresent(("\t\tms:fq %lld c %d -> %d seq %llu\n",
-                  (long long) flipdata->event->event_id,
-                  flipdata->flip_count, flipdata->flip_count + 1,
-                  (long long) seq));
 
     /* take a reference on flipdata for use in flip */
     flipdata->flip_count++;
@@ -394,9 +397,11 @@ queue_flip_on_crtc(ScreenPtr screen, xf86CrtcPtr crtc,
 static Bool
 ms_do_pageflip(ScreenPtr screen,
                PixmapPtr new_front,
-               struct ms_present_vblank_event *event,
+               void *event,
                int ref_crtc_vblank_pipe,
-               Bool async)
+               Bool async,
+               ms_pageflip_handler_proc pageflip_handler,
+               ms_pageflip_abort_proc pageflip_abort)
 {
 #ifndef GLAMOR_HAS_GBM
     return FALSE;
@@ -470,7 +475,8 @@ ms_do_pageflip(ScreenPtr screen,
 
         if (!queue_flip_on_crtc(screen, crtc, flipdata,
                                 ref_crtc_vblank_pipe,
-                                flags)) {
+                                flags, pageflip_handler,
+                                pageflip_abort)) {
             goto error_undo;
         }
     }
@@ -588,8 +594,12 @@ ms_present_flip(RRCrtcPtr crtc,
     if (!event)
         return FALSE;
 
+    DebugPresent(("\t\tms:pf %lld msc %llu\n",
+                  (long long) event_id, (long long) target_msc));
+
     event->event_id = event_id;
-    ret = ms_do_pageflip(screen, pixmap, event, drmmode_crtc->vblank_pipe, !sync_flip);
+    ret = ms_do_pageflip(screen, pixmap, event, drmmode_crtc->vblank_pipe, !sync_flip,
+                         ms_present_flip_handler, ms_present_flip_abort);
     if (!ret)
         xf86DrvMsg(scrn->scrnIndex, X_ERROR, "present flip failed\n");
 
@@ -615,7 +625,8 @@ ms_present_unflip(ScreenPtr screen, uint64_t event_id)
     event->event_id = event_id;
 
     if (ms_present_check_flip(NULL, screen->root, pixmap, TRUE) &&
-        ms_do_pageflip(screen, pixmap, event, -1, FALSE)) {
+        ms_do_pageflip(screen, pixmap, event, -1, FALSE,
+                       ms_present_flip_handler, ms_present_flip_abort)) {
         return;
     }
 
