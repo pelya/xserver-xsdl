@@ -156,34 +156,6 @@ Bool ms_present_screen_init(ScreenPtr screen);
 
 #ifdef GLAMOR
 
-/*
- * Event data for an in progress flip.
- * This contains a pointer to the vblank event,
- * and information about the flip in progress.
- * a reference to this is stored in the per-crtc
- * flips.
- */
-struct ms_flipdata {
-    ScreenPtr screen;
-    void *event;
-    /* number of CRTC events referencing this */
-    int flip_count;
-    uint64_t fe_msc;
-    uint64_t fe_usec;
-    uint32_t old_fb_id;
-};
-
-/*
- * Per crtc pageflipping infomation,
- * These are submitted to the queuing code
- * one of them per crtc per flip.
- */
-struct ms_crtc_pageflip {
-    Bool on_reference_crtc;
-    /* reference to the ms_flipdata */
-    struct ms_flipdata *flipdata;
-};
-
 typedef void (*ms_pageflip_handler_proc)(uint64_t frame,
                                          uint64_t usec,
                                          void *data);

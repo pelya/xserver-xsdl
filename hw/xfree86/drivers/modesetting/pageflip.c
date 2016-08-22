@@ -32,6 +32,97 @@
 #ifdef GLAMOR
 
 /*
+ * Event data for an in progress flip.
+ * This contains a pointer to the vblank event,
+ * and information about the flip in progress.
+ * a reference to this is stored in the per-crtc
+ * flips.
+ */
+struct ms_flipdata {
+    ScreenPtr screen;
+    void *event;
+    ms_pageflip_handler_proc event_handler;
+    ms_pageflip_abort_proc abort_handler;
+    /* number of CRTC events referencing this */
+    int flip_count;
+    uint64_t fe_msc;
+    uint64_t fe_usec;
+    uint32_t old_fb_id;
+};
+
+/*
+ * Per crtc pageflipping infomation,
+ * These are submitted to the queuing code
+ * one of them per crtc per flip.
+ */
+struct ms_crtc_pageflip {
+    Bool on_reference_crtc;
+    /* reference to the ms_flipdata */
+    struct ms_flipdata *flipdata;
+};
+
+/**
+ * Free an ms_crtc_pageflip.
+ *
+ * Drops the reference count on the flipdata.
+ */
+static void
+ms_pageflip_free(struct ms_crtc_pageflip *flip)
+{
+    struct ms_flipdata *flipdata = flip->flipdata;
+
+    free(flip);
+    if (--flipdata->flip_count > 0)
+        return;
+    free(flipdata);
+}
+
+/**
+ * Callback for the DRM event queue when a single flip has completed
+ *
+ * Once the flip has been completed on all pipes, notify the
+ * extension code telling it when that happened
+ */
+static void
+ms_pageflip_handler(uint64_t msc, uint64_t ust, void *data)
+{
+    struct ms_crtc_pageflip *flip = data;
+    struct ms_flipdata *flipdata = flip->flipdata;
+    ScreenPtr screen = flipdata->screen;
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    modesettingPtr ms = modesettingPTR(scrn);
+
+    if (flip->on_reference_crtc) {
+        flipdata->fe_msc = msc;
+        flipdata->fe_usec = ust;
+    }
+
+    if (flipdata->flip_count == 1) {
+        flipdata->event_handler(flipdata->fe_msc,
+                                flipdata->fe_usec,
+                                flipdata->event);
+
+        drmModeRmFB(ms->fd, flipdata->old_fb_id);
+    }
+    ms_pageflip_free(flip);
+}
+
+/*
+ * Callback for the DRM queue abort code.  A flip has been aborted.
+ */
+static void
+ms_pageflip_abort(void *data)
+{
+    struct ms_crtc_pageflip *flip = data;
+    struct ms_flipdata *flipdata = flip->flipdata;
+
+    if (flipdata->flip_count == 1)
+        flipdata->abort_handler(flipdata->event);
+
+    ms_pageflip_free(flip);
+}
+
+/*
  * Flush the DRM event queue when full; makes space for new events.
  *
  * Returns a negative value on error, 0 if there was nothing to process,
@@ -68,9 +159,7 @@ ms_flush_drm_events(ScreenPtr screen)
 static Bool
 queue_flip_on_crtc(ScreenPtr screen, xf86CrtcPtr crtc,
                    struct ms_flipdata *flipdata,
-                   int ref_crtc_vblank_pipe, uint32_t flags,
-                   ms_pageflip_handler_proc pageflip_handler,
-                   ms_pageflip_abort_proc pageflip_abort)
+                   int ref_crtc_vblank_pipe, uint32_t flags)
 {
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     modesettingPtr ms = modesettingPTR(scrn);
@@ -92,7 +181,7 @@ queue_flip_on_crtc(ScreenPtr screen, xf86CrtcPtr crtc,
     flip->on_reference_crtc = (drmmode_crtc->vblank_pipe == ref_crtc_vblank_pipe);
     flip->flipdata = flipdata;
 
-    seq = ms_drm_queue_alloc(crtc, flip, pageflip_handler, pageflip_abort);
+    seq = ms_drm_queue_alloc(crtc, flip, ms_pageflip_handler, ms_pageflip_abort);
     if (!seq) {
         free(flip);
         return FALSE;
@@ -164,6 +253,8 @@ ms_do_pageflip(ScreenPtr screen,
 
     flipdata->event = event;
     flipdata->screen = screen;
+    flipdata->event_handler = pageflip_handler;
+    flipdata->abort_handler = pageflip_abort;
 
     /*
      * Take a local reference on flipdata.
@@ -206,8 +297,7 @@ ms_do_pageflip(ScreenPtr screen,
 
         if (!queue_flip_on_crtc(screen, crtc, flipdata,
                                 ref_crtc_vblank_pipe,
-                                flags, pageflip_handler,
-                                pageflip_abort)) {
+                                flags)) {
             goto error_undo;
         }
     }

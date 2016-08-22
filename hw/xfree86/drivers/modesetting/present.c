@@ -192,60 +192,20 @@ ms_present_flush(WindowPtr window)
 #ifdef GLAMOR
 
 /**
- * Free an ms_crtc_pageflip.
+ * Callback for the DRM event queue when a flip has completed on all pipes
  *
- * Drops the reference count on the flipdata.
- */
-static void
-ms_present_flip_free(struct ms_crtc_pageflip *flip)
-{
-    struct ms_flipdata *flipdata = flip->flipdata;
-
-    free(flip);
-    if (--flipdata->flip_count > 0)
-        return;
-    free(flipdata);
-}
-
-/**
- * Callback for the DRM event queue when a single flip has completed
- *
- * Once the flip has been completed on all pipes, notify the
- * extension code telling it when that happened
+ * Notify the extension code
  */
 static void
 ms_present_flip_handler(uint64_t msc, uint64_t ust, void *data)
 {
-    struct ms_crtc_pageflip *flip = data;
-    ScreenPtr screen = flip->flipdata->screen;
-    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
-    modesettingPtr ms = modesettingPTR(scrn);
-    struct ms_flipdata *flipdata = flip->flipdata;
+    struct ms_present_vblank_event *event = data;
 
-    DebugPresent(("\t\tms:fh %lld c %d msc %llu ust %llu\n",
-                  (long long) flipdata->event->event_id,
-                  flipdata->flip_count,
+    DebugPresent(("\t\tms:fc %lld msc %llu ust %llu\n",
+                  (long long) event->event_id,
                   (long long) msc, (long long) ust));
 
-    if (flip->on_reference_crtc) {
-        flipdata->fe_msc = msc;
-        flipdata->fe_usec = ust;
-    }
-
-    if (flipdata->flip_count == 1) {
-        DebugPresent(("\t\tms:fc %lld c %d msc %llu ust %llu\n",
-                      (long long) flipdata->event->event_id,
-                      flipdata->flip_count,
-                      (long long) flipdata->fe_msc, (long long) flipdata->fe_usec));
-
-
-        ms_present_vblank_handler(flipdata->fe_msc,
-                                  flipdata->fe_usec,
-                                  flipdata->event);
-
-        drmModeRmFB(ms->fd, flipdata->old_fb_id);
-    }
-    ms_present_flip_free(flip);
+    ms_present_vblank_handler(msc, ust, event);
 }
 
 /*
@@ -254,15 +214,11 @@ ms_present_flip_handler(uint64_t msc, uint64_t ust, void *data)
 static void
 ms_present_flip_abort(void *data)
 {
-    struct ms_crtc_pageflip *flip = data;
-    struct ms_flipdata *flipdata = flip->flipdata;
+    struct ms_present_vblank_event *event = data;
 
-    DebugPresent(("\t\tms:fa %lld c %d\n", (long long) flipdata->event->event_id, flipdata->flip_count));
+    DebugPresent(("\t\tms:fa %lld\n", (long long) event->event_id));
 
-    if (flipdata->flip_count == 1)
-        free(flipdata->event);
-
-    ms_present_flip_free(flip);
+    free(event);
 }
 
 /*
