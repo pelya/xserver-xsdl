@@ -821,6 +821,26 @@ glamor_fd_from_pixmap(ScreenPtr screen,
     return -1;
 }
 
+_X_EXPORT int
+glamor_shareable_fd_from_pixmap(ScreenPtr screen,
+                                PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
+{
+    unsigned orig_usage_hint = pixmap->usage_hint;
+    int ret;
+
+    /*
+     * The actual difference between a sharable and non sharable buffer
+     * is decided 4 call levels deep in glamor_make_pixmap_exportable()
+     * based on pixmap->usage_hint == CREATE_PIXMAP_USAGE_SHARED
+     * 2 of those calls are also exported API, so we cannot just add a flag.
+     */
+    pixmap->usage_hint = CREATE_PIXMAP_USAGE_SHARED;
+    ret = glamor_fd_from_pixmap(screen, pixmap, stride, size);
+    pixmap->usage_hint = orig_usage_hint;
+
+    return ret;
+}
+
 int
 glamor_name_from_pixmap(PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
 {
