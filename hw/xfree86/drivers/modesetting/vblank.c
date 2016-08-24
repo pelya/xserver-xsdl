@@ -96,7 +96,7 @@ ms_crtc_on(xf86CrtcPtr crtc)
  */
 
 static xf86CrtcPtr
-ms_covering_crtc(ScreenPtr pScreen, BoxPtr box)
+ms_covering_crtc(ScreenPtr pScreen, BoxPtr box, Bool screen_is_ms)
 {
     ScrnInfoPtr scrn = xf86ScreenToScrn(pScreen);
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -104,14 +104,20 @@ ms_covering_crtc(ScreenPtr pScreen, BoxPtr box)
     int coverage, best_coverage;
     int c;
     BoxRec crtc_box, cover_box;
+    Bool crtc_on;
 
     best_crtc = NULL;
     best_coverage = 0;
     for (c = 0; c < xf86_config->num_crtc; c++) {
         crtc = xf86_config->crtc[c];
 
+        if (screen_is_ms)
+            crtc_on = ms_crtc_on(crtc);
+        else
+            crtc_on = crtc->enabled;
+
         /* If the CRTC is off, treat it as not covering */
-        if (!ms_crtc_on(crtc))
+        if (!crtc_on)
             continue;
 
         ms_crtc_box(crtc, &crtc_box);
@@ -136,7 +142,7 @@ ms_dri2_crtc_covering_drawable(DrawablePtr pDraw)
     box.x2 = box.x1 + pDraw->width;
     box.y2 = box.y1 + pDraw->height;
 
-    return ms_covering_crtc(pScreen, &box);
+    return ms_covering_crtc(pScreen, &box, TRUE);
 }
 
 static Bool
