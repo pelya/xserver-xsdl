@@ -128,6 +128,32 @@ ms_covering_crtc(ScreenPtr pScreen, BoxPtr box, Bool screen_is_ms)
             best_coverage = coverage;
         }
     }
+
+    /* Fallback to primary crtc for drawable's on slave outputs */
+    if (best_crtc == NULL && !pScreen->isGPU) {
+        RROutputPtr primary_output = NULL;
+        ScreenPtr slave;
+
+        if (dixPrivateKeyRegistered(rrPrivKey))
+            primary_output = RRFirstOutput(scrn->pScreen);
+        if (!primary_output || !primary_output->crtc)
+            return NULL;
+
+        crtc = primary_output->crtc->devPrivate;
+        if (!ms_crtc_on(crtc))
+            return NULL;
+
+        xorg_list_for_each_entry(slave, &pScreen->slave_list, slave_head) {
+            if (!slave->is_output_slave)
+                continue;
+
+            if (ms_covering_crtc(slave, box, FALSE)) {
+                /* The drawable is on a slave output, return primary crtc */
+                return crtc;
+            }
+        }
+    }
+
     return best_crtc;
 }
 
