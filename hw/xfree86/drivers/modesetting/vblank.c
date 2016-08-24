@@ -92,14 +92,13 @@ ms_crtc_on(xf86CrtcPtr crtc)
 
 /*
  * Return the crtc covering 'box'. If two crtcs cover a portion of
- * 'box', then prefer 'desired'. If 'desired' is NULL, then prefer the crtc
- * with greater coverage
+ * 'box', then prefer the crtc with greater coverage.
  */
 
-xf86CrtcPtr
-ms_covering_crtc(ScrnInfoPtr scrn,
-                 BoxPtr box, xf86CrtcPtr desired, BoxPtr crtc_box_ret)
+static xf86CrtcPtr
+ms_covering_crtc(ScreenPtr pScreen, BoxPtr box)
 {
+    ScrnInfoPtr scrn = xf86ScreenToScrn(pScreen);
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     xf86CrtcPtr crtc, best_crtc;
     int coverage, best_coverage;
@@ -108,10 +107,6 @@ ms_covering_crtc(ScrnInfoPtr scrn,
 
     best_crtc = NULL;
     best_coverage = 0;
-    crtc_box_ret->x1 = 0;
-    crtc_box_ret->x2 = 0;
-    crtc_box_ret->y1 = 0;
-    crtc_box_ret->y2 = 0;
     for (c = 0; c < xf86_config->num_crtc; c++) {
         crtc = xf86_config->crtc[c];
 
@@ -122,12 +117,7 @@ ms_covering_crtc(ScrnInfoPtr scrn,
         ms_crtc_box(crtc, &crtc_box);
         ms_box_intersect(&cover_box, &crtc_box, box);
         coverage = ms_box_area(&cover_box);
-        if (coverage && crtc == desired) {
-            *crtc_box_ret = crtc_box;
-            return crtc;
-        }
         if (coverage > best_coverage) {
-            *crtc_box_ret = crtc_box;
             best_crtc = crtc;
             best_coverage = coverage;
         }
@@ -139,15 +129,14 @@ xf86CrtcPtr
 ms_dri2_crtc_covering_drawable(DrawablePtr pDraw)
 {
     ScreenPtr pScreen = pDraw->pScreen;
-    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
-    BoxRec box, crtcbox;
+    BoxRec box;
 
     box.x1 = pDraw->x;
     box.y1 = pDraw->y;
     box.x2 = box.x1 + pDraw->width;
     box.y2 = box.y1 + pDraw->height;
 
-    return ms_covering_crtc(pScrn, &box, NULL, &crtcbox);
+    return ms_covering_crtc(pScreen, &box);
 }
 
 static Bool
