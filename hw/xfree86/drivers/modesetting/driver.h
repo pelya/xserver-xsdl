@@ -161,8 +161,6 @@ typedef void (*ms_pageflip_handler_proc)(modesettingPtr ms,
 
 typedef void (*ms_pageflip_abort_proc)(modesettingPtr ms, void *data);
 
-int ms_flush_drm_events(ScreenPtr screen);
-
 Bool ms_do_pageflip(ScreenPtr screen,
                     PixmapPtr new_front,
                     void *event,
@@ -172,3 +170,5 @@ Bool ms_do_pageflip(ScreenPtr screen,
                     ms_pageflip_abort_proc pageflip_abort);
 
 #endif
+
+int ms_flush_drm_events(ScreenPtr screen);
