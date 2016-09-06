@@ -120,6 +120,18 @@ xf86InitHardwareCursor(ScreenPtr pScreen, xf86CursorInfoPtr infoPtr)
 }
 
 Bool
+xf86CheckHWCursor(ScreenPtr pScreen, CursorPtr cursor, xf86CursorInfoPtr infoPtr)
+{
+    return
+        (cursor->bits->argb && infoPtr->UseHWCursorARGB &&
+         infoPtr->UseHWCursorARGB(pScreen, cursor)) ||
+        (cursor->bits->argb == 0 &&
+         cursor->bits->height <= infoPtr->MaxHeight &&
+         cursor->bits->width <= infoPtr->MaxWidth &&
+         (!infoPtr->UseHWCursor || infoPtr->UseHWCursor(pScreen, cursor)));
+}
+
+Bool
 xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 {
     xf86CursorScreenPtr ScreenPriv =
