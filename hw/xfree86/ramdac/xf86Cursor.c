@@ -458,9 +458,12 @@ xf86ForceHWCursor(ScreenPtr pScreen, Bool on)
 CursorPtr
 xf86CurrentCursor(ScreenPtr pScreen)
 {
-    xf86CursorScreenPtr ScreenPriv =
-        (xf86CursorScreenPtr) dixLookupPrivate(&pScreen->devPrivates,
-                                               xf86CursorScreenKey);
+    xf86CursorScreenPtr ScreenPriv;
+
+    if (pScreen->is_output_slave)
+        pScreen = pScreen->current_master;
+
+    ScreenPriv = dixLookupPrivate(&pScreen->devPrivates, xf86CursorScreenKey);
     return ScreenPriv->CurrentCursor;
 }
 
