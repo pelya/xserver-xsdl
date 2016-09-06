@@ -74,7 +74,7 @@ xf86_crtc_rotate_coord(Rotation rotation,
         break;
     case RR_Rotate_90:
         t = x_dst;
-        x_dst = height - y_dst - 1;
+        x_dst = width - y_dst - 1;
         y_dst = t;
         break;
     case RR_Rotate_180:
@@ -84,7 +84,7 @@ xf86_crtc_rotate_coord(Rotation rotation,
     case RR_Rotate_270:
         t = x_dst;
         x_dst = y_dst;
-        y_dst = width - t - 1;
+        y_dst = height - t - 1;
         break;
     }
     if (rotation & RR_Reflect_X)
