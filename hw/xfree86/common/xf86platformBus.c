@@ -114,7 +114,15 @@ xf86_find_platform_device_by_devnum(int major, int minor)
 static Bool
 xf86IsPrimaryPlatform(struct xf86_platform_device *plat)
 {
-    return ((primaryBus.type == BUS_PLATFORM) && (plat == primaryBus.id.plat));
+    if (primaryBus.type == BUS_PLATFORM)
+        return plat == primaryBus.id.plat;
+#ifdef XSERVER_LIBPCIACCESS
+    if (primaryBus.type == BUS_PCI)
+        if (plat->pdev)
+            if (MATCH_PCI_DEVICES(primaryBus.id.pci, plat->pdev))
+                return TRUE;
+#endif
+    return FALSE;
 }
 
 static void
