@@ -426,6 +426,19 @@ probeSingleDevice(struct xf86_platform_device *dev, DriverPtr drvp, GDevPtr gdev
     return foundScreen;
 }
 
+static Bool
+isGPUDevice(GDevPtr gdev)
+{
+    int i;
+
+    for (i = 0; i < gdev->myScreenSection->num_gpu_devices; i++) {
+        if (gdev == gdev->myScreenSection->gpu_devices[i])
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 int
 xf86platformProbeDev(DriverPtr drvp)
 {
@@ -458,9 +471,8 @@ xf86platformProbeDev(DriverPtr drvp)
         if (j == xf86_num_platform_devices)
              continue;
 
-        foundScreen = probeSingleDevice(&xf86_platform_devices[j], drvp, devList[i], 0);
-        if (!foundScreen)
-            continue;
+        foundScreen = probeSingleDevice(&xf86_platform_devices[j], drvp, devList[i],
+                                        isGPUDevice(devList[i]) ? PLATFORM_PROBE_GPU_SCREEN : 0);
     }
 
     /* if autoaddgpu devices is enabled then go find any unclaimed platform
