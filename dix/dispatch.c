@@ -362,7 +362,7 @@ SmartScheduleClient(void)
          * has run, bump the slice up to get maximal
          * performance from a single client
          */
-        if ((now - pClient->smart_start_tick) > 1000 &&
+        if ((now - best->smart_start_tick) > 1000 &&
             SmartScheduleSlice < SmartScheduleMaxSlice) {
             SmartScheduleSlice += SmartScheduleInterval;
         }
