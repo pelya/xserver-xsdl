@@ -310,6 +310,12 @@ InputThreadDoWork(void *arg)
 
     inputThreadInfo->running = TRUE;
 
+#if defined(HAVE_PTHREAD_SETNAME_NP_WITH_TID)
+    pthread_setname_np (pthread_self(), "InputThread");
+#elif defined(HAVE_PTHREAD_SETNAME_NP_WITHOUT_TID)
+    pthread_setname_np ("InputThread");
+#endif
+
     ospoll_add(inputThreadInfo->fds, hotplugPipeRead,
                ospoll_trigger_level,
                InputThreadPipeNotify,
@@ -421,6 +427,12 @@ InputThreadPreInit(void)
         (void)fcntl(hotplugPipeRead, F_SETFD, &flags);
     }
     hotplugPipeWrite = hotplugPipe[1];
+
+#if defined(HAVE_PTHREAD_SETNAME_NP_WITH_TID)
+    pthread_setname_np (pthread_self(), "MainThread");
+#elif defined(HAVE_PTHREAD_SETNAME_NP_WITHOUT_TID)
+    pthread_setname_np ("MainThread");
+#endif
 
 }
 

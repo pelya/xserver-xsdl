@@ -870,6 +870,26 @@ if test "x$INPUTTHREAD" = "xyes" ; then
     SYS_LIBS="$SYS_LIBS $PTHREAD_LIBS"
     CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
     AC_DEFINE(INPUTTHREAD, 1, [Use a separate input thread])
+
+    save_LIBS="$LIBS"
+    LIBS="$LIBS $SYS_LIBS"
+    dnl MacOS X 10.6 & higher
+    AC_MSG_CHECKING(for pthread_setname_np(const char*))
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <pthread.h>],
+	                            [pthread_setname_np("example")])],
+                   [AC_MSG_RESULT(yes)
+		    AC_DEFINE(HAVE_PTHREAD_SETNAME_NP_WITHOUT_TID,1,
+		              [Have function pthread_setname_np(const char*)])],
+                   [AC_MSG_RESULT(no)])
+    dnl GNU libc 2.12 & higher, Solaris 11.3 & higher
+    AC_MSG_CHECKING(for pthread_setname_np(pthread_t, const char*))
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <pthread.h>],
+                             [pthread_setname_np(pthread_self(), "example")])],
+                   [AC_MSG_RESULT(yes)
+		    AC_DEFINE(HAVE_PTHREAD_SETNAME_NP_WITH_TID,1,
+	                      [Have function pthread_setname_np(pthread_t, const char*)])],
+		   [AC_MSG_RESULT(no)])
+    LIBS="$save_LIBS"
 fi
 
 REQUIRED_MODULES="$FIXESPROTO $DAMAGEPROTO $XCMISCPROTO $XTRANS $BIGREQSPROTO $SDK_REQUIRED_MODULES"
