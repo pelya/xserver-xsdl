@@ -281,7 +281,7 @@ crtc_bounds(RRCrtcPtr crtc, int *left, int *right, int *top, int *bottom)
     *left = crtc->x;
     *top = crtc->y;
 
-    switch (crtc->rotation) {
+    switch (crtc->rotation & 0xf) {
     case RR_Rotate_0:
     case RR_Rotate_180:
     default:
