@@ -379,6 +379,7 @@ void
 InputThreadPreInit(void)
 {
     int fds[2], hotplugPipe[2];
+    int flags;
 
     if (!InputThreadEnable)
         return;
@@ -402,13 +403,23 @@ InputThreadPreInit(void)
      * in parallel.
      */
     inputThreadInfo->readPipe = fds[0];
-    fcntl(inputThreadInfo->readPipe, F_SETFL, O_NONBLOCK | O_CLOEXEC);
+    fcntl(inputThreadInfo->readPipe, F_SETFL, O_NONBLOCK);
+    flags = fcntl(inputThreadInfo->readPipe, F_GETFD);
+    if (flags != -1) {
+        flags |= FD_CLOEXEC;
+        (void)fcntl(inputThreadInfo->readPipe, F_SETFD, &flags);
+    }
     SetNotifyFd(inputThreadInfo->readPipe, InputThreadNotifyPipe, X_NOTIFY_READ, NULL);
 
     inputThreadInfo->writePipe = fds[1];
 
     hotplugPipeRead = hotplugPipe[0];
-    fcntl(hotplugPipeRead, F_SETFL, O_NONBLOCK | O_CLOEXEC);
+    fcntl(hotplugPipeRead, F_SETFL, O_NONBLOCK);
+    flags = fcntl(hotplugPipeRead, F_GETFD);
+    if (flags != -1) {
+        flags |= FD_CLOEXEC;
+        (void)fcntl(hotplugPipeRead, F_SETFD, &flags);
+    }
     hotplugPipeWrite = hotplugPipe[1];
 
 }
