@@ -1213,7 +1213,8 @@ shm_tmpfile(void)
 	if (fd < 0)
 		return -1;
 	unlink(template);
-	if (fcntl(fd, F_GETFD, &flags) >= 0) {
+	flags = fcntl(fd, F_GETFD);
+	if (flags != -1) {
 		flags |= FD_CLOEXEC;
 		(void) fcntl(fd, F_SETFD, &flags);
 	}
