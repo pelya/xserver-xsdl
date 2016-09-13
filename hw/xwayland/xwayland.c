@@ -103,6 +103,12 @@ static DevPrivateKeyRec xwl_window_private_key;
 static DevPrivateKeyRec xwl_screen_private_key;
 static DevPrivateKeyRec xwl_pixmap_private_key;
 
+static struct xwl_window *
+xwl_window_get(WindowPtr window)
+{
+    return dixLookupPrivate(&window->devPrivates, &xwl_window_private_key);
+}
+
 struct xwl_screen *
 xwl_screen_get(ScreenPtr screen)
 {
@@ -335,8 +341,7 @@ xwl_unrealize_window(WindowPtr window)
     xwl_screen->UnrealizeWindow = screen->UnrealizeWindow;
     screen->UnrealizeWindow = xwl_unrealize_window;
 
-    xwl_window =
-        dixLookupPrivate(&window->devPrivates, &xwl_window_private_key);
+    xwl_window = xwl_window_get(window);
     if (!xwl_window)
         return ret;
 
