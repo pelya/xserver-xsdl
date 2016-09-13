@@ -768,74 +768,111 @@ add_device(struct xwl_seat *xwl_seat,
 }
 
 static void
+init_pointer(struct xwl_seat *xwl_seat)
+{
+    xwl_seat->wl_pointer = wl_seat_get_pointer(xwl_seat->seat);
+    wl_pointer_add_listener(xwl_seat->wl_pointer,
+                            &pointer_listener, xwl_seat);
+
+    if (xwl_seat->pointer == NULL) {
+        xwl_seat_set_cursor(xwl_seat);
+        xwl_seat->pointer =
+            add_device(xwl_seat, "xwayland-pointer", xwl_pointer_proc);
+        ActivateDevice(xwl_seat->pointer, TRUE);
+    }
+    EnableDevice(xwl_seat->pointer, TRUE);
+}
+
+static void
+release_pointer(struct xwl_seat *xwl_seat)
+{
+    wl_pointer_release(xwl_seat->wl_pointer);
+    xwl_seat->wl_pointer = NULL;
+
+    if (xwl_seat->pointer)
+        DisableDevice(xwl_seat->pointer, TRUE);
+}
+
+static void
+init_keyboard(struct xwl_seat *xwl_seat)
+{
+    DeviceIntPtr master;
+
+    xwl_seat->wl_keyboard = wl_seat_get_keyboard(xwl_seat->seat);
+    wl_keyboard_add_listener(xwl_seat->wl_keyboard,
+                             &keyboard_listener, xwl_seat);
+
+    if (xwl_seat->keyboard == NULL) {
+        xwl_seat->keyboard =
+            add_device(xwl_seat, "xwayland-keyboard", xwl_keyboard_proc);
+        ActivateDevice(xwl_seat->keyboard, TRUE);
+    }
+    EnableDevice(xwl_seat->keyboard, TRUE);
+    xwl_seat->keyboard->key->xkbInfo->checkRepeat = keyboard_check_repeat;
+    master = GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD);
+    if (master)
+        master->key->xkbInfo->checkRepeat = keyboard_check_repeat;
+}
+
+static void
+release_keyboard(struct xwl_seat *xwl_seat)
+{
+    wl_keyboard_release(xwl_seat->wl_keyboard);
+    xwl_seat->wl_keyboard = NULL;
+
+    if (xwl_seat->keyboard) {
+        remove_sync_pending(xwl_seat->keyboard);
+        DisableDevice(xwl_seat->keyboard, TRUE);
+    }
+}
+
+static void
+init_touch(struct xwl_seat *xwl_seat)
+{
+    xwl_seat->wl_touch = wl_seat_get_touch(xwl_seat->seat);
+    wl_touch_add_listener(xwl_seat->wl_touch,
+                          &touch_listener, xwl_seat);
+
+    if (xwl_seat->touch)
+        EnableDevice(xwl_seat->touch, TRUE);
+    else {
+        xwl_seat->touch =
+            add_device(xwl_seat, "xwayland-touch", xwl_touch_proc);
+    }
+}
+
+static void
+release_touch(struct xwl_seat *xwl_seat)
+{
+    wl_touch_release(xwl_seat->wl_touch);
+    xwl_seat->wl_touch = NULL;
+
+    if (xwl_seat->touch)
+        DisableDevice(xwl_seat->touch, TRUE);
+}
+
+static void
 seat_handle_capabilities(void *data, struct wl_seat *seat,
                          enum wl_seat_capability caps)
 {
     struct xwl_seat *xwl_seat = data;
-    DeviceIntPtr master;
 
     if (caps & WL_SEAT_CAPABILITY_POINTER && xwl_seat->wl_pointer == NULL) {
-        xwl_seat->wl_pointer = wl_seat_get_pointer(seat);
-        wl_pointer_add_listener(xwl_seat->wl_pointer,
-                                &pointer_listener, xwl_seat);
-
-        if (xwl_seat->pointer == NULL) {
-            xwl_seat_set_cursor(xwl_seat);
-            xwl_seat->pointer =
-                add_device(xwl_seat, "xwayland-pointer", xwl_pointer_proc);
-            ActivateDevice(xwl_seat->pointer, TRUE);
-        }
-        EnableDevice(xwl_seat->pointer, TRUE);
+        init_pointer(xwl_seat);
     } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && xwl_seat->wl_pointer) {
-        wl_pointer_release(xwl_seat->wl_pointer);
-        xwl_seat->wl_pointer = NULL;
-
-        if (xwl_seat->pointer)
-            DisableDevice(xwl_seat->pointer, TRUE);
+        release_pointer(xwl_seat);
     }
 
     if (caps & WL_SEAT_CAPABILITY_KEYBOARD && xwl_seat->wl_keyboard == NULL) {
-        xwl_seat->wl_keyboard = wl_seat_get_keyboard(seat);
-        wl_keyboard_add_listener(xwl_seat->wl_keyboard,
-                                 &keyboard_listener, xwl_seat);
-
-        if (xwl_seat->keyboard == NULL) {
-            xwl_seat->keyboard =
-                add_device(xwl_seat, "xwayland-keyboard", xwl_keyboard_proc);
-            ActivateDevice(xwl_seat->keyboard, TRUE);
-        }
-        EnableDevice(xwl_seat->keyboard, TRUE);
-        xwl_seat->keyboard->key->xkbInfo->checkRepeat = keyboard_check_repeat;
-        master = GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD);
-        if (master)
-            master->key->xkbInfo->checkRepeat = keyboard_check_repeat;
+        init_keyboard(xwl_seat);
     } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD) && xwl_seat->wl_keyboard) {
-        wl_keyboard_release(xwl_seat->wl_keyboard);
-        xwl_seat->wl_keyboard = NULL;
-
-        if (xwl_seat->keyboard) {
-            remove_sync_pending(xwl_seat->keyboard);
-            DisableDevice(xwl_seat->keyboard, TRUE);
-        }
+        release_keyboard(xwl_seat);
     }
 
     if (caps & WL_SEAT_CAPABILITY_TOUCH && xwl_seat->wl_touch == NULL) {
-        xwl_seat->wl_touch = wl_seat_get_touch(seat);
-        wl_touch_add_listener(xwl_seat->wl_touch,
-                              &touch_listener, xwl_seat);
-
-        if (xwl_seat->touch)
-            EnableDevice(xwl_seat->touch, TRUE);
-        else {
-            xwl_seat->touch =
-                add_device(xwl_seat, "xwayland-touch", xwl_touch_proc);
-        }
+        init_touch(xwl_seat);
     } else if (!(caps & WL_SEAT_CAPABILITY_TOUCH) && xwl_seat->wl_touch) {
-        wl_touch_release(xwl_seat->wl_touch);
-        xwl_seat->wl_touch = NULL;
-
-        if (xwl_seat->touch)
-            DisableDevice(xwl_seat->touch, TRUE);
+        release_touch(xwl_seat);
     }
 
     xwl_seat->xwl_screen->expecting_event--;
