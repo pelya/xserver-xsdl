@@ -347,27 +347,47 @@ pointer_handle_leave(void *data, struct wl_pointer *pointer,
 }
 
 static void
+dispatch_pointer_event(struct xwl_seat *xwl_seat)
+{
+    ValuatorMask mask;
+
+    if (xwl_seat->pending_pointer_event.has_absolute) {
+        int sx;
+        int sy;
+        int dx;
+        int dy;
+
+        sx = wl_fixed_to_int(xwl_seat->pending_pointer_event.x);
+        sy = wl_fixed_to_int(xwl_seat->pending_pointer_event.y);
+        dx = xwl_seat->focus_window->window->drawable.x;
+        dy = xwl_seat->focus_window->window->drawable.y;
+
+        valuator_mask_zero(&mask);
+        valuator_mask_set(&mask, 0, dx + sx);
+        valuator_mask_set(&mask, 1, dy + sy);
+
+        QueuePointerEvents(xwl_seat->pointer, MotionNotify, 0,
+                           POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
+    }
+
+    xwl_seat->pending_pointer_event.has_absolute = FALSE;
+}
+
+static void
 pointer_handle_motion(void *data, struct wl_pointer *pointer,
                       uint32_t time, wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
     struct xwl_seat *xwl_seat = data;
-    int32_t dx, dy;
-    int sx = wl_fixed_to_int(sx_w);
-    int sy = wl_fixed_to_int(sy_w);
-    ValuatorMask mask;
 
     if (!xwl_seat->focus_window)
         return;
 
-    dx = xwl_seat->focus_window->window->drawable.x;
-    dy = xwl_seat->focus_window->window->drawable.y;
+    xwl_seat->pending_pointer_event.has_absolute = TRUE;
+    xwl_seat->pending_pointer_event.x = sx_w;
+    xwl_seat->pending_pointer_event.y = sy_w;
 
-    valuator_mask_zero(&mask);
-    valuator_mask_set(&mask, 0, dx + sx);
-    valuator_mask_set(&mask, 1, dy + sy);
-
-    QueuePointerEvents(xwl_seat->pointer, MotionNotify, 0,
-                       POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
+    if (wl_proxy_get_version((struct wl_proxy *) xwl_seat->wl_pointer) < 5)
+        dispatch_pointer_event(xwl_seat);
 }
 
 static void
@@ -427,12 +447,41 @@ pointer_handle_axis(void *data, struct wl_pointer *pointer,
     QueuePointerEvents(xwl_seat->pointer, MotionNotify, 0, POINTER_RELATIVE, &mask);
 }
 
+static void
+pointer_handle_frame(void *data, struct wl_pointer *wl_pointer)
+{
+    struct xwl_seat *xwl_seat = data;
+
+    dispatch_pointer_event(xwl_seat);
+}
+
+static void
+pointer_handle_axis_source(void *data, struct wl_pointer *wl_pointer, uint32_t axis_source)
+{
+}
+
+static void
+pointer_handle_axis_stop(void *data, struct wl_pointer *wl_pointer,
+                         uint32_t time, uint32_t axis)
+{
+}
+
+static void
+pointer_handle_axis_discrete(void *data, struct wl_pointer *wl_pointer,
+                             uint32_t axis, int32_t discrete)
+{
+}
+
 static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_enter,
     pointer_handle_leave,
     pointer_handle_motion,
     pointer_handle_button,
     pointer_handle_axis,
+    pointer_handle_frame,
+    pointer_handle_axis_source,
+    pointer_handle_axis_stop,
+    pointer_handle_axis_discrete,
 };
 
 static void
@@ -987,7 +1036,7 @@ create_input_device(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version
 
     xwl_seat->seat =
         wl_registry_bind(xwl_screen->registry, id,
-                         &wl_seat_interface, min(version, 4));
+                         &wl_seat_interface, min(version, 5));
     xwl_seat->id = id;
 
     xwl_seat->cursor = wl_compositor_create_surface(xwl_screen->compositor);

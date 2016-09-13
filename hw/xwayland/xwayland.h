@@ -146,6 +146,12 @@ struct xwl_seat {
     struct wl_surface *keyboard_focus;
 
     struct xorg_list sync_pending;
+
+    struct {
+        Bool has_absolute;
+        wl_fixed_t x;
+        wl_fixed_t y;
+    } pending_pointer_event;
 };
 
 struct xwl_output {
