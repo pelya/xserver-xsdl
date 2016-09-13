@@ -1272,6 +1272,47 @@ xwl_seat_clear_touch(struct xwl_seat *xwl_seat, WindowPtr window)
 }
 
 void
+xwl_seat_confine_pointer(struct xwl_seat *xwl_seat,
+                         struct xwl_window *xwl_window)
+{
+    struct zwp_pointer_constraints_v1 *pointer_constraints =
+        xwl_seat->xwl_screen->pointer_constraints;
+
+    if (!pointer_constraints)
+        return;
+
+    if (xwl_seat->cursor_confinement_window == xwl_window)
+        return;
+
+    xwl_seat_unconfine_pointer(xwl_seat);
+
+    xwl_seat->cursor_confinement_window = xwl_window;
+
+    xwl_seat->confined_pointer =
+        zwp_pointer_constraints_v1_confine_pointer(pointer_constraints,
+                                                   xwl_window->surface,
+                                                   xwl_seat->wl_pointer,
+                                                   NULL,
+                                                   ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+}
+
+static void
+xwl_seat_destroy_confined_pointer(struct xwl_seat *xwl_seat)
+{
+    zwp_confined_pointer_v1_destroy(xwl_seat->confined_pointer);
+    xwl_seat->confined_pointer = NULL;
+}
+
+void
+xwl_seat_unconfine_pointer(struct xwl_seat *xwl_seat)
+{
+    xwl_seat->cursor_confinement_window = NULL;
+
+    if (xwl_seat->confined_pointer)
+        xwl_seat_destroy_confined_pointer(xwl_seat);
+}
+
+void
 InitInput(int argc, char *argv[])
 {
     ScreenPtr pScreen = screenInfo.screens[0];

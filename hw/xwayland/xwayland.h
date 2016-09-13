@@ -150,6 +150,9 @@ struct xwl_seat {
 
     struct xorg_list sync_pending;
 
+    struct xwl_window *cursor_confinement_window;
+    struct zwp_confined_pointer_v1 *confined_pointer;
+
     struct {
         Bool has_absolute;
         wl_fixed_t x;
@@ -187,6 +190,10 @@ void xwl_seat_set_cursor(struct xwl_seat *xwl_seat);
 void xwl_seat_destroy(struct xwl_seat *xwl_seat);
 
 void xwl_seat_clear_touch(struct xwl_seat *xwl_seat, WindowPtr window);
+
+void xwl_seat_confine_pointer(struct xwl_seat *xwl_seat,
+                              struct xwl_window *xwl_window);
+void xwl_seat_unconfine_pointer(struct xwl_seat *xwl_seat);
 
 Bool xwl_screen_init_output(struct xwl_screen *xwl_screen);
 

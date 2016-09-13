@@ -140,6 +140,54 @@ xwl_close_screen(ScreenPtr screen)
     return screen->CloseScreen(screen);
 }
 
+static struct xwl_window *
+xwl_window_from_window(WindowPtr window)
+{
+    struct xwl_window *xwl_window;
+
+    while (window) {
+        xwl_window = xwl_window_get(window);
+        if (xwl_window)
+            return xwl_window;
+
+        window = window->parent;
+    }
+
+    return NULL;
+}
+
+static struct xwl_seat *
+xwl_screen_get_default_seat(struct xwl_screen *xwl_screen)
+{
+    return container_of(xwl_screen->seat_list.prev,
+                        struct xwl_seat,
+                        link);
+}
+
+static void
+xwl_cursor_confined_to(DeviceIntPtr device,
+                       ScreenPtr screen,
+                       WindowPtr window)
+{
+    struct xwl_screen *xwl_screen = xwl_screen_get(screen);
+    struct xwl_seat *xwl_seat = device->public.devicePrivate;
+    struct xwl_window *xwl_window;
+
+    if (!xwl_seat)
+        xwl_seat = xwl_screen_get_default_seat(xwl_screen);
+
+    if (window == screen->root) {
+        xwl_seat_unconfine_pointer(xwl_seat);
+        return;
+    }
+
+    xwl_window = xwl_window_from_window(window);
+    if (!xwl_window)
+        return;
+
+    xwl_seat_confine_pointer(xwl_seat, xwl_window);
+}
+
 static void
 damage_report(DamagePtr pDamage, RegionPtr pRegion, void *data)
 {
@@ -333,6 +381,9 @@ xwl_unrealize_window(WindowPtr window)
             xwl_seat->focus_window = NULL;
         if (xwl_seat->last_xwindow == window)
             xwl_seat->last_xwindow = NullWindow;
+        if (xwl_seat->cursor_confinement_window &&
+            xwl_seat->cursor_confinement_window->window == window)
+            xwl_seat_unconfine_pointer(xwl_seat);
         xwl_seat_clear_touch(xwl_seat, window);
     }
 
@@ -758,6 +809,8 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
 
     xwl_screen->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = xwl_close_screen;
+
+    pScreen->CursorConfinedTo = xwl_cursor_confined_to;
 
     return ret;
 }
