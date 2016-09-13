@@ -347,30 +347,47 @@ pointer_handle_leave(void *data, struct wl_pointer *pointer,
 }
 
 static void
-dispatch_pointer_event(struct xwl_seat *xwl_seat)
+dispatch_pointer_motion_event(struct xwl_seat *xwl_seat)
 {
     ValuatorMask mask;
 
-    if (xwl_seat->pending_pointer_event.has_absolute) {
-        int sx;
-        int sy;
-        int dx;
-        int dy;
+    if (xwl_seat->pending_pointer_event.has_absolute ||
+        xwl_seat->pending_pointer_event.has_relative) {
+        int x;
+        int y;
 
-        sx = wl_fixed_to_int(xwl_seat->pending_pointer_event.x);
-        sy = wl_fixed_to_int(xwl_seat->pending_pointer_event.y);
-        dx = xwl_seat->focus_window->window->drawable.x;
-        dy = xwl_seat->focus_window->window->drawable.y;
+        if (xwl_seat->pending_pointer_event.has_absolute) {
+            int sx = wl_fixed_to_int(xwl_seat->pending_pointer_event.x);
+            int sy = wl_fixed_to_int(xwl_seat->pending_pointer_event.y);
+            int dx = xwl_seat->focus_window->window->drawable.x;
+            int dy = xwl_seat->focus_window->window->drawable.y;
+
+            x = dx + sx;
+            y = dy + sy;
+        } else {
+            miPointerGetPosition(xwl_seat->pointer, &x, &y);
+        }
 
         valuator_mask_zero(&mask);
-        valuator_mask_set(&mask, 0, dx + sx);
-        valuator_mask_set(&mask, 1, dy + sy);
+        if (xwl_seat->pending_pointer_event.has_relative) {
+            double dx_unaccel;
+            double dy_unaccel;
+
+            dx_unaccel = xwl_seat->pending_pointer_event.dx_unaccel;
+            dy_unaccel = xwl_seat->pending_pointer_event.dy_unaccel;
+            valuator_mask_set_absolute_unaccelerated(&mask, 0, x, dx_unaccel);
+            valuator_mask_set_absolute_unaccelerated(&mask, 1, y, dy_unaccel);
+        } else {
+            valuator_mask_set(&mask, 0, x);
+            valuator_mask_set(&mask, 1, y);
+        }
 
         QueuePointerEvents(xwl_seat->pointer, MotionNotify, 0,
                            POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
     }
 
     xwl_seat->pending_pointer_event.has_absolute = FALSE;
+    xwl_seat->pending_pointer_event.has_relative = FALSE;
 }
 
 static void
@@ -387,7 +404,7 @@ pointer_handle_motion(void *data, struct wl_pointer *pointer,
     xwl_seat->pending_pointer_event.y = sy_w;
 
     if (wl_proxy_get_version((struct wl_proxy *) xwl_seat->wl_pointer) < 5)
-        dispatch_pointer_event(xwl_seat);
+        dispatch_pointer_motion_event(xwl_seat);
 }
 
 static void
@@ -452,7 +469,7 @@ pointer_handle_frame(void *data, struct wl_pointer *wl_pointer)
 {
     struct xwl_seat *xwl_seat = data;
 
-    dispatch_pointer_event(xwl_seat);
+    dispatch_pointer_motion_event(xwl_seat);
 }
 
 static void
@@ -482,6 +499,32 @@ static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_axis_source,
     pointer_handle_axis_stop,
     pointer_handle_axis_discrete,
+};
+
+static void
+relative_pointer_handle_relative_motion(void *data,
+                                        struct zwp_relative_pointer_v1 *zwp_relative_pointer_v1,
+                                        uint32_t utime_hi,
+                                        uint32_t utime_lo,
+                                        wl_fixed_t dxf,
+                                        wl_fixed_t dyf,
+                                        wl_fixed_t dx_unaccelf,
+                                        wl_fixed_t dy_unaccelf)
+{
+    struct xwl_seat *xwl_seat = data;
+
+    xwl_seat->pending_pointer_event.has_relative = TRUE;
+    xwl_seat->pending_pointer_event.dx = wl_fixed_to_double(dxf);
+    xwl_seat->pending_pointer_event.dy = wl_fixed_to_double(dyf);
+    xwl_seat->pending_pointer_event.dx_unaccel = wl_fixed_to_double(dx_unaccelf);
+    xwl_seat->pending_pointer_event.dy_unaccel = wl_fixed_to_double(dy_unaccelf);
+
+    if (wl_proxy_get_version((struct wl_proxy *) xwl_seat->wl_pointer) < 5)
+        dispatch_pointer_motion_event(xwl_seat);
+}
+
+static const struct zwp_relative_pointer_v1_listener relative_pointer_listener = {
+    relative_pointer_handle_relative_motion,
 };
 
 static void
@@ -905,6 +948,18 @@ release_pointer(struct xwl_seat *xwl_seat)
 static void
 init_relative_pointer(struct xwl_seat *xwl_seat)
 {
+    struct zwp_relative_pointer_manager_v1 *relative_pointer_manager =
+        xwl_seat->xwl_screen->relative_pointer_manager;
+
+    if (relative_pointer_manager) {
+        xwl_seat->wp_relative_pointer =
+            zwp_relative_pointer_manager_v1_get_relative_pointer(
+                relative_pointer_manager, xwl_seat->wl_pointer);
+        zwp_relative_pointer_v1_add_listener(xwl_seat->wp_relative_pointer,
+                                             &relative_pointer_listener,
+                                             xwl_seat);
+    }
+
     if (xwl_seat->relative_pointer == NULL) {
         xwl_seat->relative_pointer =
             add_device(xwl_seat, "xwayland-relative-pointer",
@@ -917,6 +972,11 @@ init_relative_pointer(struct xwl_seat *xwl_seat)
 static void
 release_relative_pointer(struct xwl_seat *xwl_seat)
 {
+    if (xwl_seat->wp_relative_pointer) {
+        zwp_relative_pointer_v1_destroy(xwl_seat->wp_relative_pointer);
+        xwl_seat->wp_relative_pointer = NULL;
+    }
+
     if (xwl_seat->relative_pointer)
         DisableDevice(xwl_seat->relative_pointer, TRUE);
 }

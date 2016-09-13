@@ -126,6 +126,7 @@ struct xwl_seat {
     struct xwl_screen *xwl_screen;
     struct wl_seat *seat;
     struct wl_pointer *wl_pointer;
+    struct zwp_relative_pointer_v1 *wp_relative_pointer;
     struct wl_keyboard *wl_keyboard;
     struct wl_touch *wl_touch;
     struct wl_array keys;
@@ -151,6 +152,12 @@ struct xwl_seat {
         Bool has_absolute;
         wl_fixed_t x;
         wl_fixed_t y;
+
+        Bool has_relative;
+        double dx;
+        double dy;
+        double dx_unaccel;
+        double dy_unaccel;
     } pending_pointer_event;
 };
 
