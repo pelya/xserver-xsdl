@@ -47,6 +47,21 @@ struct sync_pending {
 };
 
 static void
+xwl_pointer_warp_emulator_handle_motion(struct xwl_pointer_warp_emulator *warp_emulator,
+                                        double dx,
+                                        double dy,
+                                        double dx_unaccel,
+                                        double dy_unaccel);
+static void
+xwl_pointer_warp_emulator_maybe_lock(struct xwl_pointer_warp_emulator *warp_emulator,
+                                     struct xwl_window *xwl_window,
+                                     SpritePtr sprite,
+                                     int x, int y);
+
+static void
+xwl_seat_destroy_confined_pointer(struct xwl_seat *xwl_seat);
+
+static void
 xwl_pointer_control(DeviceIntPtr device, PtrCtrl *ctrl)
 {
     /* Nothing to do, dix handles all settings */
@@ -331,6 +346,12 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
         xwl_seat->cursor_frame_cb = NULL;
         xwl_seat_set_cursor(xwl_seat);
     }
+
+    if (xwl_seat->pointer_warp_emulator) {
+        xwl_pointer_warp_emulator_maybe_lock(xwl_seat->pointer_warp_emulator,
+                                             xwl_seat->focus_window,
+                                             NULL, 0, 0);
+    }
 }
 
 static void
@@ -351,8 +372,22 @@ dispatch_pointer_motion_event(struct xwl_seat *xwl_seat)
 {
     ValuatorMask mask;
 
-    if (xwl_seat->pending_pointer_event.has_absolute ||
+    if (xwl_seat->pointer_warp_emulator &&
         xwl_seat->pending_pointer_event.has_relative) {
+        double dx;
+        double dy;
+        double dx_unaccel;
+        double dy_unaccel;
+
+        dx = xwl_seat->pending_pointer_event.dx;
+        dy = xwl_seat->pending_pointer_event.dy;
+        dx_unaccel = xwl_seat->pending_pointer_event.dx_unaccel;
+        dy_unaccel = xwl_seat->pending_pointer_event.dy_unaccel;
+        xwl_pointer_warp_emulator_handle_motion(xwl_seat->pointer_warp_emulator,
+                                                dx, dy,
+                                                dx_unaccel, dy_unaccel);
+    } else if (xwl_seat->pending_pointer_event.has_absolute ||
+               xwl_seat->pending_pointer_event.has_relative) {
         int x;
         int y;
 
@@ -1271,6 +1306,236 @@ xwl_seat_clear_touch(struct xwl_seat *xwl_seat, WindowPtr window)
     }
 }
 
+static void
+xwl_pointer_warp_emulator_set_fake_pos(struct xwl_pointer_warp_emulator *warp_emulator,
+                                       int x,
+                                       int y)
+{
+    struct zwp_locked_pointer_v1 *locked_pointer =
+        warp_emulator->locked_pointer;
+    WindowPtr window;
+    int sx, sy;
+
+    if (!warp_emulator->locked_pointer)
+        return;
+
+    if (!warp_emulator->xwl_seat->focus_window)
+        return;
+
+    window = warp_emulator->xwl_seat->focus_window->window;
+    if (x >= window->drawable.x ||
+        y >= window->drawable.y ||
+        x < (window->drawable.x + window->drawable.width) ||
+        y < (window->drawable.y + window->drawable.height)) {
+        sx = x - window->drawable.x;
+        sy = y - window->drawable.y;
+        zwp_locked_pointer_v1_set_cursor_position_hint(locked_pointer,
+                                                       wl_fixed_from_int(sx),
+                                                       wl_fixed_from_int(sy));
+        wl_surface_commit(warp_emulator->xwl_seat->focus_window->surface);
+    }
+}
+
+static Bool
+xwl_pointer_warp_emulator_is_locked(struct xwl_pointer_warp_emulator *warp_emulator)
+{
+    if (warp_emulator->locked_pointer)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+static void
+xwl_pointer_warp_emulator_lock(struct xwl_pointer_warp_emulator *warp_emulator)
+{
+    struct xwl_seat *xwl_seat = warp_emulator->xwl_seat;
+    struct xwl_screen *xwl_screen = xwl_seat->xwl_screen;
+    struct zwp_pointer_constraints_v1 *pointer_constraints =
+        xwl_screen->pointer_constraints;
+    struct xwl_window *lock_window = xwl_seat->focus_window;
+
+    warp_emulator->locked_window = lock_window;
+
+    warp_emulator->locked_pointer =
+        zwp_pointer_constraints_v1_lock_pointer(pointer_constraints,
+                                                lock_window->surface,
+                                                xwl_seat->wl_pointer,
+                                                NULL,
+                                                ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+}
+
+static void
+xwl_pointer_warp_emulator_maybe_lock(struct xwl_pointer_warp_emulator *warp_emulator,
+                                     struct xwl_window *xwl_window,
+                                     SpritePtr sprite,
+                                     int x, int y)
+{
+    struct xwl_seat *xwl_seat = warp_emulator->xwl_seat;
+    GrabPtr pointer_grab = xwl_seat->pointer->deviceGrab.grab;
+
+    if (warp_emulator->locked_pointer)
+        return;
+
+    /*
+     * If there is no grab, and the window doesn't have pointer focus, ignore
+     * the warp, as under Wayland it won't receive input anyway.
+     */
+    if (!pointer_grab && xwl_seat->focus_window != xwl_window)
+        return;
+
+    /*
+     * If there is a grab, but it's not an ownerEvents grab and the destination
+     * is not the pointer focus, ignore it, as events wouldn't be delivered
+     * there anyway.
+     */
+    if (pointer_grab &&
+        !pointer_grab->ownerEvents &&
+        XYToWindow(sprite, x, y) != xwl_seat->focus_window->window)
+        return;
+
+    xwl_pointer_warp_emulator_lock(warp_emulator);
+}
+
+static void
+xwl_pointer_warp_emulator_warp(struct xwl_pointer_warp_emulator *warp_emulator,
+                               struct xwl_window *xwl_window,
+                               SpritePtr sprite,
+                               int x, int y)
+{
+    xwl_pointer_warp_emulator_maybe_lock(warp_emulator,
+                                         xwl_window,
+                                         sprite,
+                                         x, y);
+    xwl_pointer_warp_emulator_set_fake_pos(warp_emulator, x, y);
+}
+
+static void
+xwl_pointer_warp_emulator_handle_motion(struct xwl_pointer_warp_emulator *warp_emulator,
+                                        double dx,
+                                        double dy,
+                                        double dx_unaccel,
+                                        double dy_unaccel)
+{
+    struct xwl_seat *xwl_seat = warp_emulator->xwl_seat;
+    ValuatorMask mask;
+    WindowPtr window;
+    int x, y;
+
+    valuator_mask_zero(&mask);
+    valuator_mask_set_unaccelerated(&mask, 0, dx, dx_unaccel);
+    valuator_mask_set_unaccelerated(&mask, 1, dy, dy_unaccel);
+
+    QueuePointerEvents(xwl_seat->relative_pointer, MotionNotify, 0,
+                       POINTER_RELATIVE, &mask);
+
+    window = xwl_seat->focus_window->window;
+    miPointerGetPosition(xwl_seat->pointer, &x, &y);
+
+    if (xwl_pointer_warp_emulator_is_locked(warp_emulator) &&
+        xwl_seat->cursor_confinement_window != warp_emulator->locked_window &&
+        (x < window->drawable.x ||
+         y < window->drawable.y ||
+         x >= (window->drawable.x + window->drawable.width) ||
+         y >= (window->drawable.y + window->drawable.height)))
+        xwl_seat_destroy_pointer_warp_emulator(xwl_seat);
+    else
+        xwl_pointer_warp_emulator_set_fake_pos(warp_emulator, x, y);
+}
+
+static struct xwl_pointer_warp_emulator *
+xwl_pointer_warp_emulator_create(struct xwl_seat *xwl_seat)
+{
+    struct xwl_pointer_warp_emulator *warp_emulator;
+
+    warp_emulator = calloc(sizeof *warp_emulator, 1);
+    if (!warp_emulator) {
+        ErrorF("%s: ENOMEM", __func__);
+        return NULL;
+    }
+
+    warp_emulator->xwl_seat = xwl_seat;
+
+    return warp_emulator;
+}
+
+static void
+xwl_pointer_warp_emulator_destroy(struct xwl_pointer_warp_emulator *warp_emulator)
+{
+    if (warp_emulator->locked_pointer)
+        zwp_locked_pointer_v1_destroy(warp_emulator->locked_pointer);
+    free(warp_emulator);
+}
+
+static void
+xwl_seat_create_pointer_warp_emulator(struct xwl_seat *xwl_seat)
+{
+    if (xwl_seat->confined_pointer)
+        xwl_seat_destroy_confined_pointer(xwl_seat);
+
+    xwl_seat->pointer_warp_emulator =
+        xwl_pointer_warp_emulator_create(xwl_seat);
+}
+
+static Bool
+xwl_seat_can_emulate_pointer_warp(struct xwl_seat *xwl_seat)
+{
+    struct xwl_screen *xwl_screen = xwl_seat->xwl_screen;
+
+    if (!xwl_screen->relative_pointer_manager)
+        return FALSE;
+
+    if (!xwl_screen->pointer_constraints)
+        return FALSE;
+
+    return TRUE;
+}
+
+void
+xwl_seat_emulate_pointer_warp(struct xwl_seat *xwl_seat,
+                              struct xwl_window *xwl_window,
+                              SpritePtr sprite,
+                              int x, int y)
+{
+    if (!xwl_seat_can_emulate_pointer_warp(xwl_seat))
+        return;
+
+    if (xwl_seat->x_cursor != NULL)
+        return;
+
+    if (!xwl_seat->pointer_warp_emulator)
+        xwl_seat_create_pointer_warp_emulator(xwl_seat);
+
+    if (!xwl_seat->pointer_warp_emulator)
+        return;
+
+    xwl_pointer_warp_emulator_warp(xwl_seat->pointer_warp_emulator,
+                                   xwl_window,
+                                   sprite,
+                                   x, y);
+}
+
+void
+xwl_seat_cursor_visibility_changed(struct xwl_seat *xwl_seat)
+{
+    if (xwl_seat->pointer_warp_emulator && xwl_seat->x_cursor != NULL)
+        xwl_seat_destroy_pointer_warp_emulator(xwl_seat);
+}
+
+void
+xwl_seat_destroy_pointer_warp_emulator(struct xwl_seat *xwl_seat)
+{
+    if (!xwl_seat->pointer_warp_emulator)
+        return;
+
+    xwl_pointer_warp_emulator_destroy(xwl_seat->pointer_warp_emulator);
+    xwl_seat->pointer_warp_emulator = NULL;
+
+    if (xwl_seat->cursor_confinement_window) {
+        xwl_seat_confine_pointer(xwl_seat,
+                                 xwl_seat->cursor_confinement_window);
+    }
+}
+
 void
 xwl_seat_confine_pointer(struct xwl_seat *xwl_seat,
                          struct xwl_window *xwl_window)
@@ -1281,12 +1546,16 @@ xwl_seat_confine_pointer(struct xwl_seat *xwl_seat,
     if (!pointer_constraints)
         return;
 
-    if (xwl_seat->cursor_confinement_window == xwl_window)
+    if (xwl_seat->cursor_confinement_window == xwl_window &&
+        xwl_seat->confined_pointer)
         return;
 
     xwl_seat_unconfine_pointer(xwl_seat);
 
     xwl_seat->cursor_confinement_window = xwl_window;
+
+    if (xwl_seat->pointer_warp_emulator)
+        return;
 
     xwl_seat->confined_pointer =
         zwp_pointer_constraints_v1_confine_pointer(pointer_constraints,

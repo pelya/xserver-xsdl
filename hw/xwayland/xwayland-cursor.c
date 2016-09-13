@@ -169,12 +169,19 @@ xwl_set_cursor(DeviceIntPtr device,
                ScreenPtr screen, CursorPtr cursor, int x, int y)
 {
     struct xwl_seat *xwl_seat;
+    Bool cursor_visibility_changed;
 
     xwl_seat = device->public.devicePrivate;
     if (xwl_seat == NULL)
         return;
 
+    cursor_visibility_changed = !!xwl_seat->x_cursor ^ !!cursor;
+
     xwl_seat->x_cursor = cursor;
+
+    if (cursor_visibility_changed)
+        xwl_seat_cursor_visibility_changed(xwl_seat);
+
     xwl_seat_set_cursor(xwl_seat);
 }
 

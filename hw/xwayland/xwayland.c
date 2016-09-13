@@ -165,6 +165,28 @@ xwl_screen_get_default_seat(struct xwl_screen *xwl_screen)
 }
 
 static void
+xwl_cursor_warped_to(DeviceIntPtr device,
+                     ScreenPtr screen,
+                     ClientPtr client,
+                     WindowPtr window,
+                     SpritePtr sprite,
+                     int x, int y)
+{
+    struct xwl_screen *xwl_screen = xwl_screen_get(screen);
+    struct xwl_seat *xwl_seat = device->public.devicePrivate;
+    struct xwl_window *xwl_window;
+
+    if (!xwl_seat)
+        xwl_seat = xwl_screen_get_default_seat(xwl_screen);
+
+    xwl_window = xwl_window_from_window(window);
+    if (!xwl_window)
+        return;
+
+    xwl_seat_emulate_pointer_warp(xwl_seat, xwl_window, sprite, x, y);
+}
+
+static void
 xwl_cursor_confined_to(DeviceIntPtr device,
                        ScreenPtr screen,
                        WindowPtr window)
@@ -384,6 +406,10 @@ xwl_unrealize_window(WindowPtr window)
         if (xwl_seat->cursor_confinement_window &&
             xwl_seat->cursor_confinement_window->window == window)
             xwl_seat_unconfine_pointer(xwl_seat);
+        if (xwl_seat->pointer_warp_emulator &&
+            xwl_seat->pointer_warp_emulator->locked_window &&
+            xwl_seat->pointer_warp_emulator->locked_window->window == window)
+            xwl_seat_destroy_pointer_warp_emulator(xwl_seat);
         xwl_seat_clear_touch(xwl_seat, window);
     }
 
@@ -810,6 +836,7 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
     xwl_screen->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = xwl_close_screen;
 
+    pScreen->CursorWarpedTo = xwl_cursor_warped_to;
     pScreen->CursorConfinedTo = xwl_cursor_confined_to;
 
     return ret;

@@ -120,6 +120,12 @@ struct xwl_touch {
     struct xorg_list link_touch;
 };
 
+struct xwl_pointer_warp_emulator {
+    struct xwl_seat *xwl_seat;
+    struct xwl_window *locked_window;
+    struct zwp_locked_pointer_v1 *locked_pointer;
+};
+
 struct xwl_seat {
     DeviceIntPtr pointer;
     DeviceIntPtr relative_pointer;
@@ -149,6 +155,8 @@ struct xwl_seat {
     struct wl_surface *keyboard_focus;
 
     struct xorg_list sync_pending;
+
+    struct xwl_pointer_warp_emulator *pointer_warp_emulator;
 
     struct xwl_window *cursor_confinement_window;
     struct zwp_confined_pointer_v1 *confined_pointer;
@@ -190,6 +198,15 @@ void xwl_seat_set_cursor(struct xwl_seat *xwl_seat);
 void xwl_seat_destroy(struct xwl_seat *xwl_seat);
 
 void xwl_seat_clear_touch(struct xwl_seat *xwl_seat, WindowPtr window);
+
+void xwl_seat_emulate_pointer_warp(struct xwl_seat *xwl_seat,
+                                   struct xwl_window *xwl_window,
+                                   SpritePtr sprite,
+                                   int x, int y);
+
+void xwl_seat_destroy_pointer_warp_emulator(struct xwl_seat *xwl_seat);
+
+void xwl_seat_cursor_visibility_changed(struct xwl_seat *xwl_seat);
 
 void xwl_seat_confine_pointer(struct xwl_seat *xwl_seat,
                               struct xwl_window *xwl_window);
