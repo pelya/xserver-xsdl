@@ -134,6 +134,56 @@ xwl_pointer_proc(DeviceIntPtr device, int what)
 #undef NAXES
 }
 
+static int
+xwl_pointer_proc_relative(DeviceIntPtr device, int what)
+{
+#define NAXES 2
+    Atom axes_labels[NAXES] = { 0 };
+
+    switch (what) {
+    case DEVICE_INIT:
+        device->public.on = FALSE;
+
+        axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+        axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
+
+        /*
+         * We'll never send buttons, but XGetPointerMapping might in certain
+         * situations make the client think we have no buttons.
+         */
+        if (!init_pointer_buttons(device))
+            return BadValue;
+
+        if (!InitValuatorClassDeviceStruct(device, NAXES, axes_labels,
+                                           GetMotionHistorySize(), Relative))
+            return BadValue;
+
+        /* Valuators */
+        InitValuatorAxisStruct(device, 0, axes_labels[0],
+                               NO_AXIS_LIMITS, NO_AXIS_LIMITS, 1, 0, 1, Relative);
+        InitValuatorAxisStruct(device, 1, axes_labels[1],
+                               NO_AXIS_LIMITS, NO_AXIS_LIMITS, 1, 0, 1, Relative);
+
+        if (!InitPtrFeedbackClassDeviceStruct(device, xwl_pointer_control))
+            return BadValue;
+
+        return Success;
+
+    case DEVICE_ON:
+        device->public.on = TRUE;
+        return Success;
+
+    case DEVICE_OFF:
+    case DEVICE_CLOSE:
+        device->public.on = FALSE;
+        return Success;
+    }
+
+    return BadMatch;
+
+#undef NAXES
+}
+
 static void
 xwl_keyboard_control(DeviceIntPtr device, KeybdCtrl *ctrl)
 {
@@ -804,6 +854,25 @@ release_pointer(struct xwl_seat *xwl_seat)
 }
 
 static void
+init_relative_pointer(struct xwl_seat *xwl_seat)
+{
+    if (xwl_seat->relative_pointer == NULL) {
+        xwl_seat->relative_pointer =
+            add_device(xwl_seat, "xwayland-relative-pointer",
+                       xwl_pointer_proc_relative);
+        ActivateDevice(xwl_seat->relative_pointer, TRUE);
+    }
+    EnableDevice(xwl_seat->relative_pointer, TRUE);
+}
+
+static void
+release_relative_pointer(struct xwl_seat *xwl_seat)
+{
+    if (xwl_seat->relative_pointer)
+        DisableDevice(xwl_seat->relative_pointer, TRUE);
+}
+
+static void
 init_keyboard(struct xwl_seat *xwl_seat)
 {
     DeviceIntPtr master;
@@ -869,8 +938,10 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
 
     if (caps & WL_SEAT_CAPABILITY_POINTER && xwl_seat->wl_pointer == NULL) {
         init_pointer(xwl_seat);
+        init_relative_pointer(xwl_seat);
     } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && xwl_seat->wl_pointer) {
         release_pointer(xwl_seat);
+        release_relative_pointer(xwl_seat);
     }
 
     if (caps & WL_SEAT_CAPABILITY_KEYBOARD && xwl_seat->wl_keyboard == NULL) {

@@ -120,6 +120,7 @@ struct xwl_touch {
 
 struct xwl_seat {
     DeviceIntPtr pointer;
+    DeviceIntPtr relative_pointer;
     DeviceIntPtr keyboard;
     DeviceIntPtr touch;
     struct xwl_screen *xwl_screen;
