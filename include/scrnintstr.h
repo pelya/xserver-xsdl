@@ -233,6 +233,14 @@ typedef Bool (*SetCursorPositionProcPtr) (DeviceIntPtr /* pDev */ ,
                                           int /*y */ ,
                                           Bool /*generateEvent */ );
 
+typedef void (*CursorWarpedToProcPtr) (DeviceIntPtr /* pDev */ ,
+                                       ScreenPtr /*pScreen */ ,
+                                       ClientPtr /*pClient */ ,
+                                       WindowPtr /*pWindow */ ,
+                                       SpritePtr /*pSprite */ ,
+                                       int /*x */ ,
+                                       int /*y */ );
+
 typedef Bool (*CreateGCProcPtr) (GCPtr /*pGC */ );
 
 typedef Bool (*CreateColormapProcPtr) (ColormapPtr /*pColormap */ );
@@ -554,6 +562,7 @@ typedef struct _Screen {
     UnrealizeCursorProcPtr UnrealizeCursor;
     RecolorCursorProcPtr RecolorCursor;
     SetCursorPositionProcPtr SetCursorPosition;
+    CursorWarpedToProcPtr CursorWarpedTo;
 
     /* GC procedures */
 
