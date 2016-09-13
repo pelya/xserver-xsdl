@@ -52,31 +52,44 @@ xwl_pointer_control(DeviceIntPtr device, PtrCtrl *ctrl)
     /* Nothing to do, dix handles all settings */
 }
 
-static int
-xwl_pointer_proc(DeviceIntPtr device, int what)
+static Bool
+init_pointer_buttons(DeviceIntPtr device)
 {
 #define NBUTTONS 10
-#define NAXES 4
     BYTE map[NBUTTONS + 1];
     int i = 0;
     Atom btn_labels[NBUTTONS] = { 0 };
+
+    for (i = 1; i <= NBUTTONS; i++)
+        map[i] = i;
+
+    btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+    btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+    btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+    btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
+    btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+    btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+    btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+    /* don't know about the rest */
+
+    if (!InitButtonClassDeviceStruct(device, NBUTTONS, btn_labels, map))
+        return FALSE;
+
+    return TRUE;
+}
+
+static int
+xwl_pointer_proc(DeviceIntPtr device, int what)
+{
+#define NAXES 4
     Atom axes_labels[NAXES] = { 0 };
 
     switch (what) {
     case DEVICE_INIT:
         device->public.on = FALSE;
 
-        for (i = 1; i <= NBUTTONS; i++)
-            map[i] = i;
-
-        btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
-        btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
-        btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
-        btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
-        btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
-        btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
-        btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
-        /* don't know about the rest */
+        if (!init_pointer_buttons(device))
+            return BadValue;
 
         axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_X);
         axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_Y);
@@ -101,9 +114,6 @@ xwl_pointer_proc(DeviceIntPtr device, int what)
         SetScrollValuator(device, 3, SCROLL_TYPE_VERTICAL, 1.0, SCROLL_FLAG_PREFERRED);
 
         if (!InitPtrFeedbackClassDeviceStruct(device, xwl_pointer_control))
-            return BadValue;
-
-        if (!InitButtonClassDeviceStruct(device, NBUTTONS, btn_labels, map))
             return BadValue;
 
         return Success;
