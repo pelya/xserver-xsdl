@@ -586,12 +586,23 @@ dispatch_slave_dirty(ScreenPtr pScreen)
 static void
 redisplay_dirty(ScreenPtr screen, PixmapDirtyUpdatePtr dirty)
 {
-
+    modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(screen));
     RegionRec pixregion;
 
     PixmapRegionInit(&pixregion, dirty->slave_dst);
     DamageRegionAppend(&dirty->slave_dst->drawable, &pixregion);
     PixmapSyncDirtyHelper(dirty);
+
+    if (!screen->isGPU) {
+        /*
+         * When copying from the master framebuffer to the shared pixmap,
+         * we must ensure the copy is complete before the slave starts a
+         * copy to its own framebuffer (some slaves scanout directly from
+         * the shared pixmap, but not all).
+         */
+        if (ms->drmmode.glamor)
+            glamor_finish(screen);
+    }
 
     DamageRegionProcessPending(&dirty->slave_dst->drawable);
     RegionUninit(&pixregion);
