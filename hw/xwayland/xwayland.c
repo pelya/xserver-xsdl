@@ -33,6 +33,7 @@
 #include <compositeext.h>
 #include <glx_extinit.h>
 #include <os.h>
+#include <xserver_poll.h>
 
 #ifdef XF86VIDMODE
 #include <X11/extensions/xf86vmproto.h>
@@ -470,6 +471,9 @@ xwl_read_events (struct xwl_screen *xwl_screen)
 {
     int ret;
 
+    if (xwl_screen->wait_flush)
+        return;
+
     ret = wl_display_read_events(xwl_screen->display);
     if (ret == -1)
         FatalError("failed to read Wayland events: %s\n", strerror(errno));
@@ -481,10 +485,25 @@ xwl_read_events (struct xwl_screen *xwl_screen)
         FatalError("failed to dispatch Wayland events: %s\n", strerror(errno));
 }
 
+static int
+xwl_display_pollout (struct xwl_screen *xwl_screen, int timeout)
+{
+    struct pollfd poll_fd;
+
+    poll_fd.fd = wl_display_get_fd(xwl_screen->display);
+    poll_fd.events = POLLOUT;
+
+    return xserver_poll(&poll_fd, 1, timeout);
+}
+
 static void
 xwl_dispatch_events (struct xwl_screen *xwl_screen)
 {
-    int ret;
+    int ret = 0;
+    int ready;
+
+    if (xwl_screen->wait_flush)
+        goto pollout;
 
     while (xwl_screen->prepare_read == 0 &&
            wl_display_prepare_read(xwl_screen->display) == -1) {
@@ -496,9 +515,18 @@ xwl_dispatch_events (struct xwl_screen *xwl_screen)
 
     xwl_screen->prepare_read = 1;
 
-    ret = wl_display_flush(xwl_screen->display);
-    if (ret == -1)
+pollout:
+    ready = xwl_display_pollout(xwl_screen, 5);
+    if (ready == -1 && errno != EINTR)
+        FatalError("error polling on XWayland fd: %s\n", strerror(errno));
+
+    if (ready > 0)
+        ret = wl_display_flush(xwl_screen->display);
+
+    if (ret == -1 && errno != EAGAIN)
         FatalError("failed to write to XWayland fd: %s\n", strerror(errno));
+
+    xwl_screen->wait_flush = (ready == 0 || ready == -1 || ret == -1);
 }
 
 static void

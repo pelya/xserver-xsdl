@@ -83,6 +83,7 @@ struct xwl_screen {
 #define XWL_FORMAT_RGB565   (1 << 2)
 
     int prepare_read;
+    int wait_flush;
 
     char *device_name;
     int drm_fd;
