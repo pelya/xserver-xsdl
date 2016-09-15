@@ -584,7 +584,7 @@ dispatch_slave_dirty(ScreenPtr pScreen)
 }
 
 static void
-redisplay_dirty(ScreenPtr screen, PixmapDirtyUpdatePtr dirty)
+redisplay_dirty(ScreenPtr screen, PixmapDirtyUpdatePtr dirty, int *timeout)
 {
     modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(screen));
     RegionRec pixregion;
@@ -602,6 +602,9 @@ redisplay_dirty(ScreenPtr screen, PixmapDirtyUpdatePtr dirty)
          */
         if (ms->drmmode.glamor)
             glamor_finish(screen);
+        /* Ensure the slave processes the damage immediately */
+        if (timeout)
+            *timeout = 0;
     }
 
     DamageRegionProcessPending(&dirty->slave_dst->drawable);
@@ -609,7 +612,7 @@ redisplay_dirty(ScreenPtr screen, PixmapDirtyUpdatePtr dirty)
 }
 
 static void
-ms_dirty_update(ScreenPtr screen)
+ms_dirty_update(ScreenPtr screen, int *timeout)
 {
     modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(screen));
 
@@ -636,7 +639,7 @@ ms_dirty_update(ScreenPtr screen)
             if (ppriv->defer_dirty_update)
                 continue;
 
-            redisplay_dirty(screen, ent);
+            redisplay_dirty(screen, ent, timeout);
             DamageEmpty(ent->damage);
         }
     }
@@ -672,7 +675,7 @@ msBlockHandler(ScreenPtr pScreen, void *timeout)
     else if (ms->dirty_enabled)
         dispatch_dirty(pScreen);
 
-    ms_dirty_update(pScreen);
+    ms_dirty_update(pScreen, timeout);
 }
 
 static void
@@ -1261,7 +1264,7 @@ msPresentSharedPixmap(PixmapPtr slave_dst)
     RegionPtr region = DamageRegion(ppriv->dirty->damage);
 
     if (RegionNotEmpty(region)) {
-        redisplay_dirty(ppriv->slave_src->drawable.pScreen, ppriv->dirty);
+        redisplay_dirty(ppriv->slave_src->drawable.pScreen, ppriv->dirty, NULL);
         DamageEmpty(ppriv->dirty->damage);
 
         return TRUE;
