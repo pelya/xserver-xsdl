@@ -347,6 +347,24 @@ typedef Bool (*SharePixmapBackingProcPtr)(PixmapPtr, ScreenPtr, void **);
 
 typedef Bool (*SetSharedPixmapBackingProcPtr)(PixmapPtr, void *);
 
+#define HAS_SYNC_SHARED_PIXMAP 1
+/* The SyncSharedPixmap hook has two purposes:
+ *
+ * 1. If the master driver has it, the slave driver can use it to
+ * synchronize the shared pixmap contents with the screen pixmap.
+ * 2. If the slave driver has it, the master driver can expect the slave
+ * driver to call the master screen's SyncSharedPixmap hook, so the master
+ * driver doesn't have to synchronize the shared pixmap contents itself,
+ * e.g. from the BlockHandler.
+ *
+ * A driver must only set the hook if it handles both cases correctly.
+ *
+ * The argument is the slave screen's pixmap_dirty_list entry, the hook is
+ * responsible for finding the corresponding entry in the master screen's
+ * pixmap_dirty_list.
+ */
+typedef void (*SyncSharedPixmapProcPtr)(PixmapDirtyUpdatePtr);
+
 typedef Bool (*StartPixmapTrackingProcPtr)(PixmapPtr, PixmapPtr,
                                            int x, int y,
                                            int dst_x, int dst_y,
@@ -616,6 +634,7 @@ typedef struct _Screen {
 
     StartPixmapTrackingProcPtr StartPixmapTracking;
     StopPixmapTrackingProcPtr StopPixmapTracking;
+    SyncSharedPixmapProcPtr SyncSharedPixmap;
 
     SharedPixmapNotifyDamageProcPtr SharedPixmapNotifyDamage;
     RequestSharedPixmapNotifyDamageProcPtr RequestSharedPixmapNotifyDamage;
