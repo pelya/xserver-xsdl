@@ -60,6 +60,7 @@ sdk_HEADERS =		\
 	xkbsrv.h	\
 	xkbstr.h        \
 	xkbrules.h      \
+	xserver_poll.h	\
 	xserver-properties.h
 
 nodist_sdk_HEADERS = xorg-server.h
