@@ -756,7 +756,7 @@ drmmode_set_cursor(xf86CrtcPtr crtc)
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
     uint32_t handle = drmmode_crtc->cursor_bo->handle;
     modesettingPtr ms = modesettingPTR(crtc->scrn);
-    int ret;
+    int ret = -EINVAL;
 
     if (!drmmode_crtc->set_cursor2_failed) {
         CursorPtr cursor = xf86CurrentCursor(crtc->scrn->pScreen);
@@ -768,11 +768,15 @@ drmmode_set_cursor(xf86CrtcPtr crtc)
         if (!ret)
             return TRUE;
 
-        drmmode_crtc->set_cursor2_failed = TRUE;
+        /* -EINVAL can mean that an old kernel supports drmModeSetCursor but
+         * not drmModeSetCursor2, though it can mean other things too. */
+        if (ret == -EINVAL)
+            drmmode_crtc->set_cursor2_failed = TRUE;
     }
 
-    ret = drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, handle,
-                           ms->cursor_width, ms->cursor_height);
+    if (ret == -EINVAL)
+        ret = drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
+                               handle, ms->cursor_width, ms->cursor_height);
 
     if (ret) {
         xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
