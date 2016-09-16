@@ -197,4 +197,4 @@ relink:
 	$(AM_V_at)rm -f XWin$(EXEEXT) && $(MAKE) XWin$(EXEEXT)
 
 SUBDIRS = man $(GLX_DIR) winclipboard .
-DIST_SUBDIRS = man glx winclipboard .
+DIST_SUBDIRS = man dri glx winclipboard .
