@@ -1924,6 +1924,35 @@ xf86RandR12LoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
     }
 }
 
+/*
+ * Compatibility pScrn->ChangeGamma provider for ddx drivers which do not call
+ * xf86HandleColormaps(). Note such drivers really should be fixed to call
+ * xf86HandleColormaps() as this clobbers the per-CRTC gamma ramp of the CRTC
+ * assigned to the RandR compatibility output.
+ */
+static int
+xf86RandR12ChangeGamma(ScrnInfoPtr pScrn, Gamma gamma)
+{
+    RRCrtcPtr randr_crtc = xf86CompatRRCrtc(pScrn);
+    int size;
+
+    if (!randr_crtc)
+        return Success;
+
+    size = max(0, randr_crtc->gammaSize);
+    if (!size)
+        return Success;
+
+    init_one_component(randr_crtc->gammaRed, size, gamma.red);
+    init_one_component(randr_crtc->gammaGreen, size, gamma.green);
+    init_one_component(randr_crtc->gammaBlue, size, gamma.blue);
+    xf86RandR12CrtcSetGamma(xf86ScrnToScreen(pScrn), randr_crtc);
+
+    pScrn->gamma = gamma;
+
+    return Success;
+}
+
 static Bool
 xf86RandR12EnterVT(ScrnInfoPtr pScrn)
 {
@@ -2123,6 +2152,7 @@ xf86RandR12Init12(ScreenPtr pScreen)
     rp->rrProviderDestroy = xf86RandR14ProviderDestroy;
 
     pScrn->PointerMoved = xf86RandR12PointerMoved;
+    pScrn->ChangeGamma = xf86RandR12ChangeGamma;
 
     randrp->orig_EnterVT = pScrn->EnterVT;
     pScrn->EnterVT = xf86RandR12EnterVT;
