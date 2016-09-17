@@ -1325,9 +1325,12 @@ xf86RandR12CrtcSetGamma(ScreenPtr pScreen, RRCrtcPtr randr_crtc)
 }
 
 static void
-init_one_component(CARD16 *comp, unsigned size, unsigned shift, float gamma)
+init_one_component(CARD16 *comp, unsigned size, float gamma)
 {
     int i;
+    unsigned shift;
+
+    for (shift = 0; (size << shift) < (1 << 16); shift++);
 
     if (gamma == 1.0) {
         for (i = 0; i < size; i++)
@@ -1344,7 +1347,7 @@ static Bool
 xf86RandR12CrtcInitGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
                          float gamma_blue)
 {
-    unsigned size = crtc->randr_crtc->gammaSize, shift;
+    unsigned size = crtc->randr_crtc->gammaSize;
     CARD16 *red, *green, *blue;
 
     if (!crtc->funcs->gamma_set &&
@@ -1358,11 +1361,9 @@ xf86RandR12CrtcInitGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
     green = red + size;
     blue = green + size;
 
-    for (shift = 0; (size << shift) < (1 << 16); shift++);
-
-    init_one_component(red, size, shift, gamma_red);
-    init_one_component(green, size, shift, gamma_green);
-    init_one_component(blue, size, shift, gamma_blue);
+    init_one_component(red, size, gamma_red);
+    init_one_component(green, size, gamma_green);
+    init_one_component(blue, size, gamma_blue);
 
     RRCrtcGammaSet(crtc->randr_crtc, red, green, blue);
     free(red);
