@@ -84,7 +84,6 @@ static dispatch_queue_t eventTranslationQueue;
 
 extern Bool noTestExtensions;
 extern Bool noRenderExtension;
-extern BOOL serverRunning;
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
 static TISInputSourceRef last_key_layout;
@@ -1094,53 +1093,6 @@ X11ApplicationCanEnterRandR(void)
     default:
         return NO;
     }
-}
-
-void
-X11ApplicationFatalError(const char *f, va_list args)
-{
-#ifdef HAVE_LIBDISPATCH
-    NSString *title, *msg;
-    char *error_msg;
-
-    /* This is called by FatalError() in the server thread just before
-     * we would abort.  If the server never got off the ground, We should
-     * inform the user of the error rather than letting the ever-so-friendly
-     * CrashReporter do it for us.
-     *
-     * This also has the benefit of forcing user interaction rather than
-     * allowing an infinite throttled-restart if the crash occurs before
-     * we can drain the launchd socket.
-     */
-
-    if (serverRunning) {
-        return;
-    }
-
-    title = NSLocalizedString(@"The application X11 could not be opened.",
-                              @"Dialog title when encountering a fatal error");
-    msg = NSLocalizedString(
-        @"An error occurred while starting the X11 server: \"%s\"\n\nClick Quit to quit X11. Click Report to see more details or send a report to Apple.",
-        @"Dialog when encountering a fatal error");
-
-    vasprintf(&error_msg, f, args);
-    msg = [NSString stringWithFormat:msg, error_msg];
-
-    /* We want the AppKit thread to actually service the alert or we will race [NSApp run] and create an
-     * 'NSInternalInconsistencyException', reason: 'NSApp with wrong _running count'
-     */
-    dispatch_sync(dispatch_get_main_queue(), ^{
-                      if (NSAlertDefaultReturn ==
-                          NSRunAlertPanel (title, @"%@",
-                                           NSLocalizedString (@"Quit", @""),
-                                           NSLocalizedString (@"Report...", @""),
-                                           nil, msg)) {
-                          exit (EXIT_FAILURE);
-                      }
-                  });
-
-    /* fall back to caller to do the abort() in the DIX */
-#endif
 }
 
 static void
