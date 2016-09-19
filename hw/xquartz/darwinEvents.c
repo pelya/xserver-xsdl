@@ -96,6 +96,7 @@ static BOOL mieqInitialized;
 static pthread_mutex_t mieqInitializedMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t mieqInitializedCond = PTHREAD_COND_INITIALIZER;
 
+_X_NOTSAN
 extern inline void
 wait_for_mieq_init(void)
 {
@@ -108,6 +109,7 @@ wait_for_mieq_init(void)
     }
 }
 
+_X_NOTSAN
 static inline void
 signal_mieq_init(void)
 {
