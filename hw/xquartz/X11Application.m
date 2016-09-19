@@ -1311,9 +1311,7 @@ untrusted_str(NSEvent *e)
 #endif
 
 extern void
-darwinEvents_lock(void);
-extern void
-darwinEvents_unlock(void);
+wait_for_mieq_init(void);
 
 - (void) sendX11NSEvent:(NSEvent *)e
 {
@@ -1329,8 +1327,7 @@ darwinEvents_unlock(void);
 
     if (!darwinTabletCurrent) {
         /* Ensure that the event system is initialized */
-        darwinEvents_lock();
-        darwinEvents_unlock();
+        wait_for_mieq_init();
         assert(darwinTabletStylus);
 
         tilt = NSZeroPoint;
