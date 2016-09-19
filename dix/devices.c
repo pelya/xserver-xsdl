@@ -709,17 +709,32 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 void
 InitCoreDevices(void)
 {
-    if (AllocDevicePair(serverClient, "Virtual core",
-                        &inputInfo.pointer, &inputInfo.keyboard,
-                        CorePointerProc, CoreKeyboardProc, TRUE) != Success)
-         FatalError("Failed to allocate core devices");
+    int result;
 
-    if (ActivateDevice(inputInfo.pointer, TRUE) != Success ||
-        ActivateDevice(inputInfo.keyboard, TRUE) != Success)
-         FatalError("Failed to activate core devices.");
-    if (!EnableDevice(inputInfo.pointer, TRUE) ||
-        !EnableDevice(inputInfo.keyboard, TRUE))
-         FatalError("Failed to enable core devices.");
+    result = AllocDevicePair(serverClient, "Virtual core",
+                             &inputInfo.pointer, &inputInfo.keyboard,
+                             CorePointerProc, CoreKeyboardProc, TRUE);
+    if (result != Success) {
+        FatalError("Failed to allocate virtual core devices: %d", result);
+    }
+
+    result = ActivateDevice(inputInfo.pointer, TRUE);
+    if (result != Success) {
+        FatalError("Failed to activate virtual core pointer: %d", result);
+    }
+
+    result = ActivateDevice(inputInfo.keyboard, TRUE);
+    if (result != Success) {
+        FatalError("Failed to activate virtual core keyboard: %d", result);
+    }
+
+    if (!EnableDevice(inputInfo.pointer, TRUE)) {
+         FatalError("Failed to enable virtual core pointer.");
+    }
+
+    if (!EnableDevice(inputInfo.keyboard, TRUE)) {
+         FatalError("Failed to enable virtual core keyboard.");
+    }
 
     InitXTestDevices();
 }
