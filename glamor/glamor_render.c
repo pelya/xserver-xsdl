@@ -1712,12 +1712,12 @@ glamor_composite(CARD8 op,
          source, source->pDrawable,
          source->pDrawable ? source->pDrawable->width : 0,
          source->pDrawable ? source->pDrawable->height : 0, mask,
-         (!mask) ? NULL : mask->pDrawable, (!mask
-                                            || !mask->pDrawable) ? 0 :
-         mask->pDrawable->width, (!mask
-                                  || !mask->pDrawable) ? 0 : mask->
-         pDrawable->height, glamor_get_picture_location(source),
-         glamor_get_picture_location(mask), dest, dest->pDrawable,
+         (!mask) ? NULL : mask->pDrawable,
+         (!mask || !mask->pDrawable) ? 0 : mask->pDrawable->width,
+         (!mask || !mask->pDrawable) ? 0 : mask->pDrawable->height,
+         glamor_get_picture_location(source),
+         glamor_get_picture_location(mask),
+         dest, dest->pDrawable,
          dest->pDrawable->width, dest->pDrawable->height,
          glamor_get_picture_location(dest));
 
