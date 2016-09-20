@@ -1423,6 +1423,8 @@ glamor_composite_clipped_region(CARD8 op,
     /* Is the composite operation equivalent to a copy? */
     if (!mask && !source->alphaMap && !dest->alphaMap
         && source->pDrawable && !source->transform
+        /* CopyArea is only defined with matching depths. */
+        && dest->pDrawable->depth == source->pDrawable->depth
         && ((op == PictOpSrc
              && (source->format == dest->format
                  || (PICT_FORMAT_COLOR(dest->format)
