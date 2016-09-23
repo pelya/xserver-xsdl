@@ -812,7 +812,7 @@ APPLEWMPROTO="applewmproto >= 1.4"
 LIBXSHMFENCE="xshmfence >= 1.1"
 
 dnl Required modules
-XPROTO="xproto >= 7.0.30"
+XPROTO="xproto >= 7.0.31"
 RANDRPROTO="randrproto >= 1.5.0"
 RENDERPROTO="renderproto >= 0.11"
 XEXTPROTO="xextproto >= 7.2.99.901"
