@@ -847,7 +847,7 @@ ms_get_drm_master_fd(ScrnInfoPtr pScrn)
     if (pEnt->location.type == BUS_PCI) {
         ms->PciInfo = xf86GetPciInfoForEntity(ms->pEnt->index);
         if (ms->PciInfo) {
-            BusID = malloc(64);
+            BusID = XNFalloc(64);
             sprintf(BusID, "PCI:%d:%d:%d",
 #if XSERVER_LIBPCIACCESS
                     ((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
@@ -860,6 +860,7 @@ ms_get_drm_master_fd(ScrnInfoPtr pScrn)
                 );
         }
         ms->fd = drmOpen(NULL, BusID);
+        free(BusID);
     }
     else {
         const char *devicename;
