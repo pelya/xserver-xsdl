@@ -1231,7 +1231,7 @@ AC_ARG_ENABLE(xtrans-send-fds,	AS_HELP_STRING([--disable-xtrans-send-fds], [Use 
 case "x$XTRANS_SEND_FDS" in
 xauto)
 	case "$host_os" in
-	linux*|solaris*)
+	linux*|solaris*|freebsd*|dragonfly*|openbsd*)
 		XTRANS_SEND_FDS=yes
 		;;
 	*)
