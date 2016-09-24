@@ -334,21 +334,6 @@
     DEBUGF("normalized tx %f ty %f \n", (texcoord)[0], (texcoord)[1]);	\
   } while(0)
 
-#define glamor_set_transformed_normalize_tri_tcoords(priv,		\
-						     matrix,		\
-						     xscale,		\
-						     yscale,		\
-						     vtx,		\
-						     texcoords)		\
-    do {								\
-	glamor_set_transformed_point(priv, matrix, xscale, yscale,	\
-				     texcoords, (vtx)[0], (vtx)[1]);    \
-	glamor_set_transformed_point(priv, matrix, xscale, yscale,	\
-				     texcoords+2, (vtx)[2], (vtx)[3]);  \
-	glamor_set_transformed_point(priv, matrix, xscale, yscale,	\
-				     texcoords+4, (vtx)[4], (vtx)[5]);  \
-    } while (0)
-
 #define glamor_set_transformed_normalize_tcoords_ext( priv,		\
 						  matrix,		\
 						  xscale,		\
@@ -366,38 +351,6 @@
     glamor_set_transformed_point(priv, matrix, xscale, yscale,		\
 				 texcoords + 3 * stride, tx1, ty2);     \
   } while (0)
-
-#define glamor_set_transformed_normalize_tcoords( priv,			\
-						  matrix,		\
-						  xscale,		\
-						  yscale,		\
-                                                  tx1, ty1, tx2, ty2,   \
-                                                  texcoords)            \
-  do {									\
-	glamor_set_transformed_normalize_tcoords_ext( priv,		\
-						  matrix,		\
-						  xscale,		\
-						  yscale,		\
-                                                  tx1, ty1, tx2, ty2,   \
-                                                  texcoords,		\
-						  2);			\
-  } while (0)
-
-#define glamor_set_normalize_tri_tcoords(xscale,		\
-					 yscale,		\
-					 vtx,			\
-					 texcoords)		\
-    do {							\
-	_glamor_set_normalize_tpoint(xscale, yscale,		\
-				(vtx)[0], (vtx)[1],		\
-				texcoords);			\
-	_glamor_set_normalize_tpoint(xscale, yscale,		\
-				(vtx)[2], (vtx)[3],		\
-				texcoords+2);			\
-	_glamor_set_normalize_tpoint(xscale, yscale,		\
-				(vtx)[4], (vtx)[5],		\
-				texcoords+4);			\
-    } while (0)
 
 #define glamor_set_repeat_transformed_normalize_tcoords_ext(pixmap, priv, \
 							 repeat_type,	\
@@ -508,15 +461,6 @@
                                       x2, y2, vertices, stride);        \
  } while(0)
 
-#define glamor_set_normalize_tcoords(priv, xscale, yscale,		\
-				     x1, y1, x2, y2,			\
-                                     vertices)		\
-  do {									\
-	glamor_set_normalize_tcoords_ext(priv, xscale, yscale,		\
-				     x1, y1, x2, y2,			\
-                                     vertices, 2);			\
- } while(0)
-
 #define glamor_set_repeat_normalize_tcoords_ext(pixmap, priv, repeat_type, \
 					    xscale, yscale,		\
 					    _x1_, _y1_, _x2_, _y2_,	\
@@ -543,17 +487,6 @@
 				   stride);				\
  } while(0)
 
-#define glamor_set_repeat_normalize_tcoords(priv, repeat_type,		\
-					    xscale, yscale,		\
-					    _x1_, _y1_, _x2_, _y2_,	\
-	                                    vertices)                   \
-  do {									\
-	glamor_set_repeat_normalize_tcoords_ext(priv, repeat_type,	\
-					    xscale, yscale,		\
-					    _x1_, _y1_, _x2_, _y2_,	\
-	                                    vertices, 2);		\
- } while(0)
-
 #define glamor_set_normalize_tcoords_tri_stripe(xscale, yscale,		\
 						x1, y1, x2, y2,		\
 						vertices)               \
@@ -566,51 +499,6 @@
         (vertices)[7] = t_from_x_coord_y(yscale, y2);                   \
 	(vertices)[3] = (vertices)[1];					\
 	(vertices)[5] = (vertices)[7];					\
-    } while(0)
-
-#define glamor_set_tcoords(x1, y1, x2, y2, vertices)            \
-    do {							\
-	(vertices)[0] = (x1);					\
-	(vertices)[2] = (x2);					\
-	(vertices)[4] = (vertices)[2];				\
-	(vertices)[6] = (vertices)[0];				\
-        (vertices)[1] = (y1);                                   \
-        (vertices)[5] = (y2);                                   \
-	(vertices)[3] = (vertices)[1];				\
-	(vertices)[7] = (vertices)[5];				\
-    } while(0)
-
-#define glamor_set_tcoords_ext(x1, y1, x2, y2, vertices, stride)        \
-    do {							\
-	(vertices)[0] = (x1);					\
-	(vertices)[1*stride] = (x2);				\
-	(vertices)[2*stride] = (vertices)[1*stride];		\
-	(vertices)[3*stride] = (vertices)[0];			\
-        (vertices)[1] = (y1);                                   \
-        (vertices)[2*stride + 1] = (y2);			\
-	(vertices)[1*stride + 1] = (vertices)[1];		\
-	(vertices)[3*stride + 1] = (vertices)[2*stride + 1];	\
-    } while(0)
-
-#define glamor_set_normalize_one_vcoord(xscale, yscale, x, y,		\
-					vertices)                       \
-    do {								\
-	(vertices)[0] = v_from_x_coord_x(xscale, x);			\
-        (vertices)[1] = v_from_x_coord_y(yscale, y);                    \
-    } while(0)
-
-#define glamor_set_normalize_tri_vcoords(xscale, yscale, vtx,		\
-					 vertices)                      \
-    do {								\
-	glamor_set_normalize_one_vcoord(xscale, yscale,			\
-					(vtx)[0], (vtx)[1],		\
-					vertices);                      \
-	glamor_set_normalize_one_vcoord(xscale, yscale,			\
-					(vtx)[2], (vtx)[3],		\
-					vertices+2);                    \
-	glamor_set_normalize_one_vcoord(xscale, yscale,			\
-					(vtx)[4], (vtx)[5],		\
-					vertices+4);                    \
     } while(0)
 
 #define glamor_set_tcoords_tri_strip(x1, y1, x2, y2, vertices)          \
@@ -645,25 +533,6 @@
     (vertices)[1 * stride + 1] = _t1_;					\
     (vertices)[3 * stride + 1] = _t5_;					\
   } while(0)
-
-#define glamor_set_normalize_vcoords(priv, xscale, yscale,		\
-				     x1, y1, x2, y2,			\
-                                     vertices)				\
-  do {									\
-	glamor_set_normalize_vcoords_ext(priv, xscale, yscale,		\
-				     x1, y1, x2, y2,			\
-                                     vertices, 2);			\
-  } while(0)
-
-#define glamor_set_const_ext(params, nparam, vertices, nverts, stride)	\
-    do {								\
-	int _i_ = 0, _j_ = 0;						\
-	for(; _i_ < nverts; _i_++) {					\
-	    for(_j_ = 0; _j_ < nparam; _j_++) {				\
-		vertices[stride*_i_ + _j_] = params[_j_];		\
-	    }								\
-	}								\
-    } while(0)
 
 #define glamor_set_normalize_vcoords_tri_strip(xscale, yscale,		\
 					       x1, y1, x2, y2,		\
@@ -1229,46 +1098,6 @@ glamor_compare_pictures(ScreenPtr screen,
 
     return;
 }
-
-#ifdef __i386__
-static inline unsigned long
-__fls(unsigned long x)
-{
- asm("bsr %1,%0":"=r"(x)
- :     "rm"(x));
-    return x;
-}
-#else
-static inline unsigned long
-__fls(unsigned long x)
-{
-    int n;
-
-    if (x == 0)
-        return (0);
-    n = 0;
-    if (x <= 0x0000FFFF) {
-        n = n + 16;
-        x = x << 16;
-    }
-    if (x <= 0x00FFFFFF) {
-        n = n + 8;
-        x = x << 8;
-    }
-    if (x <= 0x0FFFFFFF) {
-        n = n + 4;
-        x = x << 4;
-    }
-    if (x <= 0x3FFFFFFF) {
-        n = n + 2;
-        x = x << 2;
-    }
-    if (x <= 0x7FFFFFFF) {
-        n = n + 1;
-    }
-    return 31 - n;
-}
-#endif
 
 static inline void
 glamor_make_current(glamor_screen_private *glamor_priv)
