@@ -68,20 +68,9 @@ fbPutImage(DrawablePtr pDrawable,
         }
         break;
     case ZPixmap:
-        if (pDrawable->bitsPerPixel != BitsPerPixel(pDrawable->depth)) {
-            srcStride = PixmapBytePad(w, pDrawable->depth);
-            fb24_32PutZImage(pDrawable,
-                             fbGetCompositeClip(pGC),
-                             pGC->alu,
-                             (FbBits) pGC->planemask,
-                             x, y, w, h, (CARD8 *) pImage, srcStride);
-        }
-        else {
-            srcStride = PixmapBytePad(w, pDrawable->depth) / sizeof(FbStip);
-            fbPutZImage(pDrawable,
-                        fbGetCompositeClip(pGC),
-                        pGC->alu, pPriv->pm, x, y, w, h, src, srcStride);
-        }
+        srcStride = PixmapBytePad(w, pDrawable->depth) / sizeof(FbStip);
+        fbPutZImage(pDrawable, fbGetCompositeClip(pGC),
+                    pGC->alu, pPriv->pm, x, y, w, h, src, srcStride);
     }
 }
 
@@ -232,12 +221,6 @@ fbGetImage(DrawablePtr pDrawable,
      */
     if (!fbDrawableEnabled(pDrawable))
         return;
-
-    if (format == ZPixmap &&
-        pDrawable->bitsPerPixel != BitsPerPixel(pDrawable->depth)) {
-        fb24_32GetImage(pDrawable, x, y, w, h, format, planeMask, d);
-        return;
-    }
 
     fbGetDrawable(pDrawable, src, srcStride, srcBpp, srcXoff, srcYoff);
 
