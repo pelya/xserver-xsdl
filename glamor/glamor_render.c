@@ -1334,11 +1334,6 @@ glamor_convert_gradient_picture(ScreenPtr screen,
         }
 
         if (dst) {
-#if 0                           /* Debug to compare it to pixman, Enable it if needed. */
-            glamor_compare_pictures(screen, source,
-                                    dst, x_source, y_source, width, height,
-                                    0, 3);
-#endif
             return dst;
         }
     }
