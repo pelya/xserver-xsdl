@@ -868,7 +868,10 @@ glamor_composite_choose_shader(CARD8 op,
                 goto fail;
         }
         else {
-            key.mask = SHADER_MASK_TEXTURE_ALPHA;
+            if (PICT_FORMAT_A(mask->format))
+                key.mask = SHADER_MASK_TEXTURE_ALPHA;
+            else
+                key.mask = SHADER_MASK_TEXTURE;
         }
 
         if (!mask->componentAlpha) {
