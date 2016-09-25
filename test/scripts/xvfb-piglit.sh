@@ -20,12 +20,18 @@ if test "x$XSERVER_DIR" = "x"; then
     exit 1
 fi
 
+if test "x$XSERVER_BUILDDIR" = "x"; then
+    echo "XSERVER_BUILDDIR must be set to the build directory of the xserver repository."
+    # Exit as a real failure because it should always be set.
+    exit 1
+fi
+
 export PIGLIT_RESULTS_DIR=$PIGLIT_DIR/results/xvfb
 
 startx \
     $XSERVER_DIR/test/scripts/xinit-piglit-session.sh \
     -- \
-    $XSERVER_DIR/hw/vfb/Xvfb \
+    $XSERVER_BUILDDIR/hw/vfb/Xvfb \
         -noreset \
         -screen scrn 1280x1024x24
 

@@ -26,7 +26,8 @@ TESTS = \
 	$(NULL)
 
 TESTS_ENVIRONMENT = \
-	XSERVER_DIR=$(abs_top_builddir) \
+	XSERVER_DIR=$(abs_top_srcdir) \
+	XSERVER_BUILDDIR=$(abs_top_builddir) \
 	$(XORG_MALLOC_DEBUG_ENV) \
 	$(NULL)
 
