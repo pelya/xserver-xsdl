@@ -55,14 +55,14 @@ cat $SHORT_SUMMARY
 # Parse the piglit summary to decide on our exit status.
 status=0
 # "pass: 0" would mean no tests actually ran.
-if grep "pass:.*0" $SHORT_SUMMARY > /dev/null; then
+if grep "^ *pass: *0$" $SHORT_SUMMARY > /dev/null; then
     status=1
 fi
 # Fails or crashes should be failures from make check's perspective.
-if ! grep "fail:.*0" $SHORT_SUMMARY > /dev/null; then
+if ! grep "^ *fail: *0$" $SHORT_SUMMARY > /dev/null; then
     status=1
 fi
-if ! grep "crash:.*0" $SHORT_SUMMARY > /dev/null; then
+if ! grep "^ *crash: *0$" $SHORT_SUMMARY > /dev/null; then
     status=1
 fi
 
