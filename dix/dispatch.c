@@ -2187,12 +2187,8 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
         return BadAlloc;
     WriteReplyToClient(client, sizeof(xGetImageReply), &xgi);
 
-    if (pDraw->type == DRAWABLE_WINDOW) {
-        pVisibleRegion = NotClippedByChildren((WindowPtr) pDraw);
-        if (pVisibleRegion) {
-            RegionTranslate(pVisibleRegion, -pDraw->x, -pDraw->y);
-        }
-    }
+    if (pDraw->type == DRAWABLE_WINDOW)
+        pVisibleRegion = &((WindowPtr) pDraw)->borderClip;
 
     if (linesPerBuf == 0) {
         /* nothing to do */
@@ -2251,8 +2247,6 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
             }
         }
     }
-    if (pVisibleRegion)
-        RegionDestroy(pVisibleRegion);
     free(pBuf);
     return Success;
 }
