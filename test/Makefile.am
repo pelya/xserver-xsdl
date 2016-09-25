@@ -163,6 +163,7 @@ endif
 EXTRA_DIST = \
 	$(SCRIPT_TESTS) \
 	scripts/xinit-piglit-session.sh \
+	scripts/run-piglit.sh \
 	ddxstubs.c \
 	$(NULL)
 
