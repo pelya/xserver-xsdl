@@ -1,16 +1,21 @@
 if ENABLE_UNIT_TESTS
 SUBDIRS= .
-noinst_PROGRAMS = list string
+TEST_PROGS = list string
 if XORG
 # Tests that require at least some DDX functions in order to fully link
 # For now, requires xf86 ddx, could be adjusted to use another
 SUBDIRS += xi1 xi2
-noinst_PROGRAMS += xkb input xtest misc fixes xfree86 signal-logging touch
+TEST_PROGS += xkb input xtest misc fixes xfree86 signal-logging touch
 if RES
-noinst_PROGRAMS += hashtabletest
+TEST_PROGS += hashtabletest
 endif
 endif
 check_LTLIBRARIES = libxservertest.la
+
+noinst_PROGRAMS = \
+	simple-xinit \
+	$(TEST_PROGS) \
+	$(NULL)
 
 if XVFB
 XVFB_TESTS = scripts/xvfb-piglit.sh
@@ -21,7 +26,7 @@ SCRIPT_TESTS = \
 	$(NULL)
 
 TESTS = \
-	$(noinst_PROGRAMS) \
+	$(TEST_PROGS) \
 	$(SCRIPT_TESTS) \
 	$(NULL)
 
