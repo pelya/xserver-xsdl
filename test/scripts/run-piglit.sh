@@ -66,15 +66,15 @@ if ! grep "^ *crash: *0$" $SHORT_SUMMARY > /dev/null; then
     status=1
 fi
 
-if test $status != 0; then
-    $PIGLIT_DIR/piglit-summary-html.py \
+$PIGLIT_DIR/piglit-summary-html.py \
 	--overwrite \
 	$PIGLIT_RESULTS_DIR/html \
 	$PIGLIT_RESULTS_DIR
 
+if test $status != 0; then
     echo "Some piglit tests failed."
     echo "The list of failing tests can be found in $LONG_SUMMARY."
-    echo "An html page of the failing tests can be found at $PIGLIT_RESULTS_DIR/html/problems.html"
 fi
+echo "An html page of the test status can be found at $PIGLIT_RESULTS_DIR/html/index.html"
 
 exit $status
