@@ -38,7 +38,7 @@ if test "x$SERVER_COMMAND" = "x"; then
     exit 1
 fi
 
-startx \
+$XSERVER_BUILDDIR/test/simple-xinit \
     $XSERVER_DIR/test/scripts/xinit-piglit-session.sh \
     -- \
     $SERVER_COMMAND
