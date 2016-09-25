@@ -19,10 +19,16 @@ noinst_PROGRAMS = \
 
 if XVFB
 XVFB_TESTS = scripts/xvfb-piglit.sh
+if XEPHYR
+if GLAMOR
+XEPHYR_GLAMOR_TESTS = scripts/xephyr-glamor-piglit.sh
+endif
+endif
 endif
 
 SCRIPT_TESTS = \
 	$(XVFB_TESTS) \
+	$(XEPHYR_GLAMOR_TESTS) \
 	$(NULL)
 
 TESTS = \
