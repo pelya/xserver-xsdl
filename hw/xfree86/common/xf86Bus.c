@@ -82,8 +82,6 @@ xf86CallDriverProbe(DriverPtr drv, Bool detect_only)
     if (!xf86DoConfigure && drv->platformProbe != NULL) {
         foundScreen = xf86platformProbeDev(drv);
     }
-    if (ServerIsNotSeat0() && foundScreen)
-        return foundScreen;
 #endif
 
 #ifdef XSERVER_LIBPCIACCESS
