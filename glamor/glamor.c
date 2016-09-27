@@ -616,6 +616,8 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     glamor_priv->is_core_profile =
         gl_version >= 31 && !epoxy_has_gl_extension("GL_ARB_compatibility");
 
+    glamor_priv->can_copyplane = (gl_version >= 30);
+
     glamor_setup_debug_output(screen);
 
     glamor_priv->use_quads = (glamor_priv->gl_flavor == GLAMOR_GL_DESKTOP) &&

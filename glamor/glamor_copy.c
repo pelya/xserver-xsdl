@@ -351,6 +351,9 @@ glamor_copy_fbo_fbo_draw(DrawablePtr src,
     if (!glamor_set_alu(screen, gc ? gc->alu : GXcopy))
         goto bail_ctx;
 
+    if (bitplane && !glamor_priv->can_copyplane)
+        goto bail_ctx;
+
     if (bitplane) {
         prog = &glamor_priv->copy_plane_prog;
         copy_facet = &glamor_facet_copyplane;
