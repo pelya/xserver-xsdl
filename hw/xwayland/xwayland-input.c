@@ -167,7 +167,6 @@ xwl_touch_proc(DeviceIntPtr device, int what)
 #define NTOUCHPOINTS 20
 #define NBUTTONS 1
 #define NAXES 2
-    struct xwl_seat *xwl_seat = device->public.devicePrivate;
     Atom btn_labels[NBUTTONS] = { 0 };
     Atom axes_labels[NAXES] = { 0 };
     BYTE map[NBUTTONS + 1] = { 0 };
@@ -191,13 +190,10 @@ xwl_touch_proc(DeviceIntPtr device, int what)
             return BadValue;
 
         /* Valuators */
-        /* FIXME: devices might be mapped to a single wl_output */
         InitValuatorAxisStruct(device, 0, axes_labels[0],
-                               0, xwl_seat->xwl_screen->width,
-                               10000, 0, 10000, Absolute);
+                               0, 0xFFFF, 10000, 0, 10000, Absolute);
         InitValuatorAxisStruct(device, 1, axes_labels[1],
-                               0, xwl_seat->xwl_screen->height,
-                               10000, 0, 10000, Absolute);
+                               0, 0xFFFF, 10000, 0, 10000, Absolute);
         return Success;
 
     case DEVICE_ON:
@@ -640,15 +636,18 @@ static void
 xwl_touch_send_event(struct xwl_touch *xwl_touch,
                      struct xwl_seat *xwl_seat, int type)
 {
-    int32_t dx, dy;
+    double dx, dy, x, y;
     ValuatorMask mask;
 
     dx = xwl_touch->window->window->drawable.x;
     dy = xwl_touch->window->window->drawable.y;
 
+    x = (dx + xwl_touch->x) * 0xFFFF / xwl_seat->xwl_screen->width;
+    y = (dy + xwl_touch->y) * 0xFFFF / xwl_seat->xwl_screen->height;
+
     valuator_mask_zero(&mask);
-    valuator_mask_set(&mask, 0, dx + xwl_touch->x);
-    valuator_mask_set(&mask, 1, dy + xwl_touch->y);
+    valuator_mask_set_double(&mask, 0, x);
+    valuator_mask_set_double(&mask, 1, y);
     QueueTouchEvents(xwl_seat->touch, type, xwl_touch->id, 0, &mask);
 }
 
