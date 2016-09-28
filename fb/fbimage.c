@@ -233,13 +233,16 @@ fbGetImage(DrawablePtr pDrawable,
 
         pm = fbReplicatePixel(planeMask, srcBpp);
         dstStride = PixmapBytePad(w, pDrawable->depth);
-        if (pm != FB_ALLONES)
-            memset(d, 0, dstStride * h);
         dstStride /= sizeof(FbStip);
         fbBltStip((FbStip *) (src + (y + srcYoff) * srcStride),
                   FbBitsStrideToStipStride(srcStride),
                   (x + srcXoff) * srcBpp,
-                  dst, dstStride, 0, w * srcBpp, h, GXcopy, pm, srcBpp);
+                  dst, dstStride, 0, w * srcBpp, h, GXcopy, FB_ALLONES, srcBpp);
+
+        if (pm != FB_ALLONES) {
+            for (int i = 0; i < dstStride * h; i++)
+                dst[i] &= pm;
+        }
     }
     else {
         dstStride = BitmapBytePad(w) / sizeof(FbStip);
