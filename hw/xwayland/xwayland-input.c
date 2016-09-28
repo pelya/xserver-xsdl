@@ -945,43 +945,64 @@ DDXRingBell(int volume, int pitch, int duration)
 {
 }
 
+static Bool
+sprite_check_lost_focus(SpritePtr sprite, WindowPtr window)
+{
+    DeviceIntPtr device, master;
+    struct xwl_seat *xwl_seat;
+
+    for (device = inputInfo.devices; device; device = device->next) {
+        /* Ignore non-wayland devices */
+        if (device->deviceProc == xwl_pointer_proc &&
+            device->spriteInfo->sprite == sprite)
+            break;
+    }
+
+    if (!device)
+        return FALSE;
+
+    xwl_seat = device->public.devicePrivate;
+
+    master = GetMaster(device, POINTER_OR_FLOAT);
+    if (!master || !master->lastSlave)
+        return FALSE;
+
+    /* We do want the last active slave, we only check on slave xwayland
+     * devices so we can find out the xwl_seat, but those don't actually own
+     * their sprite, so the match doesn't mean a lot.
+     */
+    if (master->lastSlave == xwl_seat->pointer &&
+        xwl_seat->focus_window == NULL &&
+        xwl_seat->last_xwindow == window)
+        return TRUE;
+
+    xwl_seat->last_xwindow = window;
+    return FALSE;
+}
+
 static WindowPtr
 xwl_xy_to_window(ScreenPtr screen, SpritePtr sprite, int x, int y)
 {
-    struct xwl_seat *xwl_seat = NULL;
-    DeviceIntPtr device;
+    struct xwl_screen *xwl_screen;
     WindowPtr ret;
 
-    for (device = inputInfo.devices; device; device = device->next) {
-        if (device->deviceProc == xwl_pointer_proc &&
-            device->spriteInfo->sprite == sprite) {
-            xwl_seat = device->public.devicePrivate;
-            break;
-        }
-    }
+    xwl_screen = xwl_screen_get(screen);
 
-    if (xwl_seat == NULL) {
-        sprite->spriteTraceGood = 1;
-        return sprite->spriteTrace[0];
-    }
-
-    screen->XYToWindow = xwl_seat->xwl_screen->XYToWindow;
+    screen->XYToWindow = xwl_screen->XYToWindow;
     ret = screen->XYToWindow(screen, sprite, x, y);
-    xwl_seat->xwl_screen->XYToWindow = screen->XYToWindow;
+    xwl_screen->XYToWindow = screen->XYToWindow;
     screen->XYToWindow = xwl_xy_to_window;
 
-    /* If the pointer has left the Wayland surface but the DIX still
-     * finds the pointer within the previous X11 window, it means that
+    /* If the device controlling the sprite has left the Wayland surface but
+     * the DIX still finds the pointer within the X11 window, it means that
      * the pointer has crossed to another native Wayland window, in this
      * case, pretend we entered the root window so that a LeaveNotify
      * event is emitted.
      */
-    if (xwl_seat->focus_window == NULL && xwl_seat->last_xwindow == ret) {
+    if (sprite_check_lost_focus(sprite, ret)) {
         sprite->spriteTraceGood = 1;
         return sprite->spriteTrace[0];
     }
-
-    xwl_seat->last_xwindow = ret;
 
     return ret;
 }
