@@ -906,6 +906,16 @@ xwl_seat_destroy(struct xwl_seat *xwl_seat)
 }
 
 static void
+init_relative_pointer_manager(struct xwl_screen *xwl_screen,
+                              uint32_t id, uint32_t version)
+{
+    xwl_screen->relative_pointer_manager =
+        wl_registry_bind(xwl_screen->registry, id,
+                         &zwp_relative_pointer_manager_v1_interface,
+                         1);
+}
+
+static void
 input_handler(void *data, struct wl_registry *registry, uint32_t id,
               const char *interface, uint32_t version)
 {
@@ -914,6 +924,8 @@ input_handler(void *data, struct wl_registry *registry, uint32_t id,
     if (strcmp(interface, "wl_seat") == 0 && version >= 3) {
         create_input_device(xwl_screen, id, version);
         xwl_screen->expecting_event++;
+    } else if (strcmp(interface, "zwp_relative_pointer_manager_v1") == 0) {
+        init_relative_pointer_manager(xwl_screen, id, version);
     }
 }
 

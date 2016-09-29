@@ -42,6 +42,8 @@
 #include <randrstr.h>
 #include <exevents.h>
 
+#include "relative-pointer-unstable-v1-client-protocol.h"
+
 struct xwl_screen {
     int width;
     int height;
@@ -75,6 +77,7 @@ struct xwl_screen {
     struct wl_compositor *compositor;
     struct wl_shm *shm;
     struct wl_shell *shell;
+    struct zwp_relative_pointer_manager_v1 *relative_pointer_manager;
 
     uint32_t serial;
 

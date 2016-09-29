@@ -2533,7 +2533,7 @@ AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 
 dnl Xwayland DDX
 
-XWAYLANDMODULES="wayland-client >= 1.3.0 libdrm epoxy"
+XWAYLANDMODULES="wayland-client >= 1.3.0 wayland-protocols >= 1.1 libdrm epoxy"
 if test "x$XF86VIDMODE" = xyes; then
 	XWAYLANDMODULES="$XWAYLANDMODULES $VIDMODEPROTO"
 fi
@@ -2562,6 +2562,8 @@ if test "x$XWAYLAND" = xyes; then
 	WAYLAND_PREFIX=`$PKG_CONFIG --variable=prefix wayland-client`
 	AC_PATH_PROG([WAYLAND_SCANNER], [wayland-scanner],,
 		     [${WAYLAND_PREFIX}/bin$PATH_SEPARATOR$PATH])
+
+	AC_SUBST(WAYLAND_PROTOCOLS_DATADIR, `$PKG_CONFIG --variable=pkgdatadir wayland-protocols`)
 fi
 
 
