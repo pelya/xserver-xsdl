@@ -93,7 +93,8 @@ xf86InitHardwareCursor(ScreenPtr pScreen, xf86CursorInfoPtr infoPtr)
     if (!infoPtr->SetCursorPosition ||
         !xf86DriverHasLoadCursorImage(infoPtr) ||
         !infoPtr->HideCursor ||
-        !infoPtr->ShowCursor || !infoPtr->SetCursorColors)
+        !xf86DriverHasShowCursor(infoPtr) ||
+        !infoPtr->SetCursorColors)
         return FALSE;
 
     if (infoPtr->RealizeCursor) {
@@ -224,8 +225,7 @@ xf86ScreenSetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 
     (*infoPtr->SetCursorPosition) (infoPtr->pScrn, x, y);
 
-    (*infoPtr->ShowCursor) (infoPtr->pScrn);
-    return TRUE;
+    return xf86DriverShowCursor(infoPtr);
 }
 
 Bool
@@ -287,7 +287,7 @@ xf86SetTransparentCursor(ScreenPtr pScreen)
         xf86DriverLoadCursorImage (infoPtr,
                                    ScreenPriv->transparentData);
 
-    (*infoPtr->ShowCursor) (infoPtr->pScrn);
+    xf86DriverShowCursor(infoPtr);
 
     input_unlock();
 }
