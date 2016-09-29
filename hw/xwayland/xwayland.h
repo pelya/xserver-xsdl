@@ -43,6 +43,7 @@
 #include <exevents.h>
 
 #include "relative-pointer-unstable-v1-client-protocol.h"
+#include "pointer-constraints-unstable-v1-client-protocol.h"
 
 struct xwl_screen {
     int width;
@@ -78,6 +79,7 @@ struct xwl_screen {
     struct wl_shm *shm;
     struct wl_shell *shell;
     struct zwp_relative_pointer_manager_v1 *relative_pointer_manager;
+    struct zwp_pointer_constraints_v1 *pointer_constraints;
 
     uint32_t serial;
 
