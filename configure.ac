@@ -595,10 +595,6 @@ AC_ARG_ENABLE(visibility,     AS_HELP_STRING([--enable-visibility], [Enable symb
 				[SYMBOL_VISIBILITY=auto])
 
 dnl GLX build options
-AC_ARG_ENABLE(aiglx,          AS_HELP_STRING([--enable-aiglx], [Build accelerated indirect GLX (default: enabled)]),
-                                [AIGLX=$enableval],
-                                [AIGLX=yes])
-
 AC_ARG_WITH(khronos-spec-dir, AS_HELP_STRING([--with-khronos-spec-dir=PATH], [Path to Khronos OpenGL registry database files (default: auto)]),
 				[KHRONOS_SPEC_DIR="${withval}"],
 				[KHRONOS_SPEC_DIR=auto])
@@ -1348,27 +1344,6 @@ if test "x$DRI" = xyes || test "x$DRI2" = xyes || test "x$DRI3" = xyes || test "
 	fi
 fi
 
-if test "x$DRI2" = xyes; then
-	save_CFLAGS=$CFLAGS
-	CFLAGS="$CFLAGS $GL_CFLAGS $LIBDRM_CFLAGS"
-	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[#include <GL/gl.h>
-#include <GL/internal/dri_interface.h>
-#ifndef __DRI_DRI2
-#error DRI2 extension not available.
-#endif]])],
-			  [HAVE_DRI2EXTENSION=yes],
-			  [HAVE_DRI2EXTENSION=no])
-	CFLAGS=$save_CFLAGS
-	if test "x$HAVE_DRI2EXTENSION" = xyes; then
-		AC_DEFINE(DRI2_AIGLX, 1, [Build DRI2 AIGLX loader])
-		DRI2_AIGLX=yes
-	else
-		AC_MSG_NOTICE([DRI2 AIGLX disabled, __DRI_DRI2 not defined in dri_interface.h.])
-		DRI2_AIGLX=no
-	fi
-fi
-AM_CONDITIONAL(DRI2_AIGLX, test "x$DRI2_AIGLX" = xyes)
-
 if test "x$GLX" = xyes; then
 	PKG_CHECK_MODULES([XLIB], [x11])
 	PKG_CHECK_MODULES([GL], $GLPROTO $LIBGL)
@@ -1380,15 +1355,6 @@ else
         GLX=no
 fi
 AM_CONDITIONAL(GLX, test "x$GLX" = xyes)
-
-if test "x$GLX" = xno; then
-        AIGLX=no
-fi
-
-if test "x$AIGLX" = xyes -a \( "x$DRI2" = xyes \); then
-	AC_DEFINE(AIGLX, 1, [Build AIGLX loader])
-fi
-AM_CONDITIONAL(AIGLX_DRI_LOADER, { test "x$DRI2" = xyes; } && test "x$AIGLX" = xyes)
 
 AC_SUBST([GLX_DEFINES])
 AC_SUBST([GLX_SYS_LIBS])
@@ -2266,8 +2232,8 @@ if test "x$XWIN" = xyes; then
 	AC_DEFINE(DDXOSVERRORF, 1, [Use OsVendorVErrorF])
 	AC_DEFINE(DDXBEFORERESET, 1, [Use ddxBeforeReset ])
 
-dnl XWin with AIGLX requires OpenGL spec files in order to generate wrapper code for native GL functions
-	if [test "x$XWIN" = xyes && test "x$AIGLX" = xyes] ; then
+dnl XWin requires OpenGL spec files in order to generate wrapper code for native GL functions
+	if [test "x$XWIN" = xyes] ; then
            AC_CHECK_PROG(PYTHON3, python3, python3)
            if test -z "$PYTHON3"; then
                 AC_MSG_ERROR([python3 not found])
@@ -2290,7 +2256,7 @@ AM_CONDITIONAL(XWIN, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_MULTIWINDOW, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_MULTIWINDOWEXTWM, [test "x$XWIN" = xyes && test "x$WINDOWSWM" = xyes])
 AM_CONDITIONAL(XWIN_CLIPBOARD, [test "x$XWIN" = xyes])
-AM_CONDITIONAL(XWIN_GLX_WINDOWS, [test "x$XWIN" = xyes && test "x$AIGLX" = xyes])
+AM_CONDITIONAL(XWIN_GLX_WINDOWS, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_WINDOWS_DRI, [test "x$XWIN" = xyes && test "x$WINDOWSDRI" = xyes])
 AM_CONDITIONAL(XWIN_RANDR, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_XV, [test "x$XWIN" = xyes && test "x$XV" = xyes])
