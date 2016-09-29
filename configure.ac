@@ -411,7 +411,7 @@ case $host_os in
 	DRI=yes
 	;;
   *solaris*)
-	PKG_CHECK_EXISTS(libdrm, DRI=yes, DRI=no)
+	DRI=yes
 	;;
   darwin*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
