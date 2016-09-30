@@ -114,6 +114,10 @@ xf86_find_platform_device_by_devnum(int major, int minor)
 static Bool
 xf86IsPrimaryPlatform(struct xf86_platform_device *plat)
 {
+    /* Add max. 1 screen for the IgnorePrimary fallback path */
+    if (xf86ProbeIgnorePrimary && xf86NumScreens == 0)
+        return TRUE;
+
     if (primaryBus.type == BUS_PLATFORM)
         return plat == primaryBus.id.plat;
 #ifdef XSERVER_LIBPCIACCESS
