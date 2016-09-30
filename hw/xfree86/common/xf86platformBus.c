@@ -475,6 +475,21 @@ xf86platformProbeDev(DriverPtr drvp)
                                         isGPUDevice(devList[i]) ? PLATFORM_PROBE_GPU_SCREEN : 0);
     }
 
+    return foundScreen;
+}
+
+int
+xf86platformAddGPUDevices(DriverPtr drvp)
+{
+    Bool foundScreen = FALSE;
+    GDevPtr *devList;
+    int j;
+
+    if (!drvp->platformProbe)
+        return FALSE;
+
+    xf86MatchDevice(drvp->driverName, &devList);
+
     /* if autoaddgpu devices is enabled then go find any unclaimed platform
      * devices and add them as GPU screens */
     if (xf86Info.autoAddGPU) {

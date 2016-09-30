@@ -125,6 +125,10 @@ xf86BusConfig(void)
         xf86CallDriverProbe(xf86DriverList[i], FALSE);
     }
 
+    for (i = 0; i < xf86NumDrivers; i++) {
+        xf86platformAddGPUDevices(xf86DriverList[i]);
+    }
+
     /* If nothing was detected, return now */
     if (xf86NumScreens == 0) {
         xf86Msg(X_ERROR, "No devices detected.\n");
