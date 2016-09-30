@@ -756,37 +756,33 @@ drmmode_set_cursor(xf86CrtcPtr crtc)
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
     uint32_t handle = drmmode_crtc->cursor_bo->handle;
     modesettingPtr ms = modesettingPTR(crtc->scrn);
+    CursorPtr cursor = xf86CurrentCursor(crtc->scrn->pScreen);
     int ret = -EINVAL;
 
-    if (!drmmode_crtc->set_cursor2_failed) {
-        CursorPtr cursor = xf86CurrentCursor(crtc->scrn->pScreen);
+    ret = drmModeSetCursor2(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
+                            handle, ms->cursor_width, ms->cursor_height,
+                            cursor->bits->xhot, cursor->bits->yhot);
 
-        ret =
-            drmModeSetCursor2(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
-                              handle, ms->cursor_width, ms->cursor_height,
-                              cursor->bits->xhot, cursor->bits->yhot);
-        if (!ret)
-            return TRUE;
-
-        /* -EINVAL can mean that an old kernel supports drmModeSetCursor but
-         * not drmModeSetCursor2, though it can mean other things too. */
-        if (ret == -EINVAL)
-            drmmode_crtc->set_cursor2_failed = TRUE;
-    }
-
+    /* -EINVAL can mean that an old kernel supports drmModeSetCursor but
+     * not drmModeSetCursor2, though it can mean other things too. */
     if (ret == -EINVAL)
         ret = drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id,
                                handle, ms->cursor_width, ms->cursor_height);
 
-    if (ret) {
+    /* -ENXIO normally means that the current drm driver supports neither
+     * cursor_set nor cursor_set2.  Disable hardware cursor support for
+     * the rest of the session in that case. */
+    if (ret == -ENXIO) {
         xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
         xf86CursorInfoPtr cursor_info = xf86_config->cursor_info;
 
         cursor_info->MaxWidth = cursor_info->MaxHeight = 0;
         drmmode_crtc->drmmode->sw_cursor = TRUE;
+    }
+
+    if (ret)
         /* fallback to swcursor */
         return FALSE;
-    }
     return TRUE;
 }
 
