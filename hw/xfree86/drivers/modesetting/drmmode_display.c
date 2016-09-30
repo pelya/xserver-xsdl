@@ -813,13 +813,8 @@ drmmode_load_cursor_argb_check(xf86CrtcPtr crtc, CARD32 *image)
     for (i = 0; i < ms->cursor_width * ms->cursor_height; i++)
         ptr[i] = image[i];      // cpu_to_le32(image[i]);
 
-    if (drmmode_crtc->cursor_up || !drmmode_crtc->first_cursor_load_done) {
-        Bool ret = drmmode_set_cursor(crtc);
-        if (!drmmode_crtc->cursor_up)
-            drmmode_hide_cursor(crtc);
-        drmmode_crtc->first_cursor_load_done = TRUE;
-        return ret;
-    }
+    if (drmmode_crtc->cursor_up)
+        return drmmode_set_cursor(crtc);
     return TRUE;
 }
 
@@ -835,12 +830,12 @@ drmmode_hide_cursor(xf86CrtcPtr crtc)
                      ms->cursor_width, ms->cursor_height);
 }
 
-static void
+static Bool
 drmmode_show_cursor(xf86CrtcPtr crtc)
 {
     drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
     drmmode_crtc->cursor_up = TRUE;
-    drmmode_set_cursor(crtc);
+    return drmmode_set_cursor(crtc);
 }
 
 static void
@@ -1108,7 +1103,7 @@ static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
     .set_mode_major = drmmode_set_mode_major,
     .set_cursor_colors = drmmode_set_cursor_colors,
     .set_cursor_position = drmmode_set_cursor_position,
-    .show_cursor = drmmode_show_cursor,
+    .show_cursor_check = drmmode_show_cursor,
     .hide_cursor = drmmode_hide_cursor,
     .load_cursor_argb_check = drmmode_load_cursor_argb_check,
 
