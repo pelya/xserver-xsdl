@@ -43,9 +43,7 @@
 #include <drm_fourcc.h>
 #endif
 
-#define MESA_EGL_NO_X11_HEADERS
-#include <epoxy/gl.h>
-#include <epoxy/egl.h>
+#include "glamor_egl.h"
 
 #include "glamor.h"
 #include "glamor_priv.h"
@@ -768,7 +766,9 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
         ErrorF("couldn't get display device\n");
         goto error;
     }
-    glamor_egl->display = eglGetDisplay(glamor_egl->gbm);
+
+    glamor_egl->display = glamor_egl_get_display(EGL_PLATFORM_GBM_MESA,
+                                                 glamor_egl->gbm);
 #else
     glamor_egl->display = eglGetDisplay((EGLNativeDisplayType) (intptr_t) fd);
 #endif
