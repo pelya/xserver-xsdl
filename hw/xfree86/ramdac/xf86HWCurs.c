@@ -179,8 +179,8 @@ xf86ScreenSetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
     bits =
         dixLookupScreenPrivate(&pCurs->devPrivates, CursorScreenKey, pScreen);
 
-    x -= infoPtr->pScrn->frameX0 + ScreenPriv->HotX;
-    y -= infoPtr->pScrn->frameY0 + ScreenPriv->HotY;
+    x -= infoPtr->pScrn->frameX0;
+    y -= infoPtr->pScrn->frameY0;
 
     if (!pCurs->bits->argb || !xf86DriverHasLoadCursorARGB(infoPtr))
         if (!bits) {
@@ -211,7 +211,13 @@ xf86ScreenSetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 Bool
 xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 {
+    xf86CursorScreenPtr ScreenPriv =
+        (xf86CursorScreenPtr) dixLookupPrivate(&pScreen->devPrivates,
+                                               xf86CursorScreenKey);
     ScreenPtr pSlave;
+
+    x -= ScreenPriv->HotX;
+    y -= ScreenPriv->HotY;
 
     if (!xf86ScreenSetCursor(pScreen, pCurs, x, y))
         return FALSE;
@@ -263,8 +269,8 @@ xf86ScreenMoveCursor(ScreenPtr pScreen, int x, int y)
                                                xf86CursorScreenKey);
     xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
 
-    x -= infoPtr->pScrn->frameX0 + ScreenPriv->HotX;
-    y -= infoPtr->pScrn->frameY0 + ScreenPriv->HotY;
+    x -= infoPtr->pScrn->frameX0;
+    y -= infoPtr->pScrn->frameY0;
 
     (*infoPtr->SetCursorPosition) (infoPtr->pScrn, x, y);
 }
@@ -272,7 +278,13 @@ xf86ScreenMoveCursor(ScreenPtr pScreen, int x, int y)
 void
 xf86MoveCursor(ScreenPtr pScreen, int x, int y)
 {
+    xf86CursorScreenPtr ScreenPriv =
+        (xf86CursorScreenPtr) dixLookupPrivate(&pScreen->devPrivates,
+                                               xf86CursorScreenKey);
     ScreenPtr pSlave;
+
+    x -= ScreenPriv->HotX;
+    y -= ScreenPriv->HotY;
 
     xf86ScreenMoveCursor(pScreen, x, y);
 
