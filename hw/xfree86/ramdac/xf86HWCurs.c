@@ -215,12 +215,15 @@ xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
         (xf86CursorScreenPtr) dixLookupPrivate(&pScreen->devPrivates,
                                                xf86CursorScreenKey);
     ScreenPtr pSlave;
+    Bool ret = FALSE;
+
+    input_lock();
 
     x -= ScreenPriv->HotX;
     y -= ScreenPriv->HotY;
 
     if (!xf86ScreenSetCursor(pScreen, pCurs, x, y))
-        return FALSE;
+        goto out;
 
     /* ask each slave driver to set the cursor. */
     xorg_list_for_each_entry(pSlave, &pScreen->slave_list, slave_head) {
@@ -233,10 +236,14 @@ xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
              * otherwise both the hw and sw cursor will show.
              */
             xf86SetCursor(pScreen, NullCursor, x, y);
-            return FALSE;
+            goto out;
         }
     }
-    return TRUE;
+    ret = TRUE;
+
+ out:
+    input_unlock();
+    return ret;
 }
 
 void
@@ -283,6 +290,8 @@ xf86MoveCursor(ScreenPtr pScreen, int x, int y)
                                                xf86CursorScreenKey);
     ScreenPtr pSlave;
 
+    input_lock();
+
     x -= ScreenPriv->HotX;
     y -= ScreenPriv->HotY;
 
@@ -295,6 +304,8 @@ xf86MoveCursor(ScreenPtr pScreen, int x, int y)
 
         xf86ScreenMoveCursor(pSlave, x, y);
     }
+
+    input_unlock();
 }
 
 void
