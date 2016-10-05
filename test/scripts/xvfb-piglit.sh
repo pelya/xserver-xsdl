@@ -1,4 +1,4 @@
-export SERVER_COMMAND="$XSERVER_DIR/hw/vfb/Xvfb \
+export SERVER_COMMAND="$XSERVER_BUILDDIR/hw/vfb/Xvfb \
         -noreset \
         -screen scrn 1280x1024x24"
 export PIGLIT_RESULTS_DIR=$XSERVER_BUILDDIR/test/piglit-results/xvfb
