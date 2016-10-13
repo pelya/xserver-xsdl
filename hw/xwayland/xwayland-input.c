@@ -34,6 +34,7 @@
 #include <inpututils.h>
 #include <mipointer.h>
 #include <mipointrst.h>
+#include "tablet-unstable-v2-client-protocol.h"
 
 struct sync_pending {
     struct xorg_list l;
