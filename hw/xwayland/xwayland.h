@@ -196,6 +196,15 @@ struct xwl_tablet_tool {
     struct xorg_list link;
     struct zwp_tablet_tool_v2 *tool;
     struct xwl_seat *seat;
+
+    DeviceIntPtr xdevice;
+    uint32_t x;
+    uint32_t y;
+    uint32_t pressure;
+    float tilt_x;
+    float tilt_y;
+    float rotation;
+    float slider;
 };
 
 struct xwl_tablet_pad {
