@@ -177,6 +177,28 @@ struct xwl_seat {
         double dx_unaccel;
         double dy_unaccel;
     } pending_pointer_event;
+
+    struct xorg_list tablets;
+    struct xorg_list tablet_tools;
+    struct xorg_list tablet_pads;
+};
+
+struct xwl_tablet {
+    struct xorg_list link;
+    struct zwp_tablet_v2 *tablet;
+    struct xwl_seat *seat;
+};
+
+struct xwl_tablet_tool {
+    struct xorg_list link;
+    struct zwp_tablet_tool_v2 *tool;
+    struct xwl_seat *seat;
+};
+
+struct xwl_tablet_pad {
+    struct xorg_list link;
+    struct zwp_tablet_pad_v2 *pad;
+    struct xwl_seat *seat;
 };
 
 struct xwl_output {

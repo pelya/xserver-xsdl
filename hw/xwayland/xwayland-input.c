@@ -1185,6 +1185,69 @@ xwl_seat_destroy(struct xwl_seat *xwl_seat)
 
 
 static void
+tablet_seat_handle_add_tablet(void *data, struct zwp_tablet_seat_v2 *tablet_seat,
+                              struct zwp_tablet_v2 *tablet)
+{
+    struct xwl_seat *xwl_seat = data;
+    struct xwl_tablet *xwl_tablet;
+
+    xwl_tablet = calloc(sizeof *xwl_tablet, 1);
+    if (xwl_tablet == NULL) {
+        ErrorF("%s ENOMEM\n", __func__);
+        return;
+    }
+
+    xwl_tablet->tablet = tablet;
+    xwl_tablet->seat = xwl_seat;
+
+    xorg_list_add(&xwl_tablet->link, &xwl_seat->tablets);
+}
+
+static void
+tablet_seat_handle_add_tool(void *data, struct zwp_tablet_seat_v2 *tablet_seat,
+                            struct zwp_tablet_tool_v2 *tool)
+{
+    struct xwl_seat *xwl_seat = data;
+    struct xwl_tablet_tool *xwl_tablet_tool;
+
+    xwl_tablet_tool = calloc(sizeof *xwl_tablet_tool, 1);
+    if (xwl_tablet_tool == NULL) {
+        ErrorF("%s ENOMEM\n", __func__);
+        return;
+    }
+
+    xwl_tablet_tool->tool = tool;
+    xwl_tablet_tool->seat = xwl_seat;
+
+    xorg_list_add(&xwl_tablet_tool->link, &xwl_seat->tablet_tools);
+}
+
+static void
+tablet_seat_handle_add_pad(void *data, struct zwp_tablet_seat_v2 *tablet_seat,
+                           struct zwp_tablet_pad_v2 *pad)
+{
+    struct xwl_seat *xwl_seat = data;
+    struct xwl_tablet_pad *xwl_tablet_pad;
+
+    xwl_tablet_pad = calloc(sizeof *xwl_tablet_pad, 1);
+    if (xwl_tablet_pad == NULL) {
+        ErrorF("%s ENOMEM\n", __func__);
+        return;
+    }
+
+    xwl_tablet_pad->pad = pad;
+    xwl_tablet_pad->seat = xwl_seat;
+
+    xorg_list_add(&xwl_tablet_pad->link, &xwl_seat->tablet_pads);
+}
+
+static const struct zwp_tablet_seat_v2_listener tablet_seat_listener = {
+    tablet_seat_handle_add_tablet,
+    tablet_seat_handle_add_tool,
+    tablet_seat_handle_add_pad
+};
+
+static void
 init_tablet_manager_seat(struct xwl_screen *xwl_screen,
                          struct xwl_seat *xwl_seat)
 {
@@ -1194,11 +1257,42 @@ init_tablet_manager_seat(struct xwl_screen *xwl_screen,
     xwl_seat->tablet_seat =
         zwp_tablet_manager_v2_get_tablet_seat(xwl_screen->tablet_manager,
                                               xwl_seat->seat);
+
+    xorg_list_init(&xwl_seat->tablets);
+    xorg_list_init(&xwl_seat->tablet_tools);
+    xorg_list_init(&xwl_seat->tablet_pads);
+
+    zwp_tablet_seat_v2_add_listener(xwl_seat->tablet_seat, &tablet_seat_listener, xwl_seat);
 }
 
 static void
 release_tablet_manager_seat(struct xwl_seat *xwl_seat)
 {
+    struct xwl_tablet *xwl_tablet, *next_xwl_tablet;
+    struct xwl_tablet_tool *xwl_tablet_tool, *next_xwl_tablet_tool;
+    struct xwl_tablet_pad *xwl_tablet_pad, *next_xwl_tablet_pad;
+
+    xorg_list_for_each_entry_safe(xwl_tablet_pad, next_xwl_tablet_pad,
+                                  &xwl_seat->tablet_pads, link) {
+        xorg_list_del(&xwl_tablet_pad->link);
+        zwp_tablet_pad_v2_destroy(xwl_tablet_pad->pad);
+        free(xwl_tablet_pad);
+    }
+
+    xorg_list_for_each_entry_safe(xwl_tablet_tool, next_xwl_tablet_tool,
+                                  &xwl_seat->tablet_tools, link) {
+        xorg_list_del(&xwl_tablet_tool->link);
+        zwp_tablet_tool_v2_destroy(xwl_tablet_tool->tool);
+        free(xwl_tablet_tool);
+    }
+
+    xorg_list_for_each_entry_safe(xwl_tablet, next_xwl_tablet,
+                                  &xwl_seat->tablets, link) {
+        xorg_list_del(&xwl_tablet->link);
+        zwp_tablet_v2_destroy(xwl_tablet->tablet);
+        free(xwl_tablet);
+    }
+
     if (xwl_seat->tablet_seat) {
         zwp_tablet_seat_v2_destroy(xwl_seat->tablet_seat);
         xwl_seat->tablet_seat = NULL;
