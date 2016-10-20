@@ -1541,23 +1541,19 @@ void
 xf86InputEnableVTProbe(void)
 {
     int i, is_auto = 0;
-    InputOption *option = NULL;
     DeviceIntPtr pdev;
 
     for (i = 0; i < new_input_devices_count; i++) {
         InputInfoPtr pInfo = new_input_devices[i];
+        const char *value = xf86findOptionValue(pInfo->options, "_source");
 
         is_auto = 0;
-        nt_list_for_each_entry(option, pInfo->options, list.next) {
-            const char *key = input_option_get_key(option);
-            const char *value = input_option_get_value(option);
+        if (value &&
+            (strcmp(value, "server/hal") == 0 ||
+             strcmp(value, "server/udev") == 0 ||
+             strcmp(value, "server/wscons") == 0))
+            is_auto = 1;
 
-            if (strcmp(key, "_source") == 0 &&
-                (strcmp(value, "server/hal") == 0 ||
-                 strcmp(value, "server/udev") == 0 ||
-                 strcmp(value, "server/wscons") == 0))
-                is_auto = 1;
-        }
         xf86NewInputDevice(pInfo, &pdev,
                                   (!is_auto ||
                                    (is_auto && xf86Info.autoEnableDevices)));
