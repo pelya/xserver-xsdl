@@ -1119,6 +1119,21 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
     input_unlock();
 }
 
+void
+RemoveInputDeviceTraces(const char *config_info)
+{
+    PausedInputDevicePtr d, tmp;
+
+    xorg_list_for_each_entry_safe(d, tmp, &new_input_devices_list, node) {
+        const char *ci = xf86findOptionValue(d->pInfo->options, "config_info");
+        if (!ci || strcmp(ci, config_info) != 0)
+            continue;
+
+        xorg_list_del(&d->node);
+        free(d);
+    }
+}
+
 /*
  * convenient functions to post events
  */
