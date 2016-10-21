@@ -1059,12 +1059,13 @@ init_touch(struct xwl_seat *xwl_seat)
     wl_touch_add_listener(xwl_seat->wl_touch,
                           &touch_listener, xwl_seat);
 
-    if (xwl_seat->touch)
-        EnableDevice(xwl_seat->touch, TRUE);
-    else {
+    if (xwl_seat->touch == NULL) {
         xwl_seat->touch =
             add_device(xwl_seat, "xwayland-touch", xwl_touch_proc);
+        ActivateDevice(xwl_seat->touch, TRUE);
     }
+    EnableDevice(xwl_seat->touch, TRUE);
+
 }
 
 static void
