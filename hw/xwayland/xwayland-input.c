@@ -298,6 +298,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     int i;
     int sx = wl_fixed_to_int(sx_w);
     int sy = wl_fixed_to_int(sy_w);
+    int dx, dy;
     ScreenPtr pScreen = xwl_seat->xwl_screen->screen;
     ValuatorMask mask;
 
@@ -314,9 +315,11 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     xwl_seat->pointer_enter_serial = serial;
 
     xwl_seat->focus_window = wl_surface_get_user_data(surface);
+    dx = xwl_seat->focus_window->window->drawable.x;
+    dy = xwl_seat->focus_window->window->drawable.y;
 
     master = GetMaster(dev, POINTER_OR_FLOAT);
-    (*pScreen->SetCursorPosition) (dev, pScreen, sx, sy, TRUE);
+    (*pScreen->SetCursorPosition) (dev, pScreen, dx + sx, dy + sy, TRUE);
 
     miPointerInvalidateSprite(master);
 
