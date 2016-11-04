@@ -418,9 +418,9 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
      * of our surfaces might not have been shown. In that case we'll
      * have a cursor surface frame callback pending which we need to
      * clear so that we can continue submitting new cursor frames. */
-    if (xwl_seat->cursor_frame_cb) {
-        wl_callback_destroy(xwl_seat->cursor_frame_cb);
-        xwl_seat->cursor_frame_cb = NULL;
+    if (xwl_seat->cursor.frame_cb) {
+        wl_callback_destroy(xwl_seat->cursor.frame_cb);
+        xwl_seat->cursor.frame_cb = NULL;
         xwl_seat_set_cursor(xwl_seat);
     }
 
@@ -1197,6 +1197,31 @@ static const struct wl_seat_listener seat_listener = {
 };
 
 static void
+xwl_cursor_init(struct xwl_cursor *xwl_cursor, struct xwl_screen *xwl_screen,
+                void (* update_proc)(struct xwl_cursor *))
+{
+    xwl_cursor->surface = wl_compositor_create_surface(xwl_screen->compositor);
+    xwl_cursor->update_proc = update_proc;
+    xwl_cursor->frame_cb = NULL;
+    xwl_cursor->needs_update = FALSE;
+}
+
+static void
+xwl_cursor_release(struct xwl_cursor *xwl_cursor)
+{
+    wl_surface_destroy(xwl_cursor->surface);
+    if (xwl_cursor->frame_cb)
+        wl_callback_destroy(xwl_cursor->frame_cb);
+}
+
+static void
+xwl_seat_update_cursor(struct xwl_cursor *xwl_cursor)
+{
+    struct xwl_seat *xwl_seat = wl_container_of(xwl_cursor, xwl_seat, cursor);
+    xwl_seat_set_cursor(xwl_seat);
+}
+
+static void
 create_input_device(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version)
 {
     struct xwl_seat *xwl_seat;
@@ -1215,7 +1240,8 @@ create_input_device(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version
                          &wl_seat_interface, min(version, 5));
     xwl_seat->id = id;
 
-    xwl_seat->cursor = wl_compositor_create_surface(xwl_screen->compositor);
+    xwl_cursor_init(&xwl_seat->cursor, xwl_seat->xwl_screen,
+                    xwl_seat_update_cursor);
     wl_seat_add_listener(xwl_seat->seat, &seat_listener, xwl_seat);
 
     init_tablet_manager_seat(xwl_screen, xwl_seat);
@@ -1246,9 +1272,7 @@ xwl_seat_destroy(struct xwl_seat *xwl_seat)
     release_tablet_manager_seat(xwl_seat);
 
     wl_seat_destroy(xwl_seat->seat);
-    wl_surface_destroy(xwl_seat->cursor);
-    if (xwl_seat->cursor_frame_cb)
-        wl_callback_destroy(xwl_seat->cursor_frame_cb);
+    xwl_cursor_release(&xwl_seat->cursor);
     wl_array_release(&xwl_seat->keys);
     free(xwl_seat);
 }

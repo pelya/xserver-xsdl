@@ -130,6 +130,13 @@ struct xwl_pointer_warp_emulator {
     struct zwp_locked_pointer_v1 *locked_pointer;
 };
 
+struct xwl_cursor {
+    void (* update_proc) (struct xwl_cursor *);
+    struct wl_surface *surface;
+    struct wl_callback *frame_cb;
+    Bool needs_update;
+};
+
 struct xwl_seat {
     DeviceIntPtr pointer;
     DeviceIntPtr relative_pointer;
@@ -151,9 +158,7 @@ struct xwl_seat {
     uint32_t pointer_enter_serial;
     struct xorg_list link;
     CursorPtr x_cursor;
-    struct wl_surface *cursor;
-    struct wl_callback *cursor_frame_cb;
-    Bool cursor_needs_update;
+    struct xwl_cursor cursor;
     WindowPtr last_xwindow;
 
     struct xorg_list touches;
