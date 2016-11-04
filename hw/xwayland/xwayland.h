@@ -44,6 +44,7 @@
 
 #include "relative-pointer-unstable-v1-client-protocol.h"
 #include "pointer-constraints-unstable-v1-client-protocol.h"
+#include "tablet-unstable-v2-client-protocol.h"
 
 struct xwl_screen {
     int width;
@@ -203,6 +204,7 @@ struct xwl_tablet_tool {
     struct xwl_seat *seat;
 
     DeviceIntPtr xdevice;
+    uint32_t proximity_in_serial;
     uint32_t x;
     uint32_t y;
     uint32_t pressure;
@@ -213,6 +215,8 @@ struct xwl_tablet_tool {
 
     uint32_t buttons_now,
              buttons_prev;
+
+    struct xwl_cursor cursor;
 };
 
 struct xwl_tablet_pad {
@@ -240,6 +244,7 @@ Bool xwl_screen_init_cursor(struct xwl_screen *xwl_screen);
 
 struct xwl_screen *xwl_screen_get(ScreenPtr screen);
 
+void xwl_tablet_tool_set_cursor(struct xwl_tablet_tool *tool);
 void xwl_seat_set_cursor(struct xwl_seat *xwl_seat);
 
 void xwl_seat_destroy(struct xwl_seat *xwl_seat);
