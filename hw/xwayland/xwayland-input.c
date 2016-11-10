@@ -35,12 +35,6 @@
 #include <mipointer.h>
 #include <mipointrst.h>
 
-/* Copied from mipointer.c */
-#define MIPOINTER(dev) \
-    (IsFloating(dev) ? \
-        (miPointerPtr)dixLookupPrivate(&(dev)->devPrivates, miPointerPrivKey): \
-        (miPointerPtr)dixLookupPrivate(&(GetMaster(dev, MASTER_POINTER))->devPrivates, miPointerPrivKey))
-
 struct sync_pending {
     struct xorg_list l;
     DeviceIntPtr pending_dev;
