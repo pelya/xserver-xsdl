@@ -449,6 +449,7 @@ extern char *xf86openConfigDirFiles(const char *path, const char *cmdline,
 extern void xf86setBuiltinConfig(const char *config[]);
 extern XF86ConfigPtr xf86readConfigFile(void);
 extern void xf86closeConfigFile(void);
+extern XF86ConfigPtr xf86allocateConfig(void);
 extern void xf86freeConfig(XF86ConfigPtr p);
 extern int xf86writeConfigFile(const char *, XF86ConfigPtr);
 extern _X_EXPORT XF86ConfDevicePtr xf86findDevice(const char *ident,
