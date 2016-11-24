@@ -474,8 +474,8 @@ xwl_window_post_damage(struct xwl_window *xwl_window)
 #if GLAMOR_HAS_GBM
     if (xwl_screen->glamor)
         buffer = xwl_glamor_pixmap_get_wl_buffer(pixmap);
+    else
 #endif
-    if (!xwl_screen->glamor)
         buffer = xwl_shm_pixmap_get_wl_buffer(pixmap);
 
     wl_surface_attach(xwl_window->surface, buffer, 0, 0);
