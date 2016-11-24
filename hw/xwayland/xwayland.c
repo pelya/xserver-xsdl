@@ -458,13 +458,45 @@ static const struct wl_callback_listener frame_listener = {
 };
 
 static void
-xwl_screen_post_damage(struct xwl_screen *xwl_screen)
+xwl_window_post_damage(struct xwl_window *xwl_window)
 {
-    struct xwl_window *xwl_window, *next_xwl_window;
+    struct xwl_screen *xwl_screen = xwl_window->xwl_screen;
     RegionPtr region;
     BoxPtr box;
     struct wl_buffer *buffer;
     PixmapPtr pixmap;
+
+    assert(!xwl_window->frame_callback);
+
+    region = DamageRegion(xwl_window->damage);
+    pixmap = (*xwl_screen->screen->GetWindowPixmap) (xwl_window->window);
+
+#if GLAMOR_HAS_GBM
+    if (xwl_screen->glamor)
+        buffer = xwl_glamor_pixmap_get_wl_buffer(pixmap);
+#endif
+    if (!xwl_screen->glamor)
+        buffer = xwl_shm_pixmap_get_wl_buffer(pixmap);
+
+    wl_surface_attach(xwl_window->surface, buffer, 0, 0);
+
+    box = RegionExtents(region);
+    wl_surface_damage(xwl_window->surface, box->x1, box->y1,
+                        box->x2 - box->x1, box->y2 - box->y1);
+
+    xwl_window->frame_callback = wl_surface_frame(xwl_window->surface);
+    wl_callback_add_listener(xwl_window->frame_callback, &frame_listener, xwl_window);
+
+    wl_surface_commit(xwl_window->surface);
+    DamageEmpty(xwl_window->damage);
+
+    xorg_list_del(&xwl_window->link_damage);
+}
+
+static void
+xwl_screen_post_damage(struct xwl_screen *xwl_screen)
+{
+    struct xwl_window *xwl_window, *next_xwl_window;
 
     xorg_list_for_each_entry_safe(xwl_window, next_xwl_window,
                                   &xwl_screen->damage_window_list, link_damage) {
@@ -473,29 +505,7 @@ xwl_screen_post_damage(struct xwl_screen *xwl_screen)
         if (xwl_window->frame_callback)
             continue;
 
-        region = DamageRegion(xwl_window->damage);
-        pixmap = (*xwl_screen->screen->GetWindowPixmap) (xwl_window->window);
-
-#if GLAMOR_HAS_GBM
-        if (xwl_screen->glamor)
-            buffer = xwl_glamor_pixmap_get_wl_buffer(pixmap);
-#endif
-        if (!xwl_screen->glamor)
-            buffer = xwl_shm_pixmap_get_wl_buffer(pixmap);
-
-        wl_surface_attach(xwl_window->surface, buffer, 0, 0);
-
-        box = RegionExtents(region);
-        wl_surface_damage(xwl_window->surface, box->x1, box->y1,
-                          box->x2 - box->x1, box->y2 - box->y1);
-
-        xwl_window->frame_callback = wl_surface_frame(xwl_window->surface);
-        wl_callback_add_listener(xwl_window->frame_callback, &frame_listener, xwl_window);
-
-        wl_surface_commit(xwl_window->surface);
-        DamageEmpty(xwl_window->damage);
-
-        xorg_list_del(&xwl_window->link_damage);
+        xwl_window_post_damage(xwl_window);
     }
 }
 
