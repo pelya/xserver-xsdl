@@ -312,6 +312,9 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     dx = xwl_seat->focus_window->window->drawable.x;
     dy = xwl_seat->focus_window->window->drawable.y;
 
+    /* We just entered a new xwindow, forget about the old last xwindow */
+    xwl_seat->last_xwindow = NullWindow;
+
     master = GetMaster(dev, POINTER_OR_FLOAT);
     (*pScreen->SetCursorPosition) (dev, pScreen, dx + sx, dy + sy, TRUE);
 
@@ -360,8 +363,14 @@ pointer_handle_leave(void *data, struct wl_pointer *pointer,
 
     xwl_seat->xwl_screen->serial = serial;
 
-    xwl_seat->focus_window = NULL;
-    CheckMotion(NULL, GetMaster(dev, POINTER_OR_FLOAT));
+    /* The pointer has left a known xwindow, save it for a possible match
+     * in sprite_check_lost_focus()
+     */
+    if (xwl_seat->focus_window) {
+        xwl_seat->last_xwindow = xwl_seat->focus_window->window;
+        xwl_seat->focus_window = NULL;
+        CheckMotion(NULL, GetMaster(dev, POINTER_OR_FLOAT));
+    }
 }
 
 static void
@@ -1252,10 +1261,10 @@ sprite_check_lost_focus(SpritePtr sprite, WindowPtr window)
      */
     if (master->lastSlave == xwl_seat->pointer &&
         xwl_seat->focus_window == NULL &&
-        xwl_seat->last_xwindow == window)
+        xwl_seat->last_xwindow != NullWindow &&
+        IsParent(xwl_seat->last_xwindow, window))
         return TRUE;
 
-    xwl_seat->last_xwindow = window;
     return FALSE;
 }
 
