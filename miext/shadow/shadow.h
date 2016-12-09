@@ -68,13 +68,6 @@ typedef struct _shadowBuf {
 #define SHADOW_REFLECT_Y    32
 #define SHADOW_REFLECT_ALL  (SHADOW_REFLECT_X|SHADOW_REFLECT_Y)
 
-extern _X_EXPORT DevPrivateKey shadowScrPrivateKey;
-
-#define shadowGetBuf(pScr) ((shadowBufPtr) \
-    dixLookupPrivate(&(pScr)->devPrivates, shadowScrPrivateKey))
-#define shadowBuf(pScr)            shadowBufPtr pBuf = shadowGetBuf(pScr)
-#define shadowDamage(pBuf)  DamageRegion(pBuf->pDamage)
-
 extern _X_EXPORT Bool
  shadowSetup(ScreenPtr pScreen);
 
