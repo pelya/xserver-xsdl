@@ -156,6 +156,9 @@ extern _X_EXPORT void
 extern _X_EXPORT void
  shadowUpdateRotate32(ScreenPtr pScreen, shadowBufPtr pBuf);
 
+extern _X_EXPORT void
+ shadowUpdate32to24(ScreenPtr pScreen, shadowBufPtr pBuf);
+
 typedef void (*shadowUpdateProc) (ScreenPtr, shadowBufPtr);
 
 extern _X_EXPORT shadowUpdateProc shadowUpdatePackedWeak(void);

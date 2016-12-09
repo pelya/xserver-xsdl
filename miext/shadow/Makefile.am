@@ -10,6 +10,7 @@ libshadow_la_SOURCES =		\
 	c2p_core.h		\
 	shadow.c		\
 	shadow.h		\
+	sh3224.c		\
 	shafb4.c		\
 	shafb8.c		\
 	shalloc.c		\
