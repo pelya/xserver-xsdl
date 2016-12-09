@@ -504,7 +504,7 @@ NewGCObject(ScreenPtr pScreen, int depth)
     pGC->font = defaultFont;
     if (pGC->font)              /* necessary, because open of default font could fail */
         pGC->font->refcnt++;
-    pGC->stipple = pGC->pScreen->PixmapPerDepth[0];
+    pGC->stipple = pGC->pScreen->defaultStipple;
     if (pGC->stipple)
         pGC->stipple->refcnt++;
 
@@ -874,8 +874,7 @@ CreateDefaultStipple(int screenNum)
     w = 16;
     h = 16;
     (*pScreen->QueryBestSize) (StippleShape, &w, &h, pScreen);
-    if (!(pScreen->PixmapPerDepth[0] =
-          (*pScreen->CreatePixmap) (pScreen, w, h, 1, 0)))
+    if (!(pScreen->defaultStipple = pScreen->CreatePixmap(pScreen, w, h, 1, 0)))
         return FALSE;
     /* fill stipple with 1 */
     tmpval[0].val = GXcopy;
@@ -883,17 +882,17 @@ CreateDefaultStipple(int screenNum)
     tmpval[2].val = FillSolid;
     pgcScratch = GetScratchGC(1, pScreen);
     if (!pgcScratch) {
-        (*pScreen->DestroyPixmap) (pScreen->PixmapPerDepth[0]);
+        (*pScreen->DestroyPixmap) (pScreen->defaultStipple);
         return FALSE;
     }
     (void) ChangeGC(NullClient, pgcScratch,
                     GCFunction | GCForeground | GCFillStyle, tmpval);
-    ValidateGC((DrawablePtr) pScreen->PixmapPerDepth[0], pgcScratch);
+    ValidateGC((DrawablePtr) pScreen->defaultStipple, pgcScratch);
     rect.x = 0;
     rect.y = 0;
     rect.width = w;
     rect.height = h;
-    (*pgcScratch->ops->PolyFillRect) ((DrawablePtr) pScreen->PixmapPerDepth[0],
+    (*pgcScratch->ops->PolyFillRect) ((DrawablePtr) pScreen->defaultStipple,
                                       pgcScratch, 1, &rect);
     FreeScratchGC(pgcScratch);
     return TRUE;
@@ -904,7 +903,7 @@ FreeDefaultStipple(int screenNum)
 {
     ScreenPtr pScreen = screenInfo.screens[screenNum];
 
-    (*pScreen->DestroyPixmap) (pScreen->PixmapPerDepth[0]);
+    (*pScreen->DestroyPixmap) (pScreen->defaultStipple);
 }
 
 int
