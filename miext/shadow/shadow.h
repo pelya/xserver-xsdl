@@ -161,9 +161,4 @@ extern _X_EXPORT void
 
 typedef void (*shadowUpdateProc) (ScreenPtr, shadowBufPtr);
 
-extern _X_EXPORT shadowUpdateProc shadowUpdatePackedWeak(void);
-extern _X_EXPORT shadowUpdateProc shadowUpdatePlanar4Weak(void);
-extern _X_EXPORT shadowUpdateProc shadowUpdatePlanar4x8Weak(void);
-extern _X_EXPORT shadowUpdateProc shadowUpdateRotatePackedWeak(void);
-
 #endif                          /* _SHADOW_H_ */

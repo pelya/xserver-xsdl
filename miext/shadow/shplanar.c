@@ -166,15 +166,3 @@ shadowUpdatePlanar4(ScreenPtr pScreen, shadowBufPtr pBuf)
         pbox++;
     }
 }
-
-shadowUpdateProc
-shadowUpdatePlanar4Weak(void)
-{
-    return shadowUpdatePlanar4;
-}
-
-shadowUpdateProc
-shadowUpdatePlanar4x8Weak(void)
-{
-    return shadowUpdatePlanar4x8;
-}
