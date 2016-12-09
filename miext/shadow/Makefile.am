@@ -13,7 +13,6 @@ libshadow_la_SOURCES =		\
 	sh3224.c		\
 	shafb4.c		\
 	shafb8.c		\
-	shalloc.c		\
 	shiplan2p4.c		\
 	shiplan2p8.c		\
 	shpacked.c		\
