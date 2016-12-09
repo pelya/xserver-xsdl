@@ -811,6 +811,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
         FreeGC(pGC, (XID) 0);
         pGC = (GCPtr) NULL;
     }
+    pGC->graphicsExposures = FALSE;
     return pGC;
 }
 
@@ -843,7 +844,6 @@ CreateGCperDepth(int screenNum)
     /* do depth 1 separately because it's not included in list */
     if (!(ppGC[0] = CreateScratchGC(pScreen, 1)))
         return FALSE;
-    ppGC[0]->graphicsExposures = FALSE;
     /* Make sure we don't overflow GCperDepth[] */
     if (pScreen->numDepths > MAXFORMATS)
         return FALSE;
@@ -855,7 +855,6 @@ CreateGCperDepth(int screenNum)
                 (void) FreeGC(ppGC[i], (XID) 0);
             return FALSE;
         }
-        ppGC[i + 1]->graphicsExposures = FALSE;
     }
     return TRUE;
 }
@@ -1072,10 +1071,7 @@ GetScratchGC(unsigned depth, ScreenPtr pScreen)
         }
     }
     /* if we make it this far, need to roll our own */
-    pGC = CreateScratchGC(pScreen, depth);
-    if (pGC)
-        pGC->graphicsExposures = FALSE;
-    return pGC;
+    return CreateScratchGC(pScreen, depth);
 }
 
 /*
