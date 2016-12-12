@@ -479,6 +479,8 @@ xf86platformProbeDev(DriverPtr drvp)
                                         isGPUDevice(devList[i]) ? PLATFORM_PROBE_GPU_SCREEN : 0);
     }
 
+    free(devList);
+
     return foundScreen;
 }
 
@@ -504,6 +506,8 @@ xf86platformAddGPUDevices(DriverPtr drvp)
                 foundScreen = TRUE;
         }
     }
+
+    free(devList);
 
     return foundScreen;
 }
