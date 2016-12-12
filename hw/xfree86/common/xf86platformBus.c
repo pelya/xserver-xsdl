@@ -145,16 +145,9 @@ platform_find_pci_info(struct xf86_platform_device *pd, char *busid)
 
     iter = pci_slot_match_iterator_create(&devmatch);
     info = pci_device_next(iter);
-    if (info) {
+    if (info)
         pd->pdev = info;
-        pci_device_probe(info);
-        if (pci_device_is_boot_vga(info)) {
-            primaryBus.type = BUS_PLATFORM;
-            primaryBus.id.plat = pd;
-        }
-    }
     pci_iterator_destroy(iter);
-
 }
 
 static Bool
@@ -307,6 +300,20 @@ xf86platformProbe(void)
             platform_find_pci_info(&xf86_platform_devices[i], busid);
         }
     }
+
+    for (i = 0; i < xf86_num_platform_devices; i++) {
+        struct xf86_platform_device *dev = &xf86_platform_devices[i];
+
+        if (!dev->pdev)
+            continue;
+
+        pci_device_probe(dev->pdev);
+        if (pci_device_is_boot_vga(dev->pdev)) {
+            primaryBus.type = BUS_PLATFORM;
+            primaryBus.id.plat = dev;
+        }
+    }
+
     return 0;
 }
 
