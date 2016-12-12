@@ -40,6 +40,7 @@
 #include "hotplug.h"
 #include "systemd-logind.h"
 
+#include "loaderProcs.h"
 #include "xf86.h"
 #include "xf86_OSproc.h"
 #include "xf86Priv.h"
@@ -287,6 +288,7 @@ xf86platformProbe(void)
     int i;
     Bool pci = TRUE;
     XF86ConfOutputClassPtr cl;
+    char *old_path, *path = NULL;
 
     config_odev_probe(xf86PlatformDeviceProbe);
 
@@ -300,7 +302,28 @@ xf86platformProbe(void)
         if (pci && (strncmp(busid, "pci:", 4) == 0)) {
             platform_find_pci_info(&xf86_platform_devices[i], busid);
         }
+
+        /*
+         * Deal with OutputClass ModulePath directives, these must be
+         * processed before we do any module loading.
+         */
+        for (cl = xf86configptr->conf_outputclass_lst; cl; cl = cl->list.next) {
+            if (!OutputClassMatches(cl, &xf86_platform_devices[i]))
+                continue;
+
+            if (cl->modulepath && xf86ModPathFrom != X_CMDLINE) {
+                old_path = path;
+                XNFasprintf(&path, "%s,%s", cl->modulepath,
+                            path ? path : xf86ModulePath);
+                free(old_path);
+                xf86Msg(X_CONFIG, "OutputClass \"%s\" ModulePath extended to \"%s\"\n",
+                        cl->identifier, path);
+                LoaderSetPath(path);
+            }
+        }
     }
+
+    free(path);
 
     /* First see if there is an OutputClass match marking a device as primary */
     for (i = 0; i < xf86_num_platform_devices; i++) {

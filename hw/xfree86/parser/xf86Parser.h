@@ -337,6 +337,7 @@ typedef struct {
     GenericListRec list;
     char *identifier;
     char *driver;
+    char *modulepath;
     struct xorg_list match_driver;
     XF86OptionPtr option_lst;
     char *comment;
