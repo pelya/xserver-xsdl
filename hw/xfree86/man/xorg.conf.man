@@ -1285,11 +1285,21 @@ When an output device has been matched to the
 .B OutputClass
 section, any
 .B Option
-entries are applied to the device. See the
+entries are applied to the device. One
+.B OutputClass
+specific
+.B Option
+is recognized. See the
 .B Device
 section below for a description of the remaining
 .B Option
 entries.
+.TP 7
+.BI "Option \*qPrimaryGPU\*q \*q" boolean \*q
+This option specifies that the matched device should be treated as the
+primary GPU, replacing the selection of the GPU used as output by the
+firmware. If multiple output devices match an OutputClass section with
+the PrimaryGPU option set, the first one enumerated becomes the primary GPU.
 .SH "DEVICE SECTION"
 The config file may have multiple
 .B Device

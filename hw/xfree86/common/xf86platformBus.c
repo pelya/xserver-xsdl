@@ -286,6 +286,7 @@ xf86platformProbe(void)
 {
     int i;
     Bool pci = TRUE;
+    XF86ConfOutputClassPtr cl;
 
     config_odev_probe(xf86PlatformDeviceProbe);
 
@@ -301,6 +302,24 @@ xf86platformProbe(void)
         }
     }
 
+    /* First see if there is an OutputClass match marking a device as primary */
+    for (i = 0; i < xf86_num_platform_devices; i++) {
+        struct xf86_platform_device *dev = &xf86_platform_devices[i];
+        for (cl = xf86configptr->conf_outputclass_lst; cl; cl = cl->list.next) {
+            if (!OutputClassMatches(cl, dev))
+                continue;
+
+            if (xf86CheckBoolOption(cl->option_lst, "PrimaryGPU", FALSE)) {
+                xf86Msg(X_CONFIG, "OutputClass \"%s\" setting %s as PrimaryGPU\n",
+                        cl->identifier, dev->attribs->path);
+                primaryBus.type = BUS_PLATFORM;
+                primaryBus.id.plat = dev;
+                return 0;
+            }
+        }
+    }
+
+    /* Then check for pci_device_is_boot_vga() */
     for (i = 0; i < xf86_num_platform_devices; i++) {
         struct xf86_platform_device *dev = &xf86_platform_devices[i];
 
