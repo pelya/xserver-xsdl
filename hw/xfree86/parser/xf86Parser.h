@@ -338,6 +338,7 @@ typedef struct {
     char *identifier;
     char *driver;
     struct xorg_list match_driver;
+    XF86OptionPtr option_lst;
     char *comment;
 } XF86ConfOutputClassRec, *XF86ConfOutputClassPtr;
 

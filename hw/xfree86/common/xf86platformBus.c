@@ -310,6 +310,48 @@ xf86platformProbe(void)
     return 0;
 }
 
+void
+xf86MergeOutputClassOptions(int entityIndex, void **options)
+{
+    const EntityPtr entity = xf86Entities[entityIndex];
+    struct xf86_platform_device *dev = NULL;
+    XF86ConfOutputClassPtr cl;
+    XF86OptionPtr classopts;
+    int i = 0;
+
+    switch (entity->bus.type) {
+    case BUS_PLATFORM:
+        dev = entity->bus.id.plat;
+        break;
+    case BUS_PCI:
+        for (i = 0; i < xf86_num_platform_devices; i++) {
+            if (MATCH_PCI_DEVICES(xf86_platform_devices[i].pdev,
+                                  entity->bus.id.pci)) {
+                dev = &xf86_platform_devices[i];
+                break;
+            }
+        }
+        break;
+    default:
+        xf86Msg(X_DEBUG, "xf86MergeOutputClassOptions unsupported bus type %d\n",
+                entity->bus.type);
+    }
+
+    if (!dev)
+        return;
+
+    for (cl = xf86configptr->conf_outputclass_lst; cl; cl = cl->list.next) {
+        if (!OutputClassMatches(cl, dev) || !cl->option_lst)
+            continue;
+
+        xf86Msg(X_INFO, "Applying OutputClass \"%s\" options to %s\n",
+                cl->identifier, dev->attribs->path);
+
+        classopts = xf86optionListDup(cl->option_lst);
+        *options = xf86optionListMerge(*options, classopts);
+    }
+}
+
 static int
 xf86ClaimPlatformSlot(struct xf86_platform_device * d, DriverPtr drvp,
                   int chipset, GDevPtr dev, Bool active)
