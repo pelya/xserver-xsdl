@@ -214,9 +214,10 @@ MatchToken(const char *value, struct xorg_list *patterns,
 }
 
 static Bool
-OutputClassMatches(const XF86ConfOutputClassPtr oclass, int index)
+OutputClassMatches(const XF86ConfOutputClassPtr oclass,
+                   struct xf86_platform_device *dev)
 {
-    char *driver = xf86_platform_odev_attributes(index)->driver;
+    char *driver = dev->attribs->driver;
 
     if (!MatchToken(driver, &oclass->match_driver, strcmp))
         return FALSE;
@@ -234,7 +235,7 @@ xf86OutputClassDriverList(int index, char *matches[], int nmatches)
         return 0;
 
     for (cl = xf86configptr->conf_outputclass_lst; cl; cl = cl->list.next) {
-        if (OutputClassMatches(cl, index)) {
+        if (OutputClassMatches(cl, &xf86_platform_devices[index])) {
             char *path = xf86_platform_odev_attributes(index)->path;
 
             xf86Msg(X_INFO, "Applying OutputClass \"%s\" to %s\n",
