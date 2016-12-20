@@ -67,9 +67,7 @@ glamor_egl_get_display(EGLint type, void *native)
         PFNEGLGETPLATFORMDISPLAYEXTPROC getPlatformDisplayEXT =
             (void *) eglGetProcAddress("eglGetPlatformDisplayEXT");
         if (getPlatformDisplayEXT)
-            dpy = getPlatformDisplayEXT(type, native, NULL);
-        if (dpy)
-            return dpy;
+            return getPlatformDisplayEXT(type, native, NULL);
     }
 
     /* Welp, everything is awful. */
