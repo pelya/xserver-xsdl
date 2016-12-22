@@ -940,7 +940,7 @@ PreInit(ScrnInfoPtr pScrn, int flags)
                    "Using 24bpp hw front buffer with 32bpp shadow\n");
         defaultbpp = 32;
     } else {
-        ms->drmmode.kbpp = defaultbpp;
+        ms->drmmode.kbpp = 0;
     }
     bppflags = PreferConvert24to32 | SupportConvert24to32 | Support32bppFb;
 
@@ -961,6 +961,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
         return FALSE;
     }
     xf86PrintDepthBpp(pScrn);
+    if (!ms->drmmode.kbpp)
+        ms->drmmode.kbpp = pScrn->bitsPerPixel;
 
     /* Process the options */
     xf86CollectOptions(pScrn, NULL);
