@@ -57,6 +57,8 @@ if SPECIAL_DTRACE_OBJECTS
 TEST_LDADD += $(OS_LIB) $(DIX_LIB)
 endif
 
+xkb_SOURCES = test_xkb.c
+
 xkb_LDADD=$(TEST_LDADD)
 input_LDADD=$(TEST_LDADD)
 xtest_LDADD=$(TEST_LDADD)
@@ -97,10 +99,6 @@ endif
 
 if DRI2
 libxservertest_la_LIBADD += $(top_builddir)/hw/xfree86/dri2/libdri2.la
-endif
-
-if DRI3
-libxservertest_la_LIBADD += $(top_builddir)/dri3/libdri3.la
 endif
 
 else
