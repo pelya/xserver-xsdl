@@ -3,10 +3,12 @@ SUBDIRS= .
 AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
 AM_CPPFLAGS = $(XORG_INCS)
 
+tests_CPPFLAGS=
+CLEANFILES=
+
 if XORG
 # Tests that require at least some DDX functions in order to fully link
 # For now, requires xf86 ddx, could be adjusted to use another
-SUBDIRS += xi1 xi2
 if RES
 RES_SRCS = hashtabletest.c
 AM_CPPFLAGS += -DRES_TESTS
@@ -41,12 +43,28 @@ TESTS_ENVIRONMENT = \
 	$(NULL)
 
 if XORG
-AM_CPPFLAGS += -I$(top_srcdir)/hw/xfree86/parser \
+AM_CPPFLAGS += \
+	-I$(srcdir)/xi1 \
+	-I$(srcdir)/xi2 \
+	-I$(top_srcdir)/hw/xfree86/common \
+	-I$(top_srcdir)/hw/xfree86/parser \
 	-I$(top_srcdir)/hw/xfree86/ddc \
 	-I$(top_srcdir)/hw/xfree86/i2c -I$(top_srcdir)/hw/xfree86/modes \
 	-I$(top_srcdir)/hw/xfree86/ramdac -I$(top_srcdir)/hw/xfree86/dri \
 	-I$(top_srcdir)/hw/xfree86/dri2 -I$(top_srcdir)/dri3
+tests_CPPFLAGS += $(AM_CPPFLAGS)
 endif
+
+tests_LDFLAGS = \
+	-Wl,-wrap,dixLookupWindow \
+	-Wl,-wrap,dixLookupClient \
+	-Wl,-wrap,WriteToClient \
+	-Wl,-wrap,dixLookupWindow \
+	-Wl,-wrap,XISetEventMask \
+	-Wl,-wrap,AddResource \
+	-Wl,-wrap,GrabButton \
+	$()
+
 tests_LDADD = libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
 
 if SPECIAL_DTRACE_OBJECTS
@@ -68,6 +86,47 @@ tests_SOURCES = \
         $(RES_SRCS) \
         tests.c
 
+if HAVE_LD_WRAP
+
+tests_CPPFLAGS += -DLDWRAP_TESTS
+
+tests_SOURCES += \
+	xi1/protocol-xchangedevicecontrol.c \
+	xi2/protocol-common.c \
+	xi2/protocol-xiqueryversion.c \
+	xi2/protocol-xiquerydevice.c \
+	xi2/protocol-xiselectevents.c \
+	xi2/protocol-xigetselectedevents.c \
+	xi2/protocol-xisetclientpointer.c \
+	xi2/protocol-xigetclientpointer.c \
+	xi2/protocol-xiquerypointer.c \
+	xi2/protocol-xipassivegrabdevice.c \
+	xi2/protocol-xiwarppointer.c \
+	xi2/protocol-eventconvert.c \
+	xi2/xi2.c
+
+else !HAVE_LD_WRAP
+
+# Print that xi1-tests were skipped (exit code 77 for automake test harness)
+TESTS += xi1-tests
+CLEANFILES += xi1-tests
+
+xi1-tests:
+	@echo 'echo "ld -wrap support required for xi1 unit tests, skipping"' > $@
+	@echo 'exit 77' >> $@
+	$(AM_V_GEN)chmod +x $@
+
+# Print that xi2-tests were skipped (exit code 77 for automake test harness)
+TESTS += xi2-tests
+CLEANFILES += xi2-tests
+
+xi2-tests:
+	@echo 'echo "ld -wrap support required for xi2 unit tests, skipping"' > $@
+	@echo 'exit 77' >> $@
+	$(AM_V_GEN)chmod +x $@
+
+endif !HAVE_LD_WRAP
+
 libxservertest_la_LIBADD = $(XSERVER_LIBS)
 if XORG
 
@@ -87,7 +146,7 @@ libxservertest_la_LIBADD += \
             @XORG_LIBS@
 
 BUILT_SOURCES = sdksyms.c
-CLEANFILES = sdksyms.c
+CLEANFILES += sdksyms.c
 
 sdksyms.c: $(top_builddir)/hw/xfree86/sdksyms.c
 	$(AM_V_GEN)$(LN_S) $(top_builddir)/hw/xfree86/sdksyms.c
