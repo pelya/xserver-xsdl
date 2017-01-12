@@ -55,6 +55,10 @@ int __wrap_GrabButton(ClientPtr client, DeviceIntPtr dev,
                       DeviceIntPtr modifier_device, int button,
                       GrabParameters *param, enum InputLevel grabtype,
                       GrabMask *mask);
+int __real_GrabButton(ClientPtr client, DeviceIntPtr dev,
+                      DeviceIntPtr modifier_device, int button,
+                      GrabParameters *param, enum InputLevel grabtype,
+                      GrabMask *mask);
 static void reply_XIPassiveGrabDevice_data(ClientPtr client, int len,
                                            char *data, void *closure);
 
@@ -64,6 +68,9 @@ __wrap_GrabButton(ClientPtr client, DeviceIntPtr dev,
                   GrabParameters *param, enum InputLevel grabtype,
                   GrabMask *mask)
 {
+    if (!enable_GrabButton_wrap)
+        __real_GrabButton(client, dev, modifier_device, button, param, grabtype, mask);
+
     /* Fail every odd modifier */
     if (param->modifiers % 2)
         return BadAccess;
@@ -238,7 +245,7 @@ test_XIPassiveGrabDevice(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_xipassivegrabdevice_test(void)
 {
     init_simple();
 

@@ -335,7 +335,7 @@ test_XIQueryDevice(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_xiquerydevice_test(void)
 {
     init_simple();
 

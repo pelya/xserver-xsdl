@@ -190,7 +190,7 @@ test_XIQueryPointer(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_xiquerypointer_test(void)
 {
     init_simple();
 

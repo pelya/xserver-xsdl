@@ -122,7 +122,7 @@ test_XISetClientPointer(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_xisetclientpointer_test(void)
 {
     init_simple();
     client_window = init_client(0, NULL);

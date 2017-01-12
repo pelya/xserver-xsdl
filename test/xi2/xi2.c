@@ -137,7 +137,7 @@ xi2mask_test(void)
 }
 
 int
-main(int argc, char **argv)
+xi2_test(void)
 {
     xi2mask_test();
 

@@ -186,7 +186,7 @@ test_XIWarpPointer(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_xiwarppointer_test(void)
 {
     init_simple();
     screen.SetCursorPosition = ScreenSetCursorPosition;

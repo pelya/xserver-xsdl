@@ -1202,7 +1202,7 @@ test_convert_XIBarrierEvent(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_eventconvert_test(void)
 {
     test_convert_XIRawEvent();
     test_convert_XIFocusEvent();

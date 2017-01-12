@@ -34,6 +34,7 @@
 #include "syncsrv.h"
 #include <X11/extensions/XI2.h>
 
+#define INSIDE_PROTOCOL_COMMON
 #include "protocol-common.h"
 
 struct devices devices;
@@ -43,6 +44,9 @@ WindowRec window;
 static ClientRec server_client;
 
 void *global_userdata;
+
+int enable_GrabButton_wrap = 1;
+int enable_XISetEventMask_wrap = 1;
 
 static void
 fake_init_sprite(DeviceIntPtr dev)

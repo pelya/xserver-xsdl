@@ -1,67 +1,48 @@
 if ENABLE_UNIT_TESTS
 if HAVE_LD_WRAP
-noinst_PROGRAMS =  \
-	protocol-xiqueryversion \
-	protocol-xiquerydevice \
-	protocol-xiselectevents \
-	protocol-xigetselectedevents \
-        protocol-xisetclientpointer \
-        protocol-xigetclientpointer \
-        protocol-xipassivegrabdevice \
-        protocol-xiquerypointer \
-        protocol-xiwarppointer \
-        protocol-eventconvert \
-        xi2
+noinst_PROGRAMS = tests
 
-TESTS=$(noinst_PROGRAMS)
+TESTS = tests
+
 TESTS_ENVIRONMENT = $(XORG_MALLOC_DEBUG_ENV)
 
-AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
-AM_CPPFLAGS = \
+tests_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
+
+tests_CPPFLAGS = \
 	@XORG_INCS@ \
 	-I$(srcdir)/..
 
-TEST_LDADD=../libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
-COMMON_SOURCES=protocol-common.h protocol-common.c
-COMMON_LD_FLAGS= -Wl,-wrap,dixLookupWindow -Wl,-wrap,dixLookupClient
+tests_LDADD = ../libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
 
 if SPECIAL_DTRACE_OBJECTS
-TEST_LDADD += $(OS_LIB) $(DIX_LIB)
+tests_LDADD += $(OS_LIB) $(DIX_LIB)
 endif
 
-protocol_xiqueryversion_LDADD=$(TEST_LDADD)
-protocol_xiquerydevice_LDADD=$(TEST_LDADD)
-protocol_xiselectevents_LDADD=$(TEST_LDADD)
-protocol_xigetselectedevents_LDADD=$(TEST_LDADD)
-protocol_xisetclientpointer_LDADD=$(TEST_LDADD)
-protocol_xigetclientpointer_LDADD=$(TEST_LDADD)
-protocol_xiquerypointer_LDADD=$(TEST_LDADD)
-protocol_xipassivegrabdevice_LDADD=$(TEST_LDADD)
-protocol_xiwarppointer_LDADD=$(TEST_LDADD)
-protocol_eventconvert_LDADD=$(TEST_LDADD)
-xi2_LDADD=$(TEST_LDADD)
+tests_LDFLAGS = \
+        -Wl,-wrap,WriteToClient \
+        -Wl,-wrap,dixLookupWindow \
+        -Wl,-wrap,XISetEventMask \
+        -Wl,-wrap,AddResource \
+        -Wl,-wrap,GrabButton \
+        -Wl,-wrap,dixLookupClient \
+        $()
 
-protocol_xiqueryversion_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,WriteToClient
-protocol_xiquerydevice_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,WriteToClient
-protocol_xiselectevents_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,XISetEventMask
-protocol_xigetselectedevents_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,AddResource
-protocol_xisetclientpointer_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,dixLookupClient
-protocol_xigetclientpointer_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,dixLookupClient
-protocol_xipassivegrabdevice_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,GrabButton
-protocol_xiquerypointer_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,WriteToClient
-protocol_xiwarppointer_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,WriteToClient
-xi2_LDFLAGS=$(COMMON_LD_FLAGS)
+tests_SOURCES = \
+	$(srcdir)/../tests-common.c \
+	protocol-common.c \
+	protocol-xiqueryversion.c \
+	protocol-xiquerydevice.c \
+	protocol-xiselectevents.c \
+	protocol-xigetselectedevents.c \
+	protocol-xisetclientpointer.c \
+	protocol-xigetclientpointer.c \
+	protocol-xiquerypointer.c \
+	protocol-xipassivegrabdevice.c \
+	protocol-xiwarppointer.c \
+	protocol-eventconvert.c \
+	xi2.c \
+	tests.c
 
-protocol_xiqueryversion_SOURCES=$(COMMON_SOURCES) protocol-xiqueryversion.c
-protocol_xiquerydevice_SOURCES=$(COMMON_SOURCES) protocol-xiquerydevice.c
-protocol_xiselectevents_SOURCES=$(COMMON_SOURCES) protocol-xiselectevents.c
-protocol_xigetselectedevents_SOURCES=$(COMMON_SOURCES) protocol-xigetselectedevents.c
-protocol_xisetclientpointer_SOURCES=$(COMMON_SOURCES) protocol-xisetclientpointer.c
-protocol_xigetclientpointer_SOURCES=$(COMMON_SOURCES) protocol-xigetclientpointer.c
-protocol_xiquerypointer_SOURCES=$(COMMON_SOURCES) protocol-xiquerypointer.c
-protocol_xipassivegrabdevice_SOURCES=$(COMMON_SOURCES) protocol-xipassivegrabdevice.c
-protocol_xiwarppointer_SOURCES=$(COMMON_SOURCES) protocol-xiwarppointer.c
-xi2_SOURCES=$(COMMON_SOURCES) xi2.c
 else
 # Print that xi2-tests were skipped (exit code 77 for automake test harness)
 TESTS = xi2-tests

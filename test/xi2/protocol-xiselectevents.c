@@ -65,9 +65,16 @@ static unsigned char *data[4096 * 20];  /* the request data buffer */
 ClientRec client_window;
 
 int
+__real_XISetEventMask(DeviceIntPtr dev, WindowPtr win, int len,
+                      unsigned char *mask);
+
+int
 __wrap_XISetEventMask(DeviceIntPtr dev, WindowPtr win, int len,
                       unsigned char *mask)
 {
+    if (!enable_XISetEventMask_wrap)
+        return __real_XISetEventMask(dev, win, len, mask);
+
     return Success;
 }
 
@@ -324,7 +331,7 @@ test_XISelectEvents(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_xiselectevents_test(void)
 {
     init_simple();
 

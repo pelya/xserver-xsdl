@@ -288,7 +288,7 @@ test_XIQueryVersion_multiple(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_xiqueryversion_test(void)
 {
     init_simple();
 

@@ -206,9 +206,11 @@ test_XIGetSelectedEvents(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_xigetselectedevents_test(void)
 {
     init_simple();
+    enable_GrabButton_wrap = 0;
+    enable_XISetEventMask_wrap = 0;
 
     test_XIGetSelectedEvents();
 
