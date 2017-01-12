@@ -1,6 +1,18 @@
 #ifndef TESTS_H
 #define TESTS_H
 
+int fixes_test(void);
+int hashtabletest_test(void);
+int input_test(void);
+int list_test(void);
+int misc_test(void);
+int signal_logging_test(void);
+int string_test(void);
+int touch_test(void);
+int xfree86_test(void);
+int xkb_test(void);
+int xtest_test(void);
+
 int protocol_xchangedevicecontrol_test(void);
 
 int protocol_xiqueryversion_test(void);

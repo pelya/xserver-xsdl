@@ -1,21 +1,20 @@
 if ENABLE_UNIT_TESTS
 SUBDIRS= .
-TEST_PROGS = list string
+AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
+AM_CPPFLAGS = $(XORG_INCS)
+
 if XORG
 # Tests that require at least some DDX functions in order to fully link
 # For now, requires xf86 ddx, could be adjusted to use another
 SUBDIRS += xi1 xi2
-TEST_PROGS += xkb input xtest misc fixes xfree86 signal-logging touch
 if RES
-TEST_PROGS += hashtabletest
+RES_SRCS = hashtabletest.c
+AM_CPPFLAGS += -DRES_TESTS
 endif
 endif
 check_LTLIBRARIES = libxservertest.la
 
-noinst_PROGRAMS = \
-	simple-xinit \
-	$(TEST_PROGS) \
-	$(NULL)
+noinst_PROGRAMS = simple-xinit tests
 
 if XVFB
 XVFB_TESTS = scripts/xvfb-piglit.sh
@@ -31,8 +30,7 @@ SCRIPT_TESTS = \
 	$(XEPHYR_GLAMOR_TESTS) \
 	$(NULL)
 
-TESTS = \
-	$(TEST_PROGS) \
+TESTS = tests \
 	$(SCRIPT_TESTS) \
 	$(NULL)
 
@@ -42,8 +40,6 @@ TESTS_ENVIRONMENT = \
 	$(XORG_MALLOC_DEBUG_ENV) \
 	$(NULL)
 
-AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
-AM_CPPFLAGS = $(XORG_INCS)
 if XORG
 AM_CPPFLAGS += -I$(top_srcdir)/hw/xfree86/parser \
 	-I$(top_srcdir)/hw/xfree86/ddc \
@@ -51,23 +47,26 @@ AM_CPPFLAGS += -I$(top_srcdir)/hw/xfree86/parser \
 	-I$(top_srcdir)/hw/xfree86/ramdac -I$(top_srcdir)/hw/xfree86/dri \
 	-I$(top_srcdir)/hw/xfree86/dri2 -I$(top_srcdir)/dri3
 endif
-TEST_LDADD=libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
+tests_LDADD = libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
 
 if SPECIAL_DTRACE_OBJECTS
-TEST_LDADD += $(OS_LIB) $(DIX_LIB)
+tests_LDADD += $(OS_LIB) $(DIX_LIB)
 endif
 
-xkb_SOURCES = test_xkb.c
-
-xkb_LDADD=$(TEST_LDADD)
-input_LDADD=$(TEST_LDADD)
-xtest_LDADD=$(TEST_LDADD)
-misc_LDADD=$(TEST_LDADD)
-fixes_LDADD=$(TEST_LDADD)
-xfree86_LDADD=$(TEST_LDADD)
-touch_LDADD=$(TEST_LDADD)
-signal_logging_LDADD=$(TEST_LDADD)
-hashtabletest_LDADD=$(TEST_LDADD)
+tests_SOURCES = \
+        tests-common.c \
+        fixes.c \
+        input.c \
+        list.c \
+        misc.c \
+        signal-logging.c \
+        string.c \
+        touch.c \
+        xfree86.c \
+        test_xkb.c \
+        xtest.c \
+        $(RES_SRCS) \
+        tests.c
 
 libxservertest_la_LIBADD = $(XSERVER_LIBS)
 if XORG
@@ -151,7 +150,7 @@ endif
 if XQUARTZ
 libxservertest_la_LIBADD += \
             $(top_builddir)/miext/rootless/librootless.la
-TEST_LDADD += -lXplugin
+tests_LDADD += -lXplugin
 endif
 
 if XWIN_MULTIWINDOWEXTWM
