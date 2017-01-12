@@ -14,7 +14,6 @@ RES_SRCS = hashtabletest.c
 AM_CPPFLAGS += -DRES_TESTS
 endif
 endif
-check_LTLIBRARIES = libxservertest.la
 
 noinst_PROGRAMS = simple-xinit tests
 
@@ -65,11 +64,7 @@ tests_LDFLAGS = \
 	-Wl,-wrap,GrabButton \
 	$()
 
-tests_LDADD = libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
-
-if SPECIAL_DTRACE_OBJECTS
-tests_LDADD += $(OS_LIB) $(DIX_LIB)
-endif
+tests_LDADD = $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
 
 tests_SOURCES = \
         tests-common.c \
@@ -127,14 +122,16 @@ xi2-tests:
 
 endif !HAVE_LD_WRAP
 
-libxservertest_la_LIBADD = $(XSERVER_LIBS)
+tests_LDADD += $(XSERVER_LIBS)
+
 if XORG
 
-nodist_libxservertest_la_SOURCES = sdksyms.c
-libxservertest_la_LIBADD += \
+nodist_tests_SOURCES = sdksyms.c
+
+tests_LDADD += \
             $(top_builddir)/hw/xfree86/loader/libloader.la \
-            $(top_builddir)/hw/xfree86/os-support/libxorgos.la \
             $(top_builddir)/hw/xfree86/common/libcommon.la \
+            $(top_builddir)/hw/xfree86/os-support/libxorgos.la \
             $(top_builddir)/hw/xfree86/parser/libxf86config.la \
             $(top_builddir)/hw/xfree86/dixmods/libdixmods.la \
             $(top_builddir)/hw/xfree86/modes/libxf86modes.la \
@@ -152,19 +149,24 @@ sdksyms.c: $(top_builddir)/hw/xfree86/sdksyms.c
 	$(AM_V_GEN)$(LN_S) $(top_builddir)/hw/xfree86/sdksyms.c
 
 if DRI
-libxservertest_la_LIBADD += $(top_builddir)/hw/xfree86/dri/libdri.la
+tests_LDADD += $(top_builddir)/hw/xfree86/dri/libdri.la
 endif
 
 if DRI2
-libxservertest_la_LIBADD += $(top_builddir)/hw/xfree86/dri2/libdri2.la
+tests_LDADD += $(top_builddir)/hw/xfree86/dri2/libdri2.la
 endif
 
-else
-nodist_libxservertest_la_SOURCES = \
+if DRI3
+tests_LDADD += $(top_builddir)/dri3/libdri3.la
+endif
+
+else !XORG
+
+nodist_tests_SOURCES = \
             ddxstubs.c \
             $(top_srcdir)/mi/miinitext.c
 
-libxservertest_la_LIBADD += \
+tests_LDADD += \
             $(top_builddir)/damageext/libdamageext.la \
             $(top_builddir)/fb/libfb.la \
             $(top_builddir)/fb/libwfb.la \
@@ -182,44 +184,45 @@ libxservertest_la_LIBADD += \
             $(top_builddir)/xkb/libxkbstubs.la
 
 if COMPOSITE
-libxservertest_la_LIBADD += \
+tests_LDADD += \
             $(top_builddir)/composite/libcomposite.la
 endif
 
 if DBE
-libxservertest_la_LIBADD += \
+tests_LDADD += \
             $(top_builddir)/dbe/libdbe.la
 endif
 
 if GLX
-libxservertest_la_LIBADD += \
+tests_LDADD += \
             $(top_builddir)/glx/libglx.la
 endif
 
 if RECORD
-libxservertest_la_LIBADD += \
+tests_LDADD += \
             $(top_builddir)/record/librecord.la
 endif
 
 if DRI3
-libxservertest_la_LIBADD += \
+tests_LDADD += \
             $(top_builddir)/dri3/libdri3.la
 endif
 
 if XQUARTZ
-libxservertest_la_LIBADD += \
+tests_LDADD += \
             $(top_builddir)/miext/rootless/librootless.la
 tests_LDADD += -lXplugin
 endif
 
 if XWIN_MULTIWINDOWEXTWM
-libxservertest_la_LIBADD += \
+tests_LDADD += \
             $(top_builddir)/miext/rootless/librootless.la
 endif
-endif
 
-libxservertest_la_DEPENDENCIES = $(libxservertest_la_LIBADD)
-endif
+endif !XORG
+
+tests_DEPENDENCIES = $(tests_LDADD)
+endif ENABLE_UNIT_TESTS
 
 EXTRA_DIST = \
 	scripts/xvfb-piglit.sh \
