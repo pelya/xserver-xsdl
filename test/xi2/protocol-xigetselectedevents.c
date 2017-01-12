@@ -60,25 +60,7 @@ struct {
     int mask_len;
 } test_data;
 
-/* dixLookupWindow requires a lot of setup not necessary for this test.
- * Simple wrapper that returns either one of the fake root window or the
- * fake client window. If the requested ID is neither of those wanted,
- * return whatever the real dixLookupWindow does.
- */
-int
-__wrap_dixLookupWindow(WindowPtr *win, XID id, ClientPtr client, Mask access)
-{
-    if (id == root.drawable.id) {
-        *win = &root;
-        return Success;
-    }
-    else if (id == window.drawable.id) {
-        *win = &window;
-        return Success;
-    }
-
-    return __real_dixLookupWindow(win, id, client, access);
-}
+ClientRec client_window;
 
 /* AddResource is called from XISetSEventMask, we don't need this */
 Bool

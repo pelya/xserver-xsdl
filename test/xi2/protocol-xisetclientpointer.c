@@ -48,23 +48,8 @@
 
 #include "protocol-common.h"
 
-static ClientRec client_window;
+ClientRec client_window;
 static ClientRec client_request;
-
-int
-__wrap_dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client,
-                       Mask access)
-{
-    if (rid == ROOT_WINDOW_ID)
-        return BadWindow;
-
-    if (rid == CLIENT_WINDOW_ID) {
-        *pClient = &client_window;
-        return Success;
-    }
-
-    return __real_dixLookupClient(pClient, rid, client, access);
-}
 
 static void
 request_XISetClientPointer(xXISetClientPointerReq * req, int error)

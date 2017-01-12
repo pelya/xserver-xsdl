@@ -30,6 +30,10 @@
 #include "inputstr.h"
 #include "assert.h"
 
+#include "protocol-common.h"
+
+ClientRec client_window;
+
 static void
 xi2mask_test(void)
 {

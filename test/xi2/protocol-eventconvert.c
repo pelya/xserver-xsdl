@@ -33,6 +33,8 @@
 #include "inpututils.h"
 #include <X11/extensions/XI2proto.h>
 
+#include "protocol-common.h"
+
 static void
 test_values_XIRawEvent(RawDeviceEvent *in, xXIRawEvent * out, BOOL swap)
 {

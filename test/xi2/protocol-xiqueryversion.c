@@ -58,6 +58,8 @@ struct test_data {
     int minor_expected;
 };
 
+ClientRec client_window;
+
 static void
 reply_XIQueryVersion(ClientPtr client, int len, char *data, void *closure)
 {

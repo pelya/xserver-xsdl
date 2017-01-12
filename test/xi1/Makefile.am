@@ -10,6 +10,7 @@ AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
 AM_CPPFLAGS = @XORG_INCS@ -I$(srcdir)/../xi2
 TEST_LDADD=../libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
 COMMON_SOURCES=$(srcdir)/../xi2/protocol-common.c
+COMMON_LD_FLAGS = -Wl,-wrap,dixLookupWindow -Wl,-wrap,dixLookupClient
 
 if SPECIAL_DTRACE_OBJECTS
 TEST_LDADD += $(OS_LIB) $(DIX_LIB)
@@ -17,7 +18,7 @@ endif
 
 protocol_xchangedevicecontrol_LDADD=$(TEST_LDADD)
 
-protocol_xchangedevicecontrol_LDFLAGS=$(AM_LDFLAGS) -Wl,-wrap,WriteToClient
+protocol_xchangedevicecontrol_LDFLAGS=$(COMMON_LD_FLAGS) -Wl,-wrap,WriteToClient
 
 protocol_xchangedevicecontrol_SOURCES=$(COMMON_SOURCES) protocol-xchangedevicecontrol.c
 

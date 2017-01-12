@@ -37,6 +37,7 @@
 
 #include "protocol-common.h"
 
+ClientRec client_window;
 static ClientRec client_request;
 
 static void

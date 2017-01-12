@@ -41,6 +41,7 @@
 
 #include "protocol-common.h"
 
+ClientRec client_window;
 static ClientRec client_request;
 
 #define N_MODS 7
@@ -56,21 +57,6 @@ int __wrap_GrabButton(ClientPtr client, DeviceIntPtr dev,
                       GrabMask *mask);
 static void reply_XIPassiveGrabDevice_data(ClientPtr client, int len,
                                            char *data, void *closure);
-
-int
-__wrap_dixLookupWindow(WindowPtr *win, XID id, ClientPtr client, Mask access)
-{
-    if (id == root.drawable.id) {
-        *win = &root;
-        return Success;
-    }
-    else if (id == window.drawable.id) {
-        *win = &window;
-        return Success;
-    }
-
-    return __real_dixLookupWindow(win, id, client, access);
-}
 
 int
 __wrap_GrabButton(ClientPtr client, DeviceIntPtr dev,
