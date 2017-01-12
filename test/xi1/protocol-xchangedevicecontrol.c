@@ -113,7 +113,7 @@ test_ChangeDeviceControl(void)
 }
 
 int
-main(int argc, char **argv)
+protocol_xchangedevicecontrol_test(void)
 {
     init_simple();
 
