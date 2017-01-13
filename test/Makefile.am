@@ -142,6 +142,10 @@ tests_LDADD += \
             $(top_builddir)/Xext/libXvidmode.la \
             @XORG_LIBS@
 
+if !SPECIAL_DTRACE_OBJECTS
+tests_LDADD += $(top_builddir)/os/libos.la
+endif
+
 BUILT_SOURCES = sdksyms.c
 CLEANFILES += sdksyms.c
 
