@@ -225,7 +225,6 @@ endif
 
 endif !XORG
 
-tests_DEPENDENCIES = $(tests_LDADD)
 endif ENABLE_UNIT_TESTS
 
 EXTRA_DIST = \
