@@ -22,6 +22,9 @@
 
 #include "servermd.h"
 
+static void
+xf86RecolorCursor_locked(xf86CursorScreenPtr ScreenPriv, CursorPtr pCurs);
+
 static CARD32
 xf86ReverseBitOrder(CARD32 v)
 {
@@ -204,7 +207,7 @@ xf86ScreenSetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
         if (!xf86DriverLoadCursorImage (infoPtr, bits))
             return FALSE;
 
-    xf86RecolorCursor(pScreen, pCurs, 1);
+    xf86RecolorCursor_locked (ScreenPriv, pCurs);
 
     (*infoPtr->SetCursorPosition) (infoPtr->pScrn, x, y);
 
@@ -312,12 +315,9 @@ xf86MoveCursor(ScreenPtr pScreen, int x, int y)
     input_unlock();
 }
 
-void
-xf86RecolorCursor(ScreenPtr pScreen, CursorPtr pCurs, Bool displayed)
+static void
+xf86RecolorCursor_locked(xf86CursorScreenPtr ScreenPriv, CursorPtr pCurs)
 {
-    xf86CursorScreenPtr ScreenPriv =
-        (xf86CursorScreenPtr) dixLookupPrivate(&pScreen->devPrivates,
-                                               xf86CursorScreenKey);
     xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
 
     /* recoloring isn't applicable to ARGB cursors and drivers
@@ -355,6 +355,18 @@ xf86RecolorCursor(ScreenPtr pScreen, CursorPtr pCurs, Bool displayed)
                                      ((pCurs->foreRed >> 8) << 16)
             );
     }
+}
+
+void
+xf86RecolorCursor(ScreenPtr pScreen, CursorPtr pCurs, Bool displayed)
+{
+    xf86CursorScreenPtr ScreenPriv =
+        (xf86CursorScreenPtr) dixLookupPrivate(&pScreen->devPrivates,
+                                               xf86CursorScreenKey);
+
+    input_lock();
+    xf86RecolorCursor_locked (ScreenPriv, pCurs);
+    input_unlock();
 }
 
 /* These functions assume that MaxWidth is a multiple of 32 */
