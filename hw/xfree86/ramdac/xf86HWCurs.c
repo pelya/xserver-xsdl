@@ -261,6 +261,8 @@ xf86SetTransparentCursor(ScreenPtr pScreen)
                                                xf86CursorScreenKey);
     xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
 
+    input_lock();
+
     if (!ScreenPriv->transparentData)
         ScreenPriv->transparentData =
             (*infoPtr->RealizeCursor) (infoPtr, NullCursor);
@@ -273,6 +275,8 @@ xf86SetTransparentCursor(ScreenPtr pScreen)
                                    ScreenPriv->transparentData);
 
     (*infoPtr->ShowCursor) (infoPtr->pScrn);
+
+    input_unlock();
 }
 
 static void
