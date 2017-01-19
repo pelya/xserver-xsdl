@@ -2336,9 +2336,6 @@ if test "x$DMX" = xyes; then
 dnl USB sources in DMX require <linux/input.h>
 	AC_CHECK_HEADER([linux/input.h], DMX_BUILD_USB="yes",
 			DMX_BUILD_USB="no")
-dnl Linux sources in DMX require <linux/keyboard.h>
-	AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
-			DMX_BUILD_LNX="no")
 	AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
 	AC_SUBST(XDMXCONFIG_DEP_LIBS)
 	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [$LIBDMX $LIBXEXT x11])
@@ -2355,7 +2352,6 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 	AC_SUBST(X11EXAMPLES_DEP_LIBS)
 
 fi
-AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
 AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
 
 dnl kdrive DDX
