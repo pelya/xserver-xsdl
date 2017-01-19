@@ -320,11 +320,6 @@ compClipNotify(WindowPtr pWin, int dx, int dy)
     }
 }
 
-/*
- * Returns TRUE if the window needs server-provided automatic redirect,
- * which is true if the child and parent aren't both regular or ARGB visuals
- */
-
 static Bool
 compIsAlternateVisual(ScreenPtr pScreen, XID visual)
 {
