@@ -320,7 +320,7 @@ compClipNotify(WindowPtr pWin, int dx, int dy)
     }
 }
 
-static Bool
+Bool
 compIsAlternateVisual(ScreenPtr pScreen, XID visual)
 {
     CompScreenPtr cs = GetCompScreen(pScreen);
