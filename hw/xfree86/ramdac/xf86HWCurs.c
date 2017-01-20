@@ -139,9 +139,14 @@ Bool
 xf86CheckHWCursor(ScreenPtr pScreen, CursorPtr cursor, xf86CursorInfoPtr infoPtr)
 {
     ScreenPtr pSlave;
+    Bool use_hw_cursor = TRUE;
 
-    if (!xf86ScreenCheckHWCursor(pScreen, cursor, infoPtr))
-        return FALSE;
+    input_lock();
+
+    if (!xf86ScreenCheckHWCursor(pScreen, cursor, infoPtr)) {
+        use_hw_cursor = FALSE;
+	goto unlock;
+    }
 
     /* ask each driver consuming a pixmap if it can support HW cursor */
     xorg_list_for_each_entry(pSlave, &pScreen->slave_list, slave_head) {
@@ -151,14 +156,22 @@ xf86CheckHWCursor(ScreenPtr pScreen, CursorPtr cursor, xf86CursorInfoPtr infoPtr
             continue;
 
         sPriv = dixLookupPrivate(&pSlave->devPrivates, xf86CursorScreenKey);
-        if (!sPriv) /* NULL if Option "SWCursor", possibly other conditions */
-            return FALSE;
+        if (!sPriv) { /* NULL if Option "SWCursor", possibly other conditions */
+            use_hw_cursor = FALSE;
+	    break;
+	}
 
         /* FALSE if HWCursor not supported by slave */
-        if (!xf86ScreenCheckHWCursor(pSlave, cursor, sPriv->CursorInfoPtr))
-            return FALSE;
+        if (!xf86ScreenCheckHWCursor(pSlave, cursor, sPriv->CursorInfoPtr)) {
+            use_hw_cursor = FALSE;
+	    break;
+	}
     }
-    return TRUE;
+
+unlock:
+    input_unlock();
+
+    return use_hw_cursor;
 }
 
 static Bool
