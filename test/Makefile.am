@@ -64,7 +64,7 @@ tests_LDFLAGS = \
 	-Wl,-wrap,GrabButton \
 	$()
 
-tests_LDADD = $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
+tests_LDADD =
 
 tests_SOURCES = \
         tests-common.c \
@@ -224,6 +224,10 @@ tests_LDADD += \
 endif
 
 endif !XORG
+
+# GNU LD scans only in one direction, add the following dependencies at the end
+# so as they get picked up by the previously-linked libraries
+tests_LDADD += $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLX_SYS_LIBS)
 
 endif ENABLE_UNIT_TESTS
 
