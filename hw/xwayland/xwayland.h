@@ -205,6 +205,9 @@ struct xwl_tablet_tool {
     float tilt_y;
     float rotation;
     float slider;
+
+    uint32_t buttons_now,
+             buttons_prev;
 };
 
 struct xwl_tablet_pad {

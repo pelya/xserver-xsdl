@@ -34,6 +34,7 @@
 #include <inpututils.h>
 #include <mipointer.h>
 #include <mipointrst.h>
+#include <misc.h>
 #include "tablet-unstable-v2-client-protocol.h"
 
 struct sync_pending {
@@ -1537,8 +1538,8 @@ tablet_tool_button_state(void *data, struct zwp_tablet_tool_v2 *tool,
 {
     struct xwl_tablet_tool *xwl_tablet_tool = data;
     struct xwl_seat *xwl_seat = xwl_tablet_tool->seat;
+    uint32_t *mask = &xwl_tablet_tool->buttons_now;
     int xbtn = 0;
-    ValuatorMask mask;
 
     /* BTN_0 .. BTN_9 */
     if (button >= 0x100 && button <= 0x109) {
@@ -1586,11 +1587,14 @@ tablet_tool_button_state(void *data, struct zwp_tablet_tool_v2 *tool,
         return;
     }
 
-    xwl_seat->xwl_screen->serial = serial;
+    BUG_RETURN(xbtn >= 8 * sizeof(*mask));
 
-    valuator_mask_zero(&mask);
-    QueuePointerEvents(xwl_tablet_tool->xdevice,
-                       state ? ButtonPress : ButtonRelease, xbtn, 0, &mask);
+    if (state)
+        SetBit(mask, xbtn);
+    else
+        ClearBit(mask, xbtn);
+
+    xwl_seat->xwl_screen->serial = serial;
 }
 
 static void
@@ -1598,6 +1602,8 @@ tablet_tool_frame(void *data, struct zwp_tablet_tool_v2 *tool, uint32_t time)
 {
     struct xwl_tablet_tool *xwl_tablet_tool = data;
     ValuatorMask mask;
+    uint32_t released, pressed, diff;
+    int button;
 
     valuator_mask_zero(&mask);
     valuator_mask_set(&mask, 0, xwl_tablet_tool->x);
@@ -1607,10 +1613,34 @@ tablet_tool_frame(void *data, struct zwp_tablet_tool_v2 *tool, uint32_t time)
     valuator_mask_set(&mask, 4, xwl_tablet_tool->tilt_y);
     valuator_mask_set(&mask, 5, xwl_tablet_tool->rotation + xwl_tablet_tool->slider);
 
-    /* FIXME: Store button mask in xwl_tablet_tool and send events *HERE* if
-       changed */
     QueuePointerEvents(xwl_tablet_tool->xdevice, MotionNotify, 0,
                POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
+
+    valuator_mask_zero(&mask);
+
+    diff = xwl_tablet_tool->buttons_prev ^ xwl_tablet_tool->buttons_now;
+    released = diff & ~xwl_tablet_tool->buttons_now;
+    pressed = diff & xwl_tablet_tool->buttons_now;
+
+    button = 1;
+    while (released) {
+        if (released & 0x1)
+            QueuePointerEvents(xwl_tablet_tool->xdevice,
+                               ButtonRelease, button, 0, &mask);
+        button++;
+        released >>= 1;
+    }
+
+    button = 1;
+    while (pressed) {
+        if (pressed & 0x1)
+            QueuePointerEvents(xwl_tablet_tool->xdevice,
+                               ButtonPress, button, 0, &mask);
+        button++;
+        pressed >>= 1;
+    }
+
+    xwl_tablet_tool->buttons_prev = xwl_tablet_tool->buttons_now;
 }
 
 static const struct zwp_tablet_tool_v2_listener tablet_tool_listener = {
