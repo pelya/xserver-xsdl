@@ -219,10 +219,38 @@ struct xwl_tablet_tool {
     struct xwl_cursor cursor;
 };
 
+struct xwl_tablet_pad_ring {
+    unsigned int index;
+    struct xorg_list link;
+    struct xwl_tablet_pad_group *group;
+    struct zwp_tablet_pad_ring_v2 *ring;
+};
+
+struct xwl_tablet_pad_strip {
+    unsigned int index;
+    struct xorg_list link;
+    struct xwl_tablet_pad_group *group;
+    struct zwp_tablet_pad_strip_v2 *strip;
+};
+
+struct xwl_tablet_pad_group {
+    struct xorg_list link;
+    struct xwl_tablet_pad *pad;
+    struct zwp_tablet_pad_group_v2 *group;
+
+    struct xorg_list pad_group_ring_list;
+    struct xorg_list pad_group_strip_list;
+};
+
 struct xwl_tablet_pad {
     struct xorg_list link;
     struct zwp_tablet_pad_v2 *pad;
     struct xwl_seat *seat;
+
+    DeviceIntPtr xdevice;
+
+    unsigned int nbuttons;
+    struct xorg_list pad_group_list;
 };
 
 struct xwl_output {

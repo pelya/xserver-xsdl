@@ -1335,6 +1335,7 @@ tablet_handle_removed(void *data, struct zwp_tablet_v2 *tablet)
             DisableDevice(xwl_seat->eraser, TRUE);
         if (xwl_seat->puck)
             DisableDevice(xwl_seat->puck, TRUE);
+        /* pads are removed separately */
     }
 
     zwp_tablet_v2_destroy(tablet);
@@ -1695,6 +1696,418 @@ static const struct zwp_tablet_tool_v2_listener tablet_tool_listener = {
 };
 
 static void
+tablet_pad_ring_destroy(struct xwl_tablet_pad_ring *ring)
+{
+    zwp_tablet_pad_ring_v2_destroy(ring->ring);
+    xorg_list_del(&ring->link);
+    free(ring);
+}
+
+static void
+tablet_pad_ring_source(void *data,
+                       struct zwp_tablet_pad_ring_v2 *zwp_tablet_pad_ring_v2,
+                       uint32_t source)
+{
+}
+
+static void
+tablet_pad_ring_angle(void *data,
+                      struct zwp_tablet_pad_ring_v2 *zwp_tablet_pad_ring_v2,
+                      wl_fixed_t degrees)
+{
+    struct xwl_tablet_pad_ring *ring = data;
+    struct xwl_tablet_pad *pad = ring->group->pad;
+    double deg = wl_fixed_to_double(degrees);
+    ValuatorMask mask;
+
+    valuator_mask_zero(&mask);
+    valuator_mask_set(&mask, 5 + ring->index, deg/360.0  * 71);
+    QueuePointerEvents(pad->xdevice, MotionNotify, 0, 0, &mask);
+}
+
+static void
+tablet_pad_ring_stop(void *data,
+                     struct zwp_tablet_pad_ring_v2 *zwp_tablet_pad_ring_v2)
+{
+}
+
+static void
+tablet_pad_ring_frame(void *data,
+                      struct zwp_tablet_pad_ring_v2 *zwp_tablet_pad_ring_v2,
+                      uint32_t time)
+{
+}
+
+static const struct zwp_tablet_pad_ring_v2_listener tablet_pad_ring_listener = {
+    tablet_pad_ring_source,
+    tablet_pad_ring_angle,
+    tablet_pad_ring_stop,
+    tablet_pad_ring_frame,
+};
+
+
+static void
+tablet_pad_strip_destroy(struct xwl_tablet_pad_strip *strip)
+{
+    zwp_tablet_pad_strip_v2_destroy(strip->strip);
+    xorg_list_del(&strip->link);
+    free(strip);
+}
+
+static void
+tablet_pad_strip_source(void *data,
+                        struct zwp_tablet_pad_strip_v2 *zwp_tablet_pad_strip_v2,
+                        uint32_t source)
+{
+}
+
+static void
+tablet_pad_strip_position(void *data,
+                          struct zwp_tablet_pad_strip_v2 *zwp_tablet_pad_strip_v2,
+                          uint32_t position)
+{
+    struct xwl_tablet_pad_strip *strip = data;
+    struct xwl_tablet_pad *pad = strip->group->pad;
+    ValuatorMask mask;
+
+    valuator_mask_zero(&mask);
+    valuator_mask_set(&mask, 3 + strip->index, position/65535.0 * 2048);
+    QueuePointerEvents(pad->xdevice, MotionNotify, 0, 0, &mask);
+}
+
+static void
+tablet_pad_strip_stop(void *data,
+                      struct zwp_tablet_pad_strip_v2 *zwp_tablet_pad_strip_v2)
+{
+}
+
+static void
+tablet_pad_strip_frame(void *data,
+                       struct zwp_tablet_pad_strip_v2 *zwp_tablet_pad_strip_v2,
+                       uint32_t time)
+{
+}
+
+static const struct zwp_tablet_pad_strip_v2_listener tablet_pad_strip_listener = {
+    tablet_pad_strip_source,
+    tablet_pad_strip_position,
+    tablet_pad_strip_stop,
+    tablet_pad_strip_frame,
+};
+
+static void
+tablet_pad_group_destroy(struct xwl_tablet_pad_group *group)
+{
+    struct xwl_tablet_pad_ring *r, *tr;
+    struct xwl_tablet_pad_strip *s, *ts;
+
+    xorg_list_for_each_entry_safe(r, tr,
+                                  &group->pad_group_ring_list,
+                                  link)
+        tablet_pad_ring_destroy(r);
+
+    xorg_list_for_each_entry_safe(s, ts,
+                                  &group->pad_group_strip_list,
+                                  link)
+        tablet_pad_strip_destroy(s);
+
+    zwp_tablet_pad_group_v2_destroy(group->group);
+    xorg_list_del(&group->link);
+    free(group);
+}
+
+static void
+tablet_pad_group_buttons(void *data,
+                         struct zwp_tablet_pad_group_v2 *zwp_tablet_pad_group_v2,
+                         struct wl_array *buttons)
+{
+
+}
+
+static void
+tablet_pad_group_ring(void *data,
+                      struct zwp_tablet_pad_group_v2 *zwp_tablet_pad_group_v2,
+                      struct zwp_tablet_pad_ring_v2 *wp_ring)
+{
+    static unsigned int ring_index = 0;
+    struct xwl_tablet_pad_group *group = data;
+    struct xwl_tablet_pad_ring *ring;
+
+    ring = calloc(1, sizeof *ring);
+    if (ring == NULL) {
+        ErrorF("%s ENOMEM\n", __func__);
+        return;
+    }
+
+    ring->index = ring_index++;
+    ring->group = group;
+    ring->ring = wp_ring;
+
+    xorg_list_add(&ring->link, &group->pad_group_ring_list);
+
+    zwp_tablet_pad_ring_v2_add_listener(wp_ring, &tablet_pad_ring_listener,
+                                        ring);
+}
+
+static void
+tablet_pad_group_strip(void *data,
+                       struct zwp_tablet_pad_group_v2 *zwp_tablet_pad_group_v2,
+                       struct zwp_tablet_pad_strip_v2 *wp_strip)
+{
+    static unsigned int strip_index = 0;
+    struct xwl_tablet_pad_group *group = data;
+    struct xwl_tablet_pad_strip *strip;
+
+    strip = calloc(1, sizeof *strip);
+    if (strip == NULL) {
+        ErrorF("%s ENOMEM\n", __func__);
+        return;
+    }
+
+    strip->index = strip_index++;
+    strip->group = group;
+    strip->strip = wp_strip;
+
+    xorg_list_add(&strip->link, &group->pad_group_strip_list);
+
+    zwp_tablet_pad_strip_v2_add_listener(wp_strip, &tablet_pad_strip_listener,
+                                         strip);
+}
+
+static void
+tablet_pad_group_modes(void *data,
+                       struct zwp_tablet_pad_group_v2 *zwp_tablet_pad_group_v2,
+                       uint32_t modes)
+{
+
+}
+
+static void
+tablet_pad_group_done(void *data,
+                      struct zwp_tablet_pad_group_v2 *zwp_tablet_pad_group_v2)
+{
+
+}
+
+static void
+tablet_pad_group_mode_switch(void *data,
+                             struct zwp_tablet_pad_group_v2 *zwp_tablet_pad_group_v2,
+                             uint32_t time,
+                             uint32_t serial,
+                             uint32_t mode)
+{
+
+}
+
+static struct zwp_tablet_pad_group_v2_listener tablet_pad_group_listener = {
+    tablet_pad_group_buttons,
+    tablet_pad_group_ring,
+    tablet_pad_group_strip,
+    tablet_pad_group_modes,
+    tablet_pad_group_done,
+    tablet_pad_group_mode_switch,
+};
+
+static int
+xwl_tablet_pad_proc(DeviceIntPtr device, int what)
+{
+    struct xwl_tablet_pad *pad = device->public.devicePrivate;
+    /* Axis layout mirrors that of xf86-input-wacom to have better
+       compatibility with existing clients */
+#define NAXES 7
+    Atom axes_labels[NAXES] = { 0 };
+    BYTE map[MAX_BUTTONS + 1];
+    int i = 0;
+    Atom btn_labels[MAX_BUTTONS] = { 0 }; /* btn labels are meaningless */
+    int nbuttons;
+
+    switch (what) {
+    case DEVICE_INIT:
+        device->public.on = FALSE;
+
+        axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_X);
+        axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_Y);
+        /* The others have no good mapping */
+
+        if (!InitValuatorClassDeviceStruct(device, NAXES, axes_labels,
+                                           GetMotionHistorySize(), Absolute))
+            return BadValue;
+
+        for (i = 1; i <= MAX_BUTTONS; i++)
+            map[i] = i;
+
+        /* We need at least 7 buttons to allow scrolling */
+        nbuttons = min(max(pad->nbuttons + 4, 7), MAX_BUTTONS);
+
+        if (!InitButtonClassDeviceStruct(device, nbuttons,
+                                         btn_labels, map))
+            return BadValue;
+
+        /* Valuators */
+        InitValuatorAxisStruct(device, 0, axes_labels[0],
+                               0, 100, 1, 0, 1, Absolute);
+        InitValuatorAxisStruct(device, 1, axes_labels[1],
+                               0, 100, 1, 0, 1, Absolute);
+        /* Pressure - unused, for backwards compat only */
+        InitValuatorAxisStruct(device, 2, axes_labels[2],
+                               0, 2048, 1, 0, 1, Absolute);
+        /* strip x */
+        InitValuatorAxisStruct(device, 3, axes_labels[3],
+                               0, 2048, 1, 0, 1, Absolute);
+        /* strip y */
+        InitValuatorAxisStruct(device, 4, axes_labels[4],
+                               0, 2048, 1, 0, 1, Absolute);
+        /* ring */
+        InitValuatorAxisStruct(device, 5, axes_labels[5],
+                               0, 71, 1, 0, 1, Absolute);
+        /* ring2 */
+        InitValuatorAxisStruct(device, 6, axes_labels[6],
+                               0, 71, 1, 0, 1, Absolute);
+
+        if (!InitPtrFeedbackClassDeviceStruct(device, xwl_pointer_control))
+            return BadValue;
+
+        return Success;
+
+    case DEVICE_ON:
+        device->public.on = TRUE;
+        return Success;
+
+    case DEVICE_OFF:
+    case DEVICE_CLOSE:
+        device->public.on = FALSE;
+        return Success;
+    }
+
+    return BadMatch;
+#undef NAXES
+}
+
+static void
+tablet_pad_group(void *data,
+                 struct zwp_tablet_pad_v2 *zwp_tablet_pad_v2,
+                 struct zwp_tablet_pad_group_v2 *pad_group)
+{
+    struct xwl_tablet_pad *pad = data;
+    struct xwl_tablet_pad_group *group;
+
+    group = calloc(1, sizeof *group);
+    if (pad == NULL) {
+        ErrorF("%s ENOMEM\n", __func__);
+        return;
+    }
+
+    group->pad = pad;
+    group->group = pad_group;
+    xorg_list_init(&group->pad_group_ring_list);
+    xorg_list_init(&group->pad_group_strip_list);
+
+    xorg_list_add(&group->link, &pad->pad_group_list);
+
+    zwp_tablet_pad_group_v2_add_listener(pad_group,
+                                         &tablet_pad_group_listener,
+                                         group);
+}
+
+static void
+tablet_pad_path(void *data,
+                struct zwp_tablet_pad_v2 *zwp_tablet_pad_v2,
+                const char *path)
+{
+
+}
+
+static void
+tablet_pad_buttons(void *data,
+                   struct zwp_tablet_pad_v2 *zwp_tablet_pad_v2,
+                   uint32_t buttons)
+{
+    struct xwl_tablet_pad *pad = data;
+
+    pad->nbuttons = buttons;
+}
+
+static void
+tablet_pad_done(void *data,
+                struct zwp_tablet_pad_v2 *zwp_tablet_pad_v2)
+{
+    struct xwl_tablet_pad *pad = data;
+
+    pad->xdevice = add_device(pad->seat, "xwayland-pad",
+                              xwl_tablet_pad_proc);
+    pad->xdevice->public.devicePrivate = pad;
+    ActivateDevice(pad->xdevice, TRUE);
+    EnableDevice(pad->xdevice, TRUE);
+}
+
+static void
+tablet_pad_button(void *data,
+                  struct zwp_tablet_pad_v2 *zwp_tablet_pad_v2,
+                  uint32_t time,
+                  uint32_t button,
+                  uint32_t state)
+{
+    struct xwl_tablet_pad *pad = data;
+    ValuatorMask mask;
+
+    button++; /* wayland index vs X's 1-offset */
+    /* skip scroll wheel buttons 4-7 */
+    button = button > 3 ? button + 4 : button;
+
+    valuator_mask_zero(&mask);
+    QueuePointerEvents(pad->xdevice,
+                       state ? ButtonPress : ButtonRelease, button, 0, &mask);
+}
+
+static void
+tablet_pad_enter(void *data,
+                 struct zwp_tablet_pad_v2 *zwp_tablet_pad_v2,
+                 uint32_t serial,
+                 struct zwp_tablet_v2 *tablet,
+                 struct wl_surface *surface)
+{
+    /* pairs the pad with the tablet but also to set the focus. We
+     * don't care about the pairing and always use X's focus */
+}
+
+static void
+tablet_pad_leave(void *data,
+                 struct zwp_tablet_pad_v2 *zwp_tablet_pad_v2,
+                 uint32_t serial,
+                 struct wl_surface *surface)
+{
+    /* pairs the pad with the tablet but also to set the focus. We
+     * don't care about the pairing and always use X's focus */
+}
+
+static void
+tablet_pad_removed(void *data,
+                   struct zwp_tablet_pad_v2 *zwp_tablet_pad_v2)
+{
+    struct xwl_tablet_pad *pad = data;
+    struct xwl_tablet_pad_group *g, *tg;
+
+    xorg_list_for_each_entry_safe(g, tg, &pad->pad_group_list, link)
+        tablet_pad_group_destroy(g);
+
+    RemoveDevice(pad->xdevice, TRUE);
+    xorg_list_del(&pad->link);
+    zwp_tablet_pad_v2_destroy(pad->pad);
+    free(pad);
+}
+
+static const struct zwp_tablet_pad_v2_listener tablet_pad_listener = {
+    tablet_pad_group,
+    tablet_pad_path,
+    tablet_pad_buttons,
+    tablet_pad_done,
+    tablet_pad_button,
+    tablet_pad_enter,
+    tablet_pad_leave,
+    tablet_pad_removed,
+};
+
+static void
 tablet_seat_handle_add_tablet(void *data, struct zwp_tablet_seat_v2 *tablet_seat,
                               struct zwp_tablet_v2 *tablet)
 {
@@ -1763,8 +2176,12 @@ tablet_seat_handle_add_pad(void *data, struct zwp_tablet_seat_v2 *tablet_seat,
 
     xwl_tablet_pad->pad = pad;
     xwl_tablet_pad->seat = xwl_seat;
+    xorg_list_init(&xwl_tablet_pad->pad_group_list);
 
     xorg_list_add(&xwl_tablet_pad->link, &xwl_seat->tablet_pads);
+
+    zwp_tablet_pad_v2_add_listener(pad, &tablet_pad_listener,
+                                   xwl_tablet_pad);
 }
 
 static const struct zwp_tablet_seat_v2_listener tablet_seat_listener = {
