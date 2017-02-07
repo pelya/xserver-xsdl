@@ -31,6 +31,12 @@
 #include <randrstr.h>
 
 #define DEFAULT_DPI 96
+#define ALL_ROTATIONS (RR_Rotate_0   | \
+                       RR_Rotate_90  | \
+                       RR_Rotate_180 | \
+                       RR_Rotate_270 | \
+                       RR_Reflect_X  | \
+                       RR_Reflect_Y)
 
 static Rotation
 wl_transform_to_xrandr(enum wl_output_transform transform)
@@ -266,6 +272,7 @@ xwl_output_create(struct xwl_screen *xwl_screen, uint32_t id)
         ErrorF("Failed creating RandR CRTC\n");
         goto err;
     }
+    RRCrtcSetRotations (xwl_output->randr_crtc, ALL_ROTATIONS);
 
     xwl_output->randr_output = RROutputCreate(xwl_screen->screen, name,
                                               strlen(name), xwl_output);
@@ -317,7 +324,7 @@ xwl_output_remove(struct xwl_output *xwl_output)
 static Bool
 xwl_randr_get_info(ScreenPtr pScreen, Rotation * rotations)
 {
-    *rotations = 0;
+    *rotations = ALL_ROTATIONS;
 
     return TRUE;
 }
