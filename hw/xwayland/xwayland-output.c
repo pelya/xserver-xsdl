@@ -244,7 +244,7 @@ xwl_output_create(struct xwl_screen *xwl_screen, uint32_t id)
 
     xwl_output = calloc(1, sizeof *xwl_output);
     if (xwl_output == NULL) {
-        ErrorF("create_output ENOMEM\n");
+        ErrorF("%s ENOMEM\n", __func__);
         return NULL;
     }
 
