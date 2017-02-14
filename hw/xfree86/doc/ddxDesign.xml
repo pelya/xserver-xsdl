@@ -6640,12 +6640,6 @@ be catered for the by the helpers.
 		The resulting line pitch.
 		    </para></listitem></varlistentry>
 
-		<varlistentry>
-		  <term><structfield>virtualFrom</structfield></term>
-		  <listitem><para>
-		Where the virtual size was determined from.
-		    </para></listitem></varlistentry>
-
 	      </variablelist>
 	    </para>
 

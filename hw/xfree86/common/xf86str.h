@@ -607,7 +607,6 @@ typedef struct _ScrnInfoRec {
     int virtualX;               /* Virtual width */
     int virtualY;               /* Virtual height */
     int xInc;                   /* Horizontal timing increment */
-    MessageType virtualFrom;    /* set from config? */
     int displayWidth;           /* memory pitch */
     int frameX0;                /* viewport position */
     int frameY0;
