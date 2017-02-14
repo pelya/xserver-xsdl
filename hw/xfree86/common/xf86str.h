@@ -569,11 +569,7 @@ typedef void xf86ModeSetProc(ScrnInfoPtr);
  * ScrnInfoRec
  *
  * There is one of these for each screen, and it holds all the screen-specific
- * information.
- *
- * Note: the size and layout must be kept the same across versions.  New
- * fields are to be added in place of the "reserved*" fields.  No fields
- * are to be dependent on compile-time defines.
+ * information.  Note: No fields are to be dependent on compile-time defines.
  */
 
 typedef struct _ScrnInfoRec {
