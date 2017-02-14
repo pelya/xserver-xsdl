@@ -652,9 +652,6 @@ typedef struct _ScrnInfoRec {
     Bool flipPixels;            /* swap default black/white */
     void *options;
 
-    int chipID;
-    int chipRev;
-
     /* Allow screens to be enabled/disabled individually */
     Bool vtSema;
 
