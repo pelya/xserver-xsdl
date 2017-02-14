@@ -410,10 +410,9 @@ typedef struct _confdrirec {
     confDRIBufferRec *bufs;
 } confDRIRec, *confDRIPtr;
 
-/* These values should be adjusted when new fields are added to ScrnInfoRec */
-#define NUM_RESERVED_INTS		16
-#define NUM_RESERVED_POINTERS		14
-#define NUM_RESERVED_FUNCS		10
+#define NUM_RESERVED_INTS		4
+#define NUM_RESERVED_POINTERS		4
+#define NUM_RESERVED_FUNCS		4
 
 /* let clients know they can use this */
 #define XF86_SCRN_HAS_PREFER_CLONE 1
@@ -665,17 +664,11 @@ typedef struct _ScrnInfoRec {
     /* initial rightof support disable */
     int                 preferClone;
 
-    /*
-     * These can be used when the minor ABI version is incremented.
-     * The NUM_* parameters must be reduced appropriately to keep the
-     * structure size and alignment unchanged.
-     */
-    int reservedInt[NUM_RESERVED_INTS];
+    Bool is_gpu;
+    uint32_t capabilities;
 
     int *entityInstanceList;
     struct pci_device *vgaDev;
-
-    void *reservedPtr[NUM_RESERVED_POINTERS];
 
     /*
      * Driver entry points.
@@ -702,15 +695,9 @@ typedef struct _ScrnInfoRec {
     xorgDriverFuncProc *DriverFunc;
     xf86ModeSetProc *ModeSet;
 
-    /*
-     * This can be used when the minor ABI version is incremented.
-     * The NUM_* parameter must be reduced appropriately to keep the
-     * structure size and alignment unchanged.
-     */
+    int reservedInt[NUM_RESERVED_INTS];
+    void *reservedPtr[NUM_RESERVED_POINTERS];
     funcPointer reservedFuncs[NUM_RESERVED_FUNCS];
-
-    Bool is_gpu;
-    uint32_t capabilities;
 } ScrnInfoRec;
 
 typedef struct {
