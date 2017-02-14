@@ -604,8 +604,6 @@ typedef struct _ScrnInfoRec {
     int rgbBits;                /* Number of bits in r/g/b */
     Gamma gamma;                /* Gamma of the monitor */
     int defaultVisual;          /* default visual class */
-    int maxHValue;              /* max horizontal timing */
-    int maxVValue;              /* max vertical timing value */
     int virtualX;               /* Virtual width */
     int virtualY;               /* Virtual height */
     int xInc;                   /* Horizontal timing increment */

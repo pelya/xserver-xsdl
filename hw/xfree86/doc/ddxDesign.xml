@@ -1190,8 +1190,6 @@ Here is what <function>InitOutput()</function> does:
           rgbBits               (8bpp only)
           gamma
           defaultVisual
-          maxHValue
-          maxVValue
           virtualX
           virtualY
           displayWidth
@@ -6594,16 +6592,6 @@ be catered for the by the helpers.
 		  <term><structfield>videoRam</structfield></term>
 		  <listitem><para>
 		      total video memory size (in bytes)
-		    </para></listitem></varlistentry>
-		<varlistentry>
-		  <term><structfield>maxHValue</structfield></term>
-		  <listitem><para>
-		      Maximum horizontal timing value allowed
-		    </para></listitem></varlistentry>
-		<varlistentry>
-		  <term><structfield>maxVValue</structfield></term>
-		  <listitem><para>
-		      Maximum vertical timing value allowed
 		    </para></listitem></varlistentry>
 		<varlistentry>
 		  <term><structfield>xInc</structfield></term>
