@@ -303,7 +303,6 @@ typedef struct {
     Bool active;
     Bool inUse;
     int videoRam;
-    unsigned long BiosBase;     /* Base address of video BIOS */
     unsigned long MemBase;      /* Frame buffer base address */
     unsigned long IOBase;
     int chipID;
@@ -648,7 +647,6 @@ typedef struct _ScrnInfoRec {
     int numClocks;              /* number of clocks */
     int clock[MAXCLOCKS];       /* list of clock frequencies */
     int videoRam;               /* amount of video ram (kb) */
-    unsigned long biosBase;     /* Base address of video BIOS */
     unsigned long memPhysBase;  /* Physical address of FB */
     unsigned long fbOffset;     /* Offset of FB in the above */
     int memClk;                 /* memory clock */
