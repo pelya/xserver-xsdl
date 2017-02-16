@@ -659,7 +659,6 @@ AC_ARG_ENABLE(glamor,         AS_HELP_STRING([--enable-glamor], [Build glamor di
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
-AC_ARG_ENABLE(xfbdev,         AS_HELP_STRING([--enable-xfbdev], [Build the kdrive framebuffer device server (default: auto)]), [XFBDEV=$enableval], [XFBDEV=auto])
 dnl kdrive options
 AC_ARG_ENABLE(kdrive-evdev,   AS_HELP_STRING([--enable-kdrive-evdev], [Build evdev driver for kdrive (default: auto)]), [KDRIVE_EVDEV=$enableval], [KDRIVE_EVDEV=auto])
 AC_ARG_ENABLE(libunwind,      AS_HELP_STRING([--enable-libunwind], [Use libunwind for backtracing (default: auto)]), [LIBUNWIND="$enableval"], [LIBUNWIND="auto"])
@@ -2371,17 +2370,6 @@ if test "$KDRIVE" = yes; then
     AC_DEFINE(KDRIVESERVER,1,[Build Kdrive X server])
     AC_DEFINE(KDRIVEDDXACTIONS,,[Build kdrive ddx])
 
-    AC_CHECK_HEADERS([linux/fb.h])
-    if test "$ac_cv_header_linux_fb_h" = yes && test "x$XFBDEV" = xauto; then
-        XFBDEV=yes
-    fi
-
-    if test "x$XFBDEV" = xyes; then
-        KDRIVEFBDEVLIB=yes
-        AC_DEFINE(KDRIVEFBDEV, 1, [Build fbdev-based kdrive server])
-    fi
-
-
     PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
     if test "x$HAVE_TSLIB" = xno; then
         AC_CHECK_LIB(ts, ts_open, [
@@ -2471,9 +2459,7 @@ AC_SUBST([KDRIVE_LIBS])
 AM_CONDITIONAL(KDRIVELINUX, [test "x$KDRIVELINUX" = xyes])
 AM_CONDITIONAL(KDRIVE_EVDEV, [test "x$KDRIVE_EVDEV" = xyes])
 AM_CONDITIONAL(TSLIB, [test "x$HAVE_TSLIB" = xyes])
-AM_CONDITIONAL(KDRIVEFBDEV, [test "x$XFBDEV" = xyes])
 AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
-AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
 
 dnl Xwayland DDX
 
@@ -2654,7 +2640,6 @@ hw/xquartz/xpr/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ephyr/Makefile
 hw/kdrive/ephyr/man/Makefile
-hw/kdrive/fbdev/Makefile
 hw/kdrive/linux/Makefile
 hw/kdrive/src/Makefile
 hw/xwayland/Makefile
