@@ -659,7 +659,6 @@ AC_ARG_ENABLE(glamor,         AS_HELP_STRING([--enable-glamor], [Build glamor di
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
-AC_ARG_ENABLE(xfake,          AS_HELP_STRING([--enable-xfake], [Build the kdrive 'fake' server (default: auto)]), [XFAKE=$enableval], [XFAKE=auto])
 AC_ARG_ENABLE(xfbdev,         AS_HELP_STRING([--enable-xfbdev], [Build the kdrive framebuffer device server (default: auto)]), [XFBDEV=$enableval], [XFBDEV=auto])
 dnl kdrive options
 AC_ARG_ENABLE(kdrive-evdev,   AS_HELP_STRING([--enable-kdrive-evdev], [Build evdev driver for kdrive (default: auto)]), [KDRIVE_EVDEV=$enableval], [KDRIVE_EVDEV=auto])
@@ -2475,7 +2474,6 @@ AM_CONDITIONAL(TSLIB, [test "x$HAVE_TSLIB" = xyes])
 AM_CONDITIONAL(KDRIVEFBDEV, [test "x$XFBDEV" = xyes])
 AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
-AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 
 dnl Xwayland DDX
 
@@ -2656,7 +2654,6 @@ hw/xquartz/xpr/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ephyr/Makefile
 hw/kdrive/ephyr/man/Makefile
-hw/kdrive/fake/Makefile
 hw/kdrive/fbdev/Makefile
 hw/kdrive/linux/Makefile
 hw/kdrive/src/Makefile
