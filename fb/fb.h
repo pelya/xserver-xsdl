@@ -900,13 +900,9 @@ extern _X_EXPORT void
  fbClearVisualTypes(void);
 
 extern _X_EXPORT Bool
- fbHasVisualTypes(int depth);
-
-extern _X_EXPORT Bool
  fbSetVisualTypes(int depth, int visuals, int bitsPerRGB);
 
 extern _X_EXPORT Bool
-
 fbSetVisualTypesAndMasks(int depth, int visuals, int bitsPerRGB,
                          Pixel redMask, Pixel greenMask, Pixel blueMask);
 
