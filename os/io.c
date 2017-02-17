@@ -116,7 +116,6 @@ static OsCommPtr AvailableInput = (OsCommPtr) NULL;
 				  lswapl(((xBigReq *)(req))->length) : \
 				  ((xBigReq *)(req))->length)
 
-#define MAX_TIMES_PER         10
 #define BUFSIZE 16384
 #define BUFWATERMARK 32768
 
