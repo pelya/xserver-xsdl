@@ -403,6 +403,8 @@ InputThreadPreInit(void)
     if (!inputThreadInfo)
         FatalError("input-thread: could not allocate memory");
 
+    inputThreadInfo->changed = FALSE;
+
     inputThreadInfo->thread = 0;
     xorg_list_init(&inputThreadInfo->devs);
     inputThreadInfo->fds = ospoll_create();
