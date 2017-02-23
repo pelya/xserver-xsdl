@@ -651,6 +651,9 @@ WriteToClient(ClientPtr who, int count, const void *__buf)
     int padBytes;
     const char *buf = __buf;
 
+    BUG_RETURN_VAL_MSG(in_input_thread(), 0,
+                       "******** %s called from input thread *********\n", __func__);
+
 #ifdef DEBUG_COMMUNICATION
     Bool multicount = FALSE;
 #endif
