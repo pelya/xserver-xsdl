@@ -97,19 +97,6 @@ MitResetCookie(void)
     return 0;
 }
 
-XID
-MitToID(unsigned short data_length, char *data)
-{
-    struct auth *auth;
-
-    for (auth = mit_auth; auth; auth = auth->next) {
-        if (data_length == auth->len &&
-            memcmp(data, auth->data, data_length) == 0)
-            return auth->id;
-    }
-    return (XID) -1;
-}
-
 int
 MitFromID(XID id, unsigned short *data_lenp, char **datap)
 {

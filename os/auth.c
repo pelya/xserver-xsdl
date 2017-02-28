@@ -55,7 +55,6 @@ struct protocol {
     AuthAddCFunc Add;           /* new authorization data */
     AuthCheckFunc Check;        /* verify client authorization data */
     AuthRstCFunc Reset;         /* delete all authorization data entries */
-    AuthToIDFunc ToID;          /* convert cookie to ID */
     AuthFromIDFunc FromID;      /* convert ID to cookie */
     AuthRemCFunc Remove;        /* remove a specific cookie */
 #ifdef XCSECURITY
@@ -66,7 +65,7 @@ struct protocol {
 static struct protocol protocols[] = {
     {(unsigned short) 18, "MIT-MAGIC-COOKIE-1",
      MitAddCookie, MitCheckCookie, MitResetCookie,
-     MitToID, MitFromID, MitRemoveCookie,
+     MitFromID, MitRemoveCookie,
 #ifdef XCSECURITY
      MitGenerateCookie
 #endif
@@ -74,7 +73,7 @@ static struct protocol protocols[] = {
 #ifdef HASXDMAUTH
     {(unsigned short) 19, "XDM-AUTHORIZATION-1",
      XdmAddCookie, XdmCheckCookie, XdmResetCookie,
-     XdmToID, XdmFromID, XdmRemoveCookie,
+     XdmFromID, XdmRemoveCookie,
 #ifdef XCSECURITY
      NULL
 #endif
@@ -83,7 +82,7 @@ static struct protocol protocols[] = {
 #ifdef SECURE_RPC
     {(unsigned short) 9, "SUN-DES-1",
      SecureRPCAdd, SecureRPCCheck, SecureRPCReset,
-     SecureRPCToID, SecureRPCFromID, SecureRPCRemove,
+     SecureRPCFromID, SecureRPCRemove,
 #ifdef XCSECURITY
      NULL
 #endif
