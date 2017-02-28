@@ -45,6 +45,9 @@ from The Open Group.
 #ifdef WIN32
 #include    <X11/Xw32defs.h>
 #endif
+#ifdef HAVE_LIBBSD
+#include   <bsd/stdlib.h>       /* for arc4random_buf() */
+#endif
 
 struct protocol {
     unsigned short name_length;
@@ -303,11 +306,15 @@ GenerateAuthorization(unsigned name_length,
 void
 GenerateRandomData(int len, char *buf)
 {
+#ifdef HAVE_ARC4RANDOMBUF
+    arc4random_buf(buf, len);
+#else
     int fd;
 
     fd = open("/dev/urandom", O_RDONLY);
     read(fd, buf, len);
     close(fd);
+#endif
 }
 
 #endif                          /* XCSECURITY */

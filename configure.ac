@@ -225,6 +225,8 @@ AC_REPLACE_FUNCS([reallocarray strcasecmp strcasestr strlcat strlcpy strndup\
 	timingsafe_memcmp])
 AM_CONDITIONAL(POLL, [test "x$ac_cv_func_poll" = "xyes"])
 
+AC_CHECK_LIB([bsd], [arc4random_buf])
+
 AC_CHECK_DECLS([program_invocation_short_name], [], [], [[#include <errno.h>]])
 
 dnl Check for SO_PEERCRED #define
