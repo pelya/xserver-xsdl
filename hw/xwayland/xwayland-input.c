@@ -510,6 +510,9 @@ pointer_handle_frame(void *data, struct wl_pointer *wl_pointer)
 {
     struct xwl_seat *xwl_seat = data;
 
+    if (!xwl_seat->focus_window)
+        return;
+
     dispatch_pointer_motion_event(xwl_seat);
 }
 
@@ -559,6 +562,9 @@ relative_pointer_handle_relative_motion(void *data,
     xwl_seat->pending_pointer_event.dy = wl_fixed_to_double(dyf);
     xwl_seat->pending_pointer_event.dx_unaccel = wl_fixed_to_double(dx_unaccelf);
     xwl_seat->pending_pointer_event.dy_unaccel = wl_fixed_to_double(dy_unaccelf);
+
+    if (!xwl_seat->focus_window)
+        return;
 
     if (wl_proxy_get_version((struct wl_proxy *) xwl_seat->wl_pointer) < 5)
         dispatch_pointer_motion_event(xwl_seat);
