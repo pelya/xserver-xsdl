@@ -215,10 +215,21 @@ typedef struct _miPolyArc {
     miArcJoinPtr joins;
 } miPolyArcRec, *miPolyArcPtr;
 
+typedef struct {
+    short lx, lw, rx, rw;
+} miArcSpan;
+
+typedef struct {
+    miArcSpan *spans;
+    int count1, count2, k;
+    char top, bot, hole;
+} miArcSpanData;
+
 static void fillSpans(DrawablePtr pDrawable, GCPtr pGC);
 static void newFinalSpan(int y, int xmin, int xmax);
-static void drawArc(xArc * tarc, int l, int a0, int a1, miArcFacePtr right,
-                    miArcFacePtr left);
+static miArcSpanData *drawArc(xArc * tarc, int l, int a0, int a1,
+                              miArcFacePtr right, miArcFacePtr left,
+                              miArcSpanData *spdata);
 static void drawZeroArc(DrawablePtr pDraw, GCPtr pGC, xArc * tarc, int lw,
                         miArcFacePtr left, miArcFacePtr right);
 static void miArcJoin(DrawablePtr pDraw, GCPtr pGC, miArcFacePtr pLeft,
@@ -244,9 +255,9 @@ static int miGetArcPts(SppArcPtr parc, int cpt, SppPointPtr * ppPts);
  * draw one segment of the arc using the arc spans generation routines
  */
 
-static void
-miArcSegment(DrawablePtr pDraw,
-             GCPtr pGC, xArc tarc, miArcFacePtr right, miArcFacePtr left)
+static miArcSpanData *
+miArcSegment(DrawablePtr pDraw, GCPtr pGC, xArc tarc, miArcFacePtr right,
+             miArcFacePtr left, miArcSpanData *spdata)
 {
     int l = pGC->lineWidth;
     int a0, a1, startAngle, endAngle;
@@ -257,7 +268,7 @@ miArcSegment(DrawablePtr pDraw,
 
     if (tarc.width == 0 || tarc.height == 0) {
         drawZeroArc(pDraw, pGC, &tarc, l, left, right);
-        return;
+        return spdata;
     }
 
     if (pGC->miTranslate) {
@@ -298,7 +309,7 @@ miArcSegment(DrawablePtr pDraw,
         endAngle = FULLCIRCLE;
     }
 
-    drawArc(&tarc, l, startAngle, endAngle, right, left);
+    return drawArc(&tarc, l, startAngle, endAngle, right, left, spdata);
 }
 
 /*
@@ -363,16 +374,6 @@ Some experimentation is then required to determine which solutions
 correspond to the inner and outer boundaries.
 
 */
-
-typedef struct {
-    short lx, lw, rx, rw;
-} miArcSpan;
-
-typedef struct {
-    miArcSpan *spans;
-    int count1, count2, k;
-    char top, bot, hole;
-} miArcSpanData;
 
 static void drawQuadrant(struct arc_def *def, struct accelerators *acc,
                          int a0, int a1, int mask, miArcFacePtr right,
@@ -905,8 +906,11 @@ miWideArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc * parcs)
     int halfWidth;
 
     if (width == 0 && pGC->lineStyle == LineSolid) {
-        for (i = narcs, parc = parcs; --i >= 0; parc++)
-            miArcSegment(pDraw, pGC, *parc, NULL, NULL);
+        for (i = narcs, parc = parcs; --i >= 0; parc++) {
+            miArcSpanData *spdata;
+            spdata = miArcSegment(pDraw, pGC, *parc, NULL, NULL, NULL);
+            free(spdata);
+        }
         fillSpans(pDraw, pGC);
         return;
     }
@@ -1016,6 +1020,7 @@ miWideArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc * parcs)
     cap[0] = cap[1] = 0;
     join[0] = join[1] = 0;
     for (iphase = (pGC->lineStyle == LineDoubleDash); iphase >= 0; iphase--) {
+        miArcSpanData *spdata = NULL;
         ChangeGCVal gcval;
 
         if (iphase == 1) {
@@ -1032,9 +1037,10 @@ miWideArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc * parcs)
             miArcDataPtr arcData;
 
             arcData = &polyArcs[iphase].arcs[i];
-            miArcSegment(pDrawTo, pGCTo, arcData->arc,
-                         &arcData->bounds[RIGHT_END],
-                         &arcData->bounds[LEFT_END]);
+            spdata = miArcSegment(pDrawTo, pGCTo, arcData->arc,
+                                  &arcData->bounds[RIGHT_END],
+                                  &arcData->bounds[LEFT_END], spdata);
+            free(spdata);
             if (polyArcs[iphase].arcs[i].render) {
                 fillSpans(pDrawTo, pGCTo);
                 /* don't cap self-joining arcs */
@@ -3240,9 +3246,9 @@ mirrorSppPoint(int quadrant, SppPointPtr sppPoint)
  * first quadrant.
  */
 
-static void
-drawArc(xArc * tarc,
-        int l, int a0, int a1, miArcFacePtr right, miArcFacePtr left)
+static miArcSpanData *
+drawArc(xArc * tarc, int l, int a0, int a1, miArcFacePtr right,
+        miArcFacePtr left, miArcSpanData *spdata)
 {                               /* save end line points */
     struct arc_def def;
     struct accelerators acc;
@@ -3258,11 +3264,11 @@ drawArc(xArc * tarc,
     int i, j;
     int flipRight = 0, flipLeft = 0;
     int copyEnd = 0;
-    miArcSpanData *spdata;
 
-    spdata = miComputeWideEllipse(l, tarc);
     if (!spdata)
-        return;
+        spdata = miComputeWideEllipse(l, tarc);
+    if (!spdata)
+        return NULL;
 
     if (a1 < a0)
         a1 += 360 * 64;
@@ -3472,7 +3478,7 @@ drawArc(xArc * tarc,
             left->counterClock = temp;
         }
     }
-    free(spdata);
+    return spdata;
 }
 
 static void
