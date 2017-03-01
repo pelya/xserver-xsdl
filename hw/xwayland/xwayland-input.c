@@ -1027,8 +1027,6 @@ release_relative_pointer(struct xwl_seat *xwl_seat)
 static void
 init_keyboard(struct xwl_seat *xwl_seat)
 {
-    DeviceIntPtr master;
-
     xwl_seat->wl_keyboard = wl_seat_get_keyboard(xwl_seat->seat);
     wl_keyboard_add_listener(xwl_seat->wl_keyboard,
                              &keyboard_listener, xwl_seat);
@@ -1040,9 +1038,6 @@ init_keyboard(struct xwl_seat *xwl_seat)
     }
     EnableDevice(xwl_seat->keyboard, TRUE);
     xwl_seat->keyboard->key->xkbInfo->checkRepeat = keyboard_check_repeat;
-    master = GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD);
-    if (master)
-        master->key->xkbInfo->checkRepeat = keyboard_check_repeat;
 }
 
 static void
