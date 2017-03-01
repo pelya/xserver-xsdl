@@ -305,7 +305,7 @@ GenerateAuthorization(unsigned name_length,
 void
 GenerateRandomData(int len, char *buf)
 {
-#ifdef HAVE_ARC4RANDOMBUF
+#ifdef HAVE_ARC4RANDOM_BUF
     arc4random_buf(buf, len);
 #else
     int fd;
