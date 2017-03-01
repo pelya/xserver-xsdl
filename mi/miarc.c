@@ -1021,6 +1021,7 @@ miWideArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc * parcs)
     join[0] = join[1] = 0;
     for (iphase = (pGC->lineStyle == LineDoubleDash); iphase >= 0; iphase--) {
         miArcSpanData *spdata = NULL;
+        xArc lastArc;
         ChangeGCVal gcval;
 
         if (iphase == 1) {
@@ -1037,10 +1038,17 @@ miWideArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc * parcs)
             miArcDataPtr arcData;
 
             arcData = &polyArcs[iphase].arcs[i];
+            if (spdata) {
+                if (lastArc.width != arcData->arc.width ||
+                    lastArc.height != arcData->arc.height) {
+                    free(spdata);
+                    spdata = NULL;
+                }
+            }
+            memcpy(&lastArc, &arcData->arc, sizeof(xArc));
             spdata = miArcSegment(pDrawTo, pGCTo, arcData->arc,
                                   &arcData->bounds[RIGHT_END],
                                   &arcData->bounds[LEFT_END], spdata);
-            free(spdata);
             if (polyArcs[iphase].arcs[i].render) {
                 fillSpans(pDrawTo, pGCTo);
                 /* don't cap self-joining arcs */
@@ -1097,6 +1105,8 @@ miWideArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc * parcs)
                 }
             }
         }
+        free(spdata);
+        spdata = NULL;
     }
     miFreeArcs(polyArcs, pGC);
 
