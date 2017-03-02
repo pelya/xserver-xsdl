@@ -435,9 +435,12 @@ static void
 sync_callback(void *data, struct wl_callback *callback, uint32_t serial)
 {
     struct xwl_auth_state *state = data;
+    ClientPtr client = state->client;
 
-    dri3_send_open_reply(state->client, state->fd);
-    AttendClient(state->client);
+    if (!client->clientGone) {
+        dri3_send_open_reply(client, state->fd);
+        AttendClient(client);
+    }
     free(state);
     wl_callback_destroy(callback);
 }
