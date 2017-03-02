@@ -16,6 +16,9 @@
 
 #include <limits.h>
 #include <string.h>
+#include <X11/Xfuncproto.h>
+#include <dix-config.h>
+#include "os.h"
 
 int
 timingsafe_memcmp(const void *b1, const void *b2, size_t len)
