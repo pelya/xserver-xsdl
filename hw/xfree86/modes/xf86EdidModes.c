@@ -1198,21 +1198,19 @@ xf86EdidMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
         if (!Monitor->nHsync || !Monitor->nVrefresh)
             DDCGuessRangesFromModes(scrnIndex, Monitor, Modes);
 
-        /* look for last Mode */
-        Mode = Modes;
-
-        while (Mode->next)
-            Mode = Mode->next;
-
         /* add to MonPtr */
         if (Monitor->Modes) {
             Monitor->Last->next = Modes;
             Modes->prev = Monitor->Last;
-            Monitor->Last = Mode;
         }
         else {
             Monitor->Modes = Modes;
-            Monitor->Last = Mode;
         }
+
+        xf86PruneDuplicateModes(Monitor->Modes);
+
+        /* Update pointer to last mode */
+        for (Mode = Monitor->Modes; Mode && Mode->next; Mode = Mode->next) {}
+        Monitor->Last = Mode;
     }
 }
