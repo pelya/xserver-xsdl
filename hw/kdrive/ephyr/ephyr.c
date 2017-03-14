@@ -725,8 +725,10 @@ ephyrCreateResources(ScreenPtr pScreen)
                            ephyrShadowUpdate, ephyrWindowLinear);
     else {
 #ifdef GLAMOR
-        if (ephyr_glamor)
-            ephyr_glamor_create_screen_resources(pScreen);
+        if (ephyr_glamor) {
+            if (!ephyr_glamor_create_screen_resources(pScreen))
+                return FALSE;
+        }
 #endif
         return ephyrSetInternalDamage(pScreen);
     }

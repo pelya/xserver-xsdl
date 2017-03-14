@@ -1559,6 +1559,8 @@ ephyr_glamor_create_screen_resources(ScreenPtr pScreen)
                                           pScreen->height,
                                           pScreen->rootDepth,
                                           GLAMOR_CREATE_NO_LARGE);
+    if (!screen_pixmap)
+        return FALSE;
 
     pScreen->SetScreenPixmap(screen_pixmap);
     if (pScreen->root && pScreen->SetWindowPixmap)
@@ -1566,6 +1568,9 @@ ephyr_glamor_create_screen_resources(ScreenPtr pScreen)
 
     /* Tell the GLX code what to GL texture to read from. */
     tex = glamor_get_pixmap_texture(screen_pixmap);
+    if (!tex)
+        return FALSE;
+
     ephyr_glamor_set_texture(scrpriv->glamor, tex);
 
     return TRUE;
