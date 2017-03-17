@@ -927,7 +927,6 @@ hostx_screen_init(KdScreenInfo *screen,
 #ifdef GLAMOR
     if (ephyr_glamor) {
         *bytes_per_line = 0;
-        *bits_per_pixel = 0;
         ephyr_glamor_set_window_size(scrpriv->glamor,
                                      scrpriv->win_width, scrpriv->win_height);
         return NULL;
