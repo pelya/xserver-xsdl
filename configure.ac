@@ -624,7 +624,6 @@ AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF8
 AC_ARG_ENABLE(xace,           AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
 AC_ARG_ENABLE(xselinux,       AS_HELP_STRING([--enable-xselinux], [Build SELinux extension (default: disabled)]), [XSELINUX=$enableval], [XSELINUX=no])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--enable-xcsecurity], [Build Security extension (default: disabled)]), [XCSECURITY=$enableval], [XCSECURITY=no])
-AC_ARG_ENABLE(tslib,          AS_HELP_STRING([--enable-tslib], [Build kdrive tslib touchscreen support (default: disabled)]), [TSLIB=$enableval], [TSLIB=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--enable-xf86bigfont], [Build XF86 Big Font extension (default: disabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=no])
 AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
@@ -2400,7 +2399,7 @@ if test "$KDRIVE" = yes; then
     KDRIVE_OS_INC='-I$(top_srcdir)/hw/kdrive/linux'
     KDRIVE_INCS="$KDRIVE_PURE_INCS $KDRIVE_OS_INC"
     
-    KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H $TSLIB_CFLAGS"
+    KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H"
 
     KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $OS_LIB"
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.la'
@@ -2408,7 +2407,7 @@ if test "$KDRIVE" = yes; then
     KDRIVE_LOCAL_LIBS="$DIX_LIB $KDRIVE_LIB"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $FB_LIB $MI_LIB $KDRIVE_PURE_LIBS"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $KDRIVE_OS_LIB"
-    KDRIVE_LIBS="$KDRIVE_LOCAL_LIBS $XSERVER_SYS_LIBS $GLX_SYS_LIBS $DLOPEN_LIBS $TSLIB_LIBS"
+    KDRIVE_LIBS="$KDRIVE_LOCAL_LIBS $XSERVER_SYS_LIBS $GLX_SYS_LIBS $DLOPEN_LIBS"
 
     AC_SUBST([XEPHYR_LIBS])
     AC_SUBST([XEPHYR_INCS])
