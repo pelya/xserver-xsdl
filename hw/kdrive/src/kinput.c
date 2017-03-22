@@ -21,8 +21,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <kdrive-config.h>
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#include <xkb-config.h>
 #endif
 #include "kdrive.h"
 #include "inputstr.h"
