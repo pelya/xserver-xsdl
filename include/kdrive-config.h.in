@@ -16,9 +16,6 @@
 /* Support tslib touchscreen abstraction library */
 #undef TSLIB
 
-/* Support KDrive evdev driver */
-#undef KDRIVE_EVDEV
-
 /* Verbose debugging output hilarity */
 #undef DEBUG
 

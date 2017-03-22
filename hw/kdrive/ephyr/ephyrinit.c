@@ -40,11 +40,6 @@ extern Bool ephyr_glamor, ephyr_glamor_gles2, ephyr_glamor_skip_present;
 
 extern Bool ephyrNoXV;
 
-#ifdef KDRIVE_EVDEV
-extern KdPointerDriver LinuxEvdevMouseDriver;
-extern KdKeyboardDriver LinuxEvdevKeyboardDriver;
-#endif
-
 void processScreenOrOutputArg(const char *screen_size, const char *output, char *parent_id);
 void processOutputArg(const char *output, char *parent_id);
 void processScreenArg(const char *screen_size, char *parent_id);
@@ -90,11 +85,6 @@ InitInput(int argc, char **argv)
 {
     KdKeyboardInfo *ki;
     KdPointerInfo *pi;
-
-#ifdef KDRIVE_EVDEV
-    KdAddKeyboardDriver(&LinuxEvdevKeyboardDriver);
-    KdAddPointerDriver(&LinuxEvdevMouseDriver);
-#endif
 
     if (!SeatId) {
         KdAddKeyboardDriver(&EphyrKeyboardDriver);
