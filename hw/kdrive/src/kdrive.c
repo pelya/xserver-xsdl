@@ -90,13 +90,6 @@ const char *kdGlobalXkbOptions = NULL;
 
 static Bool kdCaughtSignal = FALSE;
 
-/*
- * Carry arguments from InitOutput through driver initialization
- * to KdScreenInit
- */
-
-KdOsFuncs *kdOsFuncs;
-
 void
 KdDisableScreen(ScreenPtr pScreen)
 {
@@ -162,11 +155,7 @@ static void
 KdDisableScreens(void)
 {
     KdSuspend();
-    if (kdEnabled) {
-        if (kdOsFuncs->Disable)
-            (*kdOsFuncs->Disable) ();
-        kdEnabled = FALSE;
-    }
+    kdEnabled = FALSE;
 }
 
 Bool
@@ -198,13 +187,6 @@ void
 AbortDDX(enum ExitCode error)
 {
     KdDisableScreens();
-    if (kdOsFuncs) {
-        if (kdEnabled && kdOsFuncs->Disable)
-            (*kdOsFuncs->Disable) ();
-        if (kdOsFuncs->Fini)
-            (*kdOsFuncs->Fini) ();
-        KdDoSwitchCmd("stop");
-    }
 
     if (kdCaughtSignal)
         OsAbort();
@@ -560,24 +542,6 @@ KdProcessArgument(int argc, char **argv, int i)
     return 0;
 }
 
-/*
- * These are getting tossed in here until I can think of where
- * they really belong
- */
-
-void
-KdOsInit(KdOsFuncs * pOsFuncs)
-{
-    kdOsFuncs = pOsFuncs;
-    if (pOsFuncs) {
-        if (serverGeneration == 1) {
-            KdDoSwitchCmd("start");
-            if (pOsFuncs->Init)
-                (*pOsFuncs->Init) ();
-        }
-    }
-}
-
 static Bool
 KdAllocatePrivates(ScreenPtr pScreen)
 {
@@ -668,11 +632,7 @@ KdCloseScreen(ScreenPtr pScreen)
          * Clean up OS when last card is closed
          */
         if (card == kdCardInfo) {
-            if (kdEnabled) {
-                kdEnabled = FALSE;
-                if (kdOsFuncs->Disable)
-                    (*kdOsFuncs->Disable) ();
-            }
+            kdEnabled = FALSE;
         }
     }
 
@@ -923,11 +883,7 @@ KdScreenInit(ScreenPtr pScreen, int argc, char **argv)
     /*
      * Enable the hardware
      */
-    if (!kdEnabled) {
-        kdEnabled = TRUE;
-        if (kdOsFuncs->Enable)
-            (*kdOsFuncs->Enable) ();
-    }
+    kdEnabled = TRUE;
 
     if (screen->mynum == card->selected) {
         if (card->cfuncs->preserve)

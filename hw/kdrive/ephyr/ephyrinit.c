@@ -374,7 +374,10 @@ OsVendorInit(void)
     if (hostx_want_host_cursor())
         ephyrFuncs.initCursor = &ephyrCursorInit;
 
-    KdOsInit(&EphyrOsFuncs);
+    if (!KdCardInfoLast()) {
+        processScreenArg("640x480", NULL);
+    }
+    hostx_init();
 }
 
 KdCardFuncs ephyrFuncs = {

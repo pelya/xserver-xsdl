@@ -288,16 +288,6 @@ int KdAddConfigKeyboard(char *pointer);
 int KdAddKeyboard(KdKeyboardInfo * ki);
 void KdRemoveKeyboard(KdKeyboardInfo * ki);
 
-typedef struct _KdOsFuncs {
-    int (*Init) (void);
-    void (*Enable) (void);
-    Bool (*SpecialKey) (KeySym);
-    void (*Disable) (void);
-    void (*Fini) (void);
-    void (*pollEvents) (void);
-    void (*Bell) (int, int, int);
-} KdOsFuncs;
-
 typedef struct _KdPointerMatrix {
     int matrix[2][3];
 } KdPointerMatrix;
@@ -308,7 +298,6 @@ extern DevPrivateKeyRec kdScreenPrivateKeyRec;
 
 extern Bool kdEmulateMiddleButton;
 extern Bool kdDisableZaphod;
-extern KdOsFuncs *kdOsFuncs;
 
 #define KdGetScreenPriv(pScreen) ((KdPrivScreenPtr) \
     dixLookupPrivate(&(pScreen)->devPrivates, kdScreenPrivateKey))
@@ -365,9 +354,6 @@ void
 
 int
  KdProcessArgument(int argc, char **argv, int i);
-
-void
- KdOsInit(KdOsFuncs * pOsFuncs);
 
 void
  KdOsAddInputDrivers(void);
