@@ -386,19 +386,10 @@ KdCardFuncs ephyrFuncs = {
     ephyrInitScreen,            /* initScreen */
     ephyrFinishInitScreen,      /* finishInitScreen */
     ephyrCreateResources,       /* createRes */
-    ephyrPreserve,              /* preserve */
-    ephyrEnable,                /* enable */
-    ephyrDPMS,                  /* dpms */
-    ephyrDisable,               /* disable */
-    ephyrRestore,               /* restore */
     ephyrScreenFini,            /* scrfini */
     ephyrCardFini,              /* cardfini */
 
     0,                          /* initCursor */
-    0,                          /* enableCursor */
-    0,                          /* disableCursor */
-    0,                          /* finiCursor */
-    0,                          /* recolorCursor */
 
     0,                          /* initAccel */
     0,                          /* enableAccel */

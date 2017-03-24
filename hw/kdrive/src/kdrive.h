@@ -110,19 +110,10 @@ typedef struct _KdCardFuncs {
     Bool (*initScreen) (ScreenPtr);     /* initialize ScreenRec */
     Bool (*finishInitScreen) (ScreenPtr pScreen);
     Bool (*createRes) (ScreenPtr);      /* create screen resources */
-    void (*preserve) (KdCardInfo *);    /* save graphics card state */
-    Bool (*enable) (ScreenPtr); /* set up for rendering */
-    Bool (*dpms) (ScreenPtr, int);      /* set DPMS screen saver */
-    void (*disable) (ScreenPtr);        /* turn off rendering */
-    void (*restore) (KdCardInfo *);     /* restore graphics card state */
     void (*scrfini) (KdScreenInfo *);   /* close down screen */
     void (*cardfini) (KdCardInfo *);    /* close down */
 
     Bool (*initCursor) (ScreenPtr);     /* detect and map cursor */
-    void (*enableCursor) (ScreenPtr);   /* enable cursor */
-    void (*disableCursor) (ScreenPtr);  /* disable cursor */
-    void (*finiCursor) (ScreenPtr);     /* close down */
-    void (*recolorCursor) (ScreenPtr, int, xColorItem *);
 
     Bool (*initAccel) (ScreenPtr);
     void (*enableAccel) (ScreenPtr);
