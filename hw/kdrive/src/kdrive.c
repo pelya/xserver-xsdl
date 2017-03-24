@@ -71,20 +71,15 @@ KdDepths kdDepths[] = {
 #define KD_DEFAULT_BUTTONS 5
 
 DevPrivateKeyRec kdScreenPrivateKeyRec;
-unsigned long kdGeneration;
+static unsigned long kdGeneration;
 
-Bool kdVideoTest;
-unsigned long kdVideoTestTime;
 Bool kdEmulateMiddleButton;
 Bool kdRawPointerCoordinates;
 Bool kdDisableZaphod;
-Bool kdAllowZap;
-Bool kdEnabled;
-int kdSubpixelOrder;
-int kdVirtualTerminal = -1;
-Bool kdSwitchPending;
-char *kdSwitchCmd;
-DDXPointRec kdOrigin;
+static Bool kdEnabled;
+static int kdSubpixelOrder;
+static char *kdSwitchCmd;
+static DDXPointRec kdOrigin;
 Bool kdHasPointer = FALSE;
 Bool kdHasKbd = FALSE;
 const char *kdGlobalXkbRules = NULL;
@@ -144,7 +139,7 @@ KdDoSwitchCmd(const char *reason)
     }
 }
 
-void
+static void
 KdSuspend(void)
 {
     KdCardInfo *card;
@@ -163,7 +158,7 @@ KdSuspend(void)
     }
 }
 
-void
+static void
 KdDisableScreens(void)
 {
     KdSuspend();
@@ -200,46 +195,6 @@ KdEnableScreen(ScreenPtr pScreen)
 }
 
 void
-KdResume(void)
-{
-    KdCardInfo *card;
-    KdScreenInfo *screen;
-
-    if (kdEnabled) {
-        KdDoSwitchCmd("resume");
-        for (card = kdCardInfo; card; card = card->next) {
-            if (card->cfuncs->preserve)
-                (*card->cfuncs->preserve) (card);
-            for (screen = card->screenList; screen; screen = screen->next)
-                if (screen->mynum == card->selected && screen->pScreen)
-                    KdEnableScreen(screen->pScreen);
-        }
-        KdEnableInput();
-        KdReleaseAllKeys();
-    }
-}
-
-void
-KdEnableScreens(void)
-{
-    if (!kdEnabled) {
-        kdEnabled = TRUE;
-        if (kdOsFuncs->Enable)
-            (*kdOsFuncs->Enable) ();
-    }
-    KdResume();
-}
-
-void
-KdProcessSwitch(void)
-{
-    if (kdEnabled)
-        KdDisableScreens();
-    else
-        KdEnableScreens();
-}
-
-void
 AbortDDX(enum ExitCode error)
 {
     KdDisableScreens();
@@ -261,8 +216,8 @@ ddxGiveUp(enum ExitCode error)
     AbortDDX(error);
 }
 
-Bool kdDumbDriver;
-Bool kdSoftCursor;
+static Bool kdDumbDriver;
+static Bool kdSoftCursor;
 
 const char *
 KdParseFindNext(const char *cur, const char *delim, char *save, char *last)
@@ -418,18 +373,7 @@ KdParseScreen(KdScreenInfo * screen, const char *arg)
     }
 }
 
-/*
- * Mouse argument syntax:
- *
- *  device,protocol,options...
- *
- *  Options are any of:
- *	1-5	    n button mouse
- *	2button	    emulate middle button
- *	{NMO}	    Reorder buttons
- */
-
-void
+static void
 KdParseRgba(char *rgba)
 {
     if (!strcmp(rgba, "rgb"))
@@ -474,7 +418,6 @@ KdUseMsg(void)
     ErrorF
         ("-origin X,Y      Locates the next screen in the the virtual screen (Xinerama)\n");
     ErrorF("-switchCmd       Command to execute on vt switch\n");
-    ErrorF("-zap             Terminate server on Ctrl+Alt+Backspace\n");
     ErrorF
         ("vtxx             Use virtual terminal xx instead of the next available\n");
 }
@@ -507,10 +450,6 @@ KdProcessArgument(int argc, char **argv, int i)
         kdDisableZaphod = TRUE;
         return 1;
     }
-    if (!strcmp(argv[i], "-zap")) {
-        kdAllowZap = TRUE;
-        return 1;
-    }
     if (!strcmp(argv[i], "-3button")) {
         kdEmulateMiddleButton = FALSE;
         return 1;
@@ -529,10 +468,6 @@ KdProcessArgument(int argc, char **argv, int i)
     }
     if (!strcmp(argv[i], "-softCursor")) {
         kdSoftCursor = TRUE;
-        return 1;
-    }
-    if (!strcmp(argv[i], "-videoTest")) {
-        kdVideoTest = TRUE;
         return 1;
     }
     if (!strcmp(argv[i], "-origin")) {
@@ -566,10 +501,6 @@ KdProcessArgument(int argc, char **argv, int i)
         else
             UseMsg();
         return 2;
-    }
-    if (!strncmp(argv[i], "vt", 2) &&
-        sscanf(argv[i], "vt%2d", &kdVirtualTerminal) == 1) {
-        return 1;
     }
     if (!strcmp(argv[i], "-xkb-rules")) {
         if (i + 1 >= argc) {
@@ -647,7 +578,7 @@ KdOsInit(KdOsFuncs * pOsFuncs)
     }
 }
 
-Bool
+static Bool
 KdAllocatePrivates(ScreenPtr pScreen)
 {
     KdPrivScreenPtr pScreenPriv;
@@ -665,7 +596,7 @@ KdAllocatePrivates(ScreenPtr pScreen)
     return TRUE;
 }
 
-Bool
+static Bool
 KdCreateScreenResources(ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -684,7 +615,7 @@ KdCreateScreenResources(ScreenPtr pScreen)
     return ret;
 }
 
-Bool
+static Bool
 KdCloseScreen(ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -751,7 +682,7 @@ KdCloseScreen(ScreenPtr pScreen)
     return ret;
 }
 
-Bool
+static Bool
 KdSaveScreen(ScreenPtr pScreen, int on)
 {
     KdScreenPriv(pScreen);
@@ -858,7 +789,7 @@ KdSetSubpixelOrder(ScreenPtr pScreen, Rotation randr)
 /* Pass through AddScreen, which doesn't take any closure */
 static KdScreenInfo *kdCurrentScreen;
 
-Bool
+static Bool
 KdScreenInit(ScreenPtr pScreen, int argc, char **argv)
 {
     KdScreenInfo *screen = kdCurrentScreen;
@@ -968,7 +899,6 @@ KdScreenInit(ScreenPtr pScreen, int argc, char **argv)
     /*
      * Wrap CloseScreen, the order now is:
      *  KdCloseScreen
-     *  miBSCloseScreen
      *  fbCloseScreen
      */
     pScreenPriv->CloseScreen = pScreen->CloseScreen;
@@ -1016,7 +946,7 @@ KdScreenInit(ScreenPtr pScreen, int argc, char **argv)
     return TRUE;
 }
 
-void
+static void
 KdInitScreen(ScreenInfo * pScreenInfo,
              KdScreenInfo * screen, int argc, char **argv)
 {
@@ -1117,20 +1047,6 @@ KdAddScreen(ScreenInfo * pScreenInfo,
 
     AddScreen(KdScreenInit, argc, argv);
 }
-
-#if 0                           /* This function is not used currently */
-
-int
-KdDepthToFb(ScreenPtr pScreen, int depth)
-{
-    KdScreenPriv(pScreen);
-
-    for (fb = 0; fb <= KD_MAX_FB && pScreenPriv->screen->fb.frameBuffer; fb++)
-        if (pScreenPriv->screen->fb.depth == depth)
-            return fb;
-}
-
-#endif
 
 static int
 KdSignalWrapper(int signum)
