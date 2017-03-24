@@ -43,6 +43,13 @@ Equipment Corporation.
 #include "scrnintstr.h"
 #include "windowstr.h"
 
+CARD16 DPMSPowerLevel = 0;
+Bool DPMSDisabledSwitch = FALSE;
+CARD32 DPMSStandbyTime;
+CARD32 DPMSSuspendTime;
+CARD32 DPMSOffTime;
+Bool DPMSEnabled;
+
 Bool
 DPMSSupported(void)
 {
@@ -136,7 +143,7 @@ ProcDPMSCapable(ClientPtr client)
         .type = X_Reply,
         .sequenceNumber = client->sequence,
         .length = 0,
-        .capable = DPMSCapableFlag
+        .capable = TRUE
     };
 
     REQUEST_SIZE_MATCH(xDPMSCapableReq);
@@ -204,11 +211,9 @@ ProcDPMSEnable(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xDPMSEnableReq);
 
-    if (DPMSCapableFlag) {
-        DPMSEnabled = TRUE;
-        if (!was_enabled)
-            SetScreenSaverTimer();
-    }
+    DPMSEnabled = TRUE;
+    if (!was_enabled)
+        SetScreenSaverTimer();
 
     return Success;
 }
@@ -427,7 +432,12 @@ DPMSCloseDownExtension(ExtensionEntry *e)
 void
 DPMSExtensionInit(void)
 {
-    AddExtension(DPMSExtensionName, 0, 0,
-                 ProcDPMSDispatch, SProcDPMSDispatch,
-                 DPMSCloseDownExtension, StandardMinorOpcode);
+    DPMSStandbyTime = DPMSSuspendTime = DPMSOffTime = ScreenSaverTime;
+    DPMSPowerLevel = DPMSModeOn;
+    DPMSEnabled = DPMSSupported();
+
+    if (DPMSEnabled)
+        AddExtension(DPMSExtensionName, 0, 0,
+                     ProcDPMSDispatch, SProcDPMSDispatch,
+                     DPMSCloseDownExtension, StandardMinorOpcode);
 }

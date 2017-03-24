@@ -64,8 +64,10 @@
 #include "loaderProcs.h"
 
 #include "xkbsrv.h"
-
 #include "picture.h"
+#ifdef DPMSExtension
+#include "dpmsproc.h"
+#endif
 
 /*
  * These paths define the way the config file search is done.  The escape
