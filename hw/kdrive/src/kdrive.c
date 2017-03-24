@@ -1193,18 +1193,6 @@ OsVendorFatalError(const char *f, va_list args)
 {
 }
 
-int
-DPMSSet(ClientPtr client, int level)
-{
-    return Success;
-}
-
-Bool
-DPMSSupported(void)
-{
-    return FALSE;
-}
-
 /* These stubs can be safely removed once we can
  * split input and GPU parts in hotplug.h et al. */
 #ifdef CONFIG_UDEV_KMS

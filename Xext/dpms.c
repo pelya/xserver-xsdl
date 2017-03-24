@@ -40,6 +40,70 @@ Equipment Corporation.
 #include <X11/extensions/dpmsproto.h>
 #include "dpmsproc.h"
 #include "extinit.h"
+#include "scrnintstr.h"
+#include "windowstr.h"
+
+Bool
+DPMSSupported(void)
+{
+    int i;
+
+    /* For each screen, check if DPMS is supported */
+    for (i = 0; i < screenInfo.numScreens; i++)
+        if (screenInfo.screens[i]->DPMS != NULL)
+            return TRUE;
+
+    for (i = 0; i < screenInfo.numGPUScreens; i++)
+        if (screenInfo.gpuscreens[i]->DPMS != NULL)
+            return TRUE;
+
+    return FALSE;
+}
+
+static Bool
+isUnblank(int mode)
+{
+    switch (mode) {
+    case SCREEN_SAVER_OFF:
+    case SCREEN_SAVER_FORCER:
+        return TRUE;
+    case SCREEN_SAVER_ON:
+    case SCREEN_SAVER_CYCLE:
+        return FALSE;
+    default:
+        return TRUE;
+    }
+}
+
+int
+DPMSSet(ClientPtr client, int level)
+{
+    int rc, i;
+
+    DPMSPowerLevel = level;
+
+    if (level != DPMSModeOn) {
+        if (isUnblank(screenIsSaved)) {
+            rc = dixSaveScreens(client, SCREEN_SAVER_FORCER, ScreenSaverActive);
+            if (rc != Success)
+                return rc;
+        }
+    } else if (!isUnblank(screenIsSaved)) {
+        rc = dixSaveScreens(client, SCREEN_SAVER_OFF, ScreenSaverReset);
+        if (rc != Success)
+            return rc;
+    }
+
+    for (i = 0; i < screenInfo.numScreens; i++)
+        if (screenInfo.screens[i]->DPMS != NULL)
+            screenInfo.screens[i]->DPMS(screenInfo.screens[i], level);
+
+    for (i = 0; i < screenInfo.numGPUScreens; i++)
+        if (screenInfo.gpuscreens[i]->DPMS != NULL)
+            screenInfo.gpuscreens[i]->DPMS(screenInfo.gpuscreens[i], level);
+
+    return Success;
+}
 
 static int
 ProcDPMSGetVersion(ClientPtr client)

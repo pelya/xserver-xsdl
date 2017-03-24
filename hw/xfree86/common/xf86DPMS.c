@@ -47,6 +47,19 @@
 #include "xf86VGAarbiter.h"
 #endif
 
+#ifdef DPMSExtension
+static void
+xf86DPMS(ScreenPtr pScreen, int level)
+{
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    if (pScrn->DPMSSet && pScrn->vtSema) {
+        xf86VGAarbiterLock(pScrn);
+        pScrn->DPMSSet(pScrn, level, 0);
+        xf86VGAarbiterUnlock(pScrn);
+    }
+}
+#endif
+
 Bool
 xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 {
@@ -69,84 +82,10 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
     if (enabled) {
         xf86DrvMsg(pScreen->myNum, enabled_from, "DPMS enabled\n");
         pScrn->DPMSSet = set;
+        pScreen->DPMS = xf86DPMS;
     }
     return TRUE;
 #else
     return FALSE;
 #endif
 }
-
-#ifdef DPMSExtension
-
-static void
-DPMSSetScreen(ScrnInfoPtr pScrn, int level)
-{
-    if (pScrn->DPMSSet && pScrn->vtSema) {
-        xf86VGAarbiterLock(pScrn);
-        pScrn->DPMSSet(pScrn, level, 0);
-        xf86VGAarbiterUnlock(pScrn);
-    }
-}
-
-/*
- * DPMSSet --
- *	Device dependent DPMS mode setting hook.  This is called whenever
- *	the DPMS mode is to be changed.
- */
-int
-DPMSSet(ClientPtr client, int level)
-{
-    int rc, i;
-
-    DPMSPowerLevel = level;
-
-    if (level != DPMSModeOn) {
-        if (xf86IsUnblank(screenIsSaved)) {
-            rc = dixSaveScreens(client, SCREEN_SAVER_FORCER, ScreenSaverActive);
-            if (rc != Success)
-                return rc;
-        }
-    } else if (!xf86IsUnblank(screenIsSaved)) {
-        rc = dixSaveScreens(client, SCREEN_SAVER_OFF, ScreenSaverReset);
-        if (rc != Success)
-            return rc;
-    }
-
-    /* For each screen, set the DPMS level */
-    for (i = 0; i < xf86NumScreens; i++) {
-        DPMSSetScreen(xf86Screens[i], level);
-    }
-    for (i = 0; i < xf86NumGPUScreens; i++) {
-        DPMSSetScreen(xf86GPUScreens[i], level);
-    }
-    return Success;
-}
-
-static Bool
-DPMSSupportedOnScreen(ScrnInfoPtr pScrn)
-{
-    return pScrn->DPMSSet != NULL;
-}
-
-/*
- * DPMSSupported --
- *	Return TRUE if any screen supports DPMS.
- */
-Bool
-DPMSSupported(void)
-{
-    int i;
-
-    /* For each screen, check if DPMS is supported */
-    for (i = 0; i < xf86NumScreens; i++) {
-        if (DPMSSupportedOnScreen(xf86Screens[i]))
-            return TRUE;
-    }
-    for (i = 0; i < xf86NumGPUScreens; i++) {
-        if (DPMSSupportedOnScreen(xf86GPUScreens[i]))
-            return TRUE;
-    }
-    return FALSE;
-}
-
-#endif                          /* DPMSExtension */
