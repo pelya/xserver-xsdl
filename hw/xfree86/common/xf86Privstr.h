@@ -102,15 +102,6 @@ typedef struct {
     Bool autoAddGPU;
 } xf86InfoRec, *xf86InfoPtr;
 
-#ifdef DPMSExtension
-/* Private info for DPMS */
-typedef struct {
-    CloseScreenProcPtr CloseScreen;
-    Bool Enabled;
-    int Flags;
-} DPMSRec, *DPMSPtr;
-#endif
-
 /* ISC's cc can't handle ~ of UL constants, so explicitly type cast them. */
 #define XLED1   ((unsigned long) 0x00000001)
 #define XLED2   ((unsigned long) 0x00000002)

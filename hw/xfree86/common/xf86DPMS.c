@@ -47,50 +47,29 @@
 #include "xf86VGAarbiter.h"
 #endif
 
-#ifdef DPMSExtension
-static DevPrivateKeyRec DPMSKeyRec;
-static DevPrivateKey DPMSKey;
-static Bool DPMSClose(ScreenPtr pScreen);
-static int DPMSCount = 0;
-#endif
-
 Bool
 xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 {
 #ifdef DPMSExtension
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
-    DPMSPtr pDPMS;
     void *DPMSOpt;
-    MessageType enabled_from;
+    MessageType enabled_from = X_DEFAULT;
+    Bool enabled = TRUE;
 
-    DPMSKey = &DPMSKeyRec;
-
-    if (!dixRegisterPrivateKey(&DPMSKeyRec, PRIVATE_SCREEN, sizeof(DPMSRec)))
-        return FALSE;
-
-    pDPMS = dixLookupPrivate(&pScreen->devPrivates, DPMSKey);
-    pScrn->DPMSSet = set;
-    pDPMS->Flags = flags;
     DPMSOpt = xf86FindOption(pScrn->options, "dpms");
     if (DPMSDisabledSwitch) {
         enabled_from = X_CMDLINE;
-        DPMSEnabled = FALSE;
+        enabled = FALSE;
     }
     else if (DPMSOpt) {
         enabled_from = X_CONFIG;
-        DPMSEnabled = xf86CheckBoolOption(pScrn->options, "dpms", FALSE);
+        enabled = xf86CheckBoolOption(pScrn->options, "dpms", FALSE);
         xf86MarkOptionUsed(DPMSOpt);
     }
-    else {
-        enabled_from = X_DEFAULT;
-        DPMSEnabled = TRUE;
-    }
-    if (DPMSEnabled)
+    if (enabled) {
         xf86DrvMsg(pScreen->myNum, enabled_from, "DPMS enabled\n");
-    pDPMS->Enabled = DPMSEnabled;
-    pDPMS->CloseScreen = pScreen->CloseScreen;
-    pScreen->CloseScreen = DPMSClose;
-    DPMSCount++;
+        pScrn->DPMSSet = set;
+    }
     return TRUE;
 #else
     return FALSE;
@@ -99,45 +78,10 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 
 #ifdef DPMSExtension
 
-static Bool
-DPMSClose(ScreenPtr pScreen)
-{
-    DPMSPtr pDPMS;
-    ScrnInfoPtr pScrn;
-    /* This shouldn't happen */
-    if (DPMSKey == NULL)
-        return FALSE;
-
-    pDPMS = dixLookupPrivate(&pScreen->devPrivates, DPMSKey);
-
-    /* This shouldn't happen */
-    if (!pDPMS)
-        return FALSE;
-
-    pScreen->CloseScreen = pDPMS->CloseScreen;
-    pScrn = xf86ScreenToScrn(pScreen);
-    /*
-     * Turn on DPMS when shutting down. If this function can be used
-     * depends on the order the driver wraps things. If this is called
-     * after the driver has shut down everything the driver will have
-     * to deal with this internally.
-     */
-    if (pScrn->vtSema && pScrn->DPMSSet) {
-        pScrn->DPMSSet(pScrn, DPMSModeOn, 0);
-    }
-
-    if (--DPMSCount == 0)
-        DPMSKey = NULL;
-    return pScreen->CloseScreen(pScreen);
-}
-
 static void
 DPMSSetScreen(ScrnInfoPtr pScrn, int level)
 {
-    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
-    DPMSPtr pDPMS = dixLookupPrivate(&pScreen->devPrivates, DPMSKey);
-
-    if (pDPMS && pScrn->DPMSSet && pDPMS->Enabled && pScrn->vtSema) {
+    if (pScrn->DPMSSet && pScrn->vtSema) {
         xf86VGAarbiterLock(pScrn);
         pScrn->DPMSSet(pScrn, level, 0);
         xf86VGAarbiterUnlock(pScrn);
@@ -155,9 +99,6 @@ DPMSSet(ClientPtr client, int level)
     int rc, i;
 
     DPMSPowerLevel = level;
-
-    if (DPMSKey == NULL)
-        return Success;
 
     if (level != DPMSModeOn) {
         if (xf86IsUnblank(screenIsSaved)) {
@@ -184,10 +125,7 @@ DPMSSet(ClientPtr client, int level)
 static Bool
 DPMSSupportedOnScreen(ScrnInfoPtr pScrn)
 {
-    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
-    DPMSPtr pDPMS = dixLookupPrivate(&pScreen->devPrivates, DPMSKey);
-
-    return pDPMS && pScrn->DPMSSet;
+    return pScrn->DPMSSet != NULL;
 }
 
 /*
@@ -198,10 +136,6 @@ Bool
 DPMSSupported(void)
 {
     int i;
-
-    if (DPMSKey == NULL) {
-        return FALSE;
-    }
 
     /* For each screen, check if DPMS is supported */
     for (i = 0; i < xf86NumScreens; i++) {

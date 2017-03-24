@@ -354,10 +354,16 @@ SProcDPMSDispatch(ClientPtr client)
     }
 }
 
+static void
+DPMSCloseDownExtension(ExtensionEntry *e)
+{
+    DPMSSet(serverClient, DPMSModeOn);
+}
+
 void
 DPMSExtensionInit(void)
 {
     AddExtension(DPMSExtensionName, 0, 0,
                  ProcDPMSDispatch, SProcDPMSDispatch,
-                 NULL, StandardMinorOpcode);
+                 DPMSCloseDownExtension, StandardMinorOpcode);
 }
