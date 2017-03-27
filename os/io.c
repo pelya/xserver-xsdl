@@ -108,12 +108,12 @@ static ConnectionOutputPtr FreeOutputs = (ConnectionOutputPtr) NULL;
 static OsCommPtr AvailableInput = (OsCommPtr) NULL;
 
 #define get_req_len(req,cli) ((cli)->swapped ? \
-			      lswaps((req)->length) : (req)->length)
+			      bswap_16((req)->length) : (req)->length)
 
 #include <X11/extensions/bigreqsproto.h>
 
 #define get_big_req_len(req,cli) ((cli)->swapped ? \
-				  lswapl(((xBigReq *)(req))->length) : \
+				  bswap_32(((xBigReq *)(req))->length) : \
 				  ((xBigReq *)(req))->length)
 
 #define BUFSIZE 16384
