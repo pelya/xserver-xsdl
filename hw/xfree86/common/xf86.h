@@ -154,9 +154,6 @@ extern _X_EXPORT GDevPtr xf86GetDevFromEntity(int entityIndex, int instance);
 extern _X_EXPORT void xf86RemoveEntityFromScreen(ScrnInfoPtr pScrn,
                                                  int entityIndex);
 extern _X_EXPORT EntityInfoPtr xf86GetEntityInfo(int entityIndex);
-extern _X_EXPORT Bool xf86SetEntityFuncs(int entityIndex, EntityProc init,
-                                         EntityProc enter, EntityProc leave,
-                                         void *);
 extern _X_EXPORT Bool xf86IsEntityPrimary(int entityIndex);
 extern _X_EXPORT ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
 

@@ -726,7 +726,6 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char **argv)
 #ifdef HAS_USL_VTS
             ioctl(xf86Info.consoleFd, VT_RELDISP, VT_ACKACQ);
 #endif
-            xf86AccessEnter();
             input_lock();
             sigio_blocked = TRUE;
         }
@@ -1000,8 +999,6 @@ AbortDDX(enum ExitCode error)
                 xf86VGAarbiterUnlock(xf86Screens[i]);
             }
     }
-
-    xf86AccessLeave();
 
     /*
      * This is needed for an abnormal server exit, since the normal exit stuff

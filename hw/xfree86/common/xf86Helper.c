@@ -1672,7 +1672,6 @@ xf86ConfigFbEntityInactive(EntityInfoPtr pEnt, EntityProc init,
 
     if ((pScrn = xf86FindScreenForEntity(pEnt->index)))
         xf86RemoveEntityFromScreen(pScrn, pEnt->index);
-    xf86SetEntityFuncs(pEnt->index, init, enter, leave, private);
 }
 
 ScrnInfoPtr
@@ -1681,6 +1680,9 @@ xf86ConfigFbEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
                    void *private)
 {
     EntityInfoPtr pEnt = xf86GetEntityInfo(entityIndex);
+
+    if (init || enter || leave)
+        FatalError("Legacy entity access functions are unsupported\n");
 
     if (!pEnt)
         return pScrn;
@@ -1699,8 +1701,6 @@ xf86ConfigFbEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
     if (!pScrn)
         pScrn = xf86AllocateScreen(pEnt->driver, scrnFlag);
     xf86AddEntityToScreen(pScrn, entityIndex);
-
-    xf86SetEntityFuncs(entityIndex, init, enter, leave, private);
 
     free(pEnt);
     return pScrn;
