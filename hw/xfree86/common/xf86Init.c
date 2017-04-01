@@ -1359,17 +1359,17 @@ ddxUseMsg(void)
         ErrorF("-modulepath paths      specify the module search path\n");
         ErrorF("-logfile file          specify a log file name\n");
         ErrorF("-configure             probe for devices and write an "
-               __XCONFIGFILE__ "\n");
+               XCONFIGFILE "\n");
         ErrorF
             ("-showopts              print available options for all installed drivers\n");
     }
     ErrorF
         ("-config file           specify a configuration file, relative to the\n");
-    ErrorF("                       " __XCONFIGFILE__
+    ErrorF("                       " XCONFIGFILE
            " search path, only root can use absolute\n");
     ErrorF
         ("-configdir dir         specify a configuration directory, relative to the\n");
-    ErrorF("                       " __XCONFIGDIR__
+    ErrorF("                       " XCONFIGDIR
            " search path, only root can use absolute\n");
     ErrorF("-verbose [n]           verbose startup messages\n");
     ErrorF("-logverbose [n]        verbose log messages\n");
