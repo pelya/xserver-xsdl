@@ -542,27 +542,8 @@ xf86pathIsSafe(const char *path)
  *    %%    %
  */
 
-#ifndef XCONFIGFILE
-#define XCONFIGFILE	"xorg.conf"
-#endif
-#ifndef XCONFIGDIR
-#define XCONFIGDIR	"xorg.conf.d"
-#endif
-#ifndef XCONFIGSUFFIX
 #define XCONFIGSUFFIX	".conf"
-#endif
-#ifndef PROJECTROOT
-#define PROJECTROOT	"/usr/X11R6"
-#endif
-#ifndef SYSCONFDIR
-#define SYSCONFDIR	PROJECTROOT "/etc"
-#endif
-#ifndef DATADIR
-#define DATADIR		PROJECTROOT "/share"
-#endif
-#ifndef XCONFENV
 #define XCONFENV	"XORGCONFIG"
-#endif
 
 #define BAIL_OUT		do {									\
 							free(result);				\
