@@ -310,12 +310,9 @@ bswap_64(uint64_t x)
 }
 
 #define swapll(x) do { \
-		uint64_t temp; \
 		if (sizeof(*(x)) != 8) \
 			wrong_size(); \
-		memcpy(&temp, x, 8); \
-		temp = bswap_64(temp); \
-		memcpy(x, &temp, 8); \
+		*(x) = bswap_64(*(x));          \
 	} while (0)
 
 static inline uint32_t
@@ -328,12 +325,9 @@ bswap_32(uint32_t x)
 }
 
 #define swapl(x) do { \
-		uint32_t temp; \
 		if (sizeof(*(x)) != 4) \
 			wrong_size(); \
-		memcpy(&temp, x, 4); \
-		temp = bswap_32(temp); \
-		memcpy(x, &temp, 4); \
+		*(x) = bswap_32(*(x)); \
 	} while (0)
 
 static inline uint16_t
@@ -344,12 +338,9 @@ bswap_16(uint16_t x)
 }
 
 #define swaps(x) do { \
-		uint16_t temp; \
 		if (sizeof(*(x)) != 2) \
 			wrong_size(); \
-		memcpy(&temp, x, 2); \
-		temp = bswap_16(temp); \
-		memcpy(x, &temp, 2); \
+		*(x) = bswap_16(*(x)); \
 	} while (0)
 
 /* copy 32-bit value from src to dst byteswapping on the way */
