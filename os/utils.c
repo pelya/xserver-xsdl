@@ -1008,7 +1008,7 @@ ProcessCommandLine(int argc, char *argv[])
 #endif
         else if (strcmp(argv[i], "-dumbSched") == 0) {
             InputThreadEnable = FALSE;
-#if HAVE_SETITIMER
+#ifdef HAVE_SETITIMER
             SmartScheduleSignalEnable = FALSE;
 #endif
         }
@@ -1210,7 +1210,7 @@ XNFstrdup(const char *s)
 void
 SmartScheduleStopTimer(void)
 {
-#if HAVE_SETITIMER
+#ifdef HAVE_SETITIMER
     struct itimerval timer;
 
     if (!SmartScheduleSignalEnable)
@@ -1226,7 +1226,7 @@ SmartScheduleStopTimer(void)
 void
 SmartScheduleStartTimer(void)
 {
-#if HAVE_SETITIMER
+#ifdef HAVE_SETITIMER
     struct itimerval timer;
 
     if (!SmartScheduleSignalEnable)
@@ -1239,7 +1239,7 @@ SmartScheduleStartTimer(void)
 #endif
 }
 
-#if HAVE_SETITIMER
+#ifdef HAVE_SETITIMER
 static void
 SmartScheduleTimer(int sig)
 {
@@ -1287,7 +1287,7 @@ SmartSchedulePause(void)
 void
 SmartScheduleInit(void)
 {
-#if HAVE_SETITIMER
+#ifdef HAVE_SETITIMER
     if (SmartScheduleEnable() < 0) {
         perror("sigaction for smart scheduler");
         SmartScheduleSignalEnable = FALSE;
@@ -1444,7 +1444,7 @@ Popen(const char *command, const char *type)
     }
 
     /* Ignore the smart scheduler while this is going on */
-#if HAVE_SETITIMER
+#ifdef HAVE_SETITIMER
     if (SmartSchedulePause() < 0) {
         close(pdes[0]);
         close(pdes[1]);
@@ -1459,7 +1459,7 @@ Popen(const char *command, const char *type)
         close(pdes[0]);
         close(pdes[1]);
         free(cur);
-#if HAVE_SETITIMER
+#ifdef HAVE_SETITIMER
         if (SmartScheduleEnable() < 0)
             perror("signal");
 #endif
@@ -1636,7 +1636,7 @@ Pclose(void *iop)
     /* allow EINTR again */
     OsReleaseSignals();
 
-#if HAVE_SETITIMER
+#ifdef HAVE_SETITIMER
     if (SmartScheduleEnable() < 0) {
         perror("signal");
         return -1;

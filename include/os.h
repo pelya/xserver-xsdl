@@ -466,7 +466,7 @@ AccessUsingXdmcp(void);
 extern _X_EXPORT void
 DefineSelf(int /*fd */ );
 
-#if XDMCP
+#ifdef XDMCP
 extern _X_EXPORT void
 AugmentSelf(void *from, int len);
 

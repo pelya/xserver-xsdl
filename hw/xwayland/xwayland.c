@@ -580,7 +580,7 @@ xwl_window_post_damage(struct xwl_window *xwl_window)
     region = DamageRegion(xwl_window->damage);
     pixmap = (*xwl_screen->screen->GetWindowPixmap) (xwl_window->window);
 
-#if GLAMOR_HAS_GBM
+#ifdef GLAMOR_HAS_GBM
     if (xwl_screen->glamor)
         buffer = xwl_glamor_pixmap_get_wl_buffer(pixmap);
     else
