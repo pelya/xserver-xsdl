@@ -1353,6 +1353,12 @@ OsAbort(void)
 #ifndef __APPLE__
     OsBlockSignals();
 #endif
+#if !defined(WIN32) || defined(__CYGWIN__)
+    /* abort() raises SIGABRT, so we have to stop handling that to prevent
+     * recursion
+     */
+    OsSignal(SIGABRT, SIG_DFL);
+#endif
     abort();
 }
 

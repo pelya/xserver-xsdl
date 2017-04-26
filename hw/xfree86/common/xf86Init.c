@@ -309,6 +309,7 @@ InstallSignalHandlers(void)
     }
     else {
         OsSignal(SIGSEGV, SIG_DFL);
+        OsSignal(SIGABRT, SIG_DFL);
         OsSignal(SIGILL, SIG_DFL);
 #ifdef SIGEMT
         OsSignal(SIGEMT, SIG_DFL);
