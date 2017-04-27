@@ -294,6 +294,8 @@ inc = include_directories(
     'xfixes',
 )
 
+glx_inc = include_directories('glx')
+
 serverconfigdir = join_paths(get_option('libdir'), '/xorg')
 
 # Include must come first, as it sets up dix-config.h
