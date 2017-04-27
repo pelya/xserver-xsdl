@@ -50,6 +50,7 @@ subdir('modes')
 subdir('os-support')
 subdir('parser')
 subdir('ramdac')
+subdir('shadowfb')
 if build_vgahw
     subdir('vgahw')
 endif
