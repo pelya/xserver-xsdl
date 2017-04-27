@@ -27,6 +27,7 @@ subdir('common')
 subdir('ddc')
 subdir('dixmods')
 subdir('exa')
+subdir('fbdevhw')
 if gbm_dep.found()
     subdir('glamor_egl')
 endif
