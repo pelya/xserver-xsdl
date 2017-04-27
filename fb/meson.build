@@ -34,3 +34,14 @@ libxserver_fb = static_library('libxserver_fb',
 	dependencies: common_dep,
 	pic: true,
 )
+
+wfb_args = '-DFB_ACCESS_WRAPPER'
+
+libxserver_wfb = static_library('libxserver_wfb',
+	srcs_fb,
+	c_args: wfb_args,
+	include_directories: inc,
+	dependencies: common_dep,
+	pic: true,
+	build_by_default: false,
+)

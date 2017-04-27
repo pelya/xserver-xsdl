@@ -25,6 +25,18 @@ shared_module(
 )
 
 shared_module(
+    'wfb',
+    'fbmodule.c',
+
+    include_directories: [inc, xorg_inc],
+    c_args: [ xorg_c_args, wfb_args ],
+    dependencies: common_dep,
+    objects: libxserver_wfb.extract_all_objects(),
+
+    install: true,
+    install_dir: module_dir,
+)
+shared_module(
     'shadow',
     'shmodule.c',
 
