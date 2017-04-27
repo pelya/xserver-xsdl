@@ -38,6 +38,7 @@ dmx_config = static_library('dmx_config',
     srcs_dmx_config,
     include_directories: dmx_inc,
     dependencies: common_dep,
+    link_with: libxlibc,
     c_args: dmx_c_args,
 )
 
