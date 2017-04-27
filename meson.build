@@ -192,10 +192,8 @@ if module_dir == ''
     module_dir = join_paths(get_option('libdir'), 'xorg/modules')
 endif
 
-bulid_wayland = false
-
 if glamor_option == 'auto'
-    build_glamor = build_xorg or build_wayland
+    build_glamor = build_xorg or build_xwayland
 else
     build_glamor = get_option('glamor') == 'yes'
 endif
