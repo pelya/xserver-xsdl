@@ -20,26 +20,27 @@ srcs_os = [
 ]
 
 # Wrapper code for missing C library functions
+srcs_libc = []
 if not cc.has_function('reallocarray')
-    srcs_os += 'reallocarray.c'
+    srcs_libc += 'reallocarray.c'
 endif
 if not cc.has_function('strcasecmp')
-    srcs_os += 'strcasecmp.c'
+    srcs_libc += 'strcasecmp.c'
 endif
 if not cc.has_function('strcasestr')
-    srcs_os += 'strcasestr.c'
+    srcs_libc += 'strcasestr.c'
 endif
 if not cc.has_function('strlcat')
-    srcs_os += 'strlcat.c'
+    srcs_libc += 'strlcat.c'
 endif
 if not cc.has_function('strlcpy')
-    srcs_os += 'strlcpy.c'
+    srcs_libc += 'strlcpy.c'
 endif
 if not cc.has_function('strndup')
-    srcs_os += 'strndup.c'
+    srcs_libc += 'strndup.c'
 endif
 if not cc.has_function('timingsafe_memcmp')
-    srcs_os += 'timingsafe_memcmp.c'
+    srcs_libc += 'timingsafe_memcmp.c'
 endif
 
 if cc.has_function('poll')
@@ -53,6 +54,14 @@ if get_option('xdmcp')
     srcs_os += 'xdmcp.c'
 endif
 
+libxlibc = []
+if srcs_libc.length() > 0
+    libxlibc = static_library('libxlibc',
+        srcs_libc,
+        include_directories: inc,
+    )
+endif
+
 libxserver_os = static_library('libxserver_os',
     srcs_os,
     include_directories: inc,
@@ -62,4 +71,5 @@ libxserver_os = static_library('libxserver_os',
         sha1_dep,
         dependency('xau')
     ],
+    link_with: libxlibc,
 )
