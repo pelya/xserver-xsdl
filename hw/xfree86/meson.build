@@ -51,6 +51,9 @@ subdir('os-support')
 subdir('parser')
 subdir('ramdac')
 subdir('shadowfb')
+if build_vbe
+    subdir('vbe')
+endif
 if build_vgahw
     subdir('vgahw')
 endif

@@ -226,6 +226,7 @@ build_dpms = true
 build_mitshm = true
 build_res = true
 build_screensaver = true
+build_vbe = true
 build_vgahw = true
 build_xace = true
 build_xsecurity = true
