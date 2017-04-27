@@ -95,6 +95,7 @@ conf_data.set('HAVE_STROPTS_H', cc.has_header('stropts.h'))
 conf_data.set('HAVE_SYS_AGPGART_H', cc.has_header('sys/agpgart.h'))
 conf_data.set('HAVE_SYS_AGPIO_H', cc.has_header('sys/agpio.h'))
 conf_data.set('HAVE_SYS_UTSNAME_H', cc.has_header('sys/utsname.h'))
+conf_data.set('HAVE_SYS_SYSMACROS_H', cc.has_header('sys/sysmacros.h'))
 conf_data.set('HAVE_UNISTD_H', cc.has_header('unistd.h'))
 
 conf_data.set('HAVE_BACKTRACE', cc.has_function('backtrace'))
