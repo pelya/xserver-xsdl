@@ -50,6 +50,9 @@ subdir('modes')
 subdir('os-support')
 subdir('parser')
 subdir('ramdac')
+if build_vgahw
+    subdir('vgahw')
+endif
 subdir('drivers/modesetting')
 
 srcs_xorg = [
