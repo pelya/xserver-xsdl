@@ -49,7 +49,7 @@ if build_glx
     )
 endif
 
-srcs_glxdri2 = ''
+srcs_glxdri2 = []
 if build_dri2 or build_dri3
     srcs_glxdri2 = files('glxdri2.c')
 endif
