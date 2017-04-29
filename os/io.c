@@ -633,6 +633,24 @@ SetCriticalOutputPending(void)
 }
 
 /*****************
+ * AbortClient:
+ *    When a write error occurs to a client, close
+ *    the connection and clean things up.
+ *****************/
+
+static void
+AbortClient(ClientPtr client)
+{
+    OsCommPtr oc = client->osPrivate;
+
+    if (oc->trans_conn) {
+        _XSERVTransDisconnect(oc->trans_conn);
+        _XSERVTransClose(oc->trans_conn);
+        oc->trans_conn = NULL;
+    }
+}
+
+/*****************
  * WriteToClient
  *    Copies buf into ClientPtr.buf if it fits (with padding), else
  *    flushes ClientPtr.buf and buf to client.  As of this writing,
@@ -707,11 +725,7 @@ WriteToClient(ClientPtr who, int count, const void *__buf)
             FreeOutputs = oco->next;
         }
         else if (!(oco = AllocateOutputBuffer())) {
-            if (oc->trans_conn) {
-                _XSERVTransDisconnect(oc->trans_conn);
-                _XSERVTransClose(oc->trans_conn);
-                oc->trans_conn = NULL;
-            }
+            AbortClient(who);
             MarkClientException(who);
             return -1;
         }
@@ -892,9 +906,7 @@ FlushClient(ClientPtr who, OsCommPtr oc, const void *__extraBuf, int extraCount)
                     obuf = realloc(oco->buf, notWritten + BUFSIZE);
                 }
                 if (!obuf) {
-                    _XSERVTransDisconnect(oc->trans_conn);
-                    _XSERVTransClose(oc->trans_conn);
-                    oc->trans_conn = NULL;
+                    AbortClient(who);
                     MarkClientException(who);
                     oco->count = 0;
                     return -1;
@@ -921,11 +933,7 @@ FlushClient(ClientPtr who, OsCommPtr oc, const void *__extraBuf, int extraCount)
         }
 #endif
         else {
-            if (oc->trans_conn) {
-                _XSERVTransDisconnect(oc->trans_conn);
-                _XSERVTransClose(oc->trans_conn);
-                oc->trans_conn = NULL;
-            }
+            AbortClient(who);
             MarkClientException(who);
             oco->count = 0;
             return -1;
