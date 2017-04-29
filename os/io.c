@@ -635,7 +635,10 @@ SetCriticalOutputPending(void)
 /*****************
  * AbortClient:
  *    When a write error occurs to a client, close
- *    the connection and clean things up.
+ *    the connection and clean things up. Mark
+ *    the client as 'ready' so that the server will
+ *    try to read from it again, notice that the fd is
+ *    closed and clean up from there.
  *****************/
 
 static void
@@ -647,6 +650,7 @@ AbortClient(ClientPtr client)
         _XSERVTransDisconnect(oc->trans_conn);
         _XSERVTransClose(oc->trans_conn);
         oc->trans_conn = NULL;
+        mark_client_ready(client);
     }
 }
 
