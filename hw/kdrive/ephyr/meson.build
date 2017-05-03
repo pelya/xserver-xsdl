@@ -4,7 +4,6 @@ srcs = [
     'ephyrcursor.c',
     'ephyr_draw.c',
     'hostx.c',
-    'os.c',
 ]
 
 xephyr_dep = [
