@@ -2194,16 +2194,16 @@ static void
 init_tablet_manager_seat(struct xwl_screen *xwl_screen,
                          struct xwl_seat *xwl_seat)
 {
+    xorg_list_init(&xwl_seat->tablets);
+    xorg_list_init(&xwl_seat->tablet_tools);
+    xorg_list_init(&xwl_seat->tablet_pads);
+
     if (!xwl_screen->tablet_manager)
         return;
 
     xwl_seat->tablet_seat =
         zwp_tablet_manager_v2_get_tablet_seat(xwl_screen->tablet_manager,
                                               xwl_seat->seat);
-
-    xorg_list_init(&xwl_seat->tablets);
-    xorg_list_init(&xwl_seat->tablet_tools);
-    xorg_list_init(&xwl_seat->tablet_pads);
 
     zwp_tablet_seat_v2_add_listener(xwl_seat->tablet_seat, &tablet_seat_listener, xwl_seat);
 }
