@@ -1,7 +1,7 @@
 if host_machine.system() == 'linux'
     srcs_fbdevhw = 'fbdevhw.c'
 else
-    srcs_fbdevhw = 'fbdevhwstubs.c'
+    srcs_fbdevhw = 'fbdevhwstub.c'
 endif
 
 shared_module('fbdevhw',
