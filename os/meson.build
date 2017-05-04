@@ -42,10 +42,10 @@ endif
 if not cc.has_function('timingsafe_memcmp')
     srcs_libc += 'timingsafe_memcmp.c'
 endif
-
-if cc.has_function('poll')
+if not cc.has_function('poll')
     srcs_os += 'xserver_poll.c'
 endif
+
 if cc.has_function('sigaction')
     srcs_os += 'busfault.c'
 endif
