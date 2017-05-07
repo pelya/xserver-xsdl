@@ -43,6 +43,7 @@ SRCS_MULTIWINDOWEXTWM = \
 	winwindowswm.c
 DEFS_MULTIWINDOWEXTWM = -DXWIN_MULTIWINDOWEXTWM
 MULTIWINDOWEXTWM_LIBS = $(top_builddir)/miext/rootless/librootless.la
+MULTIWINDOWEXTWM_CFLAGS = -I$(top_srcdir)/miext/rootless
 endif
 
 if XWIN_RANDR
@@ -132,8 +133,6 @@ SRCS =	InitInput.c \
 
 XWin_SOURCES = $(SRCS)
 
-AM_CPPFLAGS = -I$(top_srcdir)/miext/rootless
-
 XWIN_SYS_LIBS += -ldxguid
 
 XWIN_LIBS += \
@@ -178,6 +177,7 @@ AM_LFLAGS = -i
 AM_CFLAGS = -DHAVE_XWIN_CONFIG_H $(DIX_CFLAGS) \
             $(XWINMODULES_CFLAGS) \
             -I$(top_srcdir) \
+            $(MULTIWINDOWEXTWM_CFLAGS) \
             -Wno-bad-function-cast
 
 xwinconfigdir = $(sysconfdir)/X11
