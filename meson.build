@@ -177,7 +177,7 @@ endif
 
 build_dbus = build_hal or build_systemd_logind
 
-udev_dep = []
+udev_dep = dependency('', required:false)
 if build_udev
     udev_dep = dependency('libudev', version: '>= 143')
 endif
@@ -198,7 +198,7 @@ else
     build_glamor = get_option('glamor') == 'yes'
 endif
 
-gbm_dep = []
+gbm_dep = dependency('', required:false)
 if build_glamor
     gbm_dep = dependency('gbm', version: '>= 10.2', required: false)
     if gbm_dep.found()
