@@ -47,7 +47,7 @@ pixman_dep = dependency('pixman-1')
 libbsd_dep = dependency('libbsd', required: false)
 xkbfile_dep = dependency('xkbfile')
 xfont2_dep = dependency('xfont2', version: '>= 2.0')
-nettle_dep = dependency('nettle', required: false)
+nettle_dep = dependency('nettle')
 
 dbus_required = get_option('systemd_logind') == 'yes'
 dbus_dep = dependency('dbus-1', version: '>= 1.0', required: dbus_required)
