@@ -72,10 +72,8 @@ if host_machine.system() == 'windows'
     hal_option = 'no'
 endif
 
-build_dbus = dbus_dep.found()
-
 if get_option('systemd_logind') == 'auto'
-    build_systemd_logind = build_udev and build_dbus
+    build_systemd_logind = build_udev and dbus_dep.found()
 else
     build_systemd_logind = get_option('systemd_logind') == 'yes'
 endif
@@ -176,6 +174,8 @@ endif
 if build_udev and build_hal
     error('Hotplugging through both libudev and hal not allowed')
 endif
+
+build_dbus = build_hal or build_systemd_logind
 
 udev_dep = []
 if build_udev
