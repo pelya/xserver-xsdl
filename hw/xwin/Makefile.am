@@ -52,12 +52,6 @@ SRCS_RANDR = \
 DEFS_RANDR = -DXWIN_RANDR
 endif
 
-if XWIN_XV
-SRCS_XV = \
-	winvideo.c
-DEFS_XV = -DXWIN_XV
-endif
-
 SRCS =	InitInput.c \
 	InitOutput.c \
 	winallpriv.c \
@@ -119,8 +113,7 @@ SRCS =	InitInput.c \
 	$(SRCS_MULTIWINDOWEXTWM) \
 	$(SRCS_NATIVEGDI) \
 	$(SRCS_PRIMARYFB) \
-	$(SRCS_RANDR) \
-	$(SRCS_XV)
+	$(SRCS_RANDR)
 
  DEFS = $(DEFS_CLIPBOARD) \
 	$(DEFS_GLX_WINDOWS) \
@@ -128,8 +121,7 @@ SRCS =	InitInput.c \
 	$(DEFS_MULTIWINDOWEXTWM) \
 	$(DEFS_NATIVEGDI) \
 	$(DEFS_PRIMARYFB) \
-	$(DEFS_RANDR) \
-	$(DEFS_XV)
+	$(DEFS_RANDR)
 
 XWin_SOURCES = $(SRCS)
 
