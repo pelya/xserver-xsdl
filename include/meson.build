@@ -98,6 +98,7 @@ conf_data.set('HAVE_SYS_UTSNAME_H', cc.has_header('sys/utsname.h'))
 conf_data.set('HAVE_SYS_SYSMACROS_H', cc.has_header('sys/sysmacros.h'))
 conf_data.set('HAVE_UNISTD_H', cc.has_header('unistd.h'))
 
+conf_data.set('HAVE_ARC4RANDOM_BUF', cc.has_function('arc4random_buf', dependencies: libbsd_dep))
 conf_data.set('HAVE_BACKTRACE', cc.has_function('backtrace'))
 conf_data.set('HAVE_CBRT', cc.has_function('cbrt'))
 conf_data.set('HAVE_EPOLL_CREATE', cc.has_function('epoll_create'))
