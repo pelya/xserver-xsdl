@@ -21,32 +21,32 @@ srcs_os = [
 
 # Wrapper code for missing C library functions
 srcs_libc = []
-if not cc.has_function('reallocarray')
+if not conf_data.get('HAVE_REALLOCARRAY')
     srcs_libc += 'reallocarray.c'
 endif
-if not cc.has_function('strcasecmp')
+if not conf_data.get('HAVE_STRCASECMP')
     srcs_libc += 'strcasecmp.c'
 endif
-if not cc.has_function('strcasestr')
+if not conf_data.get('HAVE_STRCASESTR')
     srcs_libc += 'strcasestr.c'
 endif
-if not cc.has_function('strlcat')
+if not conf_data.get('HAVE_STRLCAT')
     srcs_libc += 'strlcat.c'
 endif
-if not cc.has_function('strlcpy')
+if not conf_data.get('HAVE_STRLCPY')
     srcs_libc += 'strlcpy.c'
 endif
-if not cc.has_function('strndup')
+if not conf_data.get('HAVE_STRNDUP')
     srcs_libc += 'strndup.c'
 endif
-if not cc.has_function('timingsafe_memcmp')
+if not conf_data.get('HAVE_TIMINGSAFE_MEMCMP')
     srcs_libc += 'timingsafe_memcmp.c'
 endif
-if not cc.has_function('poll')
+if not conf_data.get('HAVE_POLL')
     srcs_os += 'xserver_poll.c'
 endif
 
-if cc.has_function('sigaction')
+if conf_data.get('BUSFAULT')
     srcs_os += 'busfault.c'
 endif
 
