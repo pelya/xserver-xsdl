@@ -50,7 +50,6 @@
 struct glamor_egl_screen_private {
     EGLDisplay display;
     EGLContext context;
-    EGLint major, minor;
     char *device_path;
 
     CreateScreenResourcesProcPtr CreateScreenResources;
@@ -648,8 +647,7 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
         goto error;
     }
 
-    if (!eglInitialize
-        (glamor_egl->display, &glamor_egl->major, &glamor_egl->minor)) {
+    if (!eglInitialize(glamor_egl->display, NULL, NULL)) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR, "eglInitialize() failed\n");
         glamor_egl->display = EGL_NO_DISPLAY;
         goto error;
