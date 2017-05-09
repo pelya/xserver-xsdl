@@ -219,10 +219,14 @@ OutputClassMatches(const XF86ConfOutputClassPtr oclass,
     return TRUE;
 }
 
-static void
-xf86OutputClassDriverList(int index, XF86MatchedDrivers *md)
+static int
+xf86OutputClassDriverList(int index, char *matches[], int nmatches)
 {
     XF86ConfOutputClassPtr cl;
+    int i = 0;
+
+    if (nmatches == 0)
+        return 0;
 
     for (cl = xf86configptr->conf_outputclass_lst; cl; cl = cl->list.next) {
         if (OutputClassMatches(cl, &xf86_platform_devices[index])) {
@@ -232,19 +236,24 @@ xf86OutputClassDriverList(int index, XF86MatchedDrivers *md)
                     cl->identifier, path);
             xf86Msg(X_NONE, "\tloading driver: %s\n", cl->driver);
 
-            xf86AddMatchedDriver(md, cl->driver);
+            matches[i++] = xstrdup(cl->driver);
         }
+
+        if (i >= nmatches)
+            break;
     }
+
+    return i;
 }
 
 /**
  *  @return The numbers of found devices that match with the current system
  *  drivers.
  */
-void
-xf86PlatformMatchDriver(XF86MatchedDrivers *md)
+int
+xf86PlatformMatchDriver(char *matches[], int nmatches)
 {
-    int i;
+    int i, j = 0;
     struct pci_device *info = NULL;
     int pass = 0;
 
@@ -256,19 +265,21 @@ xf86PlatformMatchDriver(XF86MatchedDrivers *md)
             else if (!xf86IsPrimaryPlatform(&xf86_platform_devices[i]) && (pass == 0))
                 continue;
 
-            xf86OutputClassDriverList(i, md);
+            j += xf86OutputClassDriverList(i, &matches[j], nmatches - j);
 
             info = xf86_platform_devices[i].pdev;
 #ifdef __linux__
             if (info)
-                xf86MatchDriverFromFiles(info->vendor_id, info->device_id, md);
+                j += xf86MatchDriverFromFiles(info->vendor_id, info->device_id,
+                                              &matches[j], nmatches - j);
 #endif
 
-            if (info != NULL) {
-                xf86VideoPtrToDriverList(info, md);
+            if ((info != NULL) && (j < nmatches)) {
+                j += xf86VideoPtrToDriverList(info, &(matches[j]), nmatches - j);
             }
         }
     }
+    return j;
 }
 
 int

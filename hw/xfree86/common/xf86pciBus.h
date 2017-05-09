@@ -33,13 +33,11 @@
 #ifndef _XF86_PCI_BUS_H
 #define _XF86_PCI_BUS_H
 
-#include "xf86MatchDrivers.h"
-
 void xf86PciProbe(void);
 Bool xf86PciAddMatchingDev(DriverPtr drvp);
 Bool xf86PciProbeDev(DriverPtr drvp);
 void xf86PciIsolateDevice(const char *argument);
-void xf86PciMatchDriver(XF86MatchedDrivers *md);
+int xf86PciMatchDriver(char *matches[], int nmatches);
 Bool xf86PciConfigure(void *busData, struct pci_device *pDev);
 void xf86PciConfigureNewDev(void *busData, struct pci_device *pVideo,
                             GDevRec * GDev, int *chipset);
@@ -49,9 +47,10 @@ void xf86PciConfigureNewDev(void *busData, struct pci_device *pVideo,
                                  ((x)->func == (y)->func) &&            \
                                  ((x)->dev == (y)->dev))
 
-void
+int
 xf86MatchDriverFromFiles(uint16_t match_vendor, uint16_t match_chip,
-                         XF86MatchedDrivers *md);
-void
-xf86VideoPtrToDriverList(struct pci_device *dev, XF86MatchedDrivers *md);
+                         char *matches[], int nmatches);
+int
+xf86VideoPtrToDriverList(struct pci_device *dev,
+                         char *returnList[], int returnListMax);
 #endif                          /* _XF86_PCI_BUS_H */
