@@ -59,8 +59,6 @@ conf_data.set('CONFIG_WSCONS', host_machine.system() == 'openbsd')
 # that just uses whatever directory works?
 conf_data.set_quoted('SHMDIR', '/tmp')
 
-conf_data.set('HAVE_SIGACTION', '1') # XXX
-conf_data.set('BUSFAULT', '1') # XXX
 conf_data.set('XSHMFENCE', xshmfence_dep.found())
 conf_data.set('WITH_LIBDRM', libdrm_dep.found())
 conf_data.set('GLAMOR_HAS_DRM_NAME_FROM_FD_2',
@@ -114,15 +112,23 @@ conf_data.set('HAVE_GETZONEID', cc.has_function('getzoneid'))
 conf_data.set('HAVE_MMAP', cc.has_function('mmap'))
 conf_data.set('HAVE_POLL', cc.has_function('poll'))
 conf_data.set('HAVE_POSIX_FALLOCATE', cc.has_function('posix_fallocate'))
+conf_data.set('HAVE_REALLOCARRAY', cc.has_function('reallocarray'))
 conf_data.set('HAVE_SETEUID', cc.has_function('seteuid'))
 conf_data.set('HAVE_SETITIMER', cc.has_function('setitimer'))
 conf_data.set('HAVE_SHMCTL64', cc.has_function('shmctl64'))
+conf_data.set('HAVE_SIGACTION', cc.has_function('sigaction'))
 conf_data.set('HAVE_STRCASECMP', cc.has_function('strcasecmp'))
+conf_data.set('HAVE_STRCASESTR', cc.has_function('strcasestr'))
+conf_data.set('HAVE_STRLCAT', cc.has_function('strlcat'))
+conf_data.set('HAVE_STRLCPY', cc.has_function('strlcpy'))
 conf_data.set('HAVE_STRNCASECMP', cc.has_function('strncasecmp'))
 conf_data.set('HAVE_STRNDUP', cc.has_function('strndup'))
+conf_data.set('HAVE_TIMINGSAFE_MEMCMP', cc.has_function('timingsafe_memcmp'))
 conf_data.set('HAVE_VASPRINTF', cc.has_function('vasprintf'))
 conf_data.set('HAVE_VSNPRINTF', cc.has_function('vsnprintf'))
 conf_data.set('HAVE_WALKCONTEXT', cc.has_function('walkcontext'))
+
+conf_data.set('BUSFAULT', conf_data.get('HAVE_SIGACTION'))
 
 # Don't let X dependencies typedef 'pointer'
 conf_data.set('_XTYPEDEF_POINTER', '1')
