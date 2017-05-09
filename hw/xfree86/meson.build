@@ -57,7 +57,9 @@ endif
 if build_vgahw
     subdir('vgahw')
 endif
-subdir('drivers/modesetting')
+if build_modesetting
+   subdir('drivers/modesetting')
+endif
 
 srcs_xorg = [
     '../../mi/miinitext.c'
@@ -106,7 +108,7 @@ executable(
         xfont2_dep,
         xshmfence_dep,
         config_dep,
-        dependency('libdrm'),
+        libdrm_dep,
     ],
     link_args: '-Wl,--export-dynamic',
     c_args: xorg_c_args,

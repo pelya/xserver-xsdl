@@ -18,7 +18,7 @@ shared_module(
     dependencies: [
         common_dep,
         udev_dep,
-        dependency('libdrm', version: '>= 2.4.46'),
+        libdrm_dep,
     ],
 
     install: true,

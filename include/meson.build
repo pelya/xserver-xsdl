@@ -61,8 +61,8 @@ conf_data.set_quoted('SHMDIR', '/tmp')
 
 conf_data.set('HAVE_SIGACTION', '1') # XXX
 conf_data.set('BUSFAULT', '1') # XXX
-conf_data.set('XSHMFENCE', '1') # XXX
-conf_data.set('WITH_LIBDRM', '1') # XXX
+conf_data.set('XSHMFENCE', xshmfence_dep.found())
+conf_data.set('WITH_LIBDRM', libdrm_dep.found())
 conf_data.set('GLAMOR_HAS_DRM_NAME_FROM_FD_2',
               dependency('libdrm', version: '>= 2.4.74', required: false).found())
 conf_data.set('GLXEXT', build_glx)

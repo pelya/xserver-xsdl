@@ -117,7 +117,7 @@ xorg_os_support = static_library('xorg_os_support',
     dependencies: [
         common_dep,
         dbus_dep,
-        dependency('libdrm'),
+        libdrm_dep,
     ],
     c_args: xorg_c_args,
 )

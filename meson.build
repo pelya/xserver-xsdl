@@ -32,16 +32,16 @@ compositeproto_dep = dependency('compositeproto', version: '>= 0.4')
 recordproto_dep = dependency('recordproto', version: '>= 1.13.99.1')
 scrnsaverproto_dep = dependency('scrnsaverproto', version: '>= 1.1')
 resourceproto_dep = dependency('resourceproto', version: '>= 1.2.0')
-xf86driproto_dep = dependency('xf86driproto', version: '>= 2.1.0')
-dri2proto_dep = dependency('dri2proto', version: '>= 2.8')
-dri3proto_dep = dependency('dri3proto', version: '>= 1.0')
+xf86driproto_dep = dependency('xf86driproto', version: '>= 2.1.0', required: get_option('dri1') == 'yes')
+dri2proto_dep = dependency('dri2proto', version: '>= 2.8', required: get_option('dri2') == 'yes')
+dri3proto_dep = dependency('dri3proto', version: '>= 1.0', required: get_option('dri3') == 'yes')
 xineramaproto_dep = dependency('xineramaproto')
 xf86bigfontproto_dep = dependency('xf86bigfontproto', version: '>= 1.2.0')
 xf86dgaproto_dep = dependency('xf86dgaproto', version: '>= 2.0.99.1', required: false)
 xf86vidmodeproto_dep = dependency('xf86vidmodeproto', version: '>= 2.2.99.1', required: false)
 windowswmproto_dep = dependency('windowswmproto', required: false)
 applewmproto_dep = dependency('applewmproto', version: '>= 1.4', required: false)
-xshmfence_dep = dependency('xshmfence', version: '>= 1.1')
+xshmfence_dep = dependency('xshmfence', version: '>= 1.1', required: false)
 
 pixman_dep = dependency('pixman-1')
 libbsd_dep = dependency('libbsd', required: false)
@@ -216,12 +216,44 @@ endif
 
 build_glx = get_option('glx')
 
+if get_option('dri1') == 'auto'
+    build_dri1 = xf86driproto_dep.found()
+else
+    build_dri1 = get_option('dri1') == 'yes'
+endif
+
+if get_option('dri2') == 'auto'
+    build_dri2 = dri2proto_dep.found()
+else
+    build_dri2 = get_option('dri2') == 'yes'
+endif
+
+if get_option('dri3') == 'auto'
+    build_dri3 = dri3proto_dep.found() and xshmfence_dep.found()
+else
+    build_dri3 = get_option('dri3') == 'yes'
+    if build_dri3
+       if not xshmfence_dep.found()
+           error('DRI3 requested, but xshmfence not found')
+       endif
+    endif
+endif
+
+libdrm_required = (get_option('dri1') == 'yes') or (get_option('dri2') == 'yes') or (get_option('dri3') == 'yes')
+libdrm_dep = dependency('libdrm', version: '>= 2.3.1', required: libdrm_required)
+build_modesetting = false
+if libdrm_dep.found()
+  if build_dri2
+    # 2.4.65 is required for drmGetDevice
+    dependency('libdrm', version: '>= 2.4.65')
+  endif
+  # 2.4.46 is required for cursor hotspot support.
+  build_modesetting = libdrm_dep.version().version_compare('>= 2.4.46')
+endif
+
 # XXX: Allow configuration of these.
 build_apm = false
 build_acpi = false
-build_dri1 = true
-build_dri2 = true
-build_dri3 = true
 build_dpms = true
 build_mitshm = true
 build_res = true
@@ -346,7 +378,6 @@ libxserver = [
     libxserver_composite,
     libxserver_damageext,
     libxserver_dbe,
-    libxserver_dri3,
     libxserver_randr,
     libxserver_miext_damage,
     libxserver_render,
@@ -360,5 +391,7 @@ libxserver = [
 
     libxserver_os,
 ]
+
+libxserver += libxserver_dri3
 
 subdir('hw')
