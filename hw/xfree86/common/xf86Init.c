@@ -183,7 +183,7 @@ xf86PrintBanner(void)
             xf86ErrorFVerb(0, "Current Operating System: %s %s %s %s %s\n",
                            name.sysname, name.nodename, name.release,
                            name.version, name.machine);
-#ifdef linux
+#ifdef __linux__
             do {
                 char buf[80];
                 int fd = open("/proc/cmdline", O_RDONLY);
