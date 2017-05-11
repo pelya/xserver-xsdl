@@ -916,7 +916,7 @@ xf86openConfigFile(const char *path, const char *cmdline, const char *projroot)
  * information.  If a command-line name is specified, then this function
  * fails if it is not found.
  *
- * The return value is a pointer to the actual name of the direcoty that was
+ * The return value is a pointer to the actual name of the directory that was
  * opened.  When no directory is found, the return value is NULL. The caller
  * should free() the returned value.
  *
