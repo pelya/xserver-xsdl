@@ -83,19 +83,7 @@ __stdcall unsigned long GetTickCount(void);
 #include <X11/fonts/libxfont2.h>
 #include "osdep.h"
 #include "extension.h"
-#ifdef X_POSIX_C_SOURCE
-#define _POSIX_C_SOURCE X_POSIX_C_SOURCE
 #include <signal.h>
-#undef _POSIX_C_SOURCE
-#else
-#if defined(_POSIX_SOURCE)
-#include <signal.h>
-#else
-#define _POSIX_SOURCE
-#include <signal.h>
-#undef _POSIX_SOURCE
-#endif
-#endif
 #ifndef WIN32
 #include <sys/wait.h>
 #endif

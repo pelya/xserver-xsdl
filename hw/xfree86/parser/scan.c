@@ -65,14 +65,7 @@
 #include <stdarg.h>
 #include <X11/Xdefs.h>
 #include <X11/Xfuncproto.h>
-
-#if defined(_POSIX_SOURCE)
 #include <limits.h>
-#else
-#define _POSIX_SOURCE
-#include <limits.h>
-#undef _POSIX_SOURCE
-#endif                          /* _POSIX_SOURCE */
 
 #if !defined(MAXHOSTNAMELEN)
 #define MAXHOSTNAMELEN 32
