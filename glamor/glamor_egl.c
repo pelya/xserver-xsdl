@@ -92,38 +92,6 @@ glamor_egl_make_current(struct glamor_context *glamor_ctx)
     }
 }
 
-static EGLImageKHR
-_glamor_egl_create_image(struct glamor_egl_screen_private *glamor_egl,
-                         int width, int height, int stride, int name, int depth)
-{
-    EGLImageKHR image;
-
-    EGLint attribs[] = {
-        EGL_WIDTH, 0,
-        EGL_HEIGHT, 0,
-        EGL_DRM_BUFFER_STRIDE_MESA, 0,
-        EGL_DRM_BUFFER_FORMAT_MESA,
-        EGL_DRM_BUFFER_FORMAT_ARGB32_MESA,
-        EGL_DRM_BUFFER_USE_MESA,
-        EGL_DRM_BUFFER_USE_SHARE_MESA | EGL_DRM_BUFFER_USE_SCANOUT_MESA,
-        EGL_NONE
-    };
-    attribs[1] = width;
-    attribs[3] = height;
-    attribs[5] = stride;
-    if (depth != 32 && depth != 24)
-        return EGL_NO_IMAGE_KHR;
-    image = eglCreateImageKHR(glamor_egl->display,
-                              glamor_egl->context,
-                              EGL_DRM_BUFFER_MESA,
-                              (void *) (uintptr_t) name,
-                              attribs);
-    if (image == EGL_NO_IMAGE_KHR)
-        return EGL_NO_IMAGE_KHR;
-
-    return image;
-}
-
 static int
 glamor_get_flink_name(int fd, int handle, int *name)
 {
@@ -212,43 +180,34 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
-    struct glamor_screen_private *glamor_priv =
-        glamor_get_screen_private(screen);
-    struct glamor_egl_screen_private *glamor_egl;
-    EGLImageKHR image;
-    GLuint texture;
-    int name;
-    Bool ret = FALSE;
+    struct glamor_egl_screen_private *glamor_egl =
+        glamor_egl_get_screen_private(scrn);
+    int ret, fd;
 
-    glamor_egl = glamor_egl_get_screen_private(scrn);
-
-    glamor_make_current(glamor_priv);
-    if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
+    /* GBM doesn't have an import path from handles, so we make a
+     * dma-buf fd from it and then go through that.
+     */
+    ret = drmPrimeHandleToFD(glamor_egl->fd, handle, O_CLOEXEC, &fd);
+    if (ret) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-                   "Couldn't flink pixmap handle\n");
-        glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
-        assert(0);
+                   "Failed to make prime FD for handle: %d\n", errno);
         return FALSE;
     }
 
-    image = _glamor_egl_create_image(glamor_egl,
-                                     pixmap->drawable.width,
-                                     pixmap->drawable.height,
-                                     ((stride * 8 +
-                                       7) / pixmap->drawable.bitsPerPixel),
-                                     name, pixmap->drawable.depth);
-    if (image == EGL_NO_IMAGE_KHR) {
-        glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
-        goto done;
+    if (!glamor_back_pixmap_from_fd(pixmap, fd,
+                                    pixmap->drawable.width,
+                                    pixmap->drawable.height,
+                                    stride,
+                                    pixmap->drawable.depth,
+                                    pixmap->drawable.bitsPerPixel)) {
+        xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+                   "Failed to make import prime FD as pixmap: %d\n", errno);
+        close(fd);
+        return FALSE;
     }
-    glamor_create_texture_from_image(screen, image, &texture);
-    glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
-    glamor_set_pixmap_texture(pixmap, texture);
-    glamor_egl_set_pixmap_image(pixmap, image);
-    ret = TRUE;
 
- done:
-    return ret;
+    close(fd);
+    return TRUE;
 }
 
 Bool
@@ -739,7 +698,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 		goto error;  \
 	}
 
-    GLAMOR_CHECK_EGL_EXTENSION(MESA_drm_image);
     GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_texture_2D_image);
 #ifdef GLAMOR_GLES2
     GLAMOR_CHECK_EGL_EXTENSIONS(KHR_surfaceless_context, KHR_surfaceless_gles2);
