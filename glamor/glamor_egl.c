@@ -58,7 +58,6 @@ struct glamor_egl_screen_private {
     int fd;
     int cpp;
     struct gbm_device *gbm;
-    int gl_context_depth;
 
     CloseScreenProcPtr saved_close_screen;
     DestroyPixmapProcPtr saved_destroy_pixmap;
