@@ -746,12 +746,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 
     glamor_egl->saved_free_screen = scrn->FreeScreen;
     scrn->FreeScreen = glamor_egl_free_screen;
-#ifdef GLAMOR_GLES2
-    xf86DrvMsg(scrn->scrnIndex, X_INFO, "Using GLES2.\n");
-    xf86DrvMsg(scrn->scrnIndex, X_WARNING,
-               "Glamor is using GLES2 but GLX needs GL. "
-               "Indirect GLX may not work correctly.\n");
-#endif
     return TRUE;
 
 error:
