@@ -58,7 +58,6 @@ struct glamor_egl_screen_private {
     int fd;
     int cpp;
     struct gbm_device *gbm;
-    int has_gem;
     int gl_context_depth;
     int dri3_capable;
 
@@ -193,19 +192,6 @@ glamor_egl_create_textured_screen_ext(ScreenPtr screen,
     return glamor_egl_create_textured_screen(screen, handle, stride);
 }
 
-static Bool
-glamor_egl_check_has_gem(int fd)
-{
-    struct drm_gem_flink flink;
-
-    flink.handle = 0;
-
-    ioctl(fd, DRM_IOCTL_GEM_FLINK, &flink);
-    if (errno == ENOENT || errno == EINVAL)
-        return TRUE;
-    return FALSE;
-}
-
 static void
 glamor_egl_set_pixmap_image(PixmapPtr pixmap, EGLImageKHR image)
 {
@@ -240,17 +226,13 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
     glamor_egl = glamor_egl_get_screen_private(scrn);
 
     glamor_make_current(glamor_priv);
-    if (glamor_egl->has_gem) {
-        if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
-            xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-                       "Couldn't flink pixmap handle\n");
-            glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
-            assert(0);
-            return FALSE;
-        }
+    if (!glamor_get_flink_name(glamor_egl->fd, handle, &name)) {
+        xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+                   "Couldn't flink pixmap handle\n");
+        glamor_set_pixmap_type(pixmap, GLAMOR_DRM_ONLY);
+        assert(0);
+        return FALSE;
     }
-    else
-        name = handle;
 
     image = _glamor_egl_create_image(glamor_egl,
                                      pixmap->drawable.width,
@@ -419,8 +401,7 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
     pixmap->devKind = gbm_bo_get_stride(bo);
 
     if (want_name) {
-        if (glamor_egl->has_gem)
-            glamor_get_name_from_bo(glamor_egl->fd, bo, &fd);
+        glamor_get_name_from_bo(glamor_egl->fd, bo, &fd);
     }
     else {
         fd = gbm_bo_get_fd(bo);
@@ -737,8 +718,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
         xf86DrvMsg(scrn->scrnIndex, X_ERROR, "eglGetDisplay() failed\n");
         goto error;
     }
-
-    glamor_egl->has_gem = glamor_egl_check_has_gem(fd);
 
     if (!eglInitialize
         (glamor_egl->display, &glamor_egl->major, &glamor_egl->minor)) {
