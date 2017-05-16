@@ -149,14 +149,6 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
     return TRUE;
 }
 
-Bool
-glamor_egl_create_textured_screen_ext(ScreenPtr screen,
-                                      int handle,
-                                      int stride, PixmapPtr *back_pixmap)
-{
-    return glamor_egl_create_textured_screen(screen, handle, stride);
-}
-
 static void
 glamor_egl_set_pixmap_image(PixmapPtr pixmap, EGLImageKHR image)
 {
