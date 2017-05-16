@@ -742,7 +742,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 	}
 
     GLAMOR_CHECK_EGL_EXTENSION(MESA_drm_image);
-    GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_renderbuffer_image);
     GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_texture_2D_image);
 #ifdef GLAMOR_GLES2
     GLAMOR_CHECK_EGL_EXTENSIONS(KHR_surfaceless_context, KHR_surfaceless_gles2);
