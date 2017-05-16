@@ -59,7 +59,6 @@ struct glamor_egl_screen_private {
     int cpp;
     struct gbm_device *gbm;
     int gl_context_depth;
-    int dri3_capable;
 
     CloseScreenProcPtr saved_close_screen;
     DestroyPixmapProcPtr saved_destroy_pixmap;
@@ -430,9 +429,6 @@ glamor_back_pixmap_from_fd(PixmapPtr pixmap,
 
     glamor_egl = glamor_egl_get_screen_private(scrn);
 
-    if (!glamor_egl->dri3_capable)
-        return FALSE;
-
     if (bpp != 32 || !(depth == 24 || depth == 32) || width == 0 || height == 0)
         return FALSE;
 
@@ -602,6 +598,9 @@ glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
     struct glamor_egl_screen_private *glamor_egl =
         glamor_egl_get_screen_private(scrn);
+#ifdef DRI3
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+#endif
 
     glamor_egl->saved_close_screen = screen->CloseScreen;
     screen->CloseScreen = glamor_egl_close_screen;
@@ -615,32 +614,29 @@ glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
     glamor_ctx->make_current = glamor_egl_make_current;
 
 #ifdef DRI3
-    if (glamor_egl->dri3_capable) {
-    	glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-        /* Tell the core that we have the interfaces for import/export
-         * of pixmaps.
-         */
-        glamor_enable_dri3(screen);
+    /* Tell the core that we have the interfaces for import/export
+     * of pixmaps.
+     */
+    glamor_enable_dri3(screen);
 
-        /* If the driver wants to do its own auth dance (e.g. Xwayland
-         * on pre-3.15 kernels that don't have render nodes and thus
-         * has the wayland compositor as a master), then it needs us
-         * to stay out of the way and let it init DRI3 on its own.
+    /* If the driver wants to do its own auth dance (e.g. Xwayland
+     * on pre-3.15 kernels that don't have render nodes and thus
+     * has the wayland compositor as a master), then it needs us
+     * to stay out of the way and let it init DRI3 on its own.
+     */
+    if (!(glamor_priv->flags & GLAMOR_NO_DRI3)) {
+        /* To do DRI3 device FD generation, we need to open a new fd
+         * to the same device we were handed in originally.
          */
-        if (!(glamor_priv->flags & GLAMOR_NO_DRI3)) {
-            /* To do DRI3 device FD generation, we need to open a new fd
-             * to the same device we were handed in originally.
-             */
 #ifdef GLAMOR_HAS_DRM_NAME_FROM_FD_2
-            glamor_egl->device_path = drmGetDeviceNameFromFd2(glamor_egl->fd);
+        glamor_egl->device_path = drmGetDeviceNameFromFd2(glamor_egl->fd);
 #else
-            glamor_egl->device_path = drmGetDeviceNameFromFd(glamor_egl->fd);
+        glamor_egl->device_path = drmGetDeviceNameFromFd(glamor_egl->fd);
 #endif
 
-            if (!dri3_screen_init(screen, &glamor_dri3_info)) {
-                xf86DrvMsg(scrn->scrnIndex, X_ERROR,
-                           "Failed to initialize DRI3.\n");
-            }
+        if (!dri3_screen_init(screen, &glamor_dri3_info)) {
+            xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+                       "Failed to initialize DRI3.\n");
         }
     }
 #endif
@@ -747,6 +743,7 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 
     GLAMOR_CHECK_EGL_EXTENSION(MESA_drm_image);
     GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_renderbuffer_image);
+    GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_texture_2D_image);
 #ifdef GLAMOR_GLES2
     GLAMOR_CHECK_EGL_EXTENSIONS(KHR_surfaceless_context, KHR_surfaceless_gles2);
 #else
@@ -782,10 +779,12 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
      * (in case of multiple GPUs using glamor)
      */
     lastGLContext = NULL;
-    if (epoxy_has_egl_extension(glamor_egl->display,
-                                "EGL_KHR_gl_texture_2D_image") &&
-        epoxy_has_gl_extension("GL_OES_EGL_image"))
-        glamor_egl->dri3_capable = TRUE;
+
+    if (!epoxy_has_gl_extension("GL_OES_EGL_image")) {
+        xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+                   "glamor acceleration requires GL_OES_EGL_image\n");
+        goto error;
+    }
 
     xf86DrvMsg(scrn->scrnIndex, X_INFO, "glamor X acceleration enabled on %s\n",
                glGetString(GL_RENDERER));
