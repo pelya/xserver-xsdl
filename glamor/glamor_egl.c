@@ -49,15 +49,6 @@
 #include "glamor_priv.h"
 #include "dri3.h"
 
-static const char glamor_name[] = "glamor";
-
-static void
-glamor_identify(int flags)
-{
-    xf86Msg(X_INFO, "%s: OpenGL accelerated X.org driver based.\n",
-            glamor_name);
-}
-
 struct glamor_egl_screen_private {
     EGLDisplay display;
     EGLContext context;
@@ -737,7 +728,6 @@ Bool
 glamor_egl_init(ScrnInfoPtr scrn, int fd)
 {
     struct glamor_egl_screen_private *glamor_egl;
-    const char *version;
 
     EGLint config_attribs[] = {
 #ifdef GLAMOR_GLES2
@@ -755,7 +745,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
         EGL_NONE
     };
 
-    glamor_identify(0);
     glamor_egl = calloc(sizeof(*glamor_egl), 1);
     if (glamor_egl == NULL)
         return FALSE;
@@ -795,9 +784,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 #else
     eglBindAPI(EGL_OPENGL_ES_API);
 #endif
-
-    version = eglQueryString(glamor_egl->display, EGL_VERSION);
-    xf86Msg(X_INFO, "%s: EGL version %s:\n", glamor_name, version);
 
 #define GLAMOR_CHECK_EGL_EXTENSION(EXT)  \
 	if (!epoxy_has_egl_extension(glamor_egl->display, "EGL_" #EXT)) {  \
@@ -855,6 +841,9 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
         epoxy_has_gl_extension("GL_OES_EGL_image"))
         glamor_egl->dri3_capable = TRUE;
 #endif
+
+    xf86DrvMsg(scrn->scrnIndex, X_INFO, "glamor X acceleration enabled on %s\n",
+               glGetString(GL_RENDERER));
 
     glamor_egl->saved_free_screen = scrn->FreeScreen;
     scrn->FreeScreen = glamor_egl_free_screen;
