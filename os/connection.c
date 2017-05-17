@@ -757,19 +757,22 @@ ErrorConnMax(XtransConnInfo trans_conn)
 
 /************
  *   CloseDownFileDescriptor:
- *     Remove this file descriptor and it's I/O buffers, etc.
+ *     Remove this file descriptor
  ************/
 
-static void
+void
 CloseDownFileDescriptor(OsCommPtr oc)
 {
-    int connection = oc->fd;
-
     if (oc->trans_conn) {
+        int connection = oc->fd;
+#ifdef XDMCP
+        XdmcpCloseDisplay(connection);
+#endif
+        ospoll_remove(server_poll, connection);
         _XSERVTransDisconnect(oc->trans_conn);
         _XSERVTransClose(oc->trans_conn);
+        oc->trans_conn = NULL;
     }
-    ospoll_remove(server_poll, connection);
 }
 
 /*****************
@@ -787,9 +790,6 @@ CloseDownConnection(ClientPtr client)
 
     if (oc->output)
 	FlushClient(client, oc, (char *) NULL, 0);
-#ifdef XDMCP
-    XdmcpCloseDisplay(oc->fd);
-#endif
     CloseDownFileDescriptor(oc);
     FreeOsBuffers(oc);
     free(client->osPrivate);

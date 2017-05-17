@@ -647,9 +647,7 @@ AbortClient(ClientPtr client)
     OsCommPtr oc = client->osPrivate;
 
     if (oc->trans_conn) {
-        _XSERVTransDisconnect(oc->trans_conn);
-        _XSERVTransClose(oc->trans_conn);
-        oc->trans_conn = NULL;
+        CloseDownFileDescriptor(oc);
         mark_client_ready(client);
     }
 }

@@ -133,6 +133,9 @@ extern int FlushClient(ClientPtr /*who */ ,
 extern void FreeOsBuffers(OsCommPtr     /*oc */
     );
 
+void
+CloseDownFileDescriptor(OsCommPtr oc);
+
 #include "dix.h"
 #include "ospoll.h"
 
