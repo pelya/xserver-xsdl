@@ -1919,11 +1919,6 @@ drmmode_glamor_handle_new_screen_pixmap(drmmode_ptr drmmode)
     if (!drmmode_set_pixmap_bo(drmmode, screen_pixmap, &drmmode->front_bo))
         return FALSE;
 
-#ifdef GLAMOR_HAS_GBM
-    if (drmmode->glamor)
-        glamor_set_screen_pixmap(screen_pixmap, NULL);
-#endif
-
     return TRUE;
 }
 

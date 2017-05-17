@@ -103,12 +103,6 @@ extern _X_EXPORT void glamor_fini(ScreenPtr screen);
  * Otherwise, the glamor internal structure will not be freed.*/
 extern _X_EXPORT Bool glamor_close_screen(ScreenPtr screen);
 
-/* Let glamor to know the screen's fbo. The low level
- * driver should already assign a tex
- * to this pixmap through the set_pixmap_texture. */
-extern _X_EXPORT void glamor_set_screen_pixmap(PixmapPtr screen_pixmap,
-                                               PixmapPtr *back_pixmap);
-
 extern _X_EXPORT uint32_t glamor_get_pixmap_texture(PixmapPtr pixmap);
 
 extern _X_EXPORT void glamor_set_pixmap_texture(PixmapPtr pixmap,

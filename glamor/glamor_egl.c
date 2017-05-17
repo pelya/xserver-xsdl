@@ -144,7 +144,6 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
                    "Failed to create textured screen.");
         return FALSE;
     }
-    glamor_set_screen_pixmap(screen_pixmap, NULL);
     return TRUE;
 }
 
