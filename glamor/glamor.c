@@ -122,7 +122,6 @@ glamor_set_screen_pixmap(PixmapPtr screen_pixmap, PixmapPtr *back_pixmap)
 
     glamor_priv = glamor_get_screen_private(screen_pixmap->drawable.pScreen);
     pixmap_priv = glamor_get_pixmap_private(screen_pixmap);
-    glamor_priv->screen_fbo = pixmap_priv->fbo->fb;
 
     pixmap_priv->fbo->width = screen_pixmap->drawable.width;
     pixmap_priv->fbo->height = screen_pixmap->drawable.height;
