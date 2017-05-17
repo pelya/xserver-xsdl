@@ -141,20 +141,6 @@ extern struct ospoll    *server_poll;
 Bool
 listen_to_client(ClientPtr client);
 
-#if !defined(WIN32) || defined(__CYGWIN__)
-extern int *ConnectionTranslation;
-extern int ConnectionTranslationSize;
-static inline int GetConnectionTranslation(int conn) {
-    if (conn >= ConnectionTranslationSize)
-        return 0;
-    return ConnectionTranslation[conn];
-}
-#else
-extern int GetConnectionTranslation(int conn);
-extern void SetConnectionTranslation(int conn, int client);
-extern void ClearConnectionTranslation(void);
-#endif
-
 extern Bool NewOutputPending;
 
 extern WorkQueuePtr workQueue;
