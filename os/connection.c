@@ -1084,10 +1084,12 @@ set_poll_client(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr) client->osPrivate;
 
-    if (listen_to_client(client))
-        ospoll_listen(server_poll, oc->fd, X_NOTIFY_READ);
-    else
-        ospoll_mute(server_poll, oc->fd, X_NOTIFY_READ);
+    if (oc->trans_conn) {
+        if (listen_to_client(client))
+            ospoll_listen(server_poll, oc->trans_conn->fd, X_NOTIFY_READ);
+        else
+            ospoll_mute(server_poll, oc->trans_conn->fd, X_NOTIFY_READ);
+    }
 }
 
 static void
