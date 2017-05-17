@@ -772,6 +772,7 @@ CloseDownFileDescriptor(OsCommPtr oc)
         _XSERVTransDisconnect(oc->trans_conn);
         _XSERVTransClose(oc->trans_conn);
         oc->trans_conn = NULL;
+        oc->fd = -1;
     }
 }
 
