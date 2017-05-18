@@ -635,22 +635,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 {
     struct glamor_egl_screen_private *glamor_egl;
 
-    EGLint config_attribs[] = {
-#ifdef GLAMOR_GLES2
-        EGL_CONTEXT_CLIENT_VERSION, 2,
-#endif
-        EGL_NONE
-    };
-    static const EGLint config_attribs_core[] = {
-        EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR,
-        EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR,
-        EGL_CONTEXT_MAJOR_VERSION_KHR,
-        GLAMOR_GL_CORE_VER_MAJOR,
-        EGL_CONTEXT_MINOR_VERSION_KHR,
-        GLAMOR_GL_CORE_VER_MINOR,
-        EGL_NONE
-    };
-
     glamor_egl = calloc(sizeof(*glamor_egl), 1);
     if (glamor_egl == NULL)
         return FALSE;
@@ -679,12 +663,6 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
         goto error;
     }
 
-#ifndef GLAMOR_GLES2
-    eglBindAPI(EGL_OPENGL_API);
-#else
-    eglBindAPI(EGL_OPENGL_ES_API);
-#endif
-
 #define GLAMOR_CHECK_EGL_EXTENSION(EXT)  \
 	if (!epoxy_has_egl_extension(glamor_egl->display, "EGL_" #EXT)) {  \
 		ErrorF("EGL_" #EXT " required.\n");  \
@@ -701,21 +679,49 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
     GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_texture_2D_image);
     GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_context);
 
-#ifndef GLAMOR_GLES2
-    glamor_egl->context = eglCreateContext(glamor_egl->display,
-                                           NULL, EGL_NO_CONTEXT,
-                                           config_attribs_core);
-#else
-    glamor_egl->context = NULL;
-#endif
-    if (!glamor_egl->context) {
+    if (eglBindAPI(EGL_OPENGL_API)) {
+        static const EGLint config_attribs_core[] = {
+            EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR,
+            EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR,
+            EGL_CONTEXT_MAJOR_VERSION_KHR,
+            GLAMOR_GL_CORE_VER_MAJOR,
+            EGL_CONTEXT_MINOR_VERSION_KHR,
+            GLAMOR_GL_CORE_VER_MINOR,
+            EGL_NONE
+        };
+        static const EGLint config_attribs[] = {
+            EGL_NONE
+        };
+
+        glamor_egl->context = eglCreateContext(glamor_egl->display,
+                                               NULL, EGL_NO_CONTEXT,
+                                               config_attribs_core);
+
+        if (glamor_egl->context == EGL_NO_CONTEXT)
+            glamor_egl->context = eglCreateContext(glamor_egl->display,
+                                                   NULL, EGL_NO_CONTEXT,
+                                                   config_attribs);
+    }
+
+    if (glamor_egl->context == EGL_NO_CONTEXT) {
+        static const EGLint config_attribs[] = {
+            EGL_CONTEXT_CLIENT_VERSION, 2,
+            EGL_NONE
+        };
+        if (!eglBindAPI(EGL_OPENGL_ES_API)) {
+            xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+                       "glamor: Failed to bind either GL or GLES APIs.\n");
+            goto error;
+        }
+
         glamor_egl->context = eglCreateContext(glamor_egl->display,
                                                NULL, EGL_NO_CONTEXT,
                                                config_attribs);
-        if (glamor_egl->context == EGL_NO_CONTEXT) {
-            xf86DrvMsg(scrn->scrnIndex, X_ERROR, "Failed to create EGL context\n");
-            goto error;
-        }
+    }
+    if (glamor_egl->context == EGL_NO_CONTEXT) {
+        xf86DrvMsg(scrn->scrnIndex, X_ERROR,
+                   "glamor: Failed to create GL or GLES2 contexts\n");
+        goto error;
     }
 
     if (!eglMakeCurrent(glamor_egl->display,
