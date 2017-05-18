@@ -59,8 +59,6 @@ typedef struct {
     BoxRec saved;               /* saved area from the screen */
     Bool isUp;                  /* cursor in frame buffer */
     Bool shouldBeUp;            /* cursor should be displayed */
-    WindowPtr pCacheWin;        /* window the cursor last seen in */
-    Bool isInCacheWin;
     Bool checkPixels;           /* check colormap collision */
     ScreenPtr pScreen;
 } miCursorInfoRec, *miCursorInfoPtr;
@@ -750,7 +748,6 @@ miSpriteSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
     }
     pPointer->x = x;
     pPointer->y = y;
-    pPointer->pCacheWin = NullWindow;
     if (pPointer->checkPixels || pPointer->pCursor != pCursor) {
         pPointer->pCursor = pCursor;
         miSpriteFindColors(pPointer, pScreen);
@@ -797,8 +794,6 @@ miSpriteDeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
         pCursorInfo->y = 0;
         pCursorInfo->isUp = FALSE;
         pCursorInfo->shouldBeUp = FALSE;
-        pCursorInfo->pCacheWin = NullWindow;
-        pCursorInfo->isInCacheWin = FALSE;
         pCursorInfo->checkPixels = TRUE;
         pCursorInfo->pScreen = FALSE;
     }
@@ -837,7 +832,6 @@ miSpriteRemoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen)
 
     miSpriteIsDown(pCursorInfo);
     miSpriteRegisterBlockHandler(pScreen, pScreenPriv);
-    pCursorInfo->pCacheWin = NullWindow;
     miSpriteDisableDamage(pScreen, pScreenPriv);
     if (!miDCRestoreUnderCursor(pDev,
                                 pScreen,
