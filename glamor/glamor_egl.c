@@ -699,12 +699,7 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 	}
 
     GLAMOR_CHECK_EGL_EXTENSION(KHR_gl_texture_2D_image);
-#ifdef GLAMOR_GLES2
-    GLAMOR_CHECK_EGL_EXTENSIONS(KHR_surfaceless_context, KHR_surfaceless_gles2);
-#else
-    GLAMOR_CHECK_EGL_EXTENSIONS(KHR_surfaceless_context,
-                                KHR_surfaceless_opengl);
-#endif
+    GLAMOR_CHECK_EGL_EXTENSION(KHR_surfaceless_context);
 
 #ifndef GLAMOR_GLES2
     glamor_egl->context = eglCreateContext(glamor_egl->display,
