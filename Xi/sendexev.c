@@ -95,9 +95,17 @@ SProcXSendExtensionEvent(ClientPtr client)
 
     eventP = (xEvent *) &stuff[1];
     for (i = 0; i < stuff->num_events; i++, eventP++) {
-        proc = EventSwapVector[eventP->u.u.type & 0177];
-        if (proc == NotImplemented)     /* no swapping proc; invalid event type? */
+        if (eventP->u.u.type == GenericEvent) {
+            client->errorValue = eventP->u.u.type;
             return BadValue;
+        }
+
+        proc = EventSwapVector[eventP->u.u.type & 0177];
+        /* no swapping proc; invalid event type? */
+        if (proc == NotImplemented) {
+            client->errorValue = eventP->u.u.type;
+            return BadValue;
+        }
         (*proc) (eventP, &eventT);
         *eventP = eventT;
     }
