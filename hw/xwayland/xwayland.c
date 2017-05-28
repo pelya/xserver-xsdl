@@ -269,11 +269,31 @@ xwl_cursor_warped_to(DeviceIntPtr device,
     struct xwl_screen *xwl_screen = xwl_screen_get(screen);
     struct xwl_seat *xwl_seat = device->public.devicePrivate;
     struct xwl_window *xwl_window;
+    WindowPtr focus;
 
     if (!xwl_seat)
         xwl_seat = xwl_screen_get_default_seat(xwl_screen);
 
     xwl_window = xwl_window_from_window(window);
+    if (!xwl_window && xwl_seat->focus_window) {
+        focus = xwl_seat->focus_window->window;
+
+        /* Warps on non wl_surface backed Windows are only allowed
+         * as long as the pointer stays within the focus window.
+         */
+        if (x >= focus->drawable.x &&
+            y >= focus->drawable.y &&
+            x < focus->drawable.x + focus->drawable.width &&
+            y < focus->drawable.y + focus->drawable.height) {
+            if (!window) {
+                DebugF("Warp relative to pointer, assuming pointer focus\n");
+                xwl_window = xwl_seat->focus_window;
+            } else if (window == screen->root) {
+                DebugF("Warp on root window, assuming pointer focus\n");
+                xwl_window = xwl_seat->focus_window;
+            }
+        }
+    }
     if (!xwl_window)
         return;
 
