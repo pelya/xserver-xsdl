@@ -62,8 +62,6 @@ struct xwl_screen {
 
     CreateScreenResourcesProcPtr CreateScreenResources;
     CloseScreenProcPtr CloseScreen;
-    CreateWindowProcPtr CreateWindow;
-    DestroyWindowProcPtr DestroyWindow;
     RealizeWindowProcPtr RealizeWindow;
     UnrealizeWindowProcPtr UnrealizeWindow;
     XYToWindowProcPtr XYToWindow;
