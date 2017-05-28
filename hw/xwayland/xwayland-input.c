@@ -2615,11 +2615,35 @@ xwl_seat_emulate_pointer_warp(struct xwl_seat *xwl_seat,
                                    x, y);
 }
 
+static Bool
+xwl_seat_maybe_lock_on_hidden_cursor(struct xwl_seat *xwl_seat)
+{
+    /* Some clients use hidden cursor+confineTo+relative motion
+     * to implement infinite panning (eg. 3D views), lock the
+     * pointer for so the relative pointer is used.
+     */
+    if (xwl_seat->x_cursor ||
+        !xwl_seat->cursor_confinement_window)
+        return FALSE;
+
+    if (xwl_seat->confined_pointer)
+        xwl_seat_destroy_confined_pointer(xwl_seat);
+
+    xwl_seat_create_pointer_warp_emulator(xwl_seat);
+    xwl_pointer_warp_emulator_lock(xwl_seat->pointer_warp_emulator);
+    return TRUE;
+}
+
 void
 xwl_seat_cursor_visibility_changed(struct xwl_seat *xwl_seat)
 {
-    if (xwl_seat->pointer_warp_emulator && xwl_seat->x_cursor != NULL)
+    if (xwl_seat->pointer_warp_emulator && xwl_seat->x_cursor != NULL) {
         xwl_seat_destroy_pointer_warp_emulator(xwl_seat);
+    } else if (!xwl_seat->x_cursor && xwl_seat->cursor_confinement_window) {
+        /* If the cursor goes hidden as is confined, lock it for
+         * relative motion to work. */
+        xwl_seat_maybe_lock_on_hidden_cursor(xwl_seat);
+    }
 }
 
 void
@@ -2656,6 +2680,9 @@ xwl_seat_confine_pointer(struct xwl_seat *xwl_seat,
     xwl_seat->cursor_confinement_window = xwl_window;
 
     if (xwl_seat->pointer_warp_emulator)
+        return;
+
+    if (xwl_seat_maybe_lock_on_hidden_cursor(xwl_seat))
         return;
 
     xwl_seat->confined_pointer =
