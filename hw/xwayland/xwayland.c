@@ -443,9 +443,11 @@ xwl_realize_window(WindowPtr window)
     screen->RealizeWindow = xwl_realize_window;
 
     if (xwl_screen->rootless && !window->parent) {
+        BoxRec box = { 0, 0, xwl_screen->width, xwl_screen->height };
+
+        RegionReset(&window->winSize, &box);
         RegionNull(&window->clipList);
         RegionNull(&window->borderClip);
-        RegionNull(&window->winSize);
     }
 
     if (xwl_screen->rootless) {
