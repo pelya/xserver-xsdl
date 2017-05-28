@@ -318,6 +318,15 @@ xwl_cursor_confined_to(DeviceIntPtr device,
     }
 
     xwl_window = xwl_window_from_window(window);
+    if (!xwl_window && xwl_seat->focus_window) {
+        /* Allow confining on InputOnly windows, but only if the geometry
+         * is the same than the focus window.
+         */
+        if (window->drawable.class == InputOnly) {
+            DebugF("Confine on InputOnly window, assuming pointer focus\n");
+            xwl_window = xwl_seat->focus_window;
+        }
+    }
     if (!xwl_window)
         return;
 
