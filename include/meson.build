@@ -62,7 +62,7 @@ conf_data.set('CONFIG_WSCONS', host_machine.system() == 'openbsd')
 # that just uses whatever directory works?
 conf_data.set_quoted('SHMDIR', '/tmp')
 
-conf_data.set('XSHMFENCE', xshmfence_dep.found())
+conf_data.set('HAVE_XSHMFENCE', xshmfence_dep.found())
 conf_data.set('WITH_LIBDRM', libdrm_dep.found())
 conf_data.set('GLAMOR_HAS_DRM_NAME_FROM_FD_2',
               dependency('libdrm', version: '>= 2.4.74', required: false).found())
