@@ -230,8 +230,8 @@ glamor_copy_cpu_fbo(DrawablePtr src,
             goto bail;
         }
 
-        src_pix->drawable.x = -dst->x;
-        src_pix->drawable.y = -dst->y;
+        src_pix->drawable.x = dst_xoff;
+        src_pix->drawable.y = dst_yoff;
 
         fbGetDrawable(&src_pix->drawable, src_bits, src_stride, src_bpp, src_xoff,
                       src_yoff);
