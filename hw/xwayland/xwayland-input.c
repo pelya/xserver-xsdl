@@ -1620,9 +1620,9 @@ tablet_tool_button_state(void *data, struct zwp_tablet_tool_v2 *tool,
     BUG_RETURN(xbtn >= 8 * sizeof(*mask));
 
     if (state)
-        SetBit(mask, xbtn);
+        SetBit(mask, xbtn - 1);
     else
-        ClearBit(mask, xbtn);
+        ClearBit(mask, xbtn - 1);
 
     xwl_seat->xwl_screen->serial = serial;
 }
