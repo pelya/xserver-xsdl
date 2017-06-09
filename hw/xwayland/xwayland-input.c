@@ -1560,6 +1560,13 @@ static void
 tablet_tool_wheel(void *data, struct zwp_tablet_tool_v2 *tool,
                   wl_fixed_t degrees, int32_t clicks)
 {
+    struct xwl_tablet_tool *xwl_tablet_tool = data;
+    struct xwl_seat *xwl_seat = xwl_tablet_tool->seat;
+
+    if (!xwl_seat->focus_window)
+        return;
+
+    xwl_tablet_tool->wheel_clicks = clicks;
 }
 
 static void
@@ -1671,6 +1678,23 @@ tablet_tool_frame(void *data, struct zwp_tablet_tool_v2 *tool, uint32_t time)
     }
 
     xwl_tablet_tool->buttons_prev = xwl_tablet_tool->buttons_now;
+
+    while (xwl_tablet_tool->wheel_clicks) {
+            if (xwl_tablet_tool->wheel_clicks < 0) {
+                button = 4;
+                xwl_tablet_tool->wheel_clicks++;
+            }
+            else {
+                button = 5;
+                xwl_tablet_tool->wheel_clicks--;
+            }
+
+            QueuePointerEvents(xwl_tablet_tool->xdevice,
+                               ButtonPress, button, 0, &mask);
+            QueuePointerEvents(xwl_tablet_tool->xdevice,
+                               ButtonRelease, button, 0, &mask);
+
+    }
 }
 
 static const struct zwp_tablet_tool_v2_listener tablet_tool_listener = {

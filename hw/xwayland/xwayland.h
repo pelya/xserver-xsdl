@@ -214,6 +214,8 @@ struct xwl_tablet_tool {
     uint32_t buttons_now,
              buttons_prev;
 
+    int32_t wheel_clicks;
+
     struct xwl_cursor cursor;
 };
 
