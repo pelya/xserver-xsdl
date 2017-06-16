@@ -64,8 +64,6 @@ typedef struct _ExtensionEntry {
     int eventLast;
     int errorBase;
     int errorLast;
-    int num_aliases;
-    const char **aliases;
     void *extPrivate;
     unsigned short (*MinorOpcode) (     /* called for errors */
                                       ClientPtr /* client */ );
@@ -94,10 +92,6 @@ AddExtension(const char * /*name */ ,
              void (* /*CloseDownProc */ )(ExtensionEntry * /*extension */ ),
              unsigned short (* /*MinorOpcodeProc */ )(ClientPtr /*client */ )
     );
-
-extern _X_EXPORT Bool
-AddExtensionAlias(const char * /*alias */ ,
-                  ExtensionEntry * /*extension */ );
 
 extern _X_EXPORT ExtensionEntry *
 CheckExtension(const char *extname);
