@@ -1021,8 +1021,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 
     free(screen);
 
-    LogMessage(X_ERROR, "AIGLX: reverting to software rendering\n");
-
     return NULL;
 }
 
