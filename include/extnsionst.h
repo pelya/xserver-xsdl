@@ -85,11 +85,6 @@ extern _X_EXPORT void
 NotImplemented(                 /* FIXME: this may move to another file... */
                   xEvent *, xEvent *) _X_NORETURN;
 
-#define    SetGCVector(pGC, VectorElement, NewRoutineAddress, Atom)    \
-    pGC->VectorElement = NewRoutineAddress;
-
-#define    GetGCValue(pGC, GCElement)    (pGC->GCElement)
-
 extern _X_EXPORT ExtensionEntry *
 AddExtension(const char * /*name */ ,
              int /*NumEvents */ ,
