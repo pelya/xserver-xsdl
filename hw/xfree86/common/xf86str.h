@@ -771,4 +771,6 @@ typedef enum {
     ACTION_SWITCHSCREEN_PREV,
 } ActionEvent;
 
+extern _X_EXPORT char *DRICreatePCIBusID(const struct pci_device *dev);
+
 #endif                          /* _XF86STR_H */

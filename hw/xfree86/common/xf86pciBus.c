@@ -1465,3 +1465,15 @@ xf86PciConfigureNewDev(void *busData, struct pci_device *pVideo,
     if (*chipset < 0)
         *chipset = (pVideo->vendor_id << 16) | pVideo->device_id;
 }
+
+char *
+DRICreatePCIBusID(const struct pci_device *dev)
+{
+    char *busID;
+
+    if (asprintf(&busID, "pci:%04x:%02x:%02x.%d",
+                 dev->domain, dev->bus, dev->dev, dev->func) == -1)
+        return NULL;
+
+    return busID;
+}
