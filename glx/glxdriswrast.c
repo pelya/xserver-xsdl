@@ -71,8 +71,6 @@ struct __GLXDRIscreen {
     const __DRIcopySubBufferExtension *copySubBuffer;
     const __DRItexBufferExtension *texBuffer;
     const __DRIconfig **driConfigs;
-
-    unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 };
 
 struct __GLXDRIcontext {
