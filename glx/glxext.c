@@ -53,11 +53,6 @@
 RESTYPE __glXContextRes;
 RESTYPE __glXDrawableRes;
 
-/*
-** Reply for most singles.
-*/
-xGLXSingleReply __glXReply;
-
 static DevPrivateKeyRec glxClientPrivateKeyRec;
 
 #define glxClientPrivateKey (&glxClientPrivateKeyRec)
