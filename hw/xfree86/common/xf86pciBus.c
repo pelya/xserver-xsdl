@@ -859,7 +859,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
             if (xf86CheckPciSlot(pPci) && pciDeviceHasBars(pPci)) {
                 xf86MsgVerb(X_WARNING, 0, "%s: No matching Device section "
                             "for instance (BusID PCI:%u@%u:%u:%u) found\n",
-                            driverName, pPci->domain, pPci->bus, pPci->dev,
+                            driverName, pPci->bus, pPci->domain, pPci->dev,
                             pPci->func);
             }
         }
