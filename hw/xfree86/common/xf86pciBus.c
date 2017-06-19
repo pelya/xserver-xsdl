@@ -155,8 +155,8 @@ xf86PciProbe(void)
         if (xf86IsPrimaryPci(info))
             prim = "*";
 
-        xf86Msg(X_PROBED, "PCI:%s(%u:%u:%u:%u) %04x:%04x:%04x:%04x ", prim,
-                info->domain, info->bus, info->dev, info->func,
+        xf86Msg(X_PROBED, "PCI:%s(%u@%u:%u:%u) %04x:%04x:%04x:%04x ", prim,
+                info->bus, info->domain, info->dev, info->func,
                 info->vendor_id, info->device_id,
                 info->subvendor_id, info->subdevice_id);
 
