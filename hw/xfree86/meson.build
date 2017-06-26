@@ -71,6 +71,12 @@ if build_dri2
     xorg_link += xorg_dri2
 endif
 
+if host_machine.system() == 'cygwin' or host_machine.system() == 'windows'
+    linker_export_flags = '-Wl,--export-all-symbols'
+else
+    linker_export_flags = '-Wl,--export-dynamic'
+endif
+
 xorg_deps = [
     pixman_dep,
     m_dep,
@@ -91,7 +97,7 @@ executable(
     include_directories: [inc, xorg_inc],
     link_whole: xorg_link,
     dependencies: xorg_deps,
-    link_args: '-Wl,--export-dynamic',
+    link_args: linker_export_flags,
     c_args: xorg_c_args,
     install: true,
 )
@@ -127,7 +133,7 @@ xorgserver_lib = shared_library(
     include_directories: [inc, xorg_inc],
     link_whole: xorg_link,
     dependencies: xorg_deps,
-    link_args: '-Wl,--export-dynamic',
+    link_args: linker_export_flags,
     c_args: xorg_c_args,
     install: false,
 )
