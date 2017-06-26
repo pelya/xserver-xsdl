@@ -57,6 +57,7 @@ endif
 if build_vgahw
     subdir('vgahw')
 endif
+subdir('xkb')
 if build_modesetting
    subdir('drivers/modesetting')
 endif
@@ -75,7 +76,7 @@ xorg_link = [
     xorg_common,
     xorg_loader,
     xorg_ddc,
-    xorg_dixmods,
+    xorg_xkb,
     xorg_i2c,
     xorg_modes,
     xorg_os_support,
