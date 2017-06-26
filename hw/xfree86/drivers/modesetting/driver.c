@@ -851,13 +851,11 @@ ms_get_drm_master_fd(ScrnInfoPtr pScrn)
 
         PciInfo = xf86GetPciInfoForEntity(ms->pEnt->index);
         if (PciInfo) {
-            BusID = XNFalloc(64);
-            sprintf(BusID, "PCI:%d:%d:%d",
-                    ((PciInfo->domain << 8) | PciInfo->bus),
-                    PciInfo->dev, PciInfo->func);
+            if ((BusID = ms_DRICreatePCIBusID(PciInfo)) != NULL) {
+                ms->fd = drmOpen(NULL, BusID);
+                free(BusID);
+            }
         }
-        ms->fd = drmOpen(NULL, BusID);
-        free(BusID);
     }
     else
 #endif
