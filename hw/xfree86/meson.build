@@ -23,44 +23,22 @@ if get_option('pciaccess')
     pciaccess_dep = dependency('pciaccess', version: '>= 0.12.901')
 endif
 
+# subdirs for convenience libraries statically linked into Xorg
 subdir('common')
 subdir('ddc')
-subdir('dixmods')
-subdir('exa')
-subdir('fbdevhw')
-if gbm_dep.found()
-    subdir('glamor_egl')
-endif
-subdir('i2c')
 if build_dri1
     subdir('dri')
 endif
 if build_dri2
     subdir('dri2')
 endif
-
-if int10 != 'disabled'
-    if int10 == 'x86emu'
-        subdir('x86emu')
-    endif
-    subdir('int10')
-endif
+subdir('i2c')
 subdir('loader')
 subdir('modes')
 subdir('os-support')
 subdir('parser')
 subdir('ramdac')
-subdir('shadowfb')
-if build_vbe
-    subdir('vbe')
-endif
-if build_vgahw
-    subdir('vgahw')
-endif
 subdir('xkb')
-if build_modesetting
-   subdir('drivers/modesetting')
-endif
 
 srcs_xorg = [
     '../../mi/miinitext.c'
@@ -117,6 +95,30 @@ executable(
     c_args: xorg_c_args,
     install: true,
 )
+
+# subdirs for modules loadable by Xorg
+subdir('dixmods')
+subdir('exa')
+subdir('fbdevhw')
+if gbm_dep.found()
+    subdir('glamor_egl')
+endif
+if int10 != 'disabled'
+    if int10 == 'x86emu'
+        subdir('x86emu')
+    endif
+    subdir('int10')
+endif
+subdir('shadowfb')
+if build_vbe
+    subdir('vbe')
+endif
+if build_vgahw
+    subdir('vgahw')
+endif
+if build_modesetting
+   subdir('drivers/modesetting')
+endif
 
 # For symbol presence testing only
 xorgserver_lib = shared_library(
