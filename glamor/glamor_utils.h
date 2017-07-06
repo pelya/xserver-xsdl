@@ -764,6 +764,15 @@ glamor_bounds_union_rect(BoxPtr bounds, xRectangle *rect)
     bounds->y2 = min(SHRT_MAX, max(bounds->y2, rect->y + rect->height));
 }
 
+static inline void
+glamor_bounds_union_box(BoxPtr bounds, BoxPtr box)
+{
+    bounds->x1 = min(bounds->x1, box->x1);
+    bounds->y1 = min(bounds->y1, box->y1);
+    bounds->x2 = max(bounds->x2, box->x2);
+    bounds->y2 = max(bounds->y2, box->y2);
+}
+
 /**
  * Helper function for implementing draws with GL_QUADS on GLES2,
  * where we don't have them.
