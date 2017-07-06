@@ -729,6 +729,41 @@ glamor_make_current(glamor_screen_private *glamor_priv)
     }
 }
 
+static inline BoxRec
+glamor_no_rendering_bounds(void)
+{
+    BoxRec bounds = {
+        .x1 = 0,
+        .y1 = 0,
+        .x2 = MAXSHORT,
+        .y2 = MAXSHORT,
+    };
+
+    return bounds;
+}
+
+static inline BoxRec
+glamor_start_rendering_bounds(void)
+{
+    BoxRec bounds = {
+        .x1 = MAXSHORT,
+        .y1 = MAXSHORT,
+        .x2 = 0,
+        .y2 = 0,
+    };
+
+    return bounds;
+}
+
+static inline void
+glamor_bounds_union_rect(BoxPtr bounds, xRectangle *rect)
+{
+    bounds->x1 = min(bounds->x1, rect->x);
+    bounds->y1 = min(bounds->y1, rect->y);
+    bounds->x2 = min(SHRT_MAX, max(bounds->x2, rect->x + rect->width));
+    bounds->y2 = min(SHRT_MAX, max(bounds->y2, rect->y + rect->height));
+}
+
 /**
  * Helper function for implementing draws with GL_QUADS on GLES2,
  * where we don't have them.
