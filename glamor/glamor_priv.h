@@ -163,7 +163,6 @@ enum glamor_gl_flavor {
 
 struct glamor_saved_procs {
     CloseScreenProcPtr close_screen;
-    CreateScreenResourcesProcPtr create_screen_resources;
     CreateGCProcPtr create_gc;
     CreatePixmapProcPtr create_pixmap;
     DestroyPixmapProcPtr destroy_pixmap;

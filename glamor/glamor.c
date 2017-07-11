@@ -346,25 +346,6 @@ fallback:
 }
 
 
-/**
- * Creates any pixmaps used internally by glamor, since those can't be
- * allocated at ScreenInit time.
- */
-static Bool
-glamor_create_screen_resources(ScreenPtr screen)
-{
-    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
-    Bool ret = TRUE;
-
-    screen->CreateScreenResources =
-        glamor_priv->saved_procs.create_screen_resources;
-    if (screen->CreateScreenResources)
-        ret = screen->CreateScreenResources(screen);
-    screen->CreateScreenResources = glamor_create_screen_resources;
-
-    return ret;
-}
-
 static Bool
 glamor_check_instruction_count(int gl_version)
 {
@@ -665,10 +646,6 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
     glamor_set_debug_level(&glamor_debug_level);
 
-    glamor_priv->saved_procs.create_screen_resources =
-        screen->CreateScreenResources;
-    screen->CreateScreenResources = glamor_create_screen_resources;
-
     if (!glamor_font_init(screen))
         goto fail;
 
@@ -764,8 +741,6 @@ glamor_close_screen(ScreenPtr screen)
     glamor_sync_close(screen);
     glamor_composite_glyphs_fini(screen);
     screen->CloseScreen = glamor_priv->saved_procs.close_screen;
-    screen->CreateScreenResources =
-        glamor_priv->saved_procs.create_screen_resources;
 
     screen->CreateGC = glamor_priv->saved_procs.create_gc;
     screen->CreatePixmap = glamor_priv->saved_procs.create_pixmap;
