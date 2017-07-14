@@ -40,6 +40,19 @@ DevPrivateKeyRec glamor_screen_private_key;
 DevPrivateKeyRec glamor_pixmap_private_key;
 DevPrivateKeyRec glamor_gc_private_key;
 
+glamor_screen_private *
+glamor_get_screen_private(ScreenPtr screen)
+{
+    return (glamor_screen_private *)
+        dixLookupPrivate(&screen->devPrivates, &glamor_screen_private_key);
+}
+
+void
+glamor_set_screen_private(ScreenPtr screen, glamor_screen_private *priv)
+{
+    dixSetPrivate(&screen->devPrivates, &glamor_screen_private_key, priv);
+}
+
 /**
  * glamor_get_drawable_pixmap() returns a backing pixmap for a given drawable.
  *

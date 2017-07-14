@@ -496,18 +496,11 @@ typedef struct {
 extern DevPrivateKeyRec glamor_gc_private_key;
 extern DevPrivateKeyRec glamor_screen_private_key;
 
-static inline glamor_screen_private *
-glamor_get_screen_private(ScreenPtr screen)
-{
-    return (glamor_screen_private *)
-        dixLookupPrivate(&screen->devPrivates, &glamor_screen_private_key);
-}
+extern glamor_screen_private *
+glamor_get_screen_private(ScreenPtr screen);
 
-static inline void
-glamor_set_screen_private(ScreenPtr screen, glamor_screen_private *priv)
-{
-    dixSetPrivate(&screen->devPrivates, &glamor_screen_private_key, priv);
-}
+extern void
+glamor_set_screen_private(ScreenPtr screen, glamor_screen_private *priv);
 
 static inline glamor_gc_private *
 glamor_get_gc_private(GCPtr gc)
