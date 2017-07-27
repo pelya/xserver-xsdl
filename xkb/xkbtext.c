@@ -603,7 +603,7 @@ XkbStringText(char *str, unsigned format)
             }
             else {
                 *out++ = '0';
-                sprintf(out, "%o", *in);
+                sprintf(out, "%o", (unsigned char) *in);
                 while (*out != '\0')
                     out++;
             }
