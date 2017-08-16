@@ -54,7 +54,6 @@
 ** GLX resources.
 */
 typedef XID GLXContextID;
-typedef XID GLXPixmap;
 typedef XID GLXDrawable;
 
 typedef struct __GLXclientStateRec __GLXclientState;
@@ -156,11 +155,6 @@ typedef int (*__GLXdispatchSingleProcPtr) (__GLXclientState *, GLbyte *);
 typedef int (*__GLXdispatchVendorPrivProcPtr) (__GLXclientState *, GLbyte *);
 
 /*
- * Dispatch for GLX commands.
- */
-typedef int (*__GLXprocPtr) (__GLXclientState *, char *pc);
-
-/*
  * Tables for computing the size of each rendering command.
  */
 typedef int (*gl_proto_size_func) (const GLbyte *, Bool, int);
@@ -177,16 +171,9 @@ typedef struct {
 */
 extern RESTYPE __glXContextRes;
 extern RESTYPE __glXClientRes;
-extern RESTYPE __glXPixmapRes;
 extern RESTYPE __glXDrawableRes;
 
 /************************************************************************/
-
-/*
-** Prototypes.
-*/
-
-extern char *__glXcombine_strings(const char *, const char *);
 
 /*
  * Routines for computing the size of variably-sized rendering commands.
