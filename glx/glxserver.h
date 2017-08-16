@@ -189,28 +189,6 @@ extern RESTYPE __glXDrawableRes;
 extern char *__glXcombine_strings(const char *, const char *);
 
 /*
-** Routines for sending swapped replies.
-*/
-
-extern void __glXSwapMakeCurrentReply(ClientPtr client,
-                                      xGLXMakeCurrentReply * reply);
-extern void __glXSwapIsDirectReply(ClientPtr client, xGLXIsDirectReply * reply);
-extern void __glXSwapQueryVersionReply(ClientPtr client,
-                                       xGLXQueryVersionReply * reply);
-extern void __glXSwapQueryContextInfoEXTReply(ClientPtr client,
-                                              xGLXQueryContextInfoEXTReply *
-                                              reply, int *buf);
-extern void __glXSwapGetDrawableAttributesReply(ClientPtr client,
-                                                xGLXGetDrawableAttributesReply *
-                                                reply, CARD32 *buf);
-extern void glxSwapQueryExtensionsStringReply(ClientPtr client,
-                                              xGLXQueryExtensionsStringReply *
-                                              reply, char *buf);
-extern void glxSwapQueryServerStringReply(ClientPtr client,
-                                          xGLXQueryServerStringReply * reply,
-                                          char *buf);
-
-/*
  * Routines for computing the size of variably-sized rendering commands.
  */
 
