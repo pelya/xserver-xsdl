@@ -65,13 +65,6 @@ typedef struct __GLXcontext __GLXcontext;
 #include "glxdrawable.h"
 #include "glxcontext.h"
 
-#ifndef True
-#define True 1
-#endif
-#ifndef False
-#define False 0
-#endif
-
 extern __GLXscreen *glxGetScreen(ScreenPtr pScreen);
 extern __GLXclientState *glxGetClient(ClientPtr pClient);
 
