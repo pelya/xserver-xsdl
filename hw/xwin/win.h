@@ -127,11 +127,9 @@
 #include <stdio.h>
 
 #include <errno.h>
-#if defined(XWIN_MULTIWINDOWEXTWM) || defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
 #define HANDLE void *
 #include <pthread.h>
 #undef HANDLE
-#endif
 
 #ifdef HAVE_MMAP
 #include <sys/mman.h>
@@ -488,11 +486,9 @@ typedef struct _winPrivScreenRec {
     Bool fRootWindowShown;
 #endif
 
-#if defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
     /* Privates used for any module running in a seperate thread */
     pthread_mutex_t pmServerStarted;
     Bool fServerStarted;
-#endif
 
     /* Engine specific functions */
     winAllocateFBProcPtr pwinAllocateFB;
@@ -709,11 +705,9 @@ Bool
  * winauth.c
  */
 
-#if defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
 Bool
  winGenerateAuthorization(void);
 void winSetAuthorization(void);
-#endif
 
 /*
  * winblock.c
@@ -723,7 +717,6 @@ void
 
 winBlockHandler(ScreenPtr pScreen, void *pTimeout);
 
-#ifdef XWIN_CLIPBOARD
 /*
  * winclipboardinit.c
  */
@@ -733,7 +726,6 @@ Bool
 
 void
  winClipboardShutdown(void);
-#endif
 
 /*
  * wincmap.c

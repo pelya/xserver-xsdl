@@ -41,9 +41,7 @@ from The Open Group.
 #include "winmsg.h"
 #include "winmonitors.h"
 
-#ifdef XWIN_CLIPBOARD
 #include "winclipboard/winclipboard.h"
-#endif
 
 /*
  * Function prototypes
@@ -690,7 +688,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
         return 1;
     }
 
-#ifdef XWIN_CLIPBOARD
     /*
      * Look for the '-clipboard' argument
      */
@@ -731,7 +728,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
         /* Indicate that we have processed this argument */
         return 1;
     }
-#endif
 
     /*
      * Look for the '-ignoreinput' argument
@@ -1022,7 +1018,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
         return 2;
     }
 
-#ifdef XWIN_CLIPBOARD
     /*
      * Look for the '-nounicodeclipboard' argument
      */
@@ -1031,7 +1026,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
         /* Indicate that we have processed the argument */
         return 1;
     }
-#endif
 
     if (IS_OPTION("-xkbrules")) {
         CHECK_ARGS(1);

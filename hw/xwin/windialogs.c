@@ -241,10 +241,8 @@ winDisplayExitDialog(winPrivScreenPtr pScreenPriv)
     if (pScreenPriv->pScreenInfo->fMultiWindow)
         liveClients -= 2;       /* multiwindow window manager & XMsgProc  */
 #endif
-#if defined(XWIN_CLIPBOARD)
     if (g_fClipboardStarted)
         liveClients--;          /* clipboard manager */
-#endif
 
     /* A user reported that this sometimes drops below zero. just eye-candy. */
     if (liveClients < 0)

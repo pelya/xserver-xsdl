@@ -42,9 +42,7 @@
 #include "winmsg.h"
 #include "winmonitors.h"
 #include "inputstr.h"
-#ifdef XWIN_CLIPBOARD
 #include "winclipboard/winclipboard.h"
-#endif
 
 /*
  * Global variables
@@ -1168,10 +1166,8 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             ShowCursor(TRUE);
         }
 
-#ifdef XWIN_CLIPBOARD
         /* Make sure the clipboard chain is ok. */
         winFixClipboardChain();
-#endif
 
         /* Call engine specific screen activation/deactivation function */
         (*s_pScreenPriv->pwinActivateApp) (s_pScreen);
@@ -1203,11 +1199,9 @@ winWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             return 0;
 #endif
 
-#ifdef XWIN_CLIPBOARD
         case ID_APP_MONITOR_PRIMARY:
             fPrimarySelection = !fPrimarySelection;
             return 0;
-#endif
 
         case ID_APP_ABOUT:
             /* Display the About box */

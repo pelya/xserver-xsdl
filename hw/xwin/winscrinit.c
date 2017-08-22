@@ -264,9 +264,7 @@ winFinishScreenInitFB(int i, ScreenPtr pScreen, int argc, char **argv)
     winScreenInfo *pScreenInfo = pScreenPriv->pScreenInfo;
     VisualPtr pVisual = NULL;
 
-#if defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
     int iReturn;
-#endif
 
     /* Create framebuffer */
     if (!(*pScreenPriv->pwinInitScreen) (pScreen)) {
@@ -504,7 +502,6 @@ winFinishScreenInitFB(int i, ScreenPtr pScreen, int argc, char **argv)
     pScreenPriv->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = pScreenPriv->pwinCloseScreen;
 
-#if defined(XWIN_CLIPBOARD) || defined(XWIN_MULTIWINDOW)
     /* Create a mutex for modules in separate threads to wait for */
     iReturn = pthread_mutex_init(&pScreenPriv->pmServerStarted, NULL);
     if (iReturn != 0) {
@@ -523,7 +520,6 @@ winFinishScreenInitFB(int i, ScreenPtr pScreen, int argc, char **argv)
 
     /* Set the ServerStarted flag to false */
     pScreenPriv->fServerStarted = FALSE;
-#endif
 
 #ifdef XWIN_MULTIWINDOWEXTWM
     pScreenPriv->fRestacking = FALSE;

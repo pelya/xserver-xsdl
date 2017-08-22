@@ -1,12 +1,9 @@
 bin_PROGRAMS = XWin
 
-if XWIN_CLIPBOARD
 SRCS_CLIPBOARD = \
 	winclipboardinit.c \
 	winclipboardwrappers.c
-DEFS_CLIPBOARD = -DXWIN_CLIPBOARD
 CLIPBOARD_LIBS = $(top_builddir)/hw/xwin/winclipboard/libXWinclipboard.la
-endif
 
 if XWIN_GLX_WINDOWS
 GLX_DIR =
@@ -115,7 +112,7 @@ SRCS =	InitInput.c \
 	$(SRCS_PRIMARYFB) \
 	$(SRCS_RANDR)
 
- DEFS = $(DEFS_CLIPBOARD) \
+DEFS = \
 	$(DEFS_GLX_WINDOWS) \
 	$(DEFS_MULTIWINDOW) \
 	$(DEFS_MULTIWINDOWEXTWM) \
