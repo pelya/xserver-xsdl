@@ -201,18 +201,14 @@ winInitDialog(HWND hwndDlg)
                      0, 0, SWP_NOSIZE | SWP_FRAMECHANGED);
     }
 
-#ifdef XWIN_MULTIWINDOW
     if (g_hIconX)
         hIcon = g_hIconX;
     else
-#endif
         hIcon = LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_XWIN));
 
-#ifdef XWIN_MULTIWINDOW
     if (g_hSmallIconX)
         hIconSmall = g_hSmallIconX;
     else
-#endif
         hIconSmall = LoadImage(g_hInstance,
                                MAKEINTRESOURCE(IDI_XWIN), IMAGE_ICON,
                                GetSystemMetrics(SM_CXSMICON),
@@ -236,11 +232,9 @@ winDisplayExitDialog(winPrivScreenPtr pScreenPriv)
     for (i = 1; i < currentMaxClients; i++)
         if (clients[i] != NullClient)
             liveClients++;
-#if defined(XWIN_MULTIWINDOW)
     /* Count down server internal clients */
     if (pScreenPriv->pScreenInfo->fMultiWindow)
         liveClients -= 2;       /* multiwindow window manager & XMsgProc  */
-#endif
     if (g_fClipboardStarted)
         liveClients--;          /* clipboard manager */
 

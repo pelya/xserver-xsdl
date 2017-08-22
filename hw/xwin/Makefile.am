@@ -20,7 +20,6 @@ XWIN_GLX_LIBS += $(top_builddir)/hw/xwin/glx/libXwinGLX.la
 XWIN_GLX_SYS_LIBS = -lopengl32
 endif
 
-if XWIN_MULTIWINDOW
 SRCS_MULTIWINDOW = \
 	winmultiwindowshape.c \
 	winmultiwindowwindow.c \
@@ -28,9 +27,7 @@ SRCS_MULTIWINDOW = \
 	winmultiwindowwndproc.c \
 	propertystore.h \
 	winSetAppUserModelID.c
-DEFS_MULTIWINDOW = -DXWIN_MULTIWINDOW
 MULTIWINDOW_SYS_LIBS = -lshlwapi -lole32
-endif
 
 if XWIN_MULTIWINDOWEXTWM
 SRCS_MULTIWINDOWEXTWM = \
@@ -114,7 +111,6 @@ SRCS =	InitInput.c \
 
 DEFS = \
 	$(DEFS_GLX_WINDOWS) \
-	$(DEFS_MULTIWINDOW) \
 	$(DEFS_MULTIWINDOWEXTWM) \
 	$(DEFS_NATIVEGDI) \
 	$(DEFS_PRIMARYFB) \

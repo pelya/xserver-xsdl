@@ -130,12 +130,8 @@ winInitializeScreenDefaults(void)
     defaultScreenInfo.fMWExtWM = FALSE;
 #endif
     defaultScreenInfo.fRootless = FALSE;
-#ifdef XWIN_MULTIWINDOW
     defaultScreenInfo.fMultiWindow = FALSE;
-#endif
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
     defaultScreenInfo.fMultiMonitorOverride = FALSE;
-#endif
     defaultScreenInfo.fMultipleMonitors = FALSE;
     defaultScreenInfo.fLessPointer = FALSE;
     defaultScreenInfo.iResizeMode = resizeDefault;
@@ -524,10 +520,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
      * Look for the '-fullscreen' argument
      */
     if (IS_OPTION("-fullscreen")) {
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
         if (!screenInfoPtr->fMultiMonitorOverride)
             screenInfoPtr->fMultipleMonitors = FALSE;
-#endif
         screenInfoPtr->fFullScreen = TRUE;
 
         /* Indicate that we have processed this argument */
@@ -548,10 +542,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
      * Look for the '-nodecoration' argument
      */
     if (IS_OPTION("-nodecoration")) {
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
         if (!screenInfoPtr->fMultiMonitorOverride)
             screenInfoPtr->fMultipleMonitors = FALSE;
-#endif
         screenInfoPtr->fDecoration = FALSE;
 
         /* Indicate that we have processed this argument */
@@ -585,40 +577,32 @@ ddxProcessArgument(int argc, char *argv[], int i)
      * Look for the '-rootless' argument
      */
     if (IS_OPTION("-rootless")) {
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
         if (!screenInfoPtr->fMultiMonitorOverride)
             screenInfoPtr->fMultipleMonitors = FALSE;
-#endif
         screenInfoPtr->fRootless = TRUE;
 
         /* Indicate that we have processed this argument */
         return 1;
     }
 
-#ifdef XWIN_MULTIWINDOW
     /*
      * Look for the '-multiwindow' argument
      */
     if (IS_OPTION("-multiwindow")) {
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
         if (!screenInfoPtr->fMultiMonitorOverride)
             screenInfoPtr->fMultipleMonitors = TRUE;
-#endif
         screenInfoPtr->fMultiWindow = TRUE;
 
         /* Indicate that we have processed this argument */
         return 1;
     }
-#endif
 
     /*
      * Look for the '-multiplemonitors' argument
      */
     if (IS_OPTION("-multiplemonitors")
         || IS_OPTION("-multimonitors")) {
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
         screenInfoPtr->fMultiMonitorOverride = TRUE;
-#endif
         screenInfoPtr->fMultipleMonitors = TRUE;
 
         /* Indicate that we have processed this argument */
@@ -630,9 +614,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
      */
     if (IS_OPTION("-nomultiplemonitors")
         || IS_OPTION("-nomultimonitors")) {
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
         screenInfoPtr->fMultiMonitorOverride = TRUE;
-#endif
         screenInfoPtr->fMultipleMonitors = FALSE;
 
         /* Indicate that we have processed this argument */

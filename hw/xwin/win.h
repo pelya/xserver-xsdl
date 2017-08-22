@@ -394,12 +394,8 @@ typedef struct {
     Bool fMWExtWM;
 #endif
     Bool fRootless;
-#ifdef XWIN_MULTIWINDOW
     Bool fMultiWindow;
-#endif
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
     Bool fMultiMonitorOverride;
-#endif
     Bool fMultipleMonitors;
     Bool fLessPointer;
     winResizeMode iResizeMode;
@@ -474,17 +470,13 @@ typedef struct _winPrivScreenRec {
     Bool fRestacking;
 #endif
 
-#ifdef XWIN_MULTIWINDOW
     /* Privates used by multi-window */
     pthread_t ptWMProc;
     pthread_t ptXMsgProc;
     void *pWMInfo;
-#endif
 
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
     /* Privates used by both multi-window and rootless */
     Bool fRootWindowShown;
-#endif
 
     /* Privates used for any module running in a seperate thread */
     pthread_mutex_t pmServerStarted;
@@ -924,7 +916,6 @@ Bool
 void
  winSetShapeRootless(WindowPtr pWindow, int kind);
 
-#ifdef XWIN_MULTIWINDOW
 /*
  * winmultiwindowshape.c
  */
@@ -937,9 +928,7 @@ void
 
 void
  winUpdateRgnMultiWindow(WindowPtr pWindow);
-#endif
 
-#ifdef XWIN_MULTIWINDOW
 /*
  * winmultiwindowwindow.c
  */
@@ -990,16 +979,13 @@ XID
 
 int
  winAdjustXWindow(WindowPtr pWin, HWND hwnd);
-#endif
 
-#ifdef XWIN_MULTIWINDOW
 /*
  * winmultiwindowwndproc.c
  */
 
 LRESULT CALLBACK
 winTopLevelWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-#endif
 
 /*
  * wintrayicon.c

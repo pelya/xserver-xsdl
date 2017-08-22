@@ -74,14 +74,10 @@ extern Bool g_fClipboard;
 extern Bool g_fClipboardStarted;
 
 /* The global X default icons */
-#if defined(XWIN_MULTIWINDOW)
 extern HICON g_hIconX;
 extern HICON g_hSmallIconX;
-#endif
 
-#ifdef XWIN_MULTIWINDOW
 extern DWORD g_dwCurrentThreadID;
-#endif
 
 extern Bool g_fKeyboardHookLL;
 extern Bool g_fButton[3];

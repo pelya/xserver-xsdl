@@ -453,7 +453,6 @@ winFinishScreenInitFB(int i, ScreenPtr pScreen, int argc, char **argv)
 #undef WRAP
     }
 
-#ifdef XWIN_MULTIWINDOW
     /* Handle multi window mode */
     else if (pScreenInfo->fMultiWindow) {
         /* Define the WRAP macro temporarily for local use */
@@ -496,7 +495,6 @@ winFinishScreenInitFB(int i, ScreenPtr pScreen, int argc, char **argv)
         /* Undefine the WRAP macro, as it is not needed elsewhere */
 #undef WRAP
     }
-#endif
 
     /* Wrap either fb's or shadow's CloseScreen with our CloseScreen */
     pScreenPriv->CloseScreen = pScreen->CloseScreen;
@@ -525,12 +523,7 @@ winFinishScreenInitFB(int i, ScreenPtr pScreen, int argc, char **argv)
     pScreenPriv->fRestacking = FALSE;
 #endif
 
-#if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
-    if (FALSE
-#ifdef XWIN_MULTIWINDOW
-        || pScreenInfo->fMultiWindow
-#endif
-        ) {
+    if (pScreenInfo->fMultiWindow) {
 #if CYGDEBUG || YES
         winDebug("winFinishScreenInitFB - Calling winInitWM.\n");
 #endif
@@ -546,7 +539,6 @@ winFinishScreenInitFB(int i, ScreenPtr pScreen, int argc, char **argv)
             return FALSE;
         }
     }
-#endif
 
     /* Tell the server that we are enabled */
     pScreenPriv->fEnabled = TRUE;

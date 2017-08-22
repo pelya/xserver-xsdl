@@ -190,13 +190,11 @@ ddxGiveUp(enum ExitCode error)
             winDeleteNotifyIcon(winGetScreenPriv(g_ScreenInfo[i].pScreen));
     }
 
-#ifdef XWIN_MULTIWINDOW
     /* Unload libraries for taskbar grouping */
     winPropertyStoreDestroy();
 
     /* Notify the worker threads we're exiting */
     winDeinitMultiWindowWM();
-#endif
 
 #ifdef HAS_DEVWINDOWS
     /* Close our handle to our message queue */
@@ -787,9 +785,7 @@ winUseMsg(void)
            "\tUse the entire virtual screen if multiple\n"
            "\tmonitors are present.\n");
 
-#ifdef XWIN_MULTIWINDOW
     ErrorF("-multiwindow\n" "\tRun the server in multi-window mode.\n");
-#endif
 
 #ifdef XWIN_MULTIWINDOWEXTWM
     ErrorF("-mwextwm\n"
@@ -948,10 +944,8 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char *argv[])
 
     /* Detect supported engines */
     winDetectSupportedEngines();
-#ifdef XWIN_MULTIWINDOW
     /* Load libraries for taskbar grouping */
     winPropertyStoreInit();
-#endif
 
     /* Store the instance handle */
     g_hInstance = GetModuleHandle(NULL);
