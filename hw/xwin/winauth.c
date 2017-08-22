@@ -68,16 +68,6 @@ static xcb_auth_info_t auth_info;
  */
 
 #ifndef XCSECURITY
-void
-GenerateRandomData(int len, char *buf)
-{
-    int fd;
-
-    fd = open("/dev/urandom", O_RDONLY);
-    read(fd, buf, len);
-    close(fd);
-}
-
 static char cookie[16];         /* 128 bits */
 
 XID
