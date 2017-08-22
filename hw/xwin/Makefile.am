@@ -40,11 +40,8 @@ MULTIWINDOWEXTWM_LIBS = $(top_builddir)/miext/rootless/librootless.la
 MULTIWINDOWEXTWM_CFLAGS = -I$(top_srcdir)/miext/rootless
 endif
 
-if XWIN_RANDR
 SRCS_RANDR = \
 	winrandr.c
-DEFS_RANDR = -DXWIN_RANDR
-endif
 
 SRCS =	InitInput.c \
 	InitOutput.c \
@@ -113,8 +110,7 @@ DEFS = \
 	$(DEFS_GLX_WINDOWS) \
 	$(DEFS_MULTIWINDOWEXTWM) \
 	$(DEFS_NATIVEGDI) \
-	$(DEFS_PRIMARYFB) \
-	$(DEFS_RANDR)
+	$(DEFS_PRIMARYFB)
 
 XWin_SOURCES = $(SRCS)
 
