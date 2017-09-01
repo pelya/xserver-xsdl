@@ -10,4 +10,4 @@ fi
 
 output=$1
 echo "#define BUILD_DATE $BUILD_DATE" > $output
-echo "#define BUILD_TIME $BUILD_TIME" > $output
+echo "#define BUILD_TIME $BUILD_TIME" >> $output
