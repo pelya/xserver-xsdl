@@ -709,6 +709,11 @@ registry_global(void *data, struct wl_registry *registry, uint32_t id,
         if (xwl_output_create(xwl_screen, id))
             xwl_screen->expecting_event++;
     }
+    else if (strcmp(interface, "zxdg_output_manager_v1") == 0) {
+        xwl_screen->xdg_output_manager =
+            wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
+        xwl_screen_init_xdg_output(xwl_screen);
+    }
 #ifdef GLAMOR_HAS_GBM
     else if (xwl_screen->glamor &&
              strcmp(interface, "wl_drm") == 0 && version >= 2) {
