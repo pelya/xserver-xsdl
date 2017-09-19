@@ -22,3 +22,5 @@ if get_option('xvfb')
         )
     endif
 endif
+
+subdir('sync')
