@@ -49,7 +49,7 @@ typedef struct _SyncObject {
 typedef struct _SyncCounter {
     SyncObject sync;            /* Common sync object data */
     int64_t value;              /* counter value */
-    struct _SysCounterInfo *pSysCounterInfo;    /* NULL if not a system counter */
+    struct _SysCounterInfo *pSysCounterInfo; /* NULL if not a system counter */
 } SyncCounter;
 
 struct _SyncFence {
@@ -66,13 +66,10 @@ struct _SyncTrigger {
     unsigned int value_type;    /* Absolute or Relative */
     unsigned int test_type;     /* transition or Comparision type */
     int64_t test_value;         /* trigger event threshold value */
-    Bool (*CheckTrigger) (struct _SyncTrigger * /*pTrigger */ ,
-                          int64_t        /*newval */
-        );
-    void (*TriggerFired) (struct _SyncTrigger * /*pTrigger */
-        );
-    void (*CounterDestroyed) (struct _SyncTrigger *     /*pTrigger */
-        );
+    Bool (*CheckTrigger)(struct _SyncTrigger *pTrigger,
+                         int64_t newval);
+    void (*TriggerFired)(struct _SyncTrigger *pTrigger);
+    void (*CounterDestroyed)(struct _SyncTrigger *pTrigger);
 };
 
 typedef struct _SyncTriggerList {
