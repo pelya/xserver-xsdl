@@ -426,3 +426,4 @@ libxserver = [
 libxserver += libxserver_dri3
 
 subdir('hw')
+subdir('test')
