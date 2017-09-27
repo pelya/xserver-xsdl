@@ -1,5 +1,8 @@
 project('xserver', 'c',
-        default_options: ['buildtype=debugoptimized'],
+        default_options: [
+            'buildtype=debugoptimized',
+            'c_std=gnu99',
+        ],
         version: '1.19.99.1',
         meson_version: '>= 0.40.0',
 )
