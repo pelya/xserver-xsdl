@@ -1,4 +1,4 @@
-shared_module(
+fb = shared_module(
     'fb',
     'fbmodule.c',
 
@@ -32,6 +32,7 @@ shared_module(
     c_args: xorg_c_args,
     dependencies: common_dep,
     link_whole: libxserver_miext_shadow,
+    link_with: fb,
 
     install: true,
     install_dir: module_dir,
