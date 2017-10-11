@@ -107,6 +107,11 @@ if xkb_output_dir == ''
     xkb_output_dir = join_paths(get_option('prefix'), 'share/X11/xkb/compiled')
 endif
 
+xkb_bin_dir = get_option('xkb_bin_dir')
+if xkb_bin_dir == ''
+    xkb_bin_dir = join_paths(get_option('prefix'), get_option('bindir'))
+endif
+
 hal_option = get_option('hal')
 glamor_option = get_option('glamor')
 
