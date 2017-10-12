@@ -32,6 +32,12 @@
 #include "ospoll.h"
 #include "list.h"
 
+#if !HAVE_OSPOLL && defined(HAVE_POLLSET_CREATE)
+#include <sys/pollset.h>
+#define POLLSET         1
+#define HAVE_OSPOLL     1
+#endif
+
 #if !HAVE_OSPOLL && defined(HAVE_EPOLL_CREATE1)
 #include <sys/epoll.h>
 #define EPOLL           1
@@ -42,6 +48,27 @@
 #include "xserver_poll.h"
 #define POLL            1
 #define HAVE_OSPOLL     1
+#endif
+
+#if POLLSET
+
+// pollset-based implementation (as seen on AIX)
+struct ospollfd {
+    int                 fd;
+    int                 xevents;
+    short               revents;
+    enum ospoll_trigger trigger;
+    void                (*callback)(int fd, int xevents, void *data);
+    void                *data;
+};
+
+struct ospoll {
+    pollset_t           ps;
+    struct ospollfd     *fds;
+    int                 num;
+    int                 size;
+};
+
 #endif
 
 #if EPOLL
@@ -104,7 +131,7 @@ ospoll_find(struct ospoll *ospoll, int fd)
 #if EPOLL
         int t = ospoll->fds[m]->fd;
 #endif
-#if POLL
+#if POLL || POLLSET
         int t = ospoll->fds[m].fd;
 #endif
 
@@ -168,6 +195,16 @@ array_delete(void *base, size_t num, size_t size, size_t pos)
 struct ospoll *
 ospoll_create(void)
 {
+#if POLLSET
+    struct ospoll *ospoll = calloc(1, sizeof (struct ospoll));
+
+    ospoll->ps = pollset_create(-1);
+    if (ospoll->ps < 0) {
+        free (ospoll);
+        return NULL;
+    }
+    return ospoll;
+#endif
 #if EPOLL
     struct ospoll       *ospoll = calloc(1, sizeof (struct ospoll));
 
@@ -187,6 +224,14 @@ ospoll_create(void)
 void
 ospoll_destroy(struct ospoll *ospoll)
 {
+#if POLLSET
+    if (ospoll) {
+        assert (ospoll->num == 0);
+        pollset_destroy(ospoll->ps);
+        free(ospoll->fds);
+        free(ospoll);
+    }
+#endif
 #if EPOLL
     if (ospoll) {
         assert (ospoll->num == 0);
@@ -213,6 +258,30 @@ ospoll_add(struct ospoll *ospoll, int fd,
            void *data)
 {
     int pos = ospoll_find(ospoll, fd);
+#if POLLSET
+    if (pos < 0) {
+        if (ospoll->num == ospoll->size) {
+            struct ospollfd *new_fds;
+            int new_size = ospoll->size ? ospoll->size * 2 : MAXCLIENTS * 2;
+
+            new_fds = reallocarray(ospoll->fds, new_size, sizeof (ospoll->fds[0]));
+            if (!new_fds)
+                return FALSE;
+            ospoll->fds = new_fds;
+            ospoll->size = new_size;
+        }
+        pos = -pos - 1;
+        array_insert(ospoll->fds, ospoll->num, sizeof (ospoll->fds[0]), pos);
+        ospoll->num++;
+
+        ospoll->fds[pos].fd = fd;
+        ospoll->fds[pos].xevents = 0;
+        ospoll->fds[pos].revents = 0;
+    }
+    ospoll->fds[pos].trigger = trigger;
+    ospoll->fds[pos].callback = callback;
+    ospoll->fds[pos].data = data;
+#endif
 #if EPOLL
     struct ospollfd *osfd;
 
@@ -301,6 +370,14 @@ ospoll_remove(struct ospoll *ospoll, int fd)
 
     pos = ospoll_find(ospoll, fd);
     if (pos >= 0) {
+#if POLLSET
+        struct ospollfd *osfd = &ospoll->fds[pos];
+        struct poll_ctl ctl = { .cmd = PS_DELETE, .fd = fd };
+        pollset_ctl(ospoll->ps, &ctl, 1);
+
+        array_delete(ospoll->fds, ospoll->num, sizeof (ospoll->fds[0]), pos);
+        ospoll->num--;
+#endif
 #if EPOLL
         struct ospollfd *osfd = ospoll->fds[pos];
         struct epoll_event ev;
@@ -346,6 +423,19 @@ ospoll_listen(struct ospoll *ospoll, int fd, int xevents)
     int pos = ospoll_find(ospoll, fd);
 
     if (pos >= 0) {
+#if POLLSET
+        struct poll_ctl ctl = { .cmd = PS_MOD, .fd = fd };
+        if (xevents & X_NOTIFY_READ) {
+            ctl.events |= POLLIN;
+            ospoll->fds[pos].revents &= ~POLLIN;
+        }
+        if (xevents & X_NOTIFY_WRITE) {
+            ctl.events |= POLLOUT;
+            ospoll->fds[pos].revents &= ~POLLOUT;
+        }
+        pollset_ctl(ospoll->ps, &ctl, 1);
+        ospoll->fds[pos].xevents |= xevents;
+#endif
 #if EPOLL
         struct ospollfd *osfd = ospoll->fds[pos];
         osfd->xevents |= xevents;
@@ -370,6 +460,22 @@ ospoll_mute(struct ospoll *ospoll, int fd, int xevents)
     int pos = ospoll_find(ospoll, fd);
 
     if (pos >= 0) {
+#if POLLSET
+        struct ospollfd *osfd = &ospoll->fds[pos];
+        osfd->xevents &= ~xevents;
+        struct poll_ctl ctl = { .cmd = PS_DELETE, .fd = fd };
+        pollset_ctl(ospoll->ps, &ctl, 1);
+        if (osfd->xevents) {
+            ctl.cmd = PS_ADD;
+            if (osfd->xevents & X_NOTIFY_READ) {
+                ctl.events |= POLLIN;
+            }
+            if (osfd->xevents & X_NOTIFY_WRITE) {
+                ctl.events |= POLLOUT;
+            }
+            pollset_ctl(ospoll->ps, &ctl, 1);
+        }
+#endif
 #if EPOLL
         struct ospollfd *osfd = ospoll->fds[pos];
         osfd->xevents &= ~xevents;
@@ -389,6 +495,33 @@ int
 ospoll_wait(struct ospoll *ospoll, int timeout)
 {
     int nready;
+#if POLLSET
+#define MAX_EVENTS      256
+    struct pollfd events[MAX_EVENTS];
+
+    nready = pollset_poll(ospoll->ps, events, MAX_EVENTS, timeout);
+    for (int i = 0; i < nready; i++) {
+        struct pollfd *ev = &events[i];
+        int pos = ospoll_find(ospoll, ev->fd);
+        struct ospollfd *osfd = &ospoll->fds[pos];
+        short revents = ev->revents;
+        short oldevents = osfd->revents;
+
+        osfd->revents = (revents & (POLLIN|POLLOUT));
+        if (osfd->trigger == ospoll_trigger_edge)
+            revents &= ~oldevents;
+        if (revents) {
+            int xevents = 0;
+            if (revents & POLLIN)
+                xevents |= X_NOTIFY_READ;
+            if (revents & POLLOUT)
+                xevents |= X_NOTIFY_WRITE;
+            if (revents & (~(POLLIN|POLLOUT)))
+                xevents |= X_NOTIFY_ERROR;
+            osfd->callback(osfd->fd, xevents, osfd->data);
+        }
+    }
+#endif
 #if EPOLL
 #define MAX_EVENTS      256
     struct epoll_event events[MAX_EVENTS];
@@ -451,6 +584,14 @@ ospoll_wait(struct ospoll *ospoll, int timeout)
 void
 ospoll_reset_events(struct ospoll *ospoll, int fd)
 {
+#if POLLSET
+    int pos = ospoll_find(ospoll, fd);
+
+    if (pos < 0)
+        return;
+
+    ospoll->fds[pos].revents = 0;
+#endif
 #if POLL
     int pos = ospoll_find(ospoll, fd);
 
@@ -468,6 +609,9 @@ ospoll_data(struct ospoll *ospoll, int fd)
 
     if (pos < 0)
         return NULL;
+#if POLLSET
+    return ospoll->fds[pos].data;
+#endif
 #if EPOLL
     return ospoll->fds[pos]->data;
 #endif
