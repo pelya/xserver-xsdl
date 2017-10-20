@@ -585,7 +585,6 @@ dispatch_slave_dirty(ScreenPtr pScreen)
 static void
 redisplay_dirty(ScreenPtr screen, PixmapDirtyUpdatePtr dirty, int *timeout)
 {
-    modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(screen));
     RegionRec pixregion;
 
     PixmapRegionInit(&pixregion, dirty->slave_dst);
@@ -594,6 +593,7 @@ redisplay_dirty(ScreenPtr screen, PixmapDirtyUpdatePtr dirty, int *timeout)
 
     if (!screen->isGPU) {
 #ifdef GLAMOR_HAS_GBM
+        modesettingPtr ms = modesettingPTR(xf86ScreenToScrn(screen));
         /*
          * When copying from the master framebuffer to the shared pixmap,
          * we must ensure the copy is complete before the slave starts a
