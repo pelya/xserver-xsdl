@@ -1355,8 +1355,9 @@ drmmode_output_destroy(xf86OutputPtr output)
     drmmode_output_private_ptr drmmode_output = output->driver_private;
     int i;
 
-    if (drmmode_output->edid_blob)
-        drmModeFreePropertyBlob(drmmode_output->edid_blob);
+    drmModeFreePropertyBlob(drmmode_output->edid_blob);
+    drmModeFreePropertyBlob(drmmode_output->tile_blob);
+
     for (i = 0; i < drmmode_output->num_props; i++) {
         drmModeFreeProperty(drmmode_output->props[i].mode_prop);
         free(drmmode_output->props[i].atoms);
