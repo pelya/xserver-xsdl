@@ -214,7 +214,7 @@ if int10 == 'auto'
     endif
 endif
 
-hal_dep = ''
+hal_dep = []
 if hal_option == 'auto'
     if not build_udev
         hal_dep = dependency('hal', required: false)
@@ -264,7 +264,7 @@ endif
 # XXX: Add more sha1 options, because Linux is about choice
 sha1_dep = nettle_dep
 
-xdmcp_dep = ''
+xdmcp_dep = []
 if get_option('xdmcp')
     xdmcp_dep = dependency('xdmcp')
 endif
