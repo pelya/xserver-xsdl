@@ -1343,7 +1343,6 @@ glamor_convert_gradient_picture(ScreenPtr screen,
         pFormat = PictureMatchFormat(screen, 32, format);
     }
 
-#ifdef GLAMOR_GRADIENT_SHADER
     if (!source->pDrawable) {
         if (source->pSourcePict->type == SourcePictTypeLinear) {
             dst = glamor_generate_linear_gradient_picture(screen,
@@ -1362,7 +1361,7 @@ glamor_convert_gradient_picture(ScreenPtr screen,
             return dst;
         }
     }
-#endif
+
     pixmap = glamor_create_pixmap(screen,
                                   width,
                                   height,

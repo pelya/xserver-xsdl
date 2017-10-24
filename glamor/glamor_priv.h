@@ -918,7 +918,6 @@ void glamor_xv_render(glamor_port_private *port_priv);
  * this will increase performance obviously. */
 
 #define GLAMOR_PIXMAP_DYNAMIC_UPLOAD
-#define GLAMOR_GRADIENT_SHADER
 #define GLAMOR_TEXTURED_LARGE_PIXMAP 1
 #if 0
 #define MAX_FBO_SIZE 32         /* For test purpose only. */

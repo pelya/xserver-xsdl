@@ -710,10 +710,7 @@ glamor_init(ScreenPtr screen, unsigned int flags)
     ps->Glyphs = glamor_composite_glyphs;
 
     glamor_init_vbo(screen);
-
-#ifdef GLAMOR_GRADIENT_SHADER
     glamor_init_gradient_shader(screen);
-#endif
     glamor_pixmap_init(screen);
     glamor_sync_init(screen);
 
