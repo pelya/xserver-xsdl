@@ -183,9 +183,7 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
              w <= glamor_priv->glyph_max_dim &&
              h <= glamor_priv->glyph_max_dim)
          || (w == 0 && h == 0)
-         || !glamor_check_pixmap_fbo_depth(depth))
-        || (!GLAMOR_TEXTURED_LARGE_PIXMAP &&
-            !glamor_check_fbo_size(glamor_priv, w, h)))
+         || !glamor_check_pixmap_fbo_depth(depth)))
         return fbCreatePixmap(screen, w, h, depth, usage);
     else
         pixmap = fbCreatePixmap(screen, 0, 0, depth, usage);

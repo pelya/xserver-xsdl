@@ -910,7 +910,6 @@ void glamor_xv_render(glamor_port_private *port_priv);
 
 #include "glamor_utils.h"
 
-#define GLAMOR_TEXTURED_LARGE_PIXMAP 1
 #if 0
 #define MAX_FBO_SIZE 32         /* For test purpose only. */
 #endif
