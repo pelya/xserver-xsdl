@@ -100,10 +100,9 @@ typedef struct _Client {
     CARD32 req_len;             /* length of current request */
     unsigned int replyBytesRemaining;
     PrivateRec *devPrivates;
-    unsigned short xkbClientFlags;
     unsigned short mapNotifyMask;
     unsigned short newKeyboardNotifyMask;
-    unsigned short vMajor, vMinor;
+    unsigned char xkbClientFlags;
     KeyCode minKC, maxKC;
 
     int smart_start_tick;
