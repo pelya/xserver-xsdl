@@ -111,9 +111,7 @@ typedef struct _Client {
 
     DeviceIntPtr clientPtr;
     ClientIdPtr clientIds;
-#if XTRANS_SEND_FDS
     int req_fds;
-#endif
 } ClientRec;
 
 #if XTRANS_SEND_FDS
