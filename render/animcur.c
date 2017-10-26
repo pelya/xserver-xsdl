@@ -147,7 +147,6 @@ AnimCurTimerNotify(OsTimerPtr timer, CARD32 now, void *arg)
     pScreen->DisplayCursor = DisplayCursor;
 
     dev->spriteInfo->anim.elt = elt;
-    dev->spriteInfo->anim.time = now + ac->elts[elt].delay;
 
     return ac->elts[elt].delay;
 }
@@ -170,8 +169,6 @@ AnimCurDisplayCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
                 (pDev, pScreen, ac->elts[0].pCursor);
             if (ret) {
                 pDev->spriteInfo->anim.elt = 0;
-                pDev->spriteInfo->anim.time =
-                    GetTimeInMillis() + ac->elts[0].delay;
                 pDev->spriteInfo->anim.pCursor = pCursor;
                 pDev->spriteInfo->anim.pScreen = pScreen;
 
