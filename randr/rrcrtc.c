@@ -878,6 +878,7 @@ RRCrtcDestroyResource(void *value, XID pid)
     free(crtc->gammaRed);
     if (crtc->mode)
         RRModeDestroy(crtc->mode);
+    free(crtc->outputs);
     free(crtc);
     return 1;
 }
