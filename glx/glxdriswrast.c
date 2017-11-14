@@ -211,6 +211,7 @@ __glXDRIscreenCreateContext(__GLXscreen * baseScreen,
     __GLXDRIscreen *screen = (__GLXDRIscreen *) baseScreen;
     __GLXDRIcontext *context, *shareContext;
     __GLXDRIconfig *config = (__GLXDRIconfig *) glxConfig;
+    const __DRIconfig *driConfig = config ? config->driConfig : NULL;
     const __DRIcoreExtension *core = screen->core;
     __DRIcontext *driShare;
 
@@ -240,8 +241,8 @@ __glXDRIscreenCreateContext(__GLXscreen * baseScreen,
     context->base.releaseTexImage = __glXDRIreleaseTexImage;
 
     context->driContext =
-        (*core->createNewContext) (screen->driScreen,
-                                   config->driConfig, driShare, context);
+        (*core->createNewContext) (screen->driScreen, driConfig, driShare,
+                                   context);
 
     return &context->base;
 }
@@ -351,6 +352,9 @@ initializeExtensions(__GLXscreen * screen)
 
     __glXEnableExtension(screen->glx_enable_bits, "GLX_MESA_copy_sub_buffer");
     LogMessage(X_INFO, "IGLX: enabled GLX_MESA_copy_sub_buffer\n");
+
+    __glXEnableExtension(screen->glx_enable_bits, "GLX_EXT_no_config_context");
+    LogMessage(X_INFO, "IGLX: enabled GLX_EXT_no_config_context\n");
 
     if (dri->swrast->base.version >= 3) {
         __glXEnableExtension(screen->glx_enable_bits,

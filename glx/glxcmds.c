@@ -1770,13 +1770,13 @@ DoQueryContext(__GLXclientState * cl, GLXContextID gcId)
     sendBuf[0] = GLX_SHARE_CONTEXT_EXT;
     sendBuf[1] = (int) (ctx->share_id);
     sendBuf[2] = GLX_VISUAL_ID_EXT;
-    sendBuf[3] = (int) (ctx->config->visualID);
+    sendBuf[3] = (int) (ctx->config ? ctx->config->visualID : 0);
     sendBuf[4] = GLX_SCREEN_EXT;
     sendBuf[5] = (int) (ctx->pGlxScreen->pScreen->myNum);
     sendBuf[6] = GLX_FBCONFIG_ID;
-    sendBuf[7] = (int) (ctx->config->fbconfigID);
+    sendBuf[7] = (int) (ctx->config ? ctx->config->fbconfigID : 0);
     sendBuf[8] = GLX_RENDER_TYPE;
-    sendBuf[9] = (int) (ctx->config->renderType);
+    sendBuf[9] = (int) (ctx->config ? ctx->config->renderType : GLX_DONT_CARE);
 
     if (client->swapped) {
         int length = reply.length;
