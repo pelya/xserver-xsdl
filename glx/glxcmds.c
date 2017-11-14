@@ -215,6 +215,7 @@ __glXdirectContextCreate(__GLXscreen * screen,
     if (context == NULL)
         return NULL;
 
+    context->config = modes;
     context->destroy = __glXdirectContextDestroy;
     context->loseCurrent = __glXdirectContextLoseCurrent;
 
@@ -1718,7 +1719,7 @@ DoQueryContext(__GLXclientState * cl, GLXContextID gcId)
     ClientPtr client = cl->client;
     __GLXcontext *ctx;
     xGLXQueryContextInfoEXTReply reply;
-    int nProps = 3;
+    int nProps = 5;
     int sendBuf[nProps * 2];
     int nReplyBytes;
     int err;
@@ -1740,6 +1741,10 @@ DoQueryContext(__GLXclientState * cl, GLXContextID gcId)
     sendBuf[3] = (int) (ctx->config->visualID);
     sendBuf[4] = GLX_SCREEN_EXT;
     sendBuf[5] = (int) (ctx->pGlxScreen->pScreen->myNum);
+    sendBuf[6] = GLX_FBCONFIG_ID;
+    sendBuf[7] = (int) (ctx->config->fbconfigID);
+    sendBuf[8] = GLX_RENDER_TYPE;
+    sendBuf[9] = (int) (ctx->config->renderType);
 
     if (client->swapped) {
         int length = reply.length;

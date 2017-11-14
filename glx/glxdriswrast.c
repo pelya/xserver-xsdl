@@ -231,6 +231,7 @@ __glXDRIscreenCreateContext(__GLXscreen * baseScreen,
     if (context == NULL)
         return NULL;
 
+    context->base.config = glxConfig;
     context->base.destroy = __glXDRIcontextDestroy;
     context->base.makeCurrent = __glXDRIcontextMakeCurrent;
     context->base.loseCurrent = __glXDRIcontextLoseCurrent;
