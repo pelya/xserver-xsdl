@@ -276,14 +276,6 @@ xf86InterceptSignals(int *signo)
         *signo = -1;
 }
 
-static void (*xf86SigIllHandler) (void) = NULL;
-
-void
-xf86InterceptSigIll(void (*sigillhandler) (void))
-{
-    xf86SigIllHandler = sigillhandler;
-}
-
 /*
  * xf86SigWrapper --
  *    Catch unexpected signals and exit or continue cleanly.
@@ -291,11 +283,6 @@ xf86InterceptSigIll(void (*sigillhandler) (void))
 int
 xf86SigWrapper(int signo)
 {
-    if ((signo == SIGILL) && xf86SigIllHandler) {
-        (*xf86SigIllHandler) ();
-        return 0;               /* continue */
-    }
-
     if (xf86SignalIntercept && (*xf86SignalIntercept < 0)) {
         *xf86SignalIntercept = signo;
         return 0;               /* continue */
