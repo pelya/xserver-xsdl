@@ -268,17 +268,6 @@ xf86RemoveEnabledDevice(InputInfoPtr pInfo)
 }
 
 /*
- * xf86SigWrapper --
- *    Catch unexpected signals and exit or continue cleanly.
- */
-int
-xf86SigWrapper(int signo)
-{
-    xf86Info.caughtSignal = TRUE;
-    return 1;                   /* abort */
-}
-
-/*
  * xf86PrintBacktrace --
  *    Print a stack backtrace for debugging purposes.
  */
