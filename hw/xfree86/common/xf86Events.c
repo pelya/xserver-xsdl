@@ -267,15 +267,6 @@ xf86RemoveEnabledDevice(InputInfoPtr pInfo)
     InputThreadUnregisterDev(pInfo->fd);
 }
 
-static int *xf86SignalIntercept = NULL;
-
-void
-xf86InterceptSignals(int *signo)
-{
-    if ((xf86SignalIntercept = signo))
-        *signo = -1;
-}
-
 /*
  * xf86SigWrapper --
  *    Catch unexpected signals and exit or continue cleanly.
@@ -283,11 +274,6 @@ xf86InterceptSignals(int *signo)
 int
 xf86SigWrapper(int signo)
 {
-    if (xf86SignalIntercept && (*xf86SignalIntercept < 0)) {
-        *xf86SignalIntercept = signo;
-        return 0;               /* continue */
-    }
-
     xf86Info.caughtSignal = TRUE;
     return 1;                   /* abort */
 }
