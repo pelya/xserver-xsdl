@@ -629,6 +629,7 @@ xwl_window_post_damage(struct xwl_window *xwl_window)
     BoxPtr box;
     struct wl_buffer *buffer;
     PixmapPtr pixmap;
+    int i;
 
     assert(!xwl_window->frame_callback);
 
@@ -644,9 +645,20 @@ xwl_window_post_damage(struct xwl_window *xwl_window)
 
     wl_surface_attach(xwl_window->surface, buffer, 0, 0);
 
-    box = RegionExtents(region);
-    wl_surface_damage(xwl_window->surface, box->x1, box->y1,
-                        box->x2 - box->x1, box->y2 - box->y1);
+    /* Arbitrary limit to try to avoid flooding the Wayland
+     * connection. If we flood it too much anyway, this could
+     * abort in libwayland-client.
+     */
+    if (RegionNumRects(region) > 256) {
+        box = RegionExtents(region);
+        wl_surface_damage(xwl_window->surface, box->x1, box->y1,
+                          box->x2 - box->x1, box->y2 - box->y1);
+    } else {
+        box = RegionRects(region);
+        for (i = 0; i < RegionNumRects(region); i++, box++)
+            wl_surface_damage(xwl_window->surface, box->x1, box->y1,
+                              box->x2 - box->x1, box->y2 - box->y1);
+    }
 
     xwl_window->frame_callback = wl_surface_frame(xwl_window->surface);
     wl_callback_add_listener(xwl_window->frame_callback, &frame_listener, xwl_window);
