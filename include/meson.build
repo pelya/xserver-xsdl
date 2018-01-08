@@ -90,6 +90,7 @@ conf_data.set_quoted('SYSCONFDIR', join_paths(get_option('prefix'), get_option('
 conf_data.set('XORG_VERSION_CURRENT', release)
 
 conf_data.set('HASXDMAUTH', get_option('xdm-auth-1'))
+conf_data.set('SECURE_RPC', get_option('secure-rpc'))
 
 conf_data.set('HAVE_DBM_H', cc.has_header('dbm.h'))
 conf_data.set('HAVE_DLFCN_H', cc.has_header('dlfcn.h'))
