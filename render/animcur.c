@@ -299,7 +299,7 @@ AnimCursorCreate(CursorPtr *cursors, CARD32 *deltas, int ncursor,
                  CursorPtr *ppCursor, ClientPtr client, XID cid)
 {
     CursorPtr pCursor;
-    int rc, i;
+    int rc = BadAlloc, i;
     AnimCurPtr ac;
 
     for (i = 0; i < screenInfo.numScreens; i++)
@@ -314,7 +314,7 @@ AnimCursorCreate(CursorPtr *cursors, CARD32 *deltas, int ncursor,
                                  sizeof(AnimCurRec) +
                                  ncursor * sizeof(AnimCurElt), 1);
     if (!pCursor)
-        return BadAlloc;
+        return rc;
     dixInitPrivates(pCursor, pCursor + 1, PRIVATE_CURSOR);
     pCursor->bits = &animCursorBits;
     pCursor->refcnt = 1;
@@ -333,8 +333,10 @@ AnimCursorCreate(CursorPtr *cursors, CARD32 *deltas, int ncursor,
     ac->timer = TimerSet(NULL, 0, 0, AnimCurTimerNotify, NULL);
 
     /* security creation/labeling check */
-    rc = XaceHook(XACE_RESOURCE_ACCESS, client, cid, RT_CURSOR, pCursor,
-                  RT_NONE, NULL, DixCreateAccess);
+    if (ac->timer)
+        rc = XaceHook(XACE_RESOURCE_ACCESS, client, cid, RT_CURSOR, pCursor,
+                      RT_NONE, NULL, DixCreateAccess);
+
     if (rc != Success) {
         TimerFree(ac->timer);
         dixFiniPrivates(pCursor, PRIVATE_CURSOR);
