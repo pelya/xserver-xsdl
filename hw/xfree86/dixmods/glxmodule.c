@@ -47,10 +47,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 static MODULESETUPPROTO(glxSetup);
 
-static const ExtensionModule GLXExt[] = {
-    { GlxExtensionInit, "GLX", &noGlxExtension },
-};
-
 static XF86ModuleVersionInfo VersRec = {
     "glx",
     MODULEVENDORSTRING,
@@ -84,8 +80,6 @@ glxSetup(void *module, void *opts, int *errmaj, int *errmin)
     if (provider)
         GlxPushProvider(provider);
     xorgGlxCreateVendor();
-
-    LoadExtensionList(GLXExt, ARRAY_SIZE(GLXExt), FALSE);
 
     return module;
 }

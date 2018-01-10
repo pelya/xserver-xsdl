@@ -298,6 +298,9 @@ static const ExtensionModule staticExtensions[] = {
 #ifdef XSELINUX
     {SELinuxExtensionInit, "SELinux", &noSELinuxExtension},
 #endif
+#ifdef GLXEXT
+    {GlxExtensionInit, "GLX", &noGlxExtension},
+#endif
 };
 
 static ExtensionModule *ExtensionModuleList = NULL;

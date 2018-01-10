@@ -536,9 +536,6 @@ static void dmxAddExtensions(void)
 {
     const ExtensionModule dmxExtensions[] = {
         { DMXExtensionInit, DMX_EXTENSION_NAME, NULL },
-#ifdef GLXEXT
-        { GlxExtensionInit, "GLX", &noGlxExtension },
-#endif
     };
 
     LoadExtensionList(dmxExtensions, ARRAY_SIZE(dmxExtensions), TRUE);
