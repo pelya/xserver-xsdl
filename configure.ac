@@ -1295,7 +1295,7 @@ if test "x$GLX" = xyes; then
 	PKG_CHECK_MODULES([GL], $GLPROTO $LIBGL)
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
-	GLX_LIBS='$(top_builddir)/glx/libglx.la'
+	GLX_LIBS='$(top_builddir)/glx/libglx.la $(top_builddir)/glx/libglxvnd.la'
 	GLX_SYS_LIBS="$GLX_SYS_LIBS $GL_LIBS"
 else
         GLX=no

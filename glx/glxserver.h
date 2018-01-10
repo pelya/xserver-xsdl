@@ -110,11 +110,6 @@ __glXregisterPresentCompleteNotify(void);
 */
 struct __GLXclientStateRec {
     /*
-     ** Whether this structure is currently being used to support a client.
-     */
-    Bool inUse;
-
-    /*
      ** Buffer for returned data.
      */
     GLbyte *returnBuf;

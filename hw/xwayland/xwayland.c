@@ -1107,5 +1107,7 @@ InitOutput(ScreenInfo * screen_info, int argc, char **argv)
         FatalError("Couldn't add screen\n");
     }
 
+    xorgGlxCreateVendor();
+
     LocalAccessScopeUser();
 }

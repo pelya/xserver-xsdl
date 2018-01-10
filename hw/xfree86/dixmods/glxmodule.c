@@ -83,6 +83,7 @@ glxSetup(void *module, void *opts, int *errmaj, int *errmin)
     provider = LoaderSymbol("__glXDRI2Provider");
     if (provider)
         GlxPushProvider(provider);
+    xorgGlxCreateVendor();
 
     LoadExtensionList(GLXExt, ARRAY_SIZE(GLXExt), FALSE);
 

@@ -1002,6 +1002,8 @@ InitOutput(ScreenInfo * screen_info, int argc, char **argv)
         vfbPixmapDepths[32] = TRUE;
     }
 
+    xorgGlxCreateVendor();
+
     for (i = 1; i <= 32; i++) {
         if (vfbPixmapDepths[i]) {
             if (NumFormats >= MAXFORMATS)
