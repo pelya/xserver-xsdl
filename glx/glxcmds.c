@@ -1949,6 +1949,18 @@ __glXDisp_GetDrawableAttributesSGIX(__GLXclientState * cl, GLbyte * pc)
 */
 
 /*
+** Reset state used to keep track of large (multi-request) commands.
+*/
+static void
+ResetLargeCommandStatus(__GLXcontext *cx)
+{
+    cx->largeCmdBytesSoFar = 0;
+    cx->largeCmdBytesTotal = 0;
+    cx->largeCmdRequestsSoFar = 0;
+    cx->largeCmdRequestsTotal = 0;
+}
+
+/*
 ** Execute all the drawing commands in a request.
 */
 int
@@ -2079,8 +2091,6 @@ __glXDisp_RenderLarge(__GLXclientState * cl, GLbyte * pc)
 
     glxc = __glXForceCurrent(cl, req->contextTag, &error);
     if (!glxc) {
-        /* Reset in case this isn't 1st request. */
-        __glXResetLargeCommandStatus(cl);
         return error;
     }
     if (safe_pad(req->dataBytes) < 0)
@@ -2093,12 +2103,12 @@ __glXDisp_RenderLarge(__GLXclientState * cl, GLbyte * pc)
     if ((req->length << 2) != safe_pad(dataBytes) + sz_xGLXRenderLargeReq) {
         client->errorValue = req->length;
         /* Reset in case this isn't 1st request. */
-        __glXResetLargeCommandStatus(cl);
+        ResetLargeCommandStatus(glxc);
         return BadLength;
     }
     pc += sz_xGLXRenderLargeReq;
 
-    if (cl->largeCmdRequestsSoFar == 0) {
+    if (glxc->largeCmdRequestsSoFar == 0) {
         __GLXrenderSizeData entry;
         int extra = 0;
         int left = (req->length << 2) - sz_xGLXRenderLargeReq;
@@ -2157,21 +2167,21 @@ __glXDisp_RenderLarge(__GLXclientState * cl, GLbyte * pc)
         /*
          ** Make enough space in the buffer, then copy the entire request.
          */
-        if (cl->largeCmdBufSize < cmdlen) {
-	    GLbyte *newbuf = cl->largeCmdBuf;
+        if (glxc->largeCmdBufSize < cmdlen) {
+	    GLbyte *newbuf = glxc->largeCmdBuf;
 
 	    if (!(newbuf = realloc(newbuf, cmdlen)))
 		return BadAlloc;
 
-	    cl->largeCmdBuf = newbuf;
-            cl->largeCmdBufSize = cmdlen;
+	    glxc->largeCmdBuf = newbuf;
+            glxc->largeCmdBufSize = cmdlen;
         }
-        memcpy(cl->largeCmdBuf, pc, dataBytes);
+        memcpy(glxc->largeCmdBuf, pc, dataBytes);
 
-        cl->largeCmdBytesSoFar = dataBytes;
-        cl->largeCmdBytesTotal = cmdlen;
-        cl->largeCmdRequestsSoFar = 1;
-        cl->largeCmdRequestsTotal = req->requestTotal;
+        glxc->largeCmdBytesSoFar = dataBytes;
+        glxc->largeCmdBytesTotal = cmdlen;
+        glxc->largeCmdRequestsSoFar = 1;
+        glxc->largeCmdRequestsTotal = req->requestTotal;
         return Success;
 
     }
@@ -2185,37 +2195,37 @@ __glXDisp_RenderLarge(__GLXclientState * cl, GLbyte * pc)
         /*
          ** Check the request number and the total request count.
          */
-        if (req->requestNumber != cl->largeCmdRequestsSoFar + 1) {
+        if (req->requestNumber != glxc->largeCmdRequestsSoFar + 1) {
             client->errorValue = req->requestNumber;
-            __glXResetLargeCommandStatus(cl);
+            ResetLargeCommandStatus(glxc);
             return __glXError(GLXBadLargeRequest);
         }
-        if (req->requestTotal != cl->largeCmdRequestsTotal) {
+        if (req->requestTotal != glxc->largeCmdRequestsTotal) {
             client->errorValue = req->requestTotal;
-            __glXResetLargeCommandStatus(cl);
+            ResetLargeCommandStatus(glxc);
             return __glXError(GLXBadLargeRequest);
         }
 
         /*
          ** Check that we didn't get too much data.
          */
-        if ((bytesSoFar = safe_add(cl->largeCmdBytesSoFar, dataBytes)) < 0) {
+        if ((bytesSoFar = safe_add(glxc->largeCmdBytesSoFar, dataBytes)) < 0) {
             client->errorValue = dataBytes;
-            __glXResetLargeCommandStatus(cl);
+            ResetLargeCommandStatus(glxc);
             return __glXError(GLXBadLargeRequest);
         }
 
-        if (bytesSoFar > cl->largeCmdBytesTotal) {
+        if (bytesSoFar > glxc->largeCmdBytesTotal) {
             client->errorValue = dataBytes;
-            __glXResetLargeCommandStatus(cl);
+            ResetLargeCommandStatus(glxc);
             return __glXError(GLXBadLargeRequest);
         }
 
-        memcpy(cl->largeCmdBuf + cl->largeCmdBytesSoFar, pc, dataBytes);
-        cl->largeCmdBytesSoFar += dataBytes;
-        cl->largeCmdRequestsSoFar++;
+        memcpy(glxc->largeCmdBuf + glxc->largeCmdBytesSoFar, pc, dataBytes);
+        glxc->largeCmdBytesSoFar += dataBytes;
+        glxc->largeCmdRequestsSoFar++;
 
-        if (req->requestNumber == cl->largeCmdRequestsTotal) {
+        if (req->requestNumber == glxc->largeCmdRequestsTotal) {
             __GLXdispatchRenderProcPtr proc;
 
             /*
@@ -2231,12 +2241,12 @@ __glXDisp_RenderLarge(__GLXclientState * cl, GLbyte * pc)
              ** fixes a bug that did not allow large commands of odd sizes to
              ** be accepted by the server.
              */
-            if (safe_pad(cl->largeCmdBytesSoFar) != cl->largeCmdBytesTotal) {
+            if (safe_pad(glxc->largeCmdBytesSoFar) != glxc->largeCmdBytesTotal) {
                 client->errorValue = dataBytes;
-                __glXResetLargeCommandStatus(cl);
+                ResetLargeCommandStatus(glxc);
                 return __glXError(GLXBadLargeRequest);
             }
-            hdr = (__GLXrenderLargeHeader *) cl->largeCmdBuf;
+            hdr = (__GLXrenderLargeHeader *) glxc->largeCmdBuf;
             /*
              ** The opcode and length field in the header had already been
              ** swapped when the first request was received.
@@ -2256,12 +2266,12 @@ __glXDisp_RenderLarge(__GLXclientState * cl, GLbyte * pc)
             /*
              ** Skip over the header and execute the command.
              */
-            (*proc) (cl->largeCmdBuf + __GLX_RENDER_LARGE_HDR_SIZE);
+            (*proc) (glxc->largeCmdBuf + __GLX_RENDER_LARGE_HDR_SIZE);
 
             /*
              ** Reset for the next RenderLarge series.
              */
-            __glXResetLargeCommandStatus(cl);
+            ResetLargeCommandStatus(glxc);
         }
         else {
             /*

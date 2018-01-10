@@ -66,18 +66,6 @@ static int __glXDispatch(ClientPtr);
 static GLboolean __glXFreeContext(__GLXcontext * cx);
 
 /*
-** Reset state used to keep track of large (multi-request) commands.
-*/
-void
-__glXResetLargeCommandStatus(__GLXclientState * cl)
-{
-    cl->largeCmdBytesSoFar = 0;
-    cl->largeCmdBytesTotal = 0;
-    cl->largeCmdRequestsSoFar = 0;
-    cl->largeCmdRequestsTotal = 0;
-}
-
-/*
  * This procedure is called when the client who created the context goes away
  * OR when glXDestroyContext is called. If the context is current for a client
  * the dispatch layer will have moved the context struct to a fake resource ID
@@ -188,6 +176,7 @@ __glXFreeContext(__GLXcontext * cx)
 
     free(cx->feedbackBuf);
     free(cx->selectBuf);
+    free(cx->largeCmdBuf);
     if (cx == lastGLContext) {
         lastGLContext = NULL;
     }
@@ -270,7 +259,6 @@ glxClientCallback(CallbackListPtr *list, void *closure, void *data)
     switch (pClient->clientState) {
     case ClientStateGone:
         free(cl->returnBuf);
-        free(cl->largeCmdBuf);
         free(cl->GLClientextensions);
         cl->returnBuf = NULL;
         cl->GLClientextensions = NULL;
@@ -591,6 +579,9 @@ xorgGlxCreateVendor(void)
 __GLXcontext *
 __glXForceCurrent(__GLXclientState * cl, GLXContextTag tag, int *error)
 {
+    ClientPtr client = cl->client;
+    REQUEST(xGLXSingleReq);
+
     __GLXcontext *cx;
 
     /*
@@ -601,6 +592,13 @@ __glXForceCurrent(__GLXclientState * cl, GLXContextTag tag, int *error)
     if (!cx) {
         cl->client->errorValue = tag;
         *error = __glXError(GLXBadContextTag);
+        return 0;
+    }
+
+    /* If we're expecting a glXRenderLarge request, this better be one. */
+    if (cx->largeCmdRequestsSoFar != 0 && stuff->glxCode != X_GLXRenderLarge) {
+        client->errorValue = stuff->glxCode;
+        *error = __glXError(GLXBadLargeRequest);
         return 0;
     }
 
@@ -710,13 +708,6 @@ __glXDispatch(ClientPtr client)
     opcode = stuff->glxCode;
     cl = glxGetClient(client);
 
-    /*
-     ** If we're expecting a glXRenderLarge request, this better be one.
-     */
-    if ((cl->largeCmdRequestsSoFar != 0) && (opcode != X_GLXRenderLarge)) {
-        client->errorValue = stuff->glxCode;
-        return __glXError(GLXBadLargeRequest);
-    }
 
     if (!cl->client)
         cl->client = client;
