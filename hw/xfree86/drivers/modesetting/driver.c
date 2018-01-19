@@ -36,6 +36,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "xf86.h"
+#include "xf86Priv.h"
 #include "xf86_OSproc.h"
 #include "compiler.h"
 #include "xf86Pci.h"
@@ -195,9 +196,22 @@ modesettingEntPtr ms_ent_priv(ScrnInfoPtr scrn)
 }
 
 static int
+get_passed_fd(void)
+{
+    if (xf86DRMMasterFd >= 0) {
+        xf86DrvMsg(-1, X_INFO, "Using passed DRM master file descriptor %d\n", xf86DRMMasterFd);
+        return dup(xf86DRMMasterFd);
+    }
+    return -1;
+}
+
+static int
 open_hw(const char *dev)
 {
     int fd;
+
+    if ((fd = get_passed_fd()) != -1)
+        return fd;
 
     if (dev)
         fd = open(dev, O_RDWR | O_CLOEXEC, 0);
@@ -815,6 +829,12 @@ ms_get_drm_master_fd(ScrnInfoPtr pScrn)
                    " reusing fd for second head\n");
         ms->fd = ms_ent->fd;
         ms_ent->fd_ref++;
+        return TRUE;
+    }
+
+    ms->fd_passed = FALSE;
+    if ((ms->fd = get_passed_fd()) >= 0) {
+        ms->fd_passed = TRUE;
         return TRUE;
     }
 
@@ -1502,6 +1522,9 @@ SetMaster(ScrnInfoPtr pScrn)
         return TRUE;
 #endif
 
+    if (ms->fd_passed)
+        return TRUE;
+
     ret = drmSetMaster(ms->fd);
     if (ret)
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "drmSetMaster failed: %s\n",
@@ -1754,7 +1777,8 @@ LeaveVT(ScrnInfoPtr pScrn)
         return;
 #endif
 
-    drmDropMaster(ms->fd);
+    if (!ms->fd_passed)
+        drmDropMaster(ms->fd);
 }
 
 /*
