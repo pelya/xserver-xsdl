@@ -587,8 +587,7 @@ xwl_unrealize_window(WindowPtr window)
     }
 
     wl_surface_destroy(xwl_window->surface);
-    if (RegionNotEmpty(DamageRegion(xwl_window->damage)))
-        xorg_list_del(&xwl_window->link_damage);
+    xorg_list_del(&xwl_window->link_damage);
     DamageUnregister(xwl_window->damage);
     DamageDestroy(xwl_window->damage);
     if (xwl_window->frame_callback)
