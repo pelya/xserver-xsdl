@@ -634,6 +634,7 @@ typedef enum {
     FLAG_XINERAMA,
     FLAG_LOG,
     FLAG_RENDER_COLORMAP_MODE,
+    FLAG_RANDR,
     FLAG_IGNORE_ABI,
     FLAG_ALLOW_EMPTY_INPUT,
     FLAG_USE_DEFAULT_FONT_PATH,
@@ -681,6 +682,8 @@ static OptionInfoRec FlagOptions[] = {
     {FLAG_LOG, "Log", OPTV_STRING,
      {0}, FALSE},
     {FLAG_RENDER_COLORMAP_MODE, "RenderColormapMode", OPTV_STRING,
+     {0}, FALSE},
+    {FLAG_RANDR, "RandR", OPTV_BOOLEAN,
      {0}, FALSE},
     {FLAG_IGNORE_ABI, "IgnoreABI", OPTV_BOOLEAN,
      {0}, FALSE},
@@ -823,6 +826,15 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
             }
         }
     }
+
+#ifdef RANDR
+    xf86Info.disableRandR = FALSE;
+    xf86Info.randRFrom = X_DEFAULT;
+    if (xf86GetOptValBool(FlagOptions, FLAG_RANDR, &value)) {
+        xf86Info.disableRandR = !value;
+        xf86Info.randRFrom = X_CONFIG;
+    }
+#endif
 
 #ifdef GLXEXT
     xf86Info.glxVisuals = XF86_GlxVisualsTypical;

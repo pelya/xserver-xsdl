@@ -305,6 +305,8 @@ extern _X_EXPORT Bool
 xf86GetModInDevEnabled(void);
 extern _X_EXPORT Bool
 xf86GetAllowMouseOpenFail(void);
+extern _X_EXPORT void
+xf86DisableRandR(void);
 extern _X_EXPORT CARD32
 xorgGetVersion(void);
 extern _X_EXPORT CARD32
