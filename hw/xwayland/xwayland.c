@@ -32,6 +32,7 @@
 #include <micmap.h>
 #include <misyncshm.h>
 #include <compositeext.h>
+#include <compint.h>
 #include <glx_extinit.h>
 #include <os.h>
 #include <xserver_poll.h>
@@ -528,6 +529,8 @@ xwl_realize_window(WindowPtr window)
         goto err_surf;
     }
 
+    compRedirectWindow(serverClient, window, CompositeRedirectManual);
+
     DamageRegister(&window->drawable, xwl_window->damage);
     DamageSetReportAfterOp(xwl_window->damage, TRUE);
 
@@ -574,6 +577,8 @@ xwl_unrealize_window(WindowPtr window)
             xwl_seat_destroy_pointer_warp_emulator(xwl_seat);
         xwl_seat_clear_touch(xwl_seat, window);
     }
+
+    compUnredirectWindow(serverClient, window, CompositeRedirectManual);
 
     screen->UnrealizeWindow = xwl_screen->UnrealizeWindow;
     ret = (*screen->UnrealizeWindow) (window);
