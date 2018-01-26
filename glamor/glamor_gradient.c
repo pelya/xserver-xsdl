@@ -465,13 +465,6 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
 	    "    float _p1_distance;\n"\
 	    "    float _pt_distance;\n"\
 	    "    float y_dist;\n"\
-	    "    float stop_after;\n"\
-	    "    float stop_before;\n"\
-	    "    vec4 stop_color_before;\n"\
-	    "    vec4 stop_color_after;\n"\
-	    "    float new_alpha; \n"\
-	    "    vec4 gradient_color;\n"\
-	    "    float percentage; \n"\
 	    "    vec3 source_texture_trans = transform_mat * tmp;\n"\
 	    "    \n"\
 	    "    if(hor_ver == 0) { \n" /*Normal case.*/\
