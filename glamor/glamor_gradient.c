@@ -55,10 +55,15 @@ _glamor_create_getcolor_fs_source(ScreenPtr screen, int stops_count,
 	    "    float new_alpha; \n"\
 	    "    vec4 gradient_color;\n"\
 	    "    float percentage; \n"\
-	    "    for(i = 0; i < n_stop - 1; i++) {\n"\
+	    "    \n"\
+	    "    if(stop_len < stops[0])\n"\
+	    "        return vec4(0.0, 0.0, 0.0, 0.0); \n"\
+	    "    for(i = 1; i < n_stop; i++) {\n"\
 	    "        if(stop_len < stops[i])\n"\
 	    "            break; \n"\
 	    "    }\n"\
+	    "    if(i == n_stop)\n"\
+	    "        return vec4(0.0, 0.0, 0.0, 0.0); \n"\
 	    "    \n"\
 	    "    if(stops[i] - stops[i-1] > 2.0)\n"\
 	    "        percentage = 0.0;\n" /*For comply with pixman, walker->stepper overflow.*/\
@@ -108,10 +113,10 @@ _glamor_create_getcolor_fs_source(ScreenPtr screen, int stops_count,
         "    float percentage; \n"
         "    \n"
         "    if((stop_len < stop0) && (n_stop >= 1)) {\n"
-        "        stop_color_before = stop_color0;\n"
-        "        stop_color_after = stop_color0;\n"
-        "        stop_after = stop0;\n"
-        "        stop_before = stop0;\n"
+        "        stop_color_before = vec4(0.0, 0.0, 0.0, 0.0);\n"
+        "        stop_color_after = vec4(0.0, 0.0, 0.0, 0.0);\n"
+        "        stop_after = 0.0;\n"
+        "        stop_before = 0.0;\n"
         "    } else if((stop_len < stop1) && (n_stop >= 2)) {\n"
         "        stop_color_before = stop_color0;\n"
         "        stop_color_after = stop_color1;\n"
@@ -148,10 +153,10 @@ _glamor_create_getcolor_fs_source(ScreenPtr screen, int stops_count,
         "        stop_after = stop7;\n"
         "        stop_before = stop6;\n"
         "    } else {\n"
-        "        stop_color_before = stop_color7;\n"
-        "        stop_color_after = stop_color7;\n"
-        "        stop_after = stop7;\n"
-        "        stop_before = stop7;\n"
+        "        stop_color_before = vec4(0.0, 0.0, 0.0, 0.0);\n"
+        "        stop_color_after = vec4(0.0, 0.0, 0.0, 0.0);\n"
+        "        stop_after = 0.0;\n"
+        "        stop_before = 0.0;\n"
         "    }\n"
         "    if(stop_after - stop_before > 2.0)\n"
         "        percentage = 0.0;\n" //For comply with pixman, walker->stepper overflow.
@@ -756,13 +761,13 @@ _glamor_gradient_set_stops(PicturePtr src_picture, PictGradient *pgradient,
         stop_colors[1] = 0.0;   //G
         stop_colors[2] = 0.0;   //B
         stop_colors[3] = 0.0;   //Alpha
-        n_stops[0] = -(float) INT_MAX;  //should be small enough.
+        n_stops[0] = n_stops[1];
 
         stop_colors[0 + (count - 1) * 4] = 0.0; //R
         stop_colors[1 + (count - 1) * 4] = 0.0; //G
         stop_colors[2 + (count - 1) * 4] = 0.0; //B
         stop_colors[3 + (count - 1) * 4] = 0.0; //Alpha
-        n_stops[count - 1] = (float) INT_MAX;   //should be large enough.
+        n_stops[count - 1] = n_stops[count - 2];
         break;
     case PIXMAN_REPEAT_NORMAL:
         REPEAT_FILL_STOPS(0, count - 2);
