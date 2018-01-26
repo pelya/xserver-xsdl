@@ -456,7 +456,6 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
 	    "float get_stop_len()\n"\
 	    "{\n"\
 	    "    vec3 tmp = vec3(source_texture.x, source_texture.y, 1.0);\n"\
-	    "    float len_percentage;\n"\
 	    "    float distance;\n"\
 	    "    float _p1_distance;\n"\
 	    "    float _pt_distance;\n"\
@@ -482,19 +481,17 @@ _glamor_create_linear_gradient_program(ScreenPtr screen, int stops_count,
 	    "        _pt_distance = pt_distance * source_texture_trans.z;\n"\
 	    "    } \n"\
 	    "    \n"\
-	    "    distance = distance - _p1_distance; \n"\
+	    "    distance = (distance - _p1_distance) / _pt_distance;\n"\
 	    "    \n"\
 	    "    if(repeat_type == %d){\n" /* repeat normal*/\
-	    "        distance = mod(distance, _pt_distance);\n"\
+	    "        distance = fract(distance);\n"\
 	    "    }\n"\
 	    "    \n"\
 	    "    if(repeat_type == %d) {\n" /* repeat reflect*/\
-	    "        distance = abs(mod(distance + _pt_distance, 2.0 * _pt_distance) - _pt_distance);\n"\
+	    "        distance = abs(fract(distance * 0.5 + 0.5) * 2.0 - 1.0);\n"\
 	    "    }\n"\
 	    "    \n"\
-	    "    len_percentage = distance/(_pt_distance);\n"\
-	    "    \n"\
-	    "    return len_percentage;\n"\
+	    "    return distance;\n"\
 	    "}\n"\
 	    "\n"\
 	    "void main()\n"\
