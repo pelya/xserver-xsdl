@@ -417,6 +417,44 @@ hostx_set_title(char *title)
 #pragma does_not_return(exit)
 #endif
 
+static Bool
+hostx_create_shm_segment(xcb_shm_segment_info_t *shminfo, size_t size)
+{
+    shminfo->shmaddr = NULL;
+    shminfo->shmid = shmget(IPC_PRIVATE, size, IPC_CREAT|0666);
+    if (shminfo->shmid != -1) {
+        shminfo->shmaddr = shmat(shminfo->shmid, 0, 0);
+        if (shminfo->shmaddr == (void *)-1) {
+            shminfo->shmaddr = NULL;
+        } else {
+            xcb_generic_error_t *error = NULL;
+            xcb_void_cookie_t cookie;
+
+            shmctl(shminfo->shmid, IPC_RMID, 0);
+
+            shminfo->shmseg = xcb_generate_id(HostX.conn);
+            cookie = xcb_shm_attach_checked(HostX.conn, shminfo->shmseg, shminfo->shmid, TRUE);
+            error = xcb_request_check(HostX.conn, cookie);
+
+            if (error) {
+                free(error);
+                shmdt(shminfo->shmaddr);
+                shminfo->shmaddr = NULL;
+            }
+        }
+    }
+
+    return shminfo->shmaddr != NULL;
+}
+
+static void
+hostx_destroy_shm_segment(xcb_shm_segment_info_t *shminfo)
+{
+    xcb_shm_detach(HostX.conn, shminfo->shmseg);
+    shmdt(shminfo->shmaddr);
+    shminfo->shmaddr = NULL;
+}
+
 int
 hostx_init(void)
 {
@@ -646,28 +684,13 @@ hostx_init(void)
     else {
         /* Really really check we have shm - better way ?*/
         xcb_shm_segment_info_t shminfo;
-        xcb_generic_error_t *e;
-        xcb_void_cookie_t cookie;
-        xcb_shm_seg_t shmseg;
-
         HostX.have_shm = TRUE;
-
-        shminfo.shmid = shmget(IPC_PRIVATE, 1, IPC_CREAT|0777);
-        shminfo.shmaddr = shmat(shminfo.shmid,0,0);
-
-        shmseg = xcb_generate_id(HostX.conn);
-        cookie = xcb_shm_attach_checked(HostX.conn, shmseg, shminfo.shmid,
-                                        TRUE);
-        e = xcb_request_check(HostX.conn, cookie);
-
-        if (e) {
+        if (!hostx_create_shm_segment(&shminfo, 1)) {
             fprintf(stderr, "\nXephyr unable to use SHM XImages\n");
             HostX.have_shm = FALSE;
-            free(e);
+        } else {
+            hostx_destroy_shm_segment(&shminfo);
         }
-
-        shmdt(shminfo.shmaddr);
-        shmctl(shminfo.shmid, IPC_RMID, 0);
     }
 
     xcb_flush(HostX.conn);
@@ -814,8 +837,7 @@ hostx_screen_init(KdScreenInfo *screen,
         if (HostX.have_shm) {
             xcb_shm_detach(HostX.conn, scrpriv->shminfo.shmseg);
             xcb_image_destroy(scrpriv->ximg);
-            shmdt(scrpriv->shminfo.shmaddr);
-            shmctl(scrpriv->shminfo.shmid, IPC_RMID, 0);
+            hostx_destroy_shm_segment(&scrpriv->shminfo);
         }
         else {
             free(scrpriv->ximg->data);
@@ -835,27 +857,16 @@ hostx_screen_init(KdScreenInfo *screen,
                                                 ~0,
                                                 NULL);
 
-        scrpriv->shminfo.shmid =
-            shmget(IPC_PRIVATE,
-                   scrpriv->ximg->stride * buffer_height,
-                   IPC_CREAT | 0777);
-        scrpriv->ximg->data = shmat(scrpriv->shminfo.shmid, 0, 0);
-        scrpriv->shminfo.shmaddr = scrpriv->ximg->data;
-
-        if (scrpriv->ximg->data == (uint8_t *) -1) {
+        if (!hostx_create_shm_segment(&scrpriv->shminfo,
+                                      scrpriv->ximg->stride * buffer_height)) {
             EPHYR_DBG
-                ("Can't attach SHM Segment, falling back to plain XImages");
+                ("Can't create SHM Segment, falling back to plain XImages");
             HostX.have_shm = FALSE;
-            xcb_image_destroy (scrpriv->ximg);
-            shmctl(scrpriv->shminfo.shmid, IPC_RMID, 0);
+            xcb_image_destroy(scrpriv->ximg);
         }
         else {
-            EPHYR_DBG("SHM segment attached %p", scrpriv->shminfo.shmaddr);
-            scrpriv->shminfo.shmseg = xcb_generate_id(HostX.conn);
-            xcb_shm_attach(HostX.conn,
-                           scrpriv->shminfo.shmseg,
-                           scrpriv->shminfo.shmid,
-                           FALSE);
+            EPHYR_DBG("SHM segment created %p", scrpriv->shminfo.shmaddr);
+            scrpriv->ximg->data = scrpriv->shminfo.shmaddr;
             shm_success = TRUE;
         }
     }
