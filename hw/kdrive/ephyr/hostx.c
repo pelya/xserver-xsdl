@@ -457,8 +457,9 @@ hostx_create_shm_segment(xcb_shm_segment_info_t *shminfo, size_t size)
         shminfo->shmseg = xcb_generate_id(HostX.conn);
         cookie = xcb_shm_create_segment(HostX.conn, shminfo->shmseg, size, TRUE);
         reply = xcb_shm_create_segment_reply(HostX.conn, cookie, &error);
-        if (!error && reply && reply->nfd == 1) {
-            int *fds = xcb_shm_create_segment_reply_fds(HostX.conn, reply);
+        if (reply) {
+            int *fds = reply->nfd == 1 ?
+                        xcb_shm_create_segment_reply_fds(HostX.conn, reply) : NULL;
             if (fds) {
                 shminfo->shmaddr =
                         (uint8_t *)mmap(0, size, PROT_READ|PROT_WRITE, MAP_SHARED, fds[0], 0);
@@ -466,9 +467,12 @@ hostx_create_shm_segment(xcb_shm_segment_info_t *shminfo, size_t size)
                 if (shminfo->shmaddr == MAP_FAILED)
                     shminfo->shmaddr = NULL;
             }
+            if (!shminfo->shmaddr)
+                xcb_shm_detach(HostX.conn, shminfo->shmseg);
+
+            free(reply);
         }
         free(error);
-        free(reply);
     } else {
         shminfo->shmid = shmget(IPC_PRIVATE, size, IPC_CREAT|0666);
         if (shminfo->shmid != -1) {
