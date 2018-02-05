@@ -774,7 +774,8 @@ DoConfigure(void)
 
         ConfiguredMonitor = NULL;
 
-        if ((*xf86Screens[dev2screen[j]]->PreInit) (xf86Screens[dev2screen[j]],
+        if ((*xf86Screens[dev2screen[j]]->PreInit) &&
+            (*xf86Screens[dev2screen[j]]->PreInit) (xf86Screens[dev2screen[j]],
                                                     PROBE_DETECT) &&
             ConfiguredMonitor) {
             monitor_ptr = configureDDCMonitorSection(j);
