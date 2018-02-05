@@ -702,7 +702,7 @@ DoConfigure(void)
 
     xf86DoConfigurePass1 = FALSE;
 
-    dev2screen = xnfcalloc(xf86NumDrivers, sizeof(int));
+    dev2screen = xnfcalloc(nDevToConfig, sizeof(int));
 
     {
         Bool *driverProbed = xnfcalloc(xf86NumDrivers, sizeof(Bool));
