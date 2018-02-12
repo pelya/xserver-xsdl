@@ -153,6 +153,7 @@ struct _rrOutput {
     int numUserModes;
     RRModePtr *userModes;
     Bool changed;
+    Bool nonDesktop;
     RRPropertyPtr properties;
     Bool pendingProperties;
     void *devPrivate;
@@ -550,6 +551,8 @@ extern _X_EXPORT Bool RRInit(void);
 extern _X_EXPORT Bool RRScreenInit(ScreenPtr pScreen);
 
 extern _X_EXPORT RROutputPtr RRFirstOutput(ScreenPtr pScreen);
+
+extern _X_EXPORT Bool RROutputSetNonDesktop(RROutputPtr output, Bool non_desktop);
 
 extern _X_EXPORT CARD16
  RRVerticalRefresh(xRRModeInfo * mode);

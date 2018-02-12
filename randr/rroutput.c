@@ -22,6 +22,7 @@
  */
 
 #include "randrstr.h"
+#include <X11/Xatom.h>
 
 RESTYPE RROutputType;
 
@@ -65,6 +66,7 @@ RROutputCreate(ScreenPtr pScreen,
     RROutputPtr output;
     RROutputPtr *outputs;
     rrScrPrivPtr pScrPriv;
+    Atom nonDesktopAtom;
 
     if (!RRInit())
         return NULL;
@@ -111,6 +113,13 @@ RROutputCreate(ScreenPtr pScreen,
 
     pScrPriv->outputs[pScrPriv->numOutputs++] = output;
 
+    nonDesktopAtom = MakeAtom(RR_PROPERTY_NON_DESKTOP, strlen(RR_PROPERTY_NON_DESKTOP), TRUE);
+    if (nonDesktopAtom != BAD_RESOURCE) {
+        static const INT32 values[2] = { 0, 1 };
+        (void) RRConfigureOutputProperty(output, nonDesktopAtom, FALSE, FALSE, FALSE,
+                                            2, values);
+    }
+    RROutputSetNonDesktop(output, FALSE);
     RRResourcesChanged(pScreen);
 
     return output;
@@ -311,6 +320,20 @@ RROutputSetPhysicalSize(RROutputPtr output, int mmWidth, int mmHeight)
     return TRUE;
 }
 
+Bool
+RROutputSetNonDesktop(RROutputPtr output, Bool nonDesktop)
+{
+    const char *nonDesktopStr = RR_PROPERTY_NON_DESKTOP;
+    Atom nonDesktopProp = MakeAtom(nonDesktopStr, strlen(nonDesktopStr), TRUE);
+    uint32_t value = nonDesktop ? 1 : 0;
+
+    if (nonDesktopProp == None || nonDesktopProp == BAD_RESOURCE)
+        return FALSE;
+
+    return RRChangeOutputProperty(output, nonDesktopProp, XA_INTEGER, 32,
+                                  PropModeReplace, 1, &value, TRUE, FALSE) == Success;
+}
+
 void
 RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output)
 {
@@ -330,7 +353,7 @@ RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output)
         .crtc = crtc ? crtc->id : None,
         .mode = mode ? mode->mode.id : None,
         .rotation = crtc ? crtc->rotation : RR_Rotate_0,
-        .connection = output->connection,
+        .connection = output->nonDesktop ? RR_Disconnected : output->connection,
         .subpixelOrder = output->subpixelOrder
     };
     WriteEventsToClient(client, 1, (xEvent *) &oe);
@@ -442,6 +465,7 @@ ProcRRGetOutputInfo(ClientPtr client)
         .crtc = output->crtc ? output->crtc->id : None,
         .mmWidth = output->mmWidth,
         .mmHeight = output->mmHeight,
+        .connection = output->nonDesktop ? RR_Disconnected : output->connection,
         .connection = output->connection,
         .subpixelOrder = output->subpixelOrder,
         .nCrtcs = output->numCrtcs,
