@@ -1769,6 +1769,7 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_r
     drmmode_output_private_ptr drmmode_output;
     char name[32];
     int i;
+    Bool nonDesktop = FALSE;
     drmModePropertyBlobPtr path_blob = NULL;
     const char *s;
     koutput =
@@ -1777,6 +1778,9 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_r
         return 0;
 
     path_blob = koutput_get_prop_blob(drmmode->fd, koutput, "PATH");
+    i = koutput_get_prop_idx(drmmode->fd, koutput, DRM_MODE_PROP_RANGE, RR_PROPERTY_NON_DESKTOP);
+    if (i >= 0)
+        nonDesktop = koutput->prop_values[i] != 0;
 
     drmmode_create_name(pScrn, koutput, name, path_blob);
 
@@ -1795,6 +1799,7 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_r
             drmmode_output = output->driver_private;
             drmmode_output->output_id = mode_res->connectors[num];
             drmmode_output->mode_output = koutput;
+            output->non_desktop = nonDesktop;
             return 1;
         }
     }
@@ -1845,6 +1850,7 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_r
     output->interlaceAllowed = TRUE;
     output->doubleScanAllowed = TRUE;
     output->driver_private = drmmode_output;
+    output->non_desktop = nonDesktop;
 
     output->possible_crtcs = 0x7f;
     for (i = 0; i < koutput->count_encoders; i++) {

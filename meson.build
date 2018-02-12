@@ -59,7 +59,7 @@ endforeach
 add_global_arguments(common_wflags, language : 'c')
 
 xproto_dep = dependency('xproto', version: '>= 7.0.31')
-randrproto_dep = dependency('randrproto', version: '>= 1.5.0')
+randrproto_dep = dependency('randrproto', version: '>= 1.6.0')
 renderproto_dep = dependency('renderproto', version: '>= 0.11')
 xextproto_dep = dependency('xextproto', version: '>= 7.2.99.901')
 inputproto_dep = dependency('inputproto', version: '>= 2.3')
