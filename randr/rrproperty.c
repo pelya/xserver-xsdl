@@ -512,6 +512,9 @@ ProcRRConfigureOutputProperty(ClientPtr client)
 
     VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
 
+    if (RROutputIsLeased(output))
+        return BadAccess;
+
     num_valid =
         stuff->length - bytes_to_int32(sizeof(xRRConfigureOutputPropertyReq));
     return RRConfigureOutputProperty(output, stuff->property, stuff->pending,
@@ -581,6 +584,9 @@ ProcRRDeleteOutputProperty(ClientPtr client)
     REQUEST_SIZE_MATCH(xRRDeleteOutputPropertyReq);
     UpdateCurrentTime();
     VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
+
+    if (RROutputIsLeased(output))
+        return BadAccess;
 
     if (!ValidAtom(stuff->property)) {
         client->errorValue = stuff->property;

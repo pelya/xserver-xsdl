@@ -1804,6 +1804,9 @@ CloseScreen(ScreenPtr pScreen)
         free(ms->drmmode.shadow_fb2);
         ms->drmmode.shadow_fb2 = NULL;
     }
+
+    drmmode_terminate_leases(pScrn, &ms->drmmode);
+
     drmmode_uevent_fini(pScrn, &ms->drmmode);
 
     drmmode_free_bos(pScrn, &ms->drmmode);

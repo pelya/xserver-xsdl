@@ -759,7 +759,7 @@ dnl List of libraries that require a specific version
 LIBAPPLEWM="applewm >= 1.4"
 LIBDMX="dmx >= 1.0.99.1"
 LIBDRI="dri >= 7.8.0"
-LIBDRM="libdrm >= 2.3.1"
+LIBDRM="libdrm >= 2.4.89"
 LIBEGL="egl"
 LIBGBM="gbm >= 10.2.0"
 LIBGL="gl >= 7.1.0"

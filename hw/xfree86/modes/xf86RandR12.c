@@ -2205,6 +2205,131 @@ xf86RandR14ProviderDestroy(ScreenPtr screen, RRProviderPtr provider)
     config->randr_provider = NULL;
 }
 
+static void
+xf86CrtcCheckReset(xf86CrtcPtr crtc) {
+    if (xf86CrtcInUse(crtc)) {
+        RRTransformPtr transform;
+
+        if (crtc->desiredTransformPresent)
+            transform = &crtc->desiredTransform;
+        else
+            transform = NULL;
+        xf86CrtcSetModeTransform(crtc, &crtc->desiredMode,
+                                 crtc->desiredRotation, transform,
+                                 crtc->desiredX, crtc->desiredY);
+        xf86_crtc_show_cursor(crtc);
+    }
+}
+
+void
+xf86CrtcLeaseTerminated(RRLeasePtr lease)
+{
+    int c;
+    int o;
+
+    RRLeaseTerminated(lease);
+    /*
+     * Force a full mode set on any crtc in the expiring lease which
+     * was running before the lease started
+     */
+    for (c = 0; c < lease->numCrtcs; c++) {
+        RRCrtcPtr randr_crtc = lease->crtcs[c];
+        xf86CrtcPtr crtc = randr_crtc->devPrivate;
+
+        xf86CrtcCheckReset(crtc);
+    }
+
+    /* Check to see if any leased output is using a crtc which
+     * was not reset in the above loop
+     */
+    for (o = 0; o < lease->numOutputs; o++) {
+        RROutputPtr randr_output = lease->outputs[o];
+        xf86OutputPtr output = randr_output->devPrivate;
+        xf86CrtcPtr crtc = output->crtc;
+
+        if (crtc) {
+            for (c = 0; c < lease->numCrtcs; c++)
+                if (lease->crtcs[c] == crtc->randr_crtc)
+                    break;
+            if (c != lease->numCrtcs)
+                continue;
+            xf86CrtcCheckReset(crtc);
+        }
+    }
+    RRLeaseFree(lease);
+}
+
+static Bool
+xf86CrtcSoleOutput(xf86CrtcPtr crtc, xf86OutputPtr output)
+{
+    ScrnInfoPtr scrn = crtc->scrn;
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(scrn);
+    int o;
+
+    for (o = 0; o < config->num_output; o++) {
+        xf86OutputPtr other = config->output[o];
+
+        if (other != output && other->crtc == crtc)
+            return FALSE;
+    }
+    return TRUE;
+}
+
+void
+xf86CrtcLeaseStarted(RRLeasePtr lease)
+{
+    int c;
+    int o;
+
+    for (c = 0; c < lease->numCrtcs; c++) {
+        RRCrtcPtr randr_crtc = lease->crtcs[c];
+        xf86CrtcPtr crtc = randr_crtc->devPrivate;
+
+        if (crtc->enabled) {
+            /*
+             * Leave the primary plane enabled so we can
+             * flip without blanking the screen. Hide
+             * the cursor so it doesn't remain on the screen
+             * while the lease is active
+             */
+            xf86_crtc_hide_cursor(crtc);
+            crtc->enabled = FALSE;
+        }
+    }
+    for (o = 0; o < lease->numOutputs; o++) {
+        RROutputPtr randr_output = lease->outputs[o];
+        xf86OutputPtr output = randr_output->devPrivate;
+        xf86CrtcPtr crtc = output->crtc;
+
+        if (crtc)
+            if (xf86CrtcSoleOutput(crtc, output))
+                crtc->enabled = FALSE;
+    }
+}
+
+static int
+xf86RandR16CreateLease(ScreenPtr screen, RRLeasePtr randr_lease, int *fd)
+{
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(scrn);
+
+    if (config->funcs->create_lease)
+        return config->funcs->create_lease(randr_lease, fd);
+    else
+        return BadMatch;
+}
+
+
+static void
+xf86RandR16TerminateLease(ScreenPtr screen, RRLeasePtr randr_lease)
+{
+    ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(scrn);
+
+    if (config->funcs->terminate_lease)
+        config->funcs->terminate_lease(randr_lease);
+}
+
 static Bool
 xf86RandR12Init12(ScreenPtr pScreen)
 {
@@ -2233,6 +2358,9 @@ xf86RandR12Init12(ScreenPtr pScreen)
     rp->rrProviderGetProperty = xf86RandR14ProviderGetProperty;
     rp->rrCrtcSetScanoutPixmap = xf86CrtcSetScanoutPixmap;
     rp->rrProviderDestroy = xf86RandR14ProviderDestroy;
+
+    rp->rrCreateLease = xf86RandR16CreateLease;
+    rp->rrTerminateLease = xf86RandR16TerminateLease;
 
     pScrn->PointerMoved = xf86RandR12PointerMoved;
     pScrn->ChangeGamma = xf86RandR12ChangeGamma;

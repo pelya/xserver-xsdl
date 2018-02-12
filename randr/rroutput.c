@@ -449,66 +449,99 @@ ProcRRGetOutputInfo(ClientPtr client)
     RROutput *clones;
     char *name;
     int i;
+    Bool leased;
 
     REQUEST_SIZE_MATCH(xRRGetOutputInfoReq);
     VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
 
+    leased = RROutputIsLeased(output);
+
     pScreen = output->pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
 
-    rep = (xRRGetOutputInfoReply) {
-        .type = X_Reply,
-        .status = RRSetConfigSuccess,
-        .sequenceNumber = client->sequence,
-        .length = bytes_to_int32(OutputInfoExtra),
-        .timestamp = pScrPriv->lastSetTime.milliseconds,
-        .crtc = output->crtc ? output->crtc->id : None,
-        .mmWidth = output->mmWidth,
-        .mmHeight = output->mmHeight,
-        .connection = output->nonDesktop ? RR_Disconnected : output->connection,
-        .connection = output->connection,
-        .subpixelOrder = output->subpixelOrder,
-        .nCrtcs = output->numCrtcs,
-        .nModes = output->numModes + output->numUserModes,
-        .nPreferred = output->numPreferred,
-        .nClones = output->numClones,
-        .nameLength = output->nameLength
-    };
-    extraLen = ((output->numCrtcs +
-                 output->numModes + output->numUserModes +
-                 output->numClones + bytes_to_int32(rep.nameLength)) << 2);
-
-    if (extraLen) {
-        rep.length += bytes_to_int32(extraLen);
-        extra = calloc(1, extraLen);
-        if (!extra)
-            return BadAlloc;
-    }
-    else
-        extra = NULL;
-
-    crtcs = (RRCrtc *) extra;
-    modes = (RRMode *) (crtcs + output->numCrtcs);
-    clones = (RROutput *) (modes + output->numModes + output->numUserModes);
-    name = (char *) (clones + output->numClones);
-
-    for (i = 0; i < output->numCrtcs; i++) {
-        crtcs[i] = output->crtcs[i]->id;
-        if (client->swapped)
-            swapl(&crtcs[i]);
-    }
-    for (i = 0; i < output->numModes + output->numUserModes; i++) {
-        if (i < output->numModes)
-            modes[i] = output->modes[i]->mode.id;
+    if (leased) {
+        rep = (xRRGetOutputInfoReply) {
+            .type = X_Reply,
+            .status = RRSetConfigSuccess,
+            .sequenceNumber = client->sequence,
+            .length = bytes_to_int32(OutputInfoExtra),
+            .timestamp = pScrPriv->lastSetTime.milliseconds,
+            .crtc = None,
+            .mmWidth = 0,
+            .mmHeight = 0,
+            .connection = RR_Disconnected,
+            .subpixelOrder = SubPixelUnknown,
+            .nCrtcs = 0,
+            .nModes = 0,
+            .nPreferred = 0,
+            .nClones = 0,
+            .nameLength = output->nameLength
+        };
+        extraLen = bytes_to_int32(rep.nameLength) << 2;
+        if (extraLen) {
+            rep.length += bytes_to_int32(extraLen);
+            extra = calloc(1, extraLen);
+            if (!extra)
+                return BadAlloc;
+        }
         else
-            modes[i] = output->userModes[i - output->numModes]->mode.id;
-        if (client->swapped)
-            swapl(&modes[i]);
-    }
-    for (i = 0; i < output->numClones; i++) {
-        clones[i] = output->clones[i]->id;
-        if (client->swapped)
-            swapl(&clones[i]);
+            extra = NULL;
+
+        name = (char *) extra;
+    } else {
+        rep = (xRRGetOutputInfoReply) {
+            .type = X_Reply,
+            .status = RRSetConfigSuccess,
+            .sequenceNumber = client->sequence,
+            .length = bytes_to_int32(OutputInfoExtra),
+            .timestamp = pScrPriv->lastSetTime.milliseconds,
+            .crtc = output->crtc ? output->crtc->id : None,
+            .mmWidth = output->mmWidth,
+            .mmHeight = output->mmHeight,
+            .connection = output->nonDesktop ? RR_Disconnected : output->connection,
+            .subpixelOrder = output->subpixelOrder,
+            .nCrtcs = output->numCrtcs,
+            .nModes = output->numModes + output->numUserModes,
+            .nPreferred = output->numPreferred,
+            .nClones = output->numClones,
+            .nameLength = output->nameLength
+        };
+        extraLen = ((output->numCrtcs +
+                     output->numModes + output->numUserModes +
+                     output->numClones + bytes_to_int32(rep.nameLength)) << 2);
+
+        if (extraLen) {
+            rep.length += bytes_to_int32(extraLen);
+            extra = calloc(1, extraLen);
+            if (!extra)
+                return BadAlloc;
+        }
+        else
+            extra = NULL;
+
+        crtcs = (RRCrtc *) extra;
+        modes = (RRMode *) (crtcs + output->numCrtcs);
+        clones = (RROutput *) (modes + output->numModes + output->numUserModes);
+        name = (char *) (clones + output->numClones);
+
+        for (i = 0; i < output->numCrtcs; i++) {
+            crtcs[i] = output->crtcs[i]->id;
+            if (client->swapped)
+                swapl(&crtcs[i]);
+        }
+        for (i = 0; i < output->numModes + output->numUserModes; i++) {
+            if (i < output->numModes)
+                modes[i] = output->modes[i]->mode.id;
+            else
+                modes[i] = output->userModes[i - output->numModes]->mode.id;
+            if (client->swapped)
+                swapl(&modes[i]);
+        }
+        for (i = 0; i < output->numClones; i++) {
+            clones[i] = output->clones[i]->id;
+            if (client->swapped)
+                swapl(&clones[i]);
+        }
     }
     memcpy(name, output->name, output->nameLength);
     if (client->swapped) {
@@ -574,6 +607,9 @@ ProcRRSetOutputPrimary(ClientPtr client)
 
     if (stuff->output) {
         VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
+
+        if (RROutputIsLeased(output))
+            return BadAccess;
 
         if (!output->pScreen->isGPU && output->pScreen != pWin->drawable.pScreen) {
             client->errorValue = stuff->window;
