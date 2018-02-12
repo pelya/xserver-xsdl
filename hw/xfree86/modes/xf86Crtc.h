@@ -247,7 +247,7 @@ typedef struct _xf86CrtcFuncs {
 
 } xf86CrtcFuncsRec, *xf86CrtcFuncsPtr;
 
-#define XF86_CRTC_VERSION 7
+#define XF86_CRTC_VERSION 8
 
 struct _xf86Crtc {
     /**
@@ -626,6 +626,11 @@ struct _xf86Output {
 
     /** Whether to use the old per-screen Monitor config section */
     Bool use_screen_monitor;
+
+    /** For pre-init, whether the output should be excluded from the
+     * desktop when there are other viable outputs to use
+     */
+    Bool non_desktop;
 
 #ifdef RANDR_12_INTERFACE
     /**

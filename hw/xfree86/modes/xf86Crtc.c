@@ -538,9 +538,9 @@ xf86OutputEnabled(xf86OutputPtr output, Bool strict)
         return FALSE;
     }
 
-    /* If not, try to only light up the ones we know are connected */
+    /* If not, try to only light up the ones we know are connected which are supposed to be on the desktop */
     if (strict) {
-        enable = output->status == XF86OutputStatusConnected;
+        enable = output->status == XF86OutputStatusConnected && !output->non_desktop;
     }
     /* But if that fails, try to light up even outputs we're unsure of */
     else {
