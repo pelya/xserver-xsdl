@@ -1510,6 +1510,29 @@ drmmode_output_create_resources(xf86OutputPtr output)
         j++;
     }
 
+    /* Create CONNECTOR_ID property */
+    {
+        Atom    name = MakeAtom("CONNECTOR_ID", 12, TRUE);
+        INT32   value = mode_output->connector_id;
+
+        if (name != BAD_RESOURCE) {
+            err = RRConfigureOutputProperty(output->randr_output, name,
+                                            FALSE, FALSE, TRUE,
+                                            1, &value);
+            if (err != 0) {
+                xf86DrvMsg(output->scrn->scrnIndex, X_ERROR,
+                           "RRConfigureOutputProperty error, %d\n", err);
+            }
+            err = RRChangeOutputProperty(output->randr_output, name,
+                                         XA_INTEGER, 32, PropModeReplace, 1,
+                                         &value, FALSE, FALSE);
+            if (err != 0) {
+                xf86DrvMsg(output->scrn->scrnIndex, X_ERROR,
+                           "RRChangeOutputProperty error, %d\n", err);
+            }
+        }
+    }
+
     for (i = 0; i < drmmode_output->num_props; i++) {
         drmmode_prop_ptr p = &drmmode_output->props[i];
 
