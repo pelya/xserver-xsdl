@@ -57,6 +57,8 @@ option('vbe', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
        description: 'Xorg VBE module')
 option('vgahw', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
        description: 'Xorg VGA access module')
+option('dpms', type: 'boolean', value: true,
+       description: 'Xorg DPMS extension')
 
 option('dri1', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto', description: 'Build DRI1 extension (default: auto)')
 option('dri2', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto', description: 'Build DRI2 extension (default: auto)')

@@ -335,10 +335,14 @@ else
     build_vgahw = get_option('vgahw') == 'true'
 endif
 
+build_dpms = get_option('dpms')
+if build_xquartz
+    build_dpms = false
+endif
+
 # XXX: Allow configuration of these.
 build_apm = false
 build_acpi = false
-build_dpms = true
 build_mitshm = true
 build_res = true
 build_screensaver = true
