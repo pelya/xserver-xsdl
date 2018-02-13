@@ -340,16 +340,17 @@ if build_xquartz
     build_dpms = false
 endif
 
+build_xf86bigfont = get_option('xf86bigfont')
+build_screensaver = get_option('screensaver')
+build_res = get_option('xres')
+build_xace = get_option('xace')
+build_xinerama = get_option('xinerama')
+
 # XXX: Allow configuration of these.
 build_apm = false
 build_acpi = false
 build_mitshm = true
-build_res = true
-build_screensaver = true
-build_xace = true
 build_xsecurity = true
-build_xf86bigfont = true
-build_xinerama = true
 build_xselinux = false
 build_xv = true
 build_dga = false
