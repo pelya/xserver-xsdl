@@ -346,11 +346,17 @@ build_res = get_option('xres')
 build_xace = get_option('xace')
 build_xinerama = get_option('xinerama')
 
+build_xsecurity = get_option('xcsecurity')
+if build_xsecurity
+    if not build_xace
+        error('cannot build Security extension without X-ACE')
+    endif
+endif
+
 # XXX: Allow configuration of these.
 build_apm = false
 build_acpi = false
 build_mitshm = true
-build_xsecurity = true
 build_xselinux = false
 build_xv = true
 build_dga = false
