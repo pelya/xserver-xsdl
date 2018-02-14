@@ -640,7 +640,7 @@ InitOutput(ScreenInfo * pScreenInfo, int argc, char *argv[])
     for (i = 0; i < dmxNumScreens; i++)
         dmxDisplayInit(&dmxScreens[i]);
 
-#if PANORAMIX
+#ifdef PANORAMIX
     /* Register a Xinerama callback which will run from within
      * PanoramiXCreateConnectionBlock.  We can use the callback to
      * determine if Xinerama is loaded and to check the visuals
