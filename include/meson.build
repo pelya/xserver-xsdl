@@ -192,7 +192,7 @@ conf_data.set('XSYNC', '1')
 conf_data.set('XTEST', '1')
 conf_data.set('XV', build_xv)
 conf_data.set('XvExtension', build_xv)
-conf_data.set('XvMCExtension', build_xv)
+conf_data.set('XvMCExtension', build_xvmc)
 
 conf_data.set('HAVE_SHA1_IN_LIBNETTLE', '1') # XXX
 

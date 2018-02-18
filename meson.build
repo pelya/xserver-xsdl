@@ -353,12 +353,17 @@ if build_xsecurity
     endif
 endif
 
+build_xv = get_option('xv')
+build_xvmc = get_option('xvmc')
+if not build_xv
+    build_xvmc = false
+endif
+
 # XXX: Allow configuration of these.
 build_apm = false
 build_acpi = false
 build_mitshm = true
 build_xselinux = false
-build_xv = true
 build_dga = false
 build_xf86vidmode = xf86vidmodeproto_dep.found()
 
