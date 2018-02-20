@@ -402,6 +402,9 @@ dri2_convert_glx_attribs(__GLXDRIscreen *screen, unsigned num_attribs,
                 return FALSE;
             }
             break;
+        case GLX_SCREEN:
+            /* already checked for us */
+            break;
         case GLX_CONTEXT_OPENGL_NO_ERROR_ARB:
             /* ignore */
             break;
