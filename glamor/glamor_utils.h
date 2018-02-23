@@ -706,6 +706,15 @@ glamor_get_rgba_from_pixel(CARD32 pixel,
     return TRUE;
 }
 
+static inline void
+glamor_get_rgba_from_color(const xRenderColor *color, float rgba[4])
+{
+    rgba[0] = color->red   / (float)UINT16_MAX;
+    rgba[1] = color->green / (float)UINT16_MAX;
+    rgba[2] = color->blue  / (float)UINT16_MAX;
+    rgba[3] = color->alpha / (float)UINT16_MAX;
+}
+
 inline static Bool
 glamor_is_large_pixmap(PixmapPtr pixmap)
 {
