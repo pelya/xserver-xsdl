@@ -1258,40 +1258,82 @@ xf86RandR12CrtcComputeGamma(xf86CrtcPtr crtc, LOCO *palette,
 
     for (shift = 0; (gamma_size << shift) < (1 << 16); shift++);
 
-    gamma_slots = crtc->gamma_size / palette_red_size;
-    for (i = 0; i < palette_red_size; i++) {
-        value = palette[i].red;
-        if (gamma_red)
-            value = gamma_red[value];
-        else
-            value <<= shift;
+    if (crtc->gamma_size >= palette_red_size) {
+        /* Upsampling of smaller palette to larger hw lut size */
+        gamma_slots = crtc->gamma_size / palette_red_size;
+        for (i = 0; i < palette_red_size; i++) {
+            value = palette[i].red;
+            if (gamma_red)
+                value = gamma_red[value];
+            else
+                value <<= shift;
 
-        for (j = 0; j < gamma_slots; j++)
-            crtc->gamma_red[i * gamma_slots + j] = value;
+            for (j = 0; j < gamma_slots; j++)
+                crtc->gamma_red[i * gamma_slots + j] = value;
+        }
+    } else {
+        /* Downsampling of larger palette to smaller hw lut size */
+        for (i = 0; i < crtc->gamma_size; i++) {
+            value = palette[i * (palette_red_size - 1) / (crtc->gamma_size - 1)].red;
+            if (gamma_red)
+                value = gamma_red[value];
+            else
+                value <<= shift;
+
+            crtc->gamma_red[i] = value;
+        }
     }
 
-    gamma_slots = crtc->gamma_size / palette_green_size;
-    for (i = 0; i < palette_green_size; i++) {
-        value = palette[i].green;
-        if (gamma_green)
-            value = gamma_green[value];
-        else
-            value <<= shift;
+    if (crtc->gamma_size >= palette_green_size) {
+        /* Upsampling of smaller palette to larger hw lut size */
+        gamma_slots = crtc->gamma_size / palette_green_size;
+        for (i = 0; i < palette_green_size; i++) {
+            value = palette[i].green;
+            if (gamma_green)
+                value = gamma_green[value];
+            else
+                value <<= shift;
 
-        for (j = 0; j < gamma_slots; j++)
-            crtc->gamma_green[i * gamma_slots + j] = value;
+            for (j = 0; j < gamma_slots; j++)
+                crtc->gamma_green[i * gamma_slots + j] = value;
+        }
+    } else {
+        /* Downsampling of larger palette to smaller hw lut size */
+        for (i = 0; i < crtc->gamma_size; i++) {
+            value = palette[i * (palette_green_size - 1) / (crtc->gamma_size - 1)].green;
+            if (gamma_green)
+                value = gamma_green[value];
+            else
+                value <<= shift;
+
+            crtc->gamma_green[i] = value;
+        }
     }
 
-    gamma_slots = crtc->gamma_size / palette_blue_size;
-    for (i = 0; i < palette_blue_size; i++) {
-        value = palette[i].blue;
-        if (gamma_blue)
-            value = gamma_blue[value];
-        else
-            value <<= shift;
+    if (crtc->gamma_size >= palette_blue_size) {
+        /* Upsampling of smaller palette to larger hw lut size */
+        gamma_slots = crtc->gamma_size / palette_blue_size;
+        for (i = 0; i < palette_blue_size; i++) {
+            value = palette[i].blue;
+            if (gamma_blue)
+                value = gamma_blue[value];
+            else
+                value <<= shift;
 
-        for (j = 0; j < gamma_slots; j++)
-            crtc->gamma_blue[i * gamma_slots + j] = value;
+            for (j = 0; j < gamma_slots; j++)
+                crtc->gamma_blue[i * gamma_slots + j] = value;
+        }
+    } else {
+        /* Downsampling of larger palette to smaller hw lut size */
+        for (i = 0; i < crtc->gamma_size; i++) {
+            value = palette[i * (palette_blue_size - 1) / (crtc->gamma_size - 1)].blue;
+            if (gamma_blue)
+                value = gamma_blue[value];
+            else
+                value <<= shift;
+
+            crtc->gamma_blue[i] = value;
+        }
     }
 }
 
