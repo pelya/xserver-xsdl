@@ -2262,13 +2262,17 @@ drmmode_load_palette(ScrnInfoPtr pScrn, int numColors,
 Bool
 drmmode_setup_colormap(ScreenPtr pScreen, ScrnInfoPtr pScrn)
 {
-    xf86DrvMsgVerb(pScrn->scrnIndex, X_INFO, 0, "Initializing kms color map\n");
+    xf86DrvMsgVerb(pScrn->scrnIndex, X_INFO, 0,
+                   "Initializing kms color map for depth %d, %d bpc.\n",
+                   pScrn->depth, pScrn->rgbBits);
     if (!miCreateDefColormap(pScreen))
         return FALSE;
-    /* all radeons support 10 bit CLUTs */
-    if (!xf86HandleColormaps(pScreen, 256, 10, drmmode_load_palette, NULL,
-                CMAP_PALETTED_TRUECOLOR |
-                CMAP_RELOAD_ON_MODE_SWITCH))
+
+    /* Adapt color map size and depth to color depth of screen. */
+    if (!xf86HandleColormaps(pScreen, 1 << pScrn->rgbBits, 10,
+                             drmmode_load_palette, NULL,
+                             CMAP_PALETTED_TRUECOLOR |
+                             CMAP_RELOAD_ON_MODE_SWITCH))
         return FALSE;
     return TRUE;
 }
