@@ -934,6 +934,7 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     case 15:
     case 16:
     case 24:
+    case 30:
         break;
     default:
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR,

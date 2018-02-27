@@ -156,7 +156,8 @@ drmmode_create_bo(drmmode_ptr drmmode, drmmode_bo *bo,
 #ifdef GLAMOR_HAS_GBM
     if (drmmode->glamor) {
         bo->gbm = gbm_bo_create(drmmode->gbm, width, height,
-                                GBM_FORMAT_ARGB8888,
+                                drmmode->scrn->depth == 30 ?
+                                GBM_FORMAT_ARGB2101010 : GBM_FORMAT_ARGB8888,
                                 GBM_BO_USE_RENDERING | GBM_BO_USE_SCANOUT);
         return bo->gbm != NULL;
     }
