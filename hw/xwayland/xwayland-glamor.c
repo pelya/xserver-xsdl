@@ -59,7 +59,7 @@ xwl_glamor_egl_make_current(struct glamor_context *glamor_ctx)
 }
 
 static uint32_t
-drm_format_for_depth(int depth)
+wl_drm_format_for_depth(int depth)
 {
     switch (depth) {
     case 15:
@@ -170,7 +170,7 @@ xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap)
         wl_drm_create_prime_buffer(xwl_screen->drm, prime_fd,
                                    pixmap->drawable.width,
                                    pixmap->drawable.height,
-                                   drm_format_for_depth(pixmap->drawable.depth),
+                                   wl_drm_format_for_depth(pixmap->drawable.depth),
                                    0, gbm_bo_get_stride(xwl_pixmap->bo),
                                    0, 0,
                                    0, 0);
