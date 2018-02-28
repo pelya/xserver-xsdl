@@ -227,14 +227,30 @@ xwl_glamor_create_pixmap(ScreenPtr screen,
 {
     struct xwl_screen *xwl_screen = xwl_screen_get(screen);
     struct gbm_bo *bo;
+    uint32_t format;
 
     if (width > 0 && height > 0 && depth >= 15 &&
         (hint == 0 ||
          hint == CREATE_PIXMAP_USAGE_BACKING_PIXMAP ||
          hint == CREATE_PIXMAP_USAGE_SHARED)) {
-        bo = gbm_bo_create(xwl_screen->gbm, width, height,
-                           gbm_format_for_depth(depth),
-                           GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+        format = gbm_format_for_depth(depth);
+
+#ifdef GBM_BO_WITH_MODIFIERS
+        if (xwl_screen->dmabuf_capable) {
+            uint32_t num_modifiers;
+            uint64_t *modifiers = NULL;
+
+            glamor_get_modifiers(screen, format, &num_modifiers, &modifiers);
+            bo = gbm_bo_create_with_modifiers(xwl_screen->gbm, width, height,
+                                              format, modifiers, num_modifiers);
+            free(modifiers);
+        }
+        else
+#endif
+        {
+            bo = gbm_bo_create(xwl_screen->gbm, width, height, format,
+                               GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+        }
 
         if (bo)
             return xwl_glamor_create_pixmap_for_bo(screen, bo, depth);

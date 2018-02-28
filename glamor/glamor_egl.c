@@ -256,6 +256,7 @@ glamor_make_pixmap_exportable(PixmapPtr pixmap)
         glamor_get_pixmap_private(pixmap);
     unsigned width = pixmap->drawable.width;
     unsigned height = pixmap->drawable.height;
+    uint32_t format;
     struct gbm_bo *bo;
     PixmapPtr exported;
     GCPtr scratch_gc;
@@ -270,14 +271,33 @@ glamor_make_pixmap_exportable(PixmapPtr pixmap)
         return FALSE;
     }
 
-    bo = gbm_bo_create(glamor_egl->gbm, width, height,
-                       (pixmap->drawable.depth == 30) ?
-                       GBM_FORMAT_ARGB2101010 : GBM_FORMAT_ARGB8888,
-#ifdef GLAMOR_HAS_GBM_LINEAR
-                       (pixmap->usage_hint == CREATE_PIXMAP_USAGE_SHARED ?
-                        GBM_BO_USE_LINEAR : 0) |
+    if (pixmap->drawable.depth == 30)
+	format = GBM_FORMAT_ARGB2101010;
+    else
+        format = GBM_FORMAT_ARGB8888;
+
+#ifdef GBM_BO_WITH_MODIFIERS
+    if (glamor_egl->dmabuf_capable) {
+        uint32_t num_modifiers;
+        uint64_t *modifiers = NULL;
+
+        glamor_get_modifiers(screen, format, &num_modifiers, &modifiers);
+
+        bo = gbm_bo_create_with_modifiers(glamor_egl->gbm, width, height,
+                                          format, modifiers, num_modifiers);
+        free(modifiers);
+    }
+    else
 #endif
-                       GBM_BO_USE_RENDERING | GBM_BO_USE_SCANOUT);
+    {
+        bo = gbm_bo_create(glamor_egl->gbm, width, height, format,
+#ifdef GLAMOR_HAS_GBM_LINEAR
+                (pixmap->usage_hint == CREATE_PIXMAP_USAGE_SHARED ?
+                 GBM_BO_USE_LINEAR : 0) |
+#endif
+                GBM_BO_USE_RENDERING | GBM_BO_USE_SCANOUT);
+    }
+
     if (!bo) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR,
                    "Failed to make %dx%dx%dbpp GBM bo\n",
