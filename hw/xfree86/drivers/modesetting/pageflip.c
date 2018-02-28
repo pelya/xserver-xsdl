@@ -258,6 +258,7 @@ ms_do_pageflip(ScreenPtr screen,
 
     new_front_bo.gbm = glamor_gbm_bo_from_pixmap(screen, new_front);
     new_front_bo.dumb = NULL;
+
     if (!new_front_bo.gbm) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR,
                    "Failed to get GBM bo for flip to new front.\n");
@@ -288,14 +289,12 @@ ms_do_pageflip(ScreenPtr screen,
 
     /* Create a new handle for the back buffer */
     flipdata->old_fb_id = ms->drmmode.fb_id;
-    if (drmModeAddFB(ms->fd, scrn->virtualX, scrn->virtualY,
-                     scrn->depth, scrn->bitsPerPixel,
-                     drmmode_bo_get_pitch(&new_front_bo),
-                     drmmode_bo_get_handle(&new_front_bo), &ms->drmmode.fb_id)) {
-        goto error_out;
-    }
 
-    drmmode_bo_destroy(&ms->drmmode, &new_front_bo);
+    new_front_bo.width = new_front->drawable.width;
+    new_front_bo.height = new_front->drawable.height;
+    if (drmmode_bo_import(&ms->drmmode, &new_front_bo,
+                          &ms->drmmode.fb_id))
+        goto error_out;
 
     flags = DRM_MODE_PAGE_FLIP_EVENT;
     if (async)
@@ -323,6 +322,8 @@ ms_do_pageflip(ScreenPtr screen,
         }
     }
 
+    drmmode_bo_destroy(&ms->drmmode, &new_front_bo);
+
     /*
      * Do we have more than our local reference,
      * if so and no errors, then drop our local
@@ -348,6 +349,7 @@ error_undo:
 error_out:
     xf86DrvMsg(scrn->scrnIndex, X_WARNING, "Page flip failed: %s\n",
                strerror(errno));
+    drmmode_bo_destroy(&ms->drmmode, &new_front_bo);
     /* if only the local reference - free the structure,
      * else drop the local reference and return */
     if (flipdata->flip_count == 1)

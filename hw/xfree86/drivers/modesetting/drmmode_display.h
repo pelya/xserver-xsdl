@@ -53,6 +53,8 @@ enum drmmode_plane_type {
 };
 
 typedef struct {
+    uint32_t width;
+    uint32_t height;
     struct dumb_bo *dumb;
 #ifdef GLAMOR_HAS_GBM
     struct gbm_bo *gbm;
@@ -202,6 +204,8 @@ extern DevPrivateKeyRec msPixmapPrivateKeyRec;
 
 #define msGetPixmapPriv(drmmode, p) ((msPixmapPrivPtr)dixGetPrivateAddr(&(p)->devPrivates, &(drmmode)->pixmapPrivateKeyRec))
 
+int drmmode_bo_import(drmmode_ptr drmmode, drmmode_bo *bo,
+                      uint32_t *fb_id);
 int drmmode_bo_destroy(drmmode_ptr drmmode, drmmode_bo *bo);
 uint32_t drmmode_bo_get_pitch(drmmode_bo *bo);
 uint32_t drmmode_bo_get_handle(drmmode_bo *bo);

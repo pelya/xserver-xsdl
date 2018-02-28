@@ -39,6 +39,8 @@
 #include "micmap.h"
 #include "xf86cmap.h"
 #include "xf86DDC.h"
+#include <drm_fourcc.h>
+#include <drm_mode.h>
 
 #include <xf86drm.h>
 #include "xf86Crtc.h"
@@ -376,10 +378,57 @@ drmmode_bo_map(drmmode_ptr drmmode, drmmode_bo *bo)
     return bo->dumb->ptr;
 }
 
+int
+drmmode_bo_import(drmmode_ptr drmmode, drmmode_bo *bo,
+                  uint32_t *fb_id)
+{
+#ifdef GBM_BO_WITH_MODIFIERS
+    if (bo->gbm &&
+        gbm_bo_get_modifier(bo->gbm) != DRM_FORMAT_MOD_INVALID) {
+        int num_fds;
+
+        num_fds = gbm_bo_get_plane_count(bo->gbm);
+        if (num_fds > 0) {
+            int i;
+            uint32_t format;
+            uint32_t handles[4];
+            uint32_t strides[4];
+            uint32_t offsets[4];
+            uint64_t modifiers[4];
+
+            memset(handles, 0, sizeof(handles));
+            memset(strides, 0, sizeof(strides));
+            memset(offsets, 0, sizeof(offsets));
+            memset(modifiers, 0, sizeof(modifiers));
+
+            format = gbm_bo_get_format(bo->gbm);
+            for (i = 0; i < num_fds; i++) {
+                handles[i] = gbm_bo_get_handle_for_plane(bo->gbm, i).u32;
+                strides[i] = gbm_bo_get_stride_for_plane(bo->gbm, i);
+                offsets[i] = gbm_bo_get_offset(bo->gbm, i);
+                modifiers[i] = gbm_bo_get_modifier(bo->gbm);
+            }
+
+            return drmModeAddFB2WithModifiers(drmmode->fd, bo->width, bo->height,
+                                              format, handles, strides,
+                                              offsets, modifiers, fb_id,
+                                              DRM_MODE_FB_MODIFIERS);
+        }
+    }
+#endif
+    return drmModeAddFB(drmmode->fd, bo->width, bo->height,
+                        drmmode->scrn->depth, drmmode->scrn->bitsPerPixel,
+                        drmmode_bo_get_pitch(bo),
+                        drmmode_bo_get_handle(bo), fb_id);
+}
+
 static Bool
 drmmode_create_bo(drmmode_ptr drmmode, drmmode_bo *bo,
                   unsigned width, unsigned height, unsigned bpp)
 {
+    bo->width = width;
+    bo->height = height;
+
 #ifdef GLAMOR_HAS_GBM
     if (drmmode->glamor) {
         bo->gbm = gbm_bo_create(drmmode->gbm, width, height,
