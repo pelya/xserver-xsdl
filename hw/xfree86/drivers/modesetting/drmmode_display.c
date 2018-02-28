@@ -45,6 +45,7 @@
 #include <xf86drm.h>
 #include "xf86Crtc.h"
 #include "drmmode_display.h"
+#include "present.h"
 
 #include <cursorstr.h>
 
@@ -174,6 +175,24 @@ get_modifiers_set(ScrnInfoPtr scrn, uint32_t format, uint64_t **modifiers,
 
     *modifiers = ret;
     return count_modifiers;
+}
+
+static Bool
+get_drawable_modifiers(DrawablePtr draw, uint32_t format,
+                       uint32_t *num_modifiers, uint64_t **modifiers)
+{
+    ScrnInfoPtr scrn = xf86ScreenToScrn(draw->pScreen);
+    modesettingPtr ms = modesettingPTR(scrn);
+
+    if (!present_can_window_flip((WindowPtr) draw) ||
+        !ms->drmmode.pageflip || ms->drmmode.dri2_flipping || !scrn->vtSema) {
+        *num_modifiers = 0;
+        *modifiers = NULL;
+        return TRUE;
+    }
+
+    *num_modifiers = get_modifiers_set(scrn, format, modifiers, TRUE, FALSE);
+    return TRUE;
 }
 #endif
 
@@ -3117,6 +3136,25 @@ drmmode_pre_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int cpp)
     xf86ProviderSetup(pScrn, NULL, "modesetting");
 
     xf86InitialConfiguration(pScrn, TRUE);
+
+    return TRUE;
+}
+
+Bool
+drmmode_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
+{
+#ifdef GLAMOR_HAS_GBM
+    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
+
+    if (drmmode->glamor) {
+        if (!glamor_init(pScreen, GLAMOR_USE_EGL_SCREEN)) {
+            return FALSE;
+        }
+#ifdef GBM_BO_WITH_MODIFIERS
+        glamor_set_drawable_modifiers_func(pScreen, get_drawable_modifiers);
+#endif
+    }
+#endif
 
     return TRUE;
 }

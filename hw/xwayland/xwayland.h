@@ -49,6 +49,12 @@
 #include "xdg-output-unstable-v1-client-protocol.h"
 #include "linux-dmabuf-unstable-v1-client-protocol.h"
 
+struct xwl_format {
+    uint32_t format;
+    int num_modifiers;
+    uint64_t *modifiers;
+};
+
 struct xwl_screen {
     int width;
     int height;
@@ -100,7 +106,8 @@ struct xwl_screen {
     int drm_authenticated;
     struct wl_drm *drm;
     struct zwp_linux_dmabuf_v1 *dmabuf;
-    uint32_t formats;
+    uint32_t num_formats;
+    struct xwl_format *formats;
     uint32_t capabilities;
     void *egl_display, *egl_context;
     struct gbm_device *gbm;

@@ -407,19 +407,6 @@ xwl_drm_handle_device(void *data, struct wl_drm *drm, const char *device)
 static void
 xwl_drm_handle_format(void *data, struct wl_drm *drm, uint32_t format)
 {
-   struct xwl_screen *xwl_screen = data;
-
-   switch (format) {
-   case WL_DRM_FORMAT_ARGB8888:
-      xwl_screen->formats |= XWL_FORMAT_ARGB8888;
-      break;
-   case WL_DRM_FORMAT_XRGB8888:
-      xwl_screen->formats |= XWL_FORMAT_XRGB8888;
-      break;
-   case WL_DRM_FORMAT_RGB565:
-      xwl_screen->formats |= XWL_FORMAT_RGB565;
-      break;
-   }
 }
 
 static void
@@ -446,6 +433,54 @@ static const struct wl_drm_listener xwl_drm_listener = {
     xwl_drm_handle_capabilities
 };
 
+static void
+xwl_dmabuf_handle_format(void *data, struct zwp_linux_dmabuf_v1 *dmabuf,
+                         uint32_t format)
+{
+}
+
+static void
+xwl_dmabuf_handle_modifier(void *data, struct zwp_linux_dmabuf_v1 *dmabuf,
+                           uint32_t format, uint32_t modifier_hi,
+                           uint32_t modifier_lo)
+{
+   struct xwl_screen *xwl_screen = data;
+    struct xwl_format *xwl_format = NULL;
+    int i;
+
+    for (i = 0; i < xwl_screen->num_formats; i++) {
+        if (xwl_screen->formats[i].format == format) {
+            xwl_format = &xwl_screen->formats[i];
+            break;
+        }
+    }
+
+    if (xwl_format == NULL) {
+       xwl_screen->num_formats++;
+       xwl_screen->formats = realloc(xwl_screen->formats,
+                                     xwl_screen->num_formats * sizeof(*xwl_format));
+       if (!xwl_screen->formats)
+          return;
+       xwl_format = &xwl_screen->formats[xwl_screen->num_formats - 1];
+       xwl_format->format = format;
+       xwl_format->num_modifiers = 0;
+       xwl_format->modifiers = NULL;
+    }
+
+    xwl_format->num_modifiers++;
+    xwl_format->modifiers = realloc(xwl_format->modifiers,
+                                    xwl_format->num_modifiers * sizeof(uint64_t));
+    if (!xwl_format->modifiers)
+       return;
+    xwl_format->modifiers[xwl_format->num_modifiers - 1]  = (uint64_t) modifier_lo;
+    xwl_format->modifiers[xwl_format->num_modifiers - 1] |= (uint64_t) modifier_hi << 32;
+}
+
+static const struct zwp_linux_dmabuf_v1_listener xwl_dmabuf_listener = {
+    .format   = xwl_dmabuf_handle_format,
+    .modifier = xwl_dmabuf_handle_modifier
+};
+
 Bool
 xwl_screen_set_drm_interface(struct xwl_screen *xwl_screen,
                              uint32_t id, uint32_t version)
@@ -470,6 +505,7 @@ xwl_screen_set_dmabuf_interface(struct xwl_screen *xwl_screen,
 
     xwl_screen->dmabuf =
         wl_registry_bind(xwl_screen->registry, id, &zwp_linux_dmabuf_v1_interface, 3);
+    zwp_linux_dmabuf_v1_add_listener(xwl_screen->dmabuf, &xwl_dmabuf_listener, xwl_screen);
 
     return TRUE;
 }
@@ -678,12 +714,85 @@ glamor_egl_fds_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, int *fds,
 #endif
 }
 
+_X_EXPORT Bool
+glamor_get_formats(ScreenPtr screen,
+                   CARD32 *num_formats, CARD32 **formats)
+{
+    struct xwl_screen *xwl_screen = xwl_screen_get(screen);
+    int i;
+
+    if (!xwl_screen->dmabuf_capable || !xwl_screen->dmabuf)
+        return FALSE;
+
+    if (xwl_screen->num_formats == 0) {
+       *num_formats = 0;
+       return TRUE;
+    }
+
+    *formats = calloc(xwl_screen->num_formats, sizeof(CARD32));
+    if (*formats == NULL) {
+        *num_formats = 0;
+        return FALSE;
+    }
+
+    for (i = 0; i < xwl_screen->num_formats; i++)
+       (*formats)[i] = xwl_screen->formats[i].format;
+    *num_formats = xwl_screen->num_formats;
+
+    return TRUE;
+}
+
+_X_EXPORT Bool
+glamor_get_modifiers(ScreenPtr screen, CARD32 format,
+                     CARD32 *num_modifiers, uint64_t **modifiers)
+{
+    struct xwl_screen *xwl_screen = xwl_screen_get(screen);
+    struct xwl_format *xwl_format = NULL;
+    int i;
+
+    if (!xwl_screen->dmabuf_capable || !xwl_screen->dmabuf)
+        return FALSE;
+
+    if (xwl_screen->num_formats == 0) {
+       *num_modifiers = 0;
+       return TRUE;
+    }
+
+    for (i = 0; i < xwl_screen->num_formats; i++) {
+       if (xwl_screen->formats[i].format == format) {
+          xwl_format = &xwl_screen->formats[i];
+          break;
+       }
+    }
+
+    if (!xwl_format) {
+	*num_modifiers = 0;
+        return FALSE;
+    }
+
+    *modifiers = calloc(xwl_format->num_modifiers, sizeof(uint64_t));
+    if (*modifiers == NULL) {
+        *num_modifiers = 0;
+        return FALSE;
+    }
+
+    for (i = 0; i < xwl_format->num_modifiers; i++)
+       (*modifiers)[i] = xwl_format->modifiers[i];
+    *num_modifiers = xwl_format->num_modifiers;
+
+    return TRUE;
+}
+
+
 static dri3_screen_info_rec xwl_dri3_info = {
     .version = 2,
     .open = NULL,
     .pixmap_from_fds = glamor_pixmap_from_fds,
     .fds_from_pixmap = glamor_fds_from_pixmap,
     .open_client = xwl_dri3_open_client,
+    .get_formats = glamor_get_formats,
+    .get_modifiers = glamor_get_modifiers,
+    .get_drawable_modifiers = glamor_get_drawable_modifiers,
 };
 
 Bool

@@ -500,6 +500,9 @@
 /* Glamor can retrieve supported DRM formats/modifiers */
 #undef GLAMOR_HAS_DRM_MODIFIERS
 
+/* Glamor can use eglQueryDmaBuf* functions */
+#undef GLAMOR_HAS_EGL_QUERY_DMABUF
+
 /* byte order */
 #undef X_BYTE_ORDER
 

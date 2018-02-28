@@ -2087,6 +2087,10 @@ if test "x$GLAMOR" = xyes; then
 	AC_DEFINE(GLAMOR, 1, [Build glamor])
 	PKG_CHECK_MODULES([GLAMOR], [epoxy])
 
+	PKG_CHECK_EXISTS(epoxy >= 1.4.4,
+			 [AC_DEFINE(GLAMOR_HAS_EGL_QUERY_DMABUF, 1, [Have GLAMOR_HAS_EGL_QUERY_DMABUF])],
+			 [])
+
 	PKG_CHECK_MODULES(GBM, "$LIBGBM", [GBM=yes], [GBM=no])
 	if test "x$GBM" = xyes; then
 		AC_DEFINE(GLAMOR_HAS_GBM, 1,

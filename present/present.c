@@ -614,6 +614,44 @@ present_check_flip_window (WindowPtr window)
     }
 }
 
+Bool
+present_can_window_flip(WindowPtr window)
+{
+    ScreenPtr                   screen = window->drawable.pScreen;
+    PixmapPtr                   window_pixmap;
+    WindowPtr                   root = screen->root;
+    present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
+
+    if (!screen_priv)
+        return FALSE;
+
+    if (!screen_priv->info)
+        return FALSE;
+
+    /* Check to see if the driver supports flips at all */
+    if (!screen_priv->info->flip)
+        return FALSE;
+
+    /* Make sure the window hasn't been redirected with Composite */
+    window_pixmap = screen->GetWindowPixmap(window);
+    if (window_pixmap != screen->GetScreenPixmap(screen) &&
+        window_pixmap != screen_priv->flip_pixmap &&
+        window_pixmap != present_flip_pending_pixmap(screen))
+        return FALSE;
+
+    /* Check for full-screen window */
+    if (!RegionEqual(&window->clipList, &root->winSize)) {
+        return FALSE;
+    }
+
+    /* Does the window match the pixmap exactly? */
+    if (window->drawable.x != 0 || window->drawable.y != 0) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 /*
  * Called when the wait fence is triggered; just gets the current msc/ust and
  * calls present_execute again. That will re-check the fence and pend the

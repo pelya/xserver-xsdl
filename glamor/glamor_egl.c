@@ -505,6 +505,95 @@ glamor_pixmap_from_fds(ScreenPtr screen,
     return pixmap;
 }
 
+_X_EXPORT Bool
+glamor_get_formats(ScreenPtr screen,
+                   CARD32 *num_formats, CARD32 **formats)
+{
+#ifdef GLAMOR_HAS_EGL_QUERY_DMABUF
+    struct glamor_egl_screen_private *glamor_egl;
+    EGLint num;
+
+    glamor_egl = glamor_egl_get_screen_private(xf86ScreenToScrn(screen));
+
+    if (!glamor_egl->dmabuf_capable)
+        return FALSE;
+
+    if (!eglQueryDmaBufFormatsEXT(glamor_egl->display, 0, NULL, &num)) {
+        *num_formats = 0;
+        return FALSE;
+    }
+
+    if (num == 0) {
+        *num_formats = 0;
+        return TRUE;
+    }
+
+    *formats = calloc(num, sizeof(CARD32));
+    if (*formats == NULL) {
+        *num_formats = 0;
+        return FALSE;
+    }
+
+    if (!eglQueryDmaBufFormatsEXT(glamor_egl->display, num,
+                                  (EGLint *) *formats, &num)) {
+        *num_formats = 0;
+        free(*formats);
+        return FALSE;
+    }
+
+    *num_formats = num;
+    return TRUE;
+#else
+    *num_formats = 0;
+    return TRUE;
+#endif
+}
+
+_X_EXPORT Bool
+glamor_get_modifiers(ScreenPtr screen, CARD32 format,
+                     CARD32 *num_modifiers, uint64_t **modifiers)
+{
+#ifdef GLAMOR_HAS_EGL_QUERY_DMABUF
+    struct glamor_egl_screen_private *glamor_egl;
+    EGLint num;
+
+    glamor_egl = glamor_egl_get_screen_private(xf86ScreenToScrn(screen));
+
+    if (!glamor_egl->dmabuf_capable)
+        return FALSE;
+
+    if (!eglQueryDmaBufModifiersEXT(glamor_egl->display, format, 0, NULL,
+                                    NULL, &num)) {
+        *num_modifiers = 0;
+        return FALSE;
+    }
+
+    if (num == 0) {
+        *num_modifiers = 0;
+        return TRUE;
+    }
+
+    *modifiers = calloc(num, sizeof(uint64_t));
+    if (*modifiers == NULL) {
+        *num_modifiers = 0;
+        return FALSE;
+    }
+
+    if (!eglQueryDmaBufModifiersEXT(glamor_egl->display, format, num,
+                                    (EGLuint64KHR *) *modifiers, NULL, &num)) {
+        *num_modifiers = 0;
+        free(*modifiers);
+        return FALSE;
+    }
+
+    *num_modifiers = num;
+    return TRUE;
+#else
+    *num_modifiers = 0;
+    return TRUE;
+#endif
+}
+
 static Bool
 glamor_egl_destroy_pixmap(PixmapPtr pixmap)
 {
@@ -626,6 +715,9 @@ static dri3_screen_info_rec glamor_dri3_info = {
     .open_client = glamor_dri3_open_client,
     .pixmap_from_fds = glamor_pixmap_from_fds,
     .fds_from_pixmap = glamor_egl_fds_from_pixmap,
+    .get_formats = glamor_get_formats,
+    .get_modifiers = glamor_get_modifiers,
+    .get_drawable_modifiers = glamor_get_drawable_modifiers,
 };
 #endif /* DRI3 */
 

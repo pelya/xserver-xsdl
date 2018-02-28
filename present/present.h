@@ -135,4 +135,7 @@ typedef void (*present_complete_notify_proc)(WindowPtr window,
 extern _X_EXPORT void
 present_register_complete_notify(present_complete_notify_proc proc);
 
+extern _X_EXPORT Bool
+present_can_window_flip(WindowPtr window);
+
 #endif /* _PRESENT_H_ */

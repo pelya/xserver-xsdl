@@ -60,6 +60,11 @@ typedef enum glamor_pixmap_type {
     GLAMOR_TEXTURE_ONLY,
 } glamor_pixmap_type_t;
 
+typedef Bool (*GetDrawableModifiersFuncPtr) (DrawablePtr draw,
+                                             CARD32 format,
+                                             CARD32 *num_modifiers,
+                                             uint64_t **modifiers);
+
 #define GLAMOR_EGL_EXTERNAL_BUFFER 3
 #define GLAMOR_USE_EGL_SCREEN		(1 << 0)
 #define GLAMOR_NO_DRI3			(1 << 1)
@@ -272,6 +277,24 @@ extern _X_EXPORT Bool glamor_back_pixmap_from_fd(PixmapPtr pixmap,
                                                  CARD16 stride,
                                                  CARD8 depth,
                                                  CARD8 bpp);
+
+extern _X_EXPORT Bool glamor_get_formats(ScreenPtr screen,
+                                         CARD32 *num_formats,
+                                         CARD32 **formats);
+
+extern _X_EXPORT Bool glamor_get_modifiers(ScreenPtr screen,
+                                           CARD32 format,
+                                           CARD32 *num_modifiers,
+                                           uint64_t **modifiers);
+
+extern _X_EXPORT Bool glamor_get_drawable_modifiers(DrawablePtr draw,
+                                                    CARD32 format,
+                                                    CARD32 *num_modifiers,
+                                                    uint64_t **modifiers);
+
+extern _X_EXPORT void glamor_set_drawable_modifiers_func(ScreenPtr screen,
+                                                         GetDrawableModifiersFuncPtr func);
+
 #ifdef GLAMOR_FOR_XORG
 
 #define GLAMOR_EGL_MODULE_NAME  "glamoregl"

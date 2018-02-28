@@ -1601,15 +1601,11 @@ ScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     fbPictureInit(pScreen, NULL, 0);
 
-#ifdef GLAMOR_HAS_GBM
-    if (ms->drmmode.glamor) {
-        if (!glamor_init(pScreen, GLAMOR_USE_EGL_SCREEN)) {
-            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-                       "Failed to initialize glamor at ScreenInit() time.\n");
-            return FALSE;
-        }
+    if (drmmode_init(pScrn, &ms->drmmode) == FALSE) {
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                   "Failed to initialize glamor at ScreenInit() time.\n");
+        return FALSE;
     }
-#endif
 
     if (ms->drmmode.shadow_enable && !msShadowInit(pScreen)) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "shadow fb init failed\n");

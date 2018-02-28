@@ -793,6 +793,31 @@ glamor_supports_pixmap_import_export(ScreenPtr screen)
     return glamor_priv->dri3_enabled;
 }
 
+_X_EXPORT void
+glamor_set_drawable_modifiers_func(ScreenPtr screen,
+                                   GetDrawableModifiersFuncPtr func)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+
+    glamor_priv->get_drawable_modifiers = func;
+}
+
+_X_EXPORT Bool
+glamor_get_drawable_modifiers(DrawablePtr draw, CARD32 format,
+                              CARD32 *num_modifiers, uint64_t **modifiers)
+{
+    struct glamor_screen_private *glamor_priv =
+        glamor_get_screen_private(draw->pScreen);
+
+    if (glamor_priv->get_drawable_modifiers) {
+        return glamor_priv->get_drawable_modifiers(draw, format,
+                                                   num_modifiers, modifiers);
+    }
+    *num_modifiers = 0;
+    *modifiers = NULL;
+    return TRUE;
+}
+
 _X_EXPORT int
 glamor_fds_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, int *fds,
                        uint32_t *strides, uint32_t *offsets,

@@ -262,9 +262,11 @@ else
     build_glamor = get_option('glamor') == 'true'
 endif
 
-gbm_dep = dependency('', required:false)
+gbm_dep = dependency('', required: false)
+epoxy_dep = dependency('', required: false)
 if build_glamor
     gbm_dep = dependency('gbm', version: '>= 10.2', required: false)
+    epoxy_dep = dependency('epoxy', required: false)
 endif
 
 # XXX: Add more sha1 options, because Linux is about choice
