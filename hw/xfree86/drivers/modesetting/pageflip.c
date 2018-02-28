@@ -160,6 +160,25 @@ ms_pageflip_abort(void *data)
 }
 
 static Bool
+do_queue_flip_on_crtc(modesettingPtr ms, xf86CrtcPtr crtc,
+                      uint32_t flags, uint32_t seq)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+#ifdef GLAMOR_HAS_DRM_ATOMIC
+    if (ms->atomic_modeset) {
+        flags |= DRM_MODE_ATOMIC_NONBLOCK;
+        return drmmode_crtc_set_fb(crtc, ms->drmmode.fb_id, 0, 0, flags,
+                                   (void *) (uintptr_t) seq);
+    }
+#endif
+
+    return drmModePageFlip(ms->fd, drmmode_crtc->mode_crtc->crtc_id,
+                           ms->drmmode.fb_id, flags,
+                           (void *) (uintptr_t) seq);
+}
+
+static Bool
 queue_flip_on_crtc(ScreenPtr screen, xf86CrtcPtr crtc,
                    struct ms_flipdata *flipdata,
                    int ref_crtc_vblank_pipe, uint32_t flags)
@@ -193,8 +212,7 @@ queue_flip_on_crtc(ScreenPtr screen, xf86CrtcPtr crtc,
     /* take a reference on flipdata for use in flip */
     flipdata->flip_count++;
 
-    while (drmModePageFlip(ms->fd, drmmode_crtc->mode_crtc->crtc_id,
-                           ms->drmmode.fb_id, flags, (void *) (uintptr_t) seq)) {
+    while (do_queue_flip_on_crtc(ms, crtc, flags, seq)) {
         err = errno;
         /* We may have failed because the event queue was full.  Flush it
          * and retry.  If there was nothing to flush, then we failed for

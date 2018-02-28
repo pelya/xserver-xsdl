@@ -491,6 +491,9 @@
 /* Build glamor use new drmGetDeviceNameFromFD2 */
 #undef GLAMOR_HAS_DRM_NAME_FROM_FD_2
 
+/* Glamor should use atomic DRM API */
+#undef GLAMOR_HAS_DRM_ATOMIC
+
 /* byte order */
 #undef X_BYTE_ORDER
 

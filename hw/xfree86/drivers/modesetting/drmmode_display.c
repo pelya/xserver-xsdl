@@ -75,6 +75,233 @@ drmmode_zaphod_string_matches(ScrnInfoPtr scrn, const char *s, char *output_name
     return ret;
 }
 
+static uint64_t
+drmmode_prop_get_value(drmmode_prop_info_ptr info,
+                       drmModeObjectPropertiesPtr props,
+                       uint64_t def)
+{
+    unsigned int i;
+
+    if (info->prop_id == 0)
+        return def;
+
+    for (i = 0; i < props->count_props; i++) {
+        unsigned int j;
+
+        if (props->props[i] != info->prop_id)
+            continue;
+
+        /* Simple (non-enum) types can return the value directly */
+        if (info->num_enum_values == 0)
+            return props->prop_values[i];
+
+        /* Map from raw value to enum value */
+        for (j = 0; j < info->num_enum_values; j++) {
+            if (!info->enum_values[j].valid)
+                continue;
+            if (info->enum_values[j].value != props->prop_values[i])
+                continue;
+
+            return j;
+        }
+    }
+
+    return def;
+}
+
+static uint32_t
+drmmode_prop_info_update(drmmode_ptr drmmode,
+                         drmmode_prop_info_ptr info,
+                         unsigned int num_infos,
+                         drmModeObjectProperties *props)
+{
+    drmModePropertyRes *prop;
+    uint32_t valid_mask = 0;
+    unsigned i, j;
+
+    assert(num_infos <= 32 && "update return type");
+
+    for (i = 0; i < props->count_props; i++) {
+        Bool props_incomplete = FALSE;
+        unsigned int k;
+
+        for (j = 0; j < num_infos; j++) {
+            if (info[j].prop_id == props->props[i])
+                break;
+            if (!info[j].prop_id)
+                props_incomplete = TRUE;
+        }
+
+        /* We've already discovered this property. */
+        if (j != num_infos)
+            continue;
+
+        /* We haven't found this property ID, but as we've already
+         * found all known properties, we don't need to look any
+         * further. */
+        if (!props_incomplete)
+            break;
+
+        prop = drmModeGetProperty(drmmode->fd, props->props[i]);
+        if (!prop)
+            continue;
+
+        for (j = 0; j < num_infos; j++) {
+            if (!strcmp(prop->name, info[j].name))
+                break;
+        }
+
+        /* We don't know/care about this property. */
+        if (j == num_infos) {
+            drmModeFreeProperty(prop);
+            continue;
+        }
+
+        info[j].prop_id = props->props[i];
+        valid_mask |= 1U << j;
+
+        if (info[j].num_enum_values == 0) {
+            drmModeFreeProperty(prop);
+            continue;
+        }
+
+        if (!(prop->flags & DRM_MODE_PROP_ENUM)) {
+            xf86DrvMsg(drmmode->scrn->scrnIndex, X_WARNING,
+                       "expected property %s to be an enum,"
+                       " but it is not; ignoring\n", prop->name);
+            drmModeFreeProperty(prop);
+            continue;
+        }
+
+        for (k = 0; k < info[j].num_enum_values; k++) {
+            int l;
+
+            if (info[j].enum_values[k].valid)
+                continue;
+
+            for (l = 0; l < prop->count_enums; l++) {
+                if (!strcmp(prop->enums[l].name,
+                            info[j].enum_values[k].name))
+                    break;
+            }
+
+            if (l == prop->count_enums)
+                continue;
+
+            info[j].enum_values[k].valid = TRUE;
+            info[j].enum_values[k].value = prop->enums[l].value;
+        }
+
+        drmModeFreeProperty(prop);
+    }
+
+    return valid_mask;
+}
+
+static Bool
+drmmode_prop_info_copy(drmmode_prop_info_ptr dst,
+		       const drmmode_prop_info_rec *src,
+		       unsigned int num_props,
+		       Bool copy_prop_id)
+{
+    unsigned int i;
+
+    memcpy(dst, src, num_props * sizeof(*dst));
+
+    for (i = 0; i < num_props; i++) {
+        unsigned int j;
+
+        if (copy_prop_id)
+            dst[i].prop_id = src[i].prop_id;
+        else
+            dst[i].prop_id = 0;
+
+        if (src[i].num_enum_values == 0)
+            continue;
+
+        dst[i].enum_values =
+            malloc(src[i].num_enum_values *
+                    sizeof(*dst[i].enum_values));
+        if (!dst[i].enum_values)
+            goto err;
+
+        memcpy(dst[i].enum_values, src[i].enum_values,
+                src[i].num_enum_values * sizeof(*dst[i].enum_values));
+
+        for (j = 0; j < dst[i].num_enum_values; j++)
+            dst[i].enum_values[j].valid = FALSE;
+    }
+
+    return TRUE;
+
+err:
+    while (i--)
+        free(dst[i].enum_values);
+    free(dst);
+    return FALSE;
+}
+
+static void
+drmmode_prop_info_free(drmmode_prop_info_ptr info, int num_props)
+{
+    int i;
+
+    for (i = 0; i < num_props; i++)
+        free(info[i].enum_values);
+}
+
+#ifdef GLAMOR_HAS_DRM_ATOMIC
+static int
+plane_add_prop(drmModeAtomicReq *req, drmmode_crtc_private_ptr drmmode_crtc,
+               enum drmmode_plane_property prop, uint64_t val)
+{
+    drmmode_prop_info_ptr info = &drmmode_crtc->props_plane[prop];
+    int ret;
+
+    if (!info)
+        return -1;
+
+    ret = drmModeAtomicAddProperty(req, drmmode_crtc->plane_id,
+                                   info->prop_id, val);
+    return (ret <= 0) ? -1 : 0;
+}
+#endif
+
+int
+drmmode_crtc_set_fb(xf86CrtcPtr crtc, uint32_t fb_id,
+                    int x, int y, uint32_t flags, void *data)
+{
+    modesettingPtr ms = modesettingPTR(crtc->scrn);
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    int ret = 0;
+
+#ifdef GLAMOR_HAS_DRM_ATOMIC
+    if (ms->atomic_modeset) {
+        drmModeAtomicReq *req = drmModeAtomicAlloc();
+
+        if (!req)
+            return 1;
+
+        ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_FB_ID,
+                              fb_id);
+        ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_CRTC_ID,
+                              drmmode_crtc->mode_crtc->crtc_id);
+        ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_SRC_X, x);
+        ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_SRC_Y, y);
+
+        if (ret == 0)
+            ret = drmModeAtomicCommit(ms->fd, req, flags, data);
+
+        drmModeAtomicFree(req);
+        return ret;
+    }
+#endif
+
+    return 0;
+}
+
+
 int
 drmmode_bo_destroy(drmmode_ptr drmmode, drmmode_bo *bo)
 {
@@ -1076,6 +1303,14 @@ drmmode_shadow_destroy(xf86CrtcPtr crtc, PixmapPtr rotate_pixmap, void *data)
     }
 }
 
+static void
+drmmode_crtc_destroy(xf86CrtcPtr crtc)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+    drmmode_prop_info_free(drmmode_crtc->props_plane, DRMMODE_PLANE__COUNT);
+}
+
 static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
     .dpms = drmmode_crtc_dpms,
     .set_mode_major = drmmode_set_mode_major,
@@ -1086,7 +1321,7 @@ static const xf86CrtcFuncsRec drmmode_crtc_funcs = {
     .load_cursor_argb_check = drmmode_load_cursor_argb_check,
 
     .gamma_set = drmmode_crtc_gamma_set,
-    .destroy = NULL,            /* XXX */
+    .destroy = drmmode_crtc_destroy,
     .set_scanout_pixmap = drmmode_set_scanout_pixmap,
     .shadow_allocate = drmmode_shadow_allocate,
     .shadow_create = drmmode_shadow_create,
@@ -1103,6 +1338,136 @@ drmmode_crtc_vblank_pipe(int crtc_id)
     else
         return 0;
 }
+
+#ifdef GLAMOR_HAS_DRM_ATOMIC
+static Bool
+is_plane_assigned(ScrnInfoPtr scrn, int plane_id)
+{
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+    int c;
+
+    for (c = 0; c < xf86_config->num_crtc; c++) {
+        xf86CrtcPtr iter = xf86_config->crtc[c];
+        drmmode_crtc_private_ptr drmmode_crtc = iter->driver_private;
+        if (drmmode_crtc->plane_id == plane_id)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+static void
+drmmode_crtc_create_planes(xf86CrtcPtr crtc, int num)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    drmmode_ptr drmmode = drmmode_crtc->drmmode;
+    drmModePlaneRes *kplane_res;
+    drmModePlane *kplane;
+    drmModeObjectProperties *props;
+    uint32_t i, type;
+    int current_crtc, best_plane = 0;
+
+    static drmmode_prop_enum_info_rec plane_type_enums[] = {
+        [DRMMODE_PLANE_TYPE_PRIMARY] = {
+            .name = "Primary",
+        },
+        [DRMMODE_PLANE_TYPE_OVERLAY] = {
+            .name = "Overlay",
+        },
+        [DRMMODE_PLANE_TYPE_CURSOR] = {
+            .name = "Cursor",
+        },
+    };
+    static const drmmode_prop_info_rec plane_props[] = {
+        [DRMMODE_PLANE_TYPE] = {
+            .name = "type",
+            .enum_values = plane_type_enums,
+            .num_enum_values = DRMMODE_PLANE_TYPE__COUNT,
+        },
+        [DRMMODE_PLANE_FB_ID] = { .name = "FB_ID", },
+        [DRMMODE_PLANE_CRTC_ID] = { .name = "CRTC_ID", },
+        [DRMMODE_PLANE_SRC_X] = { .name = "SRC_X", },
+        [DRMMODE_PLANE_SRC_Y] = { .name = "SRC_Y", },
+    };
+    drmmode_prop_info_rec tmp_props[DRMMODE_PLANE__COUNT];
+
+    if (!drmmode_prop_info_copy(tmp_props, plane_props, DRMMODE_PLANE__COUNT, 0)) {
+        xf86DrvMsg(drmmode->scrn->scrnIndex, X_ERROR,
+                   "failed to copy plane property info\n");
+        drmmode_prop_info_free(tmp_props, DRMMODE_PLANE__COUNT);
+        return;
+    }
+
+    kplane_res = drmModeGetPlaneResources(drmmode->fd);
+    if (!kplane_res) {
+        xf86DrvMsg(drmmode->scrn->scrnIndex, X_ERROR,
+                   "failed to get plane resources: %s\n", strerror(errno));
+        drmmode_prop_info_free(tmp_props, DRMMODE_PLANE__COUNT);
+        return;
+    }
+
+    for (i = 0; i < kplane_res->count_planes; i++) {
+        int plane_id;
+
+        kplane = drmModeGetPlane(drmmode->fd, kplane_res->planes[i]);
+        if (!kplane)
+            continue;
+
+        if (!(kplane->possible_crtcs & (1 << num)) ||
+            is_plane_assigned(drmmode->scrn, kplane->plane_id)) {
+            drmModeFreePlane(kplane);
+            continue;
+        }
+
+        plane_id = kplane->plane_id;
+        drmModeFreePlane(kplane);
+
+        props = drmModeObjectGetProperties(drmmode->fd, plane_id,
+                                           DRM_MODE_OBJECT_PLANE);
+        if (!props) {
+            xf86DrvMsg(drmmode->scrn->scrnIndex, X_ERROR,
+                    "couldn't get plane properties\n");
+            continue;
+        }
+
+        drmmode_prop_info_update(drmmode, tmp_props, DRMMODE_PLANE__COUNT, props);
+
+        /* Only primary planes are important for atomic page-flipping */
+        type = drmmode_prop_get_value(&tmp_props[DRMMODE_PLANE_TYPE],
+                                      props, DRMMODE_PLANE_TYPE__COUNT);
+        if (type != DRMMODE_PLANE_TYPE_PRIMARY) {
+            drmModeFreeObjectProperties(props);
+            continue;
+        }
+
+        /* Check if plane is already on this CRTC */
+        current_crtc = drmmode_prop_get_value(&tmp_props[DRMMODE_PLANE_CRTC_ID],
+                                              props, 0);
+        if (current_crtc == drmmode_crtc->mode_crtc->crtc_id) {
+            if (best_plane)
+                drmmode_prop_info_free(drmmode_crtc->props_plane, DRMMODE_PLANE__COUNT);
+            best_plane = plane_id;
+            drmmode_prop_info_copy(drmmode_crtc->props_plane, tmp_props,
+                                   DRMMODE_PLANE__COUNT, 1);
+            drmModeFreeObjectProperties(props);
+            break;
+        }
+
+        if (!best_plane) {
+            best_plane = plane_id;
+            drmmode_prop_info_copy(drmmode_crtc->props_plane, tmp_props,
+                                   DRMMODE_PLANE__COUNT, 1);
+        }
+
+        drmModeFreeObjectProperties(props);
+    }
+
+    drmmode_crtc->plane_id = best_plane;
+
+    drmmode_prop_info_free(tmp_props, DRMMODE_PLANE__COUNT);
+    drmModeFreePlaneResources(kplane_res);
+}
+#endif
 
 static unsigned int
 drmmode_crtc_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_res, int num)
@@ -1121,6 +1486,10 @@ drmmode_crtc_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_res
     drmmode_crtc->drmmode = drmmode;
     drmmode_crtc->vblank_pipe = drmmode_crtc_vblank_pipe(num);
     crtc->driver_private = drmmode_crtc;
+
+#ifdef GLAMOR_HAS_DRM_ATOMIC
+    drmmode_crtc_create_planes(crtc, num);
+#endif
 
     /* Hide any cursors which may be active from previous users */
     drmModeSetCursor(drmmode->fd, drmmode_crtc->mode_crtc->crtc_id, 0, 0, 0);
@@ -1477,7 +1846,8 @@ drmmode_property_ignore(drmModePropertyPtr prop)
     if (prop->flags & DRM_MODE_PROP_BLOB)
         return TRUE;
     /* ignore standard property */
-    if (!strcmp(prop->name, "EDID") || !strcmp(prop->name, "DPMS"))
+    if (!strcmp(prop->name, "EDID") || !strcmp(prop->name, "DPMS") ||
+        !strcmp(prop->name, "CRTC_ID"))
         return TRUE;
 
     return FALSE;

@@ -73,6 +73,8 @@ conf_data.set_quoted('SHMDIR', '/tmp')
 
 conf_data.set('HAVE_XSHMFENCE', xshmfence_dep.found())
 conf_data.set('WITH_LIBDRM', libdrm_dep.found())
+conf_data.set('GLAMOR_HAS_DRM_ATOMIC',
+              libdrm_dep.found() and libdrm_dep.version().version_compare('>= 2.4.62'))
 conf_data.set('GLAMOR_HAS_DRM_NAME_FROM_FD_2',
               libdrm_dep.found() and libdrm_dep.version().version_compare('>= 2.4.74'))
 conf_data.set('GLXEXT', build_glx)

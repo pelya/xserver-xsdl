@@ -36,6 +36,22 @@
 
 struct gbm_device;
 
+enum drmmode_plane_property {
+    DRMMODE_PLANE_TYPE = 0,
+    DRMMODE_PLANE_FB_ID,
+    DRMMODE_PLANE_CRTC_ID,
+    DRMMODE_PLANE_SRC_X,
+    DRMMODE_PLANE_SRC_Y,
+    DRMMODE_PLANE__COUNT
+};
+
+enum drmmode_plane_type {
+    DRMMODE_PLANE_TYPE_PRIMARY = 0,
+    DRMMODE_PLANE_TYPE_CURSOR,
+    DRMMODE_PLANE_TYPE_OVERLAY,
+    DRMMODE_PLANE_TYPE__COUNT
+};
+
 typedef struct {
     struct dumb_bo *dumb;
 #ifdef GLAMOR_HAS_GBM
@@ -89,6 +105,19 @@ typedef struct {
 } drmmode_rec, *drmmode_ptr;
 
 typedef struct {
+    const char *name;
+    Bool valid;
+    uint64_t value;
+} drmmode_prop_enum_info_rec, *drmmode_prop_enum_info_ptr;
+
+typedef struct {
+    const char *name;
+    uint32_t prop_id;
+    unsigned int num_enum_values;
+    drmmode_prop_enum_info_rec *enum_values;
+} drmmode_prop_info_rec, *drmmode_prop_info_ptr;
+
+typedef struct {
     drmmode_ptr drmmode;
     drmModeCrtcPtr mode_crtc;
     uint32_t vblank_pipe;
@@ -96,6 +125,9 @@ typedef struct {
     struct dumb_bo *cursor_bo;
     Bool cursor_up;
     uint16_t lut_r[256], lut_g[256], lut_b[256];
+
+    drmmode_prop_info_rec props_plane[DRMMODE_PLANE__COUNT];
+    uint32_t plane_id;
 
     drmmode_bo rotate_bo;
     unsigned rotate_fb_id;
@@ -205,6 +237,10 @@ void drmmode_get_default_bpp(ScrnInfoPtr pScrn, drmmode_ptr drmmmode,
                              int *depth, int *bpp);
 
 void drmmode_copy_fb(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
+
+int drmmode_crtc_set_fb(xf86CrtcPtr crtc, uint32_t fb_id,
+                        int x, int y, uint32_t flags, void *data);
+
 #ifndef DRM_CAP_DUMB_PREFERRED_DEPTH
 #define DRM_CAP_DUMB_PREFERRED_DEPTH 3
 #endif
