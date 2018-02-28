@@ -56,6 +56,23 @@ static Bool drmmode_xf86crtc_resize(ScrnInfoPtr scrn, int width, int height);
 static PixmapPtr drmmode_create_pixmap_header(ScreenPtr pScreen, int width, int height,
                                               int depth, int bitsPerPixel, int devKind,
                                               void *pPixData);
+
+#ifdef GLAMOR_HAS_DRM_MODIFIERS
+
+static inline uint32_t *
+formats_ptr(struct drm_format_modifier_blob *blob)
+{
+    return (uint32_t *)(((char *)blob) + blob->formats_offset);
+}
+
+static inline struct drm_format_modifier *
+modifiers_ptr(struct drm_format_modifier_blob *blob)
+{
+    return (struct drm_format_modifier *)(((char *)blob) + blob->modifiers_offset);
+}
+
+#endif
+
 static Bool
 drmmode_zaphod_string_matches(ScrnInfoPtr scrn, const char *s, char *output_name)
 {
@@ -1532,15 +1549,76 @@ is_plane_assigned(ScrnInfoPtr scrn, int plane_id)
     return FALSE;
 }
 
+#ifdef GLAMOR_HAS_DRM_MODIFIERS
+/**
+ * Populates the formats array, and the modifiers of each format for a drm_plane.
+ */
+static Bool
+populate_format_modifiers(xf86CrtcPtr crtc, const drmModePlane *kplane,
+                          uint32_t blob_id)
+{
+    drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+    drmmode_ptr drmmode = drmmode_crtc->drmmode;
+    unsigned i, j;
+    drmModePropertyBlobRes *blob;
+    struct drm_format_modifier_blob *fmt_mod_blob;
+    uint32_t *blob_formats;
+    struct drm_format_modifier *blob_modifiers;
+
+    blob = drmModeGetPropertyBlob(drmmode->fd, blob_id);
+    if (!blob)
+        return FALSE;
+
+    fmt_mod_blob = blob->data;
+    blob_formats = formats_ptr(fmt_mod_blob);
+    blob_modifiers = modifiers_ptr(fmt_mod_blob);
+
+    assert(drmmode_crtc->num_formats == fmt_mod_blob->count_formats);
+
+    for (i = 0; i < fmt_mod_blob->count_formats; i++) {
+        uint32_t num_modifiers = 0;
+        uint64_t *modifiers = NULL;
+        uint64_t *tmp;
+
+        for (j = 0; j < fmt_mod_blob->count_modifiers; j++) {
+            struct drm_format_modifier *mod = &blob_modifiers[j];
+
+            if ((i < mod->offset) || (i > mod->offset + 63))
+                continue;
+            if (!(mod->formats & (1 << (i - mod->offset))))
+                continue;
+
+            num_modifiers++;
+            tmp = realloc(modifiers, num_modifiers * sizeof(modifiers[0]));
+            if (!tmp) {
+                free(modifiers);
+                drmModeFreePropertyBlob(blob);
+                return FALSE;
+            }
+            modifiers = tmp;
+            modifiers[num_modifiers - 1] = mod->modifier;
+        }
+
+        drmmode_crtc->formats[i].format = blob_formats[i];
+        drmmode_crtc->formats[i].modifiers = modifiers;
+        drmmode_crtc->formats[i].num_modifiers = num_modifiers;
+    }
+
+    drmModeFreePropertyBlob(blob);
+
+    return TRUE;
+}
+#endif
+
 static void
 drmmode_crtc_create_planes(xf86CrtcPtr crtc, int num)
 {
     drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
     drmmode_ptr drmmode = drmmode_crtc->drmmode;
     drmModePlaneRes *kplane_res;
-    drmModePlane *kplane;
+    drmModePlane *kplane, *best_kplane = NULL;
     drmModeObjectProperties *props;
-    uint32_t i, type;
+    uint32_t i, type, blob_id;
     int current_crtc, best_plane = 0;
 
     static drmmode_prop_enum_info_rec plane_type_enums[] = {
@@ -1562,6 +1640,7 @@ drmmode_crtc_create_planes(xf86CrtcPtr crtc, int num)
         },
         [DRMMODE_PLANE_FB_ID] = { .name = "FB_ID", },
         [DRMMODE_PLANE_CRTC_ID] = { .name = "CRTC_ID", },
+        [DRMMODE_PLANE_IN_FORMATS] = { .name = "IN_FORMATS", },
         [DRMMODE_PLANE_SRC_X] = { .name = "SRC_X", },
         [DRMMODE_PLANE_SRC_Y] = { .name = "SRC_Y", },
         [DRMMODE_PLANE_SRC_W] = { .name = "SRC_W", },
@@ -1602,13 +1681,13 @@ drmmode_crtc_create_planes(xf86CrtcPtr crtc, int num)
         }
 
         plane_id = kplane->plane_id;
-        drmModeFreePlane(kplane);
 
         props = drmModeObjectGetProperties(drmmode->fd, plane_id,
                                            DRM_MODE_OBJECT_PLANE);
         if (!props) {
             xf86DrvMsg(drmmode->scrn->scrnIndex, X_ERROR,
                     "couldn't get plane properties\n");
+            drmModeFreePlane(kplane);
             continue;
         }
 
@@ -1618,6 +1697,7 @@ drmmode_crtc_create_planes(xf86CrtcPtr crtc, int num)
         type = drmmode_prop_get_value(&tmp_props[DRMMODE_PLANE_TYPE],
                                       props, DRMMODE_PLANE_TYPE__COUNT);
         if (type != DRMMODE_PLANE_TYPE_PRIMARY) {
+            drmModeFreePlane(kplane);
             drmModeFreeObjectProperties(props);
             continue;
         }
@@ -1626,9 +1706,14 @@ drmmode_crtc_create_planes(xf86CrtcPtr crtc, int num)
         current_crtc = drmmode_prop_get_value(&tmp_props[DRMMODE_PLANE_CRTC_ID],
                                               props, 0);
         if (current_crtc == drmmode_crtc->mode_crtc->crtc_id) {
-            if (best_plane)
+            if (best_plane) {
+                drmModeFreePlane(best_kplane);
                 drmmode_prop_info_free(drmmode_crtc->props_plane, DRMMODE_PLANE__COUNT);
+            }
             best_plane = plane_id;
+            best_kplane = kplane;
+            blob_id = drmmode_prop_get_value(&tmp_props[DRMMODE_PLANE_IN_FORMATS],
+                                             props, 0);
             drmmode_prop_info_copy(drmmode_crtc->props_plane, tmp_props,
                                    DRMMODE_PLANE__COUNT, 1);
             drmModeFreeObjectProperties(props);
@@ -1637,14 +1722,35 @@ drmmode_crtc_create_planes(xf86CrtcPtr crtc, int num)
 
         if (!best_plane) {
             best_plane = plane_id;
+            best_kplane = kplane;
+            blob_id = drmmode_prop_get_value(&tmp_props[DRMMODE_PLANE_IN_FORMATS],
+                                             props, 0);
             drmmode_prop_info_copy(drmmode_crtc->props_plane, tmp_props,
                                    DRMMODE_PLANE__COUNT, 1);
+        } else {
+            drmModeFreePlane(kplane);
         }
 
         drmModeFreeObjectProperties(props);
     }
 
     drmmode_crtc->plane_id = best_plane;
+    if (best_kplane) {
+        drmmode_crtc->num_formats = best_kplane->count_formats;
+        drmmode_crtc->formats = calloc(sizeof(drmmode_format_rec),
+                                       best_kplane->count_formats);
+#ifdef GLAMOR_HAS_DRM_MODIFIERS
+        if (blob_id) {
+            populate_format_modifiers(crtc, best_kplane, blob_id);
+        }
+        else
+#endif
+        {
+            for (i = 0; i < best_kplane->count_formats; i++)
+                drmmode_crtc->formats[i].format = best_kplane->formats[i];
+        }
+        drmModeFreePlane(best_kplane);
+    }
 
     drmmode_prop_info_free(tmp_props, DRMMODE_PLANE__COUNT);
     drmModeFreePlaneResources(kplane_res);

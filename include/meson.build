@@ -77,6 +77,8 @@ conf_data.set('GLAMOR_HAS_DRM_ATOMIC',
               libdrm_dep.found() and libdrm_dep.version().version_compare('>= 2.4.62'))
 conf_data.set('GLAMOR_HAS_DRM_NAME_FROM_FD_2',
               libdrm_dep.found() and libdrm_dep.version().version_compare('>= 2.4.74'))
+conf_data.set('GLAMOR_HAS_DRM_MODIFIERS',
+              libdrm_dep.found() and libdrm_dep.version().version_compare('>= 2.4.83'))
 conf_data.set('GLXEXT', build_glx)
 conf_data.set('GLAMOR', build_glamor)
 conf_data.set('GLAMOR_HAS_GBM', gbm_dep.found())

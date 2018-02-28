@@ -39,6 +39,7 @@ struct gbm_device;
 enum drmmode_plane_property {
     DRMMODE_PLANE_TYPE = 0,
     DRMMODE_PLANE_FB_ID,
+    DRMMODE_PLANE_IN_FORMATS,
     DRMMODE_PLANE_CRTC_ID,
     DRMMODE_PLANE_SRC_X,
     DRMMODE_PLANE_SRC_Y,
@@ -143,6 +144,12 @@ typedef struct {
 } drmmode_mode_rec, *drmmode_mode_ptr;
 
 typedef struct {
+    uint32_t format;
+    uint32_t num_modifiers;
+    uint64_t *modifiers;
+} drmmode_format_rec, *drmmode_format_ptr;
+
+typedef struct {
     drmmode_ptr drmmode;
     drmModeCrtcPtr mode_crtc;
     uint32_t vblank_pipe;
@@ -155,6 +162,8 @@ typedef struct {
     drmmode_prop_info_rec props_plane[DRMMODE_PLANE__COUNT];
     uint32_t plane_id;
     drmmode_mode_ptr current_mode;
+    uint32_t num_formats;
+    drmmode_format_rec *formats;
 
     drmmode_bo rotate_bo;
     unsigned rotate_fb_id;
