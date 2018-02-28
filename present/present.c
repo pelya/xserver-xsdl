@@ -118,18 +118,22 @@ present_flip_pending_pixmap(ScreenPtr screen)
 }
 
 static Bool
-present_check_flip(RRCrtcPtr    crtc,
-                   WindowPtr    window,
-                   PixmapPtr    pixmap,
-                   Bool         sync_flip,
-                   RegionPtr    valid,
-                   int16_t      x_off,
-                   int16_t      y_off)
+present_check_flip(RRCrtcPtr            crtc,
+                   WindowPtr            window,
+                   PixmapPtr            pixmap,
+                   Bool                 sync_flip,
+                   RegionPtr            valid,
+                   int16_t              x_off,
+                   int16_t              y_off,
+                   PresentFlipReason   *reason)
 {
     ScreenPtr                   screen = window->drawable.pScreen;
     PixmapPtr                   window_pixmap;
     WindowPtr                   root = screen->root;
     present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
+
+    if (reason)
+        *reason = PRESENT_FLIP_REASON_UNKNOWN;
 
     if (!screen_priv)
         return FALSE;
@@ -177,7 +181,12 @@ present_check_flip(RRCrtcPtr    crtc,
     }
 
     /* Ask the driver for permission */
-    if (screen_priv->info->check_flip) {
+    if (screen_priv->info->version >= 1 && screen_priv->info->check_flip2) {
+        if (!(*screen_priv->info->check_flip2) (crtc, window, pixmap, sync_flip, reason)) {
+            DebugPresent(("\td %08lx -> %08lx\n", window->drawable.id, pixmap ? pixmap->drawable.id : 0));
+            return FALSE;
+        }
+    } else if (screen_priv->info->check_flip) {
         if (!(*screen_priv->info->check_flip) (crtc, window, pixmap, sync_flip)) {
             DebugPresent(("\td %08lx -> %08lx\n", window->drawable.id, pixmap ? pixmap->drawable.id : 0));
             return FALSE;
@@ -564,6 +573,7 @@ present_check_flip_window (WindowPtr window)
     present_window_priv_ptr     window_priv = present_window_priv(window);
     present_vblank_ptr          flip_pending = screen_priv->flip_pending;
     present_vblank_ptr          vblank;
+    PresentFlipReason           reason;
 
     /* If this window hasn't ever been used with Present, it can't be
      * flipping
@@ -580,7 +590,7 @@ present_check_flip_window (WindowPtr window)
          */
         if (flip_pending->window == window) {
             if (!present_check_flip(flip_pending->crtc, window, flip_pending->pixmap,
-                                    flip_pending->sync_flip, NULL, 0, 0))
+                                    flip_pending->sync_flip, NULL, 0, 0, NULL))
                 present_set_abort_flip(screen);
         }
     } else {
@@ -588,15 +598,16 @@ present_check_flip_window (WindowPtr window)
          * Check current flip
          */
         if (window == screen_priv->flip_window) {
-            if (!present_check_flip(screen_priv->flip_crtc, window, screen_priv->flip_pixmap, screen_priv->flip_sync, NULL, 0, 0))
+            if (!present_check_flip(screen_priv->flip_crtc, window, screen_priv->flip_pixmap, screen_priv->flip_sync, NULL, 0, 0, NULL))
                 present_unflip(screen);
         }
     }
 
     /* Now check any queued vblanks */
     xorg_list_for_each_entry(vblank, &window_priv->vblank, window_list) {
-        if (vblank->queued && vblank->flip && !present_check_flip(vblank->crtc, window, vblank->pixmap, vblank->sync_flip, NULL, 0, 0)) {
+        if (vblank->queued && vblank->flip && !present_check_flip(vblank->crtc, window, vblank->pixmap, vblank->sync_flip, NULL, 0, 0, &reason)) {
             vblank->flip = FALSE;
+            vblank->reason = reason;
             if (vblank->sync_flip)
                 vblank->requeue = TRUE;
         }
@@ -756,10 +767,14 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
     /* Compute correct CompleteMode
      */
     if (vblank->kind == PresentCompleteKindPixmap) {
-        if (vblank->pixmap && vblank->window)
-            mode = PresentCompleteModeCopy;
-        else
+        if (vblank->pixmap && vblank->window) {
+            if (vblank->has_suboptimal && vblank->reason == PRESENT_FLIP_REASON_BUFFER_FORMAT)
+                mode = PresentCompleteModeSuboptimalCopy;
+            else
+                mode = PresentCompleteModeCopy;
+        } else {
             mode = PresentCompleteModeSkip;
+        }
     }
     else
         mode = PresentCompleteModeCopy;
@@ -795,6 +810,7 @@ present_pixmap(WindowPtr window,
     ScreenPtr                   screen = window->drawable.pScreen;
     present_window_priv_ptr     window_priv = present_get_window_priv(window, TRUE);
     present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
+    PresentFlipReason           reason = PRESENT_FLIP_REASON_UNKNOWN;
 
     if (!window_priv)
         return BadAlloc;
@@ -912,22 +928,24 @@ present_pixmap(WindowPtr window,
     vblank->msc_offset = window_priv->msc_offset;
     vblank->notifies = notifies;
     vblank->num_notifies = num_notifies;
+    vblank->has_suboptimal = (options & PresentOptionSuboptimal);
 
     if (pixmap != NULL &&
         !(options & PresentOptionCopy) &&
         screen_priv->info) {
         if (msc_is_after(target_msc, crtc_msc) &&
-            present_check_flip (target_crtc, window, pixmap, TRUE, valid, x_off, y_off))
+            present_check_flip (target_crtc, window, pixmap, TRUE, valid, x_off, y_off, &reason))
         {
             vblank->flip = TRUE;
             vblank->sync_flip = TRUE;
             target_msc--;
         } else if ((screen_priv->info->capabilities & PresentCapabilityAsync) &&
-            present_check_flip (target_crtc, window, pixmap, FALSE, valid, x_off, y_off))
+            present_check_flip (target_crtc, window, pixmap, FALSE, valid, x_off, y_off, &reason))
         {
             vblank->flip = TRUE;
         }
     }
+    vblank->reason = reason;
 
     if (wait_fence) {
         vblank->wait_fence = present_fence_create(wait_fence);
