@@ -73,6 +73,48 @@ modifiers_ptr(struct drm_format_modifier_blob *blob)
 
 #endif
 
+Bool
+drmmode_is_format_supported(ScrnInfoPtr scrn, uint32_t format, uint64_t modifier)
+{
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+    int c, i, j;
+
+    for (c = 0; c < xf86_config->num_crtc; c++) {
+        xf86CrtcPtr crtc = xf86_config->crtc[c];
+        drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+        Bool found = FALSE;
+
+        if (!crtc->enabled)
+            continue;
+
+        for (i = 0; i < drmmode_crtc->num_formats; i++) {
+            drmmode_format_ptr iter = &drmmode_crtc->formats[i];
+
+            if (iter->format != format)
+                continue;
+
+            if (modifier == 0) {
+                found = TRUE;
+                break;
+            }
+
+            for (j = 0; j < iter->num_modifiers; j++) {
+                if (iter->modifiers[j] == modifier) {
+                    found = TRUE;
+                    break;
+                }
+            }
+
+            break;
+        }
+
+        if (!found)
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
 #ifdef GBM_BO_WITH_MODIFIERS
 static uint32_t
 get_modifiers_set(ScrnInfoPtr scrn, uint32_t format, uint64_t **modifiers,
