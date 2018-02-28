@@ -168,7 +168,7 @@ do_queue_flip_on_crtc(modesettingPtr ms, xf86CrtcPtr crtc,
 #ifdef GLAMOR_HAS_DRM_ATOMIC
     if (ms->atomic_modeset) {
         flags |= DRM_MODE_ATOMIC_NONBLOCK;
-        return drmmode_crtc_set_fb(crtc, ms->drmmode.fb_id, 0, 0, flags,
+        return drmmode_crtc_set_fb(crtc, NULL, ms->drmmode.fb_id, 0, 0, flags,
                                    (void *) (uintptr_t) seq);
     }
 #endif

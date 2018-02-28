@@ -248,7 +248,8 @@ ms_present_check_flip(RRCrtcPtr crtc,
         return FALSE;
 
     /* Check stride, can't change that on flip */
-    if (pixmap->devKind != drmmode_bo_get_pitch(&ms->drmmode.front_bo))
+    if (!ms->atomic_modeset &&
+        pixmap->devKind != drmmode_bo_get_pitch(&ms->drmmode.front_bo))
         return FALSE;
 
     /* Make sure there's a bo we can get to */
