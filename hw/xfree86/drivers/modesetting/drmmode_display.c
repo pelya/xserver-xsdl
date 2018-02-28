@@ -73,6 +73,68 @@ modifiers_ptr(struct drm_format_modifier_blob *blob)
 
 #endif
 
+#ifdef GBM_BO_WITH_MODIFIERS
+static uint32_t
+get_modifiers_set(ScrnInfoPtr scrn, uint32_t format, uint64_t **modifiers,
+                  Bool enabled_crtc_only, Bool exclude_multiplane)
+{
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+    modesettingPtr ms = modesettingPTR(scrn);
+    drmmode_ptr drmmode = &ms->drmmode;
+    int c, i, j, k, count_modifiers = 0;
+    uint64_t *tmp, *ret = NULL;
+
+    *modifiers = NULL;
+    for (c = 0; c < xf86_config->num_crtc; c++) {
+        xf86CrtcPtr crtc = xf86_config->crtc[c];
+        drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
+
+        if (enabled_crtc_only && !crtc->enabled)
+            continue;
+
+        for (i = 0; i < drmmode_crtc->num_formats; i++) {
+            drmmode_format_ptr iter = &drmmode_crtc->formats[i];
+
+            if (iter->format != format)
+                continue;
+
+            for (j = 0; j < iter->num_modifiers; j++) {
+                Bool found = FALSE;
+
+		/* Don't choose multi-plane formats for our screen pixmap.
+		 * These will get used with frontbuffer rendering, which will
+		 * lead to worse-than-tearing with multi-plane formats, as the
+		 * primary and auxiliary planes go out of sync. */
+		if (exclude_multiplane &&
+                    gbm_device_get_format_modifier_plane_count(drmmode->gbm,
+                                                               format,
+                                                               iter->modifiers[j]) > 1) {
+                    continue;
+                }
+
+                for (k = 0; k < count_modifiers; k++) {
+                    if (iter->modifiers[j] == ret[k])
+                        found = TRUE;
+                }
+                if (!found) {
+                    count_modifiers++;
+                    tmp = realloc(ret, count_modifiers * sizeof(uint64_t));
+                    if (!tmp) {
+                        free(ret);
+                        return 0;
+                    }
+                    ret = tmp;
+                    ret[count_modifiers - 1] = iter->modifiers[j];
+                }
+            }
+        }
+    }
+
+    *modifiers = ret;
+    return count_modifiers;
+}
+#endif
+
 static Bool
 drmmode_zaphod_string_matches(ScrnInfoPtr scrn, const char *s, char *output_name)
 {
@@ -593,14 +655,36 @@ static Bool
 drmmode_create_bo(drmmode_ptr drmmode, drmmode_bo *bo,
                   unsigned width, unsigned height, unsigned bpp)
 {
+    uint32_t format;
+
+    if (drmmode->scrn->depth == 30)
+        format = GBM_FORMAT_ARGB2101010;
+    else
+        format = GBM_FORMAT_ARGB8888;
+
     bo->width = width;
     bo->height = height;
 
 #ifdef GLAMOR_HAS_GBM
     if (drmmode->glamor) {
-        bo->gbm = gbm_bo_create(drmmode->gbm, width, height,
-                                drmmode->scrn->depth == 30 ?
-                                GBM_FORMAT_ARGB2101010 : GBM_FORMAT_ARGB8888,
+#ifdef GBM_BO_WITH_MODIFIERS
+        uint32_t num_modifiers;
+        uint64_t *modifiers = NULL;
+
+        num_modifiers = get_modifiers_set(drmmode->scrn, format, &modifiers,
+                                          FALSE, TRUE);
+        if (num_modifiers > 0 &&
+            !(num_modifiers == 1 && modifiers[0] == DRM_FORMAT_MOD_INVALID)) {
+            bo->gbm = gbm_bo_create_with_modifiers(drmmode->gbm, width, height,
+                                                   format, modifiers,
+                                                   num_modifiers);
+            free(modifiers);
+            if (bo->gbm)
+                return TRUE;
+        }
+#endif
+
+        bo->gbm = gbm_bo_create(drmmode->gbm, width, height, format,
                                 GBM_BO_USE_RENDERING | GBM_BO_USE_SCANOUT);
         return bo->gbm != NULL;
     }
