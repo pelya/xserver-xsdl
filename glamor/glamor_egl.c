@@ -56,6 +56,7 @@ struct glamor_egl_screen_private {
     CloseScreenProcPtr CloseScreen;
     int fd;
     struct gbm_device *gbm;
+    int dmabuf_capable;
 
     CloseScreenProcPtr saved_close_screen;
     DestroyPixmapProcPtr saved_destroy_pixmap;
@@ -330,10 +331,51 @@ glamor_gbm_bo_from_pixmap(ScreenPtr screen, PixmapPtr pixmap)
 }
 
 int
-glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
-                                 PixmapPtr pixmap,
-                                 unsigned int tex,
-                                 Bool want_name, CARD16 *stride, CARD32 *size)
+glamor_egl_fds_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, int *fds,
+                           uint32_t *strides, uint32_t *offsets,
+                           uint64_t *modifier)
+{
+#ifdef GLAMOR_HAS_GBM
+    struct gbm_bo *bo;
+    int num_fds;
+#ifdef GBM_BO_WITH_MODIFIERS
+    int i;
+#endif
+
+    if (!glamor_make_pixmap_exportable(pixmap))
+        return 0;
+
+    bo = glamor_gbm_bo_from_pixmap(screen, pixmap);
+    if (!bo)
+        return 0;
+
+#ifdef GBM_BO_WITH_MODIFIERS
+    num_fds = gbm_bo_get_plane_count(bo);
+    for (i = 0; i < num_fds; i++) {
+        fds[i] = gbm_bo_get_fd(bo);
+        strides[i] = gbm_bo_get_stride_for_plane(bo, i);
+        offsets[i] = gbm_bo_get_offset(bo, i);
+    }
+    *modifier = gbm_bo_get_modifier(bo);
+#else
+    num_fds = 1;
+    fds[0] = gbm_bo_get_fd(bo);
+    strides[0] = gbm_bo_get_stride(bo);
+    offsets[0] = 0;
+    *modifier = DRM_FORMAT_MOD_INVALID;
+#endif
+
+    gbm_bo_destroy(bo);
+    return num_fds;
+#else
+    return 0;
+#endif
+}
+
+int
+glamor_egl_fd_name_from_pixmap(ScreenPtr screen,
+                               PixmapPtr pixmap,
+                               CARD16 *stride, CARD32 *size)
 {
     struct glamor_egl_screen_private *glamor_egl;
     struct gbm_bo *bo;
@@ -347,12 +389,7 @@ glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
 
     pixmap->devKind = gbm_bo_get_stride(bo);
 
-    if (want_name) {
-        glamor_get_name_from_bo(glamor_egl->fd, bo, &fd);
-    }
-    else {
-        fd = gbm_bo_get_fd(bo);
-    }
+    glamor_get_name_from_bo(glamor_egl->fd, bo, &fd);
     *stride = pixmap->devKind;
     *size = pixmap->devKind * gbm_bo_get_height(bo);
 
@@ -399,19 +436,68 @@ glamor_back_pixmap_from_fd(PixmapPtr pixmap,
     return ret;
 }
 
+static uint32_t
+gbm_format_for_depth(CARD8 depth)
+{
+    switch (depth) {
+    case 16:
+        return GBM_FORMAT_RGB565;
+    case 24:
+        return GBM_FORMAT_XRGB8888;
+    default:
+        ErrorF("unexpected depth: %d\n", depth);
+    case 32:
+        return GBM_FORMAT_ARGB8888;
+    }
+}
+
 _X_EXPORT PixmapPtr
-glamor_pixmap_from_fd(ScreenPtr screen,
-                      int fd,
-                      CARD16 width,
-                      CARD16 height,
-                      CARD16 stride, CARD8 depth, CARD8 bpp)
+glamor_pixmap_from_fds(ScreenPtr screen,
+                       CARD8 num_fds, int *fds,
+                       CARD16 width, CARD16 height,
+                       CARD32 *strides, CARD32 *offsets,
+                       CARD8 depth, CARD8 bpp,
+                       uint64_t modifier)
 {
     PixmapPtr pixmap;
-    Bool ret;
+    struct glamor_egl_screen_private *glamor_egl;
+    Bool ret = FALSE;
+    int i;
+
+    glamor_egl = glamor_egl_get_screen_private(xf86ScreenToScrn(screen));
 
     pixmap = screen->CreatePixmap(screen, 0, 0, depth, 0);
-    ret = glamor_back_pixmap_from_fd(pixmap, fd, width, height,
-                                     stride, depth, bpp);
+
+#ifdef GBM_BO_WITH_MODIFIERS
+    if (glamor_egl->dmabuf_capable && modifier != DRM_FORMAT_MOD_INVALID) {
+        struct gbm_import_fd_modifier_data import_data = { 0 };
+        struct gbm_bo *bo;
+
+        import_data.width = width;
+        import_data.height = height;
+        import_data.num_fds = num_fds;
+        import_data.modifier = modifier;
+        for (i = 0; i < num_fds; i++) {
+            import_data.fds[i] = fds[i];
+            import_data.strides[i] = strides[i];
+            import_data.offsets[i] = offsets[i];
+        }
+        import_data.format = gbm_format_for_depth(depth);
+        bo = gbm_bo_import(glamor_egl->gbm, GBM_BO_IMPORT_FD_MODIFIER, &import_data, 0);
+        if (bo) {
+            screen->ModifyPixmapHeader(pixmap, width, height, 0, 0, strides[0], NULL);
+            ret = glamor_egl_create_textured_pixmap_from_gbm_bo(pixmap, bo);
+            gbm_bo_destroy(bo);
+        }
+    } else
+#endif
+    {
+        if (num_fds == 1) {
+            ret = glamor_back_pixmap_from_fd(pixmap, fds[0], width, height,
+                                             strides[0], depth, bpp);
+        }
+    }
+
     if (ret == FALSE) {
         screen->DestroyPixmap(pixmap);
         return NULL;
@@ -536,10 +622,10 @@ glamor_dri3_open_client(ClientPtr client,
 }
 
 static dri3_screen_info_rec glamor_dri3_info = {
-    .version = 1,
+    .version = 2,
     .open_client = glamor_dri3_open_client,
-    .pixmap_from_fd = glamor_pixmap_from_fd,
-    .fd_from_pixmap = glamor_fd_from_pixmap,
+    .pixmap_from_fds = glamor_pixmap_from_fds,
+    .fds_from_pixmap = glamor_egl_fds_from_pixmap,
 };
 #endif /* DRI3 */
 
@@ -736,6 +822,14 @@ glamor_egl_init(ScrnInfoPtr scrn, int fd)
 
     xf86DrvMsg(scrn->scrnIndex, X_INFO, "glamor X acceleration enabled on %s\n",
                glGetString(GL_RENDERER));
+
+#ifdef GBM_BO_WITH_MODIFIERS
+    if (epoxy_has_egl_extension(glamor_egl->display,
+                                "EGL_EXT_image_dma_buf_import") &&
+        epoxy_has_egl_extension(glamor_egl->display,
+                                "EGL_EXT_image_dma_buf_import_modifiers"))
+        glamor_egl->dmabuf_capable = TRUE;
+#endif
 
     glamor_egl->saved_free_screen = scrn->FreeScreen;
     scrn->FreeScreen = glamor_egl_free_screen;

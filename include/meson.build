@@ -84,6 +84,8 @@ conf_data.set('GLAMOR', build_glamor)
 conf_data.set('GLAMOR_HAS_GBM', gbm_dep.found())
 conf_data.set('GLAMOR_HAS_GBM_LINEAR',
               gbm_dep.found() and gbm_dep.version().version_compare('>= 10.6'))
+conf_data.set('GBM_BO_WITH_MODIFIERS',
+              gbm_dep.found() and gbm_dep.version().version_compare('>= 17.1'))
 
 conf_data.set_quoted('SERVER_MISC_CONFIG_PATH', serverconfigdir)
 conf_data.set_quoted('PROJECTROOT', get_option('prefix'))

@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <xf86drm.h>
+#include <drm_fourcc.h>
 
 #define MESA_EGL_NO_X11_HEADERS
 #include <gbm.h>
@@ -158,25 +159,65 @@ xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap)
     struct xwl_screen *xwl_screen = xwl_screen_get(pixmap->drawable.pScreen);
     struct xwl_pixmap *xwl_pixmap = xwl_pixmap_get(pixmap);
     int prime_fd;
+    int num_planes;
+    uint32_t strides[4];
+    uint32_t offsets[4];
+    uint64_t modifier;
+    int i;
 
     if (xwl_pixmap->buffer)
         return xwl_pixmap->buffer;
+
+    if (!xwl_pixmap->bo)
+       return NULL;
 
     prime_fd = gbm_bo_get_fd(xwl_pixmap->bo);
     if (prime_fd == -1)
         return NULL;
 
-    xwl_pixmap->buffer =
-        wl_drm_create_prime_buffer(xwl_screen->drm, prime_fd,
-                                   pixmap->drawable.width,
-                                   pixmap->drawable.height,
-                                   wl_drm_format_for_depth(pixmap->drawable.depth),
-                                   0, gbm_bo_get_stride(xwl_pixmap->bo),
-                                   0, 0,
-                                   0, 0);
+#ifdef GBM_BO_WITH_MODIFIERS
+    num_planes = gbm_bo_get_plane_count(xwl_pixmap->bo);
+    modifier = gbm_bo_get_modifier(xwl_pixmap->bo);
+    for (i = 0; i < num_planes; i++) {
+        strides[i] = gbm_bo_get_stride_for_plane(xwl_pixmap->bo, i);
+        offsets[i] = gbm_bo_get_offset(xwl_pixmap->bo, i);
+    }
+#else
+    num_planes = 1;
+    modifier = DRM_FORMAT_MOD_INVALID;
+    strides[0] = gbm_go_get_stride(xwl_pixmap->bo);
+    offsets[0] = 0;
+#endif
+
+    if (xwl_screen->dmabuf && modifier != DRM_FORMAT_MOD_INVALID) {
+        struct zwp_linux_buffer_params_v1 *params;
+
+        params = zwp_linux_dmabuf_v1_create_params(xwl_screen->dmabuf);
+        for (i = 0; i < num_planes; i++) {
+            zwp_linux_buffer_params_v1_add(params, prime_fd, i,
+                                           offsets[i], strides[i],
+                                           modifier >> 32, modifier & 0xffffffff);
+        }
+
+        xwl_pixmap->buffer =
+           zwp_linux_buffer_params_v1_create_immed(params,
+                                                   pixmap->drawable.width,
+                                                   pixmap->drawable.height,
+                                                   wl_drm_format_for_depth(pixmap->drawable.depth),
+                                                   0);
+        zwp_linux_buffer_params_v1_destroy(params);
+    } else if (num_planes == 1) {
+        xwl_pixmap->buffer =
+            wl_drm_create_prime_buffer(xwl_screen->drm, prime_fd,
+                                       pixmap->drawable.width,
+                                       pixmap->drawable.height,
+                                       wl_drm_format_for_depth(pixmap->drawable.depth),
+                                       0, gbm_bo_get_stride(xwl_pixmap->bo),
+                                       0, 0,
+                                       0, 0);
+    }
 
     close(prime_fd);
-
     return xwl_pixmap->buffer;
 }
 
@@ -213,7 +254,8 @@ xwl_glamor_destroy_pixmap(PixmapPtr pixmap)
             wl_buffer_destroy(xwl_pixmap->buffer);
 
         eglDestroyImageKHR(xwl_screen->egl_display, xwl_pixmap->image);
-        gbm_bo_destroy(xwl_pixmap->bo);
+        if (xwl_pixmap->bo)
+           gbm_bo_destroy(xwl_pixmap->bo);
         free(xwl_pixmap);
     }
 
@@ -282,8 +324,6 @@ xwl_drm_init_egl(struct xwl_screen *xwl_screen)
     if (xwl_screen->egl_display)
         return;
 
-    xwl_screen->expecting_event--;
-
     xwl_screen->gbm = gbm_create_device(xwl_screen->drm_fd);
     if (xwl_screen->gbm == NULL) {
         ErrorF("couldn't get display device\n");
@@ -327,6 +367,12 @@ xwl_drm_init_egl(struct xwl_screen *xwl_screen)
         return;
     }
 
+    if (epoxy_has_egl_extension(xwl_screen->egl_display,
+                                "EXT_image_dma_buf_import") &&
+        epoxy_has_egl_extension(xwl_screen->egl_display,
+                                "EXT_image_dma_buf_import_modifiers"))
+       xwl_screen->dmabuf_capable = TRUE;
+
     return;
 }
 
@@ -347,12 +393,14 @@ xwl_drm_handle_device(void *data, struct wl_drm *drm, const char *device)
        return;
    }
 
+   xwl_screen->expecting_event--;
+
    if (is_fd_render_node(xwl_screen->drm_fd)) {
        xwl_screen->fd_render_node = 1;
-       xwl_drm_init_egl(xwl_screen);
    } else {
        drmGetMagic(xwl_screen->drm_fd, &magic);
        wl_drm_authenticate(xwl_screen->drm, magic);
+       xwl_screen->expecting_event++; /* wait for 'authenticated' */
    }
 }
 
@@ -379,8 +427,8 @@ xwl_drm_handle_authenticated(void *data, struct wl_drm *drm)
 {
     struct xwl_screen *xwl_screen = data;
 
-    if (!xwl_screen->egl_display)
-        xwl_drm_init_egl(xwl_screen);
+    xwl_screen->drm_authenticated = 1;
+    xwl_screen->expecting_event--;
 }
 
 static void
@@ -399,8 +447,8 @@ static const struct wl_drm_listener xwl_drm_listener = {
 };
 
 Bool
-xwl_screen_init_glamor(struct xwl_screen *xwl_screen,
-                       uint32_t id, uint32_t version)
+xwl_screen_set_drm_interface(struct xwl_screen *xwl_screen,
+                             uint32_t id, uint32_t version)
 {
     if (version < 2)
         return FALSE;
@@ -413,11 +461,23 @@ xwl_screen_init_glamor(struct xwl_screen *xwl_screen,
     return TRUE;
 }
 
+Bool
+xwl_screen_set_dmabuf_interface(struct xwl_screen *xwl_screen,
+                                uint32_t id, uint32_t version)
+{
+    if (version < 3)
+        return FALSE;
+
+    xwl_screen->dmabuf =
+        wl_registry_bind(xwl_screen->registry, id, &zwp_linux_dmabuf_v1_interface, 3);
+
+    return TRUE;
+}
+
 int
-glamor_egl_dri3_fd_name_from_tex(ScreenPtr screen,
-                                 PixmapPtr pixmap,
-                                 unsigned int tex,
-                                 Bool want_name, CARD16 *stride, CARD32 *size)
+glamor_egl_fd_name_from_pixmap(ScreenPtr screen,
+                               PixmapPtr pixmap,
+                               CARD16 *stride, CARD32 *size)
 {
     return 0;
 }
@@ -518,58 +578,111 @@ xwl_dri3_open_client(ClientPtr client,
     return Success;
 }
 
-static PixmapPtr
-xwl_dri3_pixmap_from_fd(ScreenPtr screen, int fd,
-                        CARD16 width, CARD16 height, CARD16 stride,
-                        CARD8 depth, CARD8 bpp)
+_X_EXPORT PixmapPtr
+glamor_pixmap_from_fds(ScreenPtr screen,
+                         CARD8 num_fds, int *fds,
+                         CARD16 width, CARD16 height,
+                         CARD32 *strides, CARD32 *offsets,
+                         CARD8 depth, CARD8 bpp, uint64_t modifier)
 {
     struct xwl_screen *xwl_screen = xwl_screen_get(screen);
-    struct gbm_import_fd_data data;
-    struct gbm_bo *bo;
+    struct gbm_bo *bo = NULL;
     PixmapPtr pixmap;
+    int i;
 
-    if (width == 0 || height == 0 ||
-        depth < 15 || bpp != BitsPerPixel(depth) || stride < width * bpp / 8)
-        return NULL;
+    if (width == 0 || height == 0 || num_fds == 0 ||
+        depth < 15 || bpp != BitsPerPixel(depth) ||
+        strides[0] < width * bpp / 8)
+       goto error;
 
-    data.fd = fd;
-    data.width = width;
-    data.height = height;
-    data.stride = stride;
-    data.format = gbm_format_for_depth(depth);
-    bo = gbm_bo_import(xwl_screen->gbm, GBM_BO_IMPORT_FD, &data,
-                       GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+    if (xwl_screen->dmabuf_capable && modifier != DRM_FORMAT_MOD_INVALID) {
+#ifdef GBM_BO_WITH_MODIFIERS
+       struct gbm_import_fd_modifier_data data;
+
+       data.width = width;
+       data.height = height;
+       data.num_fds = num_fds;
+       data.format = gbm_format_for_depth(depth);
+       data.modifier = modifier;
+       for (i = 0; i < num_fds; i++) {
+          data.fds[i] = fds[i];
+          data.strides[i] = strides[i];
+          data.offsets[i] = offsets[i];
+       }
+       bo = gbm_bo_import(xwl_screen->gbm, GBM_BO_IMPORT_FD_MODIFIER, &data, 0);
+#endif
+    } else if (num_fds == 1) {
+       struct gbm_import_fd_data data;
+
+       data.fd = fds[0];
+       data.width = width;
+       data.height = height;
+       data.stride = strides[0];
+       data.format = gbm_format_for_depth(depth);
+       bo = gbm_bo_import(xwl_screen->gbm, GBM_BO_IMPORT_FD, &data,
+             GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+    } else {
+       goto error;
+    }
+
     if (bo == NULL)
-        return NULL;
+       goto error;
 
     pixmap = xwl_glamor_create_pixmap_for_bo(screen, bo, depth);
     if (pixmap == NULL) {
-        gbm_bo_destroy(bo);
-        return NULL;
+       gbm_bo_destroy(bo);
+       goto error;
     }
 
     return pixmap;
+
+error:
+    for (i = 0; i < num_fds; i++)
+       close(fds[i]);
+    return NULL;
 }
 
-static int
-xwl_dri3_fd_from_pixmap(ScreenPtr screen, PixmapPtr pixmap,
-                        CARD16 *stride, CARD32 *size)
+_X_EXPORT int
+glamor_egl_fds_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, int *fds,
+                           uint32_t *strides, uint32_t *offsets,
+                           uint64_t *modifier)
 {
     struct xwl_pixmap *xwl_pixmap;
+#ifdef GBM_BO_WITH_MODIFIERS
+    uint32_t num_fds;
+    int i;
+#endif
 
     xwl_pixmap = xwl_pixmap_get(pixmap);
 
-    *stride = gbm_bo_get_stride(xwl_pixmap->bo);
-    *size = pixmap->drawable.width * *stride;
+    if (!xwl_pixmap->bo)
+       return 0;
 
-    return gbm_bo_get_fd(xwl_pixmap->bo);
+#ifdef GBM_BO_WITH_MODIFIERS
+    num_fds = gbm_bo_get_plane_count(xwl_pixmap->bo);
+    *modifier = gbm_bo_get_modifier(xwl_pixmap->bo);
+
+    for (i = 0; i < num_fds; i++) {
+        fds[i] = gbm_bo_get_fd(xwl_pixmap->bo);
+        strides[i] = gbm_bo_get_stride_for_plane(xwl_pixmap->bo, i);
+        offsets[i] = gbm_bo_get_offset(xwl_pixmap->bo, i);
+    }
+
+    return num_fds;
+#else
+    *modifier = DRM_FORMAT_MOD_INVALID;
+    fds[0] = gbm_bo_get_fd(xwl_pixmap->bo);
+    strides[0] = gbm_bo_get_stride(xwl_pixmap->bo);
+    offsets[0] = 0;
+    return 1;
+#endif
 }
 
 static dri3_screen_info_rec xwl_dri3_info = {
-    .version = 1,
+    .version = 2,
     .open = NULL,
-    .pixmap_from_fd = xwl_dri3_pixmap_from_fd,
-    .fd_from_pixmap = xwl_dri3_fd_from_pixmap,
+    .pixmap_from_fds = glamor_pixmap_from_fds,
+    .fds_from_pixmap = glamor_fds_from_pixmap,
     .open_client = xwl_dri3_open_client,
 };
 
@@ -585,6 +698,12 @@ xwl_glamor_init(struct xwl_screen *xwl_screen)
         return FALSE;
     }
 
+    if (!xwl_screen->fd_render_node && !xwl_screen->drm_authenticated) {
+        ErrorF("Failed to get wl_drm, disabling Glamor and DRI3\n");
+	return FALSE;
+    }
+
+    xwl_drm_init_egl(xwl_screen);
     if (xwl_screen->egl_context == EGL_NO_CONTEXT) {
         ErrorF("Disabling glamor and dri3, EGL setup failed\n");
         return FALSE;

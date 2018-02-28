@@ -32,6 +32,7 @@
  */
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "glamor_priv.h"
 #include "mipict.h"
@@ -793,8 +794,9 @@ glamor_supports_pixmap_import_export(ScreenPtr screen)
 }
 
 _X_EXPORT int
-glamor_fd_from_pixmap(ScreenPtr screen,
-                      PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
+glamor_fds_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, int *fds,
+                       uint32_t *strides, uint32_t *offsets,
+                       uint64_t *modifier)
 {
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     glamor_screen_private *glamor_priv =
@@ -808,10 +810,9 @@ glamor_fd_from_pixmap(ScreenPtr screen,
         if (!glamor_pixmap_ensure_fbo(pixmap, pixmap->drawable.depth == 30 ?
                                       GL_RGB10_A2 : GL_RGBA, 0))
             return -1;
-        return glamor_egl_dri3_fd_name_from_tex(screen,
-                                                pixmap,
-                                                pixmap_priv->fbo->tex,
-                                                FALSE, stride, size);
+        return glamor_egl_fds_from_pixmap(screen, pixmap, fds,
+                                          strides, offsets,
+                                          modifier);
     default:
         break;
     }
@@ -824,6 +825,9 @@ glamor_shareable_fd_from_pixmap(ScreenPtr screen,
 {
     unsigned orig_usage_hint = pixmap->usage_hint;
     int ret;
+    int fds[4];
+    uint32_t strides[4], offsets[4];
+    uint64_t modifier;
 
     /*
      * The actual difference between a sharable and non sharable buffer
@@ -832,7 +836,20 @@ glamor_shareable_fd_from_pixmap(ScreenPtr screen,
      * 2 of those calls are also exported API, so we cannot just add a flag.
      */
     pixmap->usage_hint = CREATE_PIXMAP_USAGE_SHARED;
-    ret = glamor_fd_from_pixmap(screen, pixmap, stride, size);
+    ret = glamor_fds_from_pixmap(screen, pixmap, fds, strides, offsets,
+                                 &modifier);
+
+    /* Pixmaps with multi-planes/modifier are not shareable */
+    if (ret > 1) {
+        while (ret > 0)
+            close(fds[--ret]);
+        return -1;
+    }
+
+    ret = fds[0];
+    *stride = strides[0];
+    *size = pixmap->drawable.height * *stride;
+
     pixmap->usage_hint = orig_usage_hint;
 
     return ret;
@@ -849,10 +866,8 @@ glamor_name_from_pixmap(PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
         if (!glamor_pixmap_ensure_fbo(pixmap, pixmap->drawable.depth == 30 ?
                                       GL_RGB10_A2 : GL_RGBA, 0))
             return -1;
-        return glamor_egl_dri3_fd_name_from_tex(pixmap->drawable.pScreen,
-                                                pixmap,
-                                                pixmap_priv->fbo->tex,
-                                                TRUE, stride, size);
+        return glamor_egl_fd_name_from_pixmap(pixmap->drawable.pScreen,
+                                              pixmap, stride, size);
     default:
         break;
     }
