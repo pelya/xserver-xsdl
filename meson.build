@@ -369,8 +369,15 @@ elif get_option('dga') == 'true'
     build_dga = true
 endif
 
-# XXX: Allow configuration of these.
 build_apm = false
+if (get_option('linux_apm') == true and
+   host_machine.system() == 'linux')
+    if cc.has_header('linux/apm_bios.h')
+        build_apm = true
+    endif
+endif
+
+# XXX: Allow configuration of these.
 build_acpi = false
 build_mitshm = true
 build_xselinux = false
