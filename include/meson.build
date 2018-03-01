@@ -53,7 +53,6 @@ conf_data.set('HAS_APERTURE_DRV', host_machine.system() == 'openbsd')
 # XXX: BUNDLE_ID_PREFIX
 # XXX: HAVE_LIBDISPATCH
 conf_data.set_quoted('OSNAME', 'Linux') # XXX
-conf_data.set('HAVE_SYSV_IPC', '1') # XXX
 conf_data.set('HAVE_INPUTTHREAD', '1') # XXX
 conf_data.set('HAVE_PTHREAD_SETNAME_NP_WITHOUT_TID', '1') # XXX
 conf_data.set('HAVE_LIBBSD', libbsd_dep.found())
