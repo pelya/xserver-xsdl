@@ -199,6 +199,7 @@ conf_data.set('XvMCExtension', build_xvmc)
 conf_data.set('HAVE_SHA1_IN_LIBNETTLE', '1') # XXX
 
 conf_data.set('HAVE_APM', build_apm or build_acpi)
+conf_data.set('HAVE_ACPI', build_acpi)
 
 enable_debugging = get_option('buildtype') == 'debug'
 conf_data.set('DEBUG', enable_debugging)
@@ -257,7 +258,7 @@ xorg_data.set('XSERVER_LIBPCIACCESS', get_option('pciaccess'))
 xorg_data.set_quoted('PCI_TXT_IDS_PATH', '')
 xorg_data.set('XSERVER_PLATFORM_BUS', build_udev)
 xorg_data.set('WSCONS_SUPPORT', host_machine.system() == 'netbsd' or host_machine.system() == 'openbsd')
-xorg_data.set('XF86PM', build_apm)
+xorg_data.set('XF86PM', build_apm or build_acpi)
 
 if host_machine.system() == 'freebsd' or host_machine.system() == 'dragonflybsd'
     if host_machine.cpu_family() == 'x86' or host_machine.cpu_family() == 'x86_64'

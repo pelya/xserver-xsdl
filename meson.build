@@ -377,8 +377,17 @@ if (get_option('linux_apm') == true and
     endif
 endif
 
-# XXX: Allow configuration of these.
 build_acpi = false
+if (get_option('linux_acpi') == true and
+   host_machine.system() == 'linux')
+    if (host_machine.cpu() == 'x86' or
+       host_machine.cpu() == 'x86_64' or
+       host_machine.cpu() == 'ia64')
+        build_acpi = true
+    endif
+endif
+
+# XXX: Allow configuration of these.
 build_mitshm = true
 build_xselinux = false
 build_xf86vidmode = xf86vidmodeproto_dep.found()
