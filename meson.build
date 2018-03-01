@@ -387,8 +387,14 @@ if (get_option('linux_acpi') == true and
     endif
 endif
 
+build_mitshm = false
+if get_option('mitshm') == 'auto'
+    build_mitshm = cc.has_header('sys/shm.h')
+elif get_option('mitshm') == 'true'
+    build_mitshm = true
+endif
+
 # XXX: Allow configuration of these.
-build_mitshm = true
 build_xselinux = false
 build_xf86vidmode = xf86vidmodeproto_dep.found()
 
