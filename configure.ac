@@ -1281,12 +1281,7 @@ AM_CONDITIONAL(DRI3, test "x$DRI3" = xyes)
 if test "x$DRI" = xyes || test "x$DRI2" = xyes || test "x$DRI3" = xyes || test "x$CONFIG_UDEV_KMS" = xyes; then
 	if test "x$DRM" = xyes; then
 		AC_DEFINE(WITH_LIBDRM, 1, [Building with libdrm support])
-		if test "x$DRI2" = xyes; then
-			dnl 2.4.65 is required for drmGetDevice
-			PKG_CHECK_MODULES([LIBDRM], libdrm >= 2.4.65)
-		else
-			PKG_CHECK_MODULES([LIBDRM], $LIBDRM)
-		fi
+		PKG_CHECK_MODULES([LIBDRM], $LIBDRM)
 	fi
 fi
 

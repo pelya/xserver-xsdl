@@ -301,16 +301,8 @@ else
 endif
 
 libdrm_required = (get_option('dri1') == 'true') or (get_option('dri2') == 'true') or (get_option('dri3') == 'true')
-libdrm_dep = dependency('libdrm', version: '>= 2.3.1', required: libdrm_required)
-build_modesetting = false
-if libdrm_dep.found()
-  if build_dri2
-    # 2.4.65 is required for drmGetDevice
-    dependency('libdrm', version: '>= 2.4.65')
-  endif
-  # 2.4.46 is required for cursor hotspot support.
-  build_modesetting = libdrm_dep.version().version_compare('>= 2.4.46')
-endif
+libdrm_dep = dependency('libdrm', version: '>= 2.4.89', required: libdrm_required)
+build_modesetting = libdrm_dep.found()
 
 build_vbe = false
 if get_option('vbe') == 'auto'
