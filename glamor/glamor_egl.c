@@ -525,6 +525,28 @@ glamor_pixmap_from_fds(ScreenPtr screen,
     return pixmap;
 }
 
+_X_EXPORT PixmapPtr
+glamor_pixmap_from_fd(ScreenPtr screen,
+                      int fd,
+                      CARD16 width,
+                      CARD16 height,
+                      CARD16 stride, CARD8 depth, CARD8 bpp)
+{
+    PixmapPtr pixmap;
+    Bool ret;
+
+    pixmap = screen->CreatePixmap(screen, 0, 0, depth, 0);
+
+    ret = glamor_back_pixmap_from_fd(pixmap, fd, width, height,
+                                     stride, depth, bpp);
+
+    if (ret == FALSE) {
+        screen->DestroyPixmap(pixmap);
+        return NULL;
+    }
+    return pixmap;
+}
+
 _X_EXPORT Bool
 glamor_get_formats(ScreenPtr screen,
                    CARD32 *num_formats, CARD32 **formats)

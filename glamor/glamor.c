@@ -845,26 +845,18 @@ glamor_fds_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, int *fds,
 }
 
 _X_EXPORT int
-glamor_shareable_fd_from_pixmap(ScreenPtr screen,
-                                PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
+glamor_fd_from_pixmap(ScreenPtr screen,
+                      PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
 {
-    unsigned orig_usage_hint = pixmap->usage_hint;
     int ret;
     int fds[4];
     uint32_t strides[4], offsets[4];
     uint64_t modifier;
 
-    /*
-     * The actual difference between a sharable and non sharable buffer
-     * is decided 4 call levels deep in glamor_make_pixmap_exportable()
-     * based on pixmap->usage_hint == CREATE_PIXMAP_USAGE_SHARED
-     * 2 of those calls are also exported API, so we cannot just add a flag.
-     */
-    pixmap->usage_hint = CREATE_PIXMAP_USAGE_SHARED;
     ret = glamor_fds_from_pixmap(screen, pixmap, fds, strides, offsets,
                                  &modifier);
 
-    /* Pixmaps with multi-planes/modifier are not shareable */
+    /* Pixmaps with multi-planes/modifier are not supported in this interface */
     if (ret > 1) {
         while (ret > 0)
             close(fds[--ret]);
@@ -875,8 +867,27 @@ glamor_shareable_fd_from_pixmap(ScreenPtr screen,
     *stride = strides[0];
     *size = pixmap->drawable.height * *stride;
 
-    pixmap->usage_hint = orig_usage_hint;
+    return ret;
+}
 
+_X_EXPORT int
+glamor_shareable_fd_from_pixmap(ScreenPtr screen,
+                                PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
+{
+    unsigned orig_usage_hint = pixmap->usage_hint;
+    int ret;
+
+    /*
+     * The actual difference between a sharable and non sharable buffer
+     * is decided 4 call levels deep in glamor_make_pixmap_exportable()
+     * based on pixmap->usage_hint == CREATE_PIXMAP_USAGE_SHARED
+     * 2 of those calls are also exported API, so we cannot just add a flag.
+     */
+    pixmap->usage_hint = CREATE_PIXMAP_USAGE_SHARED;
+
+    ret = glamor_fd_from_pixmap(screen, pixmap, stride, size);
+
+    pixmap->usage_hint = orig_usage_hint;
     return ret;
 }
 

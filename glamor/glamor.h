@@ -183,6 +183,21 @@ extern _X_EXPORT int glamor_fds_from_pixmap(ScreenPtr screen,
                                             uint32_t *strides, uint32_t *offsets,
                                             uint64_t *modifier);
 
+/* @glamor_fd_from_pixmap: Get a dma-buf fd from a pixmap.
+ *
+ * @screen: Current screen pointer.
+ * @pixmap: The pixmap from which we want the fd.
+ * @stride, @size: Pointers to fill the stride and size of the
+ * 		   buffer associated to the fd.
+ *
+ * the pixmap and the buffer associated by the fd will share the same
+ * content.
+ * Returns the fd on success, -1 on error.
+ * */
+extern _X_EXPORT int glamor_fd_from_pixmap(ScreenPtr screen,
+                                           PixmapPtr pixmap,
+                                           CARD16 *stride, CARD32 *size);
+
 /* @glamor_shareable_fd_from_pixmap: Get a dma-buf fd suitable for sharing
  *				     with other GPUs from a pixmap.
  *
@@ -257,6 +272,26 @@ extern _X_EXPORT PixmapPtr glamor_pixmap_from_fds(ScreenPtr screen,
                                                   CARD8 depth,
                                                   CARD8 bpp,
                                                   uint64_t modifier);
+
+/* @glamor_pixmap_from_fd: Creates a pixmap to wrap a dma-buf fd.
+ *
+ * @screen: Current screen pointer.
+ * @fd: The dma-buf fd to import.
+ * @width: The width of the buffer.
+ * @height: The height of the buffer.
+ * @stride: The stride of the buffer.
+ * @depth: The depth of the buffer.
+ * @bpp: The bpp of the buffer.
+ *
+ * Returns a valid pixmap if the import succeeded, else NULL.
+ * */
+extern _X_EXPORT PixmapPtr glamor_pixmap_from_fd(ScreenPtr screen,
+                                                 int fd,
+                                                 CARD16 width,
+                                                 CARD16 height,
+                                                 CARD16 stride,
+                                                 CARD8 depth,
+                                                 CARD8 bpp);
 
 /* @glamor_back_pixmap_from_fd: Backs an existing pixmap with a dma-buf fd.
  *
