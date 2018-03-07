@@ -798,14 +798,6 @@ msShouldDoubleShadow(ScrnInfoPtr pScrn, modesettingPtr ms)
     return ret;
 }
 
-#ifndef DRM_CAP_CURSOR_WIDTH
-#define DRM_CAP_CURSOR_WIDTH 0x8
-#endif
-
-#ifndef DRM_CAP_CURSOR_HEIGHT
-#define DRM_CAP_CURSOR_HEIGHT 0x9
-#endif
-
 static Bool
 ms_get_drm_master_fd(ScrnInfoPtr pScrn)
 {
