@@ -1024,11 +1024,9 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     }
 #endif
 
-#ifdef GLAMOR_HAS_DRM_ATOMIC
     ret = drmSetClientCap(ms->fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
     ret |= drmSetClientCap(ms->fd, DRM_CLIENT_CAP_ATOMIC, 1);
     ms->atomic_modeset = (ret == 0);
-#endif
 
     if (drmmode_pre_init(pScrn, &ms->drmmode, pScrn->bitsPerPixel / 8) == FALSE) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "KMS setup failed\n");
