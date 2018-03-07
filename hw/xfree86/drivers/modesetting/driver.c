@@ -227,7 +227,7 @@ check_outputs(int fd, int *count)
         *count = res->count_connectors;
 
     ret = res->count_connectors > 0;
-#if defined(DRM_CAP_PRIME) && defined(GLAMOR_HAS_GBM_LINEAR)
+#if defined(GLAMOR_HAS_GBM_LINEAR)
     if (ret == FALSE) {
         uint64_t value = 0;
         if (drmGetCap(fd, DRM_CAP_PRIME, &value) == 0 &&
@@ -1009,7 +1009,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
         xf86ReturnOptValBool(ms->drmmode.Options, OPTION_PAGEFLIP, TRUE);
 
     pScrn->capabilities = 0;
-#ifdef DRM_CAP_PRIME
     ret = drmGetCap(ms->fd, DRM_CAP_PRIME, &value);
     if (ret == 0) {
         if (connector_count && (value & DRM_PRIME_CAP_IMPORT)) {
@@ -1022,7 +1021,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
             pScrn->capabilities |= RR_Capability_SourceOutput | RR_Capability_SourceOffload;
 #endif
     }
-#endif
 
     ret = drmSetClientCap(ms->fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
     ret |= drmSetClientCap(ms->fd, DRM_CLIENT_CAP_ATOMIC, 1);
