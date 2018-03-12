@@ -90,7 +90,7 @@ drmmode_is_format_supported(ScrnInfoPtr scrn, uint32_t format, uint64_t modifier
             if (iter->format != format)
                 continue;
 
-            if (modifier == 0) {
+            if (modifier == DRM_FORMAT_MOD_INVALID) {
                 found = TRUE;
                 break;
             }
