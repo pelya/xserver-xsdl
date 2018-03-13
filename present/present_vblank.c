@@ -172,6 +172,8 @@ present_vblank_destroy(present_vblank_ptr vblank)
 {
     /* Remove vblank from window and screen lists */
     xorg_list_del(&vblank->window_list);
+    /* Also make sure vblank is removed from event queue (wnmd) */
+    xorg_list_del(&vblank->event_queue);
 
     DebugPresent(("\td %lld %p %8lld: %08lx -> %08lx\n",
                   vblank->event_id, vblank, vblank->target_msc,

@@ -109,6 +109,32 @@ present_clear_window_flip(WindowPtr window)
     }
 }
 
+static void
+present_wnmd_clear_window_flip(WindowPtr window)
+{
+    present_window_priv_ptr     window_priv = present_window_priv(window);
+    present_vblank_ptr          vblank, tmp;
+
+    if (window_priv->flip_pending) {
+        present_wnmd_set_abort_flip(window);
+        window_priv->flip_pending->window = NULL;
+    }
+
+    xorg_list_for_each_entry_safe(vblank, tmp, &window_priv->idle_queue, event_queue) {
+        present_pixmap_idle(vblank->pixmap, vblank->window, vblank->serial, vblank->idle_fence);
+        /* The pixmap will be destroyed by freeing the window resources. */
+        vblank->pixmap = NULL;
+        present_vblank_destroy(vblank);
+    }
+
+    vblank = window_priv->flip_active;
+    if (vblank) {
+        present_pixmap_idle(vblank->pixmap, vblank->window, vblank->serial, vblank->idle_fence);
+        present_vblank_destroy(vblank);
+    }
+    window_priv->flip_active = NULL;
+}
+
 /*
  * Hook the close window function to clean up our window private
  */
@@ -124,7 +150,12 @@ present_destroy_window(WindowPtr window)
         present_clear_window_notifies(window);
         present_free_events(window);
         present_free_window_vblank(window);
-        present_clear_window_flip(window);
+
+        if (screen_priv->wnmd_info)
+            present_wnmd_clear_window_flip(window);
+        else
+            present_clear_window_flip(window);
+
         free(window_priv);
     }
     unwrap(screen_priv, screen, DestroyWindow);
