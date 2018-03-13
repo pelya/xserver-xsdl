@@ -161,7 +161,7 @@ present_clip_notify(WindowPtr window, int dx, int dy)
     ScreenPtr screen = window->drawable.pScreen;
     present_screen_priv_ptr screen_priv = present_screen_priv(screen);
 
-    present_check_flip_window(window);
+    screen_priv->check_flip_window(window);
     unwrap(screen_priv, screen, ClipNotify)
     if (screen->ClipNotify)
         screen->ClipNotify (window, dx, dy);
@@ -193,6 +193,8 @@ present_screen_init(ScreenPtr screen, present_screen_info_ptr info)
         screen_priv->info = info;
 
         dixSetPrivate(&screen->devPrivates, &present_screen_private_key, screen_priv);
+
+        present_scmd_init_mode_hooks(screen_priv);
 
         present_fake_screen_init(screen);
     }

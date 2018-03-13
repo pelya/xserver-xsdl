@@ -68,6 +68,12 @@ msc_is_equal_or_after(uint64_t test, uint64_t reference)
     return (int64_t)(test - reference) >= 0;
 }
 
+static void
+present_scmd_create_event_id(present_vblank_ptr vblank)
+{
+    vblank->event_id = ++present_event_id;
+}
+
 static inline PixmapPtr
 present_flip_pending_pixmap(ScreenPtr screen)
 {
@@ -484,7 +490,7 @@ present_event_notify(uint64_t event_id, uint64_t ust, uint64_t msc)
  * 'window' is being reconfigured. Check to see if it is involved
  * in flipping and clean up as necessary
  */
-void
+static void
 present_check_flip_window (WindowPtr window)
 {
     ScreenPtr                   screen = window->drawable.pScreen;
@@ -858,7 +864,8 @@ present_pixmap(WindowPtr window,
     vblank->screen = screen;
     vblank->window = window;
     vblank->pixmap = pixmap;
-    vblank->event_id = ++present_event_id;
+    present_scmd_create_event_id(vblank);
+
     if (pixmap) {
         vblank->kind = PresentCompleteKindPixmap;
         pixmap->refcnt++;
@@ -1036,6 +1043,15 @@ present_vblank_destroy(present_vblank_ptr vblank)
         present_destroy_notifies(vblank->notifies, vblank->num_notifies);
 
     free(vblank);
+}
+
+void
+present_scmd_init_mode_hooks(present_screen_priv_ptr screen_priv)
+{
+    screen_priv->check_flip         =   &present_check_flip;
+    screen_priv->check_flip_window  =   &present_check_flip_window;
+
+    screen_priv->create_event_id    =   &present_scmd_create_event_id;
 }
 
 Bool
