@@ -930,6 +930,9 @@ present_scmd_init_mode_hooks(present_screen_priv_ptr screen_priv)
     screen_priv->check_flip_window  =   &present_check_flip_window;
 
     screen_priv->create_event_id    =   &present_scmd_create_event_id;
+    screen_priv->queue_vblank       =   &present_queue_vblank;
+    screen_priv->flush              =   &present_flush;
+    screen_priv->re_execute         =   &present_re_execute;
 }
 
 Bool

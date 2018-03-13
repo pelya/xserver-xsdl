@@ -100,6 +100,13 @@ typedef void (*present_priv_check_flip_window_ptr)(WindowPtr window);
 
 typedef void (*present_priv_create_event_id_ptr)(present_vblank_ptr vblank);
 
+typedef int (*present_priv_queue_vblank_ptr)(ScreenPtr screen,
+                                             RRCrtcPtr crtc,
+                                             uint64_t event_id,
+                                             uint64_t msc);
+typedef void (*present_priv_flush_ptr)(WindowPtr window);
+typedef void (*present_priv_re_execute_ptr)(present_vblank_ptr vblank);
+
 typedef struct present_screen_priv {
     CloseScreenProcPtr          CloseScreen;
     ConfigNotifyProcPtr         ConfigNotify;
@@ -126,6 +133,11 @@ typedef struct present_screen_priv {
     present_priv_check_flip_window_ptr  check_flip_window;
 
     present_priv_create_event_id_ptr    create_event_id;
+
+    present_priv_queue_vblank_ptr       queue_vblank;
+    present_priv_flush_ptr              flush;
+    present_priv_re_execute_ptr         re_execute;
+
 } present_screen_priv_rec, *present_screen_priv_ptr;
 
 #define wrap(priv,real,mem,func) {\
