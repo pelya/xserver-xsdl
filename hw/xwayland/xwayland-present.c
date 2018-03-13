@@ -27,6 +27,34 @@
 
 #include <present.h>
 
+#define TIMER_LEN_FLIP    1000  // 1fps
+
+static void
+xwl_present_free_timer(struct xwl_window *xwl_window)
+{
+    TimerFree(xwl_window->present_timer);
+    xwl_window->present_timer = NULL;
+}
+
+static CARD32
+xwl_present_timer_callback(OsTimerPtr timer,
+                           CARD32 time,
+                           void *arg);
+
+static void
+xwl_present_reset_timer(struct xwl_window *xwl_window)
+{
+    if ( !xorg_list_is_empty(&xwl_window->present_release_queue) ) {
+        xwl_window->present_timer = TimerSet(xwl_window->present_timer,
+                                             0,
+                                             TIMER_LEN_FLIP,
+                                             &xwl_present_timer_callback,
+                                             xwl_window);
+    } else {
+        xwl_present_free_timer(xwl_window);
+    }
+}
+
 void
 xwl_present_cleanup(WindowPtr window)
 {
@@ -51,6 +79,10 @@ xwl_present_cleanup(WindowPtr window)
             event->abort = TRUE;
         }
     }
+
+    /* Clear timer */
+    if ( xorg_list_is_empty(&xwl_window->present_release_queue) )
+        xwl_present_free_timer(xwl_window);
 }
 
 static void
@@ -90,6 +122,27 @@ static const struct wl_buffer_listener xwl_present_release_listener = {
     xwl_present_buffer_release
 };
 
+CARD32
+xwl_present_timer_callback(OsTimerPtr timer,
+                           CARD32 time,
+                           void *arg)
+{
+    struct xwl_window *xwl_window = arg;
+
+    xwl_window->present_timer_firing = TRUE;
+    xwl_window->present_msc++;
+    xwl_window->present_ust = GetTimeInMicros();
+
+    if ( !xorg_list_is_empty(&xwl_window->present_release_queue) ) {
+        /* Still events, restart timer */
+        return TIMER_LEN_FLIP;
+    } else {
+        /* No more events, do not restart timer and delete it instead */
+        xwl_present_free_timer(xwl_window);
+        return 0;
+    }
+}
+
 static void
 xwl_present_frame_callback(void *data,
                struct wl_callback *callback,
@@ -100,8 +153,18 @@ xwl_present_frame_callback(void *data,
     wl_callback_destroy(xwl_window->present_frame_callback);
     xwl_window->present_frame_callback = NULL;
 
+    if (xwl_window->present_timer_firing) {
+        /* If the timer is firing, this frame callback is too late */
+        return;
+    }
+
     xwl_window->present_msc++;
     xwl_window->present_ust = GetTimeInMicros();
+
+    /* we do not need the timer anymore for this frame,
+     * reset it for potentially the next one
+     */
+    xwl_present_reset_timer(xwl_window);
 }
 
 static const struct wl_callback_listener xwl_present_frame_listener = {
@@ -307,6 +370,13 @@ xwl_present_flip(WindowPtr present_window,
 
     /* We can flip directly to the main surface (full screen window without clips) */
     wl_surface_attach(xwl_window->surface, buffer, 0, 0);
+
+    if (!xwl_window->present_timer ||
+            xwl_window->present_timer_firing) {
+        /* Realign timer */
+        xwl_window->present_timer_firing = FALSE;
+        xwl_present_reset_timer(xwl_window);
+    }
 
     if (!xwl_window->present_frame_callback) {
         xwl_window->present_frame_callback = wl_surface_frame(xwl_window->surface);

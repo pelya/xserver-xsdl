@@ -135,6 +135,9 @@ struct xwl_window {
     uint64_t present_msc;
     uint64_t present_ust;
 
+    OsTimerPtr present_timer;
+    Bool present_timer_firing;
+
     struct wl_callback *present_frame_callback;
     struct wl_callback *present_sync_callback;
     struct xorg_list present_release_queue;
