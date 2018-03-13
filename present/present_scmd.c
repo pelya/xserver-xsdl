@@ -662,23 +662,23 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
     present_execute_post(vblank, ust, crtc_msc);
 }
 
-int
-present_pixmap(WindowPtr window,
-               PixmapPtr pixmap,
-               CARD32 serial,
-               RegionPtr valid,
-               RegionPtr update,
-               int16_t x_off,
-               int16_t y_off,
-               RRCrtcPtr target_crtc,
-               SyncFence *wait_fence,
-               SyncFence *idle_fence,
-               uint32_t options,
-               uint64_t window_msc,
-               uint64_t divisor,
-               uint64_t remainder,
-               present_notify_ptr notifies,
-               int num_notifies)
+static int
+present_scmd_pixmap(WindowPtr window,
+                    PixmapPtr pixmap,
+                    CARD32 serial,
+                    RegionPtr valid,
+                    RegionPtr update,
+                    int16_t x_off,
+                    int16_t y_off,
+                    RRCrtcPtr target_crtc,
+                    SyncFence *wait_fence,
+                    SyncFence *idle_fence,
+                    uint32_t options,
+                    uint64_t window_msc,
+                    uint64_t divisor,
+                    uint64_t remainder,
+                    present_notify_ptr notifies,
+                    int num_notifies)
 {
     uint64_t                    ust = 0;
     uint64_t                    target_msc;
@@ -834,24 +834,6 @@ present_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64
     }
 }
 
-int
-present_notify_msc(WindowPtr window,
-                   CARD32 serial,
-                   uint64_t target_msc,
-                   uint64_t divisor,
-                   uint64_t remainder)
-{
-    return present_pixmap(window,
-                          NULL,
-                          serial,
-                          NULL, NULL,
-                          0, 0,
-                          NULL,
-                          NULL, NULL,
-                          divisor == 0 ? PresentOptionAsync : 0,
-                          target_msc, divisor, remainder, NULL, 0);
-}
-
 void
 present_flip_destroy(ScreenPtr screen)
 {
@@ -871,7 +853,9 @@ present_scmd_init_mode_hooks(present_screen_priv_ptr screen_priv)
     screen_priv->check_flip         =   &present_check_flip;
     screen_priv->check_flip_window  =   &present_check_flip_window;
 
+    screen_priv->present_pixmap     =   &present_scmd_pixmap;
     screen_priv->create_event_id    =   &present_scmd_create_event_id;
+
     screen_priv->queue_vblank       =   &present_queue_vblank;
     screen_priv->flush              =   &present_flush;
     screen_priv->re_execute         =   &present_re_execute;

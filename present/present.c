@@ -108,3 +108,60 @@ present_set_tree_pixmap(WindowPtr window,
         return;
     TraverseTree(window, present_set_tree_pixmap_visit, &visit);
 }
+
+int
+present_pixmap(WindowPtr window,
+               PixmapPtr pixmap,
+               CARD32 serial,
+               RegionPtr valid,
+               RegionPtr update,
+               int16_t x_off,
+               int16_t y_off,
+               RRCrtcPtr target_crtc,
+               SyncFence *wait_fence,
+               SyncFence *idle_fence,
+               uint32_t options,
+               uint64_t window_msc,
+               uint64_t divisor,
+               uint64_t remainder,
+               present_notify_ptr notifies,
+               int num_notifies)
+{
+    ScreenPtr                   screen = window->drawable.pScreen;
+    present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
+
+    return screen_priv->present_pixmap(window,
+                                       pixmap,
+                                       serial,
+                                       valid,
+                                       update,
+                                       x_off,
+                                       y_off,
+                                       target_crtc,
+                                       wait_fence,
+                                       idle_fence,
+                                       options,
+                                       window_msc,
+                                       divisor,
+                                       remainder,
+                                       notifies,
+                                       num_notifies);
+}
+
+int
+present_notify_msc(WindowPtr window,
+                   CARD32 serial,
+                   uint64_t target_msc,
+                   uint64_t divisor,
+                   uint64_t remainder)
+{
+    return present_pixmap(window,
+                          NULL,
+                          serial,
+                          NULL, NULL,
+                          0, 0,
+                          NULL,
+                          NULL, NULL,
+                          divisor == 0 ? PresentOptionAsync : 0,
+                          target_msc, divisor, remainder, NULL, 0);
+}
