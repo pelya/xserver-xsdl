@@ -106,6 +106,7 @@ present_vblank_create(WindowPtr window,
     vblank->notifies = notifies;
     vblank->num_notifies = num_notifies;
     vblank->has_suboptimal = (options & PresentOptionSuboptimal);
+    vblank->flip_idler = FALSE;
 
     if (pixmap != NULL &&
         !(options & PresentOptionCopy) &&

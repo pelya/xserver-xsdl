@@ -79,6 +79,7 @@ struct present_vblank {
     Bool                requeue;        /* on queue, but target_msc has changed */
     Bool                flip;           /* planning on using flip */
     Bool                flip_ready;     /* wants to flip, but waiting for previous flip or unflip */
+    Bool                flip_idler;     /* driver explicitly permitted idling */
     Bool                sync_flip;      /* do flip synchronous to vblank */
     Bool                abort_flip;     /* aborting this flip */
     PresentFlipReason   reason;         /* reason for which flip is not possible */
