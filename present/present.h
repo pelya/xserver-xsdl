@@ -159,6 +159,12 @@ typedef struct present_wnmd_info {
  */
 extern _X_EXPORT void
 present_event_notify(uint64_t event_id, uint64_t ust, uint64_t msc);
+/*
+ * Called when 'event_id' occurs for 'window'.
+ * 'ust' and 'msc' indicate when the event actually happened
+ */
+extern _X_EXPORT void
+present_wnmd_event_notify(WindowPtr window, uint64_t event_id, uint64_t ust, uint64_t msc);
 
 /* 'crtc' has been turned off, so any pending events will never occur.
  */

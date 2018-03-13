@@ -15,6 +15,7 @@ libpresent_la_SOURCES = \
 	present_request.c \
 	present_scmd.c \
 	present_screen.c \
-	present_vblank.c
+	present_vblank.c \
+	present_wnmd.c
 
 sdk_HEADERS = present.h presentext.h
