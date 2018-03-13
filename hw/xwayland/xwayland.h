@@ -341,7 +341,10 @@ Bool xwl_screen_set_drm_interface(struct xwl_screen *xwl_screen,
                                   uint32_t id, uint32_t version);
 Bool xwl_screen_set_dmabuf_interface(struct xwl_screen *xwl_screen,
                                      uint32_t id, uint32_t version);
-struct wl_buffer *xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap);
+struct wl_buffer *xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap,
+                                                  unsigned short width,
+                                                  unsigned short height,
+                                                  Bool *created);
 
 void xwl_screen_release_tablet_manager(struct xwl_screen *xwl_screen);
 
