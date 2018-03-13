@@ -1863,7 +1863,7 @@ CheckUserParameters(int argc, char **argv, char **envp)
     char *a, *e = NULL;
 
 #if CHECK_EUID
-    if (geteuid() == 0 && getuid() != geteuid())
+    if (PrivsElevated())
 #endif
     {
         /* Check each argv[] */
