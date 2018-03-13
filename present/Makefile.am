@@ -7,6 +7,7 @@ libpresent_la_SOURCES = \
 	present.h \
 	present.c \
 	present_event.c \
+	present_execute.c \
 	present_fake.c \
 	present_fence.c \
 	present_notify.c \

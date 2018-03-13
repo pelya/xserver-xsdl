@@ -551,18 +551,6 @@ present_can_window_flip(WindowPtr window)
 }
 
 /*
- * Called when the wait fence is triggered; just gets the current msc/ust and
- * calls present_execute again. That will re-check the fence and pend the
- * request again if it's still not actually ready
- */
-static void
-present_wait_fence_triggered(void *param)
-{
-    present_vblank_ptr  vblank = param;
-    present_re_execute(vblank);
-}
-
-/*
  * Once the required MSC has been reached, execute the pending request.
  *
  * For requests to actually present something, either blt contents to
@@ -578,24 +566,9 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
     WindowPtr                   window = vblank->window;
     ScreenPtr                   screen = window->drawable.pScreen;
     present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
-    uint8_t                     mode;
 
-    if (vblank->requeue) {
-        vblank->requeue = FALSE;
-        if (msc_is_after(vblank->target_msc, crtc_msc) &&
-            Success == present_queue_vblank(screen,
-                                            vblank->crtc,
-                                            vblank->event_id,
-                                            vblank->target_msc))
-            return;
-    }
-
-    if (vblank->wait_fence) {
-        if (!present_fence_check_triggered(vblank->wait_fence)) {
-            present_fence_set_callback(vblank->wait_fence, present_wait_fence_triggered, vblank);
-            return;
-        }
-    }
+    if (present_execute_wait(vblank, crtc_msc))
+        return;
 
     if (vblank->flip && vblank->pixmap && vblank->window) {
         if (screen_priv->flip_pending || screen_priv->unflip_event_id) {
@@ -676,48 +649,17 @@ present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc)
                 present_unflip(screen);
         }
 
-        /* If present_flip failed, we may have to requeue for the target MSC */
-        if (vblank->target_msc == crtc_msc + 1 &&
-            Success == present_queue_vblank(screen,
-                                            vblank->crtc,
-                                            vblank->event_id,
-                                            vblank->target_msc)) {
+        present_execute_copy(vblank, crtc_msc);
+
+        if (vblank->queued) {
             xorg_list_add(&vblank->event_queue, &present_exec_queue);
             xorg_list_append(&vblank->window_list,
                              &present_get_window_priv(window, TRUE)->vblank);
-            vblank->queued = TRUE;
             return;
         }
-
-        present_copy_region(&window->drawable, vblank->pixmap, vblank->update, vblank->x_off, vblank->y_off);
-
-        /* present_copy_region sticks the region into a scratch GC,
-         * which is then freed, freeing the region
-         */
-        vblank->update = NULL;
-        present_flush(window);
-
-        present_pixmap_idle(vblank->pixmap, vblank->window, vblank->serial, vblank->idle_fence);
     }
 
-    /* Compute correct CompleteMode
-     */
-    if (vblank->kind == PresentCompleteKindPixmap) {
-        if (vblank->pixmap && vblank->window) {
-            if (vblank->has_suboptimal && vblank->reason == PRESENT_FLIP_REASON_BUFFER_FORMAT)
-                mode = PresentCompleteModeSuboptimalCopy;
-            else
-                mode = PresentCompleteModeCopy;
-        } else {
-            mode = PresentCompleteModeSkip;
-        }
-    }
-    else
-        mode = PresentCompleteModeCopy;
-
-
-    present_vblank_notify(vblank, vblank->kind, mode, ust, crtc_msc);
-    present_vblank_destroy(vblank);
+    present_execute_post(vblank, ust, crtc_msc);
 }
 
 int

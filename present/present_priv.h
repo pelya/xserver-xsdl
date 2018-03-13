@@ -245,6 +245,18 @@ Bool
 present_event_init(void);
 
 /*
+ * present_execute.c
+ */
+Bool
+present_execute_wait(present_vblank_ptr vblank, uint64_t crtc_msc);
+
+void
+present_execute_copy(present_vblank_ptr vblank, uint64_t crtc_msc);
+
+void
+present_execute_post(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc);
+
+/*
  * present_fake.c
  */
 int
