@@ -105,7 +105,8 @@ typedef Bool (*present_wnmd_flip_ptr) (WindowPtr window,
                                        uint64_t event_id,
                                        uint64_t target_msc,
                                        PixmapPtr pixmap,
-                                       Bool sync_flip);
+                                       Bool sync_flip,
+                                       RegionPtr damage);
 
 /* "unflip" back to the regular screen scanout buffer
  *
