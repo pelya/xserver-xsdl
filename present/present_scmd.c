@@ -158,34 +158,18 @@ present_flip(RRCrtcPtr crtc,
     return (*screen_priv->info->flip) (crtc, event_id, target_msc, pixmap, sync_flip);
 }
 
-RRCrtcPtr
-present_get_crtc(WindowPtr window)
+static RRCrtcPtr
+present_scmd_get_crtc(present_screen_priv_ptr screen_priv, WindowPtr window)
 {
-    ScreenPtr                   screen = window->drawable.pScreen;
-    present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
-
-    if (!screen_priv)
-        return NULL;
-
     if (!screen_priv->info)
         return NULL;
 
     return (*screen_priv->info->get_crtc)(window);
 }
 
-uint32_t
-present_query_capabilities(RRCrtcPtr crtc)
+static uint32_t
+present_scmd_query_capabilities(present_screen_priv_ptr screen_priv)
 {
-    present_screen_priv_ptr     screen_priv;
-
-    if (!crtc)
-        return 0;
-
-    screen_priv = present_screen_priv(crtc->pScreen);
-
-    if (!screen_priv)
-        return 0;
-
     if (!screen_priv->info)
         return 0;
 
@@ -779,8 +763,8 @@ present_scmd_pixmap(WindowPtr window,
     return Success;
 }
 
-void
-present_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64_t msc)
+static void
+present_scmd_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64_t msc)
 {
     present_vblank_ptr  vblank;
 
@@ -810,8 +794,8 @@ present_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64
     }
 }
 
-void
-present_flip_destroy(ScreenPtr screen)
+static void
+present_scmd_flip_destroy(ScreenPtr screen)
 {
     present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
 
@@ -826,6 +810,9 @@ present_flip_destroy(ScreenPtr screen)
 void
 present_scmd_init_mode_hooks(present_screen_priv_ptr screen_priv)
 {
+    screen_priv->query_capabilities =   &present_scmd_query_capabilities;
+    screen_priv->get_crtc           =   &present_scmd_get_crtc;
+
     screen_priv->check_flip         =   &present_check_flip;
     screen_priv->check_flip_window  =   &present_check_flip_window;
     screen_priv->can_window_flip    =   &present_scmd_can_window_flip;
@@ -836,6 +823,9 @@ present_scmd_init_mode_hooks(present_screen_priv_ptr screen_priv)
     screen_priv->queue_vblank       =   &present_queue_vblank;
     screen_priv->flush              =   &present_flush;
     screen_priv->re_execute         =   &present_re_execute;
+
+    screen_priv->abort_vblank       =   &present_scmd_abort_vblank;
+    screen_priv->flip_destroy       =   &present_scmd_flip_destroy;
 }
 
 Bool

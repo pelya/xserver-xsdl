@@ -38,6 +38,34 @@ msc_is_equal_or_after(uint64_t test, uint64_t reference)
     return (int64_t)(test - reference) >= 0;
 }
 
+uint32_t
+present_query_capabilities(RRCrtcPtr crtc)
+{
+    present_screen_priv_ptr screen_priv;
+
+    if (!crtc)
+        return 0;
+
+    screen_priv = present_screen_priv(crtc->pScreen);
+
+    if (!screen_priv)
+        return 0;
+
+    return screen_priv->query_capabilities(screen_priv);
+}
+
+RRCrtcPtr
+present_get_crtc(WindowPtr window)
+{
+    ScreenPtr                   screen = window->drawable.pScreen;
+    present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
+
+    if (!screen_priv)
+        return NULL;
+
+    return screen_priv->get_crtc(screen_priv, window);
+}
+
 /*
  * Copies the update region from a pixmap to the target drawable
  */
