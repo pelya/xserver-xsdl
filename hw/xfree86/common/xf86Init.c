@@ -853,7 +853,7 @@ OsVendorInit(void)
 
 #ifdef O_NONBLOCK
     if (!beenHere) {
-        if (xf86PrivsElevated()) {
+        if (PrivsElevated()) {
             int status;
 
             status = fcntl(fileno(stderr), F_GETFL, 0);
@@ -1002,7 +1002,7 @@ xf86PrintDefaultLibraryPath(void)
 static void
 xf86CheckPrivs(const char *option, const char *arg)
 {
-    if (xf86PrivsElevated() && !xf86PathIsSafe(arg)) {
+    if (PrivsElevated() && !xf86PathIsSafe(arg)) {
         FatalError("\nInvalid argument for %s - \"%s\"\n"
                     "\tWith elevated privileges %s must specify a relative path\n"
                     "\twithout any \"..\" elements.\n\n", option, arg, option);
@@ -1299,7 +1299,7 @@ ddxUseMsg(void)
     ErrorF("\n");
     ErrorF("\n");
     ErrorF("Device Dependent Usage\n");
-    if (!xf86PrivsElevated()) {
+    if (!PrivsElevated()) {
         ErrorF("-modulepath paths      specify the module search path\n");
         ErrorF("-logfile file          specify a log file name\n");
         ErrorF("-configure             probe for devices and write an "
