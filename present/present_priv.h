@@ -179,6 +179,17 @@ present_window_priv_ptr
 present_get_window_priv(WindowPtr window, Bool create);
 
 /*
+ * Returns:
+ * TRUE if the first MSC value is after the second one
+ * FALSE if the first MSC value is equal to or before the second one
+ */
+static inline Bool
+msc_is_after(uint64_t test, uint64_t reference)
+{
+    return (int64_t)(test - reference) > 0;
+}
+
+/*
  * present.c
  */
 void
@@ -328,9 +339,6 @@ void
 present_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64_t msc);
 
 void
-present_vblank_destroy(present_vblank_ptr vblank);
-
-void
 present_flip_destroy(ScreenPtr screen);
 
 void
@@ -354,5 +362,35 @@ present_scmd_init_mode_hooks(present_screen_priv_ptr screen_priv);
 /*
  * present_screen.c
  */
+
+/*
+ * present_vblank.c
+ */
+void
+present_vblank_notify(present_vblank_ptr vblank, CARD8 kind, CARD8 mode, uint64_t ust, uint64_t crtc_msc);
+
+present_vblank_ptr
+present_vblank_create(WindowPtr window,
+                      PixmapPtr pixmap,
+                      CARD32 serial,
+                      RegionPtr valid,
+                      RegionPtr update,
+                      int16_t x_off,
+                      int16_t y_off,
+                      RRCrtcPtr target_crtc,
+                      SyncFence *wait_fence,
+                      SyncFence *idle_fence,
+                      uint32_t options,
+                      const uint32_t *capabilities,
+                      present_notify_ptr notifies,
+                      int num_notifies,
+                      uint64_t *target_msc,
+                      uint64_t crtc_msc);
+
+void
+present_vblank_scrap(present_vblank_ptr vblank);
+
+void
+present_vblank_destroy(present_vblank_ptr vblank);
 
 #endif /*  _PRESENT_PRIV_H_ */

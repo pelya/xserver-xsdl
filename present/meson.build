@@ -7,6 +7,7 @@ srcs_present = [
     'present_request.c',
     'present_scmd.c',
     'present_screen.c',
+    'present_vblank.c',
 ]
 
 libxserver_present = static_library('libxserver_present',
