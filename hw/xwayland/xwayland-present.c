@@ -27,6 +27,13 @@
 
 #include <present.h>
 
+/*
+ * When not flipping let Present copy with 60fps.
+ * When flipping wait on frame_callback, otherwise
+ * the surface is not visible, in this case update
+ * with long interval.
+ */
+#define TIMER_LEN_COPY      17  // ~60fps
 #define TIMER_LEN_FLIP    1000  // 1fps
 
 static void
@@ -41,13 +48,23 @@ xwl_present_timer_callback(OsTimerPtr timer,
                            CARD32 time,
                            void *arg);
 
+static inline Bool
+xwl_present_has_events(struct xwl_window *xwl_window)
+{
+    return !xorg_list_is_empty(&xwl_window->present_event_list) ||
+           !xorg_list_is_empty(&xwl_window->present_release_queue);
+}
+
 static void
 xwl_present_reset_timer(struct xwl_window *xwl_window)
 {
-    if ( !xorg_list_is_empty(&xwl_window->present_release_queue) ) {
+    if (xwl_present_has_events(xwl_window)) {
+        uint32_t timer_len = xwl_window->present_window ? TIMER_LEN_FLIP :
+                                                          TIMER_LEN_COPY;
+
         xwl_window->present_timer = TimerSet(xwl_window->present_timer,
                                              0,
-                                             TIMER_LEN_FLIP,
+                                             timer_len,
                                              &xwl_present_timer_callback,
                                              xwl_window);
     } else {
@@ -72,6 +89,14 @@ xwl_present_cleanup(WindowPtr window)
         xwl_window->present_window = NULL;
     }
 
+    /* Clear remaining events */
+    xorg_list_for_each_entry_safe(event, tmp, &xwl_window->present_event_list, list) {
+        if (event->present_window == window) {
+            xorg_list_del(&event->list);
+            free(event);
+        }
+    }
+
     /* Clear remaining buffer releases and inform Present about free ressources */
     xorg_list_for_each_entry_safe(event, tmp, &xwl_window->present_release_queue, list) {
         if (event->present_window == window) {
@@ -81,7 +106,7 @@ xwl_present_cleanup(WindowPtr window)
     }
 
     /* Clear timer */
-    if ( xorg_list_is_empty(&xwl_window->present_release_queue) )
+    if (!xwl_present_has_events(xwl_window))
         xwl_present_free_timer(xwl_window);
 }
 
@@ -122,6 +147,25 @@ static const struct wl_buffer_listener xwl_present_release_listener = {
     xwl_present_buffer_release
 };
 
+static void
+xwl_present_events_notify(struct xwl_window *xwl_window)
+{
+    uint64_t                    msc = xwl_window->present_msc;
+    struct xwl_present_event    *event, *tmp;
+
+    xorg_list_for_each_entry_safe(event, tmp,
+                                  &xwl_window->present_event_list,
+                                  list) {
+        if (event->target_msc <= msc) {
+            present_wnmd_event_notify(event->present_window,
+                                      event->event_id,
+                                      xwl_window->present_ust,
+                                      msc);
+            xwl_present_free_event(event);
+        }
+    }
+}
+
 CARD32
 xwl_present_timer_callback(OsTimerPtr timer,
                            CARD32 time,
@@ -133,9 +177,12 @@ xwl_present_timer_callback(OsTimerPtr timer,
     xwl_window->present_msc++;
     xwl_window->present_ust = GetTimeInMicros();
 
-    if ( !xorg_list_is_empty(&xwl_window->present_release_queue) ) {
+    xwl_present_events_notify(xwl_window);
+
+    if (xwl_present_has_events(xwl_window)) {
         /* Still events, restart timer */
-        return TIMER_LEN_FLIP;
+        return xwl_window->present_window ? TIMER_LEN_FLIP :
+                                            TIMER_LEN_COPY;
     } else {
         /* No more events, do not restart timer and delete it instead */
         xwl_present_free_timer(xwl_window);
@@ -160,6 +207,8 @@ xwl_present_frame_callback(void *data,
 
     xwl_window->present_msc++;
     xwl_window->present_ust = GetTimeInMicros();
+
+    xwl_present_events_notify(xwl_window);
 
     /* we do not need the timer anymore for this frame,
      * reset it for potentially the next one
@@ -248,9 +297,34 @@ xwl_present_queue_vblank(WindowPtr present_window,
                          uint64_t event_id,
                          uint64_t msc)
 {
-    /* Not yet implemented
-     */
-    return BadRequest;
+    struct xwl_window *xwl_window = xwl_window_of_top(present_window);
+    struct xwl_present_event *event;
+
+    if (!xwl_window)
+        return BadMatch;
+
+    if (xwl_window->present_crtc_fake != crtc)
+        return BadRequest;
+
+    if (xwl_window->present_window &&
+            xwl_window->present_window != present_window)
+        return BadMatch;
+
+    event = malloc(sizeof *event);
+    if (!event)
+        return BadAlloc;
+
+    event->event_id = event_id;
+    event->present_window = present_window;
+    event->xwl_window = xwl_window;
+    event->target_msc = msc;
+
+    xorg_list_append(&event->list, &xwl_window->present_event_list);
+
+    if (!xwl_window->present_timer)
+        xwl_present_reset_timer(xwl_window);
+
+    return Success;
 }
 
 /*
@@ -264,10 +338,18 @@ xwl_present_abort_vblank(WindowPtr present_window,
                          uint64_t msc)
 {
     struct xwl_window *xwl_window = xwl_window_of_top(present_window);
-    struct xwl_present_event *event;
+    struct xwl_present_event *event, *tmp;
 
     if (!xwl_window)
         return;
+
+    xorg_list_for_each_entry_safe(event, tmp, &xwl_window->present_event_list, list) {
+        if (event->event_id == event_id) {
+            xorg_list_del(&event->list);
+            free(event);
+            return;
+        }
+    }
 
     xorg_list_for_each_entry(event, &xwl_window->present_release_queue, list) {
         if (event->event_id == event_id) {
@@ -411,6 +493,9 @@ xwl_present_flips_stop(WindowPtr window)
     assert(xwl_window->present_window == window);
 
     xwl_window->present_window = NULL;
+
+    /* Change back to the fast refresh rate */
+    xwl_present_reset_timer(xwl_window);
 }
 
 static present_wnmd_info_rec xwl_present_info = {
