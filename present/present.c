@@ -109,6 +109,15 @@ present_set_tree_pixmap(WindowPtr window,
     TraverseTree(window, present_set_tree_pixmap_visit, &visit);
 }
 
+Bool
+present_can_window_flip(WindowPtr window)
+{
+    ScreenPtr                   screen = window->drawable.pScreen;
+    present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
+
+    return screen_priv->can_window_flip(window);
+}
+
 int
 present_pixmap(WindowPtr window,
                PixmapPtr pixmap,

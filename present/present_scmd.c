@@ -512,8 +512,8 @@ present_check_flip_window (WindowPtr window)
     }
 }
 
-Bool
-present_can_window_flip(WindowPtr window)
+static Bool
+present_scmd_can_window_flip(WindowPtr window)
 {
     ScreenPtr                   screen = window->drawable.pScreen;
     PixmapPtr                   window_pixmap;
@@ -852,6 +852,7 @@ present_scmd_init_mode_hooks(present_screen_priv_ptr screen_priv)
 {
     screen_priv->check_flip         =   &present_check_flip;
     screen_priv->check_flip_window  =   &present_check_flip_window;
+    screen_priv->can_window_flip    =   &present_scmd_can_window_flip;
 
     screen_priv->present_pixmap     =   &present_scmd_pixmap;
     screen_priv->create_event_id    =   &present_scmd_create_event_id;

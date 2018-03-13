@@ -97,6 +97,7 @@ typedef Bool (*present_priv_check_flip_ptr)(RRCrtcPtr crtc,
                                             int16_t y_off,
                                             PresentFlipReason *reason);
 typedef void (*present_priv_check_flip_window_ptr)(WindowPtr window);
+typedef Bool (*present_priv_can_window_flip_ptr)(WindowPtr window);
 
 typedef int (*present_priv_pixmap_ptr)(WindowPtr window,
                                        PixmapPtr pixmap,
@@ -148,6 +149,7 @@ typedef struct present_screen_priv {
     /* Mode hooks */
     present_priv_check_flip_ptr         check_flip;
     present_priv_check_flip_window_ptr  check_flip_window;
+    present_priv_can_window_flip_ptr    can_window_flip;
 
     present_priv_pixmap_ptr             present_pixmap;
     present_priv_create_event_id_ptr    create_event_id;
