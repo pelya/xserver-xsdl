@@ -206,12 +206,22 @@ typedef struct present_event {
 } present_event_rec;
 
 typedef struct present_window_priv {
+    WindowPtr              window;
     present_event_ptr      events;
     RRCrtcPtr              crtc;        /* Last reported CRTC from get_ust_msc */
     uint64_t               msc_offset;
     uint64_t               msc;         /* Last reported MSC from the current crtc */
     struct xorg_list       vblank;
     struct xorg_list       notifies;
+
+    /* Used for window flips */
+    uint64_t               event_id;
+    struct xorg_list       exec_queue;
+    struct xorg_list       flip_queue;
+    struct xorg_list       idle_queue;
+
+    present_vblank_ptr     flip_pending;
+    present_vblank_ptr     flip_active;
 } present_window_priv_rec, *present_window_priv_ptr;
 
 #define PresentCrtcNeverSet     ((RRCrtcPtr) 1)
