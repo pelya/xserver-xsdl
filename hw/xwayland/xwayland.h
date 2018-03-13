@@ -68,6 +68,7 @@ struct xwl_screen {
     int listen_fd_count;
     int rootless;
     int glamor;
+    int present;
 
     CreateScreenResourcesProcPtr CreateScreenResources;
     CloseScreenProcPtr CloseScreen;
@@ -126,6 +127,32 @@ struct xwl_window {
     struct xorg_list link_damage;
     struct wl_callback *frame_callback;
     Bool allow_commits;
+
+    /* present */
+    RRCrtcPtr present_crtc_fake;
+    struct xorg_list present_link;
+    WindowPtr present_window;
+    uint64_t present_msc;
+    uint64_t present_ust;
+
+    struct wl_callback *present_frame_callback;
+    struct wl_callback *present_sync_callback;
+    struct xorg_list present_release_queue;
+};
+
+struct xwl_present_event {
+    uint64_t event_id;
+    uint64_t target_msc;
+
+    Bool abort;
+    Bool pending;
+    Bool buffer_released;
+
+    WindowPtr present_window;
+    struct xwl_window *xwl_window;
+    struct wl_buffer *buffer;
+
+    struct xorg_list list;
 };
 
 #define MODIFIER_META 0x01
@@ -345,6 +372,9 @@ struct wl_buffer *xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap,
                                                   unsigned short width,
                                                   unsigned short height,
                                                   Bool *created);
+
+Bool xwl_present_init(ScreenPtr screen);
+void xwl_present_cleanup(WindowPtr window);
 
 void xwl_screen_release_tablet_manager(struct xwl_screen *xwl_screen);
 
