@@ -5,6 +5,7 @@ srcs_present = [
     'present_fence.c',
     'present_notify.c',
     'present_request.c',
+    'present_scmd.c',
     'present_screen.c',
 ]
 

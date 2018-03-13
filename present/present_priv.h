@@ -35,6 +35,12 @@
 #include <xfixes.h>
 #include <randrstr.h>
 
+#if 0
+#define DebugPresent(x) ErrorF x
+#else
+#define DebugPresent(x)
+#endif
+
 extern int present_request;
 
 extern DevPrivateKeyRec present_screen_private_key;
@@ -154,57 +160,20 @@ present_get_window_priv(WindowPtr window, Bool create);
 /*
  * present.c
  */
-int
-present_pixmap(WindowPtr window,
-               PixmapPtr pixmap,
-               CARD32 serial,
-               RegionPtr valid,
-               RegionPtr update,
-               int16_t x_off,
-               int16_t y_off,
-               RRCrtcPtr target_crtc,
-               SyncFence *wait_fence,
-               SyncFence *idle_fence,
-               uint32_t options,
-               uint64_t target_msc,
-               uint64_t divisor,
-               uint64_t remainder,
-               present_notify_ptr notifies,
-               int num_notifies);
-
-int
-present_notify_msc(WindowPtr window,
-                   CARD32 serial,
-                   uint64_t target_msc,
-                   uint64_t divisor,
-                   uint64_t remainder);
+void
+present_copy_region(DrawablePtr drawable,
+                    PixmapPtr pixmap,
+                    RegionPtr update,
+                    int16_t x_off,
+                    int16_t y_off);
 
 void
-present_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64_t msc);
+present_pixmap_idle(PixmapPtr pixmap, WindowPtr window, CARD32 serial, struct present_fence *present_fence);
 
 void
-present_vblank_destroy(present_vblank_ptr vblank);
-
-void
-present_flip_destroy(ScreenPtr screen);
-
-void
-present_restore_screen_pixmap(ScreenPtr screen);
-
-void
-present_set_abort_flip(ScreenPtr screen);
-
-void
-present_check_flip_window(WindowPtr window);
-
-RRCrtcPtr
-present_get_crtc(WindowPtr window);
-
-uint32_t
-present_query_capabilities(RRCrtcPtr crtc);
-
-Bool
-present_init(void);
+present_set_tree_pixmap(WindowPtr window,
+                        PixmapPtr expected,
+                        PixmapPtr pixmap);
 
 /*
  * present_event.c
@@ -305,6 +274,61 @@ proc_present_dispatch(ClientPtr client);
 
 int
 sproc_present_dispatch(ClientPtr client);
+
+/*
+ * present_scmd.c
+ */
+int
+present_pixmap(WindowPtr window,
+               PixmapPtr pixmap,
+               CARD32 serial,
+               RegionPtr valid,
+               RegionPtr update,
+               int16_t x_off,
+               int16_t y_off,
+               RRCrtcPtr target_crtc,
+               SyncFence *wait_fence,
+               SyncFence *idle_fence,
+               uint32_t options,
+               uint64_t target_msc,
+               uint64_t divisor,
+               uint64_t remainder,
+               present_notify_ptr notifies,
+               int num_notifies);
+
+int
+present_notify_msc(WindowPtr window,
+                   CARD32 serial,
+                   uint64_t target_msc,
+                   uint64_t divisor,
+                   uint64_t remainder);
+
+void
+present_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64_t msc);
+
+void
+present_vblank_destroy(present_vblank_ptr vblank);
+
+void
+present_flip_destroy(ScreenPtr screen);
+
+void
+present_restore_screen_pixmap(ScreenPtr screen);
+
+void
+present_set_abort_flip(ScreenPtr screen);
+
+void
+present_check_flip_window(WindowPtr window);
+
+RRCrtcPtr
+present_get_crtc(WindowPtr window);
+
+uint32_t
+present_query_capabilities(RRCrtcPtr crtc);
+
+Bool
+present_init(void);
 
 /*
  * present_screen.c
