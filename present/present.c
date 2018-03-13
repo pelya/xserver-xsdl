@@ -28,6 +28,17 @@
 #include <gcstruct.h>
 
 /*
+ * Returns:
+ * TRUE if the first MSC value is equal to or after the second one
+ * FALSE if the first MSC value is before the second one
+ */
+static Bool
+msc_is_equal_or_after(uint64_t test, uint64_t reference)
+{
+    return (int64_t)(test - reference) >= 0;
+}
+
+/*
  * Copies the update region from a pixmap to the target drawable
  */
 void
@@ -116,6 +127,33 @@ present_can_window_flip(WindowPtr window)
     present_screen_priv_ptr     screen_priv = present_screen_priv(screen);
 
     return screen_priv->can_window_flip(window);
+}
+
+void
+present_adjust_timings(uint32_t options,
+                       uint64_t *crtc_msc,
+                       uint64_t *target_msc,
+                       uint64_t divisor,
+                       uint64_t remainder)
+{
+    /* Adjust target_msc to match modulus
+     */
+    if (msc_is_equal_or_after(*crtc_msc, *target_msc)) {
+        if (divisor != 0) {
+            *target_msc = *crtc_msc - (*crtc_msc % divisor) + remainder;
+            if (options & PresentOptionAsync) {
+                if (msc_is_after(*crtc_msc, *target_msc))
+                    *target_msc += divisor;
+            } else {
+                if (msc_is_equal_or_after(*crtc_msc, *target_msc))
+                    *target_msc += divisor;
+            }
+        } else {
+            *target_msc = *crtc_msc;
+            if (!(options & PresentOptionAsync))
+                (*target_msc)++;
+        }
+    }
 }
 
 int

@@ -46,17 +46,6 @@ static struct xorg_list present_flip_queue;
 static void
 present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc);
 
-/*
- * Returns:
- * TRUE if the first MSC value is equal to or after the second one
- * FALSE if the first MSC value is before the second one
- */
-static Bool
-msc_is_equal_or_after(uint64_t test, uint64_t reference)
-{
-    return (int64_t)(test - reference) >= 0;
-}
-
 static void
 present_scmd_create_event_id(present_vblank_ptr vblank)
 {
@@ -714,24 +703,11 @@ present_scmd_pixmap(WindowPtr window,
         window_priv->msc = crtc_msc;
     }
 
-    /* Adjust target_msc to match modulus
-     */
-    if (msc_is_equal_or_after(crtc_msc, target_msc)) {
-        if (divisor != 0) {
-            target_msc = crtc_msc - (crtc_msc % divisor) + remainder;
-            if (options & PresentOptionAsync) {
-                if (msc_is_after(crtc_msc, target_msc))
-                    target_msc += divisor;
-            } else {
-                if (msc_is_equal_or_after(crtc_msc, target_msc))
-                    target_msc += divisor;
-            }
-        } else {
-            target_msc = crtc_msc;
-            if (!(options & PresentOptionAsync))
-                target_msc++;
-        }
-    }
+    present_adjust_timings(options,
+                           &crtc_msc,
+                           &target_msc,
+                           divisor,
+                           remainder);
 
     /*
      * Look for a matching presentation already on the list and
