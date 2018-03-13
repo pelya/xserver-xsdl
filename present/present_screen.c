@@ -84,7 +84,7 @@ present_free_window_vblank(WindowPtr window)
     present_vblank_ptr          vblank, tmp;
 
     xorg_list_for_each_entry_safe(vblank, tmp, &window_priv->vblank, window_list) {
-        screen_priv->abort_vblank(window->drawable.pScreen, vblank->crtc, vblank->event_id, vblank->target_msc);
+        screen_priv->abort_vblank(window->drawable.pScreen, window, vblank->crtc, vblank->event_id, vblank->target_msc);
         present_vblank_destroy(vblank);
     }
 }

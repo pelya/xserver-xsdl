@@ -47,7 +47,8 @@ static void
 present_execute(present_vblank_ptr vblank, uint64_t ust, uint64_t crtc_msc);
 
 static void
-present_scmd_create_event_id(present_vblank_ptr vblank)
+present_scmd_create_event_id(present_window_priv_ptr window_priv,
+                             present_vblank_ptr vblank)
 {
     vblank->event_id = ++present_event_id;
 }
@@ -204,6 +205,7 @@ present_flush(WindowPtr window)
 
 static int
 present_queue_vblank(ScreenPtr screen,
+                     WindowPtr window,
                      RRCrtcPtr crtc,
                      uint64_t event_id,
                      uint64_t msc)
@@ -751,7 +753,7 @@ present_scmd_pixmap(WindowPtr window,
     xorg_list_append(&vblank->event_queue, &present_exec_queue);
     vblank->queued = TRUE;
     if (msc_is_after(target_msc, crtc_msc)) {
-        ret = present_queue_vblank(screen, target_crtc, vblank->event_id, target_msc);
+        ret = present_queue_vblank(screen, window, target_crtc, vblank->event_id, target_msc);
         if (ret == Success)
             return Success;
 
@@ -764,7 +766,7 @@ present_scmd_pixmap(WindowPtr window,
 }
 
 static void
-present_scmd_abort_vblank(ScreenPtr screen, RRCrtcPtr crtc, uint64_t event_id, uint64_t msc)
+present_scmd_abort_vblank(ScreenPtr screen, WindowPtr window, RRCrtcPtr crtc, uint64_t event_id, uint64_t msc)
 {
     present_vblank_ptr  vblank;
 

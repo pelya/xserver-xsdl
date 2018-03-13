@@ -52,6 +52,7 @@ present_execute_wait(present_vblank_ptr vblank, uint64_t crtc_msc)
         vblank->requeue = FALSE;
         if (msc_is_after(vblank->target_msc, crtc_msc) &&
             Success == screen_priv->queue_vblank(screen,
+                                                 window,
                                                  vblank->crtc,
                                                  vblank->event_id,
                                                  vblank->target_msc))
@@ -77,6 +78,7 @@ present_execute_copy(present_vblank_ptr vblank, uint64_t crtc_msc)
     /* If present_flip failed, we may have to requeue for the target MSC */
     if (vblank->target_msc == crtc_msc + 1 &&
         Success == screen_priv->queue_vblank(screen,
+                                             window,
                                              vblank->crtc,
                                              vblank->event_id,
                                              vblank->target_msc)) {

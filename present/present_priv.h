@@ -87,6 +87,7 @@ struct present_vblank {
 };
 
 typedef struct present_screen_priv present_screen_priv_rec, *present_screen_priv_ptr;
+typedef struct present_window_priv present_window_priv_rec, *present_window_priv_ptr;
 
 /*
  * Mode hooks
@@ -123,9 +124,11 @@ typedef int (*present_priv_pixmap_ptr)(WindowPtr window,
                                        present_notify_ptr notifies,
                                        int num_notifies);
 
-typedef void (*present_priv_create_event_id_ptr)(present_vblank_ptr vblank);
+typedef void (*present_priv_create_event_id_ptr)(present_window_priv_ptr window_priv,
+                                                 present_vblank_ptr vblank);
 
 typedef int (*present_priv_queue_vblank_ptr)(ScreenPtr screen,
+                                             WindowPtr window,
                                              RRCrtcPtr crtc,
                                              uint64_t event_id,
                                              uint64_t msc);
@@ -133,6 +136,7 @@ typedef void (*present_priv_flush_ptr)(WindowPtr window);
 typedef void (*present_priv_re_execute_ptr)(present_vblank_ptr vblank);
 
 typedef void (*present_priv_abort_vblank_ptr)(ScreenPtr screen,
+                                              WindowPtr window,
                                               RRCrtcPtr crtc,
                                               uint64_t event_id,
                                               uint64_t msc);
@@ -206,7 +210,7 @@ typedef struct present_event {
     int mask;
 } present_event_rec;
 
-typedef struct present_window_priv {
+struct present_window_priv {
     WindowPtr              window;
     present_event_ptr      events;
     RRCrtcPtr              crtc;        /* Last reported CRTC from get_ust_msc */
@@ -223,7 +227,7 @@ typedef struct present_window_priv {
 
     present_vblank_ptr     flip_pending;
     present_vblank_ptr     flip_active;
-} present_window_priv_rec, *present_window_priv_ptr;
+};
 
 #define PresentCrtcNeverSet     ((RRCrtcPtr) 1)
 
