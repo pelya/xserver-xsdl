@@ -170,11 +170,8 @@ present_clip_notify(WindowPtr window, int dx, int dy)
     wrap(screen_priv, screen, ClipNotify, present_clip_notify);
 }
 
-/*
- * Initialize a screen for use with present
- */
-int
-present_screen_init(ScreenPtr screen, present_screen_info_ptr info)
+static Bool
+present_screen_register_priv_keys(void)
 {
     if (!dixRegisterPrivateKey(&present_screen_private_key, PRIVATE_SCREEN, 0))
         return FALSE;
@@ -182,20 +179,43 @@ present_screen_init(ScreenPtr screen, present_screen_info_ptr info)
     if (!dixRegisterPrivateKey(&present_window_private_key, PRIVATE_WINDOW, 0))
         return FALSE;
 
+    return TRUE;
+}
+
+static present_screen_priv_ptr
+present_screen_priv_init(ScreenPtr screen)
+{
+    present_screen_priv_ptr screen_priv;
+
+    screen_priv = calloc(1, sizeof (present_screen_priv_rec));
+    if (!screen_priv)
+        return NULL;
+
+    wrap(screen_priv, screen, CloseScreen, present_close_screen);
+    wrap(screen_priv, screen, DestroyWindow, present_destroy_window);
+    wrap(screen_priv, screen, ConfigNotify, present_config_notify);
+    wrap(screen_priv, screen, ClipNotify, present_clip_notify);
+
+    dixSetPrivate(&screen->devPrivates, &present_screen_private_key, screen_priv);
+
+    return screen_priv;
+}
+
+/*
+ * Initialize a screen for use with present
+ */
+int
+present_screen_init(ScreenPtr screen, present_screen_info_ptr info)
+{
+    if (!present_screen_register_priv_keys())
+        return FALSE;
+
     if (!present_screen_priv(screen)) {
-        present_screen_priv_ptr screen_priv = calloc(1, sizeof (present_screen_priv_rec));
+        present_screen_priv_ptr screen_priv = present_screen_priv_init(screen);
         if (!screen_priv)
             return FALSE;
 
-        wrap(screen_priv, screen, CloseScreen, present_close_screen);
-        wrap(screen_priv, screen, DestroyWindow, present_destroy_window);
-        wrap(screen_priv, screen, ConfigNotify, present_config_notify);
-        wrap(screen_priv, screen, ClipNotify, present_clip_notify);
-
         screen_priv->info = info;
-
-        dixSetPrivate(&screen->devPrivates, &present_screen_private_key, screen_priv);
-
         present_scmd_init_mode_hooks(screen_priv);
 
         present_fake_screen_init(screen);
