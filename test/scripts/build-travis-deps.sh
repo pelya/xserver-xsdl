@@ -12,3 +12,9 @@ meson setup build/
 meson configure -Dprefix=$PREFIX build/
 ninja -C build/ install
 ninja -C build/ test
+
+status=$?
+
+cat build/meson-logs/testlog.txt
+
+exit $status

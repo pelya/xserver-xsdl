@@ -1,5 +1,8 @@
 language: c
 cache: ccache
+branches:
+    except:
+        - /appveyor.*/
 
 matrix:
   include:
