@@ -13,9 +13,6 @@ matrix:
     - os: osx
       osx_image: xcode9.2
       env: DISTRO=xcode9.2
-    - os: osx
-      osx_image: xcode8.3
-      env: DISTRO=xcode8.3
 
 install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install ccache ; fi
