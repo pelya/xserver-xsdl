@@ -564,3 +564,57 @@ install_man(configure_file(
     output: 'Xserver.1',
     configuration: manpage_config,
 ))
+
+if build_xorg
+    sdkconfig = configuration_data()
+    awk = find_program('awk')
+
+    sdkconfig.set('prefix', get_option('prefix'))
+    sdkconfig.set('exec_prefix', get_option('prefix'))
+    sdkconfig.set('libdir', get_option('libdir'))
+    sdkconfig.set('includedir', get_option('includedir'))
+    sdkconfig.set('datarootdir', get_option('datadir'))
+    sdkconfig.set('moduledir', get_option('module_dir'))
+    sdkconfig.set('sdkdir', join_paths(get_option('includedir'), 'include'))
+    sdkconfig.set('sysconfigdir', join_paths(get_option('datadir'), 'X11/xorg.conf.d'))
+
+    sdkconfig.set('abi_ansic',
+        run_command(awk, '-F', '[(,)]',
+                    '/^#define ABI_ANSIC.*SET/ { printf "%d.%d\n", $2, $3 }',
+                    files('hw/xfree86/common/xf86Module.h')
+        ).stdout()
+    )
+    sdkconfig.set('abi_videodrv',
+        run_command(awk, '-F', '[(,)]',
+                    '/^#define ABI_VIDEODRV.*SET/ { printf "%d.%d\n", $2, $3 }',
+                    files('hw/xfree86/common/xf86Module.h')
+        ).stdout()
+    )
+    sdkconfig.set('abi_xinput',
+        run_command(awk, '-F', '[(,)]',
+                    '/^#define ABI_XINPUT.*SET/ { printf "%d.%d\n", $2, $3 }',
+                    files('hw/xfree86/common/xf86Module.h')
+        ).stdout()
+    )
+    sdkconfig.set('abi_extension',
+        run_command(awk, '-F', '[(,)]',
+                    '/^#define ABI_EXTENSION.*SET/ { printf "%d.%d\n", $2, $3 }',
+                    files('hw/xfree86/common/xf86Module.h')
+        ).stdout()
+    )
+
+    # XXX this isn't trying very hard, but hard enough.
+    sdkconfig.set('PACKAGE_VERSION', meson.project_version())
+    sdkconfig.set('SDK_REQUIRED_MODULES', '')
+    sdkconfig.set('symbol_visibility', '-fvisibility=hidden')
+    sdkconfig.set('XORG_DRIVER_LIBS', '')
+
+    configure_file(
+        input: 'xorg-server.pc.in',
+        output: 'xorg-server.pc',
+        configuration: sdkconfig,
+        install_dir: join_paths(get_option('prefix'),
+                                get_option('libdir'),
+                                'pkgconfig'),
+    )
+endif
