@@ -92,6 +92,12 @@ xorg_deps = [
     libdrm_dep,
 ]
 
+if get_option('suid_wrapper')
+    xorg_install_dir = get_option('libexecdir')
+else
+    xorg_install_dir = get_option('bindir')
+endif
+
 e = executable(
     'Xorg',
     srcs_xorg,
@@ -101,6 +107,7 @@ e = executable(
     link_args: linker_export_flags,
     c_args: xorg_c_args,
     install: true,
+    install_dir: xorg_install_dir,
     implib: true,
 )
 
@@ -126,6 +133,24 @@ if build_vgahw
 endif
 if build_modesetting
    subdir('drivers/modesetting')
+endif
+
+if get_option('suid_wrapper')
+    executable('Xorg.wrap',
+        'xorg-wrapper.c',
+        include_directories: [inc, xorg_inc],
+        dependencies: xorg_deps,
+        c_args: xorg_c_args,
+        install: true,
+        install_dir: get_option('libexecdir'),
+        # install_mode: ['r-sr-xr-x', 0, 0],
+    )
+    configure_file(
+        input: 'Xorg.sh.in',
+        output: 'Xorg',
+        configuration: conf_data,
+        install_dir: join_paths(get_option('prefix'), get_option('bindir')),
+    )
 endif
 
 # For symbol presence testing only
