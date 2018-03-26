@@ -118,6 +118,22 @@ if xkb_bin_dir == ''
     endif
 endif
 
+dfp = get_option('default_font_path')
+if dfp == ''
+    fontutil_dep = dependency('fontutil')
+    fontrootdir = fontutil_dep.get_pkgconfig_variable('fontrootdir')
+    default_font_path = ','.join([
+        join_paths(fontrootdir, 'misc'),
+        join_paths(fontrootdir, 'TTF'),
+        join_paths(fontrootdir, 'OTF'),
+        join_paths(fontrootdir, 'Type1'),
+        join_paths(fontrootdir, '100dpi'),
+        join_paths(fontrootdir, '75dpi'),
+    ])
+else
+    default_font_path = dfp
+endif
+
 hal_option = get_option('hal')
 glamor_option = get_option('glamor')
 
@@ -493,7 +509,7 @@ manpage_config.set('modulepath', join_paths(get_option('prefix'), module_dir))
 # wtf doesn't this work
 # manpage_config.set('suid_wrapper_dir', join_paths(get_option('prefix'), libexecdir))
 manpage_config.set('suid_wrapper_dir', join_paths(get_option('prefix'), 'libexec'))
-manpage_config.set('default_font_path', 'catalogue:/etc/X11/fontpath.d:built-ins')
+manpage_config.set('default_font_path', default_font_path)
 
 # Include must come first, as it sets up dix-config.h
 subdir('include')

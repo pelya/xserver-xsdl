@@ -87,8 +87,8 @@ conf_data.set_quoted('SERVER_MISC_CONFIG_PATH', serverconfigdir)
 conf_data.set_quoted('PROJECTROOT', get_option('prefix'))
 conf_data.set_quoted('SYSCONFDIR', join_paths(get_option('prefix'), get_option('sysconfdir')))
 conf_data.set_quoted('SUID_WRAPPER_DIR', join_paths(get_option('prefix'), get_option('libexecdir')))
+conf_data.set_quoted('COMPILEDDEFAULTFONTPATH', default_font_path)
 
-# XXX: Stopped enumerating at COMPILEDEFAULTFONTPATH
 conf_data.set('XORG_VERSION_CURRENT', release)
 
 conf_data.set('HASXDMAUTH', get_option('xdm-auth-1'))
