@@ -618,3 +618,6 @@ if build_xorg
                                 'pkgconfig'),
     )
 endif
+
+install_data('xorg-server.m4',
+             install_dir: join_paths(get_option('datadir'), 'aclocal'))
