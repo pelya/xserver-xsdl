@@ -166,3 +166,45 @@ xorgserver_lib = shared_library(
 )
 
 xorgserver_dep = declare_dependency(link_with: xorgserver_lib)
+
+install_man(configure_file(
+    input: 'man/Xorg.man',
+    output: 'Xorg.1',
+    configuration: manpage_config,
+))
+
+install_man(configure_file(
+    input: 'man/Xorg.wrap.man',
+    output: 'Xorg.wrap.1',
+    configuration: manpage_config,
+))
+
+install_man(configure_file(
+    input: 'man/Xwrapper.config.man',
+    output: 'Xwrapper.config.5',
+    configuration: manpage_config,
+))
+
+install_man(configure_file(
+    input: 'man/xorg.conf.man',
+    output: 'xorg.conf.5',
+    configuration: manpage_config,
+))
+
+install_man(configure_file(
+    input: 'man/xorg.conf.d.man',
+    output: 'xorg.conf.d.5',
+    configuration: manpage_config,
+))
+
+install_man(configure_file(
+    input: 'utils/man/cvt.man',
+    output: 'cvt.1',
+    configuration: manpage_config,
+))
+
+install_man(configure_file(
+    input: 'utils/man/gtf.man',
+    output: 'gtf.1',
+    configuration: manpage_config,
+))
