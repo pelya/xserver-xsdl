@@ -462,7 +462,7 @@ glx_inc = include_directories('glx')
 
 top_srcdir_inc = include_directories('.')
 
-serverconfigdir = join_paths(get_option('libdir'), '/xorg')
+serverconfigdir = join_paths(get_option('libdir'), 'xorg')
 
 # Include must come first, as it sets up dix-config.h
 subdir('include')
