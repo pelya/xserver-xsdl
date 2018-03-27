@@ -19,18 +19,18 @@ SUFFIXES = .$(APP_MAN_SUFFIX) .$(DRIVER_MAN_SUFFIX) .$(FILE_MAN_SUFFIX) .man
 # xorg-macros.m4 has these bracketed by double underscores, but meson
 # wants ats.
 
-MAN_SUBSTS +=   -e 's|@vendorversion@|\"\$(PACKAGE_STRING)\" \"\$(XORG_MAN_PAGE)\"|' \
-                -e 's|@xorgversion@|\"\$(PACKAGE_STRING)\" \"\$(XORG_MAN_PAGE)\"|' \
+MAN_SUBSTS +=   -e 's|@vendorversion@|"$(PACKAGE_STRING)" "$(XORG_MAN_PAGE)"|' \
+                -e 's|@xorgversion@|"$(PACKAGE_STRING)" "$(XORG_MAN_PAGE)"|' \
                 -e 's|@xservername@|Xorg|g' \
                 -e 's|@xconfigfile@|xorg.conf|g' \
-                -e 's|@projectroot@|\$(prefix)|g' \
-                -e 's|@apploaddir@|\$(appdefaultdir)|g' \
-                -e 's|@appmansuffix@|\$(APP_MAN_SUFFIX)|g' \
-                -e 's|@drivermansuffix@|\$(DRIVER_MAN_SUFFIX)|g' \
-                -e 's|@adminmansuffix@|\$(ADMIN_MAN_SUFFIX)|g' \
-                -e 's|@libmansuffix@|\$(LIB_MAN_SUFFIX)|g' \
-                -e 's|@miscmansuffix@|\$(MISC_MAN_SUFFIX)|g' \
-                -e 's|@filemansuffix@|\$(FILE_MAN_SUFFIX)|g'
+                -e 's|@projectroot@|$(prefix)|g' \
+                -e 's|@apploaddir@|$(appdefaultdir)|g' \
+                -e 's|@appmansuffix@|$(APP_MAN_SUFFIX)|g' \
+                -e 's|@drivermansuffix@|$(DRIVER_MAN_SUFFIX)|g' \
+                -e 's|@adminmansuffix@|$(ADMIN_MAN_SUFFIX)|g' \
+                -e 's|@libmansuffix@|$(LIB_MAN_SUFFIX)|g' \
+                -e 's|@miscmansuffix@|$(MISC_MAN_SUFFIX)|g' \
+                -e 's|@filemansuffix@|$(FILE_MAN_SUFFIX)|g'
 
 # Add server specific man pages string substitution from XORG_MANPAGE_SECTIONS
 # 's|/,|/, |g' will add a space to help font path formatting
