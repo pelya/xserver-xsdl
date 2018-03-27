@@ -86,7 +86,7 @@ conf_data.set('GBM_BO_WITH_MODIFIERS',
 conf_data.set_quoted('SERVER_MISC_CONFIG_PATH', serverconfigdir)
 conf_data.set_quoted('PROJECTROOT', get_option('prefix'))
 conf_data.set_quoted('SYSCONFDIR', join_paths(get_option('prefix'), get_option('sysconfdir')))
-conf_data.set_quoted('SUID_WRAPPER_DIR', join_paths(get_option('prefix'), get_option('libexecdir')))
+conf_data.set_quoted('SUID_WRAPPER_DIR', suid_wrapper_dir)
 
 # XXX: Stopped enumerating at COMPILEDEFAULTFONTPATH
 conf_data.set('XORG_VERSION_CURRENT', release)

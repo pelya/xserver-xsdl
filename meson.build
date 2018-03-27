@@ -492,7 +492,8 @@ manpage_config.set('bundle_id_prefix', '...')
 manpage_config.set('modulepath', join_paths(get_option('prefix'), module_dir))
 # wtf doesn't this work
 # manpage_config.set('suid_wrapper_dir', join_paths(get_option('prefix'), libexecdir))
-manpage_config.set('suid_wrapper_dir', join_paths(get_option('prefix'), 'libexec'))
+suid_wrapper_dir = join_paths(get_option('prefix'), 'libexec')
+manpage_config.set('suid_wrapper_dir', suid_wrapper_dir)
 manpage_config.set('default_font_path', 'catalogue:/etc/X11/fontpath.d:built-ins')
 
 # Include must come first, as it sets up dix-config.h
