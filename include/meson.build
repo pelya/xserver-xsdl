@@ -213,6 +213,61 @@ conf_data.set_quoted('OSVENDOR', get_option('os_vendor'))
 conf_data.set_quoted('BUILDERADDR', get_option('builder_addr'))
 conf_data.set_quoted('BUILDERSTRING', get_option('builder_string'))
 
+#
+# for xorg-server.h only
+#
+defines_svr4 = '''#if !defined(SVR4) && !defined(__svr4__) && !defined(__SVR4)
+#error "I am not SVR4"
+#endif
+'''
+
+# BSD specifics
+supports_pccons = false
+supports_pcvt = false
+supports_syscons = false
+supports_wscons = false
+csrg_based = false
+
+if host_machine.system() == 'freebsd' or host_machine.system() == 'dragonflybsd'
+  supports_pccons = true
+  supports_pcvt = true
+  supports_syscons = true
+  csrg_based = true
+endif
+
+if host_machine.system() == 'kfreebsd'
+  supports_pccons = true
+  supports_pcvt = true
+  supports_syscons = true
+endif
+
+if host_machine.system() == 'netbsd'
+  supports_pccons = true
+  supports_pcvt = true
+  supports_wscons = true
+  csrg_based = true
+endif
+
+if host_machine.system() == 'openbsd'
+  supports_pcvt = true
+  supports_wscons = true
+  csrg_based = true
+endif
+
+conf_data.set('SVR4', cc.compiles(defines_svr4))
+conf_data.set_quoted('XKB_DFLT_RULES', get_option('xkb_default_rules'))
+conf_data.set('XORGSERVER', build_xorg)
+conf_data.set_quoted('XCONFIGFILE', join_paths(get_option('sysconfdir'), 'xorg.conf'))
+conf_data.set_quoted('__XSERVERNAME__', 'Xorg')
+conf_data.set('WITH_VGAHW', build_vgahw)
+conf_data.set('CSRG_BASED', csrg_based)
+conf_data.set('PCCONS_SUPPORT', supports_pccons)
+conf_data.set('PCVT_SUPPORT', supports_pcvt)
+conf_data.set('SYSCONS_SUPPORT', supports_syscons)
+conf_data.set('WSCONS_SUPPORT', supports_wscons)
+conf_data.set('XSERVER_LIBPCIACCESS', get_option('pciaccess'))
+conf_data.set('XSERVER_PLATFORM_BUS', build_udev)
+
 configure_file(output : 'dix-config.h',
                configuration : conf_data)
 
