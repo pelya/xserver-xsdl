@@ -288,9 +288,15 @@ endif
 # XXX: Add more sha1 options, because Linux is about choice
 sha1_dep = nettle_dep
 
-xdmcp_dep = []
+xdmcp_dep = dependency('', required : false)
 if get_option('xdmcp')
     xdmcp_dep = dependency('xdmcp')
+endif
+
+has_xdm_auth = get_option('xdm-auth-1')
+
+if not xdmcp_dep.found()
+  has_xdm_auth = false
 endif
 
 build_glx = get_option('glx')

@@ -91,7 +91,7 @@ conf_data.set_quoted('COMPILEDDEFAULTFONTPATH', default_font_path)
 
 conf_data.set('XORG_VERSION_CURRENT', release)
 
-conf_data.set('HASXDMAUTH', get_option('xdm-auth-1'))
+conf_data.set('HASXDMAUTH', has_xdm_auth)
 conf_data.set('SECURE_RPC', get_option('secure-rpc'))
 
 conf_data.set('HAVE_DLFCN_H', cc.has_header('dlfcn.h'))
@@ -182,7 +182,7 @@ conf_data.set('SHAPE', '1')
 conf_data.set('XACE', build_xace)
 conf_data.set('XCMISC', '1')
 conf_data.set('XCSECURITY', build_xsecurity)
-conf_data.set('XDMCP', get_option('xdmcp'))
+conf_data.set('XDMCP', xdmcp_dep.found())
 conf_data.set('XF86BIGFONT', build_xf86bigfont)
 conf_data.set('XF86DRI', build_dri1)
 conf_data.set('XF86VIDMODE', build_xf86vidmode)
