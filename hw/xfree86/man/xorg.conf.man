@@ -498,6 +498,9 @@ The options recognised by this section are:
 .BI "Option \*qDebug\*q  \*q" string \*q
 This comma-separated list provides a way to control various debugging switches
 from the config file.
+At the moment the only defined value is
+.B dmabuf_capable
+which instructs glamor to enable some unstable buffer management code.
 .TP 7
 .BI "Option \*qDefaultServerLayout\*q  \*q" layout\-id \*q
 This specifies the default
