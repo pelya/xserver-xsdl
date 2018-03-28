@@ -216,7 +216,10 @@ conf_data.set_quoted('BUILDERSTRING', get_option('builder_string'))
 configure_file(output : 'dix-config.h',
                configuration : conf_data)
 
-
+configure_file(output : 'xorg-server.h',
+               input : 'xorg-server.h.meson.in',
+               configuration : conf_data,
+               install_dir: xorgsdkdir)
 
 version_data = configuration_data()
 version_data.set('VENDOR_RELEASE', '@0@'.format(release))
