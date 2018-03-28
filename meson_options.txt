@@ -19,7 +19,7 @@ option('builder_addr', type: 'string', description: 'Builder address', value: 'x
 option('builder_string', type: 'string', description: 'Additional builder string')
 
 option('log_dir', type: 'string')
-option('module_dir', type: 'string',
+option('module_dir', type: 'string', value: 'xorg/modules',
        description: 'X.Org modules directory')
 option('default_font_path', type: 'string')
 

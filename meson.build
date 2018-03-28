@@ -592,13 +592,13 @@ if build_xorg
     awk = find_program('awk')
 
     sdkconfig.set('prefix', get_option('prefix'))
-    sdkconfig.set('exec_prefix', get_option('prefix'))
-    sdkconfig.set('libdir', get_option('libdir'))
-    sdkconfig.set('includedir', get_option('includedir'))
-    sdkconfig.set('datarootdir', get_option('datadir'))
-    sdkconfig.set('moduledir', get_option('module_dir'))
-    sdkconfig.set('sdkdir', join_paths(get_option('includedir'), 'include'))
-    sdkconfig.set('sysconfigdir', join_paths(get_option('datadir'), 'X11/xorg.conf.d'))
+    sdkconfig.set('exec_prefix', '${prefix}')
+    sdkconfig.set('libdir', join_paths('${exec_prefix}', get_option('libdir')))
+    sdkconfig.set('includedir', join_paths('${prefix}', get_option('includedir')))
+    sdkconfig.set('datarootdir', join_paths('${prefix}', get_option('datadir')))
+    sdkconfig.set('moduledir', join_paths('${exec_prefix}', get_option('module_dir')))
+    sdkconfig.set('sdkdir', join_paths('${prefix}', get_option('includedir'), 'xorg'))
+    sdkconfig.set('sysconfigdir', join_paths('${datarootdir}', 'X11/xorg.conf.d'))
 
     sdkconfig.set('abi_ansic',
         run_command(awk, '-F', '[(,)]',
