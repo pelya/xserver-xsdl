@@ -602,25 +602,25 @@ if build_xorg
 
     sdkconfig.set('abi_ansic',
         run_command(awk, '-F', '[(,)]',
-                    '/^#define ABI_ANSIC.*SET/ { printf "%d.%d\n", $2, $3 }',
+                    '/^#define ABI_ANSIC.*SET/ { printf "%d.%d", $2, $3 }',
                     files('hw/xfree86/common/xf86Module.h')
         ).stdout()
     )
     sdkconfig.set('abi_videodrv',
         run_command(awk, '-F', '[(,)]',
-                    '/^#define ABI_VIDEODRV.*SET/ { printf "%d.%d\n", $2, $3 }',
+                    '/^#define ABI_VIDEODRV.*SET/ { printf "%d.%d", $2, $3 }',
                     files('hw/xfree86/common/xf86Module.h')
         ).stdout()
     )
     sdkconfig.set('abi_xinput',
         run_command(awk, '-F', '[(,)]',
-                    '/^#define ABI_XINPUT.*SET/ { printf "%d.%d\n", $2, $3 }',
+                    '/^#define ABI_XINPUT.*SET/ { printf "%d.%d", $2, $3 }',
                     files('hw/xfree86/common/xf86Module.h')
         ).stdout()
     )
     sdkconfig.set('abi_extension',
         run_command(awk, '-F', '[(,)]',
-                    '/^#define ABI_EXTENSION.*SET/ { printf "%d.%d\n", $2, $3 }',
+                    '/^#define ABI_EXTENSION.*SET/ { printf "%d.%d", $2, $3 }',
                     files('hw/xfree86/common/xf86Module.h')
         ).stdout()
     )
