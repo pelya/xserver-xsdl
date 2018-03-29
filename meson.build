@@ -477,7 +477,6 @@ inc = include_directories(
     'randr',
     'render',
     'xfixes',
-    xproto_dep.get_pkgconfig_variable('includedir')
 )
 
 glx_inc = include_directories('glx')
