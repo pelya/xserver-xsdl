@@ -624,9 +624,13 @@ if build_xorg
         ).stdout()
     )
 
+    sdk_required_modules = [
+      'pixman-1 >= 0.27.2',
+    ]
+
     # XXX this isn't trying very hard, but hard enough.
     sdkconfig.set('PACKAGE_VERSION', meson.project_version())
-    sdkconfig.set('SDK_REQUIRED_MODULES', '')
+    sdkconfig.set('SDK_REQUIRED_MODULES', ' '.join(sdk_required_modules))
     sdkconfig.set('symbol_visibility', '-fvisibility=hidden')
     sdkconfig.set('XORG_DRIVER_LIBS', '')
 
