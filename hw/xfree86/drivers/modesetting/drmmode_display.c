@@ -70,11 +70,27 @@ modifiers_ptr(struct drm_format_modifier_blob *blob)
     return (struct drm_format_modifier *)(((char *)blob) + blob->modifiers_offset);
 }
 
+static uint32_t
+get_opaque_format(uint32_t format)
+{
+    switch (format) {
+    case DRM_FORMAT_ARGB8888:
+        return DRM_FORMAT_XRGB8888;
+    case DRM_FORMAT_ARGB2101010:
+        return DRM_FORMAT_XRGB2101010;
+    default:
+        return format;
+    }
+}
+
 Bool
 drmmode_is_format_supported(ScrnInfoPtr scrn, uint32_t format, uint64_t modifier)
 {
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     int c, i, j;
+
+    /* BO are imported as opaque surface, so let's pretend there is no alpha */
+    format = get_opaque_format(format);
 
     for (c = 0; c < xf86_config->num_crtc; c++) {
         xf86CrtcPtr crtc = xf86_config->crtc[c];
@@ -122,6 +138,9 @@ get_modifiers_set(ScrnInfoPtr scrn, uint32_t format, uint64_t **modifiers,
     drmmode_ptr drmmode = &ms->drmmode;
     int c, i, j, k, count_modifiers = 0;
     uint64_t *tmp, *ret = NULL;
+
+    /* BOs are imported as opaque surfaces, so pretend the same thing here */
+    format = get_opaque_format(format);
 
     *modifiers = NULL;
     for (c = 0; c < xf86_config->num_crtc; c++) {
@@ -684,6 +703,7 @@ drmmode_bo_import(drmmode_ptr drmmode, drmmode_bo *bo,
             memset(modifiers, 0, sizeof(modifiers));
 
             format = gbm_bo_get_format(bo->gbm);
+            format = get_opaque_format(format);
             for (i = 0; i < num_fds; i++) {
                 handles[i] = gbm_bo_get_handle_for_plane(bo->gbm, i).u32;
                 strides[i] = gbm_bo_get_stride_for_plane(bo->gbm, i);
