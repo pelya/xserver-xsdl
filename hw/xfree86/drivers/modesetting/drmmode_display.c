@@ -562,15 +562,15 @@ drmmode_crtc_set_fb(xf86CrtcPtr crtc, DisplayModePtr mode, uint32_t fb_id,
         ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_SRC_X, x << 16);
         ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_SRC_Y, y << 16);
         ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_SRC_W,
-                              drmmode->front_bo.width << 16);
+                              crtc->mode.HDisplay << 16);
         ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_SRC_H,
-                              drmmode->front_bo.height << 16);
+                              crtc->mode.VDisplay << 16);
         ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_CRTC_X, 0);
         ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_CRTC_Y, 0);
         ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_CRTC_W,
-                              drmmode->front_bo.width);
+                              crtc->mode.HDisplay);
         ret |= plane_add_prop(req, drmmode_crtc, DRMMODE_PLANE_CRTC_H,
-                              drmmode->front_bo.height);
+                              crtc->mode.VDisplay);
 
         if (ret == 0)
             ret = drmModeAtomicCommit(ms->fd, req, flags, data);
