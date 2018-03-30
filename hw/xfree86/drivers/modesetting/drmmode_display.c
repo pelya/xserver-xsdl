@@ -2240,14 +2240,17 @@ drmmode_output_dpms(xf86OutputPtr output, int mode)
 {
     drmmode_output_private_ptr drmmode_output = output->driver_private;
     xf86CrtcPtr crtc = output->crtc;
-    modesettingPtr ms = modesettingPTR(crtc->scrn);
+    modesettingPtr ms = NULL;
     drmModeConnectorPtr koutput = drmmode_output->mode_output;
     drmmode_ptr drmmode = drmmode_output->drmmode;
 
     if (!koutput)
         return;
 
-    if (ms->atomic_modeset) {
+    if (crtc)
+        ms = modesettingPTR(crtc->scrn);
+
+    if (ms && ms->atomic_modeset) {
         drmmode_output->dpms = mode;
     } else {
         drmModeConnectorSetProperty(drmmode->fd, koutput->connector_id,
