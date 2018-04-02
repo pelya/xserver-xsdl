@@ -596,30 +596,26 @@ glamor_get_formats(ScreenPtr screen,
     struct glamor_egl_screen_private *glamor_egl;
     EGLint num;
 
+    /* Explicitly zero the count as the caller may ignore the return value */
+    *num_formats = 0;
+
     glamor_egl = glamor_egl_get_screen_private(xf86ScreenToScrn(screen));
 
     if (!glamor_egl->dmabuf_capable)
         return FALSE;
 
-    if (!eglQueryDmaBufFormatsEXT(glamor_egl->display, 0, NULL, &num)) {
-        *num_formats = 0;
+    if (!eglQueryDmaBufFormatsEXT(glamor_egl->display, 0, NULL, &num))
         return FALSE;
-    }
 
-    if (num == 0) {
-        *num_formats = 0;
+    if (num == 0)
         return TRUE;
-    }
 
     *formats = calloc(num, sizeof(CARD32));
-    if (*formats == NULL) {
-        *num_formats = 0;
+    if (*formats == NULL)
         return FALSE;
-    }
 
     if (!eglQueryDmaBufFormatsEXT(glamor_egl->display, num,
                                   (EGLint *) *formats, &num)) {
-        *num_formats = 0;
         free(*formats);
         return FALSE;
     }
