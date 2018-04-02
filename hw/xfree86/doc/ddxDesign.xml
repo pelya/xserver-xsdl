@@ -820,13 +820,11 @@ Here is what <function>InitOutput()</function> does:
       like probing for other details such as the amount of memory
       installed, etc.  It is recommended that the
       <function>xf86MatchPciInstances()</function> helper function be used
-      for identifying matching PCI devices, and similarly the
-      <function>xf86MatchIsaInstances()</function> for ISA (non-PCI) devices
+      for identifying matching PCI devices
       (see the <link linkend="rac">RAC</link> section).  These helpers also
       checks and claims the appropriate entity.  When not using the
       helper, that should be done with <function>xf86CheckPciSlot()</function>
-      and <function>xf86ClaimPciSlot()</function> for PCI devices and
-      <function>xf86ClaimIsaSlot()</function> for ISA devices (see the
+      and <function>xf86ClaimPciSlot()</function> for PCI devices (see the
       <link linkend="rac">RAC</link> section).
 	</para>
 
@@ -2496,53 +2494,6 @@ xorg.conf file to the devices:
 
 	    </blockquote></para></blockquote>
 
-	<blockquote><para>
-	    <programlisting>
-    int xf86MatchIsaInstances(const char *driverName,
-                              SymTabPtr chipsets, IsaChipsets *ISAchipsets,
-                              DriverPtr drvp, FindIsaDevProc FindIsaDevice,
-                              GDevPtr *devList, int numDevs,
-                              int **foundEntities);
-	    </programlisting>
-	    <blockquote><para>
-      This function finds matches between ISA cards that a driver supports
-      and config file device sections.  It is intended for use in the
-      <function>ChipProbe()</function> function of drivers for ISA cards.
-      <parameter>devList</parameter> and <parameter>numDevs</parameter> are
-      typically those found from calling <function>xf86MatchDevice()</function>,
-      and represent the active config file device sections relevant to
-      the driver.  <parameter>ISAchipsets</parameter> is a table that provides
-      a mapping between the driver's internal chipset tokens and the
-      resource classes.  <parameter>FindIsaDevice</parameter> is a
-      driver-provided function that probes the hardware and returns the
-      chipset token corresponding to what was detected, and
-      <constant>-1</constant> if nothing was detected.
-	      </para>
-
-	      <para>
-      If the config file device section contains a chipset entry, then
-      it is checked against the <parameter>chipsets</parameter> list.  When
-      no chipset entry is present, the <parameter>FindIsaDevice</parameter>
-      function is called instead.
-	      </para>
-
-	      <para>
-      Entity index numbers for confirmed matches are returned as an
-      array via <parameter>foundEntities</parameter>.  The chipset token and
-      device section for each match are found in the
-      <structname>EntityInfoRec</structname> referenced by the indices.
-	      </para>
-
-	      <para>
-      The function return value is the number of confirmed matches.  A
-      return value of <constant>-1</constant> indicates an internal error.
-      The returned <parameter>foundEntities</parameter> array should be freed
-      by the driver with <function>xfree()</function> when it is no longer
-      needed in cases where the return value is greater than zero.
-	      </para>
-
-	    </blockquote></para></blockquote>
-
 	<para>
 These two helper functions make use of several core functions that are
 available at the driver level:
@@ -2583,18 +2534,6 @@ available at the driver level:
 
 	<blockquote><para>
 	    <programlisting>
-    Bool xf86ParseIsaBusString(const char *busID);
-	    </programlisting>
-	    <blockquote><para>
-      Compares a <parameter>BusID</parameter> string with the ISA bus ID string
-      ("ISA" or "ISA:").  If they match <constant>TRUE</constant> is returned,
-      and <constant>FALSE</constant> if they don't.
-	      </para>
-
-	    </blockquote></para></blockquote>
-
-	<blockquote><para>
-	    <programlisting>
     Bool xf86CheckPciSlot(int bus, int device, int func);
 	    </programlisting>
 	    <blockquote><para>
@@ -2628,30 +2567,6 @@ available at the driver level:
 	    <blockquote><para>
       This function returns <constant>TRUE</constant> if the primary card is
       a PCI device, and <constant>FALSE</constant> otherwise.
-	      </para>
-
-	    </blockquote></para></blockquote>
-
-	<blockquote><para>
-	    <programlisting>
-    int xf86ClaimIsaSlot(DriverPtr drvp, int chipset,
-                         GDevPtr dev, Bool active);
-	    </programlisting>
-	    <blockquote><para>
-      This allocates an entity record entity and initialise the data
-      structures.  The return value is the index of the newly allocated
-      entity record.
-	      </para>
-
-	    </blockquote></para></blockquote>
-
-	<blockquote><para>
-	    <programlisting>
-    Bool xf86IsPrimaryIsa(void);
-	    </programlisting>
-	    <blockquote><para>
-      This function returns <constant>TRUE</constant> if the primary card is
-      an ISA (non-PCI) device, and <constant>FALSE</constant> otherwise.
 	      </para>
 
 	    </blockquote></para></blockquote>
