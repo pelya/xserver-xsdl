@@ -797,7 +797,7 @@ glamor_dri3_open_client(ClientPtr client,
     return Success;
 }
 
-static dri3_screen_info_rec glamor_dri3_info = {
+static const dri3_screen_info_rec glamor_dri3_info = {
     .version = 2,
     .open_client = glamor_dri3_open_client,
     .pixmap_from_fds = glamor_pixmap_from_fds,

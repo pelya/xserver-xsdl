@@ -32,7 +32,7 @@
 #include <drm_fourcc.h>
 #include <unistd.h>
 
-static inline Bool has_open(dri3_screen_info_ptr info) {
+static inline Bool has_open(const dri3_screen_info_rec *info) {
     if (info == NULL)
         return FALSE;
 
@@ -44,7 +44,7 @@ int
 dri3_open(ClientPtr client, ScreenPtr screen, RRProviderPtr provider, int *fd)
 {
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
-    dri3_screen_info_ptr        info = ds->info;
+    const dri3_screen_info_rec *info = ds->info;
     int                         rc;
 
     if (!has_open(info))
@@ -69,7 +69,7 @@ dri3_pixmap_from_fds(PixmapPtr *ppixmap, ScreenPtr screen,
                      CARD8 depth, CARD8 bpp, CARD64 modifier)
 {
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
-    dri3_screen_info_ptr        info = ds->info;
+    const dri3_screen_info_rec *info = ds->info;
     PixmapPtr                   pixmap;
 
     if (!info)
@@ -100,7 +100,7 @@ dri3_fds_from_pixmap(PixmapPtr pixmap, int *fds,
 {
     ScreenPtr                   screen = pixmap->drawable.pScreen;
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
-    dri3_screen_info_ptr        info = ds->info;
+    const dri3_screen_info_rec *info = ds->info;
 
     if (!info)
         return 0;
@@ -130,7 +130,7 @@ dri3_fd_from_pixmap(PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
 {
     ScreenPtr                   screen = pixmap->drawable.pScreen;
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
-    dri3_screen_info_ptr        info = ds->info;
+    const dri3_screen_info_rec  *info = ds->info;
     CARD32                      strides[4];
     CARD32                      offsets[4];
     CARD64                      modifier;
@@ -170,7 +170,7 @@ static int
 cache_formats_and_modifiers(ScreenPtr screen)
 {
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
-    dri3_screen_info_ptr        info = ds->info;
+    const dri3_screen_info_rec *info = ds->info;
     CARD32                     *formats = NULL;
     CARD64                     *modifiers = NULL;
     int                         i;
@@ -230,7 +230,7 @@ dri3_get_supported_modifiers(ScreenPtr screen, DrawablePtr drawable,
                              CARD64 **screen_modifiers)
 {
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
-    dri3_screen_info_ptr        info = ds->info;
+    const dri3_screen_info_rec *info = ds->info;
     int                         i, j;
     int                         ret;
     CARD32                      num_drawable_mods;

@@ -815,7 +815,7 @@ glamor_get_modifiers(ScreenPtr screen, CARD32 format,
 }
 
 
-static dri3_screen_info_rec xwl_dri3_info = {
+static const dri3_screen_info_rec xwl_dri3_info = {
     .version = 2,
     .open = NULL,
     .pixmap_from_fds = glamor_pixmap_from_fds,

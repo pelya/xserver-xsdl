@@ -104,7 +104,7 @@ typedef struct dri3_screen_info {
 } dri3_screen_info_rec, *dri3_screen_info_ptr;
 
 extern _X_EXPORT Bool
-dri3_screen_init(ScreenPtr screen, dri3_screen_info_ptr info);
+dri3_screen_init(ScreenPtr screen, const dri3_screen_info_rec *info);
 
 extern _X_EXPORT int
 dri3_send_open_reply(ClientPtr client, int fd);
