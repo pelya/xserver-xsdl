@@ -704,8 +704,6 @@ glamor_pixmap_from_fds(ScreenPtr screen,
     return pixmap;
 
 error:
-    for (i = 0; i < num_fds; i++)
-       close(fds[i]);
     return NULL;
 }
 
