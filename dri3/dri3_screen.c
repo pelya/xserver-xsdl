@@ -159,8 +159,10 @@ cache_formats_and_modifiers(ScreenPtr screen)
 {
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
     const dri3_screen_info_rec *info = ds->info;
-    CARD32                     *formats = NULL;
-    CARD64                     *modifiers = NULL;
+    CARD32                      num_formats;
+    CARD32                     *formats;
+    CARD32                      num_modifiers;
+    CARD64                     *modifiers;
     int                         i;
 
     if (ds->formats_cached)
@@ -176,34 +178,36 @@ cache_formats_and_modifiers(ScreenPtr screen)
         return Success;
     }
 
-    (*info->get_formats) (screen, &ds->num_formats, &formats);
-    ds->formats = calloc(ds->num_formats, sizeof(dri3_dmabuf_format_rec));
+    if (!info->get_formats(screen, &num_formats, &formats))
+        return BadAlloc;
+
+    if (!num_formats) {
+        ds->num_formats = 0;
+        ds->formats_cached = TRUE;
+        return Success;
+    }
+
+    ds->formats = calloc(num_formats, sizeof(dri3_dmabuf_format_rec));
     if (!ds->formats)
         return BadAlloc;
 
-    for (i = 0; i < ds->num_formats; i++) {
+    for (i = 0; i < num_formats; i++) {
         dri3_dmabuf_format_ptr iter = &ds->formats[i];
 
+        if (!info->get_modifiers(screen, formats[i],
+                                 &num_modifiers,
+                                 &modifiers))
+            continue;
+
+        if (!num_modifiers)
+            continue;
+
         iter->format = formats[i];
-        (*info->get_modifiers) (screen, formats[i],
-                                &iter->num_modifiers,
-                                &modifiers);
-
-        iter->modifiers = malloc(iter->num_modifiers * sizeof(CARD64));
-        if (iter->modifiers == NULL)
-            goto error;
-
-        memcpy(iter->modifiers, modifiers,
-               iter->num_modifiers * sizeof(CARD64));
-        goto done;
-
-error:
-        iter->num_modifiers = 0;
-        free(iter->modifiers);
-done:
-        free(modifiers);
+        iter->num_modifiers = num_modifiers;
+        iter->modifiers = modifiers;
     }
-    free(formats);
+
+    ds->num_formats = i;
     ds->formats_cached = TRUE;
 
     return Success;
