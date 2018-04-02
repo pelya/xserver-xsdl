@@ -750,19 +750,18 @@ glamor_get_formats(ScreenPtr screen,
     struct xwl_screen *xwl_screen = xwl_screen_get(screen);
     int i;
 
+    /* Explicitly zero the count as the caller may ignore the return value */
+    *num_formats = 0;
+
     if (!xwl_screen->dmabuf_capable || !xwl_screen->dmabuf)
         return FALSE;
 
-    if (xwl_screen->num_formats == 0) {
-       *num_formats = 0;
+    if (xwl_screen->num_formats == 0)
        return TRUE;
-    }
 
     *formats = calloc(xwl_screen->num_formats, sizeof(CARD32));
-    if (*formats == NULL) {
-        *num_formats = 0;
+    if (*formats == NULL)
         return FALSE;
-    }
 
     for (i = 0; i < xwl_screen->num_formats; i++)
        (*formats)[i] = xwl_screen->formats[i].format;
