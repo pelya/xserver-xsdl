@@ -32,33 +32,21 @@
 #include <drm_fourcc.h>
 #include <unistd.h>
 
-static inline Bool has_open(const dri3_screen_info_rec *info) {
-    if (info == NULL)
-        return FALSE;
-
-    return info->open != NULL ||
-        (info->version >= 1 && info->open_client != NULL);
-}
-
 int
 dri3_open(ClientPtr client, ScreenPtr screen, RRProviderPtr provider, int *fd)
 {
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
     const dri3_screen_info_rec *info = ds->info;
-    int                         rc;
 
-    if (!has_open(info))
+    if (info == NULL)
         return BadMatch;
 
     if (info->version >= 1 && info->open_client != NULL)
-        rc = (*info->open_client) (client, screen, provider, fd);
-    else
-        rc = (*info->open) (screen, provider, fd);
+        return (*info->open_client) (client, screen, provider, fd);
+    if (info->open != NULL)
+        return (*info->open) (screen, provider, fd);
 
-    if (rc != Success)
-        return rc;
-
-    return Success;
+    return BadMatch;
 }
 
 int
