@@ -253,10 +253,13 @@ dri3_get_supported_modifiers(ScreenPtr screen, DrawablePtr drawable,
         return Success;
     }
 
-    if (info->get_drawable_modifiers)
-        (*info->get_drawable_modifiers) (drawable, format,
-                                         &num_drawable_mods,
-                                         &drawable_mods);
+    if (!info->get_drawable_modifiers ||
+        !info->get_drawable_modifiers(drawable, format,
+                                      &num_drawable_mods,
+                                      &drawable_mods)) {
+        num_drawable_mods = 0;
+        drawable_mods = NULL;
+    }
 
     /* We're allocating slightly more memory than necessary but it reduces
      * the complexity of finding the intersection set.
