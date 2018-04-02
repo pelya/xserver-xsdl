@@ -514,9 +514,9 @@ gbm_format_for_depth(CARD8 depth)
 
 _X_EXPORT PixmapPtr
 glamor_pixmap_from_fds(ScreenPtr screen,
-                       CARD8 num_fds, int *fds,
+                       CARD8 num_fds, const int *fds,
                        CARD16 width, CARD16 height,
-                       CARD32 *strides, CARD32 *offsets,
+                       const CARD32 *strides, const CARD32 *offsets,
                        CARD8 depth, CARD8 bpp,
                        uint64_t modifier)
 {
