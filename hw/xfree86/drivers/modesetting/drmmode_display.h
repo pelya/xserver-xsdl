@@ -283,7 +283,8 @@ void drmmode_get_default_bpp(ScrnInfoPtr pScrn, drmmode_ptr drmmmode,
 
 void drmmode_copy_fb(ScrnInfoPtr pScrn, drmmode_ptr drmmode);
 
-int drmmode_crtc_set_fb(xf86CrtcPtr crtc, DisplayModePtr mode, uint32_t fb_id,
-                        int x, int y, uint32_t flags, void *data);
+int drmmode_crtc_flip(xf86CrtcPtr crtc, uint32_t fb_id, uint32_t flags, void *data);
+
+void drmmode_set_dpms(ScrnInfoPtr scrn, int PowerManagementMode, int flags);
 
 #endif
