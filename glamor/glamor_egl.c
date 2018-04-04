@@ -250,7 +250,7 @@ glamor_get_name_from_bo(int gbm_fd, struct gbm_bo *bo, int *name)
 }
 
 static Bool
-glamor_make_pixmap_exportable(PixmapPtr pixmap)
+glamor_make_pixmap_exportable(PixmapPtr pixmap, Bool modifiers_ok)
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
@@ -266,7 +266,8 @@ glamor_make_pixmap_exportable(PixmapPtr pixmap)
     PixmapPtr exported;
     GCPtr scratch_gc;
 
-    if (pixmap_priv->image)
+    if (pixmap_priv->image &&
+        (modifiers_ok || !pixmap_priv->used_modifiers))
         return TRUE;
 
     if (pixmap->drawable.bitsPerPixel != 32) {
@@ -282,7 +283,7 @@ glamor_make_pixmap_exportable(PixmapPtr pixmap)
         format = GBM_FORMAT_ARGB8888;
 
 #ifdef GBM_BO_WITH_MODIFIERS
-    if (glamor_egl->dmabuf_capable) {
+    if (modifiers_ok && glamor_egl->dmabuf_capable) {
         uint32_t num_modifiers;
         uint64_t *modifiers = NULL;
 
@@ -370,7 +371,7 @@ glamor_egl_fds_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, int *fds,
     int i;
 #endif
 
-    if (!glamor_make_pixmap_exportable(pixmap))
+    if (!glamor_make_pixmap_exportable(pixmap, TRUE))
         return 0;
 
     bo = glamor_gbm_bo_from_pixmap(screen, pixmap);
@@ -411,7 +412,7 @@ glamor_egl_fd_name_from_pixmap(ScreenPtr screen,
 
     glamor_egl = glamor_egl_get_screen_private(xf86ScreenToScrn(screen));
 
-    if (!glamor_make_pixmap_exportable(pixmap))
+    if (!glamor_make_pixmap_exportable(pixmap, FALSE))
         goto failure;
 
     bo = glamor_gbm_bo_from_pixmap(screen, pixmap);
