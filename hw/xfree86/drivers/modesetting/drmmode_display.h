@@ -75,6 +75,7 @@ typedef struct {
     uint32_t height;
     struct dumb_bo *dumb;
 #ifdef GLAMOR_HAS_GBM
+    Bool used_modifiers;
     struct gbm_bo *gbm;
 #endif
 } drmmode_bo;

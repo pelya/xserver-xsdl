@@ -752,13 +752,16 @@ drmmode_create_bo(drmmode_ptr drmmode, drmmode_bo *bo,
                                                    format, modifiers,
                                                    num_modifiers);
             free(modifiers);
-            if (bo->gbm)
+            if (bo->gbm) {
+                bo->used_modifiers = TRUE;
                 return TRUE;
+            }
         }
 #endif
 
         bo->gbm = gbm_bo_create(drmmode->gbm, width, height, format,
                                 GBM_BO_USE_RENDERING | GBM_BO_USE_SCANOUT);
+        bo->used_modifiers = FALSE;
         return bo->gbm != NULL;
     }
 #endif
