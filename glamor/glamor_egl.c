@@ -402,6 +402,32 @@ glamor_egl_fds_from_pixmap(ScreenPtr screen, PixmapPtr pixmap, int *fds,
 #endif
 }
 
+static int
+glamor_egl_fd_from_pixmap(ScreenPtr screen, PixmapPtr pixmap,
+                          CARD16 *stride, CARD32 *size)
+{
+#ifdef GLAMOR_HAS_GBM
+    struct gbm_bo *bo;
+    int fd;
+
+    if (!glamor_make_pixmap_exportable(pixmap, FALSE))
+        return -1;
+
+    bo = glamor_gbm_bo_from_pixmap(screen, pixmap);
+    if (!bo)
+        return -1;
+
+    fd = gbm_bo_get_fd(bo);
+    *stride = gbm_bo_get_stride(bo);
+    *size = *stride * gbm_bo_get_height(bo);
+    gbm_bo_destroy(bo);
+
+    return fd;
+#else
+    return -1;
+#endif
+}
+
 int
 glamor_egl_fd_name_from_pixmap(ScreenPtr screen,
                                PixmapPtr pixmap,
@@ -775,6 +801,7 @@ static dri3_screen_info_rec glamor_dri3_info = {
     .version = 2,
     .open_client = glamor_dri3_open_client,
     .pixmap_from_fds = glamor_pixmap_from_fds,
+    .fd_from_pixmap = glamor_egl_fd_from_pixmap,
     .fds_from_pixmap = glamor_egl_fds_from_pixmap,
     .get_formats = glamor_get_formats,
     .get_modifiers = glamor_get_modifiers,
