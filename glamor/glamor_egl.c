@@ -150,7 +150,8 @@ glamor_egl_create_textured_screen(ScreenPtr screen, int handle, int stride)
 }
 
 static void
-glamor_egl_set_pixmap_image(PixmapPtr pixmap, EGLImageKHR image)
+glamor_egl_set_pixmap_image(PixmapPtr pixmap, EGLImageKHR image,
+                            Bool used_modifiers)
 {
     struct glamor_pixmap_private *pixmap_priv =
         glamor_get_pixmap_private(pixmap);
@@ -165,6 +166,7 @@ glamor_egl_set_pixmap_image(PixmapPtr pixmap, EGLImageKHR image)
         eglDestroyImageKHR(glamor_egl->display, old);
     }
     pixmap_priv->image = image;
+    pixmap_priv->used_modifiers = used_modifiers;
 }
 
 Bool
@@ -204,7 +206,8 @@ glamor_egl_create_textured_pixmap(PixmapPtr pixmap, int handle, int stride)
 
 Bool
 glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap,
-                                              struct gbm_bo *bo)
+                                              struct gbm_bo *bo,
+                                              Bool used_modifiers)
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
     ScrnInfoPtr scrn = xf86ScreenToScrn(screen);
@@ -229,7 +232,7 @@ glamor_egl_create_textured_pixmap_from_gbm_bo(PixmapPtr pixmap,
     glamor_create_texture_from_image(screen, image, &texture);
     glamor_set_pixmap_type(pixmap, GLAMOR_TEXTURE_DRM);
     glamor_set_pixmap_texture(pixmap, texture);
-    glamor_egl_set_pixmap_image(pixmap, image);
+    glamor_egl_set_pixmap_image(pixmap, image, used_modifiers);
     ret = TRUE;
 
  done:
@@ -259,6 +262,7 @@ glamor_make_pixmap_exportable(PixmapPtr pixmap)
     unsigned height = pixmap->drawable.height;
     uint32_t format;
     struct gbm_bo *bo;
+    Bool used_modifiers = FALSE;
     PixmapPtr exported;
     GCPtr scratch_gc;
 
@@ -286,6 +290,8 @@ glamor_make_pixmap_exportable(PixmapPtr pixmap)
 
         bo = gbm_bo_create_with_modifiers(glamor_egl->gbm, width, height,
                                           format, modifiers, num_modifiers);
+        if (bo)
+            used_modifiers = TRUE;
         free(modifiers);
     }
     else
@@ -309,7 +315,8 @@ glamor_make_pixmap_exportable(PixmapPtr pixmap)
     exported = screen->CreatePixmap(screen, 0, 0, pixmap->drawable.depth, 0);
     screen->ModifyPixmapHeader(exported, width, height, 0, 0,
                                gbm_bo_get_stride(bo), NULL);
-    if (!glamor_egl_create_textured_pixmap_from_gbm_bo(exported, bo)) {
+    if (!glamor_egl_create_textured_pixmap_from_gbm_bo(exported, bo,
+                                                       used_modifiers)) {
         xf86DrvMsg(scrn->scrnIndex, X_ERROR,
                    "Failed to make %dx%dx%dbpp pixmap from GBM bo\n",
                    width, height, pixmap->drawable.bitsPerPixel);
@@ -452,7 +459,7 @@ glamor_back_pixmap_from_fd(PixmapPtr pixmap,
 
     screen->ModifyPixmapHeader(pixmap, width, height, 0, 0, stride, NULL);
 
-    ret = glamor_egl_create_textured_pixmap_from_gbm_bo(pixmap, bo);
+    ret = glamor_egl_create_textured_pixmap_from_gbm_bo(pixmap, bo, FALSE);
     gbm_bo_destroy(bo);
     return ret;
 }
@@ -509,7 +516,7 @@ glamor_pixmap_from_fds(ScreenPtr screen,
         bo = gbm_bo_import(glamor_egl->gbm, GBM_BO_IMPORT_FD_MODIFIER, &import_data, 0);
         if (bo) {
             screen->ModifyPixmapHeader(pixmap, width, height, 0, 0, strides[0], NULL);
-            ret = glamor_egl_create_textured_pixmap_from_gbm_bo(pixmap, bo);
+            ret = glamor_egl_create_textured_pixmap_from_gbm_bo(pixmap, bo, TRUE);
             gbm_bo_destroy(bo);
         }
     } else
@@ -667,7 +674,8 @@ glamor_egl_destroy_pixmap(PixmapPtr pixmap)
 _X_EXPORT void
 glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back)
 {
-    EGLImageKHR temp;
+    EGLImageKHR temp_img;
+    Bool temp_mod;
     struct glamor_pixmap_private *front_priv =
         glamor_get_pixmap_private(front);
     struct glamor_pixmap_private *back_priv =
@@ -675,9 +683,12 @@ glamor_egl_exchange_buffers(PixmapPtr front, PixmapPtr back)
 
     glamor_pixmap_exchange_fbos(front, back);
 
-    temp = back_priv->image;
+    temp_img = back_priv->image;
+    temp_mod = back_priv->used_modifiers;
     back_priv->image = front_priv->image;
-    front_priv->image = temp;
+    back_priv->used_modifiers = front_priv->used_modifiers;
+    front_priv->image = temp_img;
+    front_priv->used_modifiers = temp_mod;
 
     glamor_set_pixmap_type(front, GLAMOR_TEXTURE_DRM);
     glamor_set_pixmap_type(back, GLAMOR_TEXTURE_DRM);
