@@ -351,7 +351,7 @@ glamor_gbm_bo_from_pixmap(ScreenPtr screen, PixmapPtr pixmap)
     struct glamor_pixmap_private *pixmap_priv =
         glamor_get_pixmap_private(pixmap);
 
-    if (!glamor_make_pixmap_exportable(pixmap))
+    if (!pixmap_priv->image)
         return NULL;
 
     return gbm_bo_import(glamor_egl->gbm, GBM_BO_IMPORT_EGL_IMAGE,
@@ -410,6 +410,9 @@ glamor_egl_fd_name_from_pixmap(ScreenPtr screen,
     int fd = -1;
 
     glamor_egl = glamor_egl_get_screen_private(xf86ScreenToScrn(screen));
+
+    if (!glamor_make_pixmap_exportable(pixmap))
+        goto failure;
 
     bo = glamor_gbm_bo_from_pixmap(screen, pixmap);
     if (!bo)
