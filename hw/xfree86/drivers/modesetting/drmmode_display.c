@@ -100,13 +100,17 @@ drmmode_is_format_supported(ScrnInfoPtr scrn, uint32_t format, uint64_t modifier
         if (!crtc->enabled)
             continue;
 
+        if (drmmode_crtc->num_formats == 0)
+            continue;
+
         for (i = 0; i < drmmode_crtc->num_formats; i++) {
             drmmode_format_ptr iter = &drmmode_crtc->formats[i];
 
             if (iter->format != format)
                 continue;
 
-            if (modifier == DRM_FORMAT_MOD_INVALID) {
+            if (modifier == DRM_FORMAT_MOD_INVALID ||
+                iter->num_modifiers == 0) {
                 found = TRUE;
                 break;
             }
