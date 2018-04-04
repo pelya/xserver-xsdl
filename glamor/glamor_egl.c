@@ -261,7 +261,7 @@ glamor_make_pixmap_exportable(PixmapPtr pixmap, Bool modifiers_ok)
     unsigned width = pixmap->drawable.width;
     unsigned height = pixmap->drawable.height;
     uint32_t format;
-    struct gbm_bo *bo;
+    struct gbm_bo *bo = NULL;
     Bool used_modifiers = FALSE;
     PixmapPtr exported;
     GCPtr scratch_gc;
@@ -295,8 +295,9 @@ glamor_make_pixmap_exportable(PixmapPtr pixmap, Bool modifiers_ok)
             used_modifiers = TRUE;
         free(modifiers);
     }
-    else
 #endif
+
+    if (!bo)
     {
         bo = gbm_bo_create(glamor_egl->gbm, width, height, format,
 #ifdef GLAMOR_HAS_GBM_LINEAR
