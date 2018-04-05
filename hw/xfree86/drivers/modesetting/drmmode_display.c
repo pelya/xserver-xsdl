@@ -777,12 +777,13 @@ drmmode_crtc_set_mode(xf86CrtcPtr crtc, Bool test_only)
             drmmode_crtc_private_ptr other_drmmode_crtc = other_crtc->driver_private;
             int lost_outputs = 0;
             int remaining_outputs = 0;
+            int j;
 
             if (other_crtc == crtc)
                 continue;
 
-            for (i = 0; i < xf86_config->num_output; i++) {
-                xf86OutputPtr output = xf86_config->output[i];
+            for (j = 0; j < xf86_config->num_output; j++) {
+                xf86OutputPtr output = xf86_config->output[j];
                 drmmode_output_private_ptr drmmode_output = output->driver_private;
 
                 if (drmmode_output->current_crtc == other_crtc) {
