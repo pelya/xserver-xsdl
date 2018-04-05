@@ -624,7 +624,7 @@ drmmode_crtc_get_fb_id(xf86CrtcPtr crtc, uint32_t *fb_id, int *x, int *y)
         *y = crtc->y;
     }
 
-    if (fb_id == 0) {
+    if (*fb_id == 0) {
         ret = drmmode_bo_import(drmmode, &drmmode->front_bo,
                                 &drmmode->fb_id);
         if (ret < 0) {
