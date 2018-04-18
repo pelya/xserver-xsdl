@@ -361,7 +361,7 @@ RRModePtr xwayland_cvt(int HDisplay, int VDisplay,
 void xwl_pixmap_set_private(PixmapPtr pixmap, struct xwl_pixmap *xwl_pixmap);
 struct xwl_pixmap *xwl_pixmap_get(PixmapPtr pixmap);
 
-struct xwl_window *xwl_window_of_top(WindowPtr window);
+struct xwl_window *xwl_window_from_window(WindowPtr window);
 
 Bool xwl_shm_create_screen_resources(ScreenPtr screen);
 PixmapPtr xwl_shm_create_pixmap(ScreenPtr screen, int width, int height,
@@ -383,7 +383,7 @@ struct wl_buffer *xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap,
 
 #ifdef GLAMOR_HAS_GBM
 Bool xwl_present_init(ScreenPtr screen);
-void xwl_present_cleanup(WindowPtr window);
+void xwl_present_cleanup(struct xwl_window *xwl_window, WindowPtr window);
 #endif
 
 void xwl_screen_release_tablet_manager(struct xwl_screen *xwl_screen);

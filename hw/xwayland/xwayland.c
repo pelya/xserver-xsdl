@@ -122,21 +122,10 @@ static DevPrivateKeyRec xwl_window_private_key;
 static DevPrivateKeyRec xwl_screen_private_key;
 static DevPrivateKeyRec xwl_pixmap_private_key;
 
-struct xwl_window *
-xwl_window_of_top(WindowPtr window)
+static struct xwl_window *
+xwl_window_get(WindowPtr window)
 {
     return dixLookupPrivate(&window->devPrivates, &xwl_window_private_key);
-}
-
-static struct xwl_window *
-xwl_window_of_self(WindowPtr window)
-{
-    struct xwl_window *xwl_window = dixLookupPrivate(&window->devPrivates, &xwl_window_private_key);
-
-    if (xwl_window && xwl_window->window == window)
-        return xwl_window;
-    else
-        return  NULL;
 }
 
 struct xwl_screen *
@@ -223,7 +212,7 @@ xwl_property_callback(CallbackListPtr *pcbl, void *closure,
     if (rec->win->drawable.pScreen != screen)
         return;
 
-    xwl_window = xwl_window_of_self(rec->win);
+    xwl_window = xwl_window_get(rec->win);
     if (!xwl_window)
         return;
 
@@ -262,6 +251,22 @@ xwl_close_screen(ScreenPtr screen)
     return screen->CloseScreen(screen);
 }
 
+struct xwl_window *
+xwl_window_from_window(WindowPtr window)
+{
+    struct xwl_window *xwl_window;
+
+    while (window) {
+        xwl_window = xwl_window_get(window);
+        if (xwl_window)
+            return xwl_window;
+
+        window = window->parent;
+    }
+
+    return NULL;
+}
+
 static struct xwl_seat *
 xwl_screen_get_default_seat(struct xwl_screen *xwl_screen)
 {
@@ -292,7 +297,7 @@ xwl_cursor_warped_to(DeviceIntPtr device,
     if (!window)
         window = XYToWindow(sprite, x, y);
 
-    xwl_window = xwl_window_of_top(window);
+    xwl_window = xwl_window_from_window(window);
     if (!xwl_window && xwl_seat->focus_window) {
         focus = xwl_seat->focus_window->window;
 
@@ -339,7 +344,7 @@ xwl_cursor_confined_to(DeviceIntPtr device,
         return;
     }
 
-    xwl_window = xwl_window_of_top(window);
+    xwl_window = xwl_window_from_window(window);
     if (!xwl_window && xwl_seat->focus_window) {
         /* Allow confining on InputOnly windows, but only if the geometry
          * is the same than the focus window.
@@ -455,7 +460,6 @@ xwl_realize_window(WindowPtr window)
     struct xwl_screen *xwl_screen;
     struct xwl_window *xwl_window;
     struct wl_region *region;
-    Bool create_xwl_window = TRUE;
     Bool ret;
 
     xwl_screen = xwl_screen_get(screen);
@@ -475,17 +479,11 @@ xwl_realize_window(WindowPtr window)
 
     if (xwl_screen->rootless) {
         if (window->redirectDraw != RedirectDrawManual)
-            create_xwl_window = FALSE;
+            return ret;
     }
     else {
         if (window->parent)
-            create_xwl_window = FALSE;
-    }
-
-    if (!create_xwl_window) {
-        if (window->parent)
-            dixSetPrivate(&window->devPrivates, &xwl_window_private_key, xwl_window_of_top(window->parent));
-        return ret;
+            return ret;
     }
 
     xwl_window = calloc(1, sizeof *xwl_window);
@@ -602,9 +600,9 @@ xwl_unrealize_window(WindowPtr window)
     compUnredirectWindow(serverClient, window, CompositeRedirectManual);
 
 #ifdef GLAMOR_HAS_GBM
-    if (xwl_screen->present)
-        /* Always cleanup Present (Present might have been active on child window) */
-        xwl_present_cleanup(window);
+    xwl_window = xwl_window_from_window(window);
+    if (xwl_window && xwl_screen->present)
+        xwl_present_cleanup(xwl_window, window);
 #endif
 
     screen->UnrealizeWindow = xwl_screen->UnrealizeWindow;
@@ -612,11 +610,9 @@ xwl_unrealize_window(WindowPtr window)
     xwl_screen->UnrealizeWindow = screen->UnrealizeWindow;
     screen->UnrealizeWindow = xwl_unrealize_window;
 
-    xwl_window = xwl_window_of_self(window);
-    if (!xwl_window) {
-        dixSetPrivate(&window->devPrivates, &xwl_window_private_key, NULL);
+    xwl_window = xwl_window_get(window);
+    if (!xwl_window)
         return ret;
-    }
 
     wl_surface_destroy(xwl_window->surface);
     xorg_list_del(&xwl_window->link_damage);
