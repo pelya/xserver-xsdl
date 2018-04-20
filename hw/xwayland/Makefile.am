@@ -35,6 +35,7 @@ Xwayland_built_sources =
 if GLAMOR_EGL
 Xwayland_SOURCES += 				\
 	xwayland-glamor.c			\
+	xwayland-glamor-gbm.c			\
 	xwayland-present.c
 if XV
 Xwayland_SOURCES += 				\

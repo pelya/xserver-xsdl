@@ -52,7 +52,11 @@ srcs += code.process(dmabuf_xml)
 
 xwayland_glamor = []
 if gbm_dep.found()
-    srcs += [ 'xwayland-glamor.c', 'xwayland-present.c' ]
+    srcs += [
+        'xwayland-glamor.c',
+        'xwayland-glamor-gbm.c',
+        'xwayland-present.c',
+    ]
     if build_xv
         srcs += 'xwayland-glamor-xv.c'
     endif
