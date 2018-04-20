@@ -67,6 +67,8 @@ dnl xkb-config.h covers XKB for the Xorg and Xnest DDXs.
 AC_CONFIG_HEADERS(include/xkb-config.h)
 dnl xwin-config.h covers the XWin DDX.
 AC_CONFIG_HEADERS(include/xwin-config.h)
+dnl xwayland-config.h covers Xwayland.
+AC_CONFIG_HEADERS(include/xwayland-config.h)
 dnl version-config.h covers the version numbers so they can be bumped without
 dnl forcing an entire recompile.x
 AC_CONFIG_HEADERS(include/version-config.h)
@@ -2376,6 +2378,11 @@ AM_CONDITIONAL(XWAYLAND, [test "x$XWAYLAND" = xyes])
 if test "x$XWAYLAND" = xyes; then
 	if test "x$have_xwayland" = xno; then
 		AC_MSG_ERROR([Xwayland build explicitly requested, but required modules not found.])
+	fi
+
+	if test "x$GLAMOR" = xyes && test "x$GBM" = xyes; then
+		AC_DEFINE(XWL_HAS_GLAMOR, 1,
+			  [Build xwayland with glamor support])
 	fi
 
 	XWAYLAND_LIBS="$FB_LIB $FIXES_LIB $MI_LIB $XEXT_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB $DIX_LIB $OS_LIB"

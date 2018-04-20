@@ -359,6 +359,13 @@ configure_file(output : 'xwin-config.h',
                input : 'xwin-config.h.meson.in',
                configuration : xwin_data)
 
+xwayland_data = configuration_data()
+xwayland_data.set('XWL_HAS_GLAMOR', build_glamor and gbm_dep.found())
+
+configure_file(output : 'xwayland-config.h',
+               input : 'xwayland-config.h.meson.in',
+               configuration : xwayland_data)
+
 if build_xorg
     install_data(
         [

@@ -26,7 +26,7 @@
 #ifndef XWAYLAND_H
 #define XWAYLAND_H
 
-#include <dix-config.h>
+#include <xwayland-config.h>
 
 #include <stdio.h>
 #include <unistd.h>

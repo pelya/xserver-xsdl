@@ -668,7 +668,7 @@ xwl_window_post_damage(struct xwl_window *xwl_window)
     region = DamageRegion(xwl_window->damage);
     pixmap = (*xwl_screen->screen->GetWindowPixmap) (xwl_window->window);
 
-#ifdef GLAMOR_HAS_GBM
+#ifdef XWL_HAS_GLAMOR
     if (xwl_screen->glamor)
         buffer = xwl_glamor_pixmap_get_wl_buffer(pixmap,
                                                  pixmap->drawable.width,
@@ -754,7 +754,7 @@ registry_global(void *data, struct wl_registry *registry, uint32_t id,
             wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
         xwl_screen_init_xdg_output(xwl_screen);
     }
-#ifdef GLAMOR_HAS_GBM
+#ifdef XWL_HAS_GLAMOR
     else if (xwl_screen->glamor) {
         xwl_glamor_init_wl_registry(xwl_screen, registry, id, interface,
                                     version);
@@ -938,7 +938,7 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
     dixSetPrivate(&pScreen->devPrivates, &xwl_screen_private_key, xwl_screen);
     xwl_screen->screen = pScreen;
 
-#ifdef GLAMOR_HAS_GBM
+#ifdef XWL_HAS_GLAMOR
     xwl_screen->glamor = 1;
 #endif
 
@@ -966,12 +966,14 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
         }
     }
 
+#ifdef XWL_HAS_GLAMOR
     if (xwl_screen->glamor) {
         if (!xwl_glamor_init_gbm(xwl_screen)) {
             ErrorF("xwayland glamor: failed to setup GBM backend, falling back to sw accel\n");
             xwl_screen->glamor = 0;
         }
     }
+#endif
 
     /* In rootless mode, we don't have any screen storage, and the only
      * rendering should be to redirected mode. */
@@ -1055,7 +1057,7 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
     if (!xwl_screen_init_cursor(xwl_screen))
         return FALSE;
 
-#ifdef GLAMOR_HAS_GBM
+#ifdef XWL_HAS_GLAMOR
     if (xwl_screen->glamor && !xwl_glamor_init(xwl_screen)) {
         ErrorF("Failed to initialize glamor, falling back to sw\n");
         xwl_screen->glamor = 0;

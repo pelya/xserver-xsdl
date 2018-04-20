@@ -1,0 +1,10 @@
+/* xwayland-config.h.in: not at all generated. */
+#ifndef _XWAYLAND_CONFIG_H_
+#define _XWAYLAND_CONFIG_H_
+
+#include <dix-config.h>
+
+/* Build glamor support for Xwayland */
+#undef XWL_HAS_GLAMOR
+
+#endif /* _XWAYLAND_CONFIG_H_ */
