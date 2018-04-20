@@ -7,4 +7,7 @@
 /* Build glamor support for Xwayland */
 #undef XWL_HAS_GLAMOR
 
+/* Build eglstream support for Xwayland */
+#undef XWL_HAS_EGLSTREAM
+
 #endif /* _XWAYLAND_CONFIG_H_ */

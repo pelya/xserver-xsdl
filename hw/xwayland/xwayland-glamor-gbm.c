@@ -146,11 +146,7 @@ xwl_glamor_gbm_create_pixmap_for_bo(ScreenPtr screen, struct gbm_bo *bo,
         return NULL;
     }
 
-    if (lastGLContext != xwl_screen->glamor_ctx) {
-        lastGLContext = xwl_screen->glamor_ctx;
-        xwl_screen->glamor_ctx->make_current(xwl_screen->glamor_ctx);
-    }
-
+    xwl_glamor_egl_make_current(xwl_screen);
     xwl_pixmap->bo = bo;
     xwl_pixmap->buffer = NULL;
     xwl_pixmap->image = eglCreateImageKHR(xwl_screen->egl_display,

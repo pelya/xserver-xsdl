@@ -96,6 +96,9 @@ ddxUseMsg(void)
     ErrorF("-rootless              run rootless, requires wm support\n");
     ErrorF("-wm fd                 create X client for wm on given fd\n");
     ErrorF("-listen fd             add give fd as a listen socket\n");
+#ifdef XWL_HAS_EGLSTREAM
+    ErrorF("-eglstream             use eglstream backend for nvidia GPUs\n");
+#endif
 }
 
 int
@@ -114,6 +117,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
     else if (strcmp(argv[i], "-shm") == 0) {
         return 1;
     }
+#ifdef XWL_HAS_EGLSTREAM
+    else if (strcmp(argv[i], "-eglstream") == 0) {
+        return 1;
+    }
+#endif
 
     return 0;
 }
@@ -678,6 +686,11 @@ xwl_window_post_damage(struct xwl_window *xwl_window)
 #endif
         buffer = xwl_shm_pixmap_get_wl_buffer(pixmap);
 
+#ifdef XWL_HAS_GLAMOR
+    if (xwl_screen->glamor)
+        xwl_glamor_post_damage(xwl_window, pixmap, region);
+#endif
+
     wl_surface_attach(xwl_window->surface, buffer, 0, 0);
 
     /* Arbitrary limit to try to avoid flooding the Wayland
@@ -723,6 +736,11 @@ xwl_screen_post_damage(struct xwl_screen *xwl_screen)
 
         if (!xwl_window->allow_commits)
             continue;
+
+#ifdef XWL_HAS_GLAMOR
+        if (!xwl_glamor_allow_commits(xwl_window))
+            continue;
+#endif
 
         xwl_window_post_damage(xwl_window);
     }
@@ -922,6 +940,9 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
     struct xwl_screen *xwl_screen;
     Pixel red_mask, blue_mask, green_mask;
     int ret, bpc, green_bpc, i;
+#ifdef XWL_HAS_EGLSTREAM
+    Bool use_eglstreams = FALSE;
+#endif
 
     xwl_screen = calloc(1, sizeof *xwl_screen);
     if (xwl_screen == NULL)
@@ -964,10 +985,23 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
         else if (strcmp(argv[i], "-shm") == 0) {
             xwl_screen->glamor = 0;
         }
+#ifdef XWL_HAS_EGLSTREAM
+        else if (strcmp(argv[i], "-eglstream") == 0) {
+            use_eglstreams = TRUE;
+        }
+#endif
     }
 
 #ifdef XWL_HAS_GLAMOR
     if (xwl_screen->glamor) {
+#ifdef XWL_HAS_EGLSTREAM
+        if (use_eglstreams) {
+            if (!xwl_glamor_init_eglstream(xwl_screen)) {
+                ErrorF("xwayland glamor: failed to setup eglstream backend, falling back to swaccel\n");
+                xwl_screen->glamor = 0;
+            }
+        } else
+#endif
         if (!xwl_glamor_init_gbm(xwl_screen)) {
             ErrorF("xwayland glamor: failed to setup GBM backend, falling back to sw accel\n");
             xwl_screen->glamor = 0;

@@ -79,9 +79,9 @@ conf_data.set('GLXEXT', build_glx)
 conf_data.set('GLAMOR', build_glamor)
 conf_data.set('GLAMOR_HAS_GBM', gbm_dep.found())
 conf_data.set('GLAMOR_HAS_GBM_LINEAR',
-              gbm_dep.found() and gbm_dep.version().version_compare('>= 10.6'))
+              build_glamor and gbm_dep.found() and gbm_dep.version().version_compare('>= 10.6'))
 conf_data.set('GBM_BO_WITH_MODIFIERS',
-              gbm_dep.found() and gbm_dep.version().version_compare('>= 17.1'))
+              build_glamor and gbm_dep.found() and gbm_dep.version().version_compare('>= 17.1'))
 
 conf_data.set_quoted('SERVER_MISC_CONFIG_PATH', serverconfigdir)
 conf_data.set_quoted('PROJECTROOT', get_option('prefix'))
@@ -360,7 +360,8 @@ configure_file(output : 'xwin-config.h',
                configuration : xwin_data)
 
 xwayland_data = configuration_data()
-xwayland_data.set('XWL_HAS_GLAMOR', build_glamor and gbm_dep.found())
+xwayland_data.set('XWL_HAS_GLAMOR', build_glamor and (gbm_dep.found() or build_eglstream))
+xwayland_data.set('XWL_HAS_EGLSTREAM', build_eglstream)
 
 configure_file(output : 'xwayland-config.h',
                input : 'xwayland-config.h.meson.in',

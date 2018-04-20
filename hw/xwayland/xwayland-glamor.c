@@ -32,7 +32,7 @@
 #include <glamor_context.h>
 
 static void
-xwl_glamor_egl_make_current(struct glamor_context *glamor_ctx)
+glamor_egl_make_current(struct glamor_context *glamor_ctx)
 {
     eglMakeCurrent(glamor_ctx->display, EGL_NO_SURFACE,
                    EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -43,6 +43,94 @@ xwl_glamor_egl_make_current(struct glamor_context *glamor_ctx)
 }
 
 void
+xwl_glamor_egl_make_current(struct xwl_screen *xwl_screen)
+{
+    if (lastGLContext == xwl_screen->glamor_ctx)
+        return;
+
+    lastGLContext = xwl_screen->glamor_ctx;
+    xwl_screen->glamor_ctx->make_current(xwl_screen->glamor_ctx);
+}
+
+Bool
+xwl_glamor_egl_supports_device_probing(void)
+{
+    return epoxy_has_egl() &&
+        epoxy_has_egl_extension(NULL, "EGL_EXT_device_base");
+}
+
+void **
+xwl_glamor_egl_get_devices(int *num_devices)
+{
+#ifdef XWL_HAS_EGLSTREAM
+    EGLDeviceEXT *devices;
+    Bool ret;
+    int drm_dev_count = 0;
+    int i;
+
+    /* Get the number of devices */
+    ret = eglQueryDevicesEXT(0, NULL, num_devices);
+    if (!ret || *num_devices < 1)
+        return NULL;
+
+    devices = calloc(*num_devices, sizeof(EGLDeviceEXT));
+    if (!devices)
+        return NULL;
+
+    ret = eglQueryDevicesEXT(*num_devices, devices, num_devices);
+    if (!ret)
+        goto error;
+
+    /* We're only ever going to care about devices that support
+     * EGL_EXT_device_drm, so filter out the ones that don't
+     */
+    for (i = 0; i < *num_devices; i++) {
+        const char *extension_str =
+            eglQueryDeviceStringEXT(devices[i], EGL_EXTENSIONS);
+
+        if (!epoxy_extension_in_string(extension_str, "EGL_EXT_device_drm"))
+            continue;
+
+        devices[drm_dev_count++] = devices[i];
+    }
+    if (!drm_dev_count)
+        goto error;
+
+    *num_devices = drm_dev_count;
+    devices = realloc(devices, sizeof(EGLDeviceEXT) * drm_dev_count);
+
+    return devices;
+
+error:
+    free(devices);
+#endif
+    return NULL;
+}
+
+Bool
+xwl_glamor_egl_device_has_egl_extensions(void *device,
+                                         const char **ext_list, size_t size)
+{
+    EGLDisplay egl_display;
+    int i;
+    Bool has_exts = TRUE;
+
+    egl_display = glamor_egl_get_display(EGL_PLATFORM_DEVICE_EXT, device);
+    if (!egl_display || !eglInitialize(egl_display, NULL, NULL))
+        return FALSE;
+
+    for (i = 0; i < size; i++) {
+        if (!epoxy_has_egl_extension(egl_display, ext_list[i])) {
+            has_exts = FALSE;
+            break;
+        }
+    }
+
+    eglTerminate(egl_display);
+    return has_exts;
+}
+
+void
 glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
 {
     struct xwl_screen *xwl_screen = xwl_screen_get(screen);
@@ -50,7 +138,7 @@ glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
     glamor_ctx->ctx = xwl_screen->egl_context;
     glamor_ctx->display = xwl_screen->egl_display;
 
-    glamor_ctx->make_current = xwl_glamor_egl_make_current;
+    glamor_ctx->make_current = glamor_egl_make_current;
 
     xwl_screen->glamor_ctx = glamor_ctx;
 }
@@ -81,6 +169,27 @@ xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap,
                                                                 created);
 
     return NULL;
+}
+
+void
+xwl_glamor_post_damage(struct xwl_window *xwl_window,
+                       PixmapPtr pixmap, RegionPtr region)
+{
+    struct xwl_screen *xwl_screen = xwl_window->xwl_screen;
+
+    if (xwl_screen->egl_backend.post_damage)
+        xwl_screen->egl_backend.post_damage(xwl_window, pixmap, region);
+}
+
+Bool
+xwl_glamor_allow_commits(struct xwl_window *xwl_window)
+{
+    struct xwl_screen *xwl_screen = xwl_window->xwl_screen;
+
+    if (xwl_screen->egl_backend.allow_commits)
+        return xwl_screen->egl_backend.allow_commits(xwl_window);
+    else
+        return TRUE;
 }
 
 static Bool
