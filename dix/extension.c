@@ -215,6 +215,8 @@ ExtensionAvailable(ClientPtr client, ExtensionEntry *ext)
 {
     if (XaceHook(XACE_EXT_ACCESS, client, ext) != Success)
         return FALSE;
+    if (!ext->base)
+        return FALSE;
     return TRUE;
 }
 
