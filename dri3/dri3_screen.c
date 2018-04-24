@@ -171,7 +171,7 @@ cache_formats_and_modifiers(ScreenPtr screen)
     if (!info)
         return BadImplementation;
 
-    if (!info->get_formats || !info->get_modifiers) {
+    if (info->version < 2 || !info->get_formats || !info->get_modifiers) {
         ds->formats = NULL;
         ds->num_formats = 0;
         ds->formats_cached = TRUE;
