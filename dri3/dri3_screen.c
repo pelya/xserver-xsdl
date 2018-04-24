@@ -66,8 +66,7 @@ dri3_pixmap_from_fds(PixmapPtr *ppixmap, ScreenPtr screen,
     if (info->version >= 2 && info->pixmap_from_fds != NULL) {
         pixmap = (*info->pixmap_from_fds) (screen, num_fds, fds, width, height,
                                            strides, offsets, depth, bpp, modifier);
-    } else if (info->pixmap_from_fd != NULL && num_fds == 1 &&
-               modifier == DRM_FORMAT_MOD_INVALID) {
+    } else if (info->pixmap_from_fd != NULL && num_fds == 1) {
         pixmap = (*info->pixmap_from_fd) (screen, fds[0], width, height,
                                           strides[0], depth, bpp);
     } else {
