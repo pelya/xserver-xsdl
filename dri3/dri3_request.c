@@ -37,7 +37,10 @@ dri3_screen_can_one_point_two(ScreenPtr screen)
 {
     dri3_screen_priv_ptr dri3 = dri3_screen_priv(screen);
 
-    if (dri3 && dri3->info && dri3->info->version >= 2)
+    if (dri3 && dri3->info && dri3->info->version >= 2 &&
+        dri3->info->pixmap_from_fds && dri3->info->fds_from_pixmap &&
+        dri3->info->get_formats && dri3->info->get_modifiers &&
+        dri3->info->get_drawable_modifiers)
         return TRUE;
 
     return FALSE;
@@ -79,7 +82,8 @@ proc_dri3_query_version(ClientPtr client)
      */
 
     if (rep.majorVersion > stuff->majorVersion ||
-        rep.minorVersion > stuff->minorVersion) {
+        (rep.majorVersion == stuff->majorVersion &&
+         rep.minorVersion > stuff->minorVersion)) {
         rep.majorVersion = stuff->majorVersion;
         rep.minorVersion = stuff->minorVersion;
     }
