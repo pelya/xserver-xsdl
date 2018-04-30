@@ -255,7 +255,7 @@ proc_dri3_buffer_from_pixmap(ClientPtr client)
     rep.bpp = pixmap->drawable.bitsPerPixel;
 
     fd = dri3_fd_from_pixmap(pixmap, &rep.stride, &rep.size);
-    if (fd == -1)
+    if (fd < 0)
         return BadPixmap;
 
     if (client->swapped) {
