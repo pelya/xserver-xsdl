@@ -226,7 +226,6 @@ ms_queue_vblank(xf86CrtcPtr crtc, ms_queue_flag flags,
         /* Queue an event at the specified sequence */
         if (ms->has_queue_sequence || !ms->tried_queue_sequence) {
             uint32_t drm_flags = 0;
-            uint64_t kernel;
             uint64_t kernel_queued;
 
             ms->tried_queue_sequence = TRUE;
@@ -236,10 +235,8 @@ ms_queue_vblank(xf86CrtcPtr crtc, ms_queue_flag flags,
             if (flags & MS_QUEUE_NEXT_ON_MISS)
                 drm_flags |= DRM_CRTC_SEQUENCE_NEXT_ON_MISS;
 
-            kernel = ms_crtc_msc_to_kernel_msc(crtc, msc);
             ret = drmCrtcQueueSequence(ms->fd, drmmode_crtc->mode_crtc->crtc_id,
-                                       drm_flags,
-                                       kernel, &kernel_queued, seq);
+                                       drm_flags, msc, &kernel_queued, seq);
             if (ret == 0) {
                 if (msc_queued)
                     *msc_queued = ms_kernel_msc_to_crtc_msc(crtc, kernel_queued);
@@ -260,8 +257,7 @@ ms_queue_vblank(xf86CrtcPtr crtc, ms_queue_flag flags,
         if (flags & MS_QUEUE_NEXT_ON_MISS)
             vbl.request.type |= DRM_VBLANK_NEXTONMISS;
 
-        vbl.request.sequence = (flags & MS_QUEUE_RELATIVE) ?
-                                    msc : ms_crtc_msc_to_kernel_msc(crtc, msc);
+        vbl.request.sequence = msc;
         vbl.request.signal = seq;
         ret = drmWaitVBlank(ms->fd, &vbl);
         if (ret == 0) {
@@ -280,14 +276,12 @@ ms_queue_vblank(xf86CrtcPtr crtc, ms_queue_flag flags,
 
 /**
  * Convert a 32-bit kernel MSC sequence number to a 64-bit local sequence
- * number, adding in the vblank_offset and high 32 bits, and dealing
- * with 64-bit wrapping
+ * number, adding in the high 32 bits, and dealing with 64-bit wrapping.
  */
 uint64_t
 ms_kernel_msc_to_crtc_msc(xf86CrtcPtr crtc, uint64_t sequence)
 {
     drmmode_crtc_private_rec *drmmode_crtc = crtc->driver_private;
-    sequence += drmmode_crtc->vblank_offset;
 
     if ((int32_t) (sequence - drmmode_crtc->msc_prev) < -0x40000000)
         drmmode_crtc->msc_high += 0x100000000L;
@@ -305,39 +299,6 @@ ms_get_crtc_ust_msc(xf86CrtcPtr crtc, CARD64 *ust, CARD64 *msc)
     *msc = ms_kernel_msc_to_crtc_msc(crtc, kernel_msc);
 
     return Success;
-}
-
-#define MAX_VBLANK_OFFSET       1000
-
-/**
- * Convert a 64-bit adjusted MSC value into a 64-bit kernel sequence number,
- * by subtracting out the vblank_offset term.
- *
- * This also updates the vblank_offset when it notices that the value should
- * change.
- */
-uint64_t
-ms_crtc_msc_to_kernel_msc(xf86CrtcPtr crtc, uint64_t expect)
-{
-    drmmode_crtc_private_rec *drmmode_crtc = crtc->driver_private;
-    uint64_t msc;
-    uint64_t ust;
-    int64_t diff;
-
-    if (ms_get_crtc_ust_msc(crtc, &ust, &msc) == Success) {
-        diff = expect - msc;
-
-        /* We're way off here, assume that the kernel has lost its mind
-         * and smack the vblank back to something sensible
-         */
-        if (diff < -MAX_VBLANK_OFFSET || MAX_VBLANK_OFFSET < diff) {
-            drmmode_crtc->vblank_offset += (int32_t) diff;
-            if (drmmode_crtc->vblank_offset > -MAX_VBLANK_OFFSET &&
-                drmmode_crtc->vblank_offset < MAX_VBLANK_OFFSET)
-                drmmode_crtc->vblank_offset = 0;
-        }
-    }
-    return (expect - drmmode_crtc->vblank_offset);
 }
 
 /**
