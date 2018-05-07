@@ -82,8 +82,8 @@ dri3_pixmap_from_fds(PixmapPtr *ppixmap, ScreenPtr screen,
 
 int
 dri3_fds_from_pixmap(PixmapPtr pixmap, int *fds,
-                     CARD32 *strides, CARD32 *offsets,
-                     CARD64 *modifier)
+                     uint32_t *strides, uint32_t *offsets,
+                     uint64_t *modifier)
 {
     ScreenPtr                   screen = pixmap->drawable.pScreen;
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
@@ -118,9 +118,9 @@ dri3_fd_from_pixmap(PixmapPtr pixmap, CARD16 *stride, CARD32 *size)
     ScreenPtr                   screen = pixmap->drawable.pScreen;
     dri3_screen_priv_ptr        ds = dri3_screen_priv(screen);
     const dri3_screen_info_rec  *info = ds->info;
-    CARD32                      strides[4];
-    CARD32                      offsets[4];
-    CARD64                      modifier;
+    uint32_t                    strides[4];
+    uint32_t                    offsets[4];
+    uint64_t                    modifier;
     int                         fds[4];
     int                         num_fds;
 

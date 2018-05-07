@@ -66,9 +66,9 @@ typedef int (*dri3_fd_from_pixmap_proc) (ScreenPtr screen,
 typedef int (*dri3_fds_from_pixmap_proc) (ScreenPtr screen,
                                           PixmapPtr pixmap,
                                           int *fds,
-                                          CARD32 *strides,
-                                          CARD32 *offsets,
-                                          CARD64 *modifier);
+                                          uint32_t *strides,
+                                          uint32_t *offsets,
+                                          uint64_t *modifier);
 
 typedef int (*dri3_get_formats_proc) (ScreenPtr screen,
                                       CARD32 *num_formats,
