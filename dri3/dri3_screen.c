@@ -160,8 +160,8 @@ cache_formats_and_modifiers(ScreenPtr screen)
     const dri3_screen_info_rec *info = ds->info;
     CARD32                      num_formats;
     CARD32                     *formats;
-    CARD32                      num_modifiers;
-    CARD64                     *modifiers;
+    uint32_t                    num_modifiers;
+    uint64_t                   *modifiers;
     int                         i;
 
     if (ds->formats_cached)
