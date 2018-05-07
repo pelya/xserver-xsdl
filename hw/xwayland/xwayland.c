@@ -978,7 +978,7 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
         else if (strcmp(argv[i], "-listen") == 0) {
             if (xwl_screen->listen_fd_count ==
                 ARRAY_SIZE(xwl_screen->listen_fds))
-                FatalError("Too many -listen arguments given, max is %ld\n",
+                FatalError("Too many -listen arguments given, max is %zu\n",
                            ARRAY_SIZE(xwl_screen->listen_fds));
 
             xwl_screen->listen_fds[xwl_screen->listen_fd_count++] =
