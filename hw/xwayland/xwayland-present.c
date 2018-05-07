@@ -51,14 +51,10 @@ xwl_present_window_get_priv(WindowPtr window)
     struct xwl_present_window *xwl_present_window = xwl_present_window_priv(window);
 
     if (xwl_present_window == NULL) {
-        ScreenPtr screen = window->drawable.pScreen;
-
         xwl_present_window = calloc (1, sizeof (struct xwl_present_window));
         if (!xwl_present_window)
             return NULL;
 
-        xwl_present_window->crtc_fake = RRCrtcCreate(screen,
-                                                     xwl_present_window);
         xwl_present_window->window = window;
         xwl_present_window->msc = 1;
         xwl_present_window->ust = GetTimeInMicros();
@@ -130,8 +126,6 @@ xwl_present_cleanup(WindowPtr window)
 
     if (xwl_window && xwl_window->present_window == window)
         xwl_window->present_window = NULL;
-
-    RRCrtcDestroy(xwl_present_window->crtc_fake);
 
     if (xwl_present_window->frame_callback) {
         wl_callback_destroy(xwl_present_window->frame_callback);
@@ -306,10 +300,13 @@ static RRCrtcPtr
 xwl_present_get_crtc(WindowPtr present_window)
 {
     struct xwl_present_window *xwl_present_window = xwl_present_window_get_priv(present_window);
+    rrScrPrivPtr rr_private;
+
     if (xwl_present_window == NULL)
         return NULL;
 
-    return xwl_present_window->crtc_fake;
+    rr_private = rrGetScrPriv(present_window->drawable.pScreen);
+    return rr_private->crtcs[0];
 }
 
 static int
@@ -341,9 +338,6 @@ xwl_present_queue_vblank(WindowPtr present_window,
 
     if (!xwl_window)
         return BadMatch;
-
-    if (xwl_present_window->crtc_fake != crtc)
-        return BadRequest;
 
     if (xwl_window->present_window &&
             xwl_window->present_window != present_window)
@@ -452,13 +446,6 @@ xwl_present_flip(WindowPtr present_window,
     struct xwl_present_event    *event;
 
     if (!xwl_window)
-        return FALSE;
-
-    /*
-     * Make sure the client doesn't try to flip to another crtc
-     * than the one created for 'xwl_window'.
-     */
-    if (xwl_present_window->crtc_fake != crtc)
         return FALSE;
 
     present_box = RegionExtents(&present_window->winSize);

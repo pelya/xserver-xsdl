@@ -182,7 +182,6 @@ struct xwl_present_window {
     WindowPtr window;
     struct xorg_list link;
 
-    RRCrtcPtr crtc_fake;
     uint64_t msc;
     uint64_t ust;
 
