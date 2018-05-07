@@ -80,9 +80,9 @@ typedef int (*dri3_get_modifiers_proc) (ScreenPtr screen,
                                         CARD64 **modifiers);
 
 typedef int (*dri3_get_drawable_modifiers_proc) (DrawablePtr draw,
-                                                 CARD32 format,
-                                                 CARD32 *num_modifiers,
-                                                 CARD64 **modifiers);
+                                                 uint32_t format,
+                                                 uint32_t *num_modifiers,
+                                                 uint64_t **modifiers);
 
 typedef struct dri3_screen_info {
     uint32_t                    version;

@@ -803,8 +803,8 @@ glamor_set_drawable_modifiers_func(ScreenPtr screen,
 }
 
 _X_EXPORT Bool
-glamor_get_drawable_modifiers(DrawablePtr draw, CARD32 format,
-                              CARD32 *num_modifiers, uint64_t **modifiers)
+glamor_get_drawable_modifiers(DrawablePtr draw, uint32_t format,
+                              uint32_t *num_modifiers, uint64_t **modifiers)
 {
     struct glamor_screen_private *glamor_priv =
         glamor_get_screen_private(draw->pScreen);

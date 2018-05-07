@@ -224,8 +224,8 @@ dri3_get_supported_modifiers(ScreenPtr screen, DrawablePtr drawable,
     const dri3_screen_info_rec *info = ds->info;
     int                         i, j;
     int                         ret;
-    CARD32                      num_drawable_mods;
-    CARD64                     *drawable_mods;
+    uint32_t                    num_drawable_mods;
+    uint64_t                   *drawable_mods;
     CARD64                     *intersect_mods = NULL;
     CARD64                     *screen_mods = NULL;
     CARD32                      format;
