@@ -563,6 +563,14 @@ glamor_init(ScreenPtr screen, unsigned int flags)
 
         if (!glamor_check_instruction_count(gl_version))
             goto fail;
+
+        /* Glamor rendering assumes that platforms with GLSL 130+
+         * have instanced arrays, but this is not always the case.
+         * etnaviv offers GLSL 140 with OpenGL 2.1.
+         */
+        if (glamor_priv->glsl_version >= 130 &&
+            !epoxy_has_gl_extension("GL_ARB_instanced_arrays"))
+                glamor_priv->glsl_version = 120;
     } else {
         if (gl_version < 20) {
             ErrorF("Require Open GLES2.0 or later.\n");
