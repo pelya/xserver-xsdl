@@ -865,7 +865,7 @@ glamor_fd_from_pixmap(ScreenPtr screen,
                                  &modifier);
 
     /* Pixmaps with multi-planes/modifier are not supported in this interface */
-    if (ret > 1) {
+    if (ret != 1 || offsets[0] != 0) {
         while (ret > 0)
             close(fds[--ret]);
         return -1;
