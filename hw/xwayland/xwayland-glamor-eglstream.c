@@ -660,6 +660,25 @@ xwl_glamor_eglstream_init_wl_registry(struct xwl_screen *xwl_screen,
     }
 }
 
+static Bool
+xwl_glamor_eglstream_has_wl_interfaces(struct xwl_screen *xwl_screen)
+{
+    struct xwl_eglstream_private *xwl_eglstream =
+        xwl_eglstream_get(xwl_screen);
+
+    if (xwl_eglstream->display == NULL) {
+        ErrorF("glamor: 'wl_eglstream_display' not supported\n");
+        return FALSE;
+    }
+
+    if (xwl_eglstream->controller == NULL) {
+        ErrorF("glamor: 'wl_eglstream_controller' not supported\n");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 static inline void
 xwl_eglstream_init_shaders(struct xwl_screen *xwl_screen)
 {
@@ -819,14 +838,6 @@ xwl_glamor_eglstream_init_screen(struct xwl_screen *xwl_screen)
         xwl_eglstream_get(xwl_screen);
     ScreenPtr screen = xwl_screen->screen;
 
-    if (!xwl_eglstream->controller) {
-        ErrorF("No eglstream controller was exposed in the wayland registry. "
-               "This means your version of nvidia's EGL wayland libraries "
-               "are too old, as we require support for this.\n");
-        xwl_eglstream_cleanup(xwl_screen);
-        return FALSE;
-    }
-
     /* We can just let glamor handle CreatePixmap */
     screen->DestroyPixmap = xwl_glamor_eglstream_destroy_pixmap;
 
@@ -898,6 +909,7 @@ xwl_glamor_init_eglstream(struct xwl_screen *xwl_screen)
 
     xwl_screen->egl_backend.init_egl = xwl_glamor_eglstream_init_egl;
     xwl_screen->egl_backend.init_wl_registry = xwl_glamor_eglstream_init_wl_registry;
+    xwl_screen->egl_backend.has_wl_interfaces = xwl_glamor_eglstream_has_wl_interfaces;
     xwl_screen->egl_backend.init_screen = xwl_glamor_eglstream_init_screen;
     xwl_screen->egl_backend.get_wl_buffer_for_pixmap = xwl_glamor_eglstream_get_wl_buffer_for_pixmap;
     xwl_screen->egl_backend.post_damage = xwl_glamor_eglstream_post_damage;

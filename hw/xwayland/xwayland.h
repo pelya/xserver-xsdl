@@ -69,6 +69,11 @@ struct xwl_egl_backend {
                              uint32_t id, const char *name,
                              uint32_t version);
 
+    /* Check that the required Wayland interfaces are available. This
+     * callback is optional.
+     */
+    Bool (*has_wl_interfaces)(struct xwl_screen *xwl_screen);
+
     /* Called before glamor has been initialized. Backends should setup a
      * valid, glamor compatible EGL context in this hook.
      */
@@ -432,6 +437,8 @@ void xwl_glamor_init_wl_registry(struct xwl_screen *xwl_screen,
                                  struct wl_registry *registry,
                                  uint32_t id, const char *interface,
                                  uint32_t version);
+Bool xwl_glamor_has_wl_interfaces(struct xwl_screen *xwl_screen,
+                                 struct xwl_egl_backend *xwl_egl_backend);
 void xwl_glamor_post_damage(struct xwl_window *xwl_window,
                             PixmapPtr pixmap, RegionPtr region);
 Bool xwl_glamor_allow_commits(struct xwl_window *xwl_window);

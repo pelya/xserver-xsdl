@@ -747,6 +747,19 @@ xwl_glamor_gbm_init_wl_registry(struct xwl_screen *xwl_screen,
 }
 
 static Bool
+xwl_glamor_gbm_has_wl_interfaces(struct xwl_screen *xwl_screen)
+{
+    struct xwl_gbm_private *xwl_gbm = xwl_gbm_get(xwl_screen);
+
+    if (xwl_gbm->drm == NULL) {
+        ErrorF("glamor: 'wl_drm' not supported\n");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static Bool
 xwl_glamor_gbm_init_egl(struct xwl_screen *xwl_screen)
 {
     struct xwl_gbm_private *xwl_gbm = xwl_gbm_get(xwl_screen);
@@ -887,6 +900,7 @@ xwl_glamor_init_gbm(struct xwl_screen *xwl_screen)
                   xwl_gbm);
 
     xwl_screen->egl_backend.init_wl_registry = xwl_glamor_gbm_init_wl_registry;
+    xwl_screen->egl_backend.has_wl_interfaces = xwl_glamor_gbm_has_wl_interfaces;
     xwl_screen->egl_backend.init_egl = xwl_glamor_gbm_init_egl;
     xwl_screen->egl_backend.init_screen = xwl_glamor_gbm_init_screen;
     xwl_screen->egl_backend.get_wl_buffer_for_pixmap = xwl_glamor_gbm_get_wl_buffer_for_pixmap;

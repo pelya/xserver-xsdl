@@ -76,6 +76,17 @@ xwl_glamor_init_wl_registry(struct xwl_screen *xwl_screen,
                                                  id, interface, version);
 }
 
+Bool
+xwl_glamor_has_wl_interfaces(struct xwl_screen *xwl_screen,
+                            struct xwl_egl_backend *xwl_egl_backend)
+{
+    if (xwl_egl_backend->has_wl_interfaces)
+        return xwl_egl_backend->has_wl_interfaces(xwl_screen);
+
+    /* If the backend has no requirement wrt WL interfaces, we're fine */
+    return TRUE;
+}
+
 struct wl_buffer *
 xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap,
                                 unsigned short width,
