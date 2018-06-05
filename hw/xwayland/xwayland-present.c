@@ -546,10 +546,9 @@ xwl_present_init(ScreenPtr screen)
     struct xwl_screen *xwl_screen = xwl_screen_get(screen);
 
     /*
-     * doesn't work with the streams backend. we don't have an explicit
-     * boolean for that, but we do know gbm doesn't fill in this hook...
+     * doesn't work with the EGLStream backend.
      */
-    if (xwl_screen->egl_backend->post_damage != NULL)
+    if (xwl_screen->egl_backend == &xwl_screen->eglstream_backend)
         return FALSE;
 
     if (!dixRegisterPrivateKey(&xwl_present_window_private_key, PRIVATE_WINDOW, 0))
