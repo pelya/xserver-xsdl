@@ -837,10 +837,15 @@ error:
 static Bool
 xwl_glamor_gbm_init_screen(struct xwl_screen *xwl_screen)
 {
+    struct xwl_gbm_private *xwl_gbm = xwl_gbm_get(xwl_screen);
+
     if (!dri3_screen_init(xwl_screen->screen, &xwl_dri3_info)) {
         ErrorF("Failed to initialize dri3\n");
         goto error;
     }
+
+    if (xwl_gbm->fd_render_node)
+        goto skip_drm_auth;
 
     if (!dixRegisterPrivateKey(&xwl_auth_state_private_key, PRIVATE_CLIENT,
                                0)) {
@@ -854,6 +859,7 @@ xwl_glamor_gbm_init_screen(struct xwl_screen *xwl_screen)
         goto error;
     }
 
+skip_drm_auth:
     xwl_screen->screen->CreatePixmap = xwl_glamor_gbm_create_pixmap;
     xwl_screen->screen->DestroyPixmap = xwl_glamor_gbm_destroy_pixmap;
 
