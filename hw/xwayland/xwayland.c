@@ -939,9 +939,7 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
     struct xwl_screen *xwl_screen;
     Pixel red_mask, blue_mask, green_mask;
     int ret, bpc, green_bpc, i;
-#ifdef XWL_HAS_EGLSTREAM
     Bool use_eglstreams = FALSE;
-#endif
 
     xwl_screen = calloc(1, sizeof *xwl_screen);
     if (xwl_screen == NULL)
@@ -998,12 +996,12 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
 #ifdef XWL_HAS_EGLSTREAM
         if (use_eglstreams) {
             if (!xwl_glamor_init_eglstream(xwl_screen)) {
-                ErrorF("xwayland glamor: failed to setup eglstream backend, falling back to swaccel\n");
-                xwl_screen->glamor = 0;
+                ErrorF("xwayland glamor: failed to setup EGLStream backend\n");
+                use_eglstreams = FALSE;
             }
-        } else
+        }
 #endif
-        if (!xwl_glamor_init_gbm(xwl_screen)) {
+        if (!use_eglstreams && !xwl_glamor_init_gbm(xwl_screen)) {
             ErrorF("xwayland glamor: failed to setup GBM backend, falling back to sw accel\n");
             xwl_screen->glamor = 0;
         }
