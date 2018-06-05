@@ -414,7 +414,7 @@ PixmapPtr xwl_shm_create_pixmap(ScreenPtr screen, int width, int height,
 Bool xwl_shm_destroy_pixmap(PixmapPtr pixmap);
 struct wl_buffer *xwl_shm_pixmap_get_wl_buffer(PixmapPtr pixmap);
 
-
+#ifdef XWL_HAS_GLAMOR
 Bool xwl_glamor_init(struct xwl_screen *xwl_screen);
 
 Bool xwl_screen_set_drm_interface(struct xwl_screen *xwl_screen,
@@ -432,27 +432,23 @@ void xwl_glamor_init_wl_registry(struct xwl_screen *xwl_screen,
 void xwl_glamor_post_damage(struct xwl_window *xwl_window,
                             PixmapPtr pixmap, RegionPtr region);
 Bool xwl_glamor_allow_commits(struct xwl_window *xwl_window);
+void xwl_glamor_egl_make_current(struct xwl_screen *xwl_screen);
 
 #ifdef GLAMOR_HAS_GBM
 Bool xwl_present_init(ScreenPtr screen);
 void xwl_present_cleanup(WindowPtr window);
-#endif
-
-void xwl_screen_release_tablet_manager(struct xwl_screen *xwl_screen);
-
-void xwl_screen_init_xdg_output(struct xwl_screen *xwl_screen);
-
-void xwl_glamor_egl_make_current(struct xwl_screen *xwl_screen);
-Bool xwl_glamor_egl_supports_device_probing(void);
-void **xwl_glamor_egl_get_devices(int *num_devices);
-Bool xwl_glamor_egl_device_has_egl_extensions(void *device,
-                                              const char **ext_list,
-                                              size_t size);
+#endif /* GLAMOR_HAS_GBM */
 
 #ifdef XV
 /* glamor Xv Adaptor */
 Bool xwl_glamor_xv_init(ScreenPtr pScreen);
-#endif
+#endif /* XV */
+
+#endif /* XWL_HAS_GLAMOR */
+
+void xwl_screen_release_tablet_manager(struct xwl_screen *xwl_screen);
+
+void xwl_screen_init_xdg_output(struct xwl_screen *xwl_screen);
 
 #ifdef XF86VIDMODE
 void xwlVidModeExtensionInit(void);

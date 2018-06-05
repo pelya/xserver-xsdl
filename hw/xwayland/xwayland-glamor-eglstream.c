@@ -187,6 +187,85 @@ xwl_eglstream_cleanup(struct xwl_screen *xwl_screen)
     free(xwl_eglstream);
 }
 
+static Bool
+xwl_glamor_egl_supports_device_probing(void)
+{
+    return epoxy_has_egl_extension(NULL, "EGL_EXT_device_base");
+}
+
+static void **
+xwl_glamor_egl_get_devices(int *num_devices)
+{
+    EGLDeviceEXT *devices;
+    Bool ret;
+    int drm_dev_count = 0;
+    int i;
+
+    if (!xwl_glamor_egl_supports_device_probing())
+        return NULL;
+
+    /* Get the number of devices */
+    ret = eglQueryDevicesEXT(0, NULL, num_devices);
+    if (!ret || *num_devices < 1)
+        return NULL;
+
+    devices = calloc(*num_devices, sizeof(EGLDeviceEXT));
+    if (!devices)
+        return NULL;
+
+    ret = eglQueryDevicesEXT(*num_devices, devices, num_devices);
+    if (!ret)
+        goto error;
+
+    /* We're only ever going to care about devices that support
+     * EGL_EXT_device_drm, so filter out the ones that don't
+     */
+    for (i = 0; i < *num_devices; i++) {
+        const char *extension_str =
+            eglQueryDeviceStringEXT(devices[i], EGL_EXTENSIONS);
+
+        if (!epoxy_extension_in_string(extension_str, "EGL_EXT_device_drm"))
+            continue;
+
+        devices[drm_dev_count++] = devices[i];
+    }
+    if (!drm_dev_count)
+        goto error;
+
+    *num_devices = drm_dev_count;
+    devices = realloc(devices, sizeof(EGLDeviceEXT) * drm_dev_count);
+
+    return devices;
+
+error:
+    free(devices);
+
+    return NULL;
+}
+
+static Bool
+xwl_glamor_egl_device_has_egl_extensions(void *device,
+                                         const char **ext_list, size_t size)
+{
+    EGLDisplay egl_display;
+    int i;
+    Bool has_exts = TRUE;
+
+    egl_display = glamor_egl_get_display(EGL_PLATFORM_DEVICE_EXT, device);
+    if (!egl_display || !eglInitialize(egl_display, NULL, NULL))
+        return FALSE;
+
+    for (i = 0; i < size; i++) {
+        if (!epoxy_has_egl_extension(egl_display, ext_list[i])) {
+            has_exts = FALSE;
+            break;
+        }
+    }
+
+    eglTerminate(egl_display);
+    return has_exts;
+}
+
 static void
 xwl_eglstream_unref_pixmap_stream(struct xwl_pixmap *xwl_pixmap)
 {
