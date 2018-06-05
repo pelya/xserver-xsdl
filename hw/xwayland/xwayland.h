@@ -440,7 +440,6 @@ void xwl_present_cleanup(WindowPtr window);
 
 void xwl_screen_release_tablet_manager(struct xwl_screen *xwl_screen);
 
-void xwl_output_get_xdg_output(struct xwl_output *xwl_output);
 void xwl_screen_init_xdg_output(struct xwl_screen *xwl_screen);
 
 void xwl_glamor_egl_make_current(struct xwl_screen *xwl_screen);
