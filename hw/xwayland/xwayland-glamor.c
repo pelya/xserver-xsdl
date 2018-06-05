@@ -73,7 +73,7 @@ xwl_glamor_init_wl_registry(struct xwl_screen *xwl_screen,
 {
     if (xwl_screen->egl_backend.init_wl_registry)
         xwl_screen->egl_backend.init_wl_registry(xwl_screen, registry,
-                                                 interface, id, version);
+                                                 id, interface, version);
 }
 
 struct wl_buffer *

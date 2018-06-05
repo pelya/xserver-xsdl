@@ -641,8 +641,8 @@ const struct wl_eglstream_display_listener eglstream_display_listener = {
 static void
 xwl_glamor_eglstream_init_wl_registry(struct xwl_screen *xwl_screen,
                                       struct wl_registry *wl_registry,
-                                      const char *name,
-                                      uint32_t id, uint32_t version)
+                                      uint32_t id, const char *name,
+                                      uint32_t version)
 {
     struct xwl_eglstream_private *xwl_eglstream =
         xwl_eglstream_get(xwl_screen);

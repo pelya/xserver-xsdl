@@ -737,8 +737,8 @@ xwl_screen_set_dmabuf_interface(struct xwl_screen *xwl_screen,
 static void
 xwl_glamor_gbm_init_wl_registry(struct xwl_screen *xwl_screen,
                                 struct wl_registry *wl_registry,
-                                const char *name,
-                                uint32_t id, uint32_t version)
+                                uint32_t id, const char *name,
+                                uint32_t version)
 {
     if (strcmp(name, "wl_drm") == 0)
         xwl_screen_set_drm_interface(xwl_screen, id, version);

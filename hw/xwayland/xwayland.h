@@ -117,7 +117,7 @@ struct xwl_screen {
          */
         void (*init_wl_registry)(struct xwl_screen *xwl_screen,
                                  struct wl_registry *wl_registry,
-                                 const char *name, uint32_t id,
+                                 uint32_t id, const char *name,
                                  uint32_t version);
 
         /* Called before glamor has been initialized. Backends should setup a
