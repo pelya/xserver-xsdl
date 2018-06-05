@@ -794,6 +794,12 @@ xwl_glamor_eglstream_init_egl(struct xwl_screen *xwl_screen)
         goto error;
     }
 
+    if (!epoxy_has_egl_extension(xwl_screen->egl_display,
+                                 "EGL_IMG_context_priority")) {
+        ErrorF("EGL_IMG_context_priority not available\n");
+        goto error;
+    }
+
     eglChooseConfig(xwl_screen->egl_display, config_attribs, &config, 1, &n);
     if (!n) {
         ErrorF("No acceptable EGL configs found\n");
