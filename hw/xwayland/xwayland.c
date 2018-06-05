@@ -96,9 +96,7 @@ ddxUseMsg(void)
     ErrorF("-rootless              run rootless, requires wm support\n");
     ErrorF("-wm fd                 create X client for wm on given fd\n");
     ErrorF("-listen fd             add give fd as a listen socket\n");
-#ifdef XWL_HAS_EGLSTREAM
     ErrorF("-eglstream             use eglstream backend for nvidia GPUs\n");
-#endif
 }
 
 int
@@ -117,11 +115,9 @@ ddxProcessArgument(int argc, char *argv[], int i)
     else if (strcmp(argv[i], "-shm") == 0) {
         return 1;
     }
-#ifdef XWL_HAS_EGLSTREAM
     else if (strcmp(argv[i], "-eglstream") == 0) {
         return 1;
     }
-#endif
 
     return 0;
 }
@@ -988,11 +984,13 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
         else if (strcmp(argv[i], "-shm") == 0) {
             xwl_screen->glamor = 0;
         }
-#ifdef XWL_HAS_EGLSTREAM
         else if (strcmp(argv[i], "-eglstream") == 0) {
+#ifdef XWL_HAS_EGLSTREAM
             use_eglstreams = TRUE;
-        }
+#else
+            ErrorF("xwayland glamor: this build does not have EGLStream support\n");
 #endif
+        }
     }
 
 #ifdef XWL_HAS_GLAMOR
