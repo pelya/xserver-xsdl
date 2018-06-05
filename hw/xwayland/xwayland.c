@@ -992,20 +992,8 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
     }
 
 #ifdef XWL_HAS_GLAMOR
-    if (xwl_screen->glamor) {
-#ifdef XWL_HAS_EGLSTREAM
-        if (use_eglstreams) {
-            if (!xwl_glamor_init_eglstream(xwl_screen)) {
-                ErrorF("xwayland glamor: failed to setup EGLStream backend\n");
-                use_eglstreams = FALSE;
-            }
-        }
-#endif
-        if (!use_eglstreams && !xwl_glamor_init_gbm(xwl_screen)) {
-            ErrorF("xwayland glamor: failed to setup GBM backend, falling back to sw accel\n");
-            xwl_screen->glamor = 0;
-        }
-    }
+    if (xwl_screen->glamor)
+        xwl_glamor_init_backends(xwl_screen, use_eglstreams);
 #endif
 
     /* In rootless mode, we don't have any screen storage, and the only

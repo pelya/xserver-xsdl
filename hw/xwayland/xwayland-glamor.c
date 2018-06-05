@@ -162,6 +162,23 @@ glamor_egl_fd_name_from_pixmap(ScreenPtr screen,
     return 0;
 }
 
+void
+xwl_glamor_init_backends(struct xwl_screen *xwl_screen, Bool use_eglstream)
+{
+#ifdef XWL_HAS_EGLSTREAM
+    if (use_eglstream) {
+        if (!xwl_glamor_init_eglstream(xwl_screen)) {
+            ErrorF("xwayland glamor: failed to setup EGLStream backend\n");
+            use_eglstream = FALSE;
+        }
+    }
+#endif
+    if (!use_eglstream && !xwl_glamor_init_gbm(xwl_screen)) {
+        ErrorF("xwayland glamor: failed to setup GBM backend, falling back to sw accel\n");
+        xwl_screen->glamor = 0;
+    }
+}
+
 Bool
 xwl_glamor_init(struct xwl_screen *xwl_screen)
 {

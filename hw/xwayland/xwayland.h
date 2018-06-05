@@ -423,6 +423,8 @@ Bool xwl_shm_destroy_pixmap(PixmapPtr pixmap);
 struct wl_buffer *xwl_shm_pixmap_get_wl_buffer(PixmapPtr pixmap);
 
 #ifdef XWL_HAS_GLAMOR
+void xwl_glamor_init_backends(struct xwl_screen *xwl_screen,
+                              Bool use_eglstream);
 Bool xwl_glamor_init(struct xwl_screen *xwl_screen);
 
 Bool xwl_screen_set_drm_interface(struct xwl_screen *xwl_screen,
