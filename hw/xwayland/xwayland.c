@@ -1132,6 +1132,10 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
 
     AddCallback(&PropertyStateCallback, xwl_property_callback, pScreen);
 
+    wl_display_roundtrip(xwl_screen->display);
+    while (xwl_screen->expecting_event)
+        wl_display_roundtrip(xwl_screen->display);
+
     return ret;
 }
 
