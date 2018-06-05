@@ -807,8 +807,10 @@ xwl_glamor_gbm_init_egl(struct xwl_screen *xwl_screen)
         goto error;
     }
 
-    if (!epoxy_has_gl_extension("GL_OES_EGL_image"))
+    if (!epoxy_has_gl_extension("GL_OES_EGL_image")) {
         ErrorF("GL_OES_EGL_image not available\n");
+        goto error;
+    }
 
     if (epoxy_has_egl_extension(xwl_screen->egl_display,
                                 "EXT_image_dma_buf_import") &&
