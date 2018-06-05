@@ -71,9 +71,20 @@ xwl_glamor_init_wl_registry(struct xwl_screen *xwl_screen,
                             uint32_t id, const char *interface,
                             uint32_t version)
 {
-    if (xwl_screen->egl_backend.init_wl_registry)
-        xwl_screen->egl_backend.init_wl_registry(xwl_screen, registry,
-                                                 id, interface, version);
+    if (xwl_screen->gbm_backend.is_available &&
+        xwl_screen->gbm_backend.init_wl_registry &&
+        xwl_screen->gbm_backend.init_wl_registry(xwl_screen,
+                                                 registry,
+                                                 id,
+                                                 interface,
+                                                 version)); /* no-op */
+    else if (xwl_screen->eglstream_backend.is_available &&
+             xwl_screen->eglstream_backend.init_wl_registry &&
+             xwl_screen->eglstream_backend.init_wl_registry(xwl_screen,
+                                                            registry,
+                                                            id,
+                                                            interface,
+                                                            version)); /* no-op */
 }
 
 Bool
@@ -95,8 +106,8 @@ xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap,
 {
     struct xwl_screen *xwl_screen = xwl_screen_get(pixmap->drawable.pScreen);
 
-    if (xwl_screen->egl_backend.get_wl_buffer_for_pixmap)
-        return xwl_screen->egl_backend.get_wl_buffer_for_pixmap(pixmap,
+    if (xwl_screen->egl_backend->get_wl_buffer_for_pixmap)
+        return xwl_screen->egl_backend->get_wl_buffer_for_pixmap(pixmap,
                                                                 width,
                                                                 height,
                                                                 created);
@@ -110,8 +121,8 @@ xwl_glamor_post_damage(struct xwl_window *xwl_window,
 {
     struct xwl_screen *xwl_screen = xwl_window->xwl_screen;
 
-    if (xwl_screen->egl_backend.post_damage)
-        xwl_screen->egl_backend.post_damage(xwl_window, pixmap, region);
+    if (xwl_screen->egl_backend->post_damage)
+        xwl_screen->egl_backend->post_damage(xwl_window, pixmap, region);
 }
 
 Bool
@@ -119,8 +130,8 @@ xwl_glamor_allow_commits(struct xwl_window *xwl_window)
 {
     struct xwl_screen *xwl_screen = xwl_window->xwl_screen;
 
-    if (xwl_screen->egl_backend.allow_commits)
-        return xwl_screen->egl_backend.allow_commits(xwl_window);
+    if (xwl_screen->egl_backend->allow_commits)
+        return xwl_screen->egl_backend->allow_commits(xwl_window);
     else
         return TRUE;
 }
@@ -165,17 +176,62 @@ glamor_egl_fd_name_from_pixmap(ScreenPtr screen,
 void
 xwl_glamor_init_backends(struct xwl_screen *xwl_screen, Bool use_eglstream)
 {
-#ifdef XWL_HAS_EGLSTREAM
-    if (use_eglstream) {
-        if (!xwl_glamor_init_eglstream(xwl_screen)) {
-            ErrorF("xwayland glamor: failed to setup EGLStream backend\n");
-            use_eglstream = FALSE;
-        }
-    }
+#ifdef GLAMOR_HAS_GBM
+    xwl_glamor_init_gbm(xwl_screen);
+    if (!xwl_screen->gbm_backend.is_available && !use_eglstream)
+        ErrorF("xwayland glamor: GBM backend (default) is not available\n");
 #endif
-    if (!use_eglstream && !xwl_glamor_init_gbm(xwl_screen)) {
-        ErrorF("xwayland glamor: failed to setup GBM backend, falling back to sw accel\n");
-        xwl_screen->glamor = 0;
+#ifdef XWL_HAS_EGLSTREAM
+    xwl_glamor_init_eglstream(xwl_screen);
+    if (!xwl_screen->eglstream_backend.is_available && use_eglstream)
+        ErrorF("xwayland glamor: EGLStream backend requested but not available\n");
+#endif
+}
+
+static Bool
+xwl_glamor_select_gbm_backend(struct xwl_screen *xwl_screen)
+{
+#ifdef GLAMOR_HAS_GBM
+    if (xwl_screen->gbm_backend.is_available &&
+        xwl_glamor_has_wl_interfaces(xwl_screen, &xwl_screen->gbm_backend)) {
+        xwl_screen->egl_backend = &xwl_screen->gbm_backend;
+        return TRUE;
+    }
+    else
+        ErrorF("Missing Wayland requirements for glamor GBM backend\n");
+#endif
+
+    return FALSE;
+}
+
+static Bool
+xwl_glamor_select_eglstream_backend(struct xwl_screen *xwl_screen)
+{
+#ifdef XWL_HAS_EGLSTREAM
+    if (xwl_screen->eglstream_backend.is_available &&
+        xwl_glamor_has_wl_interfaces(xwl_screen, &xwl_screen->eglstream_backend)) {
+        ErrorF("glamor: Using nvidia's EGLStream interface, direct rendering impossible.\n");
+        ErrorF("glamor: Performance may be affected. Ask your vendor to support GBM!\n");
+        xwl_screen->egl_backend = &xwl_screen->eglstream_backend;
+        return TRUE;
+    }
+    else
+        ErrorF("Missing Wayland requirements for glamor EGLStream backend\n");
+#endif
+
+    return FALSE;
+}
+
+void
+xwl_glamor_select_backend(struct xwl_screen *xwl_screen, Bool use_eglstream)
+{
+    if (use_eglstream) {
+        if (!xwl_glamor_select_eglstream_backend(xwl_screen))
+            xwl_glamor_select_gbm_backend(xwl_screen);
+    }
+    else {
+        if (!xwl_glamor_select_gbm_backend(xwl_screen))
+            xwl_glamor_select_eglstream_backend(xwl_screen);
     }
 }
 
@@ -191,7 +247,7 @@ xwl_glamor_init(struct xwl_screen *xwl_screen)
         return FALSE;
     }
 
-    if (!xwl_screen->egl_backend.init_egl(xwl_screen)) {
+    if (!xwl_screen->egl_backend->init_egl(xwl_screen)) {
         ErrorF("EGL setup failed, disabling glamor\n");
         return FALSE;
     }
@@ -201,7 +257,7 @@ xwl_glamor_init(struct xwl_screen *xwl_screen)
         return FALSE;
     }
 
-    if (!xwl_screen->egl_backend.init_screen(xwl_screen)) {
+    if (!xwl_screen->egl_backend->init_screen(xwl_screen)) {
         ErrorF("EGL backend init_screen() failed, disabling glamor\n");
         return FALSE;
     }

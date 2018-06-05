@@ -737,7 +737,7 @@ xwl_screen_post_damage(struct xwl_screen *xwl_screen)
             continue;
 
 #ifdef XWL_HAS_GLAMOR
-        if (!xwl_glamor_allow_commits(xwl_window))
+        if (xwl_screen->glamor && !xwl_glamor_allow_commits(xwl_window))
             continue;
 #endif
 
@@ -1079,9 +1079,13 @@ xwl_screen_init(ScreenPtr pScreen, int argc, char **argv)
         return FALSE;
 
 #ifdef XWL_HAS_GLAMOR
-    if (xwl_screen->glamor && !xwl_glamor_init(xwl_screen)) {
-        ErrorF("Failed to initialize glamor, falling back to sw\n");
-        xwl_screen->glamor = 0;
+    if (xwl_screen->glamor) {
+        xwl_glamor_select_backend(xwl_screen, use_eglstreams);
+
+        if (xwl_screen->egl_backend == NULL || !xwl_glamor_init(xwl_screen)) {
+           ErrorF("Failed to initialize glamor, falling back to sw\n");
+           xwl_screen->glamor = 0;
+        }
     }
 
     if (xwl_screen->glamor && xwl_screen->rootless)

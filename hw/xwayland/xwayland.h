@@ -60,11 +60,14 @@ struct xwl_window;
 struct xwl_screen;
 
 struct xwl_egl_backend {
+    /* Set by the backend if available */
+    Bool is_available;
+
     /* Called once for each interface in the global registry. Backends
      * should use this to bind to any wayland interfaces they need. This
      * callback is optional.
      */
-    void (*init_wl_registry)(struct xwl_screen *xwl_screen,
+    Bool (*init_wl_registry)(struct xwl_screen *xwl_screen,
                              struct wl_registry *wl_registry,
                              uint32_t id, const char *name,
                              uint32_t version);
@@ -164,8 +167,10 @@ struct xwl_screen {
     struct xwl_format *formats;
     void *egl_display, *egl_context;
 
-    /* the current backend for creating pixmaps on wayland */
-    struct xwl_egl_backend egl_backend;
+    struct xwl_egl_backend gbm_backend;
+    struct xwl_egl_backend eglstream_backend;
+    /* pointer to the current backend for creating pixmaps on wayland */
+    struct xwl_egl_backend *egl_backend;
 
     struct glamor_context *glamor_ctx;
 
@@ -425,6 +430,8 @@ struct wl_buffer *xwl_shm_pixmap_get_wl_buffer(PixmapPtr pixmap);
 #ifdef XWL_HAS_GLAMOR
 void xwl_glamor_init_backends(struct xwl_screen *xwl_screen,
                               Bool use_eglstream);
+void xwl_glamor_select_backend(struct xwl_screen *xwl_screen,
+                               Bool use_eglstream);
 Bool xwl_glamor_init(struct xwl_screen *xwl_screen);
 
 Bool xwl_screen_set_drm_interface(struct xwl_screen *xwl_screen,
@@ -467,20 +474,18 @@ void xwlVidModeExtensionInit(void);
 #endif
 
 #ifdef GLAMOR_HAS_GBM
-Bool xwl_glamor_init_gbm(struct xwl_screen *xwl_screen);
+void xwl_glamor_init_gbm(struct xwl_screen *xwl_screen);
 #else
-static inline Bool xwl_glamor_init_gbm(struct xwl_screen *xwl_screen)
+static inline void xwl_glamor_init_gbm(struct xwl_screen *xwl_screen)
 {
-    return FALSE;
 }
 #endif
 
 #ifdef XWL_HAS_EGLSTREAM
-Bool xwl_glamor_init_eglstream(struct xwl_screen *xwl_screen);
+void xwl_glamor_init_eglstream(struct xwl_screen *xwl_screen);
 #else
-static inline Bool xwl_glamor_init_eglstream(struct xwl_screen *xwl_screen)
+static inline void xwl_glamor_init_eglstream(struct xwl_screen *xwl_screen)
 {
-    return FALSE;
 }
 #endif
 

@@ -549,7 +549,7 @@ xwl_present_init(ScreenPtr screen)
      * doesn't work with the streams backend. we don't have an explicit
      * boolean for that, but we do know gbm doesn't fill in this hook...
      */
-    if (xwl_screen->egl_backend.post_damage != NULL)
+    if (xwl_screen->egl_backend->post_damage != NULL)
         return FALSE;
 
     if (!dixRegisterPrivateKey(&xwl_present_window_private_key, PRIVATE_WINDOW, 0))
