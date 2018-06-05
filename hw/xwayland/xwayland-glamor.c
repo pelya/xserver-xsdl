@@ -67,6 +67,9 @@ xwl_glamor_egl_get_devices(int *num_devices)
     int drm_dev_count = 0;
     int i;
 
+    if (!xwl_glamor_egl_supports_device_probing())
+        return NULL;
+
     /* Get the number of devices */
     ret = eglQueryDevicesEXT(0, NULL, num_devices);
     if (!ret || *num_devices < 1)
