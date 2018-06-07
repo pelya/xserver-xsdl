@@ -383,6 +383,9 @@ SwapValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo * info)
     swapl(&info->min.frac);
     swapl(&info->max.integral);
     swapl(&info->max.frac);
+    swapl(&info->value.integral);
+    swapl(&info->value.frac);
+    swapl(&info->resolution);
     swaps(&info->number);
     swaps(&info->sourceid);
 }
