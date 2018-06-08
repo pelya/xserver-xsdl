@@ -695,18 +695,21 @@ drmmode_output_disable(xf86OutputPtr output)
 {
     modesettingPtr ms = modesettingPTR(output->scrn);
     drmmode_output_private_ptr drmmode_output = output->driver_private;
+    xf86CrtcPtr crtc = drmmode_output->current_crtc;
     drmModeAtomicReq *req = drmModeAtomicAlloc();
     uint32_t flags = DRM_MODE_ATOMIC_ALLOW_MODESET;
-    int ret;
+    int ret = 0;
 
     assert(ms->atomic_modeset);
 
     if (!req)
         return 1;
 
-    /* XXX Can we disable all outputs without disabling CRTC right away? */
-    ret = connector_add_prop(req, drmmode_output,
-                             DRMMODE_CONNECTOR_CRTC_ID, 0);
+    ret |= connector_add_prop(req, drmmode_output,
+                              DRMMODE_CONNECTOR_CRTC_ID, 0);
+    if (crtc)
+        ret |= crtc_add_dpms_props(req, crtc, DPMSModeOff, NULL);
+
     if (ret == 0)
         ret = drmModeAtomicCommit(ms->fd, req, flags, NULL);
 
