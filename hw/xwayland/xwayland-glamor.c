@@ -72,14 +72,12 @@ xwl_glamor_init_wl_registry(struct xwl_screen *xwl_screen,
                             uint32_t version)
 {
     if (xwl_screen->gbm_backend.is_available &&
-        xwl_screen->gbm_backend.init_wl_registry &&
         xwl_screen->gbm_backend.init_wl_registry(xwl_screen,
                                                  registry,
                                                  id,
                                                  interface,
                                                  version)); /* no-op */
     else if (xwl_screen->eglstream_backend.is_available &&
-             xwl_screen->eglstream_backend.init_wl_registry &&
              xwl_screen->eglstream_backend.init_wl_registry(xwl_screen,
                                                             registry,
                                                             id,
@@ -91,11 +89,7 @@ Bool
 xwl_glamor_has_wl_interfaces(struct xwl_screen *xwl_screen,
                             struct xwl_egl_backend *xwl_egl_backend)
 {
-    if (xwl_egl_backend->has_wl_interfaces)
-        return xwl_egl_backend->has_wl_interfaces(xwl_screen);
-
-    /* If the backend has no requirement wrt WL interfaces, we're fine */
-    return TRUE;
+    return xwl_egl_backend->has_wl_interfaces(xwl_screen);
 }
 
 struct wl_buffer *

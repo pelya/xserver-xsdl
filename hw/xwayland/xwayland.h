@@ -64,16 +64,14 @@ struct xwl_egl_backend {
     Bool is_available;
 
     /* Called once for each interface in the global registry. Backends
-     * should use this to bind to any wayland interfaces they need. This
-     * callback is optional.
+     * should use this to bind to any wayland interfaces they need.
      */
     Bool (*init_wl_registry)(struct xwl_screen *xwl_screen,
                              struct wl_registry *wl_registry,
                              uint32_t id, const char *name,
                              uint32_t version);
 
-    /* Check that the required Wayland interfaces are available. This
-     * callback is optional.
+    /* Check that the required Wayland interfaces are available.
      */
     Bool (*has_wl_interfaces)(struct xwl_screen *xwl_screen);
 
