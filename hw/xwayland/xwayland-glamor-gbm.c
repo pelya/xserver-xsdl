@@ -230,13 +230,13 @@ xwl_glamor_gbm_destroy_pixmap(PixmapPtr pixmap)
 
 static struct wl_buffer *
 xwl_glamor_gbm_get_wl_buffer_for_pixmap(PixmapPtr pixmap,
-                                        unsigned short width,
-                                        unsigned short height,
                                         Bool *created)
 {
     struct xwl_screen *xwl_screen = xwl_screen_get(pixmap->drawable.pScreen);
     struct xwl_pixmap *xwl_pixmap = xwl_pixmap_get(pixmap);
     struct xwl_gbm_private *xwl_gbm = xwl_gbm_get(xwl_screen);
+    unsigned short width = pixmap->drawable.width;
+    unsigned short height = pixmap->drawable.height;
     int prime_fd;
     int num_planes;
     uint32_t strides[4];

@@ -96,8 +96,6 @@ struct xwl_egl_backend {
       * pixmap they've prepared beforehand.
       */
      struct wl_buffer *(*get_wl_buffer_for_pixmap)(PixmapPtr pixmap,
-                                                   unsigned short width,
-                                                   unsigned short height,
                                                    Bool *created);
 
      /* Called by Xwayland to perform any pre-wl_surface damage routines
@@ -439,8 +437,6 @@ Bool xwl_screen_set_drm_interface(struct xwl_screen *xwl_screen,
 Bool xwl_screen_set_dmabuf_interface(struct xwl_screen *xwl_screen,
                                      uint32_t id, uint32_t version);
 struct wl_buffer *xwl_glamor_pixmap_get_wl_buffer(PixmapPtr pixmap,
-                                                  unsigned short width,
-                                                  unsigned short height,
                                                   Bool *created);
 void xwl_glamor_init_wl_registry(struct xwl_screen *xwl_screen,
                                  struct wl_registry *registry,

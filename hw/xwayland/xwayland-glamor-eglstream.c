@@ -308,8 +308,6 @@ xwl_glamor_eglstream_destroy_pixmap(PixmapPtr pixmap)
 
 static struct wl_buffer *
 xwl_glamor_eglstream_get_wl_buffer_for_pixmap(PixmapPtr pixmap,
-                                              unsigned short width,
-                                              unsigned short height,
                                               Bool *created)
 {
     /* XXX created? */
