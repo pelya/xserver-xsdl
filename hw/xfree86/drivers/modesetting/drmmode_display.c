@@ -1794,11 +1794,8 @@ drmmode_shadow_allocate(xf86CrtcPtr crtc, int width, int height)
         return NULL;
     }
 
-    ret = drmModeAddFB(drmmode->fd, width, height, crtc->scrn->depth,
-                       drmmode->kbpp,
-                       drmmode_bo_get_pitch(&drmmode_crtc->rotate_bo),
-                       drmmode_bo_get_handle(&drmmode_crtc->rotate_bo),
-                       &drmmode_crtc->rotate_fb_id);
+    ret = drmmode_bo_import(drmmode, &drmmode_crtc->rotate_bo,
+                            &drmmode_crtc->rotate_fb_id);
 
     if (ret) {
         ErrorF("failed to add rotate fb\n");
