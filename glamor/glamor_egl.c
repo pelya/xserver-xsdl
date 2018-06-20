@@ -99,8 +99,18 @@ glamor_get_flink_name(int fd, int handle, int *name)
     struct drm_gem_flink flink;
 
     flink.handle = handle;
-    if (ioctl(fd, DRM_IOCTL_GEM_FLINK, &flink) < 0)
-        return FALSE;
+    if (ioctl(fd, DRM_IOCTL_GEM_FLINK, &flink) < 0) {
+
+	/*
+	 * Assume non-GEM kernels have names identical to the handle
+	 */
+	if (errno == ENODEV) {
+	    *name = handle;
+	    return TRUE;
+	} else {
+	    return FALSE;
+	}
+    }
     *name = flink.name;
     return TRUE;
 }
