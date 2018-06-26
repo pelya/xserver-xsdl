@@ -1034,8 +1034,7 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 #endif
     }
 
-    ret = drmSetClientCap(ms->fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
-    ret |= drmSetClientCap(ms->fd, DRM_CLIENT_CAP_ATOMIC, 1);
+    ret = drmSetClientCap(ms->fd, DRM_CLIENT_CAP_ATOMIC, 1);
     ms->atomic_modeset = (ret == 0);
 
     ms->kms_has_modifiers = FALSE;
