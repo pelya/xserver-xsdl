@@ -174,6 +174,32 @@ xf86CrtcInUse(xf86CrtcPtr crtc)
     return FALSE;
 }
 
+/**
+ * Return whether the crtc is leased by a client
+ */
+
+static Bool
+xf86CrtcIsLeased(xf86CrtcPtr crtc)
+{
+    /* If the DIX structure hasn't been created, it can't have been leased */
+    if (!crtc->randr_crtc)
+        return FALSE;
+    return RRCrtcIsLeased(crtc->randr_crtc);
+}
+
+/**
+ * Return whether the output is leased by a client
+ */
+
+static Bool
+xf86OutputIsLeased(xf86OutputPtr output)
+{
+    /* If the DIX structure hasn't been created, it can't have been leased */
+    if (!output->randr_output)
+        return FALSE;
+    return RROutputIsLeased(output->randr_output);
+}
+
 void
 xf86CrtcSetScreenSubpixelOrder(ScreenPtr pScreen)
 {
@@ -254,7 +280,7 @@ xf86CrtcSetModeTransform(xf86CrtcPtr crtc, DisplayModePtr mode,
     RRTransformRec saved_transform;
     Bool saved_transform_present;
 
-    crtc->enabled = xf86CrtcInUse(crtc) && !RRCrtcIsLeased(crtc->randr_crtc);;
+    crtc->enabled = xf86CrtcInUse(crtc) && !xf86CrtcIsLeased(crtc);
 
     /* We only hit this if someone explicitly sends a "disabled" modeset. */
     if (!crtc->enabled) {
@@ -412,7 +438,7 @@ xf86CrtcSetOrigin(xf86CrtcPtr crtc, int x, int y)
     crtc->x = x;
     crtc->y = y;
 
-    if (RRCrtcIsLeased(crtc->randr_crtc))
+    if (xf86CrtcIsLeased(crtc))
         return;
 
     if (crtc->funcs->set_origin) {
@@ -2662,7 +2688,7 @@ xf86InitialConfiguration(ScrnInfoPtr scrn, Bool canGrow)
 static void
 xf86DisableCrtc(xf86CrtcPtr crtc)
 {
-    if (RRCrtcIsLeased(crtc->randr_crtc))
+    if (xf86CrtcIsLeased(crtc))
         return;
 
     crtc->funcs->dpms(crtc, DPMSModeOff);
@@ -2683,7 +2709,7 @@ xf86PrepareOutputs(ScrnInfoPtr scrn)
     for (o = 0; o < config->num_output; o++) {
         xf86OutputPtr output = config->output[o];
 
-        if (RROutputIsLeased(output->randr_output))
+        if (xf86OutputIsLeased(output))
             continue;
 
 #if RANDR_GET_CRTC_INTERFACE
@@ -2709,7 +2735,7 @@ xf86PrepareCrtcs(ScrnInfoPtr scrn)
         uint32_t desired_outputs = 0, current_outputs = 0;
         int o;
 
-        if (RRCrtcIsLeased(crtc->randr_crtc))
+        if (xf86CrtcIsLeased(crtc))
             continue;
 
         for (o = 0; o < config->num_output; o++) {
@@ -2732,7 +2758,7 @@ xf86PrepareCrtcs(ScrnInfoPtr scrn)
         if (desired_outputs != current_outputs || !desired_outputs)
             xf86DisableCrtc(crtc);
 #else
-        if (RRCrtcIsLeased(crtc->randr_crtc))
+        if (xf86CrtcIsLeased(crtc))
             continue;
 
         xf86DisableCrtc(crtc);
@@ -2970,7 +2996,7 @@ xf86DPMSSet(ScrnInfoPtr scrn, int mode, int flags)
         for (i = 0; i < config->num_output; i++) {
             xf86OutputPtr output = config->output[i];
 
-            if (!RROutputIsLeased(output->randr_output) && output->crtc != NULL)
+            if (!xf86OutputIsLeased(output) && output->crtc != NULL)
                 (*output->funcs->dpms) (output, mode);
         }
     }
@@ -2986,7 +3012,7 @@ xf86DPMSSet(ScrnInfoPtr scrn, int mode, int flags)
         for (i = 0; i < config->num_output; i++) {
             xf86OutputPtr output = config->output[i];
 
-            if (!RROutputIsLeased(output->randr_output) && output->crtc != NULL)
+            if (!xf86OutputIsLeased(output) && output->crtc != NULL)
                 (*output->funcs->dpms) (output, mode);
         }
     }
