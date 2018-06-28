@@ -734,14 +734,11 @@ xf86CrtcCloseScreen(ScreenPtr screen)
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(scrn);
     int o, c;
 
-    screen->CloseScreen = config->CloseScreen;
-
-    xf86RotateCloseScreen(screen);
-
-    xf86RandR12CloseScreen(screen);
-
-    screen->CloseScreen(screen);
-
+    /* The randr_output and randr_crtc pointers are already invalid as
+     * the DIX resources were freed when the associated resources were
+     * freed. Clear them now; referencing through them during the rest
+     * of the CloseScreen sequence will not end well.
+     */
     for (o = 0; o < config->num_output; o++) {
         xf86OutputPtr output = config->output[o];
 
@@ -752,6 +749,15 @@ xf86CrtcCloseScreen(ScreenPtr screen)
 
         crtc->randr_crtc = NULL;
     }
+
+    screen->CloseScreen = config->CloseScreen;
+
+    xf86RotateCloseScreen(screen);
+
+    xf86RandR12CloseScreen(screen);
+
+    screen->CloseScreen(screen);
+
     /* detach any providers */
     if (config->randr_provider) {
         RRProviderDestroy(config->randr_provider);
