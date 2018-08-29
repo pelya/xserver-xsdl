@@ -54,6 +54,16 @@ The framebuffer device to use. Default: /dev/dri/card0.
 .BI "Option \*qShadowFB\*q \*q" boolean \*q
 Enable or disable use of the shadow framebuffer layer.  Default: on.
 .TP
+.BI "Option \*qDoubleShadow\*q \*q" boolean \*q
+Double-buffer shadow updates. When enabled, the driver will keep two copies of
+the shadow framebuffer. When the shadow framebuffer is flushed, the old and new
+versions of the shadow are compared, and only tiles that have actually changed
+are uploaded to the device. This is an optimization for server-class GPUs with
+a remote display function (typically VNC), where remote updates are triggered
+by any framebuffer write, so minimizing the amount of data uploaded is crucial.
+This defaults to enabled for ASPEED and Matrox G200 devices, and disabled
+otherwise.
+.TP
 .BI "Option \*qAccelMethod\*q \*q" string \*q
 One of \*qglamor\*q or \*qnone\*q.  Default: glamor.
 .TP
