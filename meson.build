@@ -3,7 +3,7 @@ project('xserver', 'c',
             'buildtype=debugoptimized',
             'c_std=gnu99',
         ],
-        version: '1.20.1',
+        version: '1.20.2',
         meson_version: '>= 0.42.0',
 )
 add_project_arguments('-DHAVE_DIX_CONFIG_H', language: 'c')
