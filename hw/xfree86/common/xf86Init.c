@@ -1027,14 +1027,18 @@ ddxProcessArgument(int argc, char **argv, int i)
     /* First the options that are not allowed with elevated privileges */
     if (!strcmp(argv[i], "-modulepath")) {
         CHECK_FOR_REQUIRED_ARGUMENT();
-        xf86CheckPrivs(argv[i], argv[i + 1]);
+        if (xf86PrivsElevated())
+              FatalError("\nInvalid argument -modulepath "
+                "with elevated privileges\n");
         xf86ModulePath = argv[i + 1];
         xf86ModPathFrom = X_CMDLINE;
         return 2;
     }
     if (!strcmp(argv[i], "-logfile")) {
         CHECK_FOR_REQUIRED_ARGUMENT();
-        xf86CheckPrivs(argv[i], argv[i + 1]);
+        if (xf86PrivsElevated())
+              FatalError("\nInvalid argument -logfile "
+                "with elevated privileges\n");
         xf86LogFile = argv[i + 1];
         xf86LogFileFrom = X_CMDLINE;
         return 2;
