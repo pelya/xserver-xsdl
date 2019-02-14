@@ -4,6 +4,12 @@ set -x
 
 export BUILDDIR=`pwd`
 
+[ -e $BUILDDIR/setCrossEnvironment.sh ] || {
+	echo "Launch build.sh from arch-specific directory:"
+	echo "cd armeabi-v7a ; ./build.sh"
+	exit 1
+}
+
 NCPU=4
 uname -s | grep -i "linux" && NCPU=`cat /proc/cpuinfo | grep -c -i processor`
 

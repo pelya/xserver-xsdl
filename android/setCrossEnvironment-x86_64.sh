@@ -23,16 +23,16 @@ if which realpath > /dev/null ; then
 else
 	LOCAL_PATH=`cd $LOCAL_PATH && pwd`
 fi
-ARCH=x86
-GCCPREFIX=i686-linux-android
-APILEVEL=16
+ARCH=x86_64
+GCCPREFIX=x86_64-linux-android
+APILEVEL=21
 
 
 CFLAGS="
 -g
 -ffunction-sections
--funwind-tables
 -fdata-sections
+-funwind-tables
 -fstack-protector-strong
 -no-canonical-prefixes
 -Wformat

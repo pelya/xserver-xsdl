@@ -7,7 +7,7 @@ NDK=`which ndk-build`
 NDK=`dirname $NDK`
 
 if uname -s | grep -i "linux" > /dev/null ; then
-	MYARCH=linux-$(arch)
+  MYARCH=linux-$(arch)
   NDK=`readlink -f $NDK`
 elif uname -s | grep -i "darwin" > /dev/null ; then
 	MYARCH=darwin-x86_64
@@ -23,16 +23,16 @@ if which realpath > /dev/null ; then
 else
 	LOCAL_PATH=`cd $LOCAL_PATH && pwd`
 fi
-ARCH=x86
-GCCPREFIX=i686-linux-android
-APILEVEL=16
+ARCH=arm64-v8a
+GCCPREFIX=aarch64-linux-android
+APILEVEL=21
 
 
 CFLAGS="
 -g
 -ffunction-sections
--funwind-tables
 -fdata-sections
+-funwind-tables
 -fstack-protector-strong
 -no-canonical-prefixes
 -Wformat
@@ -53,10 +53,7 @@ LDFLAGS="
 -funwind-tables
 -fstack-protector-strong
 -no-canonical-prefixes
--Wformat
--Werror=format-security
 -Oz
--DNDEBUG
 -Wl,--build-id
 -Wl,--warn-shared-textrel
 -Wl,--fatal-warnings
@@ -70,8 +67,7 @@ LDFLAGS="
 -llog
 -latomic
 -lm
-$LDFLAGS
-"
+$LDFLAGS"
 
 LDFLAGS="`echo $LDFLAGS | tr '\n' ' '`"
 

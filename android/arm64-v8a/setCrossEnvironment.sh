@@ -1,0 +1,1 @@
+../setCrossEnvironment-arm64-v8a.sh

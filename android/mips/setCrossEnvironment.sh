@@ -1,1 +1,0 @@
-../setCrossEnvironment-mips.sh
