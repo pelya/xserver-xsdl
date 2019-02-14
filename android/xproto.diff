@@ -27,21 +27,8 @@
      ((p).len = strlen((p).pwp->pw_dir)), \
      strcpy((p).pws.pw_dir, (p).pwp->pw_dir), \
      ((p).pws.pw_shell = (p).pws.pw_dir + (p).len + 1), \
---- Xpoll.h.in	2013-03-30 01:21:00.000000000 +0200
-+++ Xpoll.h.in	2013-11-01 21:19:40.877429614 +0200
-@@ -67,6 +67,10 @@
- # endif
- #endif
- 
-+#ifdef __ANDROID__
-+typedef unsigned long fd_mask;
-+#endif
-+
- #define XFD_SETSIZE	256
- 
- #ifndef FD_SETSIZE
---- Xpoll.h	2019-02-14 22:05:37.958888013 +0200
-+++ Xpoll.h	2019-02-14 22:06:06.534967387 +0200
+--- Xpoll.h.in	2019-02-14 22:05:37.958888013 +0200
++++ Xpoll.h.in	2019-02-14 22:06:06.534967387 +0200
 @@ -103,7 +103,7 @@
  # define __FDS_BITS(p)  ((p)->__X_FDS_BITS)
  #endif

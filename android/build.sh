@@ -19,6 +19,7 @@ NDK=`readlink -f $NDK`
 
 [ -z "$TARGET_ARCH" ] && TARGET_ARCH=armeabi-v7a
 [ -z "$TARGET_HOST" ] && TARGET_HOST=arm-linux-androideabi
+[ -z "$TARGET_DIR" ] && TARGET_DIR=/proc/self/cwd
 
 AR=`$BUILDDIR/setCrossEnvironment.sh sh -c 'echo $AR'`
 echo AR=$AR
@@ -484,7 +485,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --enable-static \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -529,7 +530,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --enable-static \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 #sed -i 's/pic_flag=.*/pic_flag=""/g' libtool
 
 $BUILDDIR/setCrossEnvironment.sh \
@@ -572,7 +573,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -613,7 +614,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -631,8 +632,8 @@ ln -sf ../$PKGDIR/include/X11/Xdmcp.h X11/
 } || exit 1
 
 # =========== xcbproto ===========
-[ -e proto-1.8 ] || {
-PKGURL=https://cgit.freedesktop.org/xcb/proto/snapshot/proto-1.8.tar.gz
+[ -e usr/lib/pkgconfig/xcb-proto.pc ] || {
+PKGURL=https://xcb.freedesktop.org/dist/xcb-proto-1.13.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
@@ -640,22 +641,24 @@ tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 $BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=$TARGET_HOST \
+./autogen.sh --host=$TARGET_HOST --prefix=$BUILDDIR/usr \
 || exit 1
 $BUILDDIR/setCrossEnvironment.sh \
-make -j$NCPU V=1 2>&1 || exit 1
+make -j$NCPU V=1 install 2>&1 || exit 1
 cd $BUILDDIR
 } || exit 1
 
 # =========== libxcb.a ==========
 
 [ -e libxcb.a ] || {
-PKGURL=https://cgit.freedesktop.org/xcb/libxcb/snapshot/libxcb-1.10.tar.gz
+PKGURL=https://xcb.freedesktop.org/dist/libxcb-1.13.1.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
+
+ln -sf ../usr ./
 
 [ -e configure ] || \
 autoreconf -v --install \
@@ -664,13 +667,14 @@ autoreconf -v --install \
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -726,7 +730,7 @@ LIBS="-lXau -lXdmcp -landroid_support -landroid-shmem" \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -742,12 +746,17 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-ln -sf $PKGDIR/src/.libs/libX11.a ./
 for F in $PKGDIR/include/X11/*.h ; do
 ln -sf ../$F X11
 done
+#ln -sf $PKGDIR/src/.libs/libX11.a ./
+rm -f $PKGDIR/src/.libs/x11_xcb.o
+$AR rcs libX11.a $PKGDIR/src/.libs/*.o
+ln -sf $PKGDIR/src/xlibi18n/.libs/libi18n.a ./libX11-i18n.a
+ln -sf $PKGDIR/src/xcms/.libs/libxcms.a ./libX11-xcms.a
+ln -sf $PKGDIR/src/xkb/.libs/libxkb.a ./libX11-xkb.a
 } || exit 1
-exit 1
+
 # =========== libXext.a ==========
 
 [ -e libXext.a ] || {
@@ -772,7 +781,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -814,7 +823,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -856,7 +865,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -898,7 +907,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -933,14 +942,14 @@ autoreconf -v --install \
 env CFLAGS="-isystem$BUILDDIR \
 -include strings.h -Os" \
 LDFLAGS="-pie -L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11 -lX11-i18n -lX11-xcms -lX11-xkb" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -984,7 +993,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -1026,7 +1035,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --without-libuuid \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -1066,7 +1075,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -1112,7 +1121,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -1147,14 +1156,14 @@ env CFLAGS="-isystem$BUILDDIR \
 -include strings.h \
 -Dsethostent=abs -Dendhostent=sync -Os" \
 LDFLAGS="-pie -L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
+LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11 -lX11-i18n -lX11-xcms -lX11-xkb" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-cp -f `which libtool` ./
+#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -1193,7 +1202,7 @@ echo 'OBJS := $(SRCS:%.c=%.o)' >> Makefile
 echo '%.o: %.c' >> Makefile
 echo '	$(CC) $(CFLAGS) $(PIE) $(if $(filter compress.c, $+), -O0) -c $+ -o $@' >> Makefile
 echo 'xli: $(OBJS)' >> Makefile
-echo '	$(CC) $(CFLAGS) $+ -o $@ $(LDFLAGS) $(PIE) -lX11 -lxcb -lXau -lXdmcp -landroid_support -lm' >> Makefile
+echo '	$(CC) $(CFLAGS) $+ -o $@ $(LDFLAGS) $(PIE) -lX11 -lX11-i18n -lX11-xcms -lX11-xkb -lxcb -lXau -lXdmcp -landroid_support -lm' >> Makefile
 
 echo '#include <stdarg.h>' > varargs.h
 
@@ -1233,7 +1242,7 @@ cd $PKGDIR
 
 env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc -Os" \
 LDFLAGS="-pie -L$BUILDDIR" \
-LIBS="-lX11 -lxcb -lXau -lXdmcp -landroid_support" \
+LIBS="-lX11 -lX11-i18n -lX11-xcms -lX11-xkb -lxcb -lXau -lXdmcp -landroid_support" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
