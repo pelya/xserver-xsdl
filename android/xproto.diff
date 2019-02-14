@@ -40,3 +40,14 @@
  #define XFD_SETSIZE	256
  
  #ifndef FD_SETSIZE
+--- Xpoll.h	2019-02-14 22:05:37.958888013 +0200
++++ Xpoll.h	2019-02-14 22:06:06.534967387 +0200
+@@ -103,7 +103,7 @@
+ # define __FDS_BITS(p)  ((p)->__X_FDS_BITS)
+ #endif
+ 
+-#define __XFDS_BITS(p, n) (__FDS_BITS(p))[n]
++#define __XFDS_BITS(p, n) (__FDS_BITS(fd_set*,p))[n]
+ 
+ #ifndef FD_SET
+ #define FD_SET(n, p)    (__XFDS_BITS(p, ((n)/NFDBITS)) |= ((fd_mask)1 << ((n) % NFDBITS)))

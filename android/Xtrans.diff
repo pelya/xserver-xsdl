@@ -1,0 +1,35 @@
+--- Xtrans.c	2012-03-23 05:04:16.000000000 +0200
++++ Xtrans.c	2015-06-25 21:55:11.338383377 +0300
+@@ -1071,9 +1071,9 @@
+ 	    continue;
+ 	}
+ #if defined(IPv6) && defined(AF_INET6)
+-		if ((Xtransports[i].transport_id == TRANS_SOCKET_INET_INDEX
+-		     && ipv6_succ))
+-		    flags |= ADDR_IN_USE_ALLOWED;
++	//	if ((Xtransports[i].transport_id == TRANS_SOCKET_INET_INDEX
++	//	     && ipv6_succ))
++	//	    flags |= ADDR_IN_USE_ALLOWED;
+ #endif
+ 
+ 	if ((status = TRANS(CreateListener (ciptr, port, flags))) < 0)
+--- Xtranssock.c	2019-02-14 22:29:06.754749609 +0200
++++ Xtranssock.c	2019-02-14 22:33:38.147484468 +0200
+@@ -640,7 +640,7 @@
+      * Using this prevents the bind() check for an existing server listening
+      * on the same port, but it is required for other reasons.
+      */
+-#ifdef SO_REUSEADDR
++#if 1 //#ifdef SO_REUSEADDR
+ 
+     /*
+      * SO_REUSEADDR only applied to AF_INET && AF_INET6
+@@ -655,6 +655,8 @@
+ 	int one = 1;
+ 	setsockopt (ciptr->fd, SOL_SOCKET, SO_REUSEADDR,
+ 		    (char *) &one, sizeof (int));
++	setsockopt (ciptr->fd, SOL_SOCKET, SO_REUSEPORT,
++		    (char *) &one, sizeof (int));
+     }
+ #endif
+ #ifdef IPV6_V6ONLY
