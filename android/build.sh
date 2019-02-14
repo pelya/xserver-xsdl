@@ -476,6 +476,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -518,6 +520,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -557,6 +561,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -594,6 +600,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -648,6 +656,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -703,6 +713,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 echo "all: makekeys" > src/util/Makefile
 echo "makekeys:" >> src/util/Makefile
@@ -747,6 +759,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -787,6 +801,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -827,6 +843,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -867,6 +885,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -881,48 +901,12 @@ done
 
 # =========== xkbcomp binary ==========
 
-[ -e xkbcomp -a -e pie/xkbcomp ] || {
+[ -e xkbcomp ] || {
 PKGURL=http://cgit.freedesktop.org/xorg/app/xkbcomp/snapshot/xkbcomp-1.2.4.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
 tar xvzf ../$PKGDIR.tar.gz || exit 1
-cd $PKGDIR
-
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
-
-env CFLAGS="-isystem$BUILDDIR \
--include strings.h -Os -DSO_REUSEADDR=1" \
-LDFLAGS="-L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
-$BUILDDIR/setCrossEnvironment.sh \
-./configure \
---host=$TARGET_HOST \
---prefix=$TARGET_DIR/usr \
-|| exit 1
-
-cp -f `which libtool` ./
-
-$BUILDDIR/setCrossEnvironment.sh \
-sh -c 'ln -sf $CC gcc'
-
-env PATH=`pwd`:$PATH \
-$BUILDDIR/setCrossEnvironment.sh \
-make -j$NCPU V=1 2>&1 || exit 1
-
-cd $BUILDDIR
-cp -f $PKGDIR/xkbcomp ./
-$BUILDDIR/setCrossEnvironment.sh \
-sh -c '$STRIP xkbcomp'
-} || exit 1
-
-mkdir -p pie
-
-[ -e pie/xkbcomp ] || {
-cd pie
-tar xvzf ../../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -943,15 +927,18 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
-cd $BUILDDIR/pie
+cd $BUILDDIR
 cp -f $PKGDIR/xkbcomp ./
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xkbcomp'
+
 cd $BUILDDIR
 } || exit 1
 
@@ -984,6 +971,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -1024,6 +1013,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -1062,6 +1053,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 echo "all: makestrs" > util/Makefile
 echo "makestrs:" >> util/Makefile
@@ -1106,6 +1099,8 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -1119,47 +1114,12 @@ ln -sf ../$PKGDIR/include/X11/Xmu X11/
 
 # =========== xhost binary ==========
 
-[ -e xhost -a -e pie/xhost ] || {
+[ -e xhost ] || {
 PKGURL=http://cgit.freedesktop.org/xorg/app/xhost/snapshot/xhost-1.0.6.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || curl $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
 tar xvzf ../$PKGDIR.tar.gz || exit 1
-cd $PKGDIR
-
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
-
-env CFLAGS="-isystem$BUILDDIR \
--include strings.h \
--Dsethostent=abs -Dendhostent=sync -Os -DSO_REUSEADDR=1" \
-LDFLAGS="-L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11" \
-$BUILDDIR/setCrossEnvironment.sh \
-./configure \
---host=$TARGET_HOST \
---prefix=$TARGET_DIR/usr \
-|| exit 1
-
-cp -f `which libtool` ./
-
-$BUILDDIR/setCrossEnvironment.sh \
-sh -c 'ln -sf $CC gcc'
-
-env PATH=`pwd`:$PATH \
-$BUILDDIR/setCrossEnvironment.sh \
-make -j$NCPU V=1 2>&1 || exit 1
-
-cd $BUILDDIR
-cp -f $PKGDIR/xhost ./
-$BUILDDIR/setCrossEnvironment.sh \
-sh -c '$STRIP xhost'
-} || exit 1
-
-[ -e pie/xhost ] || {
-cd pie
-tar xvzf ../../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 [ -e configure ] || \
@@ -1181,21 +1141,24 @@ cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC clang'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
 
-cd $BUILDDIR/pie
+cd $BUILDDIR
 cp -f $PKGDIR/xhost ./
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xhost'
+
 cd $BUILDDIR
 } || exit 1
 
 # =========== xli binary ==========
 
-[ -e xli -a -e pie/xli ] || {
+[ -e xli ] || {
 PKGURL=http://web.aanet.com.au/gwg/xli-1.16.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
@@ -1231,74 +1194,24 @@ env CFLAGS="-isystem$BUILDDIR \
 -Os" \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
-make V=1 PIE= 2>&1 || exit 1
+make V=1 PIE=-pie 2>&1 || exit 1
 
 cd $BUILDDIR
 cp -f $PKGDIR/xli ./
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xli'
-} || exit 1
 
-[ -e pie/xli ] || {
-cd pie
-tar xvzf ../../$PKGDIR.tar.gz || exit 1
-cd $PKGDIR
-
-cp -f ../../$PKGDIR/Makefile ./
-cp -f ../../$PKGDIR/varargs.h ./
-
-sed -i 's/extern int errno;//' *.c
-
-env CFLAGS="-isystem$BUILDDIR \
--include strings.h \
--include sys/select.h \
--include math.h \
--include stdlib.h \
--include string.h \
--Dindex=strchr \
--Drindex=strrchr \
--isystem . \
--Os" \
-LDFLAGS="-L$BUILDDIR" \
-$BUILDDIR/setCrossEnvironment.sh \
-make V=1 PIE=-pie 2>&1 || exit 1
-
-cd $BUILDDIR/pie
-cp -f $PKGDIR/xli ./
-$BUILDDIR/setCrossEnvironment.sh \
-sh -c '$STRIP xli'
 cd $BUILDDIR
 } || exit 1
 
 # =========== xsel binary ==========
 
-[ -e xsel -a -e pie/xsel ] || {
+[ -e xsel ] || {
 PKGURL=https://github.com/kfish/xsel/archive/master.tar.gz
 PKGDIR=xsel-master
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || curl -L $PKGURL -o ../$PKGDIR.tar.gz || rm ../$PKGDIR.tar.gz
 tar xvzf ../$PKGDIR.tar.gz || exit 1
-cd $PKGDIR
-
-env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc -Os" \
-LDFLAGS="-L$BUILDDIR" \
-LIBS="-lX11 -lxcb -lXau -lXdmcp -landroid_support" \
-$BUILDDIR/setCrossEnvironment.sh \
-./autogen.sh --host=$TARGET_HOST \
-|| exit 1
-
-$BUILDDIR/setCrossEnvironment.sh \
-make V=1 2>&1 || exit 1
-
-cd $BUILDDIR
-cp -f $PKGDIR/xsel ./ || exit 1
-$BUILDDIR/setCrossEnvironment.sh \
-sh -c '$STRIP xsel'
-} || exit 1
-
-[ -e pie/xsel ] || {
-cd pie
-tar xvzf ../../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
 env CFLAGS="-isystem$BUILDDIR -Drpl_malloc=malloc -Os" \
@@ -1311,10 +1224,11 @@ $BUILDDIR/setCrossEnvironment.sh \
 $BUILDDIR/setCrossEnvironment.sh \
 make V=1 2>&1 || exit 1
 
-cd $BUILDDIR/pie
+cd $BUILDDIR
 cp -f $PKGDIR/xsel ./ || exit 1
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c '$STRIP xsel'
+
 cd $BUILDDIR
 } || exit 1
 
