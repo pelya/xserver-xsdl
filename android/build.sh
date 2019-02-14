@@ -708,7 +708,7 @@ cd $BUILDDIR
 # =========== libX11.a ==========
 
 [ -e libX11.a ] || {
-PKGURL=https://cgit.freedesktop.org/xorg/lib/libX11/snapshot/libX11-1.6.2.tar.gz
+PKGURL=https://cgit.freedesktop.org/xorg/lib/libX11/snapshot/libX11-1.6.7.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
@@ -760,7 +760,7 @@ ln -sf $PKGDIR/src/xkb/.libs/libxkb.a ./libX11-xkb.a
 # =========== libXext.a ==========
 
 [ -e libXext.a ] || {
-PKGURL=https://cgit.freedesktop.org/xorg/lib/libXext/snapshot/libXext-1.3.2.tar.gz
+PKGURL=https://cgit.freedesktop.org/xorg/lib/libXext/snapshot/libXext-1.3.3.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
