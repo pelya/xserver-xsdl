@@ -53,7 +53,29 @@ sh -c '$CC $CFLAGS \
 cd $BUILDDIR
 } || exit 1
 
-# =========== xsproto ===========
+
+# =========== xorgproto ===========
+
+[ -e X11/Xfuncproto.h ] || {
+PKGURL=https://cgit.freedesktop.org/xorg/proto/xorgproto/snapshot/xorgproto-2018.4.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+
+cd $PKGDIR
+patch -p0 < ../../xproto.diff || exit 1
+$BUILDDIR/setCrossEnvironment.sh \
+./autogen.sh --host=$TARGET_HOST --prefix=$BUILDDIR/usr \
+|| exit 1
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 install 2>&1 || exit 1
+cd $BUILDDIR
+ln -sf $BUILDDIR/usr/include/X11 ./
+} || exit 1
+
+if false; then # Old proto libraries are now all merged into xorgproto
+# =========== xproto ===========
 
 [ -e X11/Xfuncproto.h ] || {
 PKGURL=https://cgit.freedesktop.org/xorg/proto/x11proto/snapshot/xproto-7.0.31.tar.gz
@@ -93,35 +115,6 @@ $BUILDDIR/setCrossEnvironment.sh \
 $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 install 2>&1 || exit 1
 cd $BUILDDIR
-} || exit 1
-
-# =========== xtrans ===========
-
-[ -e xtrans-1.3.5 ] || {
-PKGURL=https://cgit.freedesktop.org/xorg/lib/libxtrans/snapshot/xtrans-1.3.5.tar.gz
-PKGDIR=`basename --suffix=.tar.gz $PKGURL`
-echo $PKGDIR: $PKGURL
-[ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
-tar xvzf ../$PKGDIR.tar.gz || exit 1
-cd $PKGDIR
-
-patch -p0 < ../../xtrans.diff || exit 1
-
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
-
-env CFLAGS="-isystem$BUILDDIR/usr/include -include strings.h" \
-$BUILDDIR/setCrossEnvironment.sh \
-./configure \
---host=$TARGET_HOST --prefix=$BUILDDIR/usr \
-|| exit 1
-
-$BUILDDIR/setCrossEnvironment.sh \
-make -j$NCPU V=1 install 2>&1 || exit 1
-
-cd $BUILDDIR
-#ln -sf ../$PKGDIR X11/Xtrans
 } || exit 1
 
 # =========== xextproto ===========
@@ -457,6 +450,37 @@ cd $BUILDDIR
 #for F in $PKGDIR/*.h ; do
 #ln -sf ../$F X11/extensions/
 #done
+} || exit 1
+
+fi # Old proto libraries are now all merged into xorgproto
+
+# =========== xtrans ===========
+
+[ -e xtrans-1.3.5 ] || {
+PKGURL=https://cgit.freedesktop.org/xorg/lib/libxtrans/snapshot/xtrans-1.3.5.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
+patch -p0 < ../../xtrans.diff || exit 1
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR/usr/include -include strings.h" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=$TARGET_HOST --prefix=$BUILDDIR/usr \
+|| exit 1
+
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 install 2>&1 || exit 1
+
+cd $BUILDDIR
+#ln -sf ../$PKGDIR X11/Xtrans
 } || exit 1
 
 # =========== libportable.a ===========
