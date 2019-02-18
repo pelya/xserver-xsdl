@@ -56,7 +56,7 @@ cd $BUILDDIR
 # =========== xsproto ===========
 
 [ -e X11/Xfuncproto.h ] || {
-PKGURL=https://cgit.freedesktop.org/xorg/proto/x11proto/snapshot/xproto-7.0.24.tar.gz
+PKGURL=https://cgit.freedesktop.org/xorg/proto/x11proto/snapshot/xproto-7.0.31.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
