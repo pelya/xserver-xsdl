@@ -579,8 +579,10 @@ $AR rcs libfontenc.a $PKGDIR/src/.libs/*.o || exit 1
 
 ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libfreetype.a $BUILDDIR/
 
-[ -e libXfont.a ] || {
-PKGURL=https://cgit.freedesktop.org/xorg/lib/libXfont/snapshot/libXfont-1.5.4.tar.gz
+# =========== libXfont2.a ===========
+
+[ -e libXfont2.a ] || {
+PKGURL=https://cgit.freedesktop.org/xorg/lib/libXfont/snapshot/libXfont2-2.0.3.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
@@ -603,25 +605,18 @@ $BUILDDIR/setCrossEnvironment.sh \
 --enable-static \
 || exit 1
 
-#cp -f `which libtool` ./
-#sed -i 's/pic_flag=.*/pic_flag=""/g' libtool
-
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
 
 env PATH=`pwd`:$PATH \
 $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 2>&1 || exit 1
-touch src/.libs/libXfont.so
+touch .libs/libXfont2.so
 $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 install 2>&1 || exit 1
 
 cd $BUILDDIR
-#ln -sf $PKGDIR/src/.libs/libXfont.a ./
-$AR rcs libXfont.a $PKGDIR/src/.libs/*.o $PKGDIR/src/*/.libs/*.o
-#for F in $PKGDIR/include/X11/fonts/* ; do
-#ln -sf ../$F X11/fonts/
-#done
+$AR rcs libXfont2.a $PKGDIR/src/*/.libs/*.o
 } || exit 1
 
 # =========== libXau.a ==========
@@ -1221,8 +1216,6 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-#cp -f `which libtool` ./
-
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
 
@@ -1279,8 +1272,6 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$TARGET_DIR/usr \
 || exit 1
 
-#cp -f `which libtool` ./
-
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
 
@@ -1308,6 +1299,46 @@ $AR rcs libXmuu.a $PKGDIR/src/.libs/*.o
 $AR rcs libXmu.a
 
 #ln -sf ../$PKGDIR/include/X11/Xmu X11/
+} || exit 1
+
+# =========== libxshmfence.a ==========
+
+[ -e libxshmfence.a ] || {
+PKGURL=https://cgit.freedesktop.org/xorg/lib/libxshmfence/snapshot/libxshmfence-1.3.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
+patch -p0 < ../../xshmfence.diff || exit 1
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+mkdir tmp
+
+env CFLAGS="-isystem$BUILDDIR/usr/include \
+-include limits.h \
+-DMAXINT=INT_MAX" \
+LDFLAGS="-L$BUILDDIR" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=$TARGET_HOST \
+--prefix=$BUILDDIR/usr \
+--with-shared-memory-dir=/proc/self/cwd/tmp \
+|| exit 1
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
+touch src/.libs/libxshmfence.so
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 install 2>&1 || exit 1
+
+cd $BUILDDIR
+$AR rcs libxshmfence.a $PKGDIR/src/.libs/*.o
 } || exit 1
 
 # =========== xhost binary ==========
@@ -1465,7 +1496,7 @@ LIBSHA1_LIBS=-l:libcrypto.so.sdl.0.so \
 --disable-xephyr --disable-xfake --disable-xfbdev --disable-unit-tests --disable-tslib \
 --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
 --enable-xsdl --enable-kdrive --enable-kdrive-kbd --enable-kdrive-mouse --enable-kdrive-evdev \
---enable-shm --enable-mitshm --disable-config-udev \
+--enable-shm --enable-mitshm --disable-config-udev --disable-libdrm \
 || exit 1
 
 ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1

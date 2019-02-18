@@ -1,0 +1,10 @@
+--- src/xshmfence_futex.h	2019-02-18 21:43:13.264234310 +0200
++++ src/xshmfence_futex.h	2019-02-18 21:43:16.848241859 +0200
+@@ -48,7 +48,6 @@
+ #else
+ 
+ #include <stdint.h>
+-#include <values.h>
+ #include <linux/futex.h>
+ #include <sys/time.h>
+ #include <sys/syscall.h>
