@@ -26,7 +26,7 @@
 
 #include "dri3_priv.h"
 
-#include <drm_fourcc.h>
+#include <drm/drm_fourcc.h>
 
 static int dri3_request;
 DevPrivateKeyRec dri3_screen_private_key;

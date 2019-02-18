@@ -24,8 +24,8 @@
  *	- jaymz
  *
  */
-#ifdef HAVE_CONFIG_H
-#include "kdrive-config.h"
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
 #endif
 #include "kdrive.h"
 #include <SDL/SDL.h>

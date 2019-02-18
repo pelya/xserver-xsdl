@@ -109,6 +109,9 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
        used as input for xkbcomp. xkbcomp does not read from stdin. */
     char tmpname[PATH_MAX];
     const char *xkmfile = tmpname;
+#elif defined(__ANDROID__)
+    const char *tmpname = "x-keyboard.txt";
+    const char *xkmfile = tmpname;
 #else
     const char *xkmfile = "-";
 #endif
@@ -139,12 +142,6 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
         }
     }
 
-    out = fopen("x-keyboard.txt", "w");
-    if (out) {
-        XkbWriteXKBKeymapForNames(out,names,xkb,want,need);
-        fclose(out);
-    }
-
     if (asprintf(&buf,
                  "cat x-keyboard.txt | \"%s%sxkbcomp\" -I%s/usr/share/X11/xkb -w %d %s -xkm \"%s\" "
                  "-em1 %s -emp %s -eml %s \"%s%s.xkm\" 2>%s/popen-stderr.txt",
@@ -166,7 +163,7 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
         return NULL;
     }
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__ANDROID__)
     out = Popen(buf, "w");
 #else
     out = fopen(tmpname, "w");
@@ -176,7 +173,7 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
         /* Now write to xkbcomp */
         (*callback)(out, userdata);
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__ANDROID__)
         if (Pclose(out) == 0)
 #else
         if (fclose(out) == 0 && System(buf) >= 0)

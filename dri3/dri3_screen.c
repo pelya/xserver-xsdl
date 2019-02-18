@@ -29,7 +29,7 @@
 #include <misync.h>
 #include <misyncshm.h>
 #include <randrstr.h>
-#include <drm_fourcc.h>
+#include <drm/drm_fourcc.h>
 #include <unistd.h>
 
 int
