@@ -827,14 +827,35 @@ ln -sf ../usr ./src/xcms/
 ln -sf ../usr ./src/xkb/
 ln -sf ../usr ./include/
 ln -sf ../usr ./nls/
+ln -sf ../usr ./man/
+ln -sf ../usr ./man/xkb/
+ln -sf ../usr ./specs/
+ln -sf ../usr ./specs/XIM/
+ln -sf ../usr ./specs/XKB/
+ln -sf ../usr ./specs/libX11/
+ln -sf ../usr ./specs/i18n/
+ln -sf ../usr ./specs/i18n/compose/
+ln -sf ../usr ./specs/i18n/framework/
+ln -sf ../usr ./specs/i18n/localedb/
+ln -sf ../usr ./specs/i18n/trans/
+
 mkdir -p ./usr/share/X11
 mkdir -p ./usr/share/X11/locale
+mkdir -p ./usr/share/man/man3
+mkdir -p ./usr/share/man/man5
+mkdir -p ./usr/share/doc/libX11/XIM
+mkdir -p ./usr/share/doc/libX11/XKB
+mkdir -p ./usr/share/doc/libX11/libX11
+mkdir -p ./usr/share/doc/libX11/i18n/compose
+mkdir -p ./usr/share/doc/libX11/i18n/framework
+mkdir -p ./usr/share/doc/libX11/i18n/localedb
+mkdir -p ./usr/share/doc/libX11/i18n/trans
 
 cd nls
 for f in *; do
 [ -d $f ] && mkdir -p ./usr/share/X11/locale/$f
 done
-cd $PKGDIR
+cd ..
 
 touch src/.libs/libX11.so
 touch src/.libs/libX11-xcb.so
@@ -843,7 +864,7 @@ touch src/.libs/libX11-xcms.so
 touch src/.libs/libX11-xkb.so
 
 $BUILDDIR/setCrossEnvironment.sh \
-make -j1 V=1 install "MKDIR_P=test -d" 2>&1 || exit 1
+make -j1 V=1 install install-am "MKDIR_P=test -d" 2>&1 || exit 1
 
 cd $BUILDDIR
 #for F in $PKGDIR/include/X11/*.h ; do
