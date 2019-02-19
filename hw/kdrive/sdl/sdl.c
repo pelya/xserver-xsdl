@@ -48,7 +48,8 @@
 #define printf(...) __android_log_print(ANDROID_LOG_INFO, "XSDL", __VA_ARGS__)
 #endif
 
-static void xsdlFini(void);
+static Bool xsdlInit(KdCardInfo *);
+static Bool xsdlFini(KdCardInfo *);
 static Bool sdlScreenInit(KdScreenInfo *screen);
 static Bool sdlFinishInitScreen(ScreenPtr pScreen);
 static Bool sdlCreateRes(ScreenPtr pScreen);
@@ -96,9 +97,11 @@ KdPointerDriver sdlMouseDriver = {
 
 
 KdCardFuncs sdlFuncs = {
-	.scrinit = sdlScreenInit,	/* scrinit */
-	.finishInitScreen = sdlFinishInitScreen, /* finishInitScreen */
-	.createRes = sdlCreateRes,	/* createRes */
+	.cardinit = xsdlInit,
+	.cardfini = xsdlFini,
+	.scrinit = sdlScreenInit,
+	.finishInitScreen = sdlFinishInitScreen,
+	.createRes = sdlCreateRes,
 };
 
 int mouseState = 0;
@@ -860,17 +863,18 @@ static void executeBackground(const char *cmd)
 	}
 }
 
-static int xsdlInit(void)
+static Bool xsdlInit(KdCardInfo *)
 {
 	printf("Calling SDL_Init()\n");
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO);
 	SDL_JoystickOpen(0); // Receive pressure events
-	return 0;
+	return TRUE;
 }
 
-static void xsdlFini(void)
+static Bool xsdlFini(KdCardInfo *)
 {
 	//SDL_Quit(); // SDL_Quit() on Android is buggy
+	return TRUE;
 }
 
 void
@@ -879,15 +883,8 @@ CloseInput (void)
 	KdCloseInput ();
 }
 
-KdOsFuncs sdlOsFuncs={
-	.Init = xsdlInit,
-	.Fini = xsdlFini,
-	.pollEvents = sdlPollInput,
-};
-
 void OsVendorInit (void)
 {
-	KdOsInit (&sdlOsFuncs);
 }
 
 static void *send_unicode_thread(void *param)
