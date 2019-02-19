@@ -1,6 +1,6 @@
 /*
  * Copyright © 2004 PillowElephantBadgerBankPond 
- * Copyright © 2014 Sergii Pylypenko
+ * Copyright © 2014-2019 Sergii Pylypenko
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -800,67 +800,6 @@ static void sdlPollInput(void)
 		nextFullScreenRefresh = 0;
 	}
 	*/
-}
-
-static Bool xsdlConnectionClosed = 0;
-
-static void xsdlAudioCallback(void *userdata, Uint8 *stream, int len)
-{
-	int fd = (int)userdata;
-	if (xsdlConnectionClosed)
-		return;
-	while (len > 0)
-	{
-		int count = read(fd, stream, len);
-		if (count <= 0)
-		{
-			printf("Audio pipe closed, notifying main thread");
-			xsdlConnectionClosed = 1;
-			return;
-		}
-		stream += count;
-		len -= count;
-	}
-}
-
-static void initPulseAudioConfig()
-{
-	char cmd[PATH_MAX * 4];
-	sprintf(cmd, "%s/busybox sed -i s@/data/local/tmp@%s/pulse@g %s/pulse/pulseaudio.conf", getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"));
-	printf("Fixing up PulseAudio config file");
-	printf("%s", cmd);
-	system(cmd);
-	sprintf(cmd, "rm %s/pulse/audio-out", getenv("SECURE_STORAGE_DIR"));
-	printf("%s", cmd);
-	system(cmd);
-}
-
-static void executeBackground(const char *cmd)
-{
-	pid_t childpid;
-
-	childpid = fork();
-
-	if (childpid == 0)
-	{
-		/*
-		int fd;
-		setsid();
-		// Close all open file descriptors
-		//for (fd = getdtablesize(); fd >= 0; --fd)
-		//	close(fd);
-		close(0);
-		close(1);
-		close(2);
-		fd = open("/dev/null", O_RDWR);
-		dup2(0, fd);
-		dup2(1, fd);
-		dup2(2, fd);
-		*/
-		execlp("logwrapper", "logwrapper", "sh", "-c", cmd, NULL);
-		printf("Error: cannot launch command: %s\n", strerror(errno));
-		exit(0);
-	}
 }
 
 static Bool xsdlInit(KdCardInfo *)
