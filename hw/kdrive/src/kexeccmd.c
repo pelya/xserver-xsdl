@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <pthread.h>
+
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
 #include "kdrive.h"
 #include "opaque.h"
 #ifdef __ANDROID__
@@ -30,7 +34,7 @@ static void *child_command(void *unused)
 	return NULL;
 }
 
-void KdExecuteChildCommand()
+void KdExecuteChildCommand(void)
 {
 	pthread_t thread_id;
 	if (!kdExecuteCommand)

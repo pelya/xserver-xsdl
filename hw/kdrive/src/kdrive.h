@@ -379,7 +379,7 @@ void
  KdInitInput(void);
 
 void
- KdExecuteChildCommand();
+ KdExecuteChildCommand(void);
 
 void
  KdCloseInput(void);

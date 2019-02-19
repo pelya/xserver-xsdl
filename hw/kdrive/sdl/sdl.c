@@ -24,9 +24,7 @@
  *	- jaymz
  *
  */
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
+#include <xorg-config.h>
 #include "kdrive.h"
 #include <SDL/SDL.h>
 #include <SDL/SDL_syswm.h>
@@ -38,6 +36,8 @@
 #include <pthread.h>
 #include <sys/inotify.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <string.h>
 
 #ifdef __ANDROID__
 #include <SDL/SDL_screenkeyboard.h>
@@ -70,7 +70,7 @@ static void send_unicode(int unicode);
 static void set_clipboard_text(const char *text);
 static Bool sdlScreenButtons = FALSE;
 static void setScreenButtons(int mouseX);
-static enum sdlKeyboardType_t { KB_NATIVE = 0, KB_BUILTIN = 1, KB_BOTH = 2 };
+enum sdlKeyboardType_t { KB_NATIVE = 0, KB_BUILTIN = 1, KB_BOTH = 2 };
 enum sdlKeyboardType_t sdlKeyboardType = KB_NATIVE;
 
 KdKeyboardInfo *sdlKeyboard = NULL;
@@ -219,7 +219,10 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 	setScreenButtons(10000);
 
 	if (getenv("XSDL_BUILTIN_KEYBOARD") != NULL)
-		sdlKeyboardType = (enum sdlKeyboardType_t) atoi(getenv("XSDL_BUILTIN_KEYBOARD"));
+	{
+		sdlKeyboardType = atoi(getenv("XSDL_BUILTIN_KEYBOARD")) == KB_NATIVE ? KB_NATIVE :
+						atoi(getenv("XSDL_BUILTIN_KEYBOARD")) == KB_BUILTIN ? KB_BUILTIN : KB_BOTH;
+	}
 	unsetenv("XSDL_BUILTIN_KEYBOARD");
 
 	printf("sdlScreenButtons %d sdlKeyboardType %d\n", sdlScreenButtons, sdlKeyboardType);
@@ -596,9 +599,11 @@ void InitInput(int argc, char **argv)
 	KdAddKeyboardDriver(&sdlKeyboardDriver);
 	KdAddPointerDriver(&sdlMouseDriver);
 
-	ki = KdParseKeyboard("keyboard");
+	ki = KdNewKeyboard();
+	ki->driver = &sdlKeyboardDriver;
 	KdAddKeyboard(ki);
-	pi = KdParsePointer("mouse");
+	pi = KdNewPointer();
+	pi->driver = &sdlMouseDriver;
 	KdAddPointer(pi);
 
 	KdInitInput();
