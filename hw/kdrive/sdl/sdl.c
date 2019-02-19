@@ -860,111 +860,11 @@ static void executeBackground(const char *cmd)
 	}
 }
 
-static void launchPulseAudio()
-{
-	char cmd[PATH_MAX * 6];
-	sprintf(cmd,
-		"cd %s/pulse ; while true ; do "
-		"rm -f audio-out ; "
-		"HOME=%s/pulse "
-		"TMPDIR=%s/pulse "
-		"LD_LIBRARY_PATH=%s/pulse "
-		"./pulseaudio --disable-shm -n -F pulseaudio.conf "
-		"--dl-search-path=%s/pulse "
-		"--daemonize=false --use-pid-file=false "
-		"--log-target=stderr --log-level=notice 2>&1 ; "
-		"sleep 1 ; "
-		"done",
-		getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"), getenv("SECURE_STORAGE_DIR"));
-	printf("Launching PulseAudio daemon:");
-	printf("%s", cmd);
-	executeBackground(cmd);
-	printf("Launching PulseAudio daemon done");
-	//system(cmd);
-}
-
-static void *xsdlAudioThread(void *data)
-{
-	char infile[PATH_MAX];
-	int fd, notify;
-	struct inotify_event notifyEvents[8];
-
-	strcpy(infile, getenv("SECURE_STORAGE_DIR"));
-	strcat(infile, "/pulse/pulseaudio");
-
-	if (access(infile, X_OK) < 0)
-	{
-		printf("PulseAudio not installed, disabling audio");
-		return NULL;
-	}
-
-	strcpy(infile, getenv("SECURE_STORAGE_DIR"));
-	strcat(infile, "/pulse");
-
-	printf("Registering inotify listener on %s", infile);
-	notify = inotify_init();
-	if (inotify_add_watch(notify, infile, IN_CREATE | IN_DELETE) < 0)
-	{
-		printf("Cannot set inotify event on dir %s, disabling audio: %s\n", infile, strerror(errno));
-		close(notify);
-		return NULL;
-	}
-
-	initPulseAudioConfig();
-	launchPulseAudio();
-
-	strcpy(infile, getenv("SECURE_STORAGE_DIR"));
-	strcat(infile, "/pulse/audio-out");
-
-	while (1)
-	{
-		printf("Trying to open audio pipe %s\n", infile);
-		if ((fd = open(infile, O_RDONLY)) > -1)
-		{
-			printf("Reading audio data from pipe %s", infile);
-			xsdlConnectionClosed = 0;
-			SDL_AudioSpec spec, obtained;
-			memset(&spec, 0, sizeof(spec));
-			spec.freq = 44100;
-			spec.format = AUDIO_S16;
-			spec.channels = 2;
-			spec.samples = 4096;
-			spec.callback = xsdlAudioCallback;
-			spec.userdata = (void *)fd;
-			SDL_OpenAudio(&spec, &obtained);
-			SDL_PauseAudio(0);
-			while (!xsdlConnectionClosed)
-			{
-				printf("Waiting for audio pipe to close");
-				read(notify, notifyEvents, sizeof(notifyEvents));
-			}
-			SDL_CloseAudio();
-			close(fd);
-			printf("Audio pipe closed: %s", infile);
-		}
-		else
-		{
-			printf("Waiting for audio pipe to open");
-			read(notify, notifyEvents, sizeof(notifyEvents));
-		}
-	}
-	close(notify);
-	return NULL;
-}
-
-static void xsdlCreateAudioThread()
-{
-	pthread_t threadId;
-	pthread_create(&threadId, NULL, &xsdlAudioThread, NULL);
-	pthread_detach(threadId);
-}
-
 static int xsdlInit(void)
 {
 	printf("Calling SDL_Init()\n");
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO);
 	SDL_JoystickOpen(0); // Receive pressure events
-	xsdlCreateAudioThread();
 	return 0;
 }
 
