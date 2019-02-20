@@ -1464,6 +1464,7 @@ cd $BUILDDIR
 # =========== xsdl ==========
 
 #ln -sf $BUILDDIR/../../../../../../libs/$TARGET_ARCH/libsdl-1.2.so $BUILDDIR/libSDL.so
+ln -sf $BUILDDIR/../../../../../../jni/application/sdl-config $BUILDDIR/
 ln -sf $BUILDDIR/libportable.a $BUILDDIR/libpthread.a # dummy
 ln -sf $BUILDDIR/libportable.a $BUILDDIR/libts.a # dummy
 
@@ -1489,8 +1490,8 @@ env CFLAGS=" -DDEBUG \
 	-D_LINUX_IPC_H \
 	-Dipc_perm=debian_ipc_perm \
 	-I$BUILDDIR/usr/include/pixman-1 \
-	-I$BUILDDIR/../../../../../../jni/sdl-1.2/include \
-	-I$BUILDDIR/../../../../../../jni/crypto/include" \
+	-I$BUILDDIR/../../../../../../jni/crypto/include \
+	-I$BUILDDIR/../../../../../../jni/sdl-1.2/include" \
 LDFLAGS="-L$BUILDDIR \
 	-L$BUILDDIR/../../../../../../libs/$TARGET_ARCH \
 	-L$SYSTEM_LIBDIR" \
@@ -1499,6 +1500,7 @@ PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 LIBS="-lfontenc -lfreetype -llog -lsdl-1.2 -lsdl_native_helpers -lGLESv1_CM -landroid-shmem -l:libcrypto.so.sdl.1.so -lz -lm -ldl" \
 OPENSSL_LIBS=-l:libcrypto.so.sdl.1.so \
 LIBSHA1_LIBS=-l:libcrypto.so.sdl.1.so \
+PATH=$BUILDDIR:$PATH \
 ../../configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \

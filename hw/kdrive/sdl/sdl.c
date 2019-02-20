@@ -26,6 +26,7 @@
  */
 #include <xorg-config.h>
 #include "kdrive.h"
+#include "dix.h"
 #include <SDL/SDL.h>
 #include <SDL/SDL_syswm.h>
 #include <X11/keysym.h>
@@ -998,4 +999,10 @@ void setScreenButtons(int mouseX)
 	SDL_ANDROID_SetScreenKeyboardTransparency(255); // opaque
 
 #endif
+}
+
+extern int android_main( int argc, char *argv[], char *envp[] );
+int android_main( int argc, char *argv[], char *envp[] )
+{
+	return dix_main(argc, argv, envp);
 }
