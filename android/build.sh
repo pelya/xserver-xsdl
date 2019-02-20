@@ -1103,6 +1103,24 @@ sh -c '$STRIP xkbcomp'
 cd $BUILDDIR
 } || exit 1
 
+# =========== xkeyboard-config ==========
+
+[ -e usr/share/X11/xkb/rules/evdev ] || {
+PKGURL=https://www.x.org/releases/individual/data/xkeyboard-config/xkeyboard-config-2.26.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
+$BUILDDIR/setCrossEnvironment.sh \
+./autogen.sh --host=$TARGET_HOST --prefix=$BUILDDIR/usr \
+|| exit 1
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 install 2>&1 || exit 1
+cd $BUILDDIR
+} || exit 1
+
 # =========== libICE.a ==========
 
 [ -e libICE.a ] || {
