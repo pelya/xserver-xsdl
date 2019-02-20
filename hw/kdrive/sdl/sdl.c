@@ -49,7 +49,7 @@
 #endif
 
 static Bool xsdlInit(KdCardInfo *);
-static Bool xsdlFini(KdCardInfo *);
+static void xsdlFini(KdCardInfo *);
 static Bool sdlScreenInit(KdScreenInfo *screen);
 static Bool sdlFinishInitScreen(ScreenPtr pScreen);
 static Bool sdlCreateRes(ScreenPtr pScreen);
@@ -68,7 +68,7 @@ static void sdlMouseDisable (KdPointerInfo *pi);
 static int execute_command(const char * command, const char *mode, char * data, int datalen);
 static int UnicodeToUtf8(int src, char * dest);
 static void send_unicode(int unicode);
-static void set_clipboard_text(const char *text);
+static void set_clipboard_text(char *text);
 static Bool sdlScreenButtons = FALSE;
 static void setScreenButtons(int mouseX);
 enum sdlKeyboardType_t { KB_NATIVE = 0, KB_BUILTIN = 1, KB_BOTH = 2 };
@@ -802,7 +802,7 @@ static void sdlPollInput(void)
 	*/
 }
 
-static Bool xsdlInit(KdCardInfo *)
+static Bool xsdlInit(KdCardInfo * card)
 {
 	printf("Calling SDL_Init()\n");
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_AUDIO);
@@ -810,10 +810,9 @@ static Bool xsdlInit(KdCardInfo *)
 	return TRUE;
 }
 
-static Bool xsdlFini(KdCardInfo *)
+static void xsdlFini(KdCardInfo * card)
 {
 	//SDL_Quit(); // SDL_Quit() on Android is buggy
-	return TRUE;
 }
 
 void
@@ -847,7 +846,7 @@ static void *send_unicode_thread(void *param)
 static void *set_clipboard_text_thread(void *param)
 {
 	// International text input - copy symbol to clipboard, and send copypaste key
-	const char *text = (const char *)param;
+	char *text = (char *)param;
 	char cmd[1024] = "";
 	sprintf (cmd, "127.0.0.1:%s", display);
 	setenv ("DISPLAY", cmd, 1);
@@ -863,11 +862,11 @@ void send_unicode(int unicode)
 	pthread_attr_t attr;
 	pthread_attr_init (&attr);
 	pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-	pthread_create (&thread_id, &attr, &send_unicode_thread, (void *)unicode);
+	pthread_create (&thread_id, &attr, &send_unicode_thread, (void *)(size_t)unicode);
 	pthread_attr_destroy (&attr);
 }
 
-void set_clipboard_text(const char *text)
+void set_clipboard_text(char *text)
 {
 	pthread_t thread_id;
 	pthread_attr_t attr;

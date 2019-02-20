@@ -1463,11 +1463,20 @@ cd $BUILDDIR
 
 # =========== xsdl ==========
 
-ln -sf $BUILDDIR/../../../../../../libs/$TARGET_ARCH/libsdl-1.2.so $BUILDDIR/libSDL.so
+#ln -sf $BUILDDIR/../../../../../../libs/$TARGET_ARCH/libsdl-1.2.so $BUILDDIR/libSDL.so
 ln -sf $BUILDDIR/libportable.a $BUILDDIR/libpthread.a # dummy
 ln -sf $BUILDDIR/libportable.a $BUILDDIR/libts.a # dummy
 
 [ -z "$PACKAGE_NAME" ] && PACKAGE_NAME=X.org.server
+
+# Hack for NDK r19
+SYSTEM_LIBDIR=$NDK/platforms
+case $TARGET_ARCH in
+	arm64-v8a)   SYSTEM_LIBDIR=$NDK/platforms/android-21/arch-arm64/usr/lib;;
+	armeabi-v7a) SYSTEM_LIBDIR=$NDK/platforms/android-16/arch-arm/usr/lib;;
+	x86)         SYSTEM_LIBDIR=$NDK/platforms/android-16/arch-x86/usr/lib;;
+	x86_64)      SYSTEM_LIBDIR=$NDK/platforms/android-21/arch-x86_64/usr/lib64;;
+esac
 
 [ -e Makefile ] && grep "`pwd`" Makefile > /dev/null || \
 env CFLAGS=" -DDEBUG \
@@ -1482,21 +1491,23 @@ env CFLAGS=" -DDEBUG \
 	-I$BUILDDIR/usr/include/pixman-1 \
 	-I$BUILDDIR/../../../../../../jni/sdl-1.2/include \
 	-I$BUILDDIR/../../../../../../jni/crypto/include" \
-LDFLAGS="-L$BUILDDIR -L$BUILDDIR/../../../../../../jni/crypto/lib-$TARGET_ARCH" \
+LDFLAGS="-L$BUILDDIR \
+	-L$BUILDDIR/../../../../../../libs/$TARGET_ARCH \
+	-L$SYSTEM_LIBDIR" \
 PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 ./setCrossEnvironment.sh \
-LIBS="-lfontenc -lfreetype -llog -lSDL -lGLESv1_CM -landroid-shmem -l:libcrypto.so.sdl.1.so" \
-OPENSSL_LIBS=-l:libcrypto.so.sdl.0.so \
-LIBSHA1_LIBS=-l:libcrypto.so.sdl.0.so \
+LIBS="-lfontenc -lfreetype -llog -lsdl-1.2 -lsdl_native_helpers -lGLESv1_CM -landroid-shmem -l:libcrypto.so.sdl.1.so -lz -lm -ldl" \
+OPENSSL_LIBS=-l:libcrypto.so.sdl.1.so \
+LIBSHA1_LIBS=-l:libcrypto.so.sdl.1.so \
 ../../configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 --with-xkb-output=$TARGET_DIR/tmp \
 --disable-xorg --disable-dmx --disable-xvfb --disable-xnest --disable-xquartz --disable-xwin \
---disable-xephyr --disable-xfake --disable-xfbdev --disable-unit-tests --disable-tslib \
+--disable-xephyr --disable-unit-tests \
 --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
---enable-xsdl --enable-kdrive --enable-kdrive-kbd --enable-kdrive-mouse --enable-kdrive-evdev \
---enable-shm --enable-mitshm --disable-config-udev --disable-libdrm \
+--enable-xsdl --enable-kdrive \
+--enable-mitshm --disable-config-udev --disable-libdrm \
 || exit 1
 
 ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1

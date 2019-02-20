@@ -1,11 +1,12 @@
 #ifdef __ANDROID__
 #include <stdlib.h>
-
-extern int android_main(int argc, char *argv[], char *envp[]);
+#include <xorg-config.h>
+#include "kdrive.h"
+#include "dix.h"
 
 int main(int argc, char* argv[])
 {
 	char * envp[] = { NULL };
-	return android_main(argc, argv, envp);
+	return dix_main(argc, argv, envp);
 }
 #endif

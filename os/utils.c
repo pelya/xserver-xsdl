@@ -1350,7 +1350,7 @@ OsAbort(void)
     abort();
 }
 
-#if !defined(WIN32) && !defined(__ANDROID__)
+#if !defined(WIN32)
 /*
  * "safer" versions of system(3), popen(3) and pclose(3) which give up
  * all privs before running a command.
@@ -1364,7 +1364,7 @@ OsAbort(void)
 int
 System(const char *command)
 {
-#ifdef ANDROID
+#ifdef __ANDROID__
 	return system(command);
 #else
     int pid, p;
@@ -1417,7 +1417,7 @@ static struct pid {
 void *
 Popen(const char *command, const char *type)
 {
-#ifdef ANDROID
+#ifdef __ANDROID__
 	return popen(command, type);
 #else
     struct pid *cur;
@@ -1606,7 +1606,7 @@ Fopen(const char *file, const char *type)
 int
 Pclose(void *iop)
 {
-#ifdef ANDROID
+#ifdef __ANDROID__
 	return pclose(iop);
 #else
     struct pid *cur, *last;

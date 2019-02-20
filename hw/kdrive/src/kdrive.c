@@ -78,7 +78,7 @@ Bool kdDisableZaphod;
 static Bool kdEnabled;
 static int kdSubpixelOrder;
 static char *kdSwitchCmd;
-static char *kdExecuteCommand;
+char *kdExecuteCommand = NULL;
 static DDXPointRec kdOrigin;
 Bool kdHasPointer = FALSE;
 Bool kdHasKbd = FALSE;
