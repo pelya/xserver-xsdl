@@ -26,6 +26,46 @@ echo AR=$AR
 
 export enable_malloc0returnsnull=true # Workaround for buggy autotools
 
+# =========== FOR DEBUGGING ===========
+# To test why NDK-built binaries crash.
+
+[ -e sed ] || {
+PKGURL=https://ftp.gnu.org/gnu/sed/sed-4.7.tar.xz
+PKGDIR=`basename --suffix=.tar.xz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.xz ] || { curl -L $PKGURL -o $PKGDIR.tar.xz && mv $PKGDIR.tar.xz ../ ; } || rm ../$PKGDIR.tar.xz
+tar xvJf ../$PKGDIR.tar.xz || exit 1
+cd $PKGDIR
+
+patch -p0 < ../../sed.diff || exit 1
+
+env CFLAGS="-Os" \
+LDFLAGS="-pie -L$BUILDDIR" \
+LIBS="-landroid_support -landroid-shmem" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure --host=$TARGET_HOST --prefix=$BUILDDIR/usr \
+--without-selinux --disable-nls --disable-i18n --disable-rpath --without-libiconv-prefix --without-libintl-prefix \
+|| exit 1
+
+$BUILDDIR/setCrossEnvironment.sh \
+make -j1 V=1 2>&1
+
+rm -f lib/stdio.h
+echo '#define _GL_ATTRIBUTE_FORMAT_PRINTF(X,Y) __attribute__ ((format (printf, X, Y)))' >> lib/stdio.h
+echo '#  define __USE_FORTIFY_LEVEL 2' >> lib/stdio.h
+echo '#include_next <stdio.h>' >> lib/stdio.h
+
+$BUILDDIR/setCrossEnvironment.sh \
+make -j1 V=1 2>&1 || exit 1
+
+cd $BUILDDIR
+cp -f $PKGDIR/sed/sed ./ || exit 1
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP sed'
+
+cd $BUILDDIR
+} || exit 1
+
 # =========== android-shmem ===========
 
 [ -e libandroid-shmem.a ] || {
@@ -1061,7 +1101,7 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 LDFLAGS="-L$BUILDDIR \
 -L$BUILDDIR/../../../../../../obj/local/$TARGET_ARCH" \
 $BUILDDIR/setCrossEnvironment.sh \
-make V=1 PIE=-pie 2>&1 || exit 1
+make -j$NCPU V=1 PIE=-pie 2>&1 || exit 1
 
 cd $BUILDDIR
 cp -f $PKGDIR/xli ./
@@ -1089,7 +1129,7 @@ $BUILDDIR/setCrossEnvironment.sh \
 || exit 1
 
 $BUILDDIR/setCrossEnvironment.sh \
-make V=1 2>&1 || exit 1
+make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
 cp -f $PKGDIR/xsel ./ || exit 1
@@ -1118,7 +1158,7 @@ case $TARGET_ARCH in
 esac
 
 [ -e Makefile ] && grep "`pwd`" Makefile > /dev/null || \
-env CFLAGS=" -DDEBUG \
+env CFLAGS=" -DDEBUG -Wformat \
 	-isystem$BUILDDIR/usr/include \
 	-isystem$BUILDDIR/../android-shmem \
 	-include strings.h\
