@@ -143,13 +143,15 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
     }
 
     if (asprintf(&buf,
-                 "cat x-keyboard.txt | \"%s%sxkbcomp\" -I%s/usr/share/X11/xkb -w %d %s -xkm \"%s\" "
+                 "cat %s | \"%s%sxkbcomp\" -I%s/usr/share/X11/xkb -w %d %s -xkm \"%s\" "
                  "-em1 %s -emp %s -eml %s \"%s%s.xkm\" 2>%s/popen-stderr.txt",
-                 (getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ""),
+                 xkmfile,
                  xkbbindir, xkbbindirsep,
+                 (getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ""),
                  ((xkbDebugFlags < 2) ? 1 :
                   ((xkbDebugFlags > 10) ? 10 : (int) xkbDebugFlags)),
-                 xkbbasedirflag ? xkbbasedirflag : "", xkmfile,
+                 xkbbasedirflag ? xkbbasedirflag : "",
+                 xkmfile,
                  PRE_ERROR_MSG, ERROR_PREFIX, POST_ERROR_MSG1,
                  xkm_output_dir, keymap,
                  getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ".") == -1)
@@ -179,7 +181,7 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
         if (fclose(out) == 0 && System(buf) >= 0)
 #endif
         {
-            if (xkbDebugFlags)
+            if (xkbDebugFlags || 1)
                 DebugF("[xkb] xkb executes: %s\n", buf);
             free(buf);
 #ifdef WIN32
