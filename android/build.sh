@@ -41,7 +41,6 @@ patch -p0 < ../../sed.diff || exit 1
 
 env CFLAGS="-Os" \
 LDFLAGS="-pie -L$BUILDDIR" \
-LIBS="-landroid_support -landroid-shmem" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure --host=$TARGET_HOST --prefix=$BUILDDIR/usr \
 --without-selinux --disable-nls --disable-i18n --disable-rpath --without-libiconv-prefix --without-libintl-prefix \
@@ -1175,7 +1174,7 @@ LDFLAGS="-L$BUILDDIR \
 	-L$SYSTEM_LIBDIR" \
 PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 ./setCrossEnvironment.sh \
-LIBS="-lfontenc -lfreetype -llog -lsdl-1.2 -lsdl_native_helpers -lGLESv1_CM -landroid-shmem -l:libcrypto.so.sdl.1.so -lz -lm -ldl" \
+LIBS="-lfontenc -lfreetype -llog -lsdl-1.2 -lsdl_native_helpers -lGLESv1_CM -landroid-shmem -l:libcrypto.so.sdl.1.so -lz -lm -ldl -landroid -llog" \
 OPENSSL_LIBS=-l:libcrypto.so.sdl.1.so \
 LIBSHA1_LIBS=-l:libcrypto.so.sdl.1.so \
 PATH=$BUILDDIR:$PATH \

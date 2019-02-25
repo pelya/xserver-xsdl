@@ -62,9 +62,6 @@ LDFLAGS="
 -Qunused-arguments
 -Wl,-z,relro
 -Wl,-z,now
--shared
--landroid
--llog
 -latomic
 -lm
 $LDFLAGS"
