@@ -143,18 +143,18 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
     }
 
     if (asprintf(&buf,
-                 "cat %s | \"%s%sxkbcomp\" -I%s/usr/share/X11/xkb -w %d %s -xkm \"%s\" "
+                 "\"%s%sxkbcomp\" -I%s/usr/share/X11/xkb -w %d %s -xkm \"%s/%s\" "
                  "-em1 %s -emp %s -eml %s \"%s%s.xkm\" 2>%s/popen-stderr.txt",
-                 xkmfile,
                  xkbbindir, xkbbindirsep,
-                 (getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ""),
+                 getenv("SECURE_STORAGE_DIR"),
                  ((xkbDebugFlags < 2) ? 1 :
                   ((xkbDebugFlags > 10) ? 10 : (int) xkbDebugFlags)),
                  xkbbasedirflag ? xkbbasedirflag : "",
+                 getenv("SECURE_STORAGE_DIR"),
                  xkmfile,
                  PRE_ERROR_MSG, ERROR_PREFIX, POST_ERROR_MSG1,
                  xkm_output_dir, keymap,
-                 getenv("SECURE_STORAGE_DIR") ? getenv("SECURE_STORAGE_DIR") : ".") == -1)
+                 getenv("SECURE_STORAGE_DIR")) == -1)
         buf = NULL;
 
     free(xkbbasedirflag);
