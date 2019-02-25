@@ -1,20 +1,72 @@
 // based on a keyboard map from an 'xkb/symbols/pl' file
 
-partial default alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
+
+    // Visualisation and description: http://podziemie.net/xkb/pl
+    // Contact: Michał Górny <zrchos+freedesktop@gmail.com>
 
     include "latin"
 
     name[Group1]="Polish";
 
-    key <AD01>  { [         q,          Q ] };
-    key <AD02>  { [         w,          W ] };
+    key <AE01>	{ [         1,     exclam,     notequal,   exclamdown ]	};
+    key <AE02>	{ [         2,         at,  twosuperior, questiondown ]	};
+    key <AE04>	{ [         4,     dollar,         cent,   onequarter ]	};
+    key <AE05>	{ [         5,    percent,     EuroSign,        U2030 ]	};
+    key <AE06>	{ [         6, asciicircum,     onehalf,   logicaland ]	};
+    key <AE07>	{ [         7,  ampersand,      section,        U2248 ]	};
+    key <AE08>	{ [         8,   asterisk, periodcentered, threequarters ] };
+    key <AE09>	{ [         9,  parenleft, guillemotleft,   plusminus ]	};
+    key <AE10>	{ [         0, parenright, guillemotright,     degree ]	};
+    key <AE11>	{ [     minus, underscore,       endash,       emdash ]	};
+
+    key <AD01>	{ [         q,          Q,     Greek_pi,  Greek_OMEGA ]	};
+    key <AD02>	{ [         w,          W,           oe,           OE ]	};
     key <AD03>	{ [         e,          E,      eogonek,      Eogonek ]	};
+    key <AD04>	{ [         r,          R,    copyright,   registered ]	};
+    key <AD05>	{ [         t,          T,       ssharp,    trademark ]	};
+    key <AD08>	{ [         i,          I,   rightarrow,        U2194 ]	};
     key <AD09>	{ [         o,          O,       oacute,       Oacute ]	};
 
     key <AC01>	{ [         a,          A,      aogonek,      Aogonek ]	};
     key <AC02>	{ [         s,          S,       sacute,       Sacute ]	};
-    key <AC04>  { [         f,          F ] };
+    key <AC04>	{ [         f,          F,           ae,           AE ]	};
+    key <AC06>	{ [         h,          H, rightsinglequotemark, U2022 ] };
+    key <AC07>	{ [         j,          J,        schwa,        SCHWA ]	};
+    key <AC08>	{ [         k,          K,     ellipsis,  dead_stroke ]	};
+    key <TLDE>	{ [     grave, asciitilde,      notsign,    logicalor ]	};
+
+    key <AB01>	{ [         z,          Z,    zabovedot,    Zabovedot ]	};
+    key <AB02>	{ [         x,          X,       zacute,       Zacute ]	};
+    key <AB03>	{ [         c,          C,       cacute,       Cacute ]	};
+    key <AB04>	{ [         v,          V, doublelowquotemark, leftsinglequotemark ] };
+    key <AB05>	{ [         b,          B, rightdoublequotemark, leftdoublequotemark ] };
+    key <AB06>	{ [         n,          N,       nacute,       Nacute ]	};
+    key <AB07>	{ [         m,          M,           mu,     infinity ]	};
+    key <AB08>	{ [     comma,       less, lessthanequal,    multiply ]	};
+    key <AB09>	{ [    period,    greater, greaterthanequal, division ]	};
+
+    key <SPCE>	{ [     space,      space, nobreakspace, nobreakspace ]	};
+
+    include "kpdl(comma)"
+
+    include "level3(ralt_switch)"
+};
+
+partial alphanumeric_keys
+xkb_symbols "legacy" {
+
+    include "latin"
+
+    name[Group1]="Polish (legacy)";
+
+    key <AD03>	{ [         e,          E,      eogonek,      Eogonek ]	};
+    key <AD07>  { [         u,          U,	EuroSign,     cent    ] };
+    key <AD09>	{ [         o,          O,       oacute,       Oacute ]	};
+
+    key <AC01>	{ [         a,          A,      aogonek,      Aogonek ]	};
+    key <AC02>	{ [         s,          S,       sacute,       Sacute ]	};
 
     key <AB01>	{ [         z,          Z,    zabovedot,    Zabovedot ]	};
     key <AB02>	{ [         x,          X,       zacute,       Zacute ]	};
@@ -29,12 +81,9 @@ xkb_symbols "basic" {
 partial alphanumeric_keys
 xkb_symbols "qwertz" {
 
-    // Describes the differences between a very simple en_US
-    // keyboard and a very simple QWERTZ Polish keybaord
-
     include "latin(type3)"
 
-    name[Group1]="Polish (qwertz)";
+    name[Group1]="Polish (QWERTZ)";
 
     key <AE01>	{ [         1,     exclam,   asciitilde,   exclamdown ]	};
     key <AE02>	{ [         2,   quotedbl,   dead_caron,    oneeighth ]	};
@@ -73,55 +122,6 @@ xkb_symbols "qwertz" {
     include "level3(ralt_switch)"
 };
 
-// A Polish keymap with a comprehensive set of quotes, dashes, and dead accents
-// 
-// See http://marcinwolinski.pl/keyboard/ for a description.
-//
-// ┌────┐
-// │ 2 4│   2 = Shift,  4 = Level3 + Shift
-// │ 1 3│   1 = Normal, 3 = Level3
-// └────┘
-// ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┲━━━━━━━━━┓
-// │ ~ ~ │ ! ' │ @ " │ # ˝ │ $ ¸ │ % ˇ │ ^ ^ │ & ˘ │ * ˙ │ ( ̣ │ ) ° │ _ ¯ │ + ˛ ┃ ⌫ Back  ┃
-// │ ` ` │ 1 ¡ │ 2 © │ 3 • │ 4 § │ 5 € │ 6 ¢ │ 7 − │ 8 × │ 9 ÷ │ 0 ° │ - – │ = — ┃  space  ┃
-// ┢━━━━━┷━┱───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┺━┳━━━━━━━┫
-// ┃       ┃ Q   │ W   │ E Ę │ R   │ T   │ Y   │ U   │ I   │ O Ó │ P   │ { « │ } » ┃ Enter ┃
-// ┃Tab ↹  ┃ q   │ w   │ e ę │ r   │ t   │ y   │ u   │ i   │ o ó │ p   │ [ ‹ │ ] › ┃   ⏎   ┃
-// ┣━━━━━━━┻┱────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┺┓      ┃
-// ┃        ┃ A Ą │ S Ś │ D   │ F   │ G   │ H   │ J   │ K   │ L Ł │ : “ │ " ” │ | ¶ ┃      ┃
-// ┃Caps ⇬  ┃ a ą │ s ś │ d   │ f   │ g   │ h   │ j   │ k   │ l ł │ ; ‘ │ ' ’ │ \   ┃      ┃
-// ┣━━━━━━━━┹────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┲┷━━━━━┻━━━━━━┫
-// ┃             │ Z Ż │ X Ź │ C Ć │ V   │ B   │ N Ń │ M   │ < „ │ > · │ ? ¿ ┃             ┃
-// ┃Shift ⇧      │ z ż │ x ź │ c ć │ v   │ b   │ n ń │ m   │ , ‚ │ . … │ / ⁄ ┃Shift ⇧      ┃
-// ┣━━━━━━━┳━━━━━┷━┳━━━┷━━━┱─┴─────┴─────┴─────┴─────┴─────┴───┲━┷━━━━━╈━━━━━┻━┳━━━━━━━┳━━━┛
-// ┃       ┃       ┃       ┃ ␣                               ⍽ ┃       ┃       ┃       ┃
-// ┃Ctrl   ┃Meta   ┃Alt    ┃ ␣           Space               ⍽ ┃AltGr ⇮┃Menu   ┃Ctrl   ┃
-// ┗━━━━━━━┻━━━━━━━┻━━━━━━━┹───────────────────────────────────┺━━━━━━━┻━━━━━━━┻━━━━━━━┛
-
-partial alphanumeric_keys
-xkb_symbols "intl" {
-
-    include "latin(intl)"
-
-    name[Group1]="Polish (international with dead keys)";
-
-    key <AD03>	{ [         e,          E,      eogonek,      Eogonek ]	};
-    key <AD09>	{ [         o,          O,       oacute,       Oacute ]	};
-
-    key <AC01>	{ [         a,          A,      aogonek,      Aogonek ]	};
-    key <AC02>	{ [         s,          S,       sacute,       Sacute ]	};
-    key <AC09>	{ [         l,          L,      lstroke,      Lstroke ]	};
-
-    key <AB01>	{ [         z,          Z,    zabovedot,    Zabovedot ]	};
-    key <AB02>	{ [         x,          X,       zacute,       Zacute ]	};
-    key <AB03>	{ [         c,          C,       cacute,       Cacute ]	};
-    key <AB06>	{ [         n,          N,       nacute,       Nacute ]	};
-
-    include "kpdl(comma)"
-
-    include "level3(ralt_switch)"
-};
-
 // Polish Dvorak keymaps
 // by Rafal Rzepecki <divide@users.sf.net>
 
@@ -132,10 +132,10 @@ xkb_symbols "intl" {
 // "1/!" key. If you do not use Polish quotes at all, you can use "pl_basic" map.
 
 // Basic Polish keymap (without Polish quotes)
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "dvorak" {
     include "us(dvorak)"
-    
+
     name[Group1] = "Polish (Dvorak)";
 
     key <AD08> { [	    c,	C,	cacute,	Cacute		]	};
@@ -147,22 +147,18 @@ xkb_symbols "dvorak" {
     key <AC10> { [	    s,	S,      sacute, Sacute		]	};
     key <AB09> { [	    v,	V,      zacute, Zacute		]	};
     key <AB10> { [	    z,	Z,   zabovedot, Zabovedot	]	};
-    
+
     include "kpdl(comma)"
 
-    // this to allow writing ALL CAPS with a Shift key
     include "level3(ralt_switch)"
-
-    // use one of compose:* options to choose Multi_key, if you will,
-    // or layout +level3(ralt_switch_multikey) to revert standard behaviour
 };
 
 // Default Polish keymap with Polish quotes on quotemark key
 partial alphanumeric_keys
 xkb_symbols "dvorak_quotes" {
     include "pl(dvorak)"
-    
-    name[Group1] = "Polish (Dvorak, Polish quotes on quotemark key)";
+
+    name[Group1] = "Polish (Dvorak, with Polish quotes on quotemark key)";
 
     key <AD01> { [  apostrophe,	quotedbl, doublelowquotemark, rightdoublequotemark	] };
 
@@ -175,13 +171,13 @@ partial alphanumeric_keys
 xkb_symbols "dvorak_altquotes" {
     include "pl(dvorak)"
 
-    name[Group1] = "Polish (Dvorak, Polish quotes on key 1)";
+    name[Group1] = "Polish (Dvorak, with Polish quotes on key 1)";
 
     key <AE01> { [	    1,	exclam, doublelowquotemark, rightdoublequotemark	]	};
 };
 
-// Polish Programmer Dvorak keymap  by Michal Nazarewicz <mina86@mina86.com>
-// based on Programmer Dvorak  by Roland Kaufmann <rlndkfmn at gmail dot com>
+// Polish programmer Dvorak keymap  by Michal Nazarewicz <mina86@mina86.com>
+// based on programmer Dvorak  by Roland Kaufmann <rlndkfmn at gmail dot com>
 //      and Polish Dvorak keymaps  by Rafal Rzepecki <divide@users.sf.net
 //      and latin(basic)
 //
@@ -220,7 +216,7 @@ xkb_symbols "dvp" {
 
     // upper row, left side
 
-    // // upper row, right side
+    // upper row, right side
     key <AD08> { [ c,            C,              cacute,          Cacute     ] };
     key <AD10> { [ l,            L,              lstroke,         Lstroke    ] };
 
@@ -232,8 +228,6 @@ xkb_symbols "dvp" {
     // home row, right side
     key <AC09> { [ n,            N,              nacute,          Nacute     ] };
     key <AC10> { [ s,            S,              sacute,          Sacute     ] };
-    key <AC11> { [ minus,        underscore,     hyphen                      ], type[Group1] = "FOUR_LEVEL_ALPHABETIC" };
-    key <BKSL> { [ backslash,    bar                                         ] };
 
     // lower row, left side
     key <AB03> { [ j,            J,              doublelowquotemark, rightdoublequotemark ] };
@@ -247,13 +241,41 @@ xkb_symbols "dvp" {
 
     include "kpdl(comma)"
 
-    // this to allow writing ALL CAPS with a Shift key
     include "level3(ralt_switch)"
-
-    // use one of compose:* options to choose Multi_key, if you will,
-    // or layout +level3(ralt_switch_multikey) to revert standard behaviour
 };
 
+// Silesian keyboard layout by Grzegorz Kulik <poslunsku@gmail.com>
+// and Przemysław Buczkowski <przemub@yahoo.pl>.
+// See http://poslunsku.eu/2012/07/slonsko-slabikorzowo-klawiatura-na-windows-i-ubuntu/
+// for a description.
+
+partial alphanumeric_keys
+xkb_symbols "szl" {
+
+    include "latin"
+
+    name[Group1]="Silesian";
+
+    key <AD01>  { [         q,          Q ] };
+    key <AD02>  { [         w,          W ] };
+    key <AD03>	{ [         e,          E,      atilde,      Atilde ]	};
+    key <AD09>	{ [         o,          O,       ocircumflex,       Ocircumflex ]	};
+    key <AD07>  { [         u,          U,       omacron,       Omacron ]        };
+    key <AD10>	{ [         p,          P,       otilde,       Otilde ]	};
+
+    key <AC01>	{ [         a,          A,      U014F,      U014E ]	};
+    key <AC02>	{ [         s,          S,       sacute,       Sacute ]	};
+    key <AC04>  { [         f,          F ] };
+
+    key <AB01>	{ [         z,          Z,    zabovedot,    Zabovedot ]	};
+    key <AB02>	{ [         x,          X,       zacute,       Zacute ]	};
+    key <AB03>	{ [         c,          C,       cacute,       Cacute ]	};
+    key <AB06>	{ [         n,          N,       nacute,       Nacute ]	};
+
+    include "kpdl(comma)"
+
+    include "level3(ralt_switch)"
+};
 
 partial alphanumeric_keys
 xkb_symbols "csb" {
@@ -398,3 +420,123 @@ xkb_symbols "ru_phonetic_dvorak" {
    include "level3(ralt_switch)"
 };
 
+// EXTRAS:
+
+// A Polish keymap with a comprehensive set of quotes, dashes, and dead accents
+// 
+// See http://marcinwolinski.pl/keyboard/ for a description.
+//
+// ┌────┐
+// │ 2 4│   2 = Shift,  4 = Level3 + Shift
+// │ 1 3│   1 = Normal, 3 = Level3
+// └────┘
+// ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┲━━━━━━━━━┓
+// │ ~ ~ │ ! ' │ @ " │ # ˝ │ $ ¸ │ % ˇ │ ^ ^ │ & ˘ │ * ˙ │ ( ̣ │ ) ° │ _ ¯ │ + ˛ ┃ ⌫ Back  ┃
+// │ ` ` │ 1 ¡ │ 2 © │ 3 • │ 4 § │ 5 € │ 6 ¢ │ 7 − │ 8 × │ 9 ÷ │ 0 ° │ - – │ = — ┃  space  ┃
+// ┢━━━━━┷━┱───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┺━┳━━━━━━━┫
+// ┃       ┃ Q   │ W   │ E Ę │ R   │ T   │ Y   │ U   │ I   │ O Ó │ P   │ { « │ } » ┃ Enter ┃
+// ┃Tab ↹  ┃ q   │ w   │ e ę │ r   │ t   │ y   │ u   │ i   │ o ó │ p   │ [ ‹ │ ] › ┃   ⏎   ┃
+// ┣━━━━━━━┻┱────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┺┓      ┃
+// ┃        ┃ A Ą │ S Ś │ D   │ F   │ G   │ H   │ J   │ K   │ L Ł │ : “ │ " ” │ | ¶ ┃      ┃
+// ┃Caps ⇬  ┃ a ą │ s ś │ d   │ f   │ g   │ h   │ j   │ k   │ l ł │ ; ‘ │ ' ’ │ \   ┃      ┃
+// ┣━━━━━━━━┹────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┲┷━━━━━┻━━━━━━┫
+// ┃             │ Z Ż │ X Ź │ C Ć │ V   │ B   │ N Ń │ M   │ < „ │ > · │ ? ¿ ┃             ┃
+// ┃Shift ⇧      │ z ż │ x ź │ c ć │ v   │ b   │ n ń │ m   │ , ‚ │ . … │ / ⁄ ┃Shift ⇧      ┃
+// ┣━━━━━━━┳━━━━━┷━┳━━━┷━━━┱─┴─────┴─────┴─────┴─────┴─────┴───┲━┷━━━━━╈━━━━━┻━┳━━━━━━━┳━━━┛
+// ┃       ┃       ┃       ┃ ␣                               ⍽ ┃       ┃       ┃       ┃
+// ┃Ctrl   ┃Meta   ┃Alt    ┃ ␣           Space               ⍽ ┃AltGr ⇮┃Menu   ┃Ctrl   ┃
+// ┗━━━━━━━┻━━━━━━━┻━━━━━━━┹───────────────────────────────────┺━━━━━━━┻━━━━━━━┻━━━━━━━┛
+
+partial alphanumeric_keys
+xkb_symbols "intl" {
+
+    include "latin(intl)"
+
+    name[Group1]="Polish (intl., with dead keys)";
+
+    key <AD03>	{ [         e,          E,      eogonek,      Eogonek ]	};
+    key <AD09>	{ [         o,          O,       oacute,       Oacute ]	};
+
+    key <AC01>	{ [         a,          A,      aogonek,      Aogonek ]	};
+    key <AC02>	{ [         s,          S,       sacute,       Sacute ]	};
+    key <AC09>	{ [         l,          L,      lstroke,      Lstroke ]	};
+
+    key <AB01>	{ [         z,          Z,    zabovedot,    Zabovedot ]	};
+    key <AB02>	{ [         x,          X,       zacute,       Zacute ]	};
+    key <AB03>	{ [         c,          C,       cacute,       Cacute ]	};
+    key <AB06>	{ [         n,          N,       nacute,       Nacute ]	};
+
+    include "kpdl(comma)"
+
+    include "level3(ralt_switch)"
+};
+
+// Polish Colemak
+// by Tomek Piotrowski <tomek.piotrowski@atteo.com>
+//
+partial alphanumeric_keys
+xkb_symbols "colemak" {
+    include "us(colemak)"
+    name[Group1]= "Polish (Colemak)";
+
+    key <AB01> { [            z,            Z,       zabovedot,        Zabovedot ] };
+    key <AB02> { [            x,            X, 	        zacute,           Zacute ] };
+    key <AB03> { [            c,            C,          cacute,           Cacute ] };
+    key <AC01> { [            a,            A,         aogonek,          Aogonek ] };
+    key <AC03> { [            s,            S,          sacute,           Sacute ] };
+    key <AC07> { [            n,            N,          nacute,           Nacute ] };
+    key <AC08> { [            e,            E,         eogonek,          Eogonek ] };
+    key <AC10> { [            o,            O,          oacute,           Oacute ] };
+    key <AD07> { [            l,            L,         lstroke,          Lstroke ] };
+
+    include "level3(ralt_switch)"
+};
+
+partial alphanumeric_keys
+       xkb_symbols "sun_type6" {
+       include "sun_vndr/pl(sun_type6)"
+};
+
+//Glagolica
+partial alphanumeric_keys
+xkb_symbols "glagolica"
+{
+    name[Group1] = "Polish (Glagolica)";
+
+    key <AD01> { [ U2C21, U2C23, any, any ] };//q/Q/Ⱑ/Ⱓ
+    key <AD02> { [ U2C02, U2C19, any, any ] };//w/W/Ⰲ/Ⱉ/
+    key <AD03> { [ U2C05, U2C27, U2C24, U2C25 ] };//e/E/Ⰵ/Ⱗ/Ⱔ/Ⱕ
+    key <AD04> { [ U2C13, U2C13, any, any ] };//r/R/Ⱃ/Ⱃ
+    key <AD05> { [ U2C15, U2C15, any, any ] };//t/T/Ⱅ/Ⱅ
+    key <AD06> { [ U2C09, U2C0A, U2C20, any ] };//y/Y/Ⰹ/Ⰺ/Ⱐ
+    key <AD07> { [ U2C16, U2C16, any, any ] };//u/U/Ⱆ/
+    key <AD08> { [ U2C0B, U2C09, any, any ] };//i/I/Ⰻ/Ⰹ
+    key <AD09> { [ U2C11, U2C19, U2C41, any ] };//o/O/Ⱁ/Ⱉ/ⱁ
+    key <AD10> { [ U2C12, U2C1A, any, any ] };//p/P/Ⱂ/Ⱊ
+    key <AD11> { [ U2C1E, U2C26, any, any ] };//[/{/Ⱎ/Ⱖ
+    key <AD12> { [ U2C1B, U2C29, any, any ] };//]/}/Ⱋ/Ⱙ
+    key <AC01> { [ U2C00, U2C00, U2C28, U2C29 ] };//a/A/Ⰰ/Ⰰ/Ⱘ/Ⱙ
+    key <AC02> { [ U2C14, U2C1E, any, any ] };//[/{/Ⱄ/Ⱎ
+    key <AC03> { [ U2C04, U2C04, any, any ] };//d/D/Ⰴ/Ⰴ
+    key <AC04> { [ U2C17, U2C2A, any, any ] };//f/F/Ⱇ/Ⱚ
+    key <AC05> { [ U2C03, U2C03, any, any ] };//g/G/Ⰳ/Ⰳ
+    key <AC06> { [ U2C18, U2C18, any, any ] };//h/H/Ⱈ/Ⱈ
+    key <AC07> { [ U2C0A, U2C0A, any, any ] };//j/J/Ⰺ/Ⰺ
+    key <AC08> { [ U2C0D, U2C0D, any, any ] };//k/K/Ⰽ/Ⰽ
+    key <AC09> { [ U2C0E, U2C0E, any, any ] };//l/L/Ⰾ/Ⰾ
+    key <AC12> { [ U2C0C, any, any, any ] };//\/|/Ⰼ
+    key <AC10> { [ U2C28, U2C24, any, any ] };//;/:/Ⱘ/Ⱔ
+    key <AC11> { [ U2C06, any, any, any ] };//'/"/Ⰶ
+    key <AB01> { [ U2C08, U2C07, any, any ] };//z/Z/Ⰸ/Ⰷ
+    key <AB02> { [ U2C20, U2C1F, any, any ] };//x/X/Ⱐ/Ⱏ
+    key <AB03> { [ U2C1C, U2C1D, any, any] };//c/C/Ⱌ/Ⱍ
+    key <AB04> { [ U2C02, U2C2B, any, any ] };//v/V/Ⰲ/Ⱛ
+    key <AB05> { [ U2C01, U2C01, any, any ] };//b/B/Ⰱ/Ⰱ
+    key <AB06> { [ U2C10, U2C10, any, any ] };//n/N/Ⱀ/Ⱀ
+    key <AB07> { [ U2C0F, U2C0F, any, any ] };//m/M/Ⰿ/Ⰿ
+
+    include "kpdl(comma)"
+
+    include "level3(ralt_switch)"
+
+};

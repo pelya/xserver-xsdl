@@ -1,7 +1,7 @@
 //
 // Default Chinese is the same as American
 //
-partial default alphanumeric_keys 
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
     include "us(basic)"
 
@@ -58,7 +58,7 @@ xkb_symbols "basic" {
 // you and maybe they'll find a fix. You won't notice it unless you're
 // fast at typing Tibetan anyway.
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "tib" {
 
     name[Group1]= "Tibetan";
@@ -113,7 +113,7 @@ xkb_symbols "tib" {
     key <AB08> { [ 0x1000f50, 0x1000f4b, 0x1000fa0, 0x1000f9b ] }; # ཐ ཋ ྠ ྛ
     key <AB09> { [ 0x1000f47, 0x1000f3a, 0x1000f97, 0x1000f8b ] }; # ཇ ༺ ྗ ྋ
     key <AB10> { [ 0x1000f49, 0x1000f3b, 0x1000f99, 0x1000f8a ] }; # ཉ ༻ ྙ ྊ
- 
+
 };
 
 // Tibetan Standard Keyboard with ASCII numerals
@@ -131,7 +131,7 @@ xkb_symbols "tib" {
 // email addresses are not possible.) This mapping may change in the future
 // if a clearly better use for the shifted numerals is pointed out by users.
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "tib_asciinum" {
     include "cn(tib)"
 
@@ -149,32 +149,21 @@ xkb_symbols "tib_asciinum" {
     key <AE10> { [ 0, 0x1000f20, 0x1000f08, 0x1000f12 ] }; # 0 ༠ ༈ ༒
 };
 
-// Uyghur Standard Keyboard map for XKB/X.org
+// Uyghur Standard Keyboard Map for XKB/X.Org
 //
-// xkb version originally created by
-// Abdusalam Abdurahman <Abdusalam.Abdurahman@gmail.com>
-// slightly corrected according to feedback and submitted by
+// XKB version in collaboration by Muhemmed Abdullah <muhammad@yulghun.com>,
+// Abdussalam Abdurrahman <abdusalam.abdurahman@gmail.com>, and
 // Ekrem Tomur <ekrem.tomur@gmail.com>
 
-partial alphanumeric_keys 
-xkb_symbols "uig" {
+partial alphanumeric_keys
+xkb_symbols "ug" {
+    include "us(basic)"
 
     name[Group1]= "Uyghur";
 
-    key <TLDE> { [ grave,            asciitilde           ] };
-
-    key <AE01> { [ 1,                exclam               ] };  // 1 !
-    key <AE02> { [ 2,                at                   ] };  // 2 @
-    key <AE03> { [ 3,                numbersign           ] };  // 3 # 
-    key <AE04> { [ 4,                dollar               ] };  // 4 $
-    key <AE05> { [ 5,                percent              ] };  // 5 %
-    key <AE06> { [ 6,                asciicircum          ] };  // 6 ^
-    key <AE07> { [ 7,                ampersand            ] };  // 7 &
-    key <AE08> { [ 8,                asterisk             ] };  // 8 *
     key <AE09> { [ 9,                parenright           ] };  // 9 )
     key <AE10> { [ 0,                parenleft            ] };  // 0 (
     key <AE11> { [ minus,            0x1002014            ] };  // - —
-    key <AE12> { [ equal,            plus                 ] };  // = +
 
     key <AD01> { [ 0x1000686,        VoidSymbol           ] };  // چ
     key <AD02> { [ 0x10006cb,        VoidSymbol           ] };  // ۋ
@@ -199,7 +188,6 @@ xkb_symbols "uig" {
     key <AC08> { [ 0x1000643,        0x10006c6            ] };  // ك ۆ
     key <AC09> { [ 0x1000644,        VoidSymbol           ] };  // ل
     key <AC10> { [ Arabic_semicolon, colon                ] };  // ؛ :
-    key <AC11> { [ apostrophe,	     quotedbl             ] };  // ' "
 
     key <AB01> { [ 0x1000632,        VoidSymbol           ] };  // ز
     key <AB02> { [ 0x1000634,        VoidSymbol           ] };  // ش
@@ -211,6 +199,53 @@ xkb_symbols "uig" {
     key <AB08> { [ Arabic_comma,     0x100203a            ] };  // ، ›
     key <AB09> { [ period,           0x1002039            ] };  // . ‹
     key <AB10> { [ 0x1000626,        Arabic_question_mark ] };  // ئ ؟
-
-    key <BKSL> { [ backslash,        bar                  ] };  // \ |
 };
+
+// Pinyin Keyboard, in the style of altgr-intl
+//
+// Chinese speakers and learners often find it hard to type Hanyu Pinyin
+// with all its tones and ü. This rule defines an altgr-intl-like behavior,
+// with dead keys activated by "AltGr + <key>". It also works with many
+// "pinyin" extensions, such as Tongyong Pinyin (Taiwan Mandarin) and
+// various SASM/GNC romanizations.
+//
+// Number row keys 1 2 3 4 are defined as dead-keys for the tones.
+// They correspond to the four tones in Hanyu Pinyin.
+//
+// To generate a · for "neutral" syllables, use AltGr + ` (grave).
+// To generate a raw ü, use AltGr + v.
+// V is used instead of ü for tones.
+//
+// AltGr+Shift+` triggers dead_abovering (˚), used by the Taiwanese
+// Tongyong Pinyin variant for the "neutral" tone.
+//
+// AltGr+6 triggers dead_circumflex (^) for ê ẑ ĉ ŝ, etc.
+// These can be stacked after tones to produce ế and ề; other tones require
+// combining characters, available through nobreakspace (AltGr+Space).
+//
+// AltGr+Shift+6 triggers dead_diaeresis (¨) for SASM/GNC
+// romanization of tib, mon, and ug.
+//
+// This file should be used with an appropriate XCompose file with
+// definitons for dead_{macron,acute,caron,grave} + a/e/i/o/u/v(ü).
+// --Mingye Wang <arthur200126@gmail.com>
+
+partial alphanumeric_keys
+xkb_symbols "altgr-pinyin" {
+   include "us(basic)"
+   name[Group1]= "Hanyu Pinyin (altgr)";
+
+   key <TLDE> { [      grave,	asciitilde,  periodcentered,dead_abovering ]	};
+   key <AE01> { [	   1,	exclam,		dead_macron,	    macron ]	};
+   key <AE02> { [	   2,	at,		dead_acute,	     acute ]	};
+   key <AE03> { [	   3,	numbersign,	dead_caron,	     caron ]	};
+   key <AE04> { [	   4,	dollar,		dead_grave,	     grave ]	};
+
+   key <AE06> { [	   6,	asciicircum,	dead_circumflex, dead_diaeresis ]	};
+   key <AB04> {	[	   v,	V,		udiaeresis,	Udiaeresis ]	};
+
+   key <SPCE>  { [     space,   space,	      nobreakspace,   nobreakspace ]	};
+
+   include "level3(ralt_switch)"
+};
+

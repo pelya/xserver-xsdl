@@ -35,6 +35,16 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 # 
 #  XLocale Database Sample for ja_JP.jis
 # 
@@ -102,10 +112,8 @@ wc_shift_bits		7
 
 
 
-
 use_stdc_env		True
 force_convert_to_mb	True
-
 
 # 	cs0 class
 cs0	{

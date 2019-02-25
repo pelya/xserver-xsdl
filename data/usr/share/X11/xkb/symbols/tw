@@ -1,13 +1,10 @@
-// $XKeyboardConfig$
-
-partial default alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "tw" {
-
-    name[Group1]= "Taiwanese";
 
     include "us(basic)"
 
-    // Alphanumeric section
+    name[Group1]= "Taiwanese";
+
     key <TLDE> { [     grave, asciitilde,    dead_grave,       dead_tilde ] };
     key <AE01> { [	   1,     exclam,         U030D,       exclamdown ] };
     key <AE02> { [	   2,         at,         U0358,      twosuperior ] };
@@ -31,7 +28,7 @@ xkb_symbols "tw" {
     key <AD08> { [	   i,          I,         U0268,            U0197 ] };
     key <AD09> { [	   o,          O,        oslash,         Ooblique ] };
 
-    key <AC02> { [	   s,          S,        ssharp,         NoSymbol ] };
+    key <AC02> { [	   s,          S,        ssharp,            U1E9E ] };
     key <AC03> { [	   d,          D,         U1E0F,            U1E0E ] };
     key <AC05> { [	   g,          G,           eng,              ENG ] };
     key <AC09> { [         l,          L,         U1E3B,            U1E3A ] };
@@ -52,23 +49,30 @@ xkb_symbols "tw" {
 partial alphanumeric_keys
 xkb_symbols "indigenous" {
 
-  name[Group1]= "Taiwanese (indigenous)";
+    include "tw(tw)"
 
-  include "tw(tw)"
+    name[Group1]= "Taiwanese (indigenous)";
 
-  key <AC11> { [      U02BC,    quotedbl,      apostrophe, dead_doubleacute ] };
+    key <AC11> { [     U02BC,   quotedbl,    apostrophe, dead_doubleacute ] };
 
-  include "level3(ralt_switch)"
+    include "level3(ralt_switch)"
 };
 
 partial alphanumeric_keys
 xkb_symbols "saisiyat" {
 
-  name[Group1]= "Saisiyat (Taiwan)";
+    include "tw(indigenous)"
 
-  include "tw(indigenous)"
+    name[Group1]= "Saisiyat (Taiwan)";
 
-  key <AC10> { [ U02D0,      colon,         semicolon,   dead_diaeresis ] };
+    key <AC10> { [     U02D0,      colon,     semicolon,   dead_diaeresis ] };
 
-  include "level3(ralt_switch)"
+    include "level3(ralt_switch)"
+};
+
+// EXTRAS:
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type6" {
+	include "sun_vndr/tw(sun_type6)"
 };

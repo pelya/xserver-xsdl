@@ -35,4 +35,14 @@
 
 
 
-include "/usr/share/X11/locale/en_US.UTF-8/Compose"
+
+
+
+
+
+
+
+
+
+
+include "/proc/self/cwd/usr/share/X11/locale/en_US.UTF-8/Compose"

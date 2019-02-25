@@ -35,6 +35,16 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 #  XLocale Database Sample for zh_TW
 # 
 # Note: In lib/X11/lcCT.c, charset names for CNS11643 coded character
@@ -119,10 +129,8 @@ state_depend_encoding	False
 wc_encoding_mask	\x3fffc000
 wc_shift_bits		7
 
-
 use_stdc_env		True
 force_convert_to_mb	True
-
 
 # 	cs0 class
 cs0	{

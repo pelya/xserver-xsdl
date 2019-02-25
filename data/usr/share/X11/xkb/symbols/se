@@ -1,6 +1,6 @@
 // based on a keyboard map from an 'xkb/symbols/se' file
 
-partial default alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
     include "latin(type2)"
     include "se(se)"
@@ -39,19 +39,18 @@ xkb_symbols "nodeadkeys" {
     include "latin(type2_nodeadkeys)"
     include "se(se)"
 
-    name[Group1]="Swedish (eliminate dead keys)";
+    name[Group1]="Swedish (no dead keys)";
 
     key <AE12>	{ [     acute,      grave,    plusminus,      notsign ]	};
-
 };
 
 // Swedish Dvorak
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "dvorak" {
 
-    name[Group1]="Swedish (Dvorak)";
-
     include "se(basic)"
+
+    name[Group1]="Swedish (Dvorak)";
 
     key <AD01> { [     aring,      Aring,    backslash		     ]	};
     key <AD02> { [  adiaeresis,	Adiaeresis,  braceleft,  bracketleft ]	};
@@ -152,29 +151,22 @@ xkb_symbols "rus_nodeadkeys" {
     include "se(nodeadkeys)"
     include "se(rus)"
 
-    name[Group1]="Russian (Sweden, phonetic, eliminate dead keys)";
+    name[Group1]="Russian (Sweden, phonetic, no dead keys)";
 
     key <AE12> {	[ Cyrillic_hardsign, Cyrillic_HARDSIGN ]	};
 };
 
 xkb_symbols "smi" {
-
-    // Describes the differences between a Norwegian Northern Sami
-    // (keyboard with dead key support) and a Swedish/Finnish Sami
-    // keyboard according to the specs at:
-    // http://www.hum.uit.no/a/trond/se-lat9-sefi-keys.html
-
     include "fi(smi)"
-
     name[Group1]= "Northern Saami (Sweden)";
 };
 
 // Copied from macintosh_vndr/se
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "mac" {
 
     // Describes the differences between a very simple en_US
-    // keyboard and a very simple Swedish(Sweden) keybaord
+    // keyboard and a very simple Swedish(Sweden) keyboard.
 
     include "latin"
     name[Group1]= "Swedish (Macintosh)";
@@ -188,17 +180,17 @@ xkb_symbols "mac" {
     key <AE07> {	[               7,           slash, 	      bar,       backslash	]	};
     key <AE08> {	[               8,       parenleft,      bracketleft,       braceleft	]	};
     key <AE09> {	[               9,      parenright,     bracketright,      braceright	]	};
-    key <AB08> {	[           comma,       semicolon     	]	};
     key <AE10> {	[               0,           equal     	]	};
+    key <AE11> {	[            plus,        question      ]	};
+    key <AE12> {	[           acute,           grave	]	};
+    key <AD11> {	[	    aring,           Aring     	]	};
+    key <AD12> {	[       diaeresis,     asciicircum, 	asciitilde			]	};
+    key <AC10> {	[      odiaeresis,      Odiaeresis, 	   oslash,	    Ooblique	]	};
+    key <AC11> {	[      adiaeresis,      Adiaeresis,               ae,		AE	]	};
+    key <BKSL> {	[      apostrophe,        asterisk,               at			]	};
+    key <AB08> {	[           comma,       semicolon     	]	};
     key <AB09> {	[          period,           colon     	]	};
     key <AB10> {	[           minus,      underscore     	]	};
-    key	<AC10> {	[      odiaeresis,      Odiaeresis, 	   oslash,	    Ooblique	]	};
-    key <AE11> {	[            plus,        question      ]	};
-    key <AC11> {	[      adiaeresis,      Adiaeresis,               ae,		AE	]	};
-    key <AD11> {	[	    aring,           Aring     	]	};
-    key <AE12> {	[           acute,           grave	]	};
-    key <AD12> {	[       diaeresis,     asciicircum, 	asciitilde			]	};
-    key <BKSL> {	[      apostrophe,        asterisk,               at			]	};
 
     include "kpdl(comma)"
     include "level3(ralt_switch)"
@@ -210,9 +202,9 @@ xkb_symbols "mac" {
 partial alphanumeric_keys
 xkb_symbols "svdvorak" {
 
-   name[Group1]="Swedish (Svdvorak)";
-
    include "se(basic)"
+
+   name[Group1]="Swedish (Svdvorak)";
 
    key <AD01> { [ aring, Aring, braceleft ] };
    key <AD02> { [ comma, semicolon, bracketleft ] };
@@ -235,7 +227,7 @@ xkb_symbols "svdvorak" {
    key <AC07> { [ h, H ] };
    key <AC08> { [ t, T ] };
    key <AC09> { [ n, N ] };
-   key <AC10> { [ s, S, ssharp ] };
+   key <AC10> { [ s, S, ssharp, U1E9E ] };
    key <AC11> { [ minus, underscore ] };
    key <BKSL> { [ less, greater, bar ] };
 
@@ -310,3 +302,110 @@ xkb_symbols "swl" {
   key <AE09> { [ 0x110c97b, 0x110c90a, 0x110c98b, 0x110c965 ] };
   key <AE10> { [ 0x110c974, 0x110c909, 0x110c98c, 0x110c968 ] };
 };
+
+partial alphanumeric_keys
+xkb_symbols "us" {
+    include "us"
+
+    name[Group1]="Swedish (US, with Swedish letters)";
+
+    key <AC10> { [ NoSymbol, NoSymbol, odiaeresis, Odiaeresis ] };
+    key <AC11> { [ NoSymbol, NoSymbol, adiaeresis, Adiaeresis ] };
+    key <AD11> { [ NoSymbol, NoSymbol, aring, Aring ] };
+
+    include "level3(ralt_switch)"
+};
+
+// EXTRAS:
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type6" {
+	include "sun_vndr/se(sun_type6)"
+};
+
+partial alphanumeric_keys
+xkb_symbols "dvorak_a5" {
+
+	include "se(basic)"
+
+	name[Group1]="Swedish (Dvorak A5)";
+
+	key <AE12> { [ dead_acute, dead_grave, plusminus,           none ] };
+
+	key <AD01> { [ aring,      Aring,      braceleft,           none ] };
+	key <AD02> { [ adiaeresis, Adiaeresis, braceright,          none ] };
+	key <AD03> { [ odiaeresis, Odiaeresis, bracketleft,         none ] };
+	key <AD04> { [ p,          P,          bracketright,        none ] };
+	key <AD05> { [ y,          Y,          dollar,              none ] };
+	key <AD06> { [ f,          F,          quotedbl,            none ] };
+	key <AD07> { [ g,          G,          question,            none ] };
+	key <AD08> { [ c,          C,          ampersand,           none ] };
+	key <AD09> { [ r,          R,          less,                none ] };
+	key <AD10> { [ l,          L,          greater,             none ] };
+	key <AD11> { [ comma,      semicolon,  dead_cedilla,        none ] };
+	key <AD12> { [ dead_diaeresis, dead_circumflex, dead_tilde,	asciicircum	]	};
+
+	key <AC01> { [ a,          A,          semicolon,           none ] };
+	key <AC02> { [ o,          O,          slash,               none ] };
+	key <AC03> { [ e,          E,          parenleft,           none ] };
+	key <AC04> { [ u,          U,          parenright,          none ] };
+	key <AC05> { [ i,          I,          bar,                 none ] };
+	key <AC06> { [ d,          D,          numbersign,          none ] };
+	key <AC07> { [ h,          H,          asciicircum,         none ] };
+	key <AC08> { [ t,          T,          numbersign,          none ] };
+	key <AC09> { [ n,          N,          quotedbl,            none ] };
+	key <AC10> { [ s,          S,          asciitilde,          none ] };
+	key <AC11> { [ minus,      underscore, grave,               none ] };
+
+	key <AB01> { [ period,     colon,      colon,               none ] };
+	key <AB02> { [ q,          Q,          equal,               none ] };
+	key <AB03> { [ j,          J,          at,                  none ] };
+	key <AB04> { [ k,          K,          exclam,              none ] };
+	key <AB05> { [ x,          X,          backslash,           none ] };
+	key <AB06> { [ b,          B,          percent,             none ] };
+	key <AB07> { [ m,          M,          grave,               none ] };
+	key <AB08> { [ w,          W,          lstroke,             none ] };
+	key <AB09> { [ v,          V,          leftdoublequotemark, none ] };
+	key <AB10> { [ z,          Z,          guillemotleft,       none ] };
+
+	key <BKSL> { [ apostrophe, asterisk,   asterisk,            none ] };
+
+};
+
+partial alphanumeric_keys
+xkb_symbols "ovd" {
+
+    // Adds combining ogonek (U0328) to the basic Swedish layout to facilitate
+    // typing of Ą ą Ę ę Į į Ų ų Y̨ y̨ Ą̊ ą̊.
+    // The character replaces <dead_diaeresis> which is considered dispensable
+    // since ä and ö have their own keys. <dead_diaeresis> is still available
+    // via <AltGr> + Å.
+
+    include "se(basic)"
+
+    name[Group1]="Elfdalian (Swedish, with combining ogonek)";
+
+    key <AD12> { [ U0328,  dead_circumflex,  dead_tilde,  dead_caron ] };
+};
+
+// us_dvorak
+// Author Thomas Lundqvist http://tlundqvist.org/sv_dvorak/
+
+partial alphanumeric_keys
+xkb_symbols "us_dvorak" {
+  include "us(dvorak-intl)"
+  name[Group1]="Swedish (based on US Intl. Dvorak)";
+
+  key <TLDE> { [ apostrophe,  asciitilde,           grave,      dead_tilde ] };
+  key <AE02> { [          2,    quotedbl,              at                  ] };
+  key <AE06> { [          6, asciicircum, dead_circumflex                  ] };
+  key <AD01> { [      aring,       Aring,      dead_acute                  ] };
+  key <AC11> { [      minus,  underscore,             bar,     dead_macron ] };
+  key <AB01> { [ adiaeresis,  Adiaeresis,      dead_grave,     dead_ogonek ] };
+  key <LSGT> { [ odiaeresis,  Odiaeresis,  dead_diaeresis,   dead_belowdot ] };
+  key <BKSL> { [  semicolon,       colon,       backslash                  ] };
+
+  include "kpdl(comma)"
+  include "level3(ralt_switch)"
+};
+

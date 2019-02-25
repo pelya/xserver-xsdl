@@ -1,17 +1,14 @@
-// Fairly complete set of symbol interpretations 
-// to provide reasonable default behavior
+// Fairly complete set of symbol interpretations
+// to provide reasonable default behavior.
 
-default partial xkb_compatibility "default"  {
-    virtual_modifiers LevelThree,AltGr;
+default partial xkb_compatibility "default" {
+
+    virtual_modifiers  LevelThree,AltGr;
 
     interpret.repeat= False;
     setMods.clearLocks= True;
     latchMods.clearLocks= True;
     latchMods.latchToLock= True;
-
-    interpret ISO_Lock+Any {
-	action= ISOLock(affect= all,modifiers=modMapMods);
-    };
 
     interpret ISO_Level2_Latch+Shift {
 	useModMapMods= level1;

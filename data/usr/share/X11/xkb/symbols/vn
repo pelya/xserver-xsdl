@@ -8,15 +8,14 @@
 // July 2009
 
 
-partial default alphanumeric_keys  
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
 
     include "us"
 
     name[Group1]= "Vietnamese";
 
-    // Alphanumeric section
-    key <TLDE> { [ quoteleft, asciitilde  ]	};
+    key <TLDE> { [	   grave, 	asciitilde	] };
     key <AE01> { [	   abreve,	Abreve		] };
     key <AE02> { [	   acircumflex,  Acircumflex	] };
     key <AE03> { [	   ecircumflex,	Ecircumflex	] };
@@ -33,7 +32,115 @@ xkb_symbols "basic" {
     key <AD11> { [ uhorn,	Uhorn	] };
     key <AD12> { [ ohorn,	Ohorn	] };
 
-    // End alphanumeric section
-
     include "level3(ralt_switch)"
+};
+
+
+// US keyboard made Vietnamese
+//
+// Copyright (C) 2018, Florent Gallaire Phong <f@gallai.re>
+
+partial alphanumeric_keys
+xkb_symbols "us" {
+
+    include "us(euro)"
+    name[Group1]= "Vietnamese (US, with Vietnamese letters)";
+
+    key <TLDE> { [dead_grave, dead_tilde,              grave,          asciitilde ] };
+    key <AE04> { [         4,     dollar,           DongSign,            currency ] }; // ₫ ¤
+
+    key <AD03> { [         e,          E,        ecircumflex,         Ecircumflex ] }; // ê Ê
+    key <AD07> { [         u,          U,              uhorn,               Uhorn ] }; // ư Ư
+    key <AD09> { [         o,          O,        ocircumflex,         Ocircumflex ] }; // ô Ô
+    key <AD10> { [         p,          P,              ohorn,               Ohorn ] }; // ơ Ơ
+
+    key <AC01> { [         a,          A,        acircumflex,         Acircumflex ] }; // â Â
+    key <AC02> { [         s,          S,             abreve,              Abreve ] }; // ă Ă
+    key <AC03> { [         d,          D,            dstroke,             Dstroke ] }; // đ Đ
+    key <AC11> { [dead_acute,   quotedbl,         apostrophe ] };
+
+    key <AB09> { [dead_belowdot, greater,             period ] };
+    key <AB10> { [ dead_hook,   question,              slash ] };
+};
+
+// French keyboard made Vietnamese
+//
+// Copyright (C) 2018, Florent Gallaire Phong <f@gallai.re>
+
+partial alphanumeric_keys
+xkb_symbols "fr" {
+
+    include "fr(basic)"
+
+    name[Group1]="Vietnamese (French, with Vietnamese letters)";
+
+    key <AE02> { [dead_tilde,          2,             eacute,          asciitilde ] };
+    key <AE04> { [dead_acute,          4,         apostrophe,           braceleft ] };
+    key <AE07> { [dead_grave,          7,             egrave,               grave ] };
+
+    key <AD01> { [         a,          A,             abreve,              Abreve ] }; // ă Ă
+    key <AD07> { [         u,          U,              uhorn,               Uhorn ] }; // ư Ư
+    key <AD09> { [         o,          O,              ohorn,               Ohorn ] }; // ơ Ơ
+    key <AD12> { [    dollar,   sterling,           DongSign,            currency ] }; // ₫ ¤
+
+    key <AC03> { [         d,          D,            dstroke,             Dstroke ] }; // đ Đ
+
+    key <AB07> { [ dead_hook,   question,          comma ] };
+    key <AB08> { [dead_belowdot,  period,      semicolon ] };
+};
+
+
+// EXTRAS:
+
+// Vietnamese AÐERTY (60s typewriters adaptation)
+//
+// Copyright (C) 2018, Florent Gallaire Phong <f@gallai.re>
+
+partial alphanumeric_keys
+xkb_symbols "aderty" {
+
+    include "fr(basic)"
+
+    name[Group1]="Vietnamese (AÐERTY)";
+
+    key <AE02> { [dead_tilde,          2,             eacute,          asciitilde ] };
+    key <AE04> { [dead_acute,          4,         apostrophe,           braceleft ] };
+    key <AE07> { [dead_grave,          7,             egrave,               grave ] };
+
+    key <AD02> { [   dstroke,    Dstroke,                  z,                   Z ] }; // đ Đ
+    key <AD12> { [    dollar,   sterling,           DongSign,            currency ] }; // ₫ ¤
+
+    key <AC04> { [     uhorn,      Uhorn,                  f,                   F ] }; // ư Ư
+    key <AC07> { [     ohorn,      Ohorn,                  j,                   J ] }; // ơ Ơ
+
+    key <AB01> { [    abreve,     Abreve,                  w,                   W ] }; // ă Ă
+    key <AB07> { [ dead_hook,   question,          comma ] };
+    key <AB08> { [dead_belowdot,  period,      semicolon ] };
+};
+
+// Vietnamese QĐERTY (AĐERTY qwertification)
+//
+// Copyright (C) 2018, Florent Gallaire Phong <f@gallai.re>
+
+partial alphanumeric_keys
+xkb_symbols "qderty" {
+
+    include "us(euro)"
+    name[Group1]= "Vietnamese (QĐERTY)";
+
+    key <TLDE> { [dead_grave, dead_tilde,              grave,          asciitilde ] };
+    key <AE04> { [         4,     dollar,           DongSign,            currency ] }; // ₫ ¤
+
+    key <AD02> { [   dstroke,    Dstroke,                  w,                   W ] }; // đ Đ
+    key <AD03> { [         e,          E,        ecircumflex,         Ecircumflex ] }; // ê Ê
+    key <AD09> { [         o,          O,        ocircumflex,         Ocircumflex ] }; // ô Ô
+
+    key <AC01> { [         a,          A,        acircumflex,         Acircumflex ] }; // â Â
+    key <AC04> { [     uhorn,      Uhorn,                  f,                   F ] }; // ư Ư
+    key <AC07> { [     ohorn,      Ohorn,                  j,                   J ] }; // ơ Ơ
+    key <AC11> { [dead_acute,   quotedbl,         apostrophe ] };
+
+    key <AB01> { [    abreve,     Abreve,                  z,                   Z ] }; // ă Ă
+    key <AB09> { [dead_belowdot, greater,             period ] };
+    key <AB10> { [ dead_hook,   question,              slash ] };
 };

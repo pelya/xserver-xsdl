@@ -1,4 +1,4 @@
-partial default alphanumeric_keys 
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
 
     include "latin(type2)"
@@ -30,12 +30,12 @@ xkb_symbols "basic" {
     include "level3(ralt_switch)"
 };
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "nodeadkeys" {
 
     include "fo(basic)"
 
-    name[Group1]= "Faroese (eliminate dead keys)";
+    name[Group1]= "Faroese (no dead keys)";
 
     key <AE12>	{ [     acute,      grave,          bar,       ogonek ]	};
     key <AD11>	{ [     aring,      Aring,    diaeresis,       degree ]	};

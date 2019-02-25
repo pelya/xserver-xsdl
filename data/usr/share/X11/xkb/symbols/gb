@@ -1,6 +1,6 @@
 // based on a keyboard map from an 'xkb/symbols/gb' file
 
-partial default alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
 
     // Describes the differences between a very simple en_US
@@ -25,7 +25,7 @@ xkb_symbols "basic" {
     include "level3(ralt_switch_multikey)"
 };
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "intl" { 
 
     // Describes the differences between a very simple en_US 
@@ -41,7 +41,7 @@ xkb_symbols "intl" {
 
     include "latin" 
 
-    name[Group1]="English (UK, international with dead keys)"; 
+    name[Group1]="English (UK, intl., with dead keys)";
 
     key <AE02>  { [   2,  dead_diaeresis,      twosuperior,     onehalf ] };
     key <AE03>  { [   3,        sterling,    threesuperior,    onethird ] };
@@ -57,7 +57,7 @@ xkb_symbols "intl" {
     include "level3(ralt_switch)"
 };
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "extd" {
     // Clone of the Microsoft "English (UK, Extended" layout, which
     // includes dead keys for: grave; diaeresis; circumflex; tilde; and
@@ -72,11 +72,10 @@ xkb_symbols "extd" {
 
     include "latin"
 
-    name[Group1]="English (UK, extended WinKeys)";
-    
-    // Alphanumeric section
+    name[Group1]="English (UK, extended, with Win keys)";
+
     key <TLDE> { [ dead_grave,    notsign,       brokenbar,    NoSymbol ] };
-    
+
     key <AE02> { [     2,        quotedbl,  dead_diaeresis,     onehalf ] };
     key <AE03> { [     3,        sterling,   threesuperior,    onethird ] };
     key <AE04> { [     4,          dollar,        EuroSign,  onequarter ] };
@@ -96,7 +95,6 @@ xkb_symbols "extd" {
 
     key <BKSL>  { [ numbersign, asciitilde,     dead_tilde,    NoSymbol ] };
     key <LSGT>  { [  backslash,        bar,       NoSymbol,    NoSymbol ] };
-    // End alphanumeric section
 
     include "level3(ralt_switch)"
 };
@@ -146,7 +144,7 @@ partial alphanumeric_keys
 xkb_symbols "dvorakukp" {
     include "gb(dvorak)"
 
-    name[Group1]="English (UK, Dvorak with UK punctuation)";
+    name[Group1]="English (UK, Dvorak, with UK punctuation)";
 
     key <AE11> {        [     minus,    underscore      ]       };
     key <AE12> {        [     equal,    plus            ]       };
@@ -157,7 +155,7 @@ xkb_symbols "dvorakukp" {
 };
 
 // Copied from macintosh_vndr/gb
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "mac" {
 
     // Describes the differences between a very simple en_US
@@ -169,21 +167,20 @@ xkb_symbols "mac" {
 
     key <AE02> {	[               2,              at,         EuroSign	]	};
     key <AE03> {	[               3,        sterling,       numbersign	]	};
-    key <LSGT> {	[               grave,  asciitilde ]	};
+    key <TLDE> {	[         section,       plusminus ]	};
+    key <LSGT> {	[           grave,      asciitilde ]	};
 
-    // End alphanumeric section
-    
     include "level3(ralt_switch)"
     include "level3(enter_switch)"
 };
 
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "mac_intl" { 
 
     include "latin" 
 
-    name[Group1]="English (UK, Macintosh international)"; 
+    name[Group1]="English (UK, intl., Macintosh)";
 
     key <AE02>  { [   2,                       at,           EuroSign,    onehalf ] };
     key <AE03>  { [   3,                 sterling,        twosuperior,   onethird ] };
@@ -198,4 +195,49 @@ xkb_symbols "mac_intl" {
     key <LSGT>  { [ dead_grave,        dead_tilde,          brokenbar,        bar ] };
 
     include "level3(ralt_switch)"
+};
+
+partial alphanumeric_keys
+xkb_symbols "pl" {
+
+    // Polish layout based on British keyboard
+    // Adopted 2016 by Aleksander Kowalski
+    
+    include "latin"
+    
+    name[Group1]="Polish (British keyboard)";
+
+    key <AE02>{ [         2,   quotedbl,  twosuperior,    oneeighth ]};
+    key <AE03>{ [         3,   sterling, threesuperior,    sterling ]};
+    key <AE04>{ [         4,     dollar,     EuroSign,   onequarter ]};
+    
+    key <AC11>{ [apostrophe,         at, dead_circumflex, dead_caron]};
+    key <TLDE>{ [     grave,    notsign,          bar,          bar ]};
+    
+    key <BKSL>{ [numbersign, asciitilde,   dead_grave,   dead_breve ]};
+    key <LSGT>{ [ backslash,        bar,          bar,    brokenbar ]};
+    
+    key <AD01>  { [         q,          Q ] };
+    key <AD02>  { [         w,          W ] };
+    key <AD03>{ [         e,          E,      eogonek,      Eogonek ]   };
+    key <AD09>  { [         o,          O,       oacute,       Oacute ] };
+    
+    key <AC01>  { [         a,          A,      aogonek,      Aogonek ] };
+    key <AC02>  { [         s,          S,       sacute,       Sacute ] };
+    key <AC04>  { [         f,          F ] };
+    
+    key <AB01>  { [         z,          Z,    zabovedot,    Zabovedot ] };
+    key <AB02>  { [         x,          X,       zacute,       Zacute ] };
+    key <AB03>  { [         c,          C,       cacute,       Cacute ] };
+    key <AB06>  { [         n,          N,       nacute,       Nacute ] };
+    
+    
+    include "level3(ralt_switch)"
+};
+
+// EXTRAS:
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type6" {
+	include "sun_vndr/gb(sun_type6)"
 };

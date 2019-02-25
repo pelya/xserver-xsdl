@@ -8,7 +8,7 @@
 // based on http://www.xs4all.nl/~koospol/public/Xmodmap-nl-deadkeys.gz
 
 
-default partial alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
 
     include "latin"
@@ -87,7 +87,7 @@ xkb_symbols "std" {
     key <BKSL>  { [           less,        greater                 ] };
 
     key <AC01>  { [              a,              A                 ] };
-    key <AC02>  { [              s,              S,         ssharp ] };
+    key <AC02>  { [              s,              S,  ssharp, U1E9E ] };
     key <AC03>  { [              d,              D                 ] };
     key <AC04>  { [              f,              F                 ] };
     key <AC05>  { [              g,              G                 ] };
@@ -120,7 +120,6 @@ xkb_symbols "Sundeadkeys" {
     // For naming consistency
 
     include "nl(basic)"
-
 };
 
 partial alphanumeric_keys
@@ -129,22 +128,23 @@ xkb_symbols "sundeadkeys" {
      // For naming consistency
 
     include "nl(Sundeadkeys)"
-    name[Group1]="Dutch (Sun dead keys)";
+    name[Group1]="Dutch (with Sun dead keys)";
 };
 
 // Copied from macintosh_vndr/nl
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "mac" {
-
-    // Describes the differences between a very simple mac_US
-    // keyboard and a very simple netherland keybaord
 
     include "latin"
 
     name[Group1]= "Dutch (Macintosh)";
 
     include "level3(ralt_switch)"
+};
 
-// do just nothing
+// EXTRAS:
 
+partial alphanumeric_keys
+	xkb_symbols "sun_type6" {
+	include "sun_vndr/nl(sun_type6)"
 };

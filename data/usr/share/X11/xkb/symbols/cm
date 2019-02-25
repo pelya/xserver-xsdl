@@ -1,4 +1,13 @@
 // ========== Cameroon Keyboards ==========
+
+
+// ----------------------------------------------------------------------------
+// This comment was added by <fotang at mmuock dot org>, on 18-Jun-2016:
+//  
+// All comments below this one, were in the original cm file;they do not
+// apply to the Mmuock keyboard which is defined towards the end of this file.
+// ----------------------------------------------------------------------------
+
 // ****** For Instructions, see "Use of Cameroon Keyboards" section	below ******
 
 
@@ -36,13 +45,11 @@
 // == Cameroon Dvorak ==
 // Cameroon Dvorak is uses a similar system to Cameroon QWERTY.
 
-default
-partial alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
 
 	name[Group1]="English (Cameroon)";
 
-	// Alphanumeric section
 	key <TLDE> { [ grave, asciitilde ] };
 	key <AE01> { [ 1, exclam ] };
 	key <AE02> { [ 2, at ] };
@@ -93,14 +100,13 @@ xkb_symbols "basic" {
 	key <AB10> { [ slash, U003F ] };
 
 	key <BKSL> { [ backslash, bar ] };
-	// End alphanumeric section
 };
 
 partial alphanumeric_keys
 xkb_symbols "french"
 {
-	name[Group1]="French (Cameroon)";
 	include "latin"
+	name[Group1]="French (Cameroon)";
 
 	key <AE01> { [ ampersand, 1, onesuperior, exclamdown ] };
 	key <AE02> { [ eacute, 2, asciitilde, oneeighth ] };
@@ -136,13 +142,11 @@ xkb_symbols "french"
 	include "level3(ralt_switch)"
 };
 
-
 partial alphanumeric_keys
 xkb_symbols "azerty"
 {
-	name[Group1] = "Cameroon Multilingual (azerty)";
-	include "level3(ralt_switch)"
 	include "cm(basic)"
+	name[Group1] = "Cameroon Multilingual (AZERTY)";
 	key <AB01> { [ w, W, U1E85, U1E84 ] };	//  SMALL LETTER W,  CAPITAL LETTER W, SMALL LETTER W WITH DIAERESIS, CAPITAL LETTER W WITH DIAERESIS
 	key <AB02> { [ x, X, U2039, U203A ] };	// SMALL LETTER X, CAPITAL LETTER X, SINGLE LEFT-POINTING ANGLE QUOTATION MARK, SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
 	key <AB03> { [ c, C, U0327, copyright ] };	// SMALL LETTER C, CAPITAL LETTER C, COMBINING CEDILLA, COPYRIGHT SIGN
@@ -158,7 +162,7 @@ xkb_symbols "azerty"
 	key <AC03> { [ d, D, U0257, U018A ] };	// SMALL LETTER D, CAPITAL LETTER D, SMALL LETTER D WITH HOOK, CAPITAL LETTER D WITH HOOK
 	key <AC04> { [ f, F, U00E6, U00C6 ] };	// SMALL LETTER F, CAPITAL LETTER F, SMALL LIGATURE AE, CAPITAL LIGATURE AE
 	key <AC05> { [ g, G, U02BC, UA78B ] };	// SMALL LETTER G, CAPITAL LETTER G, CURVED GLOTTAL, CAPITAL LETTER GLOTTAL (SALTILLO)
-	key <AC06> { [ h, H, U03B1, U2C6D ] };	// SMALL LETTER H, CAPITAL LETTER H, SMALL LETTER ALPHA, CAPITAL LETTER ALPHA
+	key <AC06> { [ h, H, U0251, U2C6D ] };	// SMALL LETTER H, CAPITAL LETTER H, SMALL LETTER ALPHA, CAPITAL LETTER ALPHA
 	key <AC07> { [ j, J, leftarrow, U2122 ] };	//SMALL LETTER J, CAPITAL LETTER J, LEFT ARROW, TRADE MARK SIGN
 	key <AC08> { [ k, K, downarrow, uparrow ] };	// SMALL LETTER K, CAPITAL LETTER K, DOWN ARROW, UP ARROW
 	key <AC09> { [ l, L, rightarrow, U00A3 ] };	// SMALL LETTER L, CAPITAL LETTER L, RIGHT ARROW, POUND STERLING
@@ -192,14 +196,14 @@ xkb_symbols "azerty"
 	key <LSGT> { [ U003C, U003E, U00AB, U00BB ] };	// LESS THAN, GREATER THAN, LEFT GUILLEMET, RIGHT GUILLEMET
 	key <TLDE> { [ U0024, U20AC, U00B2, U00B3 ] };	// DOLLAR, EURO, SUPERSCRIPT 2, SUPERSCRIPT 3
 	include "cm(exclamation_switch)"
+	include "level3(ralt_switch)"
 };
 
 partial alphanumeric_keys
 xkb_symbols "qwerty"
 {
-	name[Group1] = "Cameroon Multilingual (qwerty)";
-	include "level3(ralt_switch)"
 	include "cm(basic)"
+	name[Group1] = "Cameroon Multilingual (QWERTY)";
 	key <AB01> { [ z, Z, U2026, U2020 ] };	// SMALL LETTER Z, CAPITAL LETTER Z, ELLIPSIS, DAGGER
 	key <AB02> { [ x, X ] };	// SMALL LETTER X, CAPITAL LETTER X
 	key <AB03> { [ c, C, U0327, U00A9 ] };	// SMALL LETTER C, CAPITAL LETTER C, CEDILLA, COPYRIGHT
@@ -215,7 +219,7 @@ xkb_symbols "qwerty"
 	key <AC03> { [ d, D, U0257, U018A ] };	// SMALL LETTER D, CAPITAL LETTER D, SMALL LETTER D WITH HOOK, CAPITAL LETTER D WITH HOOK
 	key <AC04> { [ f, F, U00E6, U00C6 ] };	// SMALL LETTER F, CAPITAL LETTER F, SMALL LIGATURE AE, CAPITAL LIGATURE AE
 	key <AC05> { [ g, G, U02BC, UA78B ] };	// SMALL LETTER G, CAPITAL LETTER G, CURVED GLOTTAL, CAPITAL LETTER GLOTTAL (SALTILLO)
-	key <AC06> { [ h, H, U03B1, U2C6D ] };	// SMALL LETTER H, CAPITAL LETTER H, SMALL LETTER ALPHA, CAPITAL LETTER ALPHA
+	key <AC06> { [ h, H, U0251, U2C6D ] };	// SMALL LETTER H, CAPITAL LETTER H, SMALL LETTER ALPHA, CAPITAL LETTER ALPHA
 	key <AC07> { [ j, J, U0330, U0323 ] };	// SMALL LETTER J, CAPITAL LETTER J, COMBINING TILDE (NASAL) BELOW, COMBINING DOT BELOW
 	key <AC08> { [ k, K, U1DC5, U1DC7 ] };	// SMALL LETTER K, CAPITAL LETTER K, COMBINING LOW-MID TONE, COMBINING HIGH-MID
 	key <AC09> { [ l, L, U1DC6, U1DC4 ] };	// SMALL LETTER L, CAPITAL LETTER L, COMBINING MID-LOW, COMBINING MID-HIGH TONE
@@ -245,15 +249,14 @@ xkb_symbols "qwerty"
 	key <BKSL> { [ U005C, U007C ] };	// BACKSLASH, BAR
 	key <TLDE> { [ U030D, U0303, U0060, U007E ] };	// COMBINING VERTICAL LINE ABOVE, COMBINING TILDE ABOVE, GRAVE ACCENT, TILDE
 	include "cm(semicolon_switch)"
+	include "level3(ralt_switch)"
 };
-
 
 partial alphanumeric_keys
 xkb_symbols "dvorak"
 {
-	name[Group1] = "Cameroon Multilingual (Dvorak)";
-	include "level3(ralt_switch)"
 	include "us(dvorak)"
+	name[Group1] = "Cameroon Multilingual (Dvorak)";
 	key <AB01> { [ semicolon, colon ] };	// SEMICOLON, COLON
 	key <AB02> { [ q, Q, U2014, U2013 ] };	// SMALL LETTER Q, CAPITAL LETTER Q, EM DASH, EN DASH
 	key <AB03> { [ j, J, U0330, U0323 ] };	// SMALL LETTER J, CAPITAL LETTER J, COMBINING TILDE (NASAL) BELOW, COMBINING DOT BELOW
@@ -270,7 +273,7 @@ xkb_symbols "dvorak"
 	key <AC04> { [ u, U, U0289, U0244 ] };	// SMALL LETTER U, CAPITAL LETTER U, SMALL LETTER U BAR, CAPITAL LETTER U BAR
 	key <AC05> { [ i, I, U0268, U0197 ] };	// SMALL LETTER I, CAPITAL LETTER I, SMALL LETTER I BAR, CAPITAL LETTER I BAR
 	key <AC06> { [ d, D, U0257, U018A ] };	// SMALL LETTER D, CAPITAL LETTER D, SMALL LETTER D WITH HOOK, CAPITAL LETTER D WITH HOOK
-	key <AC07> { [ h, H, U03B1, U2C6D ] };	// SMALL LETTER H, CAPITAL LETTER H, SMALL LETTER ALPHA, CAPITAL LETTER ALPHA
+	key <AC07> { [ h, H, U0251, U2C6D ] };	// SMALL LETTER H, CAPITAL LETTER H, SMALL LETTER ALPHA, CAPITAL LETTER ALPHA
 	key <AC08> { [ t, T, U0153, U0152 ] };	// SMALL LETTER T, CAPITAL LETTER T, SMALL LIGATURE OE, CAPITAL LIGATURE OE
 	key <AC09> { [ n, N, U014B, U014A ] };	// SMALL LETTER N, CAPITAL LETTER N, SMALL LETTER ENG, CAPITAL LETTER ENG
 	key <AC10> { [ s, S ] };	// SMALL LETTER S, CAPITAL LETTER S
@@ -302,6 +305,7 @@ xkb_symbols "dvorak"
 	key <BKSL> { [ backslash, bar ] };	// BACKSLASH, BAR
 	key <TLDE> { [ U030D, U0303, U0060, U007E ] };	// COMBINING VERTICAL LINE ABOVE, COMBINING TILDE ABOVE, GRAVE ACCENT, TILDE
 	include "cm(semicolon_switch_dvorak)"
+	include "level3(ralt_switch)"
 };
 
 // The following code creates the "Cameroon key" phenomenon.
@@ -328,4 +332,159 @@ xkb_symbols "semicolon_switch_dvorak" {
 	};
 modifier_map Mod5	{ ISO_Level3_Latch };
 };
+
+
+// ------- begin Mmuock alphabet layout ------------------------------------------
+//   This layout is used for the Mmuock alphabet as described in the book
+//   _The Sound of Mmuock: Orthography (2. ed.)_ [isbn: 978-9956-645-28-1].
+//   Mmuock is the language of the Mmuock (local: Muòk) people of Western
+//   Cameroon.  
+// 
+//      Author: Tano Fotang <fotang at mmuock dot org>
+//     Created: 2014-06-24
+//     Version: 1.2
+//
+// CHANGES v 1.0:
+//	2014-07-06 corrected shifted level3 of <AC11> to quotedbl
+// CHANGES v 1.1:
+//  2015-05-23 1- added dead_tilde to key <TILDE>; this is needed to produce
+//               the letter <ñ> which was totally missing from the keyboard
+//             2- added letter <dz> to <AB01>; the letter had been missing.
+//             3- if we're not re-defining particular symbols from the included
+//               latin layout, then maintain the original latin mappings.
+//               Previously, we had set them to NoSymbol. Now, we want to
+//               keep the original latin mappings except for those few that we
+//               want to overwrite for our own keyboard.
+//
+// CHANGES v 1.2:
+// 2016-06-17  1- added dead keys dead_macron, dead_acute, and dead_grave for
+//                tones 1, 3, and 4, for compatibility with the Keyman version.
+//             2- rearranged combining diacritics for tones 0 to 5 such that
+//                the diacritics are on consequetive keys (AC01 to AC05).
+//             3- moved tone 8 to level 3 of AE12.
+//             4- moved layout definition out of the EXTRAS section.
+//             5- for a cleaner keyboard,
+//                replaced ṭhe included latin layout with us(basic).
+//
+//
+// NOTES:
+// 0. This map is based on the Latin alphabet layout for the US keyboard.
+//
+// 1. We use combining diacritical marks to create tone markings. There are 13
+//    tones that need to be indicated, although the first 5 are usually enough
+//    to represent the rest in simplified orthography.
+//
+// 2. When composing Mmuock text, about every fourth symbol is for tone. To
+//    facilitate easy and fast input, the combining diacritics are placed on
+//    the home row (AC). To reduce the number of key strokes required, the
+//    unshifted third level is used. Only 5 of the combining diacritics are not
+//    on the AC row; they are in the top number row, AE.
+//
+// 3. Symbols that are used infrequently (`r', `h', `ɛ', `ǝ', etc.) are placed
+//    in level3. Additionally, the letter eng (`ŋ'), although commonly used, 
+//    is found in level3 because it can alternatively be represented by <ng>.
+//    (Indeed, the keyman version of keyboard actually replaces <ng> with `ŋ'.)
+//
+// 4. The unshifted AB10 key (normally assigned to the slash `/') is used as
+//    level 3 switch since the slash is not used in the ordinary course of
+//    typing Mmuock text. 
+//
+// 5. The 'Cameroon Multilingual' keyboards that are defined elsewhere, do not
+//    fit our needs because: (a) they are based on a different alphabet, (b) the
+//    vast majority of their symbols are not used in Mmuock, and (c) for the few
+//    symbols that are used in Mmuock, their placings are not egonomic for 
+//    typing Mmuock as the _PRIMARY_ language. The aim of this keyboard, is
+//    to give priority to symbols that are actually used in the Mmuock alphabet.
+//
+// 6. The following fonts have been found to produce the best results with this
+//    keyboard:
+//         Family                    Accuracy
+//      DejaVu (except Sans Mono)        9/10 
+//      Linux Libertine                  8/10
+//      Ubuntu (except light)            8/10
+//      Droid (except sans mono)         7/10
+//      Gentium, Gentium Alt           6.5/10
+//    In the terminal emulator, the following font variants have been tested:
+//      Ubuntu Mono                      9/10
+//      Unifont (Medium)                 9/10
+//      DejaVu Sans Mono               7.5/10
+//      Droid Sans Mono                6.5/10
+//   These fonts are all freely available.
+// 
+// ------the layout-----------
+//
+//   ┌─────┐
+//   │ 2 4 │   2 = Shift,  4 = Level3 + Shift
+//   │ 1 3 │   1 = Normal, 3 = Level3
+//   └─────┘
+//
+//   ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┲━━━━━━━━━┓
+//   │ ~ ~ │ !   │ @   │ #   │ $   │ %   │ ^   │ &   | *   │ (   │ )   │ _ – │ +   ̣┃ ⌫ Back- ┃
+// AE│ ` ` │ 1   │ 2   │ 3   │ 4   │ 5   │ 6   ̂│ 7   ̑│ 8   ̍│ 9   ̓│ 0   ̊│ ¯ - │ =   ̋┃  space  ┃
+//   ┢━━━━━┷━┱───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┺━┳━━━━━━━┫
+//   ┃       ┃ Q   │ W   │ E Ǝ │ Š R │ T   │ Y   │ U Ω │ I Ɛ │ O Φ │ P ∏ │ Ø { │ Σ } ┃ Enter ┃
+// AD┃Tab ↹  ┃ q   │ w   │ e ǝ │ š r │ t   │ y   │ u ω │ i ɛ │ o φ │ p π │ ø [ │ σ ] ┃   ⏎   ┃
+//   ┣━━━━━━━┻┱────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┴┬────┺┓      ┃
+//   ┃        ┃ A   │ S   │ D   │ F   │ G   │  ̇ H │ J   │ K   │ L   │ Œ : │ " ” │ Æ | ┃      ┃
+// AC┃Caps ⇬  ┃ a   ̃│ s   ̄| d   ́| f   ̀| g   ̌|  ̣ h │ j   ̆│ k   ̏│ l   ̈│ œ ; │ ' ’ │ æ \ ┃      ┃
+//   ┣━━━━━━━━┹────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┬┴────┲┷━━━━━┻━━━━━━┫
+//   ┃             │ Z ǲ │ X   │ C   │ V   │ B   │ N ŋ │ M   │ < « │ > » │ ?   ┃             ┃
+// AB┃Shift ⇧      │ z ǳ │ x   │ c   │ v   │ b   │ n Ŋ │ m   │ , ‹ │ . › │   / ┃Shift ⇧      ┃
+//   ┣━━━━━━━┳━━━━━┷━┳━━━┷━━━┱─┴─────┴─────┴─────┴─────┴─────┴───┲━┷━━━━━╈━━━━━┻━┳━━━━━━━┳━━━┛
+//   ┃       ┃       ┃       ┃                                   ┃       ┃       ┃       ┃
+// AA┃Ctrl   ┃Meta   ┃Alt    ┃             Space                 ┃AltGr ⇮┃Menu   ┃Ctrl   ┃
+//   ┗━━━━━━━┻━━━━━━━┻━━━━━━━┹───────────────────────────────────┺━━━━━━━┻━━━━━━━┻━━━━━━━┛
+//
+
+partial alphanumeric_keys
+xkb_symbols "mmuock" {
+
+   include "us(basic)"
+   include "level3(ralt_switch)"
+
+   name[Group1]= "Mmuock";
+   key <AE06> { [          6, asciicircum,          U0302                ] }; // tone 10
+   key <AE07> { [          7,   ampersand,          U0311                ] }; // tone 12
+   key <AE08> { [          8,    asterisk,          U030D                ] }; // tone 13
+   key <AE09> { [          9,   parenleft,          U0307                ] }; // tone 7
+   key <AE10> { [          0,  parenright,          U030A                ] }; // tone 6
+   key <AE11> { [dead_macron,  underscore,          minus,        endash ] };
+   key <AE12> { [      equal,        plus,          U030B, dead_belowdot ] }; // U030B = tone 8
+   key <AD03> { [          e,           E,          U01DD,         U018E ] }; // U01DD = reversed E
+   key <AD04> { [     scaron,      Scaron,              r,             R ] };
+   key <AD07> { [          u,           U,    Greek_omega,   Greek_OMEGA ] };
+   key <AD08> { [          i,           I,          U025B,         U0190 ] }; // U025B = open E
+   key <AD09> { [          o,           O,      Greek_phi,     Greek_PHI ] };
+   key <AD10> { [          p,           P,       Greek_pi,      Greek_PI ] };
+   key <AD11> { [     oslash,    Ooblique,    bracketleft,     braceleft ] };
+   key <AD12> { [Greek_sigma, Greek_SIGMA,   bracketright,    braceright ] }; 
+   key <AC01> { [          a,           A,          U0303                ] }; // tone 0
+   key <AC02> { [          s,           S,          U0304                ] }; // tone 1
+   key <AC03> { [          d,           D,          U0301                ] }; // tone 3
+   key <AC04> { [          f,           F,          U0300                ] }; // tone 4
+   key <AC05> { [          g,           G,          U030C                ] }; // tone 5
+   key <AC06> { [      U0323,       U0307,              h,             H ] }; // COMBINING DOT BELOW, ABOVE
+   key <AC07> { [          j,           J,          U0306                ] }; // tone 9
+   key <AC08> { [          k,           K,          U030F                ] }; // tone 11
+   key <AC09> { [          l,           L,          U0308                ] }; // tone 14
+   key <AC10> { [         oe,          OE,      semicolon,         colon ] };
+   key <AC11> { [ dead_acute,    quotedbl,     apostrophe                ] };
+   key <TLDE> { [ dead_grave,  dead_tilde,          grave,    asciitilde ] };
+   key <AB01> { [          z,           Z,          U01F3,         U01F2 ] }; // U01F3 = letter dz
+   key <AB06> { [          n,           N,            eng,           ENG ] };
+   key <AB08> { [      comma,        less,  guillemotleft,         U2039 ] };
+   key <AB09> { [     period,     greater, guillemotright,         U203A ] };
+   key <BKSL> { [         ae,          AE,      backslash,           bar ] };
+
+   include "cm(solidus_switch)"
+};
+// use slash as special key for switching to level3
+partial modifier_keys
+xkb_symbols "solidus_switch" {
+   key <AB10> {
+     symbols[Group1] = [ ISO_Level3_Latch, question, slash, dead_abovedot ]
+   };
+   modifier_map Mod5	{ ISO_Level3_Latch };
+};
+// ------- end of Mmuock keyboard map --------------------------------------------
 

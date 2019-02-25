@@ -36,16 +36,6 @@ default xkb_keycodes "macintosh" {
    
 };
 
-xkb_keycodes "badmap" {
-    <TLDE> =  94;
-    <LSGT> =  49;
-};
-
-xkb_keycodes "goodmap" {
-    <TLDE> =  49;
-    <LSGT> =  94;
-};
-
 xkb_keycodes "old" {
 
     minimum= 8;

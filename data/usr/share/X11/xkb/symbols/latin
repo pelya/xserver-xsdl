@@ -1,6 +1,6 @@
 // Common Latin alphabet layout
 
-default partial
+default  partial
 xkb_symbols "basic" {
 
     key <AE01>	{ [         1,     exclam,  onesuperior,   exclamdown ]	};
@@ -35,7 +35,7 @@ xkb_symbols "basic" {
     key <AC04>	{ [         f,          F,      dstroke,  ordfeminine ]	};
     key <AC05>	{ [         g,          G,          eng,          ENG ]	};
     key <AC06>	{ [         h,          H,      hstroke,      Hstroke ]	};
-    key <AC07>	{ [         j,          J,            j,            J ]	};
+    key <AC07>	{ [         j,          J,    dead_hook,    dead_horn ] };
     key <AC08>	{ [         k,          K,          kra,    ampersand ]	};
     key <AC09>	{ [         l,          L,      lstroke,      Lstroke ]	};
     key <AC10>	{ [ semicolon,    colon, dead_acute, dead_doubleacute ]	};
@@ -105,7 +105,7 @@ xkb_symbols "type3" {
     key <AC05>	{ [         g,          G, bracketright,          ENG ]	};
     key <AC08>	{ [         k,          K,      lstroke,    ampersand ]	};
 
-    key <AB01>	{ [         y,          Y, guillemotleft,         less ]	};
+    key <AB01>	{ [         y,          Y, guillemotleft,        less ]	};
     key <AB04>	{ [         v,          V,           at,        grave ]	};
     key <AB05>	{ [         b,          B,    braceleft,   apostrophe ]	};
     key <AB06>	{ [         n,          N,   braceright,   braceright ]	};
@@ -114,9 +114,9 @@ xkb_symbols "type3" {
     key <AB09>	{ [    period,      colon,      greater,     division ]	};
 };
 
-// Another one Latin common layout
+// Another common Latin layout
 // (German, Estonian, Spanish, Icelandic, Italian, Latin American, Portuguese)
- 
+
 partial
 xkb_symbols "type4" {
 
@@ -150,7 +150,7 @@ xkb_symbols "nodeadkeys" {
 
 partial
 xkb_symbols "type2_nodeadkeys" {
- 
+
     include "latin(nodeadkeys)"
 
     key <AD11>	{ [     aring,      Aring,   diaeresis,        degree ]	};
@@ -162,13 +162,13 @@ xkb_symbols "type2_nodeadkeys" {
 
 partial
 xkb_symbols "type3_nodeadkeys" {
- 
+
     include "latin(nodeadkeys)"
 };
 
 partial
 xkb_symbols "type4_nodeadkeys" {
- 
+
     include "latin(nodeadkeys)"
 
     key <AB10>	{ [   minus, underscore, dead_belowdot,      abovedot ]	};
@@ -178,12 +178,12 @@ xkb_symbols "type4_nodeadkeys" {
 // See http://marcinwolinski.pl/keyboard/ for a description.
 // Used by pl(intl)
 //
-// ┌────┐
-// │ 2 4│   2 = Shift,  4 = Level3 + Shift
-// │ 1 3│   1 = Normal, 3 = Level3
-// └────┘
+// ┌─────┐
+// │ 2 4 │   2 = Shift,  4 = Level3 + Shift
+// │ 1 3 │   1 = Normal, 3 = Level3
+// └─────┘
 // ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┲━━━━━━━━━┓
-// │ ~ ~ │ ! ' │ @ " │ # ˝ │ $ ¸ │ % ˇ │ ^ ^ │ & ˘ │ * ˙ │ ( ̣ │ ) ° │ _ ¯ │ + ˛ ┃ ⌫ Back  ┃
+// │ ~ ~ │ ! ' │ @ " │ # ˝ │ $ ¸ │ % ˇ │ ^ ^ │ & ˘ │ * ̇  │ ( ̣  │ ) ° │ _ ¯ │ + ˛ ┃ ⌫ Back- ┃
 // │ ` ` │ 1 ¡ │ 2 © │ 3 • │ 4 § │ 5 € │ 6 ¢ │ 7 − │ 8 × │ 9 ÷ │ 0 ° │ - – │ = — ┃  space  ┃
 // ┢━━━━━┷━┱───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┴─┬───┺━┳━━━━━━━┫
 // ┃       ┃ Q   │ W   │ E   │ R   │ T   │ Y   │ U   │ I   │ O   │ P   │ { « │ } » ┃ Enter ┃
@@ -198,14 +198,14 @@ xkb_symbols "type4_nodeadkeys" {
 // ┃       ┃       ┃       ┃ ␣                               ⍽ ┃       ┃       ┃       ┃
 // ┃Ctrl   ┃Meta   ┃Alt    ┃ ␣           Space               ⍽ ┃AltGr ⇮┃Menu   ┃Ctrl   ┃
 // ┗━━━━━━━┻━━━━━━━┻━━━━━━━┹───────────────────────────────────┺━━━━━━━┻━━━━━━━┻━━━━━━━┛
- 
+
 partial
 xkb_symbols "intl" {
 
     key <TLDE>	{ [     grave,  asciitilde, dead_grave,       dead_tilde ]	};
     key <AE01>	{ [         1,      exclam, exclamdown,       dead_acute ]	};
     key <AE02>	{ [         2,          at,  copyright,   dead_diaeresis ]	};
-    key <AE03>	{ [         3,  numbersign,      U2022, dead_doubleacute ]	}; // U+2022 is bullet (the name bullet doesn't work)
+    key <AE03>	{ [         3,  numbersign,      U2022, dead_doubleacute ]	}; // U+2022 is bullet (the name bullet does not work)
     key <AE04>	{ [         4,      dollar,    section,     dead_cedilla ]	};
     key <AE05>	{ [         5,     percent,   EuroSign,       dead_caron ]	};
     key <AE06>	{ [         6, asciicircum,       cent,  dead_circumflex ]	};

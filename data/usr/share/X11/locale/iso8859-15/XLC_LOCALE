@@ -35,6 +35,16 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 #  XLocale Database Sample for fcd/dis/iso 8859-15.
 #  When Final Committee Draft (FCD) 8859-15 is formalized
 #  then this file will be renamed iso8859-15.
@@ -86,10 +96,8 @@ wc_shift_bits		7
 
 
 
-
 use_stdc_env		True
 force_convert_to_mb	True
-
 
 # 	cs0 class
 cs0	{

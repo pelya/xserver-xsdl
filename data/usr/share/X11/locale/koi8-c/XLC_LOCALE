@@ -35,6 +35,16 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 #  XLocale Database Sample for koi8-c.
 # 
 
@@ -88,9 +98,7 @@ wc_shift_bits		7
 
 
 
-
 use_stdc_env		True
-
 
 # 	cs0 class
 cs0	{

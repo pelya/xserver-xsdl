@@ -1,6 +1,6 @@
 // based on a keyboard map from an 'xkb/symbols/no' file
 
-partial default alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
 
     // Describes the differences between a very simple en_US
@@ -11,11 +11,11 @@ xkb_symbols "basic" {
 
     name[Group1]="Norwegian";
 
-    key <AB09>	{ [    period,      colon, ellipsis,   periodcentered ]	};
+    key <AB09>	{ [    period,      colon,   ellipsis, periodcentered ]	};
     key <AB10>	{ [     minus, underscore,       endash,       emdash ]	};
     key <AD04>	{ [         r,          R,   registered,    trademark ]	};
-    key <AD10>	{ [         p,          P,        Greek_pi,        Greek_PI ]	};
-    key <AE05>	{ [         5,    percent,      onehalf,         0x1002030 ]	};
+    key <AD10>	{ [         p,          P,     Greek_pi,     Greek_PI ]	};
+    key <AE05>	{ [         5,    percent,      onehalf,    0x1002030 ]	};
 
     key <AE11>	{ [      plus,   question,    plusminus, questiondown ]	};
     key <AE12>	{ [ backslash, dead_grave,   dead_acute,      notsign ]	};
@@ -38,22 +38,30 @@ xkb_symbols "basic" {
 partial alphanumeric_keys
 xkb_symbols "nodeadkeys" {
 
-    // Modifies the basic Norwegian layout to eliminate dead keys
+    // Modifies the basic Norwegian layout to no dead keys
 
     include "no(basic)"
 
-    name[Group1]="Norwegian (eliminate dead keys)";
+    name[Group1]="Norwegian (no dead keys)";
 
     key <AE12>	{ [ backslash,      grave,        acute,       ogonek ]	};
-    key <AD12>	{ [ diaeresis, asciicircum,   asciitilde,      macron ]	};
+    key <AD12>	{ [ diaeresis, asciicircum,  asciitilde,       macron ]	};
     key <AC10>	{ [    oslash,   Ooblique,        acute,  doubleacute ]	};
     key <AC11>	{ [        ae,         AE,  asciicircum,        caron ]	};
     key <AB08>	{ [     comma,  semicolon,      cedilla,       ogonek ]	};
     key <AB09>	{ [    period,      colon, periodcentered,   abovedot ]	};
 };
 
+partial alphanumeric_keys
+xkb_symbols "winkeys" {
+
+     include "no(basic)"
+     name[Group1]="Norwegian (Win keys)";
+     include "eurosign(5)"
+};
+
 // Norwegian Dvorak
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "dvorak" {
     include "us(dvorak)"
 
@@ -64,7 +72,7 @@ xkb_symbols "dvorak" {
     key <AE01> { [	    1,	exclam, exclamdown, onesuperior	] };
     key <AE02> { [	    2,	quotedbl,   at,     twosuperior	] };
     key <AE03> { [	    3,	numbersign, sterling, threesuperior ] };
-    key <AE04> { [	    4,	dollar,     currency,onequarter	] };
+    key <AE04> { [	    4,	currency,   dollar,  onequarter	] };
     key <AE05> { [	    5,	percent,    onehalf,	onehalf	] };
     key <AE06> { [	    6,	ampersand,  threequarters, threequarters ] };
     key <AE07> { [	    7,	slash,      braceleft, division	] };
@@ -72,7 +80,7 @@ xkb_symbols "dvorak" {
     key <AE09> { [	    9,	parenright, bracketright	] };
     key <AE10> { [	    0,	equal,	    braceright		] };
     key <AE11> { [	 plus,	question,   plusminus, questiondown ] };
-    key <AE12> { [   backslash,	grave,	    dead_acute,	dead_grave  ] };
+    key <AE12> { [  backslash,	grave,	    dead_acute,	dead_grave ] };
 
     key <AD01> { [       aring,	Aring,  braceright, bracketright ] };
     key <AD02> { [	comma,	semicolon, dead_cedilla, cedilla ] };
@@ -88,7 +96,7 @@ xkb_symbols "dvorak" {
     key <AC03> { [	    e,	E,      EuroSign,	cent	 ] };
     key <AC05> { [	    i,	I,      idotless,       Iabovedot] };
     key <AC06> { [	    d,	D,      eth,		ETH	 ] };
-    key <AC10> { [	    s,	S,      ssharp			 ] };
+    key <AC10> { [	    s,	S,      ssharp,		U1E9E	 ] };
     key <AC11> { [	minus,	underscore, hyphen,	diaeresis] };
 
     key <AB01> { [	   ae,	AE,     braceleft,	bracketleft] };
@@ -104,18 +112,17 @@ xkb_symbols "dvorak" {
     include "level3(ralt_switch)"
 };
 
-// based on
-// Northern Sami keyboards for Finland, Norway and Sweden
-//
-// Describes the differences between a very simple en_US
-// keyboard and a Norwegian Northern Sami keyboard (with
-// dead key support) according to the spec on
-// http://www.hum.uit.no/a/trond/se-lat9-no-keys.html
-// Written by Børre Gaup <boerre.gaup@pc.nu>
-//
-
 partial alphanumeric_keys
 xkb_symbols "smi" {
+
+    // Northern Sami keyboards for Finland, Norway and Sweden
+    //
+    // Describes the differences between a very simple en_US
+    // keyboard and a Norwegian Northern Sami keyboard (with
+    // dead-key support) according to the spec on
+    // http://www.hum.uit.no/a/trond/se-lat9-no-keys.html
+    // Written by Børre Gaup <boerre.gaup@pc.nu>.
+
     include "latin"
 
     name[Group1]= "Northern Saami (Norway)";
@@ -177,21 +184,21 @@ xkb_symbols "smi" {
 partial alphanumeric_keys
 xkb_symbols "smi_nodeadkeys" {
 
-    // Modifies the basic Norwegian layout to eliminate dead keys
+    // Modifies the basic Norwegian layout to no dead keys
 
     include "no(smi)"
 
-    name[Group1]= "Northern Saami (Norway, eliminate dead keys)";
+    name[Group1]= "Northern Saami (Norway, no dead keys)";
 
     key <AE12>	{ [ backslash,      grave,        acute,       ogonek ]	};
 };
 
 // Copied from macintosh_vndr/no
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "mac" {
 
     // Describes the differences between a very simple en_US
-    // keyboard and a very simple Norwegian keybaord
+    // keyboard and a very simple Norwegian keyboard.
 
     include "latin(type4)"
     name[Group1]= "Norwegian (Macintosh)";
@@ -212,14 +219,49 @@ xkb_symbols "mac" {
     key <BKSL>	{ [        at,   asterisk     ]	};
 };
 
-
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "mac_nodeadkeys" {
 
-    // Modifies the basic Norwegian layout to eliminate dead keys
+    // Modifies the basic Norwegian layout to no dead keys
     include "no(mac)"
-    name[Group1]= "Norwegian (Macintosh, eliminate dead keys)";
+    name[Group1]= "Norwegian (Macintosh, no dead keys)";
 
     key <AE12>	{ [      grave,     acute,        acute,       ogonek ]	};
     key <AD12>	{ [  diaeresis, asciicircum, asciitilde,       macron ]	};
+};
+
+partial alphanumeric_keys
+xkb_symbols "colemak" {
+
+    // Colemak layout - http://colemak.com/
+    // Q W F P G   J L U Y Ø Å ¨
+    // A R S T D   H N E I O Æ '
+    // < Z X C V   B K M , . -
+    include "no(basic)"
+    name[Group1]= "Norwegian (Colemak)";
+
+    key <AB06>	{ [         k,          K,          kra,    ampersand ] };
+    key <AC02>	{ [         r,          R,   registered,    trademark ] };
+    key <AC03>	{ [         s,          S,       ssharp,      section ] };
+    key <AC04>	{ [         t,          T,        thorn,        THORN ] };
+    key <AC05>	{ [         d,          D,          eth,          ETH ] };
+    key <AC07>	{ [         n,          N ] };
+    key <AC08>	{ [         e,          E,     EuroSign,         cent ] };
+    key <AC09>	{ [         i,          I,   rightarrow,     idotless ] };
+    key <AC10>	{ [         o,          O,           oe,           OE ] };
+    key <AD03>	{ [         f,          F,      dstroke,  ordfeminine ] };
+    key <AD04>	{ [         p,          P,     Greek_pi,     Greek_PI ] };
+    key <AD05>	{ [         g,          G,          eng,          ENG ] };
+    key <AD06>	{ [         j,          J ] };
+    key <AD07>	{ [         l,          L,      lstroke,      Lstroke ] };
+    key <AD08>	{ [         u,          U,    downarrow,      uparrow ] };
+    key <AD09>	{ [         y,          Y,    leftarrow,          yen ] };
+    key <AD10>	{ [    oslash,   Ooblique,   dead_acute, dead_doubleacute ] };
+};
+
+// EXTRAS:
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type6" {
+	include "sun_vndr/no(sun_type6)"
 };

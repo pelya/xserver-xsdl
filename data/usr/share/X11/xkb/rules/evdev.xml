@@ -12,7 +12,7 @@
     <model>
       <configItem>
         <name>pc102</name>
-        <description>Generic 102-key (Intl) PC</description>
+        <description>Generic 102-key PC (intl.)</description>
         <vendor>Generic</vendor>
       </configItem>
     </model>
@@ -26,7 +26,7 @@
     <model>
       <configItem>
         <name>pc105</name>
-        <description>Generic 105-key (Intl) PC</description>
+        <description>Generic 105-key PC (intl.)</description>
         <vendor>Generic</vendor>
       </configItem>
     </model>
@@ -40,14 +40,14 @@
     <model>
       <configItem>
         <name>latitude</name>
-        <description>Dell Latitude series laptop</description>
+        <description>Dell Latitude laptop</description>
         <vendor>Dell</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>dellm65</name>
-        <description>Dell Precision M65</description>
+        <description>Dell Precision M65 laptop</description>
         <vendor>Dell</vendor>
       </configItem>
     </model>
@@ -69,7 +69,7 @@
       <configItem>
         <name>microsoft</name>
         <description>Microsoft Natural</description>
-        <vendor>Microsoft Inc.</vendor>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
@@ -89,7 +89,7 @@
     <model>
       <configItem>
         <name>pc98</name>
-        <description>PC-98xx Series</description>
+        <description>PC-98</description>
         <vendor>Generic</vendor>
       </configItem>
     </model>
@@ -124,7 +124,7 @@
     <model>
       <configItem>
         <name>azonaRF2300</name>
-        <description>Azona RF2300 wireless Internet Keyboard</description>
+        <description>Azona RF2300 wireless Internet</description>
         <vendor>Azona</vendor>
       </configItem>
     </model>
@@ -138,7 +138,7 @@
     <model>
       <configItem>
         <name>brother</name>
-        <description>Brother Internet Keyboard</description>
+        <description>Brother Internet</description>
         <vendor>Brother</vendor>
       </configItem>
     </model>
@@ -220,7 +220,7 @@
     <model>
       <configItem>
         <name>cherrybluea</name>
-        <description>Cherry Blue Line CyBo@rd (alternate option)</description>
+        <description>Cherry Blue Line CyBo@rd (alt.)</description>
         <vendor>Cherry</vendor>
       </configItem>
     </model>
@@ -248,7 +248,7 @@
     <model>
       <configItem>
         <name>chicony</name>
-        <description>Chicony Internet Keyboard</description>
+        <description>Chicony Internet</description>
         <vendor>Chicony</vendor>
       </configItem>
     </model>
@@ -276,28 +276,28 @@
     <model>
       <configItem>
         <name>compaqeak8</name>
-        <description>Compaq Easy Access Keyboard</description>
+        <description>Compaq Easy Access</description>
         <vendor>Compaq</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>compaqik7</name>
-        <description>Compaq Internet Keyboard (7 keys)</description>
+        <description>Compaq Internet (7 keys)</description>
         <vendor>Compaq</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>compaqik13</name>
-        <description>Compaq Internet Keyboard (13 keys)</description>
+        <description>Compaq Internet (13 keys)</description>
         <vendor>Compaq</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>compaqik18</name>
-        <description>Compaq Internet Keyboard (18 keys)</description>
+        <description>Compaq Internet (18 keys)</description>
         <vendor>Compaq</vendor>
       </configItem>
     </model>
@@ -311,21 +311,21 @@
     <model>
       <configItem>
         <name>armada</name>
-        <description>Laptop/notebook Compaq (eg. Armada) Laptop Keyboard</description>
+        <description>Compaq Armada laptop</description>
         <vendor>Compaq</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>presario</name>
-        <description>Laptop/notebook Compaq (eg. Presario) Internet Keyboard</description>
+        <description>Compaq Presario laptop</description>
         <vendor>Compaq</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>ipaq</name>
-        <description>Compaq iPaq Keyboard</description>
+        <description>Compaq iPaq</description>
         <vendor>Compaq</vendor>
       </configItem>
     </model>
@@ -353,35 +353,35 @@
     <model>
       <configItem>
         <name>dellusbmm</name>
-        <description>Dell USB Multimedia Keyboard</description>
+        <description>Dell USB Multimedia</description>
         <vendor>Dell</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>inspiron</name>
-        <description>Dell Laptop/notebook Inspiron 6xxx/8xxx</description>
+        <description>Dell Inspiron 6000/8000 laptop</description>
         <vendor>Dell</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>precision_m</name>
-        <description>Dell Laptop/notebook Precision M series</description>
+        <description>Dell Precision M laptop</description>
         <vendor>Dell</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>dexxa</name>
-        <description>Dexxa Wireless Desktop Keyboard</description>
+        <description>Dexxa Wireless Desktop</description>
         <vendor>Dexxa</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>diamond</name>
-        <description>Diamond 9801 / 9802 series</description>
+        <description>Diamond 9801/9802</description>
         <vendor>Diamond</vendor>
       </configItem>
     </model>
@@ -401,14 +401,14 @@
     <model>
       <configItem>
         <name>fscaa1667g</name>
-        <description>Fujitsu-Siemens Computers AMILO laptop</description>
+        <description>Fujitsu-Siemens Amilo laptop</description>
         <vendor>Fujitsu-Siemens</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>genius</name>
-        <description>Genius Comfy KB-16M / Genius MM Keyboard KWD-910</description>
+        <description>Genius Comfy KB-16M/Multimedia KWD-910</description>
         <vendor>Genius</vendor>
       </configItem>
     </model>
@@ -464,7 +464,7 @@
     <model>
       <configItem>
         <name>logitech_base</name>
-        <description>Logitech Generic Keyboard</description>
+        <description>Logitech</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
@@ -478,14 +478,14 @@
     <model>
       <configItem>
         <name>hpi6</name>
-        <description>Hewlett-Packard Internet Keyboard</description>
+        <description>Hewlett-Packard Internet</description>
         <vendor>Hewlett-Packard</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>hp250x</name>
-        <description>Hewlett-Packard SK-250x Multimedia Keyboard</description>
+        <description>Hewlett-Packard NEC SK-2500 Multimedia</description>
         <vendor>Hewlett-Packard</vendor>
       </configItem>
     </model>
@@ -520,7 +520,7 @@
     <model>
       <configItem>
         <name>hpzt11xx</name>
-        <description>Hewlett-Packard Pavilion ZT11xx</description>
+        <description>Hewlett-Packard Pavilion ZT1100</description>
         <vendor>Hewlett-Packard</vendor>
       </configItem>
     </model>
@@ -534,7 +534,7 @@
     <model>
       <configItem>
         <name>hp5xx</name>
-        <description>Hewlett-Packard Omnibook 5xx</description>
+        <description>Hewlett-Packard Omnibook 500</description>
         <vendor>Hewlett-Packard</vendor>
       </configItem>
     </model>
@@ -562,7 +562,7 @@
     <model>
       <configItem>
         <name>hpmini110</name>
-        <description>Hewlett-Packard Mini 110 Notebook</description>
+        <description>Hewlett-Packard Mini 110 laptop</description>
         <vendor>Hewlett-Packard</vendor>
       </configItem>
     </model>
@@ -611,7 +611,7 @@
     <model>
       <configItem>
         <name>logiaccess</name>
-        <description>Logitech Access Keyboard</description>
+        <description>Logitech Access</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
@@ -625,7 +625,7 @@
     <model>
       <configItem>
         <name>logii350</name>
-        <description>Logitech Internet 350 Keyboard</description>
+        <description>Logitech Internet 350</description>
         <vendor>Logitech</vendor>
         <hwList> <hwId>046d:c313</hwId></hwList>
       </configItem>
@@ -633,7 +633,7 @@
     <model>
       <configItem>
         <name>logimel</name>
-        <description>Logitech Media Elite Keyboard</description>
+        <description>Logitech Internet 350</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
@@ -668,14 +668,14 @@
     <model>
       <configItem>
         <name>logicda</name>
-        <description>Logitech Cordless Desktop (alternate option)</description>
+        <description>Logitech Cordless Desktop (alt.)</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>logicdpa2</name>
-        <description>Logitech Cordless Desktop Pro (alternate option 2)</description>
+        <description>Logitech Cordless Desktop Pro (2nd alt.)</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
@@ -696,14 +696,14 @@
     <model>
       <configItem>
         <name>logiitc</name>
-        <description>Logitech iTouch Cordless Keyboard (model Y-RB6)</description>
+        <description>Logitech iTouch Cordless Y-RB6</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>logiik</name>
-        <description>Logitech Internet Keyboard</description>
+        <description>Logitech Internet</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
@@ -717,7 +717,7 @@
     <model>
       <configItem>
         <name>logicink</name>
-        <description>Logitech Internet Navigator Keyboard</description>
+        <description>Logitech Internet Navigator</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
@@ -731,42 +731,42 @@
     <model>
       <configItem>
         <name>logiinkse</name>
-        <description>Logitech iTouch Internet Navigator Keyboard SE</description>
+        <description>Logitech iTouch Internet Navigator SE</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>logiinkseusb</name>
-        <description>Logitech iTouch Internet Navigator Keyboard SE (USB)</description>
+        <description>Logitech iTouch Internet Navigator SE USB</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>logiultrax</name>
-        <description>Logitech Ultra-X Keyboard</description>
+        <description>Logitech Ultra-X</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>logiultraxc</name>
-        <description>Logitech Ultra-X Cordless Media Desktop Keyboard</description>
+        <description>Logitech Ultra-X Cordless Media Desktop</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>logidinovo</name>
-        <description>Logitech diNovo Keyboard</description>
+        <description>Logitech diNovo</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>logidinovoedge</name>
-        <description>Logitech diNovo Edge Keyboard</description>
+        <description>Logitech diNovo Edge</description>
         <vendor>Logitech</vendor>
       </configItem>
     </model>
@@ -780,7 +780,7 @@
     <model>
       <configItem>
         <name>mx2500</name>
-        <description>Memorex MX2500 EZ-Access Keyboard</description>
+        <description>Memorex MX2500 EZ-Access</description>
         <vendor>Memorex</vendor>
       </configItem>
     </model>
@@ -794,98 +794,98 @@
     <model>
       <configItem>
         <name>microsoft4000</name>
-        <description>Microsoft Natural Wireless Ergonomic Keyboard 4000</description>
-        <vendor>Microsoft Inc.</vendor>
+        <description>Microsoft Natural Ergonomic 4000</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>microsoft7000</name>
-        <description>Microsoft Natural Wireless Ergonomic Keyboard 7000</description>
-        <vendor>Microsoft Inc.</vendor>
+        <description>Microsoft Natural Wireless Ergonomic 7000</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>microsoftinet</name>
-        <description>Microsoft Internet Keyboard</description>
-        <vendor>Microsoft Inc.</vendor>
+        <description>Microsoft Internet</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>microsoftpro</name>
-        <description>Microsoft Natural Keyboard Pro / Microsoft Internet Keyboard Pro</description>
-        <vendor>Microsoft Inc.</vendor>
+        <description>Microsoft Natural Pro/Internet Pro</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>microsoftprousb</name>
-        <description>Microsoft Natural Keyboard Pro USB / Microsoft Internet Keyboard Pro</description>
-        <vendor>Microsoft Inc.</vendor>
+        <description>Microsoft Natural Pro USB/Internet Pro</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>microsoftprooem</name>
-        <description>Microsoft Natural Keyboard Pro OEM</description>
-        <vendor>Microsoft Inc.</vendor>
+        <description>Microsoft Natural Pro OEM</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>vsonku306</name>
-        <description>ViewSonic KU-306 Internet Keyboard</description>
+        <description>ViewSonic KU-306 Internet</description>
         <vendor>ViewSonic</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>microsoftprose</name>
-        <description>Microsoft Internet Keyboard Pro, Swedish</description>
-        <vendor>Microsoft Inc.</vendor>
+        <description>Microsoft Internet Pro (Swedish)</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>microsoftoffice</name>
         <description>Microsoft Office Keyboard</description>
-        <vendor>Microsoft Inc.</vendor>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
-        <name>microsoftmult</name> 
-        <description>Microsoft Wireless Multimedia Keyboard 1.0A</description>
-        <vendor>Microsoft Inc.</vendor>
+        <name>microsoftmult</name>
+        <description>Microsoft Wireless Multimedia 1.0A</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
-        <name>microsoftelite</name> 
-        <description>Microsoft Natural Keyboard Elite</description>
-        <vendor>Microsoft Inc.</vendor>
+        <name>microsoftelite</name>
+        <description>Microsoft Natural Elite</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
-        <name>microsoftccurve2k</name> 
-        <description>Microsoft Comfort Curve Keyboard 2000</description>
-        <vendor>Microsoft Inc.</vendor>
+        <name>microsoftccurve2k</name>
+        <description>Microsoft Comfort Curve 2000</description>
+        <vendor>Microsoft</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>oretec</name>
-        <description>Ortek MCK-800 MM/Internet keyboard</description>
+        <description>Ortek Multimedia/Internet MCK-800</description>
         <vendor>Ortek</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>propeller</name>
-        <description>Propeller Voyager (KTEZ-1000)</description>
+        <description>Propeller Voyager KTEZ-1000</description>
         <vendor>KeyTronic</vendor>
       </configItem>
     </model>
@@ -920,35 +920,35 @@
     <model>
       <configItem>
         <name>sk1300</name>
-        <description>SK-1300</description>
+        <description>NEC SK-1300</description>
         <vendor>NEC</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>sk2500</name>
-        <description>SK-2500</description>
+        <description>NEC SK-2500</description>
         <vendor>NEC</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>sk6200</name>
-        <description>SK-6200</description>
+        <description>NEC SK-6200</description>
         <vendor>NEC</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>sk7100</name>
-        <description>SK-7100</description>
+        <description>NEC SK-7100</description>
         <vendor>NEC</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>sp_inet</name>
-        <description>Super Power Multimedia Keyboard</description>
+        <description>Super Power Multimedia</description>
         <vendor>Generic</vendor>
       </configItem>
     </model>
@@ -969,7 +969,7 @@
     <model>
       <configItem>
         <name>symplon</name>
-        <description>Symplon PaceBook (tablet PC)</description>
+        <description>Symplon PaceBook tablet</description>
         <vendor>Symplon</vendor>
       </configItem>
     </model>
@@ -983,14 +983,14 @@
     <model>
       <configItem>
         <name>trust</name>
-        <description>Trust Wireless Keyboard Classic</description>
+        <description>Trust Wireless Classic</description>
         <vendor>Trust</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>trustda</name>
-        <description>Trust Direct Access Keyboard</description>
+        <description>Trust Direct Access</description>
         <vendor>Trust</vendor>
       </configItem>
     </model>
@@ -1039,7 +1039,7 @@
     <model>
       <configItem>
         <name>yahoo</name>
-        <description>Yahoo! Internet Keyboard</description>
+        <description>Yahoo! Internet</description>
         <vendor>Yahoo!</vendor>
       </configItem>
     </model>
@@ -1053,7 +1053,7 @@
     <model>
       <configItem>
         <name>macbook79</name>
-        <description>MacBook/MacBook Pro (Intl)</description>
+        <description>MacBook/MacBook Pro (intl.)</description>
         <vendor>Apple</vendor>
       </configItem>
     </model>
@@ -1074,7 +1074,7 @@
     <model>
       <configItem>
         <name>macintosh_hhk</name>
-        <description>Happy Hacking Keyboard for Mac</description>
+        <description>Happy Hacking for Mac</description>
         <vendor>Fujitsu</vendor>
       </configItem>
     </model>
@@ -1095,14 +1095,14 @@
     <model>
       <configItem>
         <name>acer_laptop</name>
-        <description>Acer Laptop</description>
+        <description>Acer laptop</description>
         <vendor>Acer</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>asus_laptop</name>
-        <description>Asus Laptop</description>
+        <description>Asus laptop</description>
         <vendor>Asus</vendor>
       </configItem>
     </model>
@@ -1116,42 +1116,42 @@
     <model>
       <configItem>
         <name>apple_laptop</name>
-        <description>Apple Laptop</description>
+        <description>Apple laptop</description>
         <vendor>Apple</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>applealu_ansi</name>
-        <description>Apple Aluminium Keyboard (ANSI)</description>
+        <description>Apple Aluminium (ANSI)</description>
         <vendor>Apple</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>applealu_iso</name>
-        <description>Apple Aluminium Keyboard (ISO)</description>
+        <description>Apple Aluminium (ISO)</description>
         <vendor>Apple</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>applealu_jis</name>
-        <description>Apple Aluminium Keyboard (JIS)</description>
+        <description>Apple Aluminium (JIS)</description>
         <vendor>Apple</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>silvercrest</name>
-        <description>SILVERCREST Multimedia Wireless Keyboard</description>
+        <description>Silvercrest Multimedia Wireless</description>
         <vendor>Silvercrest</vendor>
       </configItem>
     </model>
     <model>
       <configItem>
         <name>emachines</name>
-        <description>Laptop/notebook eMachines m68xx</description>
+        <description>eMachines m6800 laptop</description>
         <vendor>eMachines</vendor>
       </configItem>
     </model>
@@ -1179,7 +1179,7 @@
     <model>
       <configItem>
         <name>hhk</name>
-        <description>Happy Hacking Keyboard</description>
+        <description>Happy Hacking</description>
         <vendor>Fujitsu</vendor>
       </configItem>
     </model>
@@ -1199,8 +1199,64 @@
     </model>
     <model>
       <configItem>
-        <name>sun6</name>
-        <description>Sun Type 5/6</description>
+        <name>sun_type7_usb</name>
+        <description>Sun Type 7 USB</description>
+        <vendor>Sun Microsystems</vendor>
+      </configItem>
+    </model>
+    <model>
+      <configItem>
+        <name>sun_type7_euro_usb</name>
+        <description>Sun Type 7 USB (European)</description>
+        <vendor>Sun Microsystems</vendor>
+      </configItem>
+    </model>
+    <model>
+      <configItem>
+        <name>sun_type7_unix_usb</name>
+        <description>Sun Type 7 USB (Unix)</description>
+        <vendor>Sun Microsystems</vendor>
+      </configItem>
+    </model>
+    <model>
+      <configItem>
+        <name>sun_type7_jp_usb</name>
+        <description>Sun Type 7 USB (Japanese)/Japanese 106-key</description>
+        <vendor>Sun Microsystems</vendor>
+      </configItem>
+    </model>
+    <model>
+      <configItem>
+        <name>sun_type6_usb</name>
+        <description>Sun Type 6/7 USB</description>
+        <vendor>Sun Microsystems</vendor>
+      </configItem>
+    </model>
+    <model>
+      <configItem>
+        <name>sun_type6_euro_usb</name>
+        <description>Sun Type 6/7 USB (European)</description>
+        <vendor>Sun Microsystems</vendor>
+      </configItem>
+    </model>
+    <model>
+      <configItem>
+        <name>sun_type6_unix_usb</name>
+        <description>Sun Type 6 USB (Unix)</description>
+        <vendor>Sun Microsystems</vendor>
+      </configItem>
+    </model>
+    <model>
+      <configItem>
+        <name>sun_type6_jp_usb</name>
+        <description>Sun Type 6 USB (Japanese)</description>
+        <vendor>Sun Microsystems</vendor>
+      </configItem>
+    </model>
+    <model>
+      <configItem>
+        <name>sun_type6_jp</name>
+        <description>Sun Type 6 (Japanese)</description>
         <vendor>Sun Microsystems</vendor>
       </configItem>
     </model>
@@ -1222,7 +1278,7 @@
       <configItem>
         <name>compalfl90</name>
         <description>FL90</description>
-        <vendor>Compal Electronics Inc.</vendor>
+        <vendor>Compal Electronics</vendor>
       </configItem>
     </model>
     <model>
@@ -1237,6 +1293,48 @@
        <name>htcdream</name>
        <description>Htc Dream phone</description>
        <vendor>htc</vendor>
+     </configItem>
+    </model>
+    <model>
+      <configItem>
+       <name>teck227</name>
+       <description>Truly Ergonomic 227</description>
+       <vendor>Truly Ergonomic</vendor>
+     </configItem>
+    </model>
+    <model>
+      <configItem>
+       <name>teck229</name>
+       <description>Truly Ergonomic 229</description>
+       <vendor>Truly Ergonomic</vendor>
+     </configItem>
+    </model>
+    <model>
+      <configItem>
+       <name>apex300</name>
+       <description>SteelSeries Apex 300 (Apex RAW)</description>
+       <vendor>SteelSeries</vendor>
+     </configItem>
+    </model>
+    <model>
+      <configItem>
+       <name>chromebook</name>
+       <description>Chromebook</description>
+       <vendor>Google</vendor>
+     </configItem>
+    </model>
+    <model>
+      <configItem>
+       <name>teck227</name>
+       <description>Truly Ergonomic Computer Keyboard Model 227 (Wide Alt keys)</description>
+       <vendor>Megawin Technology</vendor>
+     </configItem>
+    </model>
+    <model>
+      <configItem>
+       <name>teck229</name>
+       <description>Truly Ergonomic Computer Keyboard Model 229 (Standard sized Alt keys, additional Super and Menu key)</description>
+       <vendor>Megawin Technology</vendor>
      </configItem>
     </model>
   </modelList>
@@ -1266,19 +1364,19 @@
         <variant>
           <configItem>
             <name>euro</name>
-            <description>English (US, with euro on 5)</description>
+            <description>English (US, euro on 5)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>intl</name>
-            <description>English (US, international with dead keys)</description>
+            <description>English (US, intl., with dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>alt-intl</name>
-            <description>English (US, alternative international)</description>
+            <description>English (US, alt. intl.)</description>
           </configItem>
         </variant>
         <variant>
@@ -1296,25 +1394,25 @@
         <variant>
           <configItem>
             <name>dvorak-intl</name>
-            <description>English (Dvorak international with dead keys)</description>
+            <description>English (Dvorak, intl., with dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>dvorak-alt-intl</name>
-            <description>English (Dvorak alternative international no dead keys)</description>
+            <description>English (Dvorak, alt. intl.)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>dvorak-l</name>
-            <description>English (left handed Dvorak)</description>
+            <description>English (Dvorak, left-handed)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>dvorak-r</name>
-            <description>English (right handed Dvorak)</description>
+            <description>English (Dvorak, right-handed)</description>
           </configItem>
         </variant>
         <variant>
@@ -1349,42 +1447,46 @@
         <variant>
           <configItem>
             <name>altgr-intl</name>
-            <description>English (international AltGr dead keys)</description>
-            <languageList><iso639Id>eng</iso639Id>
-                          <iso639Id>fra</iso639Id>
-                          <iso639Id>ger</iso639Id></languageList>
+            <description>English (intl., with AltGr dead keys)</description>
+            <languageList>
+              <iso639Id>eng</iso639Id>
+              <iso639Id>fra</iso639Id>
+              <iso639Id>ger</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>olpc2</name>
-            <description>English (layout toggle on multiply/divide key)</description>
+            <description>English (the divide/multiply keys toggle the layout)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>hbs</name>
             <description>Serbo-Croatian (US)</description>
-            <languageList><iso639Id>eng</iso639Id>
-                          <iso639Id>bos</iso639Id>
-                          <iso639Id>hbs</iso639Id>
-                          <iso639Id>hrv</iso639Id>
-                          <iso639Id>srp</iso639Id> </languageList>
+            <languageList>
+              <iso639Id>eng</iso639Id>
+              <iso639Id>bos</iso639Id>
+              <iso639Id>hbs</iso639Id>
+              <iso639Id>hrv</iso639Id>
+              <iso639Id>srp</iso639Id>
+            </languageList>
           </configItem>
         </variant>
+        <variant>
+          <configItem>
+            <name>workman</name>
+            <description>English (Workman)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>workman-intl</name>
+            <description>English (Workman, intl., with dead keys)</description>
+           </configItem>
+         </variant>
       </variantList>
-    </layout>
-    <layout>
-      <configItem>
-        <name>ad</name>
-        
-        <shortDescription>ca</shortDescription>
-        <description>Catalan</description>
-        <languageList>
-          <iso639Id>cat</iso639Id>
-        </languageList>
-      </configItem>
-      <variantList/>
     </layout>
     <layout>
       <configItem>
@@ -1483,13 +1585,13 @@
         <variant>
           <configItem>
             <name>azerty</name>
-            <description>Arabic (azerty)</description>
+            <description>Arabic (AZERTY)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>azerty_digits</name>
-            <description>Arabic (azerty/digits)</description>
+            <description>Arabic (AZERTY/digits)</description>
           </configItem>
         </variant>
         <variant>
@@ -1501,7 +1603,7 @@
         <variant>
           <configItem>
             <name>qwerty</name>
-            <description>Arabic (qwerty)</description>
+            <description>Arabic (QWERTY)</description>
           </configItem>
         </variant>
         <variant>
@@ -1516,6 +1618,18 @@
             <description>Arabic (Buckwalter)</description>
           </configItem>
         </variant>
+        <variant>
+          <configItem>
+            <name>olpc</name>
+            <description>Arabic (OLPC)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>mac</name>
+            <description>Arabic (Macintosh)</description>
+          </configItem>
+        </variant>
       </variantList>
     </layout>
     <layout>
@@ -1528,7 +1642,14 @@
           <iso639Id>alb</iso639Id>
         </languageList>
       </configItem>
-      <variantList/>
+      <variantList>
+        <variant>
+          <configItem>
+            <name>plisi</name>
+            <description>Albanian (Plisi)</description>
+          </configItem>
+        </variant>
+      </variantList>
     </layout>
     <layout>
       <configItem>
@@ -1550,7 +1671,7 @@
         <variant>
           <configItem>
             <name>phonetic-alt</name>
-            <description>Armenian (alternative phonetic)</description>
+            <description>Armenian (alt. phonetic)</description>
           </configItem>
         </variant>
         <variant>
@@ -1568,7 +1689,7 @@
         <variant>
           <configItem>
             <name>eastern-alt</name>
-            <description>Armenian (alternative eastern)</description>
+            <description>Armenian (alt. eastern)</description>
           </configItem>
         </variant>
       </variantList>
@@ -1587,13 +1708,13 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>German (Austria, eliminate dead keys)</description>
+            <description>German (Austria, no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>sundeadkeys</name>
-            <description>German (Austria, Sun dead keys)</description>
+            <description>German (Austria, with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -1603,6 +1724,17 @@
           </configItem>
         </variant>
       </variantList>
+    </layout>
+    <layout>
+      <configItem>
+        <name>au</name>
+        
+        <shortDescription>en</shortDescription>
+        <description>English (Australian)</description>
+        <languageList>
+          <iso639Id>eng</iso639Id>
+        </languageList>
+      </configItem>
     </layout>
     <layout>
       <configItem>
@@ -1654,51 +1786,53 @@
         
         <shortDescription>be</shortDescription>
         <description>Belgian</description>
-        <languageList><iso639Id>ger</iso639Id>
-                      <iso639Id>nld</iso639Id>
-                      <iso639Id>fra</iso639Id></languageList>
+        <languageList>
+          <iso639Id>ger</iso639Id>
+          <iso639Id>nld</iso639Id>
+          <iso639Id>fra</iso639Id>
+        </languageList>
       </configItem>
       <variantList>
         <variant>
           <configItem>
             <name>oss</name>
-            <description>Belgian (alternative)</description>
+            <description>Belgian (alt.)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>oss_latin9</name>
-            <description>Belgian (alternative, latin-9 only)</description>
+            <description>Belgian (alt., Latin-9 only)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>oss_sundeadkeys</name>
-            <description>Belgian (alternative, Sun dead keys)</description>
+            <description>Belgian (alt., with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>iso-alternate</name>
-            <description>Belgian (ISO alternate)</description>
+            <description>Belgian (alt. ISO)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Belgian (eliminate dead keys)</description>
+            <description>Belgian (no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>sundeadkeys</name>
-            <description>Belgian (Sun dead keys)</description>
+            <description>Belgian (with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>wang</name>
-            <description>Belgian (Wang model 724 azerty)</description>
+            <description>Belgian (Wang 724 AZERTY)</description>
           </configItem>
         </variant>
       </variantList>
@@ -1708,16 +1842,18 @@
         <name>bd</name>
         
         <shortDescription>bn</shortDescription>
-        <description>Bengali</description>
+        <description>Bangla</description>
         <languageList>
           <iso639Id>ben</iso639Id>
+          
+          <iso639Id>sat</iso639Id>
         </languageList>
       </configItem>
       <variantList>
         <variant>
           <configItem>
             <name>probhat</name>
-            <description>Bengali (Probhat)</description>
+            <description>Bangla (Probhat)</description>
           </configItem>
         </variant>
       </variantList>
@@ -1735,9 +1871,11 @@
             <name>ben</name>
             
             <shortDescription>bn</shortDescription>
-            <description>Bengali (India)</description>
+            <description>Bangla (India)</description>
             <languageList>
               <iso639Id>ben</iso639Id>
+              
+              <iso639Id>sat</iso639Id>
             </languageList>
           </configItem>
         </variant>
@@ -1746,38 +1884,65 @@
             <name>ben_probhat</name>
             
             <shortDescription>bn</shortDescription>
-            <description>Bengali (India, Probhat)</description>
+            <description>Bangla (India, Probhat)</description>
             <languageList>
               <iso639Id>ben</iso639Id>
+              
+              <iso639Id>sat</iso639Id>
             </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>ben_baishakhi</name>
-            <description>Bengali (India, Baishakhi)</description>
-            <languageList><iso639Id>ben</iso639Id></languageList>
+            <description>Bangla (India, Baishakhi)</description>
+            <languageList>
+              <iso639Id>ben</iso639Id>
+              
+              <iso639Id>sat</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>ben_bornona</name>
-            <description>Bengali (India, Bornona)</description>
-            <languageList><iso639Id>ben</iso639Id></languageList>
-            </configItem>
+            <description>Bangla (India, Bornona)</description>
+            <languageList>
+              <iso639Id>ben</iso639Id>
+              
+              <iso639Id>sat</iso639Id>
+            </languageList>
+          </configItem>
         </variant>
          <variant>
           <configItem>
             <name>ben_gitanjali</name>
-            <description>Bengali (India, Uni Gitanjali)</description>
-            <languageList><iso639Id>ben</iso639Id></languageList>
+            <description>Bangla (India, Uni Gitanjali)</description>
+            <languageList>
+              <iso639Id>ben</iso639Id>
+              
+              <iso639Id>sat</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>ben_inscript</name>
-            <description>Bengali (India, Baishakhi Inscript)</description>
-            <languageList><iso639Id>ben</iso639Id></languageList>
+            <description>Bangla (India, Baishakhi Inscript)</description>
+            <languageList>
+              <iso639Id>ben</iso639Id>
+              
+              <iso639Id>sat</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>eeyek</name>
+            <description>Manipuri (Eeyek)</description>
+            <languageList>
+              <iso639Id>mni</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
@@ -1826,6 +1991,28 @@
         </variant>
         <variant>
           <configItem>
+            <name>kan-kagapa</name>
+            
+            <shortDescription>kn</shortDescription>
+            <description>Kannada (KaGaPa phonetic)</description>
+            <languageList>
+              <iso639Id>kan</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>kan-kagapa</name>
+            
+            <shortDescription>kn</shortDescription>
+            <description>Kannada (KaGaPa phonetic)</description>
+            <languageList>
+              <iso639Id>kan</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
             <name>mal</name>
             
             <shortDescription>ml</shortDescription>
@@ -1851,8 +2038,10 @@
             <name>mal_enhanced</name>
             
             <shortDescription>ml</shortDescription>
-            <description>Malayalam (enhanced Inscript with Rupee Sign)</description>
-            <languageList><iso639Id>mal</iso639Id></languageList>
+            <description>Malayalam (enhanced Inscript, with rupee)</description>
+            <languageList>
+              <iso639Id>mal</iso639Id>
+            </languageList>
           </configItem>
          </variant>
          <variant>
@@ -1863,15 +2052,29 @@
             <description>Oriya</description>
             <languageList>
               <iso639Id>ori</iso639Id>
+              
+              <iso639Id>sat</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+           <configItem>
+            <name>olck</name>
+            
+            <shortDescription>sat</shortDescription>
+            <description>Ol Chiki</description>
+            <languageList>
+              
+              <iso639Id>sat</iso639Id>
             </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
-            <name>tam_unicode</name>
+            <name>tam_tamilnet</name>
             
             <shortDescription>ta</shortDescription>
-            <description>Tamil (Unicode)</description>
+            <description>Tamil (TamilNet '99)</description>
             <languageList>
               <iso639Id>tam</iso639Id>
             </languageList>
@@ -1879,10 +2082,10 @@
         </variant>
         <variant>
           <configItem>
-            <name>tam_keyboard_with_numerals</name>
+            <name>tam_tamilnet_with_tam_nums</name>
             
             <shortDescription>ta</shortDescription>
-            <description>Tamil (keyboard with numerals)</description>
+            <description>Tamil (TamilNet '99 with Tamil numerals)</description>
             <languageList>
               <iso639Id>tam</iso639Id>
             </languageList>
@@ -1890,10 +2093,10 @@
         </variant>
         <variant>
           <configItem>
-            <name>tam_TAB</name>
+            <name>tam_tamilnet_TAB</name>
             
             <shortDescription>ta</shortDescription>
-            <description>Tamil (TAB typewriter)</description>
+            <description>Tamil (TamilNet '99, TAB encoding)</description>
             <languageList>
               <iso639Id>tam</iso639Id>
             </languageList>
@@ -1901,10 +2104,10 @@
         </variant>
         <variant>
           <configItem>
-            <name>tam_TSCII</name>
+            <name>tam_tamilnet_TSCII</name>
             
             <shortDescription>ta</shortDescription>
-            <description>Tamil (TSCII typewriter)</description>
+            <description>Tamil (TamilNet '99, TSCII encoding)</description>
             <languageList>
               <iso639Id>tam</iso639Id>
             </languageList>
@@ -1915,7 +2118,7 @@
             <name>tam</name>
             
             <shortDescription>ta</shortDescription>
-            <description>Tamil</description>
+            <description>Tamil (Inscript)</description>
             <languageList>
               <iso639Id>tam</iso639Id>
             </languageList>
@@ -1927,6 +2130,39 @@
             
             <shortDescription>te</shortDescription>
             <description>Telugu</description>
+            <languageList>
+              <iso639Id>tel</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>tel-kagapa</name>
+            
+            <shortDescription>te</shortDescription>
+            <description>Telugu (KaGaPa phonetic)</description>
+            <languageList>
+              <iso639Id>tel</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>tel-sarala</name>
+            
+            <shortDescription>te</shortDescription>
+            <description>Telugu (Sarala)</description>
+            <languageList>
+              <iso639Id>tel</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>tel-kagapa</name>
+            
+            <shortDescription>te</shortDescription>
+            <description>Telugu (KaGaPa phonetic)</description>
             <languageList>
               <iso639Id>tel</iso639Id>
             </languageList>
@@ -1948,7 +2184,7 @@
             <name>urd-phonetic3</name>
             
             <shortDescription>ur</shortDescription>
-            <description>Urdu (alternative phonetic)</description>
+            <description>Urdu (alt. phonetic)</description>
             <languageList>
               <iso639Id>urd</iso639Id>
             </languageList>
@@ -1959,7 +2195,7 @@
             <name>urd-winkeys</name>
             
             <shortDescription>ur</shortDescription>
-            <description>Urdu (WinKeys)</description>
+            <description>Urdu (Win keys)</description>
             <languageList>
               <iso639Id>urd</iso639Id>
             </languageList>
@@ -1989,10 +2225,43 @@
         </variant>
         <variant>
           <configItem>
+            <name>hin-kagapa</name>
+            
+            <shortDescription>hi</shortDescription>
+            <description>Hindi (KaGaPa phonetic)</description>
+            <languageList>
+              <iso639Id>hin</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>san-kagapa</name>
+            
+            <shortDescription>sa</shortDescription>
+            <description>Sanskrit (KaGaPa phonetic)</description>
+            <languageList>
+              <iso639Id>san</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>mar-kagapa</name>
+            
+            <shortDescription>mr</shortDescription>
+            <description>Marathi (KaGaPa phonetic)</description>
+            <languageList>
+              <iso639Id>mar</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
             <name>eng</name>
             
             <shortDescription>en</shortDescription>
-            <description>English (India, with RupeeSign)</description>
+            <description>English (India, with rupee)</description>
             <languageList>
               <iso639Id>eng</iso639Id>
             </languageList>
@@ -2014,25 +2283,25 @@
         <variant>
           <configItem>
             <name>alternatequotes</name>
-            <description>Bosnian (use guillemets for quotes)</description>
+            <description>Bosnian (with guillemets)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>unicode</name>
-            <description>Bosnian (use Bosnian digraphs)</description>
+            <description>Bosnian (with Bosnian digraphs)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>unicodeus</name>
-            <description>Bosnian (US keyboard with Bosnian digraphs)</description>
+            <description>Bosnian (US, with Bosnian digraphs)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>us</name>
-            <description>Bosnian (US keyboard with Bosnian letters)</description>
+            <description>Bosnian (US, with Bosnian letters)</description>
           </configItem>
         </variant>
       </variantList>
@@ -2051,7 +2320,7 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Portuguese (Brazil, eliminate dead keys)</description>
+            <description>Portuguese (Brazil, no dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -2063,22 +2332,28 @@
         <variant>
           <configItem>
             <name>nativo</name>
-            <description>Portuguese (Brazil, nativo)</description>
+            <description>Portuguese (Brazil, Nativo)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>nativo-us</name>
-            <description>Portuguese (Brazil, nativo for USA keyboards)</description>
+            <description>Portuguese (Brazil, Nativo for US keyboards)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>nativo-epo</name>
-            <description>Portuguese (Brazil, nativo for Esperanto)</description>
+            <description>Esperanto (Brazil, Nativo)</description>
             <languageList>
               <iso639Id>epo</iso639Id>
             </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>thinkpad</name>
+            <description>Portuguese (Brazil, IBM/Lenovo ThinkPad)</description>
           </configItem>
         </variant>
       </variantList>
@@ -2104,6 +2379,35 @@
           <configItem>
             <name>bas_phonetic</name>
             <description>Bulgarian (new phonetic)</description>
+          </configItem>
+        </variant>
+      </variantList>
+    </layout>
+    <layout>
+      <configItem>
+        <name>dz</name>
+        <shortDescription>la</shortDescription>
+        <description>Berber (Algeria, Latin)</description>
+      </configItem>
+      <variantList>
+        <variant>
+          <configItem>
+            <name>ber</name>
+            <shortDescription>ber</shortDescription>
+            <description>Berber (Algeria, Tifinagh)</description>
+            <languageList>
+              <iso639Id>ber</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>ar</name>
+            <shortDescription>ar</shortDescription>
+            <description>Arabic (Algeria)</description>
+            <languageList>
+              <iso639Id>ara</iso639Id>
+            </languageList>
           </configItem>
         </variant>
       </variantList>
@@ -2143,7 +2447,7 @@
             <name>tifinagh-alt</name>
             
             <shortDescription>ber</shortDescription>
-            <description>Berber (Morocco, Tifinagh alternative)</description>
+            <description>Berber (Morocco, Tifinagh alt.)</description>
             <languageList>
               <iso639Id>ber</iso639Id>
             </languageList>
@@ -2154,7 +2458,7 @@
             <name>tifinagh-alt-phonetic</name>
             
             <shortDescription>ber</shortDescription>
-            <description>Berber (Morocco, Tifinagh alternative phonetic)</description>
+            <description>Berber (Morocco, Tifinagh alt. phonetic)</description>
             <languageList>
               <iso639Id>ber</iso639Id>
             </languageList>
@@ -2201,20 +2505,24 @@
         
         <shortDescription>cm</shortDescription>
         <description>English (Cameroon)</description>
-        <languageList><iso639Id>eng</iso639Id></languageList>
+        <languageList>
+          <iso639Id>eng</iso639Id>
+        </languageList>
       </configItem>
       <variantList>
         <variant>
           <configItem>
             <name>french</name>
             <description>French (Cameroon)</description>
-            <languageList><iso639Id>fra</iso639Id></languageList>
+            <languageList>
+              <iso639Id>fra</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>qwerty</name>
-            <description>Cameroon Multilingual (qwerty)</description>
+            <description>Cameroon Multilingual (QWERTY)</description>
             <languageList>
               <iso639Id>eng</iso639Id>
               <iso639Id>bas</iso639Id>
@@ -2251,7 +2559,7 @@
         <variant>
           <configItem>
             <name>azerty</name>
-            <description>Cameroon Multilingual (azerty)</description>
+            <description>Cameroon Multilingual (AZERTY)</description>
             <languageList>
               <iso639Id>fra</iso639Id>
               <iso639Id>bas</iso639Id>
@@ -2291,6 +2599,12 @@
             <description>Cameroon Multilingual (Dvorak)</description>
           </configItem>
         </variant>
+        <variant>
+          <configItem>
+            <name>mmuock</name>
+            <description>Mmuock</description>
+          </configItem>
+        </variant>
       </variantList>
     </layout>
     <layout>
@@ -2303,7 +2617,15 @@
           <iso639Id>mya</iso639Id>
         </languageList>
       </configItem>
-      <variantList/>
+      <variantList>
+        <variant>
+          <configItem>
+            <name>zawgyi</name>
+            <shortDescription>zg</shortDescription>
+            <description>Burmese Zawgyi</description>
+          </configItem>
+        </variant>
+      </variantList>
     </layout>
     <layout>
       <configItem>
@@ -2341,13 +2663,13 @@
         <variant>
           <configItem>
             <name>multi</name>
-            <description>Canadian Multilingual (first part)</description>
+            <description>Canadian Multilingual (1st part)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>multi-2gr</name>
-            <description>Canadian Multilingual (second part)</description>
+            <description>Canadian Multilingual (2nd part)</description>
           </configItem>
         </variant>
         <variant>
@@ -2417,10 +2739,20 @@
         </variant>
         <variant>
           <configItem>
-            <name>uig</name>
+            <name>ug</name>
+            <shortDescription>ug</shortDescription>
             <description>Uyghur</description>
             <languageList>
               <iso639Id>uig</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>altgr-pinyin</name>
+            <description>Hanyu Pinyin (altgr)</description>
+            <languageList>
+              <iso639Id>chi</iso639Id>
             </languageList>
           </configItem>
         </variant>
@@ -2433,32 +2765,32 @@
         <shortDescription>hr</shortDescription>
         <description>Croatian</description>
         <languageList>
-          <iso639Id>scr</iso639Id>
+          <iso639Id>hrv</iso639Id>
         </languageList>
       </configItem>
       <variantList>
         <variant>
           <configItem>
             <name>alternatequotes</name>
-            <description>Croatian (use guillemets for quotes)</description>
+            <description>Croatian (with guillemets)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>unicode</name>
-            <description>Croatian (use Croatian digraphs)</description>
+            <description>Croatian (with Croatian digraphs)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>unicodeus</name>
-            <description>Croatian (US keyboard with Croatian digraphs)</description>
+            <description>Croatian (US, with Croatian digraphs)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>us</name>
-            <description>Croatian (US keyboard with Croatian letters)</description>
+            <description>Croatian (US, with Croatian letters)</description>
           </configItem>
         </variant>
       </variantList>
@@ -2483,25 +2815,36 @@
         <variant>
           <configItem>
             <name>qwerty</name>
-            <description>Czech (qwerty)</description>
+            <description>Czech (QWERTY)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>qwerty_bksl</name>
-            <description>Czech (qwerty, extended Backslash)</description>
+            <description>Czech (QWERTY, extended backslash)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>ucw</name>
-            <description>Czech (UCW layout, accented letters only)</description>
+            <description>Czech (UCW, only accented letters)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>dvorak-ucw</name>
-            <description>Czech (US Dvorak with CZ UCW support)</description>
+            <description>Czech (US, Dvorak, UCW support)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>rus</name>
+            
+            <shortDescription>ru</shortDescription>
+            <description>Russian (Czech, phonetic)</description>
+            <languageList>
+              <iso639Id>rus</iso639Id>
+            </languageList>
           </configItem>
         </variant>
       </variantList>
@@ -2520,7 +2863,13 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Danish (eliminate dead keys)</description>
+            <description>Danish (no dead keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>winkeys</name>
+            <description>Danish (Win keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -2532,7 +2881,7 @@
         <variant>
           <configItem>
             <name>mac_nodeadkeys</name>
-            <description>Danish (Macintosh, eliminate dead keys)</description>
+            <description>Danish (Macintosh, no dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -2557,7 +2906,7 @@
         <variant>
           <configItem>
             <name>sundeadkeys</name>
-            <description>Dutch (Sun dead keys)</description>
+            <description>Dutch (with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -2599,7 +2948,7 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Estonian (eliminate dead keys)</description>
+            <description>Estonian (no dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -2611,7 +2960,7 @@
         <variant>
           <configItem>
             <name>us</name>
-            <description>Estonian (US keyboard with Estonian letters)</description>
+            <description>Estonian (US, with Estonian letters)</description>
           </configItem>
         </variant>
       </variantList>
@@ -2630,7 +2979,7 @@
         <variant>
           <configItem>
             <name>pes_keypad</name>
-            <description>Persian (with Persian Keypad)</description>
+            <description>Persian (with Persian keypad)</description>
           </configItem>
         </variant>
         <variant>
@@ -2685,8 +3034,10 @@
         
         <shortDescription>ar</shortDescription>
         <description>Iraqi</description>
-        <languageList><iso639Id>ara</iso639Id>
-                      <iso639Id>kur</iso639Id></languageList>
+        <languageList>
+          <iso639Id>ara</iso639Id>
+          <iso639Id>kur</iso639Id>
+        </languageList>
       </configItem>
       <variantList>
         <variant>
@@ -2749,7 +3100,7 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Faroese (eliminate dead keys)</description>
+            <description>Faroese (no dead keys)</description>
           </configItem>
         </variant>
       </variantList>
@@ -2774,14 +3125,22 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Finnish (classic, eliminate dead keys)</description>
+            <description>Finnish (classic, no dead keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>winkeys</name>
+            <description>Finnish (Winkeys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>smi</name>
             <description>Northern Saami (Finland)</description>
-            <languageList><iso639Id>sme</iso639Id></languageList>
+            <languageList>
+              <iso639Id>sme</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
@@ -2806,55 +3165,55 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>French (eliminate dead keys)</description>
+            <description>French (no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>sundeadkeys</name>
-            <description>French (Sun dead keys)</description>
+            <description>French (with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>oss</name>
-            <description>French (alternative)</description>
+            <description>French (alt.)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>oss_latin9</name>
-            <description>French (alternative, latin-9 only)</description>
+            <description>French (alt., Latin-9 only)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>oss_nodeadkeys</name>
-            <description>French (alternative, eliminate dead keys)</description>
+            <description>French (alt., no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>oss_sundeadkeys</name>
-            <description>French (alternative, Sun dead keys)</description>
+            <description>French (alt., with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>latin9</name>
-            <description>French (legacy, alternative)</description>
+            <description>French (legacy, alt.)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>latin9_nodeadkeys</name>
-            <description>French (legacy, alternative, eliminate dead keys)</description>
+            <description>French (legacy, alt., no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>latin9_sundeadkeys</name>
-            <description>French (legacy, alternative, Sun dead keys)</description>
+            <description>French (legacy, alt., with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -2866,7 +3225,7 @@
         <variant>
           <configItem>
             <name>bepo_latin9</name>
-            <description>French (Bepo, ergonomic, Dvorak way, latin-9 only)</description>
+            <description>French (Bepo, ergonomic, Dvorak way, Latin-9 only)</description>
           </configItem>
         </variant>
         <variant>
@@ -2879,6 +3238,12 @@
           <configItem>
             <name>mac</name>
             <description>French (Macintosh)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>azerty</name>
+            <description>French (AZERTY)</description>
           </configItem>
         </variant>
         <variant>
@@ -2903,6 +3268,12 @@
             <languageList>
               <iso639Id>geo</iso639Id>
             </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>us</name>
+            <description>French (US, with French letters)</description>
           </configItem>
         </variant>
       </variantList>
@@ -2973,7 +3344,7 @@
             <name>hausa</name>
             
             <shortDescription>ha</shortDescription>
-            <description>Hausa</description>
+            <description>Hausa (Ghana)</description>
             <languageList>
               <iso639Id>hau</iso639Id>
             </languageList>
@@ -3081,21 +3452,31 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>German (eliminate dead keys)</description>
+            <description>German (no dead keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>T3</name>
+            <description>German (T3)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>ro</name>
             <description>Romanian (Germany)</description>
-            <languageList><iso639Id>rum</iso639Id></languageList>
+            <languageList>
+              <iso639Id>rum</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>ro_nodeadkeys</name>
-            <description>Romanian (Germany, eliminate dead keys)</description>
-            <languageList><iso639Id>rum</iso639Id></languageList>
+            <description>Romanian (Germany, no dead keys)</description>
+            <languageList>
+              <iso639Id>rum</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
@@ -3107,7 +3488,7 @@
         <variant>
           <configItem>
             <name>sundeadkeys</name>
-            <description>German (Sun dead keys)</description>
+            <description>German (with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -3125,7 +3506,7 @@
         <variant>
           <configItem>
             <name>mac_nodeadkeys</name>
-            <description>German (Macintosh, eliminate dead keys)</description>
+            <description>German (Macintosh, no dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -3140,7 +3521,7 @@
         <variant>
           <configItem>
             <name>dsb_qwertz</name>
-            <description>Lower Sorbian (qwertz)</description>
+            <description>Lower Sorbian (QWERTZ)</description>
             <languageList>
               <iso639Id>dsb</iso639Id>
             </languageList>
@@ -3148,11 +3529,34 @@
         </variant>
         <variant>
           <configItem>
+            <name>qwerty</name>
+            <description>German (QWERTY)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>tr</name>
+            <description>Turkish (Germany)</description>
+            <languageList>
+              <iso639Id>tr</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
             <name>ru</name>
+            
+            <shortDescription>ru</shortDescription>
             <description>Russian (Germany, phonetic)</description>
             <languageList>
               <iso639Id>rus</iso639Id>
             </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>deadtilde</name>
+            <description>German (dead tilde)</description>
           </configItem>
         </variant>
       </variantList>
@@ -3183,7 +3587,7 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Greek (eliminate dead keys)</description>
+            <description>Greek (no dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -3214,109 +3618,109 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Hungarian (eliminate dead keys)</description>
+            <description>Hungarian (no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>qwerty</name>
-            <description>Hungarian (qwerty)</description>
+            <description>Hungarian (QWERTY)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>101_qwertz_comma_dead</name>
-            <description>Hungarian (101/qwertz/comma/dead keys)</description>
+            <description>Hungarian (101/QWERTZ/comma/dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>101_qwertz_comma_nodead</name>
-            <description>Hungarian (101/qwertz/comma/eliminate dead keys)</description>
+            <description>Hungarian (101/QWERTZ/comma/no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>101_qwertz_dot_dead</name>
-            <description>Hungarian (101/qwertz/dot/dead keys)</description>
+            <description>Hungarian (101/QWERTZ/dot/dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>101_qwertz_dot_nodead</name>
-            <description>Hungarian (101/qwertz/dot/eliminate dead keys)</description>
+            <description>Hungarian (101/QWERTZ/dot/no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>101_qwerty_comma_dead</name>
-            <description>Hungarian (101/qwerty/comma/dead keys)</description>
+            <description>Hungarian (101/QWERTY/comma/dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>101_qwerty_comma_nodead</name>
-            <description>Hungarian (101/qwerty/comma/eliminate dead keys)</description>
+            <description>Hungarian (101/QWERTY/comma/no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>101_qwerty_dot_dead</name>
-            <description>Hungarian (101/qwerty/dot/dead keys)</description>
+            <description>Hungarian (101/QWERTY/dot/dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>101_qwerty_dot_nodead</name>
-            <description>Hungarian (101/qwerty/dot/eliminate dead keys)</description>
+            <description>Hungarian (101/QWERTY/dot/no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>102_qwertz_comma_dead</name>
-            <description>Hungarian (102/qwertz/comma/dead keys)</description>
+            <description>Hungarian (102/QWERTZ/comma/dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>102_qwertz_comma_nodead</name>
-            <description>Hungarian (102/qwertz/comma/eliminate dead keys)</description>
+            <description>Hungarian (102/QWERTZ/comma/no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>102_qwertz_dot_dead</name>
-            <description>Hungarian (102/qwertz/dot/dead keys)</description>
+            <description>Hungarian (102/QWERTZ/dot/dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>102_qwertz_dot_nodead</name>
-            <description>Hungarian (102/qwertz/dot/eliminate dead keys)</description>
+            <description>Hungarian (102/QWERTZ/dot/no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>102_qwerty_comma_dead</name>
-            <description>Hungarian (102/qwerty/comma/dead keys)</description>
+            <description>Hungarian (102/QWERTY/comma/dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>102_qwerty_comma_nodead</name>
-            <description>Hungarian (102/qwerty/comma/eliminate dead keys)</description>
+            <description>Hungarian (102/QWERTY/comma/no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>102_qwerty_dot_dead</name>
-            <description>Hungarian (102/qwerty/dot/dead keys)</description>
+            <description>Hungarian (102/QWERTY/dot/dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>102_qwerty_dot_nodead</name>
-            <description>Hungarian (102/qwerty/dot/eliminate dead keys)</description>
+            <description>Hungarian (102/QWERTY/dot/no dead keys)</description>
           </configItem>
         </variant>
       </variantList>
@@ -3335,13 +3739,19 @@
         <variant>
           <configItem>
             <name>Sundeadkeys</name>
-            <description>Icelandic (Sun dead keys)</description>
+            <description>Icelandic (with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Icelandic (eliminate dead keys)</description>
+            <description>Icelandic (no dead keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>mac_legacy</name>
+            <description>Icelandic (Macintosh, legacy)</description>
           </configItem>
         </variant>
         <variant>
@@ -3403,7 +3813,13 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Italian (eliminate dead keys)</description>
+            <description>Italian (no dead keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>winkeys</name>
+            <description>Italian (Winkeys)</description>
           </configItem>
         </variant>
         <variant>
@@ -3415,7 +3831,7 @@
         <variant>
           <configItem>
             <name>us</name>
-            <description>Italian (US keyboard with Italian letters)</description>
+            <description>Italian (US, with Italian letters)</description>
           </configItem>
         </variant>
         <variant>
@@ -3424,6 +3840,38 @@
             <description>Georgian (Italy)</description>
             <languageList>
               <iso639Id>geo</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>ibm</name>
+            <description>Italian (IBM 142)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>intl</name>
+            <description>Italian (intl., with dead keys)</description>
+            <languageList>
+              <iso639Id>ger</iso639Id>
+              <iso639Id>fra</iso639Id>
+              <iso639Id>ita</iso639Id>
+              <iso639Id>slo</iso639Id>
+              <iso639Id>srd</iso639Id>
+              <iso639Id>nap</iso639Id>
+              <iso639Id>scn</iso639Id>
+              <iso639Id>fur</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>scn</name>
+            <description>Sicilian</description>
+            <languageList>
+              <iso639Id>ita</iso639Id>
+              <iso639Id>scn</iso639Id>
             </languageList>
           </configItem>
         </variant>
@@ -3462,6 +3910,12 @@
           <configItem>
             <name>mac</name>
             <description>Japanese (Macintosh)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>dvorak</name>
+            <description>Japanese (Dvorak)</description>
           </configItem>
         </variant>
       </variantList>
@@ -3514,16 +3968,38 @@
             
             <shortDescription>ru</shortDescription>
             <description>Russian (Kazakhstan, with Kazakh)</description>
-            <languageList><iso639Id>kaz</iso639Id>
-                          <iso639Id>rus</iso639Id></languageList>
+            <languageList>
+              <iso639Id>kaz</iso639Id>
+              <iso639Id>rus</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>kazrus</name>
             <description>Kazakh (with Russian)</description>
-            <languageList><iso639Id>kaz</iso639Id>
-                          <iso639Id>rus</iso639Id></languageList>
+            <languageList>
+              <iso639Id>kaz</iso639Id>
+              <iso639Id>rus</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>ext</name>
+            <description>Kazakh (extended)</description>
+            <languageList>
+              <iso639Id>kaz</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>latin</name>
+            <description>Kazakh (Latin)</description>
+            <languageList>
+              <iso639Id>kaz</iso639Id>
+            </languageList>
           </configItem>
         </variant>
       </variantList>
@@ -3543,7 +4019,8 @@
           <configItem>
             <name>stea</name>
             <description>Lao (STEA proposed standard layout)</description>
-            <languageList><iso639Id>lao</iso639Id>
+            <languageList>
+              <iso639Id>lao</iso639Id>
             </languageList>
           </configItem>
         </variant>
@@ -3586,19 +4063,37 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Spanish (Latin American, eliminate dead keys)</description>
+            <description>Spanish (Latin American, no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>deadtilde</name>
-            <description>Spanish (Latin American, include dead tilde)</description>
+            <description>Spanish (Latin American, dead tilde)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>sundeadkeys</name>
-            <description>Spanish (Latin American, Sun dead keys)</description>
+            <description>Spanish (Latin American, with Sun dead keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>dvorak</name>
+            <description>Spanish (Latin American, Dvorak)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>colemak</name>
+            <description>Spanish (Latin American, Colemak)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>colemak-gaming</name>
+            <description>Spanish (Latin American, Colemak for gaming)</description>
           </configItem>
         </variant>
       </variantList>
@@ -3623,7 +4118,7 @@
         <variant>
           <configItem>
             <name>us</name>
-            <description>Lithuanian (US keyboard with Lithuanian letters)</description>
+            <description>Lithuanian (US, with Lithuanian letters)</description>
           </configItem>
         </variant>
         <variant>
@@ -3660,19 +4155,19 @@
         <variant>
           <configItem>
             <name>apostrophe</name>
-            <description>Latvian (apostrophe variant)</description>
+            <description>Latvian (apostrophe)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>tilde</name>
-            <description>Latvian (tilde variant)</description>
+            <description>Latvian (tilde)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>fkey</name>
-            <description>Latvian (F variant)</description>
+            <description>Latvian (F)</description>
           </configItem>
         </variant>
         <variant>
@@ -3727,25 +4222,25 @@
         <variant>
           <configItem>
             <name>cyrillicyz</name>
-            <description>Montenegrin (Cyrillic, Z and ZHE swapped)</description>
+            <description>Montenegrin (Cyrillic, ZE and ZHE swapped)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>latinunicode</name>
-            <description>Montenegrin (Latin Unicode)</description>
+            <description>Montenegrin (Latin, Unicode)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>latinyz</name>
-            <description>Montenegrin (Latin qwerty)</description>
+            <description>Montenegrin (Latin, QWERTY)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>latinunicodeyz</name>
-            <description>Montenegrin (Latin Unicode qwerty)</description>
+            <description>Montenegrin (Latin, Unicode, QWERTY)</description>
           </configItem>
         </variant>
         <variant>
@@ -3776,7 +4271,7 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Macedonian (eliminate dead keys)</description>
+            <description>Macedonian (no dead keys)</description>
           </configItem>
         </variant>
       </variantList>
@@ -3807,7 +4302,7 @@
         <shortDescription>mn</shortDescription>
         <description>Mongolian</description>
         <languageList>
-          <iso639Id>mng</iso639Id>
+          <iso639Id>mon</iso639Id>
         </languageList>
       </configItem>
       <variantList/>
@@ -3820,13 +4315,21 @@
         <description>Norwegian</description>
         <languageList>
           <iso639Id>nor</iso639Id>
+          <iso639Id>nob</iso639Id>
+          <iso639Id>nno</iso639Id>
         </languageList>
       </configItem>
       <variantList>
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Norwegian (eliminate dead keys)</description>
+            <description>Norwegian (no dead keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>winkeys</name>
+            <description>Norwegian (Win keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -3847,7 +4350,7 @@
         <variant>
           <configItem>
             <name>smi_nodeadkeys</name>
-            <description>Northern Saami (Norway, eliminate dead keys)</description>
+            <description>Northern Saami (Norway, no dead keys)</description>
             <languageList>
               <iso639Id>sme</iso639Id>
             </languageList>
@@ -3862,7 +4365,13 @@
         <variant>
           <configItem>
             <name>mac_nodeadkeys</name>
-            <description>Norwegian (Macintosh, eliminate dead keys)</description>
+            <description>Norwegian (Macintosh, no dead keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>colemak</name>
+            <description>Norwegian (Colemak)</description>
           </configItem>
         </variant>
       </variantList>
@@ -3880,8 +4389,14 @@
       <variantList>
         <variant>
           <configItem>
+            <name>legacy</name>
+            <description>Polish (legacy)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
             <name>qwertz</name>
-            <description>Polish (qwertz)</description>
+            <description>Polish (QWERTZ)</description>
           </configItem>
         </variant>
         <variant>
@@ -3893,13 +4408,13 @@
         <variant>
           <configItem>
             <name>dvorak_quotes</name>
-            <description>Polish (Dvorak, Polish quotes on quotemark key)</description>
+            <description>Polish (Dvorak, with Polish quotes on quotemark key)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>dvorak_altquotes</name>
-            <description>Polish (Dvorak, Polish quotes on key 1)</description>
+            <description>Polish (Dvorak, with Polish quotes on key 1)</description>
           </configItem>
         </variant>
         <variant>
@@ -3908,6 +4423,15 @@
             <description>Kashubian</description>
             <languageList>
               <iso639Id>csb</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>szl</name>
+            <description>Silesian</description>
+            <languageList>
+              <iso639Id>szl</iso639Id>
             </languageList>
           </configItem>
         </variant>
@@ -3944,13 +4468,13 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Portuguese (eliminate dead keys)</description>
+            <description>Portuguese (no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>sundeadkeys</name>
-            <description>Portuguese (Sun dead keys)</description>
+            <description>Portuguese (with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -3962,13 +4486,13 @@
         <variant>
           <configItem>
             <name>mac_nodeadkeys</name>
-            <description>Portuguese (Macintosh, eliminate dead keys)</description>
+            <description>Portuguese (Macintosh, no dead keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>mac_sundeadkeys</name>
-            <description>Portuguese (Macintosh, Sun dead keys)</description>
+            <description>Portuguese (Macintosh, with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -3980,7 +4504,7 @@
         <variant>
           <configItem>
             <name>nativo-us</name>
-            <description>Portuguese (Nativo for USA keyboards)</description>
+            <description>Portuguese (Nativo for US keyboards)</description>
           </configItem>
         </variant>
         <variant>
@@ -4026,7 +4550,7 @@
         <variant>
           <configItem>
             <name>winkeys</name>
-            <description>Romanian (WinKeys)</description>
+            <description>Romanian (Win keys)</description>
           </configItem>
         </variant>
       </variantList>
@@ -4051,7 +4575,13 @@
         <variant>
           <configItem>
             <name>phonetic_winkeys</name>
-            <description>Russian (phonetic WinKeys)</description>
+            <description>Russian (phonetic, with Win keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>phonetic_yazherty</name>
+            <description>Russian (phonetic yazherty)</description>
           </configItem>
         </variant>
         <variant>
@@ -4093,7 +4623,7 @@
         <variant>
           <configItem>
             <name>os_winkeys</name>
-            <description>Ossetian (WinKeys)</description>
+            <description>Ossetian (Win keys)</description>
             <languageList>
               <iso639Id>oss</iso639Id>
             </languageList>
@@ -4161,10 +4691,18 @@
         </variant>
         <variant>
           <configItem>
+            <name>mac</name>
+            <description>Russian (Macintosh)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
             <name>srp</name>
             <description>Serbian (Russia)</description>
-            <languageList><iso639Id>rus</iso639Id>
-                          <iso639Id>srp</iso639Id></languageList>
+            <languageList>
+              <iso639Id>rus</iso639Id>
+              <iso639Id>srp</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
@@ -4185,6 +4723,24 @@
             </languageList>
           </configItem>
         </variant>
+        <variant>
+          <configItem>
+            <name>phonetic_azerty</name>
+            <description>Russian (phonetic, AZERTY)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>phonetic_dvorak</name>
+            <description>Russian (phonetic, Dvorak)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>phonetic_fr</name>
+            <description>Russian (phonetic, French)</description>
+          </configItem>
+        </variant>
       </variantList>
     </layout>
     <layout>
@@ -4192,7 +4748,7 @@
         <name>rs</name>
         
         <shortDescription>sr</shortDescription>
-        <description>Serbian (Cyrillic)</description>
+        <description>Serbian</description>
         <languageList>
           <iso639Id>srp</iso639Id>
         </languageList>
@@ -4201,7 +4757,7 @@
         <variant>
           <configItem>
             <name>yz</name>
-            <description>Serbian (Cyrillic, Z and ZHE swapped)</description>
+            <description>Serbian (Cyrillic, ZE and ZHE swapped)</description>
           </configItem>
         </variant>
         <variant>
@@ -4213,19 +4769,19 @@
         <variant>
           <configItem>
             <name>latinunicode</name>
-            <description>Serbian (Latin Unicode)</description>
+            <description>Serbian (Latin, Unicode)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>latinyz</name>
-            <description>Serbian (Latin qwerty)</description>
+            <description>Serbian (Latin, QWERTY)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>latinunicodeyz</name>
-            <description>Serbian (Latin Unicode qwerty)</description>
+            <description>Serbian (Latin, Unicode, QWERTY)</description>
           </configItem>
         </variant>
         <variant>
@@ -4243,7 +4799,7 @@
         <variant>
           <configItem>
             <name>rue</name>
-            <description>Pannonian Rusyn (homophonic)</description>
+            <description>Pannonian Rusyn</description>
             <languageList>
               <iso639Id>rue</iso639Id>
             </languageList>
@@ -4265,13 +4821,13 @@
         <variant>
           <configItem>
             <name>alternatequotes</name>
-            <description>Slovenian (use guillemets for quotes)</description>
+            <description>Slovenian (with guillemets)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>us</name>
-            <description>Slovenian (US keyboard with Slovenian letters)</description>
+            <description>Slovenian (US, with Slovenian letters)</description>
           </configItem>
         </variant>
       </variantList>
@@ -4290,19 +4846,19 @@
         <variant>
           <configItem>
             <name>bksl</name>
-            <description>Slovak (extended Backslash)</description>
+            <description>Slovak (extended backslash)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>qwerty</name>
-            <description>Slovak (qwerty)</description>
+            <description>Slovak (QWERTY)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>qwerty_bksl</name>
-            <description>Slovak (qwerty, extended Backslash)</description>
+            <description>Slovak (QWERTY, extended backslash)</description>
           </configItem>
         </variant>
       </variantList>
@@ -4321,19 +4877,25 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Spanish (eliminate dead keys)</description>
+            <description>Spanish (no dead keys)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>winkeys</name>
+            <description>Spanish (Win keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>deadtilde</name>
-            <description>Spanish (include dead tilde)</description>
+            <description>Spanish (dead tilde)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>sundeadkeys</name>
-            <description>Spanish (Sun dead keys)</description>
+            <description>Spanish (with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -4345,6 +4907,7 @@
         <variant>
           <configItem>
             <name>ast</name>
+            <shortDescription>ast</shortDescription>
             <description>Asturian (Spain, with bottom-dot H and bottom-dot L)</description>
             <languageList>
               <iso639Id>ast</iso639Id>
@@ -4354,6 +4917,7 @@
         <variant>
           <configItem>
             <name>cat</name>
+            <shortDescription>ca</shortDescription>
             <description>Catalan (Spain, with middle-dot L)</description>
             <languageList>
               <iso639Id>cat</iso639Id>
@@ -4382,7 +4946,7 @@
         <variant>
           <configItem>
             <name>nodeadkeys</name>
-            <description>Swedish (eliminate dead keys)</description>
+            <description>Swedish (no dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -4407,7 +4971,7 @@
             <name>rus_nodeadkeys</name>
             
             <shortDescription>ru</shortDescription>
-            <description>Russian (Sweden, phonetic, eliminate dead keys)</description>
+            <description>Russian (Sweden, phonetic, no dead keys)</description>
             <languageList>
               <iso639Id>rus</iso639Id>
             </languageList>
@@ -4436,9 +5000,23 @@
         </variant>
         <variant>
           <configItem>
+            <name>us_dvorak</name>
+            <description>Swedish (based on US Intl. Dvorak)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>us</name>
+            <description>Swedish (US, with Swedish letters)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
             <name>swl</name>
             <description>Swedish Sign Language</description>
-            <languageList><iso639Id>swl</iso639Id></languageList>
+            <languageList>
+              <iso639Id>swl</iso639Id>
+            </languageList>
           </configItem>
         </variant>
       </variantList>
@@ -4449,8 +5027,10 @@
         
         <shortDescription>de</shortDescription>
         <description>German (Switzerland)</description>
-        <languageList><iso639Id>ger</iso639Id>
-                      <iso639Id>gsw</iso639Id></languageList>
+        <languageList>
+          <iso639Id>ger</iso639Id>
+          <iso639Id>gsw</iso639Id>
+        </languageList>
       </configItem>
       <variantList>
         <variant>
@@ -4464,7 +5044,7 @@
             <name>de_nodeadkeys</name>
             
             <shortDescription>de</shortDescription>
-            <description>German (Switzerland, eliminate dead keys)</description>
+            <description>German (Switzerland, no dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -4472,7 +5052,7 @@
             <name>de_sundeadkeys</name>
             
             <shortDescription>de</shortDescription>
-            <description>German (Switzerland, Sun dead keys)</description>
+            <description>German (Switzerland, with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -4491,7 +5071,7 @@
             <name>fr_nodeadkeys</name>
             
             <shortDescription>fr</shortDescription>
-            <description>French (Switzerland, eliminate dead keys)</description>
+            <description>French (Switzerland, no dead keys)</description>
             <languageList>
               <iso639Id>fra</iso639Id>
             </languageList>
@@ -4502,7 +5082,7 @@
             <name>fr_sundeadkeys</name>
             
             <shortDescription>fr</shortDescription>
-            <description>French (Switzerland, Sun dead keys)</description>
+            <description>French (Switzerland, with Sun dead keys)</description>
             <languageList>
               <iso639Id>fra</iso639Id>
             </languageList>
@@ -4626,7 +5206,7 @@
             <name>tam_unicode</name>
             
             <shortDescription>ta</shortDescription>
-            <description>Tamil (Sri Lanka, Unicode)</description>
+            <description>Tamil (Sri Lanka, TamilNet '99)</description>
             <languageList>
               <iso639Id>tam</iso639Id>
             </languageList>
@@ -4635,10 +5215,18 @@
         <variant>
           <configItem>
             <name>tam_TAB</name>
-            <description>Tamil (Sri Lanka, TAB Typewriter)</description>
+            <description>Tamil (Sri Lanka, TamilNet '99, TAB encoding)</description>
             <languageList>
               <iso639Id>tam</iso639Id>
             </languageList>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>us</name>
+            
+            <shortDescription>us</shortDescription>
+            <description>Sinhala (US, with Sinhala letters)</description>
           </configItem>
         </variant>
       </variantList>
@@ -4694,7 +5282,7 @@
         <variant>
           <configItem>
             <name>sundeadkeys</name>
-            <description>Turkish (Sun dead keys)</description>
+            <description>Turkish (with Sun dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -4733,7 +5321,7 @@
         <variant>
           <configItem>
             <name>intl</name>
-            <description>Turkish (international with dead keys)</description>
+            <description>Turkish (intl., with dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -4778,7 +5366,7 @@
         <shortDescription>zh</shortDescription>
         <description>Taiwanese</description>
         <languageList>
-          <iso639Id>trv</iso639Id>
+          <iso639Id>fox</iso639Id>
         </languageList>
       </configItem>
       <variantList>
@@ -4798,6 +5386,11 @@
               <iso639Id>ssf</iso639Id>
               <iso639Id>tao</iso639Id>
               <iso639Id>tsu</iso639Id>
+              <iso639Id>trv</iso639Id>
+              <iso639Id>xnb</iso639Id>
+              <iso639Id>sxr</iso639Id>
+              <iso639Id>uun</iso639Id>
+              <iso639Id>fos</iso639Id>
             </languageList>
           </configItem>
         </variant>
@@ -4840,7 +5433,7 @@
         <variant>
           <configItem>
             <name>winkeys</name>
-            <description>Ukrainian (WinKeys)</description>
+            <description>Ukrainian (Win keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -4883,13 +5476,13 @@
         <variant>
           <configItem>
             <name>extd</name>
-            <description>English (UK, extended WinKeys)</description>
+            <description>English (UK, extended, with Win keys)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>intl</name>
-            <description>English (UK, international with dead keys)</description>
+            <description>English (UK, intl., with dead keys)</description>
           </configItem>
         </variant>
         <variant>
@@ -4901,7 +5494,7 @@
         <variant>
           <configItem>
             <name>dvorakukp</name>
-            <description>English (UK, Dvorak with UK punctuation)</description>
+            <description>English (UK, Dvorak, with UK punctuation)</description>
           </configItem>
         </variant>
         <variant>
@@ -4913,13 +5506,24 @@
         <variant>
           <configItem>
             <name>mac_intl</name>
-            <description>English (UK, Macintosh international)</description>
+            <description>English (UK, intl., Macintosh)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>colemak</name>
             <description>English (UK, Colemak)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>pl</name>
+            
+            <shortDescription>pl</shortDescription>
+            <description>Polish (British keyboard)</description>
+            <languageList>
+              <iso639Id>pol</iso639Id>
+            </languageList>
           </configItem>
         </variant>
       </variantList>
@@ -4953,7 +5557,20 @@
           <iso639Id>vie</iso639Id>
         </languageList>
       </configItem>
-      <variantList/>
+      <variantList>
+        <variant>
+          <configItem>
+            <name>us</name>
+            <description>Vietnamese (US, with Vietnamese letters)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>fr</name>
+            <description>Vietnamese (French, with Vietnamese letters)</description>
+          </configItem>
+        </variant>
+      </variantList>
     </layout>
     <layout>
       <configItem>
@@ -4979,7 +5596,7 @@
         <name>nec_vndr/jp</name>
         
         <shortDescription>ja</shortDescription>
-        <description>Japanese (PC-98xx Series)</description>
+        <description>Japanese (PC-98)</description>
         <countryList>
           <iso3166Id>JP</iso3166Id>
         </countryList>
@@ -4987,7 +5604,6 @@
           <iso639Id>jpn</iso639Id>
         </languageList>
       </configItem>
-      <variantList/>
     </layout>
     <layout>
       <configItem>
@@ -5005,7 +5621,7 @@
             <name>CloGaelach</name>
             <description>CloGaelach</description>
             <languageList>
-              <iso639Id>gla</iso639Id>
+              <iso639Id>gle</iso639Id>
             </languageList>
           </configItem>
         </variant>
@@ -5075,7 +5691,7 @@
             <shortDescription>sd</shortDescription>
             <description>Sindhi</description>
             <languageList>
-              <iso639Id>sd</iso639Id>
+              <iso639Id>snd</iso639Id>
             </languageList>
           </configItem>
         </variant>
@@ -5131,6 +5747,8 @@
         <description>Nepali</description>
         <languageList>
           <iso639Id>nep</iso639Id>
+          
+          <iso639Id>sat</iso639Id>
         </languageList>
       </configItem>
     </layout>
@@ -5172,7 +5790,7 @@
             <name>hausa</name>
             
             <shortDescription>ha</shortDescription>
-            <description>Hausa</description>
+            <description>Hausa (Nigeria)</description>
             <languageList>
               <iso639Id>hau</iso639Id>
             </languageList>
@@ -5215,13 +5833,25 @@
         <variant>
           <configItem>
             <name>left_hand</name>
-            <description>Braille (left hand)</description>
+            <description>Braille (left-handed)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>left_hand_invert</name>
+            <description>Braille (left-handed inverted thumb)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>right_hand</name>
-            <description>Braille (right hand)</description>
+            <description>Braille (right-handed)</description>
+          </configItem>
+        </variant>
+        <variant>
+          <configItem>
+            <name>right_hand_invert</name>
+            <description>Braille (right-handed inverted thumb)</description>
           </configItem>
         </variant>
       </variantList>
@@ -5261,9 +5891,9 @@
             <name>fr-oss</name>
             
             <shortDescription>fr</shortDescription>
-            <description>French (Mali, alternative)</description>
+            <description>French (Mali, alt.)</description>
             <languageList>
-              <iso639Id>fr</iso639Id>
+              <iso639Id>fra</iso639Id>
             </languageList>
           </configItem>
         </variant>
@@ -5272,7 +5902,10 @@
             <name>us-mac</name>
             
             <shortDescription>en</shortDescription>
-            <description>English (Mali, US Macintosh)</description>
+            <description>English (Mali, US, Macintosh)</description>
+            <languageList>
+              <iso639Id>eng</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
@@ -5280,7 +5913,10 @@
             <name>us-intl</name>
             
             <shortDescription>en</shortDescription>
-            <description>English (Mali, US international)</description>
+            <description>English (Mali, US, intl.)</description>
+            <languageList>
+              <iso639Id>eng</iso639Id>
+            </languageList>
           </configItem>
         </variant>
       </variantList>
@@ -5293,6 +5929,33 @@
         <description>Swahili (Tanzania)</description>
         <languageList>
           <iso639Id>swa</iso639Id>
+        </languageList>
+      </configItem>
+    </layout>
+    <layout>
+      <configItem>
+        <name>tg</name>
+        <shortDescription>fr-tg</shortDescription>
+        <description>French (Togo)</description>
+        <languageList>
+          <iso639Id>fra</iso639Id>
+          <iso639Id>ajg</iso639Id>
+          <iso639Id>blo</iso639Id>
+          <iso639Id>kpo</iso639Id>
+          <iso639Id>ewe</iso639Id>
+          <iso639Id>fon</iso639Id>
+          <iso639Id>fue</iso639Id>
+          <iso639Id>gej</iso639Id>
+          <iso639Id>ife</iso639Id>
+          <iso639Id>kbp</iso639Id>
+          <iso639Id>las</iso639Id>
+          <iso639Id>dop</iso639Id>
+          <iso639Id>mfg</iso639Id>
+          <iso639Id>nmz</iso639Id>
+          <iso639Id>bud</iso639Id>
+          <iso639Id>gng</iso639Id>
+          <iso639Id>kdh</iso639Id>
+          <iso639Id>soy</iso639Id>
         </languageList>
       </configItem>
     </layout>
@@ -5337,123 +6000,198 @@
         
         <shortDescription>ph</shortDescription>
         <description>Filipino</description>
-        <languageList><iso639Id>eng</iso639Id>
-                     <iso639Id>bik</iso639Id>
-                      <iso639Id>ceb</iso639Id>
-                      <iso639Id>fil</iso639Id>
-                      <iso639Id>hil</iso639Id>
-                      <iso639Id>ilo</iso639Id>
-                      <iso639Id>pam</iso639Id>
-                      <iso639Id>pag</iso639Id>
-                      <iso639Id>phi</iso639Id>
-                      <iso639Id>tgl</iso639Id>
-                      <iso639Id>war</iso639Id></languageList>
+        <languageList>
+          <iso639Id>eng</iso639Id>
+          <iso639Id>bik</iso639Id>
+          <iso639Id>ceb</iso639Id>
+          <iso639Id>fil</iso639Id>
+          <iso639Id>hil</iso639Id>
+          <iso639Id>ilo</iso639Id>
+          <iso639Id>pam</iso639Id>
+          <iso639Id>pag</iso639Id>
+          <iso639Id>phi</iso639Id>
+          <iso639Id>tgl</iso639Id>
+          <iso639Id>war</iso639Id>
+        </languageList>
       </configItem>
       <variantList>
         <variant>
           <configItem>
             <name>qwerty-bay</name>
-            <description>Filipino (QWERTY Baybayin)</description>
-            <languageList><iso639Id>bik</iso639Id>
-                          <iso639Id>ceb</iso639Id>
-                          <iso639Id>fil</iso639Id>
-                          <iso639Id>hil</iso639Id>
-                          <iso639Id>ilo</iso639Id>
-                          <iso639Id>pam</iso639Id>
-                          <iso639Id>pag</iso639Id>
-                          <iso639Id>phi</iso639Id>
-                          <iso639Id>tgl</iso639Id>
-                          <iso639Id>war</iso639Id></languageList>
+            <description>Filipino (QWERTY, Baybayin)</description>
+            <languageList>
+              <iso639Id>bik</iso639Id>
+              <iso639Id>ceb</iso639Id>
+              <iso639Id>fil</iso639Id>
+              <iso639Id>hil</iso639Id>
+              <iso639Id>ilo</iso639Id>
+              <iso639Id>pam</iso639Id>
+              <iso639Id>pag</iso639Id>
+              <iso639Id>phi</iso639Id>
+              <iso639Id>tgl</iso639Id>
+              <iso639Id>war</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>capewell-dvorak</name>
-            <description>Filipino (Capewell-Dvorak Latin)</description>
+            <description>Filipino (Capewell-Dvorak, Latin)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>capewell-dvorak-bay</name>
-            <description>Filipino (Capewell-Dvorak Baybayin)</description>
-            <languageList><iso639Id>bik</iso639Id>
-                          <iso639Id>ceb</iso639Id>
-                          <iso639Id>fil</iso639Id>
-                          <iso639Id>hil</iso639Id>
-                          <iso639Id>ilo</iso639Id>
-                          <iso639Id>pam</iso639Id>
-                          <iso639Id>pag</iso639Id>
-                          <iso639Id>phi</iso639Id>
-                          <iso639Id>tgl</iso639Id>
-                          <iso639Id>war</iso639Id></languageList>
+            <description>Filipino (Capewell-Dvorak, Baybayin)</description>
+            <languageList>
+              <iso639Id>bik</iso639Id>
+              <iso639Id>ceb</iso639Id>
+              <iso639Id>fil</iso639Id>
+              <iso639Id>hil</iso639Id>
+              <iso639Id>ilo</iso639Id>
+              <iso639Id>pam</iso639Id>
+              <iso639Id>pag</iso639Id>
+              <iso639Id>phi</iso639Id>
+              <iso639Id>tgl</iso639Id>
+              <iso639Id>war</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>capewell-qwerf2k6</name>
-            <description>Filipino (Capewell-QWERF 2006 Latin)</description>
+            <description>Filipino (Capewell-QWERF 2006, Latin)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>capewell-qwerf2k6-bay</name>
-            <description>Filipino (Capewell-QWERF 2006 Baybayin)</description>
-            <languageList><iso639Id>bik</iso639Id>
-                          <iso639Id>ceb</iso639Id>
-                          <iso639Id>fil</iso639Id>
-                          <iso639Id>hil</iso639Id>
-                          <iso639Id>ilo</iso639Id>
-                          <iso639Id>pam</iso639Id>
-                          <iso639Id>pag</iso639Id>
-                          <iso639Id>phi</iso639Id>
-                          <iso639Id>tgl</iso639Id>
-                          <iso639Id>war</iso639Id></languageList>
+            <description>Filipino (Capewell-QWERF 2006, Baybayin)</description>
+            <languageList>
+              <iso639Id>bik</iso639Id>
+              <iso639Id>ceb</iso639Id>
+              <iso639Id>fil</iso639Id>
+              <iso639Id>hil</iso639Id>
+              <iso639Id>ilo</iso639Id>
+              <iso639Id>pam</iso639Id>
+              <iso639Id>pag</iso639Id>
+              <iso639Id>phi</iso639Id>
+              <iso639Id>tgl</iso639Id>
+              <iso639Id>war</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>colemak</name>
-            <description>Filipino (Colemak Latin)</description>
+            <description>Filipino (Colemak, Latin)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>colemak-bay</name>
-            <description>Filipino (Colemak Baybayin)</description>
-            <languageList><iso639Id>bik</iso639Id>
-                          <iso639Id>ceb</iso639Id>
-                          <iso639Id>fil</iso639Id>
-                          <iso639Id>hil</iso639Id>
-                          <iso639Id>ilo</iso639Id>
-                          <iso639Id>pam</iso639Id>
-                          <iso639Id>pag</iso639Id>
-                          <iso639Id>phi</iso639Id>
-                          <iso639Id>tgl</iso639Id>
-                          <iso639Id>war</iso639Id></languageList>
+            <description>Filipino (Colemak, Baybayin)</description>
+            <languageList>
+              <iso639Id>bik</iso639Id>
+              <iso639Id>ceb</iso639Id>
+              <iso639Id>fil</iso639Id>
+              <iso639Id>hil</iso639Id>
+              <iso639Id>ilo</iso639Id>
+              <iso639Id>pam</iso639Id>
+              <iso639Id>pag</iso639Id>
+              <iso639Id>phi</iso639Id>
+              <iso639Id>tgl</iso639Id>
+              <iso639Id>war</iso639Id>
+            </languageList>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>dvorak</name>
-            <description>Filipino (Dvorak Latin)</description>
+            <description>Filipino (Dvorak, Latin)</description>
           </configItem>
         </variant>
         <variant>
           <configItem>
             <name>dvorak-bay</name>
-            <description>Filipino (Dvorak Baybayin)</description>
-            <languageList><iso639Id>bik</iso639Id>
-                          <iso639Id>ceb</iso639Id>
-                          <iso639Id>fil</iso639Id>
-                          <iso639Id>hil</iso639Id>
-                          <iso639Id>ilo</iso639Id>
-                          <iso639Id>pam</iso639Id>
-                          <iso639Id>pag</iso639Id>
-                          <iso639Id>phi</iso639Id>
-                          <iso639Id>tgl</iso639Id>
-                          <iso639Id>war</iso639Id></languageList>
+            <description>Filipino (Dvorak, Baybayin)</description>
+            <languageList>
+              <iso639Id>bik</iso639Id>
+              <iso639Id>ceb</iso639Id>
+              <iso639Id>fil</iso639Id>
+              <iso639Id>hil</iso639Id>
+              <iso639Id>ilo</iso639Id>
+              <iso639Id>pam</iso639Id>
+              <iso639Id>pag</iso639Id>
+              <iso639Id>phi</iso639Id>
+              <iso639Id>tgl</iso639Id>
+              <iso639Id>war</iso639Id>
+            </languageList>
           </configItem>
         </variant>
+      </variantList>
+    </layout>
+    <layout>
+      <configItem>
+        <name>md</name>
+        <shortDescription>md</shortDescription>
+        <description>Moldavian</description>
+        <languageList>
+          <iso639Id>rum</iso639Id>
+        </languageList>
+      </configItem>
+      <variantList>
+        <variant>
+          <configItem>
+            <name>gag</name>
+            <shortDescription>gag</shortDescription>
+            <description>Moldavian (Gagauz)</description>
+            <languageList>
+              <iso639Id>gag</iso639Id>
+            </languageList>
+          </configItem>
+        </variant>
+      </variantList>
+    </layout>
+    <layout>
+      <configItem>
+        <name>id</name>
+        <shortDescription>id</shortDescription>
+        <description>Indonesian (Jawi)</description>
+        <languageList>
+          <iso639Id>ind</iso639Id>
+          <iso639Id>msa</iso639Id>
+          <iso639Id>min</iso639Id>
+          <iso639Id>ace</iso639Id>
+          <iso639Id>bjn</iso639Id>
+          <iso639Id>tsg</iso639Id>
+          <iso639Id>mfa</iso639Id>
+        </languageList>
+      </configItem>
+      <variantList/>
+    </layout>
+    <layout>
+      <configItem>
+        <name>my</name>
+        <shortDescription>ms</shortDescription>
+        <description>Malay (Jawi, Arabic Keyboard)</description>
+        <languageList>
+          <iso639Id>ind</iso639Id>
+          <iso639Id>msa</iso639Id>
+          <iso639Id>min</iso639Id>
+          <iso639Id>ace</iso639Id>
+          <iso639Id>bjn</iso639Id>
+          <iso639Id>tsg</iso639Id>
+          <iso639Id>mfa</iso639Id>
+        </languageList>
+      </configItem>
+      <variantList>
+       <variant>
+         <configItem>
+          <name>phonetic</name>
+            <description>Malay (Jawi, phonetic)</description>
+         </configItem>
+       </variant>
       </variantList>
     </layout>
   </layoutList>
@@ -5462,7 +6200,7 @@
       
       <configItem>
         <name>grp</name>
-        <description>Key(s) to change layout</description>
+        <description>Switching to another layout</description>
       </configItem>
       <option>
         <configItem>
@@ -5485,19 +6223,25 @@
       <option>
         <configItem>
           <name>grp:rwin_switch</name>
-          <description>Right Win (while pressed)</description>
+          <description>Left Win (while pressed)</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>grp:win_switch</name>
-          <description>Any Win key (while pressed)</description>
+          <description>Any Win (while pressed)</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>grp:menu_switch</name>
+          <description>Menu (while pressed), Shift+Menu for Menu</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>grp:caps_switch</name>
-          <description>Caps Lock (while pressed), Alt+Caps Lock does the original capslock action</description>
+          <description>Caps Lock (while pressed), Alt+Caps Lock for the original Caps Lock action</description>
         </configItem>
       </option>
       <option>
@@ -5533,19 +6277,19 @@
       <option>
         <configItem>
           <name>grp:shift_caps_switch</name>
-          <description>Caps Lock (to first layout), Shift+Caps Lock (to last layout)</description>
+          <description>Caps Lock to first layout; Shift+Caps Lock to last layout</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>grp:win_menu_switch</name>
-          <description>Left Win (to first layout), Right Win/Menu (to last layout)</description>
+          <description>Left Win to first layout; Right Win/Menu to last layout</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>grp:lctrl_rctrl_switch</name>
-          <description>Left Ctrl (to first layout), Right Ctrl (to last layout)</description>
+          <description>Left Ctrl to first layout; Right Ctrl to last layout</description>
         </configItem>
       </option>
       <option>
@@ -5557,19 +6301,19 @@
       <option>
         <configItem>
           <name>grp:shifts_toggle</name>
-          <description>Both Shift keys together</description>
+          <description>Both Shift together</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>grp:alts_toggle</name>
-          <description>Both Alt keys together</description>
+          <description>Both Alt together</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>grp:ctrls_toggle</name>
-          <description>Both Ctrl keys together</description>
+          <description>Both Ctrl together</description>
         </configItem>
       </option>
       <option>
@@ -5589,7 +6333,7 @@
           <name>grp:rctrl_rshift_toggle</name>
           <description>Right Ctrl+Right Shift</description>
         </configItem>
-      </option>      
+      </option>
       <option>
         <configItem>
           <name>grp:ctrl_alt_toggle</name>
@@ -5624,6 +6368,12 @@
         <configItem>
           <name>grp:lwin_toggle</name>
           <description>Left Win</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>grp:win_space_toggle</name>
+          <description>Win+Space</description>
         </configItem>
       </option>
       <option>
@@ -5665,7 +6415,13 @@
       <option>
         <configItem>
           <name>grp:lctrl_lwin_rctrl_menu</name>
-          <description>LeftCtrl+LeftWin (to first layout), RightCtrl+Menu (to second layout)</description>
+          <description>Left Ctrl+Left Win to first layout; Right Ctrl+Menu to second layout</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>grp:lctrl_lwin_toggle</name>
+          <description>Left Ctrl+Left Win</description>
         </configItem>
       </option>
     </group>
@@ -5673,7 +6429,7 @@
       
       <configItem>
         <name>lv3</name>
-        <description>Key to choose 3rd level</description>
+        <description>Key to choose the 3rd level</description>
       </configItem>
       <option>
         <configItem>
@@ -5690,7 +6446,7 @@
       <option>
         <configItem>
           <name>lv3:win_switch</name>
-          <description>Any Win key</description>
+          <description>Any Win</description>
         </configItem>
       </option>
       <option>
@@ -5708,7 +6464,7 @@
       <option>
         <configItem>
           <name>lv3:alt_switch</name>
-          <description>Any Alt key</description>
+          <description>Any Alt</description>
         </configItem>
       </option>
       <option>
@@ -5726,13 +6482,13 @@
       <option>
         <configItem>
           <name>lv3:ralt_switch_multikey</name>
-          <description>Right Alt, Shift+Right Alt key is Multi_Key</description>
+          <description>Right Alt; Shift+Right Alt as Compose</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>lv3:ralt_alt</name>
-          <description>Right Alt key never chooses 3rd level</description>
+          <description>Right Alt never chooses 3rd level</description>
         </configItem>
       </option>
       <option>
@@ -5762,19 +6518,19 @@
       <option>
         <configItem>
           <name>lv3:caps_switch_latch</name>
-          <description>Caps Lock chooses 3rd level, acts as onetime lock when pressed together with another 3rd-level-chooser</description>
+          <description>Caps Lock; acts as onetime lock when pressed together with another 3rd-level chooser</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>lv3:bksl_switch_latch</name>
-          <description>Backslash chooses 3rd level, acts as onetime lock when pressed together with another 3rd-level-chooser</description>
+          <description>Backslash; acts as onetime lock when pressed together with another 3rd level chooser</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>lv3:lsgt_switch_latch</name>
-          <description>&lt;Less/Greater&gt; chooses 3rd level, acts as onetime lock when pressed together with another 3rd-level-chooser</description>
+          <description>&lt;Less/Greater&gt;; acts as onetime lock when pressed together with another 3rd level chooser</description>
         </configItem>
       </option>
     </group>
@@ -5782,7 +6538,7 @@
       
       <configItem>
         <name>ctrl</name>
-        <description>Ctrl key position</description>
+        <description>Ctrl position</description>
       </configItem>
       <option>
         <configItem>
@@ -5828,8 +6584,25 @@
       </option>
       <option>
         <configItem>
-          <name>ctrl:ctrl_ralt</name>
-          <description>Right Alt as Right Ctrl</description>
+          <name>ctrl:swap_lalt_lctl</name>
+          <description>Swap Left Alt with Left Ctrl</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>ctrl:swap_lwin_lctl</name>
+          <description>Swap Left Win with Left Ctrl</description>
+        </configItem>
+      </option><option>
+        <configItem>
+          <name>ctrl:swap_rwin_rctl</name>
+          <description>Swap Right Win with Right Ctrl</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>ctrl:swap_lalt_lctl_lwin</name>
+          <description>Left Alt as Ctrl, Left Ctrl as Win, Left Win as Left Alt</description>
         </configItem>
       </option>
     </group>
@@ -5862,7 +6635,7 @@
       
       <configItem>
         <name>keypad</name>
-        <description>Numeric keypad layout selection</description>
+        <description>Layout of numeric keypad</description>
       </configItem>
       <option>
         <configItem>
@@ -5879,7 +6652,7 @@
       <option>
         <configItem>
           <name>keypad:future</name>
-          <description>Unicode additions (arrows and math operators). Math operators on default level</description>
+          <description>Unicode additions (arrows and math operators; math operators on default level)</description>
        </configItem>
       </option>
       <option>
@@ -5897,7 +6670,7 @@
       <option>
         <configItem>
           <name>keypad:future_wang</name>
-          <description>Wang 724 keypad with Unicode additions (arrows and math operators). Math operators on default level</description>
+          <description>Wang 724 keypad with Unicode additions (arrows and math operators; math operators on default level)</description>
        </configItem>
       </option>
       <option>
@@ -5918,7 +6691,7 @@
       
       <configItem>
         <name>kpdl</name>
-        <description>Numeric keypad delete key behaviour</description>
+        <description>Numeric keypad Delete behavior</description>
       </configItem>
       <option>
         <configItem>
@@ -5943,7 +6716,7 @@
       <option>
         <configItem>
           <name>kpdl:dotoss_latin9</name>
-          <description>Four-level key with dot, latin-9 restriction</description>
+          <description>Four-level key with dot, Latin-9 only</description>
        </configItem>
       </option>
       <option>
@@ -5968,7 +6741,7 @@
       <option>
         <configItem>
           <name>kpdl:semi</name>
-          <description>Semi-colon on third level</description>
+          <description>Semicolon on third level</description>
        </configItem>
       </option>
     </group>
@@ -5976,30 +6749,30 @@
       
       <configItem>
         <name>caps</name>
-        <description>Caps Lock key behavior</description>
+        <description>Caps Lock behavior</description>
       </configItem>
       <option>
         <configItem>
           <name>caps:internal</name>
-          <description>Caps Lock uses internal capitalization. Shift "pauses" Caps Lock</description>
+          <description>Caps Lock uses internal capitalization; Shift "pauses" Caps Lock</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>caps:internal_nocancel</name>
-          <description>Caps Lock uses internal capitalization. Shift doesn't affect Caps Lock</description>
+          <description>Caps Lock uses internal capitalization; Shift does not affect Caps Lock</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>caps:shift</name>
-          <description>Caps Lock acts as Shift with locking. Shift "pauses" Caps Lock</description>
+          <description>Caps Lock acts as Shift with locking; Shift "pauses" Caps Lock</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>caps:shift_nocancel</name>
-          <description>Caps Lock acts as Shift with locking. Shift doesn't affect Caps Lock</description>
+          <description>Caps Lock acts as Shift with locking; Shift does not affect Caps Lock</description>
         </configItem>
       </option>
       <option>
@@ -6010,8 +6783,8 @@
       </option>
       <option>
         <configItem>
-          <name>caps:numlock</name>
-          <description>Make Caps Lock an additional Num Lock</description>
+          <name>caps:shiftlock</name>
+          <description>Caps Lock toggles ShiftLock (affects all keys)</description>
         </configItem>
       </option>
       <option>
@@ -6023,7 +6796,7 @@
       <option>
         <configItem>
           <name>caps:escape</name>
-          <description>Make Caps Lock an additional ESC</description>
+          <description>Make Caps Lock an additional Esc</description>
         </configItem>
       </option>
       <option>
@@ -6046,20 +6819,26 @@
       </option>
       <option>
         <configItem>
-          <name>caps:shiftlock</name>
-          <description>Caps Lock toggles Shift so all keys are affected</description>
+          <name>caps:menu</name>
+          <description>Make Caps Lock an additional Menu key</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>caps:numlock</name>
+          <description>Make Caps Lock an additional Num Lock</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>caps:ctrl_modifier</name>
+          <description>Caps Lock is also a Ctrl</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>caps:none</name>
           <description>Caps Lock is disabled</description>
-        </configItem>
-      </option>
-      <option>
-        <configItem>
-          <name>caps:ctrl_modifier</name>
-          <description>Make Caps Lock an additional Control but keep the Caps_Lock keysym</description>
         </configItem>
       </option>
     </group>
@@ -6078,25 +6857,31 @@
       <option>
         <configItem>
           <name>altwin:meta_alt</name>
-          <description>Alt and Meta are on Alt keys</description>
+          <description>Alt and Meta are on Alt</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>altwin:alt_win</name>
+          <description>Alt is mapped to Win and the usual Alt</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>altwin:ctrl_win</name>
-          <description>Control is mapped to Win keys (and the usual Ctrl keys)</description>
+          <description>Ctrl is mapped to Win and the usual Ctrl keys</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>altwin:ctrl_alt_win</name>
-          <description>Control is mapped to Alt keys, Alt is mapped to Win keys</description>
+          <description>Ctrl is mapped to Alt; Alt is mapped to Win</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>altwin:meta_win</name>
-          <description>Meta is mapped to Win keys</description>
+          <description>Meta is mapped to Win</description>
         </configItem>
       </option>
       <option>
@@ -6108,7 +6893,7 @@
       <option>
         <configItem>
           <name>altwin:hyper_win</name>
-          <description>Hyper is mapped to Win-keys</description>
+          <description>Hyper is mapped to Win</description>
         </configItem>
       </option>
       <option>
@@ -6123,12 +6908,24 @@
           <description>Left Alt is swapped with Left Win</description>
         </configItem>
       </option>
+      <option>
+        <configItem>
+          <name>altwin:swap_alt_win</name>
+          <description>Alt is swapped with Win</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>altwin:prtsc_rwin</name>
+          <description>Win is mapped to PrtSc and the usual Win</description>
+        </configItem>
+      </option>
     </group>
     <group allowMultipleSelection="true">
       
       <configItem>
         <name>Compose key</name>
-        <description>Compose key position</description>
+        <description>Position of Compose key</description>
       </configItem>
       <option>
         <configItem>
@@ -6144,8 +6941,20 @@
       </option>
       <option>
         <configItem>
+          <name>compose:lwin-altgr</name>
+          <description>3rd level of Left Win</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
           <name>compose:rwin</name>
           <description>Right Win</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>compose:rwin-altgr</name>
+          <description>3rd level of Right Win</description>
         </configItem>
       </option>
       <option>
@@ -6156,8 +6965,20 @@
       </option>
       <option>
         <configItem>
+          <name>compose:menu-altgr</name>
+          <description>3rd level of Menu</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
           <name>compose:lctrl</name>
           <description>Left Ctrl</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>compose:lctrl-altgr</name>
+          <description>3rd level of Left Ctrl</description>
         </configItem>
       </option>
       <option>
@@ -6168,14 +6989,32 @@
       </option>
       <option>
         <configItem>
+          <name>compose:rctrl-altgr</name>
+          <description>3rd level of Right Ctrl</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
           <name>compose:caps</name>
           <description>Caps Lock</description>
         </configItem>
       </option>
       <option>
         <configItem>
+          <name>compose:caps-altgr</name>
+          <description>3rd level of Caps Lock</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
           <name>compose:102</name>
           <description>&lt;Less/Greater&gt;</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>compose:102-altgr</name>
+          <description>3rd level of &lt;Less/Greater&gt;</description>
         </configItem>
       </option>
       <option>
@@ -6211,13 +7050,13 @@
       <option>
         <configItem>
           <name>numpad:mac</name>
-          <description>Numeric keypad keys always enter digits (as in Mac OS)</description>
+          <description>Numeric keypad always enters digits (as in macOS)</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>numpad:microsoft</name>
-          <description>Shift with numeric keypad keys works as in MS Windows</description>
+          <description>Num Lock on: digits; Shift for arrow keys. Num Lock off: arrow keys (as in Windows)</description>
         </configItem>
       </option>
       <option>
@@ -6235,7 +7074,7 @@
       <option>
         <configItem>
           <name>apple:alupckeys</name>
-          <description>Apple Aluminium Keyboard: emulate PC keys (Print, Scroll Lock, Pause, Num Lock)</description>
+          <description>Apple Aluminium: emulate PC keys (PrtSc, Scroll Lock, Pause, Num Lock)</description>
         </configItem>
       </option>
       <option>
@@ -6253,25 +7092,25 @@
       <option>
         <configItem>
           <name>shift:both_capslock</name>
-          <description>Both Shift-Keys together toggle Caps Lock</description>
+          <description>Both Shift together enable Caps Lock</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>shift:both_capslock_cancel</name>
-          <description>Both Shift-Keys together activate Caps Lock, one Shift-Key deactivates</description>
+          <description>Both Shift together enable Caps Lock; one Shift key disables it</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>shift:both_shiftlock</name>
-          <description>Both Shift-Keys together toggle ShiftLock</description>
+          <description>Both Shift together enable Shift Lock</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>keypad:pointerkeys</name>
-          <description>Toggle PointerKeys with Shift + NumLock.</description>
+          <description>Shift + Num Lock enables PointerKeys</description>
         </configItem>
       </option>
       <option>
@@ -6280,11 +7119,17 @@
           <description>Allow breaking grabs with keyboard actions (warning: security risk)</description>
         </configItem>
       </option>
+      <option>
+        <configItem>
+          <name>grab:debug</name>
+          <description>Allow grab and window tree logging</description>
+        </configItem>
+      </option>
     </group>
     <group allowMultipleSelection="true">
       
       <configItem>
-        <name>eurosign</name>
+        <name>currencysign</name>
         <description>Adding currency signs to certain keys</description>
       </configItem>
       <option>
@@ -6326,25 +7171,25 @@
       <option>
         <configItem>
           <name>lv5:lsgt_switch_lock</name>
-          <description>&lt;Less/Greater&gt; chooses 5th level, locks when pressed together with another 5th-level-chooser</description>
+          <description>&lt;Less/Greater&gt; chooses 5th level; acts as onetime lock when pressed together with another 5th level chooser</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>lv5:ralt_switch_lock</name>
-          <description>Right Alt chooses 5th level, locks when pressed together with another 5th-level-chooser</description>
+          <description>Right Alt chooses 5th level; acts as onetime lock when pressed together with another 5th level chooser</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>lv5:lwin_switch_lock</name>
-          <description>Left Win chooses 5th level, locks when pressed together with another 5th-level-chooser</description>
+          <description>Left Win chooses 5th level; acts as onetime lock when pressed together with another 5th level chooser</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>lv5:rwin_switch_lock</name>
-          <description>Right Win chooses 5th level, locks when pressed together with another 5th-level-chooser</description>
+          <description>Right Win chooses 5th level; acts as onetime lock when pressed together with another 5th level chooser</description>
         </configItem>
       </option>
 
@@ -6353,7 +7198,7 @@
       
       <configItem>
         <name>nbsp</name>
-        <description>Using space key to input non-breakable space character</description>
+        <description>Using space key to input non-breaking space</description>
       </configItem>
       <option>
         <configItem>
@@ -6364,91 +7209,91 @@
       <option>
         <configItem>
           <name>nbsp:level2</name>
-          <description>Non-breakable space character at second level</description>
+          <description>Non-breaking space at the 2nd level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:level3</name>
-          <description>Non-breakable space character at third level</description>
+          <description>Non-breaking space at the 3rd level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:level3s</name>
-          <description>Non-breakable space character at third level, nothing at fourth level</description>
+          <description>Non-breaking space at the 3rd level, nothing at the 4th level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:level3n</name>
-          <description>Non-breakable space character at third level, thin non-breakable space character at fourth level</description>
+          <description>Non-breaking space at the 3rd level, thin non-breaking space at the 4th level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:level4</name>
-          <description>Non-breakable space character at fourth level</description>
+          <description>Non-breaking space at the 4th level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:level4n</name>
-          <description>Non-breakable space character at fourth level, thin non-breakable space character at sixth level</description>
+          <description>Non-breaking space at the 4th level, thin non-breaking space at the 6th level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:level4nl</name>
-          <description>Non-breakable space character at fourth level, thin non-breakable space character at sixth level (via Ctrl+Shift)</description>
+          <description>Non-breaking space at the 4th level, thin non-breaking space at the 6th level (via Ctrl+Shift)</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:zwnj2</name>
-          <description>Zero-width non-joiner character at second level</description>
+          <description>Zero-width non-joiner at the 2nd level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:zwnj2zwj3</name>
-          <description>Zero-width non-joiner character at second level, zero-width joiner character at third level</description>
+          <description>Zero-width non-joiner at the 2nd level, zero-width joiner at the 3rd level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:zwnj2zwj3nb4</name>
-          <description>Zero-width non-joiner character at second level, zero-width joiner character at third level, non-breakable space character at fourth level</description>
+          <description>Zero-width non-joiner at the 2nd level, zero-width joiner at the 3rd level, non-breaking space at the 4th level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:zwnj2nb3</name>
-          <description>Zero-width non-joiner character at second level, non-breakable space character at third level</description>
+          <description>Zero-width non-joiner at the 2nd level, non-breaking space at the 3rd level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:zwnj2nb3s</name>
-          <description>Zero-width non-joiner character at second level, non-breakable space character at third level, nothing at fourth level</description>
+          <description>Zero-width non-joiner at the 2nd level, non-breaking space at the 3rd level, nothing at the 4th level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:zwnj2nb3zwj4</name>
-          <description>Zero-width non-joiner character at second level, non-breakable space character at third level, zero-width joiner at fourth level</description>
+          <description>Zero-width non-joiner at the 2nd level, non-breaking space at the 3rd level, zero-width joiner at the 4th level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:zwnj2nb3nnb4</name>
-          <description>Zero-width non-joiner character at second level, non-breakable space character at third level, thin non-breakable space at fourth level</description>
+          <description>Zero-width non-joiner at the 2nd level, non-breaking space at the 3rd level, thin non-breaking space at the 4th level</description>
         </configItem>
       </option>
       <option>
         <configItem>
           <name>nbsp:zwnj3zwj4</name>
-          <description>Zero-width non-joiner character at third level, zero-width joiner at fourth level</description>
+          <description>Zero-width non-joiner at the 3rd level, zero-width joiner at the 4th level</description>
         </configItem>
       </option>
     </group>
@@ -6472,26 +7317,62 @@
       <option>
         <configItem>
           <name>japan:hztg_escape</name>
-          <description>Make Zenkaku Hankaku an additional ESC</description>
+          <description>Make Zenkaku Hankaku an additional Esc</description>
        </configItem>
       </option>
     </group>
     <group allowMultipleSelection="false">
       <configItem>
+        <name>korean</name>
+        <description>Korean Hangul/Hanja keys</description>
+      </configItem>
+      <option>
+        <configItem>
+          <name>korean:ralt_rctrl</name>
+          <description>Right Alt as Hangul, right Ctrl as Hanja</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>korean:rctrl_ralt</name>
+          <description>Right Ctrl as Hangul, right Alt as Hanja</description>
+        </configItem>
+      </option>
+    </group>
+    <group allowMultipleSelection="false">
+      <configItem>
         <name>esperanto</name>
-        <description>Adding Esperanto circumflexes (supersigno)</description>
+        <description>Adding Esperanto supersigned letters</description>
       </configItem>
       <option>
         <configItem>
           <name>esperanto:qwerty</name>
-          <description>To the corresponding key in a Qwerty keyboard.</description>
+          <description>To the corresponding key in a QWERTY layout</description>
        </configItem>
       </option>
       <option>
         <configItem>
           <name>esperanto:dvorak</name>
-          <description>To the corresponding key in a Dvorak keyboard.</description>
+          <description>To the corresponding key in a Dvorak layout</description>
        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>esperanto:colemak</name>
+          <description>To the corresponding key in a Colemak layout</description>
+       </configItem>
+      </option>
+    </group>
+    <group allowMultipleSelection="true">
+      <configItem>
+        <name>solaris</name>
+        <description>Maintain key compatibility with old Solaris keycodes</description>
+      </configItem>
+      <option>
+        <configItem>
+          <name>solaris:sun_compat</name>
+          <description>Sun Key compatibility</description>
+        </configItem>
       </option>
     </group>
     <group allowMultipleSelection="true">
@@ -6502,7 +7383,7 @@
       <option>
         <configItem>
           <name>terminate:ctrl_alt_bksp</name>
-          <description>Control + Alt + Backspace</description>
+          <description>Ctrl+Alt+Backspace</description>
         </configItem>
       </option>
     </group>

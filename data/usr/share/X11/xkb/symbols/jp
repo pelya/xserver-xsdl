@@ -1,22 +1,19 @@
-// based on:
-// symbols for a Japanese 106 keyboard(by tsuka@kawalab.dnj.ynu.ac.jp)
+// Symbols for Japanese 106-keys keyboards (by tsuka@kawalab.dnj.ynu.ac.jp).
 
-// jp106 keyboard map
-partial default alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "106" {
+
     include "jp(common)"
     name[Group1]= "Japanese";
 
     key <AE10> { [ 0, asciitilde	] };
-    key <AE13> { [ backslash, bar 	] };
+    key <AE13> { [ backslash, bar	] };
 };
 
-// common latin part of jp keyboard map
-partial hidden alphanumeric_keys
+hidden partial alphanumeric_keys
 xkb_symbols "common" {
-    // "Common" keys for jp 106/109A layout
+    // "Common" keys for jp 106/109A layouts.
 
-    // Alphanumeric section
     key <HZTG> {
 	type[Group1]="PC_ALT_LEVEL2",
 	symbols[Group1]= [ Zenkaku_Hankaku, Kanji ]
@@ -81,29 +78,36 @@ xkb_symbols "common" {
 	type[Group1]="PC_ALT_LEVEL2",
 	symbols[Group1]= [ Henkan, Mode_switch ]
     };
+
     key <HKTG> {
 	type[Group1]="PC_ALT_LEVEL2",
 	symbols[Group1]= [ Hiragana_Katakana, Romaji ]
     };
 
     key <EISU> {
-       type[Group1]="PC_ALT_LEVEL2",
-       symbols[Group1]= [ Eisu_toggle ]
+	type[Group1]="PC_ALT_LEVEL2",
+	symbols[Group1]= [ Eisu_toggle ]
     };
 
     key <KANA> {
-       type[Group1]="PC_ALT_LEVEL2",
-       symbols[Group1]= [ Hiragana_Katakana ]
+	type[Group1]="PC_ALT_LEVEL2",
+	symbols[Group1]= [ Hiragana_Katakana ]
     };
 
-
     key <PRSC> {
-        type[Group1]= "PC_ALT_LEVEL2",
-        symbols[Group1]= [ Print, Execute ]
+	type[Group1]= "PC_ALT_LEVEL2",
+	symbols[Group1]= [ Print, Execute ]
     };
 };
 
-// OADG109A map
+partial alphanumeric_keys
+xkb_symbols "henkan" {
+    key <XFER> {
+	type[Group1]="PC_ALT_LEVEL2",
+	symbols[Group1]= [ Henkan, Mode_switch ]
+    };
+};
+
 partial alphanumeric_keys
 xkb_symbols "OADG109A" {
 
@@ -111,7 +115,7 @@ xkb_symbols "OADG109A" {
     name[Group1]= "Japanese (OADG 109A)";
 
     key <AE10> { [ 0		] };
-    key <AE13> { [ yen, bar 	] };
+    key <AE13> { [ yen, bar	] };
 };
 
 // 86 keys with kana map
@@ -126,8 +130,8 @@ xkb_symbols "kana86" {
     include "jp(OADG109A)"
     name[Group1]= "Japanese (Kana 86)";
 
-    key <ESC> {		[ Escape	]	};
-    key <NMLK> {	[ Num_Lock, Pointer_EnableKeys		]	};
+    key  <ESC> {	[ Escape	]	};
+    key <NMLK> {	[ Num_Lock	]	};
     key <BKSP> {	[ BackSpace	]	};
     key  <TAB> {	[ Tab, ISO_Left_Tab ]	};
     key <RTRN> {	[ Return	]	};
@@ -137,9 +141,9 @@ xkb_symbols "kana86" {
     key <LALT> {	[ Alt_L		]	};
     key <SPCE> {	[ space		]	};
     key <RALT> {	[ Alt_R		]	};
-// for compatability with other keyboards connected at the same time
-    key <RWIN> {	[ Super_R		]	};
-    key <RCTL> {	[ Control_R		]	};
+    // For compatibility with other keyboards connected at the same time:
+    key <RWIN> {	[ Super_R	]	};
+    key <RCTL> {	[ Control_R	]	};
 };
 
 partial alphanumeric_keys
@@ -147,11 +151,11 @@ xkb_symbols "kana" {
 
     name[Group1]= "Japanese (Kana)";
 
-    // Alphanumeric section
     key <HZTG> {
 	type[Group1]="PC_ALT_LEVEL2",
 	symbols[Group1]= [ Zenkaku_Hankaku, Kanji ]
     };
+
     key <AE01> { [ kana_NU		]	};
     key <AE02> { [ kana_FU		]	};
     key <AE03> { [ kana_A, kana_a	]	};
@@ -176,7 +180,7 @@ xkb_symbols "kana" {
     key <AD08> { [ kana_NI		]	};
     key <AD09> { [ kana_RA		]	};
     key <AD10> { [ kana_SE		]	};
-    key <AD11> { [ voicedsound	]	};
+    key <AD11> { [ voicedsound		]	};
     key <AD12> { [ semivoicedsound, kana_openingbracket ] };
 
     key <CAPS> { [ Eisu_toggle, Caps_Lock ]	};
@@ -217,21 +221,19 @@ xkb_symbols "kana" {
 	symbols[Group1]= [ Hiragana_Katakana, Romaji ]
     };
 
-    // End alphanumeric section
-
     key <PRSC> {
-        type[Group1]= "PC_ALT_LEVEL2",
-        symbols[Group1]= [ Print, Execute ]
+	type[Group1]= "PC_ALT_LEVEL2",
+	symbols[Group1]= [ Print, Execute ]
     };
 };
 
 partial alphanumeric_keys
 xkb_symbols "nicola_f_bs" {
     key <BKSP> {
-       type="",
-       symbols[Group1]= [ bracketright, braceright ]
+	type="",
+	symbols[Group1]= [ bracketright, braceright ]
     };
-    key <AE10> { [ 0,underscore         ] };
+    key <AE10> { [ 0, underscore        ] };
     key <AD11> { [ colon, asterisk      ] };
     key <AC11> { [ BackSpace, BackSpace ] };
     key <AC12> { [ Escape               ] };
@@ -241,8 +243,8 @@ xkb_symbols "nicola_f_bs" {
 // Copied from macintosh_vndr/jp
 partial alphanumeric_keys
 xkb_symbols "mac" {
-    name[Group1]	= "Japanese (Macintosh)";
     include "jp(kana)"
+    name[Group1]= "Japanese (Macintosh)";
 
     replace key <CAPS> { [ Caps_Lock ] };
 };
@@ -252,3 +254,70 @@ xkb_symbols "hztg_escape" {
     replace key <HZTG> { [ Escape ] };
 };
 
+partial alphanumeric_keys
+xkb_symbols "dvorak" {
+    include "jp(OADG109A)"
+    name[Group1]= "Japanese (Dvorak)";
+
+    key <AE11> { [ at, grave		] };
+
+    key <AD01> { [ colon, asterisk	] };
+    key <AD02> { [ comma, less		] };
+    key <AD03> { [ period, greater	] };
+    key <AD04> { [ p, P			] };
+    key <AD05> { [ y, Y			] };
+    key <AD06> { [ f, F			] };
+    key <AD07> { [ g, G			] };
+    key <AD08> { [ c, C			] };
+    key <AD09> { [ r, R			] };
+    key <AD10> { [ l, L			] };
+    key <AD11> { [ slash, question	] };
+
+    key <AC02> { [ o, O			] };
+    key <AC03> { [ e, E			] };
+    key <AC04> { [ u, U			] };
+    key <AC05> { [ i, I			] };
+    key <AC06> { [ d, D			] };
+    key <AC07> { [ h, H			] };
+    key <AC08> { [ t, T			] };
+    key <AC09> { [ n, N			] };
+    key <AC10> { [ s, S			] };
+    key <AC11> { [ minus, equal		] };
+
+    key <AB01> { [ semicolon, plus	] };
+    key <AB02> { [ q, Q			] };
+    key <AB03> { [ j, J			] };
+    key <AB04> { [ k, K			] };
+    key <AB05> { [ x, X			] };
+    key <AB06> { [ b, B			] };
+    key <AB08> { [ w, W			] };
+    key <AB09> { [ v, V			] };
+    key <AB10> { [ z, Z			] };
+};
+
+// EXTRAS:
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type6_suncompat" {
+	include "sun_vndr/jp(sun_type6_suncompat)"
+};
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type6" {
+	include "sun_vndr/jp(sun_type6)"
+};
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type7_suncompat" {
+	include "sun_vndr/jp(sun_type7_suncompat)"
+};
+
+partial alphanumeric_keys
+	xkb_symbols "suncompat" {
+	include "sun_vndr/jp(suncompat)"
+};
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type7" {
+	include "sun_vndr/jp(sun_type7)"
+};

@@ -24,7 +24,7 @@
 //from The Open Group.
 //
 // US/ASCII layout for a Fujitsu 138 key keyboard
-xkb_symbols {
+xkb_symbols "basic" {
     include "us(basic)"
 
     // A few alphanumeric keys are different
@@ -133,7 +133,6 @@ xkb_symbols {
     key <KP00> { [  KP_0	]	};
     // End "Keypad" section
 
-    // begin modifier mappings
     modifier_map Shift  	{ Shift_R };
     modifier_map Mod1   	{ Meta_L, Meta_R };
     modifier_map Mod2   	{ Mode_switch };

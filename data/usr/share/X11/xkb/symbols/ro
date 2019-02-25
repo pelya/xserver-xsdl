@@ -16,12 +16,12 @@
 // v 1.4
 
 
-partial default alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
 // This RO_US/Programmers layout, although the secondary layout in the 
 // Romanian standard, has always been the "de facto" standard in the 
 // Linux/Unix world. It is implemented here as the default layout and it's
-// fully compatible with an US keyboard (Euro on AltGr+5 doesn't count).
+// fully compatible with an US keyboard (Euro on AltGr+5 does not count).
 
     include "us"
 
@@ -40,7 +40,7 @@ xkb_symbols "basic" {
     key <AE11> { [ minus,         underscore,  dead_diaeresis,     endash ] };
     key <AE12> { [ equal,               plus,  dead_cedilla,    plusminus ] };
     key <AD01> { [ q,                      Q,  acircumflex,   Acircumflex ] };
-    key <AD02> { [ w,                      W,  ssharp	 	          ] };
+    key <AD02> { [ w,                      W,  ssharp, 	        0x1001e9e ] };
     key <AD03> { [ e,                      E,  EuroSign  	          ] };
     key <AD05> { [ t,                      T,  0x100021b,       0x100021a ] };
     key <AD08> { [ i,                      I,  icircumflex,   Icircumflex ] };
@@ -102,7 +102,7 @@ xkb_symbols "std" {
     key <AD11> { [ abreve, 	      Abreve,  bracketleft,     braceleft ] };
     key <AD12> { [ icircumflex,  Icircumflex,  bracketright,   braceright ] };
     key <BKSL> { [ acircumflex,  Acircumflex,  backslash,             bar ] };
-    key <AC02> { [ s, 			   S,  ssharp			  ] };
+    key <AC02> { [ s, 			   S,  ssharp,		0x1001e9e ] };
     key <AC03> { [ d,                      D,  dstroke,  	  Dstroke ] };
     key <AC09> { [ l,                      L,  lstroke,  	  Lstroke ] };
     key <AC10> { [ 0x1000219,	   0x1000218,  semicolon, 	    colon ] };
@@ -120,8 +120,8 @@ xkb_symbols "std" {
 
 partial alphanumeric_keys
 xkb_symbols "std_cedilla" {
-    // Variant of the "std" layout with cedillas.
-    // Implements S and T with cedillas as in ISO-8859-2.
+    // Variant of the "std" layout using cedillas instead of commas.
+    // It implements S and T with cedillas as in ISO-8859-2.
     // Included for compatibility reasons.
 
     include "ro(std)"
@@ -136,14 +136,13 @@ xkb_symbols "std_cedilla" {
 partial alphanumeric_keys
 xkb_symbols "winkeys" {
     // Describes the differences between a very simple US/ASCII
-    // keyboard and a very simple Romanian keybaord
+    // keyboard and a simple Romanian keyboard.
     // Created by Manfred Pohler, <Manfred.Pohler@t-online.de> (C) 2003
 
     include "latin"
 
-    name[Group1]="Romanian (WinKeys)";
+    name[Group1]="Romanian (Win keys)";
 
-    // Alphanumeric section
     key <TLDE> { [ bracketright, bracketleft            ]       };
 
     key <AE01> { [            1,      exclam,  asciitilde, asciitilde   ] };
@@ -172,7 +171,7 @@ xkb_symbols "winkeys" {
     key <AC04> { [           f,           F             ]       };
     key <AC05> { [           g,           G             ]       };
     key <AC10> { [    scedilla,    Scedilla,       dollar,     dollar   ] };
-    key <AC11> { [    tcedilla,    Tcedilla,       ssharp,     ssharp   ] };
+    key <AC11> { [    tcedilla,    Tcedilla,       ssharp,      U1E9E   ] };
 
     key <AB01> { [           y,           Y             ]       };
     key <AB05> { [           b,           B,    braceleft,  braceleft   ] };
@@ -184,12 +183,9 @@ xkb_symbols "winkeys" {
 
     key <BKSL> { [ acircumflex, Acircumflex             ]       };
 
-    // End alphanumeric section, begin "Keypad"
     include "kpdl(comma)"
-    // End "Keypad" section
 
     include "level3(ralt_switch)"
-
 };
 
 partial
@@ -233,3 +229,8 @@ xkb_symbols "ergonomic" {
     key <AC08> { [ icircumflex,  Icircumflex,  k,                       K ] };
 };
 
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type6" {
+	include "sun_vndr/ro(sun_type6)"
+};

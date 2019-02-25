@@ -28,7 +28,7 @@
 
 // Modified by Aldis Berjoza <aldis@bsdroot.lv>, 12 april 2011
 // Changes:
-//   * Added Latvian Ergonomic, Latvian Adapted and Latvian Modernd variants
+//   * Added Latvian Ergonomic, Latvian Adapted and Latvian Modern variants
 //      Author of this work is Valdis Vītoliņš
 //      http://odo.lv/LatvianKeyboard
 //      http://odo.lv/Recipes/LatvianKeyboard#HErgonomiskC481stastatC5ABrasuzlikC5A1anauzLinuxdatora%22
@@ -44,7 +44,7 @@
 // Latvian QWERTY layout
 // http://en.wikipedia.org/wiki/QWERTY
 //
-partial default alphanumeric_keys modifier_keys
+default  partial alphanumeric_keys modifier_keys
 xkb_symbols "basic" {
 
 	name[Group1]= "Latvian";
@@ -110,7 +110,7 @@ xkb_symbols "apostrophe" {
 
 	include "lv(basic)"
 
-	name[Group1]= "Latvian (apostrophe variant)";
+	name[Group1]= "Latvian (apostrophe)";
 
 	key <AC11> {[ISO_Level3_Latch, quotedbl, apostrophe, quotedbl]};
 	key <SPCE> {[space, space, apostrophe]};
@@ -123,7 +123,7 @@ xkb_symbols "tilde" {
 
 	include "lv(basic)"
 
-	name[Group1]= "Latvian (tilde variant)";
+	name[Group1]= "Latvian (tilde)";
 
 	key <TLDE> {[ISO_Level3_Latch, asciitilde, grave, acute]};
 	key <SPCE> {[space, space, asciitilde]};
@@ -136,7 +136,7 @@ xkb_symbols "fkey" {
 
 	include "lv(basic)"
 
-	name[Group1]= "Latvian (F variant)";
+	name[Group1]= "Latvian (F)";
 
 	key <AC04> {[ISO_Level3_Latch, ISO_Level3_Latch, f, F]};
 	key <SPCE> {[space, space, f, F]};
@@ -279,10 +279,10 @@ xkb_symbols "modern" {
 	key <AD01> {[ emacron,		Emacron,	emacron,	Emacron			]};
 	key <AD02> {[ o,		O,		omacron,	Omacron			]};
 	key <AD03> {[ amacron,		Amacron,	amacron,	Amacron			]};
-	key <AD04> {[ p,		P,		p,		P			]};
-	key <AD05> {[ b,		B,		b,		B			]};
-	key <AD06> {[ j,		J,		j,		J			]};
-	key <AD07> {[ d,		D,		d,		D			]};
+	key <AD04> {[ p,		P,		question,	P			]};
+	key <AD05> {[ b,		B,		exclam,		B			]};
+	key <AD06> {[ j,		J,		emdash,		J			]};
+	key <AD07> {[ d,		D,		endash,		D			]};
 	key <AD08> {[ imacron,		Imacron,	imacron,	Imacron			]};
 	key <AD09> {[ l,		L,		lcedilla,	Lcedilla		]};
 	key <AD10> {[ g,		G,		gcedilla,	Gcedilla		]};
@@ -306,11 +306,11 @@ xkb_symbols "modern" {
 	key <AB01> {[ x,		X,		q,		Q			]};
 	key <AB02> {[ z,		Z,		zcaron,		Zcaron			]};
 	key <AB03> {[ c,		C,		ccaron,		Ccaron			]};
-	key <AB04> {[ v,		V,		period,		V			]};
-	key <AB05> {[ w,		W,		slash,		W			]};
-	key <AB06> {[ f,		F,		bar,		F			]};
-	key <AB07> {[ y,		Y,		backslash,	Y			]};
-	key <AB08> {[ h,		H,		U263A,		U2639			]};
+	key <AB04> {[ v,		V,		bar,		V			]};
+	key <AB05> {[ w,		W,		backslash,	W			]};
+	key <AB06> {[ f,		F,		period,		F			]};
+	key <AB07> {[ y,		Y,		slash,		Y			]};
+	key <AB08> {[ h,		H,		U1E29,		U1E28			]};
 	key <AB09> {[ comma,		semicolon,	less,		multiply		]};
 	key <AB10> {[ period,		colon,		greater,	division		]};
 	key <SPCE> {[ space,		space,		apostrophe				]};
@@ -408,7 +408,7 @@ xkb_symbols "minuskeydvorak" {
 
 	name[Group1]= "Latvian (US Dvorak, minus variant)";
 
-	key <AC11> {[ISO_Level3_Latch, ISO_Level3_Latch, mimus, underscore]};
+	key <AC11> {[ISO_Level3_Latch, ISO_Level3_Latch, minus, underscore]};
 	key <SPCE> {[space, space, minus, underscore]};
 	modifier_map Mod5 { <AR11> };
 
@@ -467,7 +467,7 @@ xkb_symbols "minuskeydvorakprogr" {
 
 	name[Group1]= "Latvian (programmer US Dvorak, minus variant)";
 
-	key <AC11> {[ISO_Level3_Latch, ISO_Level3_Latch, mimus, underscore]};
+	key <AC11> {[ISO_Level3_Latch, ISO_Level3_Latch, minus, underscore]};
 	key <SPCE> {[space, space, minus, underscore]};
 	modifier_map Mod5 { <AC11> };
 
@@ -518,4 +518,9 @@ xkb_symbols "apostrophecolemak" {
 	key <SPCE> {[space, space, apostrophe]};
 	modifier_map Mod5 { <AC11> };
 
+};
+
+partial alphanumeric_keys
+	xkb_symbols "sun_type6" {
+	include "sun_vndr/lv(sun_type6)"
 };

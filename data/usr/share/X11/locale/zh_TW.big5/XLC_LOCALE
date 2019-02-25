@@ -35,6 +35,16 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 #
 # (c) 1996, X11R6 L10N for Taiwan and Big5 Encoding Project
 #
@@ -78,10 +88,8 @@ state_depend_encoding	False
 wc_encoding_mask	\x00038000
 wc_shift_bits		8
 
-
 use_stdc_env		True
 force_convert_to_mb	True
-
 
 #	cs0 class
 cs0	{

@@ -3,7 +3,7 @@
 // Author Sanlig Badral <badral@chinggis.com>
 // 2002/12/7 Version 1.0
 
-partial default alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
 
   name[Group1]= "Mongolian";
@@ -59,8 +59,6 @@ xkb_symbols "basic" {
   key <AB08> { [ Cyrillic_softsign, Cyrillic_SOFTSIGN, 	guillemotleft   ] };
   key <AB09> { [ Cyrillic_ve,       Cyrillic_VE,       	guillemotright  ] };
   key <AB10> { [ Cyrillic_yu,       Cyrillic_YU,       	backslash       ] };
-
-  // End alphanumeric section
 
   key <SPCE> { [ space,             space,             	nobreakspace    ] };
 

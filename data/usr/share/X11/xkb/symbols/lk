@@ -2,7 +2,7 @@
 // Maintainer  : Harshula Jayasuriya <harshula@gmail.com>
 // Last Updated: 2011-05-25
 // This is a phonetic static mapping for a standard US-English keyboard
-// (qwerty)
+// (QWERTY)
 // http://www.nongnu.org/sinhala/doc/keymaps/sinhala-keyboard_3.html
 
 // Repaya, Rakaransaya and Yansaya aren't inserted with A-r, R and Y,
@@ -28,7 +28,7 @@
 // rayanna = r
 // yayanna = y
 
-partial default alphanumeric_keys
+default  partial alphanumeric_keys
 xkb_symbols "sin_phonetic" {
 
   include "us"
@@ -78,13 +78,107 @@ xkb_symbols "sin_phonetic" {
 
 partial alphanumeric_keys
 xkb_symbols "tam_unicode" {
-    include "in(tam_unicode)"
-    name[Group1]= "Tamil (Sri Lanka, Unicode)";
+    include "in(tam_tamilnet)"
+    name[Group1]= "Tamil (Sri Lanka, TamilNet '99)";
 };
 
 partial alphanumeric_keys
 xkb_symbols "tam_TAB" {
-    include "in(tam_TAB)"
-    name[Group1]= "Tamil (Sri Lanka, TAB Typewriter)";
+    include "in(tam_tamilnet_TAB)"
+    name[Group1]= "Tamil (Sri Lanka, TamilNet '99, TAB encoding)";
 };
 
+// SINHALA - US, SUBSTITUTES SOME AND ADDS SOME
+// =============================================
+//
+// This started as an upgrade to the first romanized version of
+// Sinhala called PTS Pali created in the 1860s. PTS requires
+// dots and bars on letters that are rare in fonts, and impossible
+// to type. Its singular purpose was to print Tripitaka, the
+// collection of Buddhist discourses.
+//
+// This version covers the entire newer Sinhala phoneme chart
+// (Hodiya) that became standard just before the end of the 19th
+// century. All the phonemes map to the SBCS. It is easy and
+// faster than English to type. It overcomes the setback of
+// Unicode Sinhala that it is not compatible with Pali and
+// Sanskrit because it encodes two ligatures as base letters and
+// the SLS1134 specification matching shape and morpheme sets
+// violating Sanskrit orthography.
+//
+// Most importantly, this romanized version of Sinhala has a
+// companion orthographic font that displays the text in the
+// native script and a JavaScript converts it to Unicode Sinhala
+// and back dramatically increasing Sinhala seen on the web due
+// to its ease of use
+//
+// Dedication:
+// Thomas William Rhys Davids, Ven. Udagama Sumangala
+// Rev. Fr. A. M. Gunasekara, Rev. Fr. Theodore G. Perera
+// Ven. Mettavihari
+//
+// Maintainer:
+// JC Ahangama - sing@ahangama.com
+//
+partial alphanumeric_keys modifier_keys
+xkb_symbols "us" {
+  include "us(basic)"
+  name[Group1]= "Sinhala (US, with Sinhala letters)";
+//
+//                   UNSHIFTED,         SHIFT,           ALT
+//                   --------------------------------------------
+//
+  key <AB01> { [             z,    VoidSymbol,    VoidSymbol ] };
+  key <AB02> { [             x,    VoidSymbol,    VoidSymbol ] };
+  key <AB03> { [             c,      ccedilla,    VoidSymbol ] };
+  key <AB04> { [             v,    VoidSymbol,    VoidSymbol ] };
+  key <AB05> { [             b,             B,    VoidSymbol ] };
+  key <AB06> { [             n,             N,        ntilde ] };
+  key <AB07> { [             m,    VoidSymbol,    VoidSymbol ] };
+  key <AB08> { [         comma,          less,           UAB ] };
+  key <AB09> { [        period,       greater,           UBB ] };
+  key <AB10> { [         slash,      question,         U200C ] };
+
+  key <AC01> { [             a,        aacute,    adiaeresis ] };
+  key <AC02> { [             s,    VoidSymbol,    VoidSymbol ] };
+  key <AC03> { [           eth,           ETH,    VoidSymbol ] };
+  key <AC04> { [         thorn,             f,    VoidSymbol ] };
+  key <AC05> { [             g,             G,    VoidSymbol ] };
+  key <AC06> { [             h,    VoidSymbol,    VoidSymbol ] };
+  key <AC07> { [             j,      ccedilla,    VoidSymbol ] };
+  key <AC08> { [             k,    VoidSymbol,    VoidSymbol ] };
+  key <AC09> { [             l,             L,   ocircumflex ] };
+  key <AC10> { [     semicolon,         colon,    VoidSymbol ] };
+  key <AC11> { [    apostrophe,      quotedbl,    VoidSymbol ] };
+
+  key <AD01> { [             d,             D,             q ] };
+  key <AD02> { [            ae,         acute,    VoidSymbol ] };
+  key <AD03> { [             e,        eacute,    ediaeresis ] };
+  key <AD04> { [             r,   ucircumflex,    VoidSymbol ] };
+  key <AD05> { [             t,    VoidSymbol,    VoidSymbol ] };
+  key <AD06> { [             y,    VoidSymbol,    VoidSymbol ] };
+  key <AD07> { [             u,        uacute,    udiaeresis ] };
+  key <AD08> { [             i,        iacute,    idiaeresis ] };
+  key <AD09> { [             o,        oacute,    odiaeresis ] };
+  key <AD10> { [             p,    VoidSymbol,    VoidSymbol ] };
+  key <AD11> { [   bracketleft,     braceleft,    VoidSymbol ] };
+  key <AD12> { [  bracketright,    braceright,    VoidSymbol ] };
+
+  key <AE01> { [             1,        exclam,   dead_macron ] };
+  key <AE02> { [             2,            at, dead_belowdot ] };
+  key <AE03> { [             3,    numbersign, dead_abovedot ] };
+  key <AE04> { [             4,        dollar,      currency ] };
+  key <AE05> { [             5,       percent,           UB0 ] };
+  key <AE06> { [             6,   asciicircum,    onequarter ] };
+  key <AE07> { [             7,     ampersand,       onehalf ] };
+  key <AE08> { [             8,      asterisk, threequarters ] };
+  key <AE09> { [             9,     parenleft,    VoidSymbol ] };
+  key <AE10> { [             0,    parenright,    VoidSymbol ] };
+  key <AE11> { [         minus,    underscore,         U2014 ] };
+  key <AE12> { [         equal,          plus,    VoidSymbol ] };
+
+  key <BKSL> { [     backslash,           bar,    VoidSymbol ] };
+  key <SPCE> { [         space,  nobreakspace,    VoidSymbol ] };
+  key <TLDE> { [         grave,    asciitilde,    VoidSymbol ] };
+  include "level3(alt_switch)"
+};

@@ -1,8 +1,8 @@
+default
 xkb_symbols "extended" {
 
     name[Group1]= "Italy - Mac";
 
-    // Alphanumeric section
     key <LSGT> {	[        less,  greater   	]	};
     key <TLDE> {        [        at,    numbersign,    periodcentered              ]	};
     key <AE01> {	[   ampersand,    1, guillemotleft,guillemotright	]	};
@@ -33,7 +33,7 @@ xkb_symbols "extended" {
     key <BKSL> {	[     section,  degree,           at,  numbersign      ]	};
 
     key <AC01> {	[	  a,	A,      aring,   Aring		] 	};
-    key <AC02> {	[	  s,	S,     ssharp			]	};
+    key <AC02> {	[	  s,	S,     ssharp,	 U1E9E		]	};
     key <AC03> {	[	  d,	D		]	};
     key <AC04> {	[	  f,	F		]	};
     key <AC05> {	[	  g,	G		]	};
@@ -54,8 +54,6 @@ xkb_symbols "extended" {
     key <AB08> {	[ semicolon,	period          ]	};
     key <AB09> {	[     colon,	slash,        bar,    backslash	]	};
     key <AB10> {	[    ograve,	exclam,     exclamdown			]	};
-
-    // End alphanumeric section
 
     include "kpdl(dot)"
     include "level3(ralt_switch)"

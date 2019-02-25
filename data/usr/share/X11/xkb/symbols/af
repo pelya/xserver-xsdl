@@ -10,7 +10,7 @@
 //
 // 2006-02-15 file created by M. Emal Alekozai <memala@gmx.net>
 
-partial default alphanumeric_keys 
+default  partial alphanumeric_keys
 xkb_symbols "basic" {
    name[Group1]= "Afghani";
 
@@ -26,7 +26,7 @@ xkb_symbols "basic" {
    key <AE09> { [ 0x10006f9, 0x1000029, 0x100200e ] };
    key <AE10> { [ 0x10006f0, 0x1000028, 0x100200f ] };
    key <AE11> { [ minus, Arabic_tatweel, 0x100005f ] };
-   key <AE12> { [ plus, equal ] };
+   key <AE12> { [ equal, plus ] };
 
    key <AD01> { [ Arabic_dad, Arabic_sukun, 0x10000b0 ] };
    key <AD02> { [ Arabic_sad, Arabic_dammatan ] };
@@ -81,7 +81,7 @@ xkb_symbols "basic" {
 // 
 // 2006-02-15 file created by M. Emal Alekozai <memala@gmx.net>
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "ps" {
    name[Group1]= "Pashto";
 
@@ -97,7 +97,7 @@ xkb_symbols "ps" {
    key <AE09> { [ 0x10006f9, 0x1000029, 0x100200e ] };
    key <AE10> { [ 0x10006f0, 0x1000028, 0x100200f ] };
    key <AE11> { [ minus, Arabic_tatweel, 0x100005f ] };
-   key <AE12> { [ plus, equal ] };
+   key <AE12> { [ equal, plus ] };
 
    key <AD01> { [ Arabic_dad, Arabic_sukun, 0x10000b0 ] };
    key <AD02> { [ Arabic_sad, Arabic_dammatan, 0x1000653 ] };
@@ -152,7 +152,7 @@ xkb_symbols "ps" {
 // 
 // 2006-02-15 file created by M. Emal Alekozai <memala@gmx.net>
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "uz" {
    name[Group1]= "Uzbek (Afghanistan)";
 
@@ -168,7 +168,7 @@ xkb_symbols "uz" {
    key <AE09> { [ 0x10006f9, 0x1000029, 0x100200e ] };
    key <AE10> { [ 0x10006f0, 0x1000028, 0x100200f ] };
    key <AE11> { [ minus, Arabic_tatweel, 0x100005f ] };
-   key <AE12> { [ plus, equal ] };
+   key <AE12> { [ equal, plus ] };
 
    key <AD01> { [ Arabic_dad, Arabic_sukun, 0x10000b0 ] };
    key <AD02> { [ Arabic_sad, Arabic_dammatan, 0x1000653 ] };
@@ -212,7 +212,7 @@ xkb_symbols "uz" {
    include "level3(ralt_switch)"
 };
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "olpc-ps" {
 
    name[Group1]= "Pashto (Afghanistan, OLPC)";
@@ -229,7 +229,7 @@ xkb_symbols "olpc-ps" {
    key <AE09> { [ 0x10006F9, parenright, enfilledcircbullet ] }; // Arabic nine
    key <AE10> { [ 0x10006F0, parenleft, degree ] }; // Arabic zero
    key <AE11> { [ minus, 0x1000640, underscore ] }; // Arabic_tatweel
-   key <AE12> { [ plus, equal, division ] };
+   key <AE12> { [ equal, plus, division ] };
 
    key <AD01> { [ 0x1000636, 0x1000652, EuroSign ] }; // Arabic dad, Arabic sukun
    key <AD02> { [ 0x1000635, 0x100064C, 0x1000671 ] }; // Arabic sad, Arabic dammatan, Arabic alef walsa
@@ -273,7 +273,7 @@ xkb_symbols "olpc-ps" {
    include "group(olpc)"
 };
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "fa-olpc" {
 
    name[Group1]= "Persian (Afghanistan, Dari OLPC)";
@@ -290,7 +290,7 @@ xkb_symbols "fa-olpc" {
    key <AE09> { [ 0x10006F9, parenright, 0x100200E ] }; // Arabic nine, left-to-right mark
    key <AE10> { [ 0x10006F0, parenleft, 0x100200F ] }; // Arabic zero, right-to-left mark
    key <AE11> { [ minus, 0x1000640, underscore ] }; // Arabic_tatweel
-   key <AE12> { [ plus, equal ] };
+   key <AE12> { [ equal, plus ] };
 
    key <AD01> { [ 0x1000636, 0x1000652, degree ] }; // Arabic dad, Arabic sukun
    key <AD02> { [ 0x1000635, 0x100064C ] }; // Arabic sad, Arabic dammatan
@@ -334,7 +334,7 @@ xkb_symbols "fa-olpc" {
    include "group(olpc)"
 };
 
-partial alphanumeric_keys 
+partial alphanumeric_keys
 xkb_symbols "uz-olpc" {
 
    name[Group1]= "Uzbek (Afghanistan, OLPC)";
@@ -351,7 +351,7 @@ xkb_symbols "uz-olpc" {
    key <AE09> { [ 0x10006F9, parenright, 0x100200E ] }; // Arabic nine, left-to-right mark
    key <AE10> { [ 0x10006F0, parenleft, 0x100200F ] }; // Arabic zero, right-to-left mark
    key <AE11> { [ minus, 0x1000640, underscore ] }; // Arabic_tatweel
-   key <AE12> { [ plus, equal ] };
+   key <AE12> { [ equal, plus ] };
 
    key <AD01> { [ 0x1000636, 0x1000652, degree ] }; // Arabic dad, Arabic sukun
    key <AD02> { [ 0x1000635, 0x100064C, 0x1000653 ] }; // Arabic sad, Arabic dammatan, Arabic maddah above
