@@ -392,7 +392,7 @@ $AR rcs libxcb.a $PKGDIR/src/.libs/*.o
 if echo $TARGET_ARCH | grep '64'; then
 $AR rcs libandroid_support.a
 else
-ln -s $NDK/sources/cxx-stl/llvm-libc++/libs/TARGET_ARCH/libandroid_support.a ./ || exit 1
+ln -s $NDK/sources/cxx-stl/llvm-libc++/libs/$TARGET_ARCH/libandroid_support.a ./ || exit 1
 fi
 cd $BUILDDIR
 } || exit 1
