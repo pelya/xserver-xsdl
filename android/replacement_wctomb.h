@@ -1,5 +1,6 @@
 #include <wchar.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Copied from Bionic libc */
 static int

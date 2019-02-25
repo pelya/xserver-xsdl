@@ -416,7 +416,6 @@ autoreconf -v --install \
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 			-isystem$BUILDDIR/../android-shmem \
-			-include strings.h \
 			-I$BUILDDIR/.." \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
