@@ -26,45 +26,6 @@ echo AR=$AR
 
 export enable_malloc0returnsnull=true # Workaround for buggy autotools
 
-# =========== FOR DEBUGGING ===========
-# To test why NDK-built binaries crash.
-
-[ -e sed ] || {
-PKGURL=https://ftp.gnu.org/gnu/sed/sed-4.7.tar.xz
-PKGDIR=`basename --suffix=.tar.xz $PKGURL`
-echo $PKGDIR: $PKGURL
-[ -e ../$PKGDIR.tar.xz ] || { curl -L $PKGURL -o $PKGDIR.tar.xz && mv $PKGDIR.tar.xz ../ ; } || rm ../$PKGDIR.tar.xz
-tar xvJf ../$PKGDIR.tar.xz || exit 1
-cd $PKGDIR
-
-patch -p0 < ../../sed.diff || exit 1
-
-env CFLAGS="-Os" \
-LDFLAGS="-pie -L$BUILDDIR" \
-$BUILDDIR/setCrossEnvironment.sh \
-./configure --host=$TARGET_HOST --prefix=$BUILDDIR/usr \
---without-selinux --disable-nls --disable-i18n --disable-rpath --without-libiconv-prefix --without-libintl-prefix \
-|| exit 1
-
-$BUILDDIR/setCrossEnvironment.sh \
-make -j1 V=1 2>&1
-
-rm -f lib/stdio.h
-echo '#define _GL_ATTRIBUTE_FORMAT_PRINTF(X,Y) __attribute__ ((format (printf, X, Y)))' >> lib/stdio.h
-echo '#  define __USE_FORTIFY_LEVEL 2' >> lib/stdio.h
-echo '#include_next <stdio.h>' >> lib/stdio.h
-
-$BUILDDIR/setCrossEnvironment.sh \
-make -j1 V=1 2>&1 || exit 1
-
-cd $BUILDDIR
-cp -f $PKGDIR/sed/sed ./ || exit 1
-$BUILDDIR/setCrossEnvironment.sh \
-sh -c '$STRIP sed'
-
-cd $BUILDDIR
-} || exit 1
-
 # =========== android-shmem ===========
 
 [ -e libandroid-shmem.a ] || {
@@ -1079,7 +1040,7 @@ echo 'OBJS := $(SRCS:%.c=%.o)' >> Makefile
 echo '%.o: %.c' >> Makefile
 echo '	$(CC) $(CFLAGS) $(PIE) $(if $(filter compress.c, $+), -O0) -c $+ -o $@' >> Makefile
 echo 'xli: $(OBJS)' >> Makefile
-echo '	$(CC) $(CFLAGS) $+ -o $@ $(LDFLAGS) $(PIE) -lX11 -lxcb -lXau -lXdmcp -lXext -ljpeg -lpng -landroid_support -landroid-shmem -lm -lz' >> Makefile
+echo '	$(CC) $(CFLAGS) $+ -o $@ $(LDFLAGS) $(PIE) -lX11 -lxcb -lXau -lXdmcp -lXext -ljpeg -lpng -landroid_support -landroid-shmem -llog -lm -lz' >> Makefile
 
 echo '#include <stdarg.h>' > varargs.h
 
