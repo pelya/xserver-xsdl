@@ -4,6 +4,7 @@
 /xcb
 /xhost
 /xkbcomp
+xkeyboard-config-*
 /xli
 /xli-*
 /xproto-7.0.24
