@@ -132,7 +132,8 @@ LDFLAGS="-L$BUILDDIR -lportable" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
---disable-arm-iwmmxt \
+--disable-arm-simd \
+--disable-arm-neon \
 --enable-static \
 --prefix=$BUILDDIR/usr \
 || exit 1
