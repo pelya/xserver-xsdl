@@ -1,0 +1,57 @@
+--- modules/im/ximcp/imCallbk.c	2018-10-09 17:26:12.000000000 +0300
++++ modules/im/ximcp/imCallbk.c	2019-02-15 17:36:39.125146889 +0200
+@@ -35,6 +35,7 @@
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif
++#include <wchar.h>
+ #include "Xlibint.h"
+ #include "Xlcint.h"
+ #include "Ximint.h"
+@@ -479,6 +479,7 @@
+ 		if (text->string.multi_byte = Xmalloc(text->length+1)) {
+ #endif
+ 			int tmp;
++			mbstate_t state = {};
+ #ifndef NO_DEC_I18N_FIX
+                         char *char_tmp;
+                         int char_len;
+@@ -497,7 +498,7 @@
+                         text->length = 0;
+                         char_tmp =  text->string.multi_byte;
+                         while (*char_tmp != '\0') {
+-                              char_len = mblen(char_tmp, strlen(char_tmp));
++                              char_len = mbrlen(char_tmp, strlen(char_tmp), &state);
+                               char_tmp = char_tmp + char_len;
+                               (text->length)++;
+                         }
+--- modules/lc/def/lcDefConv.c	2018-10-09 17:26:12.000000000 +0300
++++ modules/lc/def/lcDefConv.c	2019-02-25 18:18:26.084529721 +0200
+@@ -37,6 +37,7 @@
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif
++#include "replacement_wctomb.h"
+ #include "Xlibint.h"
+ #include "XlcGeneric.h"
+ 
+--- modules/lc/gen/lcGenConv.c	2018-10-09 17:26:12.000000000 +0300
++++ modules/lc/gen/lcGenConv.c	2019-02-25 18:18:35.400595961 +0200
+@@ -49,6 +49,7 @@
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif
++#include "replacement_wctomb.h"
+ #include "Xlibint.h"
+ #include "XlcGeneric.h"
+ #include <stdio.h>
+--- src/xlibi18n/lcUTF8.c	2018-10-09 17:26:12.000000000 +0300
++++ src/xlibi18n/lcUTF8.c	2019-02-25 18:18:19.696484250 +0200
+@@ -75,6 +75,7 @@
+ #include <config.h>
+ #endif
+ #include <stdio.h>
++#include "replacement_wctomb.h"
+ #include "Xlibint.h"
+ #include "XlcPubI.h"
+ #include "XlcGeneric.h"

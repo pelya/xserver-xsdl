@@ -408,7 +408,7 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-patch -p0 < ../../libX11.diff || exit 1
+patch -p0 < ../../x11.diff || exit 1
 
 [ -e configure ] || \
 autoreconf -v --install \
