@@ -69,8 +69,6 @@ core
 *.so
 *.pcf.gz
 *.pdb
-*.tar.bz2
-*.tar.gz
 #
 #		Add & Override patterns for xserver 
 #
