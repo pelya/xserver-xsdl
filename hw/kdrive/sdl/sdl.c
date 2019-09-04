@@ -72,6 +72,7 @@ static void send_unicode(int unicode);
 static void set_clipboard_text(char *text);
 static Bool sdlScreenButtons = FALSE;
 static void setScreenButtons(int mouseX);
+static void sdlScreenBlockCallback(ScreenPtr pScreen, void *timeout);
 enum sdlKeyboardType_t { KB_NATIVE = 0, KB_BUILTIN = 1, KB_BOTH = 2 };
 enum sdlKeyboardType_t sdlKeyboardType = KB_NATIVE;
 
@@ -115,6 +116,7 @@ typedef struct
 	SDL_Surface *screen;
 	Rotation randr;
 	Bool shadow;
+	ScreenBlockHandlerProcPtr screenBlockCallback;
 } SdlDriver;
 
 //#undef RANDR
@@ -513,6 +515,10 @@ static Bool sdlRandRInit (ScreenPtr pScreen)
 
 static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 {
+	KdScreenPriv(pScreen);
+	KdScreenInfo *screen = pScreenPriv->screen;
+	SdlDriver *scrpriv = screen->driver;
+
 	if (!shadowSetup (pScreen))
 		return FALSE;
 
@@ -520,6 +526,10 @@ static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 	if (!sdlRandRInit (pScreen))
 		return FALSE;
 #endif
+
+	scrpriv->screenBlockCallback = pScreen->BlockHandler;
+	pScreen->BlockHandler = sdlScreenBlockCallback;
+
 	return TRUE;
 }
 
@@ -801,6 +811,20 @@ static void sdlPollInput(void)
 		nextFullScreenRefresh = 0;
 	}
 	*/
+}
+
+void sdlScreenBlockCallback(ScreenPtr pScreen, void *timeout)
+{
+	KdScreenPriv(pScreen);
+	KdScreenInfo *screen = pScreenPriv->screen;
+	SdlDriver *scrpriv = screen->driver;
+
+	pScreen->BlockHandler = scrpriv->screenBlockCallback;
+	(*pScreen->BlockHandler)(pScreen, timeout);
+	scrpriv->screenBlockCallback = pScreen->BlockHandler;
+	pScreen->BlockHandler = sdlScreenBlockCallback;
+
+	sdlPollInput();
 }
 
 static Bool xsdlInit(KdCardInfo * card)
