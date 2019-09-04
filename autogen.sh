@@ -11,7 +11,3 @@ cd "$ORIGDIR" || exit $?
 
 git config --local --get format.subjectPrefix ||
     git config --local format.subjectPrefix "PATCH xserver"
-
-if test -z "$NOCONFIGURE"; then
-    exec "$srcdir"/configure "$@"
-fi
