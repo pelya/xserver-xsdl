@@ -28,7 +28,7 @@
 #include "kdrive.h"
 #include "dix.h"
 #include <SDL/SDL.h>
-#include <SDL/SDL_syswm.h>
+//#include <SDL/SDL_syswm.h>
 #include <X11/keysym.h>
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -219,9 +219,11 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 
 	SDL_EnableUNICODE(1);
 	SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+#ifdef __ANDROID__
 	set_clipboard_text(SDL_GetClipboardText());
 
 	sdlScreenButtons = SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0);
+#endif
 	setScreenButtons(10000);
 
 	if (getenv("XSDL_BUILTIN_KEYBOARD") != NULL)
@@ -348,8 +350,10 @@ static Bool sdlCreateRes(ScreenPtr pScreen)
 	return TRUE;
 }
 
-
 #ifdef RANDR
+
+typedef struct { int width; int height; } screen_size_t;
+
 static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
 	KdScreenPriv(pScreen);
@@ -358,25 +362,8 @@ static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	RRScreenSizePtr			pSize;
 	Rotation				randr;
 	int						n;
-
-	printf("%s", __func__);
-
-	*rotations = RR_Rotate_All|RR_Reflect_All;
-
-	for (n = 0; n < pScreen->numDepths; n++)
-		if (pScreen->allowedDepths[n].numVids)
-			break;
-	if (n == pScreen->numDepths)
-		return FALSE;
-
-	pSize = RRRegisterSize (pScreen,
-							screen->width,
-							screen->height,
-							screen->width_mm,
-							screen->height_mm);
-
-	struct { int width, height; } sizes[] =
-		{
+	screen_size_t sizes[] =
+	{
 		{ 1920, 1200 },
 		{ 1920, 1080 },
 		{ 1600, 1200 },
@@ -398,6 +385,23 @@ static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 		{ 160, 160 },
 		{ 0, 0 }
 	};
+
+
+	printf("%s", __func__);
+
+	*rotations = RR_Rotate_All|RR_Reflect_All;
+
+	for (n = 0; n < pScreen->numDepths; n++)
+		if (pScreen->allowedDepths[n].numVids)
+			break;
+	if (n == pScreen->numDepths)
+		return FALSE;
+
+	pSize = RRRegisterSize (pScreen,
+							screen->width,
+							screen->height,
+							screen->width_mm,
+							screen->height_mm);
 
 	n = 0;
 	while (sizes[n].width != 0 && sizes[n].height != 0)
@@ -794,9 +798,12 @@ static void sdlPollInput(void)
 				// Oherwise SDL will stuck and we will get a permanent black screen
 				SDL_Flip(SDL_GetVideoSurface());
 				break;
+
 			case SDL_SYSWMEVENT:
+#ifdef __ANDROID__
 				if (event.syswm.msg != NULL && event.syswm.msg->type == SDL_SYSWM_ANDROID_CLIPBOARD_CHANGED)
 					set_clipboard_text(SDL_GetClipboardText());
+#endif
 				break;
 			//case SDL_QUIT:
 				/* this should never happen */
@@ -853,7 +860,7 @@ void OsVendorInit (void)
 static void *send_unicode_thread(void *param)
 {
 	// International text input - copy symbol to clipboard, and send copypaste key
-	int unicode = (int)param;
+	int unicode = (int)(uint64_t)param;
 	char cmd[1024] = "";
 	char c[5] = "";
 	sprintf (cmd, "127.0.0.1:%s", display);
