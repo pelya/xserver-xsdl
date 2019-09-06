@@ -24,11 +24,13 @@
  *	- jaymz
  *
  */
+
+#include "sdl_send_text.h"
+
 #include <xorg-config.h>
 #include "kdrive.h"
 #include "dix.h"
 #include <SDL/SDL.h>
-//#include <SDL/SDL_syswm.h>
 #include <X11/keysym.h>
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -66,10 +68,6 @@ static Bool sdlMouseInit(KdPointerInfo *pi);
 static void sdlMouseFini(KdPointerInfo *pi);
 static Status sdlMouseEnable (KdPointerInfo *pi);
 static void sdlMouseDisable (KdPointerInfo *pi);
-static int execute_command(const char * command, const char *mode, char * data, int datalen);
-static int UnicodeToUtf8(int src, char * dest);
-static void send_unicode(int unicode);
-static void set_clipboard_text(char *text);
 static Bool sdlScreenButtons = FALSE;
 static void setScreenButtons(int mouseX);
 static void sdlScreenBlockCallback(ScreenPtr pScreen, void *timeout);
@@ -196,11 +194,14 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 		screen->height = 480;
 	}
 	if (!screen->fb.depth)
-		screen->fb.depth = 4;
+		screen->fb.depth = 24;
 	printf("Attempting for %dx%d/%dbpp mode\n", screen->width, screen->height, screen->fb.depth);
 	driver->screen = SDL_SetVideoMode(screen->width, screen->height, screen->fb.depth, 0);
 	if(driver->screen == NULL)
+	{
+		printf("%s: SDL_SetVideoMode failed!\n", __func__);
 		return FALSE;
+	}
 	driver->randr = screen->randr;
 	screen->driver = driver;
 	printf("Set %dx%d/%dbpp mode\n", driver->screen->w, driver->screen->h, driver->screen->format->BitsPerPixel);
@@ -800,10 +801,7 @@ static void sdlPollInput(void)
 				break;
 
 			case SDL_SYSWMEVENT:
-#ifdef __ANDROID__
-				if (event.syswm.msg != NULL && event.syswm.msg->type == SDL_SYSWM_ANDROID_CLIPBOARD_CHANGED)
-					set_clipboard_text(SDL_GetClipboardText());
-#endif
+				process_clipboard_event(&event.syswm);
 				break;
 			//case SDL_QUIT:
 				/* this should never happen */
@@ -857,116 +855,6 @@ void OsVendorInit (void)
 {
 }
 
-static void *send_unicode_thread(void *param)
-{
-	// International text input - copy symbol to clipboard, and send copypaste key
-	int unicode = (int)(uint64_t)param;
-	char cmd[1024] = "";
-	char c[5] = "";
-	sprintf (cmd, "127.0.0.1:%s", display);
-	setenv ("DISPLAY", cmd, 1);
-	UnicodeToUtf8 (unicode, c);
-	sprintf(cmd, "%s/usr/bin/xsel -b -i >/dev/null 2>&1", getenv("APPDIR"));
-	execute_command(cmd, "w", c, 5);
-	KdEnqueueKeyboardEvent (sdlKeyboard, 37, 0); // LCTRL
-	KdEnqueueKeyboardEvent (sdlKeyboard, 55, 0); // V
-	KdEnqueueKeyboardEvent (sdlKeyboard, 55, 1); // V
-	KdEnqueueKeyboardEvent (sdlKeyboard, 37, 1); // LCTRL
-	return NULL;
-}
-
-static void *set_clipboard_text_thread(void *param)
-{
-	// International text input - copy symbol to clipboard, and send copypaste key
-	char *text = (char *)param;
-	char cmd[1024] = "";
-	sprintf (cmd, "127.0.0.1:%s", display);
-	setenv ("DISPLAY", cmd, 1);
-	sprintf(cmd, "%s/usr/bin/xsel -b -i >/dev/null 2>&1", getenv("APPDIR"));
-	execute_command(cmd, "w", text, strlen(text));
-	SDL_free(text);
-	return NULL;
-}
-
-void send_unicode(int unicode)
-{
-	pthread_t thread_id;
-	pthread_attr_t attr;
-	pthread_attr_init (&attr);
-	pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-	pthread_create (&thread_id, &attr, &send_unicode_thread, (void *)(size_t)unicode);
-	pthread_attr_destroy (&attr);
-}
-
-void set_clipboard_text(char *text)
-{
-	pthread_t thread_id;
-	pthread_attr_t attr;
-	pthread_attr_init (&attr);
-	pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-	pthread_create (&thread_id, &attr, &set_clipboard_text_thread, (void *)text);
-	pthread_attr_destroy (&attr);
-}
-
-int execute_command(const char * command, const char *mode, char * data, int datalen)
-{
-	FILE *cmd;
-	int ret;
-	//printf ("Starting child command: %s, mode %s data: '%s'", command, mode, data);
-	cmd = popen (command, mode);
-	if (!cmd) {
-		printf ("Error while starting child command: %s", command);
-		return -1;
-	}
-	if (mode[0] == 'w')
-		fputs (data, cmd);
-	else
-	{
-		datalen--;
-		while (datalen > 0 && fgets (data, datalen, cmd))
-		{
-			int count = strlen (data);
-			data += count;
-			datalen -= count;
-		}
-		data[0] = 0;
-	}
-	ret = WEXITSTATUS (pclose (cmd));
-	//printf ("Child command returned %d", ret);
-	return ret;
-}
-
-int UnicodeToUtf8(int src, char * dest)
-{
-    int len = 0;
-    if ( src <= 0x007f) {
-        *dest++ = (char)src;
-        len = 1;
-    } else if (src <= 0x07ff) {
-        *dest++ = (char)0xc0 | (src >> 6);
-        *dest++ = (char)0x80 | (src & 0x003f);
-        len = 2;
-    } else if (src == 0xFEFF) {
-        // nop -- zap the BOM
-    } else if (src >= 0xD800 && src <= 0xDFFF) {
-        // surrogates not supported
-    } else if (src <= 0xffff) {
-        *dest++ = (char)0xe0 | (src >> 12);
-        *dest++ = (char)0x80 | ((src >> 6) & 0x003f);
-        *dest++ = (char)0x80 | (src & 0x003f);
-        len = 3;
-    } else if (src <= 0xffff) {
-        *dest++ = (char)0xf0 | (src >> 18);
-        *dest++ = (char)0x80 | ((src >> 12) & 0x3f);
-        *dest++ = (char)0x80 | ((src >> 6) & 0x3f);
-        *dest++ = (char)0x80 | (src & 0x3f);
-        len = 4;
-    } else {
-        // out of Unicode range
-    }
-    *dest = 0;
-    return len;
-}
 
 void setScreenButtons(int mouseX)
 {
@@ -1030,10 +918,4 @@ void setScreenButtons(int mouseX)
 	SDL_ANDROID_SetScreenKeyboardTransparency(255); // opaque
 
 #endif
-}
-
-extern int android_main( int argc, char *argv[], char *envp[] );
-int android_main( int argc, char *argv[], char *envp[] )
-{
-	return dix_main(argc, argv, envp);
 }

@@ -1148,7 +1148,7 @@ PATH=$BUILDDIR:$PATH \
 --disable-xephyr --disable-unit-tests \
 --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
 --enable-xsdl --enable-kdrive \
---enable-mitshm --disable-config-udev --disable-libdrm \
+--enable-mitshm --disable-config-udev --disable-libdrm --disable-dri3 \
 || exit 1
 
 ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1
