@@ -639,6 +639,37 @@ $AR rcs libXrandr.a $PKGDIR/src/.libs/*.o
 #done
 } || exit 1
 
+# =========== libdrm.a ==========
+
+[ -e usr/include/libdrm/drm_fourcc.h ] || {
+PKGURL=https://cgit.freedesktop.org/mesa/drm/snapshot/libdrm-2.4.99.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
+cd $PKGDIR
+
+[ -e configure ] || \
+autoreconf -v --install \
+|| exit 1
+
+env CFLAGS="-isystem$BUILDDIR/usr/include" \
+LDFLAGS="-L$BUILDDIR" \
+$BUILDDIR/setCrossEnvironment.sh \
+./configure \
+--host=$TARGET_HOST \
+--prefix=$BUILDDIR/usr \
+|| exit 1
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 install-klibdrmincludeHEADERS install-libdrmincludeHEADERS 2>&1 || exit 1
+
+cd $BUILDDIR
+} || exit 1
+
 # =========== libxkbfile.a ==========
 
 [ -e libxkbfile.a ] || {
@@ -1148,7 +1179,7 @@ PATH=$BUILDDIR:$PATH \
 --disable-xephyr --disable-unit-tests \
 --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
 --enable-xsdl --enable-kdrive \
---enable-mitshm --disable-config-udev --disable-libdrm --disable-dri3 \
+--enable-mitshm --disable-config-udev --disable-libdrm \
 || exit 1
 
 ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1

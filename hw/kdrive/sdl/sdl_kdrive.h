@@ -25,15 +25,13 @@
  *
  */
 
-#ifndef _SDL_SEND_TEXT_H_
-#define _SDL_SEND_TEXT_H_
+#ifndef _SDL_KDRIVE_H_
+#define _SDL_KDRIVE_H_
 
-#include <SDL/SDL_events.h>
+#include <xorg-config.h>
+#include "kdrive.h"
 
-int execute_command(const char * command, const char *mode, char * data, int datalen);
-int UnicodeToUtf8(int src, char * dest);
-void send_unicode(int unicode);
-void set_clipboard_text(char *text);
-void process_clipboard_event(SDL_SysWMEvent *event);
+extern KdKeyboardInfo *sdlKeyboard;
+extern KdPointerInfo *sdlPointer;
 
 #endif

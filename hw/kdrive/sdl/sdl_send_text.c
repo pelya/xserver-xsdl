@@ -26,9 +26,9 @@
  */
 
 #include "sdl_send_text.h"
+#include "sdl_kdrive.h"
 
 #include <SDL/SDL.h>
-#include <SDL/SDL_syswm.h>
 
 #include <stdio.h>
 #include <pthread.h>
@@ -161,12 +161,4 @@ int execute_command(const char * command, const char *mode, char * data, int dat
 	ret = WEXITSTATUS (pclose (cmd));
 	//printf ("Child command returned %d", ret);
 	return ret;
-}
-
-void process_clipboard_event(SDL_SysWMEvent *event)
-{
-#ifdef __ANDROID__
-	if (event->msg != NULL && event->msg->type == SDL_SYSWM_ANDROID_CLIPBOARD_CHANGED)
-		set_clipboard_text(SDL_GetClipboardText());
-#endif
 }

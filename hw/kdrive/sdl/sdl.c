@@ -26,6 +26,7 @@
  */
 
 #include "sdl_send_text.h"
+#include "sdl_kdrive.h"
 
 #include <xorg-config.h>
 #include "kdrive.h"
