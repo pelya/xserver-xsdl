@@ -1053,52 +1053,51 @@ sh -c '$STRIP xhost'
 cd $BUILDDIR
 } || exit 1
 
-# =========== xli binary ==========
+# =========== xloadimage binary ==========
 
-[ -e xli ] || {
-PKGURL=https://deb.debian.org/debian/pool/main/x/xli/xli_1.17.0+20061110.orig.tar.gz
-#PKGDIR=`basename --suffix=.tar.gz $PKGURL`
-PKGDIR=xli-2006-11-10
+[ -e xloadimage ] || {
+PKGURL=https://salsa.debian.org/debian/xloadimage/-/archive/master/xloadimage-master.tar.gz
+PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
+rm -rf $PKGDIR
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-echo "SRCS := bright.c clip.c cmuwmrast.c compress.c dither.c faces.c fbm.c fill.c  g3.c gif.c halftone.c \
-				imagetypes.c img.c mac.c mcidas.c mc_tables.c merge.c misc.c new.c options.c path.c pbm.c \
-				pcx.c reduce.c jpeg.c rle.c rlelib.c root.c rotate.c send.c smooth.c sunraster.c \
-				value.c window.c xbitmap.c xli.c xpixmap.c xwd.c zio.c zoom.c ddxli.c tga.c bmp.c pcd.c png.c" > Makefile
-echo 'OBJS := $(SRCS:%.c=%.o)' >> Makefile
-echo '%.o: %.c' >> Makefile
-echo '	$(CC) $(CFLAGS) $(PIE) $(if $(filter compress.c, $+), -O0) -c $+ -o $@' >> Makefile
-echo 'xli: $(OBJS)' >> Makefile
-echo '	$(CC) $(CFLAGS) $+ -o $@ $(LDFLAGS) $(PIE) -lX11 -lxcb -lXau -lXdmcp -lXext -ljpeg -lpng -landroid_support -landroid-shmem -llog -lm -lz' >> Makefile
+for f in debian/patches/*.patch; do patch -p1 < $f ; done
 
-echo '#include <stdarg.h>' > varargs.h
+chmod a+x ./configure
 
-sed -i 's/extern int errno;//' *.c
+# ac_cv_lib_jpeg_main=no ac_cv_lib_png_main=no
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
--include strings.h \
--include sys/select.h \
--include math.h \
--include stdlib.h \
--include string.h \
--Dindex=strchr \
--Drindex=strrchr \
 -isystem . \
 -isystem $BUILDDIR/../../../../../../jni/jpeg/include \
 -isystem $BUILDDIR/../../../../../../jni/png/include \
+-Dindex=strchr \
+-Drindex=strrchr \
 -Os" \
 LDFLAGS="-L$BUILDDIR \
--L$BUILDDIR/../../../../../../obj/local/$TARGET_ARCH" \
+-L$BUILDDIR/../../../../../../obj/local/$TARGET_ARCH \
+-lX11 -lxcb -lXau -lXdmcp -lXext -lpng -landroid_support -landroid-shmem -llog -lm -lz" \
+ac_cv_lib_tiff_main=no \
 $BUILDDIR/setCrossEnvironment.sh \
-make -j$NCPU V=1 PIE=-pie 2>&1 || exit 1
+./configure \
+--host=$TARGET_HOST \
+--prefix=$TARGET_DIR/usr \
+|| exit 1
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'ln -sf $CC gcc'
+
+env PATH=`pwd`:$PATH \
+$BUILDDIR/setCrossEnvironment.sh \
+make -j$NCPU V=1 2>&1 || exit 1
 
 cd $BUILDDIR
-cp -f $PKGDIR/xli ./
+cp -f $PKGDIR/xloadimage ./
 $BUILDDIR/setCrossEnvironment.sh \
-sh -c '$STRIP xli'
+sh -c '$STRIP xloadimage'
 
 cd $BUILDDIR
 } || exit 1

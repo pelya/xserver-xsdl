@@ -8,7 +8,7 @@ ln -sf /usr .
 mkdir -p tmp
 
 if [ -z "$1" ]; then
-	hw/kdrive/sdl/Xsdl :1 -exec "x-window-manager & xlogo & xev & xclock -update 1"
+	hw/kdrive/sdl/Xsdl :1 -audit 3 -listen inet -listen inet6 -nolisten unix -nopn -exec "x-window-manager & xlogo & xev & xclock -update 1"
 else
 	gdb --args hw/kdrive/sdl/Xsdl :1 -exec xlogo
 fi
