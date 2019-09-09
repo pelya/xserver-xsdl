@@ -194,7 +194,7 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 		screen->height = 480;
 	}
 	if (!screen->fb.depth)
-		screen->fb.depth = 24;
+		screen->fb.depth = 16;
 	printf("Attempting for %dx%d/%dbpp mode\n", screen->width, screen->height, screen->fb.depth);
 	driver->screen = SDL_SetVideoMode(screen->width, screen->height, screen->fb.depth, 0);
 	if(driver->screen == NULL)
@@ -606,8 +606,9 @@ void InitCard(char *name)
 
 void InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
+	printf("InitOutput() enter\n");
 	KdInitOutput(pScreenInfo, argc, argv);
-	printf("InitOutput()\n");
+	printf("InitOutput() exit\n");
 }
 
 void InitInput(int argc, char **argv)
