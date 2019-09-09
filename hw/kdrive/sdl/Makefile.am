@@ -5,7 +5,7 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xsdl
 
-Xsdl_SOURCES = sdl.c android_main.c sdl_send_text.c sdl_send_text.h sdl_kdrive.h sdl_clipboard.c
+Xsdl_SOURCES = sdl.c sdl_send_text.c sdl_send_text.h sdl_kdrive.h sdl_clipboard.c sdl_android_main.c stub_main.c
 
 Xsdl_LDADD = \
 	@KDRIVE_LIBS@                                  \

@@ -42,7 +42,6 @@
 #include <android/log.h>
 
 // DEBUG
-//#define printf(...)
 #define printf(...) __android_log_print(ANDROID_LOG_INFO, "XSDL", __VA_ARGS__)
 #endif
 
