@@ -18,19 +18,19 @@ static void *child_command(void *unused)
 	FILE *cmd;
 	char buf[512];
 	sprintf (buf, ":%s", display);
-	printf ("setenv DISPLAY=%s", buf);
+	printf ("setenv DISPLAY=%s\n", buf);
 	setenv ("DISPLAY", buf, 1);
 	setenv ("PULSE_SERVER", "tcp:127.0.0.1:4712", 1);
-	printf ("Starting child command: %s", kdExecuteCommand);
+	printf ("Starting child command: %s\n", kdExecuteCommand);
 	cmd = popen (kdExecuteCommand, "r");
 	if (!cmd) {
-		printf ("Error while starting child command: %s", kdExecuteCommand);
+		printf ("Error while starting child command: %s\n", kdExecuteCommand);
 		return NULL;
 	}
 	while (fgets (buf, sizeof(buf), cmd)) {
 		printf ("> %s", buf);
 	}
-	printf ("Child command returned with status %d", pclose (cmd));
+	printf ("Child command returned with status %d\n", pclose (cmd));
 	return NULL;
 }
 

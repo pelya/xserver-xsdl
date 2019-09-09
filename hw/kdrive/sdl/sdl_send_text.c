@@ -141,7 +141,7 @@ int execute_command(const char * command, const char *mode, char * data, int dat
 	//printf ("Starting child command: %s, mode %s data: '%s'", command, mode, data);
 	cmd = popen (command, mode);
 	if (!cmd) {
-		printf ("Error while starting child command: %s", command);
+		printf ("Error while starting child command: %s\n", command);
 		return -1;
 	}
 	if (mode[0] == 'w')

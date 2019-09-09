@@ -1,6 +1,6 @@
 #!/bin/sh
 
-env SDL=yes CFLAGS="-O0 -g -DDEBUG" \
+env SDL=yes CFLAGS="-O0 -g -DDEBUG -Werror=format" \
 ../configure --prefix=`pwd`/data/usr \
 --enable-debug \
 --disable-xorg --disable-dmx --disable-xvfb --disable-xnest --disable-xquartz --disable-xwin \

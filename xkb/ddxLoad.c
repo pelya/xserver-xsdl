@@ -79,9 +79,7 @@ OutputDirectory(char *outdir, size_t size)
     if (strlen("/tmp/") < size) {
         (void) strcpy(outdir, "/tmp/");
     }
-#ifdef __ANDROID__
     sprintf(outdir, "%s/", getenv("SECURE_STORAGE_DIR"));
-#endif
 }
 
 /**
@@ -103,18 +101,9 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
     char *xkbbasedirflag = NULL;
     const char *xkbbindir = emptystring;
     const char *xkbbindirsep = emptystring;
+    char tmpname[PATH_MAX] = "x-keyboard.txt";
 
-#ifdef WIN32
-    /* WIN32 has no popen. The input must be stored in a file which is
-       used as input for xkbcomp. xkbcomp does not read from stdin. */
-    char tmpname[PATH_MAX];
     const char *xkmfile = tmpname;
-#elif defined(__ANDROID__)
-    const char *tmpname = "x-keyboard.txt";
-    const char *xkmfile = tmpname;
-#else
-    const char *xkmfile = "-";
-#endif
 
     snprintf(keymap, sizeof(keymap), "server-%s", display);
 
@@ -165,21 +154,13 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
         return NULL;
     }
 
-#if !defined(WIN32) && !defined(__ANDROID__)
-    out = Popen(buf, "w");
-#else
     out = fopen(tmpname, "w");
-#endif
 
     if (out != NULL) {
         /* Now write to xkbcomp */
         (*callback)(out, userdata);
 
-#if !defined(WIN32) && !defined(__ANDROID__)
-        if (Pclose(out) == 0)
-#else
         if (fclose(out) == 0 && System(buf) >= 0)
-#endif
         {
             if (xkbDebugFlags || 1)
                 DebugF("[xkb] xkb executes: %s\n", buf);
