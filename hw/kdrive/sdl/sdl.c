@@ -831,6 +831,9 @@ void sdlScreenBlockCallback(ScreenPtr pScreen, void *timeout)
 	pScreen->BlockHandler = sdlScreenBlockCallback;
 
 	sdlPollInput();
+
+	// TODO: remove this! hax to force 5 FPS screen refresh rate
+	AdjustWaitForDelay(timeout, 200);
 }
 
 static Bool xsdlInit(KdCardInfo * card)
