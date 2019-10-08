@@ -27,6 +27,8 @@
 
 #include "sdl_send_text.h"
 #include "sdl_kdrive.h"
+#include "sdl_screen_buttons.h"
+#include "sdl_input.h"
 
 #include <xorg-config.h>
 #include "kdrive.h"
@@ -42,6 +44,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef __ANDROID__
 #include <SDL/SDL_screenkeyboard.h>
@@ -68,11 +71,7 @@ static Bool sdlMouseInit(KdPointerInfo *pi);
 static void sdlMouseFini(KdPointerInfo *pi);
 static Status sdlMouseEnable (KdPointerInfo *pi);
 static void sdlMouseDisable (KdPointerInfo *pi);
-static Bool sdlScreenButtons = FALSE;
-static void setScreenButtons(int mouseX);
 static void sdlScreenBlockCallback(ScreenPtr pScreen, void *timeout);
-enum sdlKeyboardType_t { KB_NATIVE = 0, KB_BUILTIN = 1, KB_BOTH = 2 };
-enum sdlKeyboardType_t sdlKeyboardType = KB_NATIVE;
 
 KdKeyboardInfo *sdlKeyboard = NULL;
 KdPointerInfo *sdlPointer = NULL;
@@ -103,8 +102,6 @@ KdCardFuncs sdlFuncs = {
 	.finishInitScreen = sdlFinishInitScreen,
 	.createRes = sdlCreateRes,
 };
-
-int mouseState = 0;
 
 enum { NUMRECTS = 32, FULLSCREEN_REFRESH_TIME = 1000 };
 //Uint32 nextFullScreenRefresh = 0;
@@ -184,6 +181,15 @@ sdlUnmapFramebuffer (KdScreenInfo *screen)
 	return TRUE;
 }
 
+static void sdlInputNotifyCbk(int fd, int ready, void *data)
+{
+	char buf[1];
+	int status = read(fd, &buf, 1);
+	//printf("sdlInputNotifyCbk() fd %d ready %d read status %d\n", fd, ready, status);
+
+	sdlPollInput();
+}
+
 static Bool sdlScreenInit(KdScreenInfo *screen)
 {
 	SdlDriver *driver=calloc(1, sizeof(SdlDriver));
@@ -222,19 +228,15 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 	SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 #ifdef __ANDROID__
 	set_clipboard_text(SDL_GetClipboardText());
-
-	sdlScreenButtons = SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0);
 #endif
+
+	sdlInitInput();
+
+	initScreenButtons();
+
 	setScreenButtons(10000);
 
-	if (getenv("XSDL_BUILTIN_KEYBOARD") != NULL)
-	{
-		sdlKeyboardType = atoi(getenv("XSDL_BUILTIN_KEYBOARD")) == KB_NATIVE ? KB_NATIVE :
-						atoi(getenv("XSDL_BUILTIN_KEYBOARD")) == KB_BUILTIN ? KB_BUILTIN : KB_BOTH;
-	}
-	unsetenv("XSDL_BUILTIN_KEYBOARD");
-
-	printf("sdlScreenButtons %d sdlKeyboardType %d\n", sdlScreenButtons, sdlKeyboardType);
+	SetNotifyFd(sdlGetInputNotifyFd(), &sdlInputNotifyCbk, X_NOTIFY_READ, NULL);
 
 	return sdlMapFramebuffer (screen);
 }
@@ -594,9 +596,7 @@ static Status sdlMouseEnable (KdPointerInfo *pi)
 
 static void sdlMouseDisable (KdPointerInfo *pi)
 {
-	return;
 }
-
 
 void InitCard(char *name)
 {
@@ -645,180 +645,6 @@ int ddxProcessArgument(int argc, char **argv, int i)
 	return KdProcessArgument(argc, argv, i);
 }
 
-static void sdlPollInput(void)
-{
-	static int buttonState=0;
-	static int pressure = 0;
-	SDL_Event event;
-
-	//printf("sdlPollInput() %d\n", SDL_GetTicks());
-
-	while ( SDL_PollEvent(&event) ) {
-		switch (event.type) {
-			case SDL_MOUSEMOTION:
-				//printf("SDL_MOUSEMOTION pressure %d\n", pressure);
-				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, pressure);
-				setScreenButtons(event.motion.x);
-				break;
-			case SDL_MOUSEBUTTONDOWN:
-				switch(event.button.button)
-				{
-					case SDL_BUTTON_LEFT:
-						buttonState = KD_BUTTON_1;
-						break;
-					case SDL_BUTTON_MIDDLE:
-						buttonState = KD_BUTTON_2;
-						break;
-					case SDL_BUTTON_RIGHT:
-						buttonState = KD_BUTTON_3;
-						break;
-					case SDL_BUTTON_WHEELUP:
-						buttonState = KD_BUTTON_4;
-						break;
-					case SDL_BUTTON_WHEELDOWN:
-						buttonState = KD_BUTTON_5;
-						break;
-					/*
-					case SDL_BUTTON_X1:
-						buttonState = KD_BUTTON_6;
-						break;
-					case SDL_BUTTON_X2:
-						buttonState = KD_BUTTON_7;
-						break;
-					*/
-					default:
-						buttonState = 1 << (event.button.button - 1);
-						break;
-				}
-				mouseState |= buttonState;
-				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
-				break;
-			case SDL_MOUSEBUTTONUP:
-				switch(event.button.button)
-				{
-					case SDL_BUTTON_LEFT:
-						buttonState = KD_BUTTON_1;
-						pressure = 0;
-						break;
-					case SDL_BUTTON_MIDDLE:
-						buttonState = KD_BUTTON_2;
-						break;
-					case SDL_BUTTON_RIGHT:
-						buttonState = KD_BUTTON_3;
-						break;
-					case SDL_BUTTON_WHEELUP:
-						buttonState = KD_BUTTON_4;
-						break;
-					case SDL_BUTTON_WHEELDOWN:
-						buttonState = KD_BUTTON_5;
-						break;
-					/*
-					case SDL_BUTTON_X1:
-						buttonState = KD_BUTTON_6;
-						break;
-					case SDL_BUTTON_X2:
-						buttonState = KD_BUTTON_7;
-						break;
-					*/
-					default:
-						buttonState = 1 << (event.button.button - 1);
-						break;
-				}
-				mouseState &= ~buttonState;
-				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
-				break;
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-				//printf("Key sym %d scancode %d unicode %d", event.key.keysym.sym, event.key.keysym.scancode, event.key.keysym.unicode);
-#ifdef __ANDROID__
-				if (event.key.keysym.sym == SDLK_HELP)
-				{
-					if(event.type == SDL_KEYUP)
-					{
-						// SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
-						static int keyboard = 0;
-						keyboard++;
-						if (keyboard > 1 || (sdlKeyboardType != KB_BOTH && keyboard > 0))
-							keyboard = 0;
-						SDL_HideScreenKeyboard(NULL);
-						//SDL_Delay(150);
-						SDL_Flip(SDL_GetVideoSurface());
-						if (keyboard == 0)
-						{
-							SDL_Delay(100);
-							if (sdlKeyboardType == KB_NATIVE || sdlKeyboardType == KB_BOTH)
-								SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
-							if (sdlKeyboardType == KB_BUILTIN)
-								SDL_ANDROID_ToggleInternalScreenKeyboard(SDL_KEYBOARD_QWERTY);
-							SDL_Flip(SDL_GetVideoSurface());
-						}
-						if (keyboard == 1 && sdlKeyboardType == KB_BOTH)
-						{
-							SDL_Delay(100);
-							SDL_ANDROID_ToggleInternalScreenKeyboard(SDL_KEYBOARD_QWERTY);
-							SDL_Flip(SDL_GetVideoSurface());
-						}
-					}
-					setScreenButtons(10000);
-				}
-				else
-#endif
-				if (event.key.keysym.sym == SDLK_UNDO)
-				{
-					if(event.type == SDL_KEYUP)
-					{
-						// Send Ctrl-Z
-						KdEnqueueKeyboardEvent (sdlKeyboard, 37, 0); // LCTRL
-						KdEnqueueKeyboardEvent (sdlKeyboard, 52, 0); // Z
-						KdEnqueueKeyboardEvent (sdlKeyboard, 52, 1); // Z
-						KdEnqueueKeyboardEvent (sdlKeyboard, 37, 1); // LCTRL
-					}
-				}
-				else if((event.key.keysym.unicode & 0xFF80) != 0)
-				{
-					send_unicode (event.key.keysym.unicode);
-				}
-				else
-					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
-				// Force SDL screen update, so SDL virtual on-screen buttons will change their images
-				{
-					SDL_Rect r = {0, 0, 1, 1};
-					SDL_UpdateRects(SDL_GetVideoSurface(), 1, &r);
-				}
-				break;
-			case SDL_JOYAXISMOTION:
-				if (event.jaxis.which == 0 && event.jaxis.axis == 4 && pressure != event.jaxis.value)
-				{
-					pressure = event.jaxis.value;
-					if (mouseState & KD_BUTTON_1)
-						KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
-				}
-				break;
-			case SDL_ACTIVEEVENT:
-				// We need this to re-init OpenGL and redraw screen
-				// And we need to also call this when OpenGL context was destroyed
-				// Oherwise SDL will stuck and we will get a permanent black screen
-				SDL_Flip(SDL_GetVideoSurface());
-				break;
-
-			case SDL_SYSWMEVENT:
-				process_clipboard_event(&event.syswm);
-				break;
-			//case SDL_QUIT:
-				/* this should never happen */
-				//SDL_Quit(); // SDL_Quit() on Android is buggy
-		}
-	}
-	/*
-	if ( nextFullScreenRefresh && nextFullScreenRefresh < SDL_GetTicks() )
-	{
-		//printf("SDL_Flip from sdlPollInput");
-		SDL_Flip(SDL_GetVideoSurface());
-		nextFullScreenRefresh = 0;
-	}
-	*/
-}
-
 void sdlScreenBlockCallback(ScreenPtr pScreen, void *timeout)
 {
 	KdScreenPriv(pScreen);
@@ -831,9 +657,6 @@ void sdlScreenBlockCallback(ScreenPtr pScreen, void *timeout)
 	pScreen->BlockHandler = sdlScreenBlockCallback;
 
 	sdlPollInput();
-
-	// TODO: remove this! hax to force 5 FPS screen refresh rate
-	AdjustWaitForDelay(timeout, 200);
 }
 
 static Bool xsdlInit(KdCardInfo * card)
@@ -859,67 +682,3 @@ void OsVendorInit (void)
 {
 }
 
-
-void setScreenButtons(int mouseX)
-{
-#ifdef __ANDROID__
-	//printf ("setScreenButtons: kbShown %d sdlScreenButtons %d alignLeft %d", SDL_IsScreenKeyboardShown(NULL), sdlScreenButtons, mouseX > (((unsigned)SDL_GetVideoSurface()->w) >> 3));
-
-	if ( SDL_ANDROID_GetScreenKeyboardRedefinedByUser() )
-		return;
-
-	int kbShown = SDL_IsScreenKeyboardShown(NULL);
-	if (!sdlScreenButtons)
-	{
-		if (SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0))
-		{
-			SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, 0);
-			SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, 0);
-			SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, 0);
-		}
-		return;
-	}
-
-	SDL_Rect pos;
-	SDL_ANDROID_GetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, &pos);
-
-	//printf ("setScreenButtons: pos %d %d shown %d", pos.x, pos.y, SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0));
-
-	int alignLeft;
-	alignLeft = mouseX > (((unsigned)SDL_GetVideoSurface()->w) >> 3);
-
-	if (!kbShown && pos.y > 0 && (pos.x == 0) == alignLeft)
-		return;
-
-	if (kbShown && pos.y == 0 && (pos.x == 0) == alignLeft && SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0))
-		return;
-
-	int resolutionW;
-	resolutionW = atoi(getenv("DISPLAY_RESOLUTION_WIDTH"));
-	if (resolutionW <= 0)
-		resolutionW = SDL_ListModes(NULL, 0)[0]->w;
-
-	pos.w = (kbShown ? 60 : 40) * SDL_ListModes(NULL, 0)[0]->w / resolutionW;
-	pos.h = SDL_ListModes(NULL, 0)[0]->h / 20;
-	pos.x = alignLeft ? 0 : SDL_ListModes(NULL, 0)[0]->w - pos.w;
-	pos.y = kbShown ? 0 : SDL_ListModes(NULL, 0)[0]->h - pos.h * 3;
-
-	SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, 1);
-	SDL_ANDROID_SetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, &pos);
-	SDL_ANDROID_SetScreenKeyboardButtonImagePos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, &pos);
-	SDL_ANDROID_SetScreenKeyboardButtonStayPressedAfterTouch(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, 1);
-	pos.y += pos.h;
-	SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, 1);
-	SDL_ANDROID_SetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, &pos);
-	SDL_ANDROID_SetScreenKeyboardButtonImagePos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, &pos);
-	SDL_ANDROID_SetScreenKeyboardButtonStayPressedAfterTouch(SDL_ANDROID_SCREENKEYBOARD_BUTTON_1, 1);
-	pos.y += pos.h;
-	SDL_ANDROID_SetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, 1);
-	SDL_ANDROID_SetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, &pos);
-	SDL_ANDROID_SetScreenKeyboardButtonImagePos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, &pos);
-	SDL_ANDROID_SetScreenKeyboardButtonStayPressedAfterTouch(SDL_ANDROID_SCREENKEYBOARD_BUTTON_2, 1);
-
-	SDL_ANDROID_SetScreenKeyboardTransparency(255); // opaque
-
-#endif
-}
