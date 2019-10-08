@@ -199,6 +199,8 @@ $AR rcs libfontenc.a $PKGDIR/src/.libs/*.o || exit 1
 # =========== libXfont.a ===========
 
 ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libfreetype.a $BUILDDIR/
+ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libsdl_savepng.a $BUILDDIR/
+ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libpng.a $BUILDDIR/
 
 # =========== libXfont2.a ===========
 
