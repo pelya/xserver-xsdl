@@ -45,6 +45,7 @@
 
 
 
+
 #
 # Official compose sequences for Finland based on SFS 5966 standard
 #
@@ -60,7 +61,7 @@
 #
 
 # Use en_US.UTF-8/Compose as the base compose sequence definition set
-include "/proc/self/cwd/usr/share/X11/locale/en_US.UTF-8/Compose"
+include "/usr/share/X11/locale/en_US.UTF-8/Compose"
 
 # Define all the sequences of the standard overriding any sequence
 # from en_US.UTF-8/Compose if such a sequence was provided already

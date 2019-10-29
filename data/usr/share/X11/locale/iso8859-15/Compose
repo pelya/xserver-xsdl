@@ -45,6 +45,7 @@
 
 
 
+
 #
 # ISO 8859-15 (Latin1) Compose Sequence
 #
@@ -202,8 +203,7 @@
 <Multi_key> <minus> <colon>		: "\367"	division
 <Multi_key> <colon> <minus>		: "\367"	division
 <Multi_key> <x> <x>			: "\327"	multiply
-<Multi_key> <apostrophe> <apostrophe>	: "\264"	acute
-<Multi_key> <comma> <comma>		: "\270"	cedilla
+<Multi_key> <apostrophe> <apostrophe>	: "'"		apostrophe
 <Multi_key> <quotedbl> <quotedbl>	: "\""	quotedbl
 # Accented Alphabet
 <Multi_key> <A> <grave>			: "\300"	Agrave
@@ -222,8 +222,6 @@
 <Multi_key> <minus> <A>			: "\303"	Atilde
 <Multi_key> <A> <quotedbl>		: "\304"	Adiaeresis
 <Multi_key> <quotedbl> <A>		: "\304"	Adiaeresis
-<Multi_key> <A> <diaeresis>		: "\304"	Adiaeresis
-<Multi_key> <diaeresis> <A>		: "\304"	Adiaeresis
 <Multi_key> <A> <asterisk>		: "\305"	Aring
 <Multi_key> <asterisk> <A>		: "\305"	Aring
 <Multi_key> <A> <A>			: "\305"	Aring
@@ -245,8 +243,6 @@
 <Multi_key> <minus> <a>			: "\343"	atilde
 <Multi_key> <a> <quotedbl>		: "\344"	adiaeresis
 <Multi_key> <quotedbl> <a>		: "\344"	adiaeresis
-<Multi_key> <a> <diaeresis>		: "\344"	adiaeresis
-<Multi_key> <diaeresis> <a>		: "\344"	adiaeresis
 <Multi_key> <a> <asterisk>		: "\345"	aring
 <Multi_key> <asterisk> <a>		: "\345"	aring
 <Multi_key> <a> <a>			: "\345"	aring
@@ -278,8 +274,6 @@
 <Multi_key> <greater> <E>		: "\312"	Ecircumflex
 <Multi_key> <E> <quotedbl>		: "\313"	Ediaeresis
 <Multi_key> <quotedbl> <E>		: "\313"	Ediaeresis
-<Multi_key> <E> <diaeresis>		: "\313"	Ediaeresis
-<Multi_key> <diaeresis> <E>		: "\313"	Ediaeresis
 <Multi_key> <e> <grave>			: "\350"	egrave
 <Multi_key> <grave> <e>			: "\350"	egrave
 <Multi_key> <e> <acute>			: "\351"	eacute
@@ -292,8 +286,6 @@
 <Multi_key> <greater> <e>		: "\352"	ecircumflex
 <Multi_key> <e> <quotedbl>		: "\353"	ediaeresis
 <Multi_key> <quotedbl> <e>		: "\353"	ediaeresis
-<Multi_key> <e> <diaeresis>		: "\353"	ediaeresis
-<Multi_key> <diaeresis> <e>		: "\353"	ediaeresis
 <Multi_key> <I> <grave>			: "\314"	Igrave
 <Multi_key> <grave> <I>			: "\314"	Igrave
 <Multi_key> <I> <acute>			: "\315"	Iacute
@@ -306,8 +298,6 @@
 <Multi_key> <greater> <I>		: "\316"	Icircumflex
 <Multi_key> <I> <quotedbl>		: "\317"	Idiaeresis
 <Multi_key> <quotedbl> <I>		: "\317"	Idiaeresis
-<Multi_key> <I> <diaeresis>		: "\317"	Idiaeresis
-<Multi_key> <diaeresis> <I>		: "\317"	Idiaeresis
 <Multi_key> <i> <grave>			: "\354"	igrave
 <Multi_key> <grave> <i>			: "\354"	igrave
 <Multi_key> <i> <acute>			: "\355"	iacute
@@ -320,8 +310,6 @@
 <Multi_key> <greater> <i>		: "\356"	icircumflex
 <Multi_key> <i> <quotedbl>		: "\357"	idiaeresis
 <Multi_key> <quotedbl> <i>		: "\357"	idiaeresis
-<Multi_key> <i> <diaeresis>		: "\357"	idiaeresis
-<Multi_key> <diaeresis> <i>		: "\357"	idiaeresis
 <Multi_key> <N> <asciitilde>		: "\321"	Ntilde
 <Multi_key> <asciitilde> <N>		: "\321"	Ntilde
 <Multi_key> <N> <minus>			: "\321"	Ntilde
@@ -346,8 +334,6 @@
 <Multi_key> <minus> <O>			: "\325"	Otilde
 <Multi_key> <O> <quotedbl>		: "\326"	Odiaeresis
 <Multi_key> <quotedbl> <O>		: "\326"	Odiaeresis
-<Multi_key> <O> <diaeresis>		: "\326"	Odiaeresis
-<Multi_key> <diaeresis> <O>		: "\326"	Odiaeresis
 <Multi_key> <O> <slash>			: "\330"	Ooblique
 <Multi_key> <slash> <O>			: "\330"	Ooblique
 <Multi_key> <O> <E>			: "\274"	OE
@@ -367,8 +353,6 @@
 <Multi_key> <minus> <o>			: "\365"	otilde
 <Multi_key> <o> <quotedbl>		: "\366"	odiaeresis
 <Multi_key> <quotedbl> <o>		: "\366"	odiaeresis
-<Multi_key> <o> <diaeresis>		: "\366"	odiaeresis
-<Multi_key> <diaeresis> <o>		: "\366"	odiaeresis
 <Multi_key> <o> <slash>			: "\370"	oslash
 <Multi_key> <slash> <o>			: "\370"	oslash
 <Multi_key> <o> <e>			: "\275"	oe
@@ -388,8 +372,6 @@
 <Multi_key> <greater> <U>		: "\333"	Ucircumflex
 <Multi_key> <U> <quotedbl>		: "\334"	Udiaeresis
 <Multi_key> <quotedbl> <U>		: "\334"	Udiaeresis
-<Multi_key> <U> <diaeresis>		: "\334"	Udiaeresis
-<Multi_key> <diaeresis> <U>		: "\334"	Udiaeresis
 <Multi_key> <u> <grave>			: "\371"	ugrave
 <Multi_key> <grave> <u>			: "\371"	ugrave
 <Multi_key> <u> <acute>			: "\372"	uacute
@@ -402,8 +384,6 @@
 <Multi_key> <greater> <u>		: "\373"	ucircumflex
 <Multi_key> <u> <quotedbl>		: "\374"	udiaeresis
 <Multi_key> <quotedbl> <u>		: "\374"	udiaeresis
-<Multi_key> <u> <diaeresis>		: "\374"	udiaeresis
-<Multi_key> <diaeresis> <u>		: "\374"	udiaeresis
 <Multi_key> <s> <s>			: "\337"	ssharp
 <Multi_key> <T> <H>			: "\336"	THORN
 <Multi_key> <t> <h>			: "\376"	thorn
@@ -413,16 +393,12 @@
 <Multi_key> <apostrophe> <Y>		: "\335"	Yacute
 <Multi_key> <Y> <quotedbl>		: "\276"	Ydiaeresis
 <Multi_key> <quotedbl> <Y>		: "\276"	Ydiaeresis
-<Multi_key> <Y> <diaeresis>		: "\276"	Ydiaeresis
-<Multi_key> <diaeresis> <Y>		: "\276"	Ydiaeresis
 <Multi_key> <y> <acute>			: "\375"	yacute
 <Multi_key> <acute> <y>			: "\375"	yacute
 <Multi_key> <y> <apostrophe>		: "\375"	yacute
 <Multi_key> <apostrophe> <y>		: "\375"	yacute
 <Multi_key> <y> <quotedbl>		: "\377"	ydiaeresis
 <Multi_key> <quotedbl> <y>		: "\377"	ydiaeresis
-<Multi_key> <y> <diaeresis>		: "\377"	ydiaeresis
-<Multi_key> <diaeresis> <y>		: "\377"	ydiaeresis
 <Multi_key> <Z> <less>			: "\264"	Zcaron
 <Multi_key> <less> <Z>			: "\264"	Zcaron
 <Multi_key> <z> <less>			: "\270"	zcaron
@@ -451,8 +427,7 @@
 <dead_cedilla> <minus>			: "\254"	notsign
 <dead_circumflex> <minus>		: "\257"	macron
 <dead_circumflex> <underscore>		: "\257"	macron
-<dead_acute> <apostrophe>		: "\264"	acute
-<dead_cedilla> <comma>			: "\270"	cedilla
+<dead_acute> <apostrophe>		: "'"		apostrophe
 <dead_diaeresis> <quotedbl>		: "\""	quotedbl
 # Accented Alphabet
 <dead_abovering> <A>			: "\305"	Aring

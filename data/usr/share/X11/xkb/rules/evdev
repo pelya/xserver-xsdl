@@ -110,6 +110,8 @@
   *             =       +aliases(qwerty)
 
 ! option	=	keycodes
+  apple:badmap		=	+macintosh(badmap)
+  apple:goodmap		=	+macintosh(goodmap)
 
 ! model		layout	=	geometry
   thinkpad     us              =       thinkpad(us)

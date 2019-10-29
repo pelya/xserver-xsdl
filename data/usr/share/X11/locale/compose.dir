@@ -45,14 +45,20 @@
 
 
 
+
 #
 #	This file contains compose table file names.
 #	The first word is the compose table file name
 #	and the second word is the full locale name.
 #
 #
+# Note that no Compose tables exist for ISO 8859-11, Microsoft code
+# pages, Fujitsu's S90 or U90 character sets, or TIS620 yet.
+#
 iso8859-1/Compose		C
+iso8859-1/Compose		aa_DJ.ISO8859-1
 iso8859-1/Compose		af_ZA.ISO8859-1
+iso8859-15/Compose		an_ES.ISO8859-15
 iso8859-6/Compose		ar_AA.ISO8859-6
 iso8859-6/Compose		ar_AE.ISO8859-6
 iso8859-6/Compose		ar_BH.ISO8859-6
@@ -117,12 +123,15 @@ iso8859-15/Compose		en_BE.ISO8859-15
 iso8859-1/Compose		en_BW.ISO8859-1
 iso8859-1/Compose		en_BZ.ISO8859-1
 iso8859-1/Compose		en_CA.ISO8859-1
+iso8859-1/Compose		en_DK.ISO8859-1
+iso8859-15/Compose		en_DK.ISO8859-15
 iso8859-1/Compose		en_EN.ISO8859-1
 iso8859-1/Compose		en_GB.ISO8859-1
 iso8859-15/Compose		en_GB.ISO8859-15
 iso8859-1/Compose		en_HK.ISO8859-1
 iso8859-1/Compose		en_IE.ISO8859-1
 iso8859-15/Compose		en_IE.ISO8859-15
+iso8859-1/Compose		en_IN.ISO8859-1
 iso8859-15/Compose		en_IN.ISO8859-15
 iso8859-1/Compose		en_JM.ISO8859-1
 iso8859-1/Compose		en_NZ.ISO8859-1
@@ -171,6 +180,8 @@ iso8859-13/Compose		et_EE.ISO8859-13
 iso8859-15/Compose		et_EE.ISO8859-15
 iso8859-1/Compose		eu_ES.ISO8859-1
 iso8859-15/Compose		eu_ES.ISO8859-15
+iso8859-1/Compose		eu_FR.ISO8859-1
+iso8859-15/Compose		eu_FR.ISO8859-15
 isiri-3342/Compose		fa_IR.ISIRI-3342
 iso8859-1/Compose		fi_FI.ISO8859-1
 iso8859-15/Compose		fi_FI.ISO8859-15
@@ -204,11 +215,9 @@ iso8859-2/Compose		hr_HR.ISO8859-2
 iso8859-2/Compose		hu_HU.ISO8859-2
 armscii-8/Compose		hy_AM.ARMSCII-8
 iso8859-1/Compose		id_ID.ISO8859-1
-iso8859-15/Compose		id_ID.ISO8859-15
 iso8859-1/Compose		is_IS.ISO8859-1
 iso8859-15/Compose		is_IS.ISO8859-15
 iso8859-1/Compose		it_CH.ISO8859-1
-iso8859-15/Compose		it_CH.ISO8859-15
 iso8859-1/Compose		it_IT.ISO8859-1
 iso8859-15/Compose		it_IT.ISO8859-15
 ja/Compose			ja_JP.eucJP
@@ -217,11 +226,12 @@ ja.JIS/Compose			ja_JP.JIS7
 georgian-academy/Compose	ka_GE.GEORGIAN-ACADEMY
 georgian-ps/Compose		ka_GE.GEORGIAN-PS
 iso8859-1/Compose		kl_GL.ISO8859-1
-iso8859-15/Compose		kl_GL.ISO8859-15
 iso8859-1/Compose		kw_GB.ISO8859-1
 iso8859-14/Compose		kw_GB.ISO8859-14
 iso8859-15/Compose		kw_GB.ISO8859-15
-ko/Compose			ko_KR.eucKR
+iso8859-10/Compose		lg_UG.ISO8859-10
+# Remove ko/Compose, as requested in https://bugs.debian.org/89703
+# ko/Compose:			ko_KR.eucKR
 ibm-cp1133/Compose		lo_LA.IBM-CP1133
 mulelao-1/Compose		lo_LA.MULELAO-1
 iso8859-4/Compose		lt_LT.ISO8859-4
@@ -249,15 +259,18 @@ iso8859-1/Compose		ny_NO.ISO8859-1
 iso8859-15/Compose		ny_NO.ISO8859-15
 iso8859-1/Compose		oc_FR.ISO8859-1
 iso8859-15/Compose		oc_FR.ISO8859-15
-iso8859-1/Compose		pd_DE.ISO8859-1
-iso8859-15/Compose		pd_DE.ISO8859-15
-iso8859-1/Compose		pd_US.ISO8859-1
-iso8859-15/Compose		pd_US.ISO8859-15
+iso8859-1/Compose		om_KE.ISO8859-1
+# Presumably, "pd" is "Pennsylvania 'Dutch'", a U.S. dialect of German.
+# This is not an ISO language code defined for it, and the GNU C Library
+# doesn't support it.
+# iso8859-1/Compose:		pd_DE.ISO8859-1
+# iso8859-15/Compose:		pd_DE.ISO8859-15
+# iso8859-1/Compose:		pd_US.ISO8859-1
+# iso8859-15/Compose:		pd_US.ISO8859-15
 iso8859-1/Compose		ph_PH.ISO8859-1
 iso8859-2/Compose		pl_PL.ISO8859-2
 iso8859-1/Compose		pp_AN.ISO8859-1
 iso8859-1/Compose		pt_BR.ISO8859-1
-iso8859-15/Compose		pt_BR.ISO8859-15
 iso8859-1/Compose		pt_PT.ISO8859-1
 iso8859-15/Compose		pt_PT.ISO8859-15
 iso8859-2/Compose		ro_RO.ISO8859-2
@@ -270,6 +283,9 @@ iso8859-1/Compose		rw_RW.ISO8859-1
 iso8859-2/Compose		sh_YU.ISO8859-2
 iso8859-2/Compose		sk_SK.ISO8859-2
 iso8859-2/Compose		sl_SI.ISO8859-2
+iso8859-1/Compose		so_DJ.ISO8859-1
+iso8859-1/Compose		so_KE.ISO8859-1
+iso8859-1/Compose		so_SO.ISO8859-1
 iso8859-2/Compose		sq_AL.ISO8859-2
 iso8859-2/Compose		sr_CS.ISO8859-2
 iso8859-5/Compose		sr_CS.ISO8859-5
@@ -308,12 +324,19 @@ zh_CN/Compose			zh_CN.gb2312
 zh_CN.gbk/Compose		zh_CN.gbk
 zh_CN.gb18030/Compose		zh_CN.gb18030
 zh_HK.big5/Compose		zh_HK.big5
+zh_HK.big5hkscs/Compose	zh_HK.big5-hkscs
+zh_HK.big5hkscs/Compose	zh_HK.Big5-HKSCS
 zh_HK.big5hkscs/Compose	zh_HK.big5hkscs
+zh_HK.big5hkscs/Compose	zh_HK.Big5HKSCS
+zh_CN/Compose			zh_SG.gb2312
+zh_CN.gbk/Compose		zh_SG.gbk
 zh_TW.big5/Compose		zh_TW.big5
 zh_TW/Compose			zh_TW.eucTW
 iso8859-1/Compose		zu_ZA.ISO8859-1
 #
 #
+en_US.UTF-8/Compose		aa_ER.UTF-8
+en_US.UTF-8/Compose		aa_ET.UTF-8
 en_US.UTF-8/Compose		af_ZA.UTF-8
 am_ET.UTF-8/Compose		am_ET.UTF-8
 en_US.UTF-8/Compose		ar_AA.UTF-8
@@ -344,6 +367,7 @@ en_US.UTF-8/Compose		bn_IN.UTF-8
 en_US.UTF-8/Compose		bo_IN.UTF-8
 en_US.UTF-8/Compose		br_FR.UTF-8
 en_US.UTF-8/Compose		bs_BA.UTF-8
+en_US.UTF-8/Compose		byn_ER.UTF-8
 en_US.UTF-8/Compose		ca_AD.UTF-8
 en_US.UTF-8/Compose		ca_ES.UTF-8
 en_US.UTF-8/Compose		ca_FR.UTF-8
@@ -404,6 +428,7 @@ en_US.UTF-8/Compose		es_UY.UTF-8
 en_US.UTF-8/Compose		es_VE.UTF-8
 en_US.UTF-8/Compose		et_EE.UTF-8
 en_US.UTF-8/Compose		eu_ES.UTF-8
+en_US.UTF-8/Compose		eu_FR.UTF-8
 en_US.UTF-8/Compose		fa_IR.UTF-8
 fi_FI.UTF-8/Compose		fi_FI.UTF-8
 en_US.UTF-8/Compose		fo_FO.UTF-8
@@ -414,6 +439,8 @@ en_US.UTF-8/Compose		fr_FR.UTF-8
 en_US.UTF-8/Compose		fr_LU.UTF-8
 en_US.UTF-8/Compose		ga_IE.UTF-8
 en_US.UTF-8/Compose		gd_GB.UTF-8
+en_US.UTF-8/Compose       gez_ER.UTF-8
+en_US.UTF-8/Compose       gez_ET.UTF-8
 en_US.UTF-8/Compose		gl_ES.UTF-8
 en_US.UTF-8/Compose		gu_IN.UTF-8
 en_US.UTF-8/Compose		gv_GB.UTF-8
@@ -428,6 +455,7 @@ en_US.UTF-8/Compose		is_IS.UTF-8
 en_US.UTF-8/Compose		it_CH.UTF-8
 en_US.UTF-8/Compose		it_IT.UTF-8
 en_US.UTF-8/Compose		iu_CA.UTF-8
+en_US.UTF-8/Compose		iw_IL.UTF-8
 ja_JP.UTF-8/Compose		ja_JP.UTF-8
 en_US.UTF-8/Compose		ka_GE.UTF-8
 en_US.UTF-8/Compose		kk_KZ.UTF-8
@@ -447,6 +475,7 @@ en_US.UTF-8/Compose		mai_IN.UTF-8
 en_US.UTF-8/Compose		mi_NZ.UTF-8
 en_US.UTF-8/Compose		mk_MK.UTF-8
 en_US.UTF-8/Compose		ml_IN.UTF-8
+en_US.UTF-8/Compose		mn_MN.UTF-8
 en_US.UTF-8/Compose		mr_IN.UTF-8
 en_US.UTF-8/Compose		ms_MY.UTF-8
 en_US.UTF-8/Compose		mt_MT.UTF-8
@@ -458,13 +487,19 @@ en_US.UTF-8/Compose		no_NO.UTF-8
 en_US.UTF-8/Compose		nb_NO.UTF-8
 en_US.UTF-8/Compose		nr_ZA.UTF-8
 en_US.UTF-8/Compose		nso_ZA.UTF-8
-en_US.UTF-8/Compose		ny_NO.UTF-8
+# ny is the language code for Nyanja (spoken in Malawi), not Nynorsk.
+# See <URL: http://www.ethnologue.com/show_iso639.asp?code=nya >.
+# en_US.UTF-8/Compose: ny_NO.UTF-8
 en_US.UTF-8/Compose		oc_FR.UTF-8
 en_US.UTF-8/Compose		or_IN.UTF-8
+en_US.UTF-8/Compose       om_ET.UTF-8
 en_US.UTF-8/Compose		pa_IN.UTF-8
 en_US.UTF-8/Compose		pa_PK.UTF-8
-en_US.UTF-8/Compose		pd_DE.UTF-8
-en_US.UTF-8/Compose		pd_US.UTF-8
+# Presumably, "pd" is "Pennsylvania 'Dutch'", a U.S. dialect of German.
+# This is not an ISO language code defined for it, and the GNU C Library
+# doesn't support it.
+# en_US.UTF-8/Compose: pd_DE.UTF-8
+# en_US.UTF-8/Compose: pd_US.UTF-8
 en_US.UTF-8/Compose		ph_PH.UTF-8
 en_US.UTF-8/Compose		pl_PL.UTF-8
 en_US.UTF-8/Compose		pp_AN.UTF-8
@@ -480,9 +515,11 @@ en_US.UTF-8/Compose		sd_IN.UTF-8@devanagari
 en_US.UTF-8/Compose		se_NO.UTF-8
 en_US.UTF-8/Compose		sh_BA.UTF-8
 en_US.UTF-8/Compose		sh_YU.UTF-8
+en_US.UTF-8/Compose		sid_ET.UTF-8
 en_US.UTF-8/Compose		si_LK.UTF-8
 en_US.UTF-8/Compose		sk_SK.UTF-8
 en_US.UTF-8/Compose		sl_SI.UTF-8
+en_US.UTF-8/Compose		so_ET.UTF-8
 en_US.UTF-8/Compose		sq_AL.UTF-8
 sr_CS.UTF-8/Compose		sr_CS.UTF-8
 en_US.UTF-8/Compose		sr_ME.UTF-8
@@ -495,9 +532,12 @@ en_US.UTF-8/Compose		sv_SE.UTF-8
 en_US.UTF-8/Compose		ta_IN.UTF-8
 en_US.UTF-8/Compose		te_IN.UTF-8
 en_US.UTF-8/Compose		tg_TJ.UTF-8
-th_TH.UTF-8/Compose		th_TH.UTF-8
+# Following entry commented to allow Thai XIM as default for X apps
+# See Debian bug#520509
+# th_TH.UTF-8/Compose:		th_TH.UTF-8
 en_US.UTF-8/Compose		ti_ER.UTF-8
 en_US.UTF-8/Compose		ti_ET.UTF-8
+en_US.UTF-8/Compose		tig_ER.UTF-8
 en_US.UTF-8/Compose		tl_PH.UTF-8
 en_US.UTF-8/Compose		tn_ZA.UTF-8
 en_US.UTF-8/Compose		tr_TR.UTF-8
@@ -564,14 +604,20 @@ en_US.UTF-8/Compose		zu_ZA.UTF-8
 
 
 
+
 #
 #	This file contains compose table file names.
 #	The first word is the compose table file name
 #	and the second word is the full locale name.
 #
 #
+# Note that no Compose tables exist for ISO 8859-11, Microsoft code
+# pages, Fujitsu's S90 or U90 character sets, or TIS620 yet.
+#
 iso8859-1/Compose:		C
+iso8859-1/Compose:		aa_DJ.ISO8859-1
 iso8859-1/Compose:		af_ZA.ISO8859-1
+iso8859-15/Compose:		an_ES.ISO8859-15
 iso8859-6/Compose:		ar_AA.ISO8859-6
 iso8859-6/Compose:		ar_AE.ISO8859-6
 iso8859-6/Compose:		ar_BH.ISO8859-6
@@ -636,12 +682,15 @@ iso8859-15/Compose:		en_BE.ISO8859-15
 iso8859-1/Compose:		en_BW.ISO8859-1
 iso8859-1/Compose:		en_BZ.ISO8859-1
 iso8859-1/Compose:		en_CA.ISO8859-1
+iso8859-1/Compose:		en_DK.ISO8859-1
+iso8859-15/Compose:		en_DK.ISO8859-15
 iso8859-1/Compose:		en_EN.ISO8859-1
 iso8859-1/Compose:		en_GB.ISO8859-1
 iso8859-15/Compose:		en_GB.ISO8859-15
 iso8859-1/Compose:		en_HK.ISO8859-1
 iso8859-1/Compose:		en_IE.ISO8859-1
 iso8859-15/Compose:		en_IE.ISO8859-15
+iso8859-1/Compose:		en_IN.ISO8859-1
 iso8859-15/Compose:		en_IN.ISO8859-15
 iso8859-1/Compose:		en_JM.ISO8859-1
 iso8859-1/Compose:		en_NZ.ISO8859-1
@@ -690,6 +739,8 @@ iso8859-13/Compose:		et_EE.ISO8859-13
 iso8859-15/Compose:		et_EE.ISO8859-15
 iso8859-1/Compose:		eu_ES.ISO8859-1
 iso8859-15/Compose:		eu_ES.ISO8859-15
+iso8859-1/Compose:		eu_FR.ISO8859-1
+iso8859-15/Compose:		eu_FR.ISO8859-15
 isiri-3342/Compose:		fa_IR.ISIRI-3342
 iso8859-1/Compose:		fi_FI.ISO8859-1
 iso8859-15/Compose:		fi_FI.ISO8859-15
@@ -723,11 +774,9 @@ iso8859-2/Compose:		hr_HR.ISO8859-2
 iso8859-2/Compose:		hu_HU.ISO8859-2
 armscii-8/Compose:		hy_AM.ARMSCII-8
 iso8859-1/Compose:		id_ID.ISO8859-1
-iso8859-15/Compose:		id_ID.ISO8859-15
 iso8859-1/Compose:		is_IS.ISO8859-1
 iso8859-15/Compose:		is_IS.ISO8859-15
 iso8859-1/Compose:		it_CH.ISO8859-1
-iso8859-15/Compose:		it_CH.ISO8859-15
 iso8859-1/Compose:		it_IT.ISO8859-1
 iso8859-15/Compose:		it_IT.ISO8859-15
 ja/Compose:			ja_JP.eucJP
@@ -736,11 +785,12 @@ ja.JIS/Compose:			ja_JP.JIS7
 georgian-academy/Compose:	ka_GE.GEORGIAN-ACADEMY
 georgian-ps/Compose:		ka_GE.GEORGIAN-PS
 iso8859-1/Compose:		kl_GL.ISO8859-1
-iso8859-15/Compose:		kl_GL.ISO8859-15
 iso8859-1/Compose:		kw_GB.ISO8859-1
 iso8859-14/Compose:		kw_GB.ISO8859-14
 iso8859-15/Compose:		kw_GB.ISO8859-15
-ko/Compose:			ko_KR.eucKR
+iso8859-10/Compose:		lg_UG.ISO8859-10
+# Remove ko/Compose, as requested in https://bugs.debian.org/89703
+# ko/Compose:			ko_KR.eucKR
 ibm-cp1133/Compose:		lo_LA.IBM-CP1133
 mulelao-1/Compose:		lo_LA.MULELAO-1
 iso8859-4/Compose:		lt_LT.ISO8859-4
@@ -768,15 +818,18 @@ iso8859-1/Compose:		ny_NO.ISO8859-1
 iso8859-15/Compose:		ny_NO.ISO8859-15
 iso8859-1/Compose:		oc_FR.ISO8859-1
 iso8859-15/Compose:		oc_FR.ISO8859-15
-iso8859-1/Compose:		pd_DE.ISO8859-1
-iso8859-15/Compose:		pd_DE.ISO8859-15
-iso8859-1/Compose:		pd_US.ISO8859-1
-iso8859-15/Compose:		pd_US.ISO8859-15
+iso8859-1/Compose:		om_KE.ISO8859-1
+# Presumably, "pd" is "Pennsylvania 'Dutch'", a U.S. dialect of German.
+# This is not an ISO language code defined for it, and the GNU C Library
+# doesn't support it.
+# iso8859-1/Compose:		pd_DE.ISO8859-1
+# iso8859-15/Compose:		pd_DE.ISO8859-15
+# iso8859-1/Compose:		pd_US.ISO8859-1
+# iso8859-15/Compose:		pd_US.ISO8859-15
 iso8859-1/Compose:		ph_PH.ISO8859-1
 iso8859-2/Compose:		pl_PL.ISO8859-2
 iso8859-1/Compose:		pp_AN.ISO8859-1
 iso8859-1/Compose:		pt_BR.ISO8859-1
-iso8859-15/Compose:		pt_BR.ISO8859-15
 iso8859-1/Compose:		pt_PT.ISO8859-1
 iso8859-15/Compose:		pt_PT.ISO8859-15
 iso8859-2/Compose:		ro_RO.ISO8859-2
@@ -789,6 +842,9 @@ iso8859-1/Compose:		rw_RW.ISO8859-1
 iso8859-2/Compose:		sh_YU.ISO8859-2
 iso8859-2/Compose:		sk_SK.ISO8859-2
 iso8859-2/Compose:		sl_SI.ISO8859-2
+iso8859-1/Compose:		so_DJ.ISO8859-1
+iso8859-1/Compose:		so_KE.ISO8859-1
+iso8859-1/Compose:		so_SO.ISO8859-1
 iso8859-2/Compose:		sq_AL.ISO8859-2
 iso8859-2/Compose:		sr_CS.ISO8859-2
 iso8859-5/Compose:		sr_CS.ISO8859-5
@@ -827,12 +883,19 @@ zh_CN/Compose:			zh_CN.gb2312
 zh_CN.gbk/Compose:		zh_CN.gbk
 zh_CN.gb18030/Compose:		zh_CN.gb18030
 zh_HK.big5/Compose:		zh_HK.big5
+zh_HK.big5hkscs/Compose:	zh_HK.big5-hkscs
+zh_HK.big5hkscs/Compose:	zh_HK.Big5-HKSCS
 zh_HK.big5hkscs/Compose:	zh_HK.big5hkscs
+zh_HK.big5hkscs/Compose:	zh_HK.Big5HKSCS
+zh_CN/Compose:			zh_SG.gb2312
+zh_CN.gbk/Compose:		zh_SG.gbk
 zh_TW.big5/Compose:		zh_TW.big5
 zh_TW/Compose:			zh_TW.eucTW
 iso8859-1/Compose:		zu_ZA.ISO8859-1
 #
 #
+en_US.UTF-8/Compose:		aa_ER.UTF-8
+en_US.UTF-8/Compose:		aa_ET.UTF-8
 en_US.UTF-8/Compose:		af_ZA.UTF-8
 am_ET.UTF-8/Compose:		am_ET.UTF-8
 en_US.UTF-8/Compose:		ar_AA.UTF-8
@@ -863,6 +926,7 @@ en_US.UTF-8/Compose:		bn_IN.UTF-8
 en_US.UTF-8/Compose:		bo_IN.UTF-8
 en_US.UTF-8/Compose:		br_FR.UTF-8
 en_US.UTF-8/Compose:		bs_BA.UTF-8
+en_US.UTF-8/Compose:		byn_ER.UTF-8
 en_US.UTF-8/Compose:		ca_AD.UTF-8
 en_US.UTF-8/Compose:		ca_ES.UTF-8
 en_US.UTF-8/Compose:		ca_FR.UTF-8
@@ -923,6 +987,7 @@ en_US.UTF-8/Compose:		es_UY.UTF-8
 en_US.UTF-8/Compose:		es_VE.UTF-8
 en_US.UTF-8/Compose:		et_EE.UTF-8
 en_US.UTF-8/Compose:		eu_ES.UTF-8
+en_US.UTF-8/Compose:		eu_FR.UTF-8
 en_US.UTF-8/Compose:		fa_IR.UTF-8
 fi_FI.UTF-8/Compose:		fi_FI.UTF-8
 en_US.UTF-8/Compose:		fo_FO.UTF-8
@@ -933,6 +998,8 @@ en_US.UTF-8/Compose:		fr_FR.UTF-8
 en_US.UTF-8/Compose:		fr_LU.UTF-8
 en_US.UTF-8/Compose:		ga_IE.UTF-8
 en_US.UTF-8/Compose:		gd_GB.UTF-8
+en_US.UTF-8/Compose:       gez_ER.UTF-8
+en_US.UTF-8/Compose:       gez_ET.UTF-8
 en_US.UTF-8/Compose:		gl_ES.UTF-8
 en_US.UTF-8/Compose:		gu_IN.UTF-8
 en_US.UTF-8/Compose:		gv_GB.UTF-8
@@ -947,6 +1014,7 @@ en_US.UTF-8/Compose:		is_IS.UTF-8
 en_US.UTF-8/Compose:		it_CH.UTF-8
 en_US.UTF-8/Compose:		it_IT.UTF-8
 en_US.UTF-8/Compose:		iu_CA.UTF-8
+en_US.UTF-8/Compose:		iw_IL.UTF-8
 ja_JP.UTF-8/Compose:		ja_JP.UTF-8
 en_US.UTF-8/Compose:		ka_GE.UTF-8
 en_US.UTF-8/Compose:		kk_KZ.UTF-8
@@ -966,6 +1034,7 @@ en_US.UTF-8/Compose:		mai_IN.UTF-8
 en_US.UTF-8/Compose:		mi_NZ.UTF-8
 en_US.UTF-8/Compose:		mk_MK.UTF-8
 en_US.UTF-8/Compose:		ml_IN.UTF-8
+en_US.UTF-8/Compose:		mn_MN.UTF-8
 en_US.UTF-8/Compose:		mr_IN.UTF-8
 en_US.UTF-8/Compose:		ms_MY.UTF-8
 en_US.UTF-8/Compose:		mt_MT.UTF-8
@@ -977,13 +1046,19 @@ en_US.UTF-8/Compose:		no_NO.UTF-8
 en_US.UTF-8/Compose:		nb_NO.UTF-8
 en_US.UTF-8/Compose:		nr_ZA.UTF-8
 en_US.UTF-8/Compose:		nso_ZA.UTF-8
-en_US.UTF-8/Compose:		ny_NO.UTF-8
+# ny is the language code for Nyanja (spoken in Malawi), not Nynorsk.
+# See <URL: http://www.ethnologue.com/show_iso639.asp?code=nya >.
+# en_US.UTF-8/Compose: ny_NO.UTF-8
 en_US.UTF-8/Compose:		oc_FR.UTF-8
 en_US.UTF-8/Compose:		or_IN.UTF-8
+en_US.UTF-8/Compose:       om_ET.UTF-8
 en_US.UTF-8/Compose:		pa_IN.UTF-8
 en_US.UTF-8/Compose:		pa_PK.UTF-8
-en_US.UTF-8/Compose:		pd_DE.UTF-8
-en_US.UTF-8/Compose:		pd_US.UTF-8
+# Presumably, "pd" is "Pennsylvania 'Dutch'", a U.S. dialect of German.
+# This is not an ISO language code defined for it, and the GNU C Library
+# doesn't support it.
+# en_US.UTF-8/Compose: pd_DE.UTF-8
+# en_US.UTF-8/Compose: pd_US.UTF-8
 en_US.UTF-8/Compose:		ph_PH.UTF-8
 en_US.UTF-8/Compose:		pl_PL.UTF-8
 en_US.UTF-8/Compose:		pp_AN.UTF-8
@@ -999,9 +1074,11 @@ en_US.UTF-8/Compose:		sd_IN.UTF-8@devanagari
 en_US.UTF-8/Compose:		se_NO.UTF-8
 en_US.UTF-8/Compose:		sh_BA.UTF-8
 en_US.UTF-8/Compose:		sh_YU.UTF-8
+en_US.UTF-8/Compose:		sid_ET.UTF-8
 en_US.UTF-8/Compose:		si_LK.UTF-8
 en_US.UTF-8/Compose:		sk_SK.UTF-8
 en_US.UTF-8/Compose:		sl_SI.UTF-8
+en_US.UTF-8/Compose:		so_ET.UTF-8
 en_US.UTF-8/Compose:		sq_AL.UTF-8
 sr_CS.UTF-8/Compose:		sr_CS.UTF-8
 en_US.UTF-8/Compose:		sr_ME.UTF-8
@@ -1014,9 +1091,12 @@ en_US.UTF-8/Compose:		sv_SE.UTF-8
 en_US.UTF-8/Compose:		ta_IN.UTF-8
 en_US.UTF-8/Compose:		te_IN.UTF-8
 en_US.UTF-8/Compose:		tg_TJ.UTF-8
-th_TH.UTF-8/Compose:		th_TH.UTF-8
+# Following entry commented to allow Thai XIM as default for X apps
+# See Debian bug#520509
+# th_TH.UTF-8/Compose:		th_TH.UTF-8
 en_US.UTF-8/Compose:		ti_ER.UTF-8
 en_US.UTF-8/Compose:		ti_ET.UTF-8
+en_US.UTF-8/Compose:		tig_ER.UTF-8
 en_US.UTF-8/Compose:		tl_PH.UTF-8
 en_US.UTF-8/Compose:		tn_ZA.UTF-8
 en_US.UTF-8/Compose:		tr_TR.UTF-8
