@@ -20,7 +20,7 @@ static void *child_command(void *unused)
 	sprintf (buf, ":%s", display);
 	printf ("setenv DISPLAY=%s\n", buf);
 	setenv ("DISPLAY", buf, 1);
-	setenv ("PULSE_SERVER", "tcp:127.0.0.1:4712", 1);
+	setenv ("PULSE_SERVER", "tcp:127.0.0.1:4713", 1);
 	printf ("Starting child command: %s\n", kdExecuteCommand);
 	cmd = popen (kdExecuteCommand, "r");
 	if (!cmd) {
