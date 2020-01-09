@@ -165,16 +165,24 @@ void sdlPollInput(void)
 					if(event.type == SDL_KEYUP)
 					{
 						// SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
-						static int keyboard = 0;
+						static int keyboard = -1;
 						keyboard++;
-						if (keyboard > 1 || (sdlKeyboardType != KB_BOTH && keyboard > 0))
-							keyboard = 0;
-						SDL_HideScreenKeyboard(NULL);
 						//SDL_Delay(150);
-						SDL_Flip(SDL_GetVideoSurface());
+						if (keyboard >= 2 || (sdlKeyboardType != KB_BOTH && keyboard >= 1))
+						{
+							if (SDL_IsScreenKeyboardShown(NULL))
+							{
+								SDL_HideScreenKeyboard(NULL);
+								SDL_Flip(SDL_GetVideoSurface());
+							}
+							else
+							{
+								keyboard = 0;
+							}
+						}
 						if (keyboard == 0)
 						{
-							SDL_Delay(100);
+							//SDL_Delay(100);
 							if (sdlKeyboardType == KB_NATIVE || sdlKeyboardType == KB_BOTH)
 								SDL_ANDROID_ToggleScreenKeyboardWithoutTextInput();
 							if (sdlKeyboardType == KB_BUILTIN)
@@ -183,7 +191,7 @@ void sdlPollInput(void)
 						}
 						if (keyboard == 1 && sdlKeyboardType == KB_BOTH)
 						{
-							SDL_Delay(100);
+							//SDL_Delay(100);
 							SDL_ANDROID_ToggleInternalScreenKeyboard(SDL_KEYBOARD_QWERTY);
 							SDL_Flip(SDL_GetVideoSurface());
 						}
