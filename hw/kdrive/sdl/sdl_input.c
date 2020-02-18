@@ -211,12 +211,21 @@ void sdlPollInput(void)
 						KdEnqueueKeyboardEvent (sdlKeyboard, 37, 1); // LCTRL
 					}
 				}
-				else if((event.key.keysym.unicode & 0xFF80) != 0)
+				else if ((event.key.keysym.unicode & 0xFF80) != 0)
 				{
-					send_unicode (event.key.keysym.unicode);
+					if (event.type == SDL_KEYDOWN)
+					{
+						send_unicode (event.key.keysym.unicode);
+					}
 				}
 				else
-					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
+				{
+					if (event.key.keysym.unicode != 0 && event.key.keysym.unicode != event.key.keysym.sym)
+					{
+						// TODO: translate unicode to correct scancode, refer to SDL_android_keysym_to_scancode[] and checkShiftRequired()
+					}
+					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type == SDL_KEYUP);
+				}
 				// Force SDL screen update, so SDL virtual on-screen buttons will change their images
 				{
 					SDL_Rect r = {0, 0, 1, 1};
