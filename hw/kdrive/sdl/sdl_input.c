@@ -63,6 +63,8 @@ enum sdlKeyboardType_t sdlKeyboardType = KB_NATIVE;
 
 static int unShiftKeysym( int * sym );
 
+extern unsigned char SDL_android_keysym_to_scancode[SDLK_LAST]; // Internal SDL symbol
+
 void sdlInitInput(void)
 {
 	if (getenv("XSDL_BUILTIN_KEYBOARD") != NULL)
@@ -207,10 +209,10 @@ void sdlPollInput(void)
 					if(event.type == SDL_KEYUP)
 					{
 						// Send Ctrl-Z
-						KdEnqueueKeyboardEvent (sdlKeyboard, 37, 0); // LCTRL
-						KdEnqueueKeyboardEvent (sdlKeyboard, 52, 0); // Z
-						KdEnqueueKeyboardEvent (sdlKeyboard, 52, 1); // Z
-						KdEnqueueKeyboardEvent (sdlKeyboard, 37, 1); // LCTRL
+						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 0); // LCTRL
+						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_Z, 0); // Z
+						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_Z, 1); // Z
+						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 1); // LCTRL
 					}
 				}
 				else if ((event.key.keysym.unicode & 0xFF80) != 0)
@@ -261,22 +263,44 @@ void sdlPollInput(void)
 						else
 						{
 							// Handle Italian physical keyboard, where Shift-7 produces '/' symbol
-							if (shiftState & 0x1)
+							if (unshifted == event.key.keysym.unicode)
 							{
-								KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LSHIFT, 1);
+								if (shiftState & 0x1)
+								{
+									KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LSHIFT, 1);
+								}
+								if (shiftState & 0x2)
+								{
+									KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_RSHIFT, 1);
+								}
 							}
-							if (shiftState & 0x2)
+							else
 							{
-								KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_RSHIFT, 1);
+								if (!shiftState)
+								{
+									KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LSHIFT, 0);
+								}
 							}
-							send_unicode (event.key.keysym.unicode);
-							if (shiftState & 0x1)
+							//send_unicode (event.key.keysym.unicode);
+							KdEnqueueKeyboardEvent (sdlKeyboard, SDL_android_keysym_to_scancode[event.key.keysym.unicode], 0);
+							KdEnqueueKeyboardEvent (sdlKeyboard, SDL_android_keysym_to_scancode[event.key.keysym.unicode], 1);
+							if (unshifted == event.key.keysym.unicode)
 							{
-								KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LSHIFT, 0);
+								if (shiftState & 0x1)
+								{
+									KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LSHIFT, 0);
+								}
+								if (shiftState & 0x2)
+								{
+									KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_RSHIFT, 0);
+								}
 							}
-							if (shiftState & 0x2)
+							else
 							{
-								KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_RSHIFT, 0);
+								if (!shiftState)
+								{
+									KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LSHIFT, 1);
+								}
 							}
 						}
 					}
