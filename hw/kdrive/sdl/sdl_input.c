@@ -61,6 +61,7 @@ static int mouseState = 0;
 enum sdlKeyboardType_t { KB_NATIVE = 0, KB_BUILTIN = 1, KB_BOTH = 2 };
 enum sdlKeyboardType_t sdlKeyboardType = KB_NATIVE;
 
+static int unShiftKeysym( int * sym );
 
 void sdlInitInput(void)
 {
@@ -78,6 +79,7 @@ void sdlPollInput(void)
 {
 	static int buttonState=0;
 	static int pressure = 0;
+	static int shiftState = 0;
 	SDL_Event event;
 
 	//printf("sdlPollInput() %d thread %d fd %d\n", SDL_GetTicks(), (int) pthread_self(), sdlInputNotifyFd[0]);
@@ -158,7 +160,7 @@ void sdlPollInput(void)
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
-				//printf("Key sym %d scancode %d unicode %d", event.key.keysym.sym, event.key.keysym.scancode, event.key.keysym.unicode);
+				//printf("===> Key sym %d scancode %d unicode %d down %d shift %d %d z %d\n", event.key.keysym.sym, event.key.keysym.scancode, event.key.keysym.unicode, event.type == SDL_KEYDOWN, SDL_GetKeyState(NULL)[SDLK_LSHIFT], SDL_GetKeyState(NULL)[SDLK_RSHIFT], SDL_GetKeyState(NULL)[SDLK_z]);
 #ifdef __ANDROID__
 				if (event.key.keysym.sym == SDLK_HELP)
 				{
@@ -220,11 +222,64 @@ void sdlPollInput(void)
 				}
 				else
 				{
-					if (event.key.keysym.unicode != 0 && event.key.keysym.unicode != event.key.keysym.sym)
+					if (event.key.keysym.unicode < SDLK_SPACE || event.key.keysym.unicode == event.key.keysym.sym)
 					{
-						// TODO: translate unicode to correct scancode, refer to SDL_android_keysym_to_scancode[] and checkShiftRequired()
+						KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type == SDL_KEYUP);
+						// SDL_GetKeyState(NULL)[SDLK_LSHIFT] is unreliable for some unknown reason
+						if (event.key.keysym.sym == SDLK_LSHIFT)
+						{
+							if (event.type == SDL_KEYDOWN)
+							{
+								shiftState |= 0x1;
+							}
+							else
+							{
+								shiftState &= ~0x1;
+							}
+						}
+						if (event.key.keysym.sym == SDLK_RSHIFT)
+						{
+							if (event.type == SDL_KEYDOWN)
+							{
+								shiftState |= 0x2;
+							}
+							else
+							{
+								shiftState &= ~0x2;
+							}
+						}
 					}
-					KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type == SDL_KEYUP);
+					else
+					{
+						int unshifted = event.key.keysym.unicode;
+						unShiftKeysym(&unshifted);
+						//printf("===> shiftState %d event.key.keysym.unicode %d event.key.keysym.sym %d unshifted %d\n", shiftState, event.key.keysym.unicode, event.key.keysym.sym, unshifted);
+						if (shiftState && unshifted == event.key.keysym.sym)
+						{
+							KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type == SDL_KEYUP);
+						}
+						else
+						{
+							// Handle Italian physical keyboard, where Shift-7 produces '/' symbol
+							if (shiftState & 0x1)
+							{
+								KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LSHIFT, 1);
+							}
+							if (shiftState & 0x2)
+							{
+								KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_RSHIFT, 1);
+							}
+							send_unicode (event.key.keysym.unicode);
+							if (shiftState & 0x1)
+							{
+								KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LSHIFT, 0);
+							}
+							if (shiftState & 0x2)
+							{
+								KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_RSHIFT, 0);
+							}
+						}
+					}
 				}
 				// Force SDL screen update, so SDL virtual on-screen buttons will change their images
 				{
@@ -288,4 +343,35 @@ int sdlGetInputNotifyFd(void)
 	SDL_SetEventFilter(&sdlEventNotifyCbk);
 
 	return sdlInputNotifyFd[0];
+}
+
+// Copied from SDL Android code checkShiftRequired()
+int unShiftKeysym( int * sym )
+{
+	switch( *sym )
+	{
+		case '!': *sym = '1'; return 1;
+		case '@': *sym = '2'; return 1;
+		case '#': *sym = '3'; return 1;
+		case '$': *sym = '4'; return 1;
+		case '%': *sym = '5'; return 1;
+		case '^': *sym = '6'; return 1;
+		case '&': *sym = '7'; return 1;
+		case '*': *sym = '8'; return 1;
+		case '(': *sym = '9'; return 1;
+		case ')': *sym = '0'; return 1;
+		case '_': *sym = '-'; return 1;
+		case '+': *sym = '='; return 1;
+		case '|': *sym = '\\';return 1;
+		case '<': *sym = ','; return 1;
+		case '>': *sym = '.'; return 1;
+		case '?': *sym = '/'; return 1;
+		case ':': *sym = ';'; return 1;
+		case '"': *sym = '\'';return 1;
+		case '{': *sym = '['; return 1;
+		case '}': *sym = ']'; return 1;
+		case '~': *sym = '`'; return 1;
+		default: if( *sym >= 'A' && *sym <= 'Z' ) { *sym += 'a' - 'A'; return 1; };
+	}
+	return 0;
 }
