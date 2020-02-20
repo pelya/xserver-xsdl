@@ -91,7 +91,7 @@ void sdlPollInput(void)
 			case SDL_MOUSEMOTION:
 				//printf("SDL_MOUSEMOTION pressure %d\n", pressure);
 				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, pressure);
-				setScreenButtons(event.motion.x);
+				setScreenButtons();
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				switch (event.button.button)
@@ -200,7 +200,7 @@ void sdlPollInput(void)
 							SDL_Flip(SDL_GetVideoSurface());
 						}
 					}
-					setScreenButtons(10000);
+					setScreenButtons();
 				}
 				else
 #endif

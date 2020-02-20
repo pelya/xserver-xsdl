@@ -234,7 +234,7 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 
 	initScreenButtons();
 
-	setScreenButtons(10000);
+	setScreenButtons();
 
 	SetNotifyFd(sdlGetInputNotifyFd(), &sdlInputNotifyCbk, X_NOTIFY_READ, NULL);
 

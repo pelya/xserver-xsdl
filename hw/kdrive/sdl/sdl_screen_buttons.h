@@ -3,6 +3,6 @@
 
 void initScreenButtons(void);
 
-void setScreenButtons(int mouseX);
+void setScreenButtons(void);
 
 #endif

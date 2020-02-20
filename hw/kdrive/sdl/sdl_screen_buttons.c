@@ -53,15 +53,18 @@
 #endif
 
 static Bool sdlScreenButtons = FALSE;
+static int sdlScreenButtonsAlign = 0;
 
 void initScreenButtons(void)
 {
-#ifdef __ANDROID__
-	sdlScreenButtons = SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0);
-#endif
+	if (getenv("XSDL_SCREEN_BUTTONS_ALIGN"))
+	{
+		sdlScreenButtonsAlign = atoi(getenv("XSDL_SCREEN_BUTTONS_ALIGN"));
+	}
+	sdlScreenButtons = (sdlScreenButtonsAlign != 0);
 }
 
-void setScreenButtons(int mouseX)
+void setScreenButtons(void)
 {
 #ifdef __ANDROID__
 	//printf ("setScreenButtons: kbShown %d sdlScreenButtons %d alignLeft %d", SDL_IsScreenKeyboardShown(NULL), sdlScreenButtons, mouseX > (((unsigned)SDL_GetVideoSurface()->w) >> 3));
@@ -83,15 +86,19 @@ void setScreenButtons(int mouseX)
 	}
 
 	SDL_Rect pos;
-	SDL_ANDROID_GetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0, &pos);
+	SDL_ANDROID_GetScreenKeyboardButtonPos(SDL_ANDROID_SCREENKEYBOARD_BUTTON_3, &pos);
 
 	//printf ("setScreenButtons: pos %d %d shown %d", pos.x, pos.y, SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0));
 
-	int alignLeft;
-	alignLeft = mouseX > (((unsigned)SDL_GetVideoSurface()->w) >> 3);
+	int alignLeft = (sdlScreenButtonsAlign == 1);
+	//alignLeft = mouseX > (((unsigned)SDL_GetVideoSurface()->w) >> 3);
 
-	if (!kbShown && pos.y > 0 && (pos.x == 0) == alignLeft)
+	static int initializing = 1;
+
+	if (!kbShown && pos.y > 0 && (pos.x == 0) == alignLeft && !initializing)
 		return;
+
+	initializing = 0;
 
 	if (kbShown && pos.y == 0 && (pos.x == 0) == alignLeft && SDL_ANDROID_GetScreenKeyboardButtonShown(SDL_ANDROID_SCREENKEYBOARD_BUTTON_0))
 		return;
