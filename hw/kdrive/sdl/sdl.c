@@ -200,7 +200,9 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 		screen->height = 480;
 	}
 	if (!screen->fb.depth)
-		screen->fb.depth = 16;
+	{
+		screen->fb.depth = SDL_GetVideoInfo()->vfmt->BitsPerPixel;
+	}
 	printf("Attempting for %dx%d/%dbpp mode\n", screen->width, screen->height, screen->fb.depth);
 	driver->screen = SDL_SetVideoMode(screen->width, screen->height, screen->fb.depth, 0);
 	if(driver->screen == NULL)
@@ -210,15 +212,15 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 	}
 	driver->randr = screen->randr;
 	screen->driver = driver;
-	printf("Set %dx%d/%dbpp mode\n", driver->screen->w, driver->screen->h, driver->screen->format->BitsPerPixel);
 	screen->width = driver->screen->w;
 	screen->height = driver->screen->h;
-	screen->fb.depth = driver->screen->format->BitsPerPixel;
+	screen->fb.depth = driver->screen->format->BitsPerPixel == 24 ? 32 : driver->screen->format->BitsPerPixel;
+	screen->fb.bitsPerPixel = driver->screen->format->BitsPerPixel;
+	printf("Set %dx%d/%dbpp mode\n", driver->screen->w, driver->screen->h, driver->screen->format->BitsPerPixel);
 	screen->fb.visuals = (1<<TrueColor);
 	screen->fb.redMask = driver->screen->format->Rmask;
 	screen->fb.greenMask = driver->screen->format->Gmask;
 	screen->fb.blueMask = driver->screen->format->Bmask;
-	screen->fb.bitsPerPixel = driver->screen->format->BitsPerPixel;
 	//screen->fb.shadow = FALSE;
 	screen->rate=30; // 60 is too intense for CPU
 
@@ -525,6 +527,8 @@ static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 	KdScreenPriv(pScreen);
 	KdScreenInfo *screen = pScreenPriv->screen;
 	SdlDriver *scrpriv = screen->driver;
+
+	printf("%s", __func__);
 
 	if (!shadowSetup (pScreen))
 		return FALSE;

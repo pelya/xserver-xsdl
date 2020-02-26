@@ -89,7 +89,7 @@ void sdlPollInput(void)
 	while ( SDL_PollEvent(&event) ) {
 		switch (event.type) {
 			case SDL_MOUSEMOTION:
-				//printf("SDL_MOUSEMOTION pressure %d\n", pressure);
+				//printf("SDL_MOUSEMOTION x:y %d:%d buttons %d\n", event.motion.x, event.motion.y, mouseState);
 				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, pressure);
 				setScreenButtons();
 				break;
@@ -120,7 +120,7 @@ void sdlPollInput(void)
 						break;
 					*/
 					default:
-						buttonState = 1 << (event.button.button - 1);
+						//buttonState = 1 << (event.button.button - 1);
 						break;
 				}
 				mouseState |= buttonState;
@@ -154,7 +154,7 @@ void sdlPollInput(void)
 						break;
 					*/
 					default:
-						buttonState = 1 << (event.button.button - 1);
+						//buttonState = 1 << (event.button.button - 1);
 						break;
 				}
 				mouseState &= ~buttonState;
@@ -282,8 +282,10 @@ void sdlPollInput(void)
 								}
 							}
 							//send_unicode (event.key.keysym.unicode);
+							#ifdef __ANDROID__
 							KdEnqueueKeyboardEvent (sdlKeyboard, SDL_android_keysym_to_scancode[event.key.keysym.unicode], 0);
 							KdEnqueueKeyboardEvent (sdlKeyboard, SDL_android_keysym_to_scancode[event.key.keysym.unicode], 1);
+							#endif
 							if (unshifted == event.key.keysym.unicode)
 							{
 								if (shiftState & 0x1)
