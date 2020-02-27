@@ -72,6 +72,7 @@ static void sdlMouseFini(KdPointerInfo *pi);
 static Status sdlMouseEnable (KdPointerInfo *pi);
 static void sdlMouseDisable (KdPointerInfo *pi);
 static void sdlScreenBlockCallback(ScreenPtr pScreen, void *timeout);
+static void sdlWarpCursor(DeviceIntPtr device, ScreenPtr screen, ClientPtr client, WindowPtr window, SpritePtr sprite, int x, int y);
 
 KdKeyboardInfo *sdlKeyboard = NULL;
 KdPointerInfo *sdlPointer = NULL;
@@ -540,6 +541,7 @@ static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 
 	scrpriv->screenBlockCallback = pScreen->BlockHandler;
 	pScreen->BlockHandler = sdlScreenBlockCallback;
+	pScreen->CursorWarpedTo = sdlWarpCursor;
 
 	return TRUE;
 }
@@ -661,6 +663,11 @@ void sdlScreenBlockCallback(ScreenPtr pScreen, void *timeout)
 	pScreen->BlockHandler = sdlScreenBlockCallback;
 
 	sdlPollInput();
+}
+
+void sdlWarpCursor(DeviceIntPtr device, ScreenPtr screen, ClientPtr client, WindowPtr window, SpritePtr sprite, int x, int y)
+{
+	SDL_WarpMouse(x, y);
 }
 
 static Bool xsdlInit(KdCardInfo * card)
