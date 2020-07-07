@@ -1164,7 +1164,7 @@ env CFLAGS=" -DDEBUG -Wformat \
 	-I$BUILDDIR/../../../../../../jni/crypto/include \
 	-I$BUILDDIR/../../../../../../jni/sdl-1.2/include" \
 LDFLAGS="-L$BUILDDIR \
-	-L$BUILDDIR/../../../../../../libs/$TARGET_ARCH \
+	-L$BUILDDIR/../../../../../../obj/local/$TARGET_ARCH \
 	-L$SYSTEM_LIBDIR" \
 PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 ./setCrossEnvironment.sh \
