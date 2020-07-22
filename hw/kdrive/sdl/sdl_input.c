@@ -83,9 +83,10 @@ void sdlPollInput(void)
 	static int pressure = 0;
 	static int shiftState = 0;
 	SDL_Event event;
+	int tmp;
 
 	//printf("sdlPollInput() %d thread %d fd %d\n", SDL_GetTicks(), (int) pthread_self(), sdlInputNotifyFd[0]);
-	while (read(sdlInputNotifyFd[0], &buf, 1) == 1) { }
+	while (read(sdlInputNotifyFd[0], &tmp, 1) == 1) { }
 
 	while ( SDL_PollEvent(&event) )
 	{
