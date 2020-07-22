@@ -85,9 +85,12 @@ void sdlPollInput(void)
 	SDL_Event event;
 
 	//printf("sdlPollInput() %d thread %d fd %d\n", SDL_GetTicks(), (int) pthread_self(), sdlInputNotifyFd[0]);
+	while (read(sdlInputNotifyFd[0], &buf, 1) == 1) { }
 
-	while ( SDL_PollEvent(&event) ) {
-		switch (event.type) {
+	while ( SDL_PollEvent(&event) )
+	{
+		switch (event.type)
+		{
 			case SDL_MOUSEMOTION:
 				//printf("SDL_MOUSEMOTION x:y %d:%d buttons %d\n", event.motion.x, event.motion.y, mouseState);
 				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, pressure);

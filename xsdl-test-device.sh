@@ -4,4 +4,4 @@
 
 adb forward tcp:6001 tcp:6000
 
-env DISPLAY=127.0.0.1:1 sh -c "x-window-manager & xlogo & xev"
+env DISPLAY=127.0.0.1:1 sh -c "xfwm4 & xlogo & xev"
