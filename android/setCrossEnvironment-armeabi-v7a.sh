@@ -85,11 +85,11 @@ CXXFLAGS="$CXXFLAGS $CFLAGS -frtti -fexceptions" \
 LDFLAGS="$LDFLAGS" \
 CC="$CC" \
 CXX="$CXX" \
-RANLIB="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-ranlib" \
+RANLIB="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-ranlib" \
 LD="$CXX" \
-AR="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-ar" \
+AR="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-ar" \
 CPP="$CPP" \
-NM="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-nm" \
+NM="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-nm" \
 AS="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-as" \
-STRIP="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-strip" \
+STRIP="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-strip" \
 "$@"

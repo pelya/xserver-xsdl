@@ -78,11 +78,11 @@ CXXFLAGS="$CXXFLAGS $CFLAGS -frtti -fexceptions" \
 LDFLAGS="$LDFLAGS" \
 CC="$CC" \
 CXX="$CXX" \
-RANLIB="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$GCCPREFIX-ranlib" \
+RANLIB="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-ranlib" \
 LD="$CXX" \
-AR="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$GCCPREFIX-ar" \
+AR="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-ar" \
 CPP="$CPP" \
-NM="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$GCCPREFIX-nm" \
+NM="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-nm" \
 AS="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$GCCPREFIX-as" \
-STRIP="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$GCCPREFIX-strip" \
+STRIP="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-strip" \
 "$@"
