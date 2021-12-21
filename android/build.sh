@@ -731,7 +731,7 @@ autoreconf -v --install \
 || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
--include strings.h -Os" \
+-include strings.h -Os -Wno-string-compare" \
 LDFLAGS="-pie -L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11 -landroid-shmem" \
 $BUILDDIR/setCrossEnvironment.sh \
