@@ -3,6 +3,6 @@
 set -x
 
 export TARGET_ARCH=armeabi-v7a
-export TARGET_HOST=armv7a-linux-androideabi16
+export TARGET_HOST=armv7a-linux-androideabi21
 
 ../build.sh
