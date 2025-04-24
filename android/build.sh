@@ -325,8 +325,8 @@ $AR rcs libXdmcp.a $PKGDIR/.libs/*.o
 } || exit 1
 
 # =========== xcbproto ===========
-[ -e usr/lib/pkgconfig/xcb-proto.pc ] || {
-PKGURL=https://xcb.freedesktop.org/dist/xcb-proto-1.13.tar.gz
+[ -e usr/share/pkgconfig/xcb-proto.pc ] || {
+PKGURL=https://xcb.freedesktop.org/dist/xcb-proto-1.17.0.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
@@ -344,7 +344,7 @@ cd $BUILDDIR
 # =========== libxcb.a ==========
 
 [ -e libxcb.a ] || {
-PKGURL=https://xcb.freedesktop.org/dist/libxcb-1.13.1.tar.gz
+PKGURL=https://xcb.freedesktop.org/dist/libxcb-1.17.0.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
@@ -358,7 +358,7 @@ autoreconf -v --install || exit 1
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
-PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
