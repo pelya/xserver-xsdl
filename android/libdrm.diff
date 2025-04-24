@@ -1,0 +1,21 @@
+--- configure	2025-04-23 20:12:57.400711992 +0300
++++ configure	2025-04-23 20:13:28.768182966 +0300
+@@ -5271,8 +5271,7 @@
+ do
+   IFS=$as_save_IFS
+   case $as_dir in #(((
+-    ''
+- as_dir=./ ;;
++    '') as_dir=./ ;;
+     */) ;;
+     *) as_dir=$as_dir/ ;;
+   esac
+@@ -6170,7 +6169,7 @@
+   am__fastdepCC_FALSE=
+ fi
+ 
+-)
++
+ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BSD- or MS-compatible name lister (nm)" >&5
+ printf %s "checking for BSD- or MS-compatible name lister (nm)... " >&6; }
+ if test ${lt_cv_path_NM+y}

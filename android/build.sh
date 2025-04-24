@@ -86,9 +86,9 @@ cd $PKGDIR
 
 patch -p0 < ../../xtrans.diff || exit 1
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include -include strings.h" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -123,9 +123,7 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-aclocal
-automake --add-missing
-autoreconf -f
+autoreconf -f --install || exit 1
 
 env CFLAGS="-I$NDK/sources/android/cpufeatures" \
 LDFLAGS="-L$BUILDDIR -lportable" \
@@ -165,9 +163,9 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include -include strings.h" \
 $BUILDDIR/setCrossEnvironment.sh \
@@ -199,6 +197,7 @@ $AR rcs libfontenc.a $PKGDIR/src/.libs/*.o || exit 1
 # =========== libXfont.a ===========
 
 ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libfreetype.a $BUILDDIR/
+ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libharfbuzz.a $BUILDDIR/
 ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libsdl_savepng.a $BUILDDIR/
 ln -sf $BUILDDIR/../../../../../../obj/local/$TARGET_ARCH/libpng.a $BUILDDIR/
 
@@ -212,9 +211,9 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h \
@@ -252,9 +251,9 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
@@ -294,9 +293,9 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
@@ -352,9 +351,9 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
@@ -389,16 +388,6 @@ cd $BUILDDIR
 $AR rcs libxcb.a $PKGDIR/src/.libs/*.o
 } || exit 1
 
-# =========== libandroid_support.a ==========
-
-[ -e libandroid_support.a ] || {
-if echo $TARGET_ARCH | grep '64'; then
-$AR rcs libandroid_support.a
-else
-ln -sf $NDK/sources/cxx-stl/llvm-libc++/libs/$TARGET_ARCH/libandroid_support.a ./ || exit 1
-fi
-cd $BUILDDIR
-} || exit 1
 
 # =========== libX11.a ==========
 
@@ -412,16 +401,16 @@ cd $PKGDIR
 
 patch -p0 < ../../x11.diff || exit 1
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 			-isystem$BUILDDIR/../android-shmem \
 			-I$BUILDDIR/.." \
 LDFLAGS="-L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
-LIBS="-lXau -lXdmcp -landroid_support -landroid-shmem" \
+LIBS="-lXau -lXdmcp -landroid-shmem" \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
@@ -519,14 +508,14 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+LIBS="-lxcb -lXau -lXdmcp " \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -563,14 +552,14 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+LIBS="-lxcb -lXau -lXdmcp" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -607,14 +596,14 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+LIBS="-lxcb -lXau -lXdmcp" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -651,9 +640,11 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
+
+patch -p0 < ../../libdrm.diff # Ignore if it fails
 
 env CFLAGS="-isystem$BUILDDIR/usr/include" \
 LDFLAGS="-L$BUILDDIR" \
@@ -682,14 +673,14 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+LIBS="-lxcb -lXau -lXdmcp" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -726,14 +717,14 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h -Os -Wno-string-compare" \
 LDFLAGS="-pie -L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11 -landroid-shmem" \
+LIBS="-lxcb -lXau -lXdmcp -lX11 -landroid-shmem" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -785,11 +776,11 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
 
-#LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+autoreconf -v --install || exit 1
+
+#LIBS="-lxcb -lXau -lXdmcp" \
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
@@ -829,11 +820,11 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
 
-#LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+autoreconf -v --install || exit 1
+
+#LIBS="-lxcb -lXau -lXdmcp" \
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
@@ -874,14 +865,14 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support" \
+LIBS="-lxcb -lXau -lXdmcp" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -930,14 +921,14 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support -lSM -lICE" \
+LIBS="-lxcb -lXau -lXdmcp -lSM -lICE" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -985,9 +976,9 @@ cd $PKGDIR
 
 patch -p0 < ../../xshmfence.diff || exit 1
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 mkdir tmp
 
@@ -1023,15 +1014,15 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-[ -e configure ] || \
-autoreconf -v --install \
-|| exit 1
+autoupdate
+
+autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h \
 -Dsethostent=abs -Dendhostent=sync -Os" \
 LDFLAGS="-pie -L$BUILDDIR" \
-LIBS="-lxcb -lXau -lXdmcp -landroid_support -lX11 -landroid-shmem" \
+LIBS="-lxcb -lXau -lXdmcp -lX11 -landroid-shmem" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -1075,13 +1066,16 @@ chmod a+x ./configure
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -isystem . \
 -isystem $BUILDDIR/../../../../../../jni/jpeg/include \
+-isystem $BUILDDIR/../../../../../../jni/jpeg/include/android \
 -isystem $BUILDDIR/../../../../../../jni/png/include \
+-isystem $BUILDDIR/../../../../../../jni/png/include/android \
 -Dindex=strchr \
 -Drindex=strrchr \
+-Wno-error=implicit-int \
 -Os" \
 LDFLAGS="-L$BUILDDIR \
 -L$BUILDDIR/../../../../../../obj/local/$TARGET_ARCH \
--lX11 -lxcb -lXau -lXdmcp -lXext -lpng -landroid_support -landroid-shmem -llog -lm -lz" \
+-lX11 -lxcb -lXau -lXdmcp -lXext -lpng -landroid-shmem -llog -lm -lz" \
 ac_cv_lib_tiff_main=no \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
@@ -1114,9 +1108,9 @@ echo $PKGDIR: $PKGURL
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
-env CFLAGS="-isystem$BUILDDIR/usr/include -Drpl_malloc=malloc -Os" \
+env CFLAGS="-isystem$BUILDDIR/usr/include -Drpl_malloc=malloc -Wno-error=nonnull -Os" \
 LDFLAGS="-pie -L$BUILDDIR" \
-LIBS="-lX11 -lxcb -lXau -lXdmcp -landroid_support -landroid-shmem" \
+LIBS="-lX11 -lxcb -lXau -lXdmcp -landroid-shmem" \
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
@@ -1154,7 +1148,7 @@ esac
 env CFLAGS=" -DDEBUG -Wformat \
 	-isystem$BUILDDIR/usr/include \
 	-isystem$BUILDDIR/../android-shmem \
-	-include strings.h\
+	-include strings.h \
 	-include linux/time.h \
 	-DFNONBLOCK=O_NONBLOCK \
 	-DFNDELAY=O_NDELAY \
@@ -1168,7 +1162,8 @@ LDFLAGS="-L$BUILDDIR \
 	-L$SYSTEM_LIBDIR" \
 PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 ./setCrossEnvironment.sh \
-LIBS="-lfontenc -lfreetype -llog -lsdl-1.2 -lsdl_native_helpers -lGLESv1_CM -landroid-shmem -l:libcrypto.so.sdl.1.so -lz -lm -ldl -landroid -llog" \
+LIBS="-lfontenc -lfreetype -lharfbuzz -lsdl-1.2 -lsdl_native_helpers \
+	-landroid-shmem -l:libcrypto.so.sdl.1.so -lGLESv1_CM -lz -lm -ldl -landroid -llog" \
 OPENSSL_LIBS=-l:libcrypto.so.sdl.1.so \
 LIBSHA1_LIBS=-l:libcrypto.so.sdl.1.so \
 PATH=$BUILDDIR:$PATH \
@@ -1177,10 +1172,11 @@ PATH=$BUILDDIR:$PATH \
 --prefix=$TARGET_DIR/usr \
 --with-xkb-output=$TARGET_DIR/tmp \
 --disable-xorg --disable-dmx --disable-xvfb --disable-xnest --disable-xquartz --disable-xwin \
---disable-xephyr --disable-unit-tests \
+--disable-xwayland --disable-xephyr --disable-unit-tests \
 --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
---enable-xsdl --enable-kdrive \
---enable-mitshm --disable-config-udev --disable-libdrm \
+--disable-config-udev --disable-libdrm \
+--with-systemd-daemon=no \
+--enable-xsdl --enable-kdrive --enable-mitshm \
 || exit 1
 
 ./setCrossEnvironment.sh make -j$NCPU V=1 2>&1 || exit 1
