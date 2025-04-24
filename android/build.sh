@@ -91,6 +91,7 @@ autoupdate
 autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include -include strings.h" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST --prefix=$BUILDDIR/usr \
@@ -127,6 +128,7 @@ autoreconf -f --install || exit 1
 
 env CFLAGS="-I$NDK/sources/android/cpufeatures" \
 LDFLAGS="-L$BUILDDIR -lportable" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -168,14 +170,13 @@ autoupdate
 autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include -include strings.h" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$BUILDDIR/usr \
 --enable-static \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -220,6 +221,7 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -I$BUILDDIR/../../../../../../jni/freetype/include \
 -DNO_LOCALE -DOPEN_MAX=256" \
 LDFLAGS="-L$BUILDDIR" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -258,13 +260,12 @@ autoreconf -v --install || exit 1
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$BUILDDIR/usr \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -300,13 +301,12 @@ autoreconf -v --install || exit 1
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$BUILDDIR/usr \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -365,8 +365,6 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$BUILDDIR/usr \
 || exit 1
 
-#cp -f `which libtool` ./
-
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
 
@@ -409,8 +407,9 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 			-isystem$BUILDDIR/../android-shmem \
 			-I$BUILDDIR/.." \
 LDFLAGS="-L$BUILDDIR" \
-$BUILDDIR/setCrossEnvironment.sh \
 LIBS="-lXau -lXdmcp -landroid-shmem" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
+$BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
@@ -516,13 +515,12 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp " \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$BUILDDIR/usr \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -560,13 +558,12 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$BUILDDIR/usr \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -610,8 +607,6 @@ $BUILDDIR/setCrossEnvironment.sh \
 --host=$TARGET_HOST \
 --prefix=$BUILDDIR/usr \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -690,8 +685,6 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$BUILDDIR/usr \
 || exit 1
 
-#cp -f `which libtool` ./
-
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
 
@@ -728,13 +721,12 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h -Os -Wno-string-compare" \
 LDFLAGS="-pie -L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -lX11 -landroid-shmem" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -783,18 +775,15 @@ autoupdate
 
 autoreconf -v --install || exit 1
 
-#LIBS="-lxcb -lXau -lXdmcp" \
-
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
 --prefix=$BUILDDIR/usr \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -830,6 +819,7 @@ autoreconf -v --install || exit 1
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -982,6 +972,7 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include limits.h \
 -DMAXINT=INT_MAX" \
 LDFLAGS="-L$BUILDDIR" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -1025,8 +1016,6 @@ $BUILDDIR/setCrossEnvironment.sh \
 --host=$TARGET_HOST \
 --prefix=$TARGET_DIR/usr \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -1073,6 +1062,7 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 LDFLAGS="-L$BUILDDIR \
 -L$BUILDDIR/../../../../../../obj/local/$TARGET_ARCH \
 -lX11 -lxcb -lXau -lXdmcp -lXext -lpng -landroid-shmem -llog -lm -lz" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 ac_cv_lib_tiff_main=no \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
