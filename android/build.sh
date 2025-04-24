@@ -604,6 +604,7 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -648,6 +649,7 @@ patch -p0 < ../../libdrm.diff # Ignore if it fails
 
 env CFLAGS="-isystem$BUILDDIR/usr/include" \
 LDFLAGS="-L$BUILDDIR" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -681,6 +683,7 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -824,8 +827,6 @@ autoupdate
 
 autoreconf -v --install || exit 1
 
-#LIBS="-lxcb -lXau -lXdmcp" \
-
 env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
@@ -835,8 +836,6 @@ $BUILDDIR/setCrossEnvironment.sh \
 --prefix=$BUILDDIR/usr \
 --without-libuuid \
 || exit 1
-
-#cp -f `which libtool` ./
 
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'ln -sf $CC gcc'
@@ -849,10 +848,8 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j$NCPU V=1 install 2>&1 || exit 1
 
 cd $BUILDDIR
-#ln -sf $PKGDIR/src/.libs/libSM.a ./
 $AR rcs libSM.a $PKGDIR/src/.libs/*.o
 
-#ln -sf ../$PKGDIR/include/X11/SM X11/
 } || exit 1
 
 # =========== libXt.a ==========
@@ -873,6 +870,7 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -929,6 +927,7 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -include strings.h" \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -lSM -lICE" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -956,12 +955,9 @@ $BUILDDIR/setCrossEnvironment.sh \
 make -j1 V=1 install "MKDIR_P=test -d" 2>&1 || exit 1
 
 cd $BUILDDIR
-#ln -sf $PKGDIR/src/.libs/libXmuu.a ./
-#ln -sf $PKGDIR/src/.libs/libXmu.a ./
 $AR rcs libXmuu.a $PKGDIR/src/.libs/*.o
 $AR rcs libXmu.a
 
-#ln -sf ../$PKGDIR/include/X11/Xmu X11/
 } || exit 1
 
 # =========== libxshmfence.a ==========
@@ -1023,6 +1019,7 @@ env CFLAGS="-isystem$BUILDDIR/usr/include \
 -Dsethostent=abs -Dendhostent=sync -Os" \
 LDFLAGS="-pie -L$BUILDDIR" \
 LIBS="-lxcb -lXau -lXdmcp -lX11 -landroid-shmem" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./configure \
 --host=$TARGET_HOST \
@@ -1111,6 +1108,7 @@ cd $PKGDIR
 env CFLAGS="-isystem$BUILDDIR/usr/include -Drpl_malloc=malloc -Wno-error=nonnull -Os" \
 LDFLAGS="-pie -L$BUILDDIR" \
 LIBS="-lX11 -lxcb -lXau -lXdmcp -landroid-shmem" \
+PKG_CONFIG_PATH=$BUILDDIR/usr/lib/pkgconfig:$BUILDDIR/usr/share/pkgconfig \
 $BUILDDIR/setCrossEnvironment.sh \
 ./autogen.sh --host=$TARGET_HOST \
 || exit 1
