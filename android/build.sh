@@ -629,18 +629,18 @@ $AR rcs libXrandr.a $PKGDIR/src/.libs/*.o
 # =========== libdrm.a ==========
 
 [ -e usr/include/libdrm/drm_fourcc.h ] || {
-PKGURL=https://cgit.freedesktop.org/mesa/drm/snapshot/libdrm-2.4.99.tar.gz
+PKGURL=https://gitlab.freedesktop.org/mesa/libdrm/-/archive/libdrm-2.4.100/libdrm-libdrm-2.4.100.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
 tar xvzf ../$PKGDIR.tar.gz || exit 1
 cd $PKGDIR
 
+patch -p1 < ../../libdrm.diff # Ignore if it fails
+
 autoupdate
 
 autoreconf -v --install || exit 1
-
-patch -p0 < ../../libdrm.diff # Ignore if it fails
 
 env CFLAGS="-isystem$BUILDDIR/usr/include" \
 LDFLAGS="-L$BUILDDIR" \

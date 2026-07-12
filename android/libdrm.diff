@@ -1,21 +1,17 @@
---- configure	2025-04-23 20:12:57.400711992 +0300
-+++ configure	2025-04-23 20:13:28.768182966 +0300
-@@ -5271,8 +5271,7 @@
- do
-   IFS=$as_save_IFS
-   case $as_dir in #(((
--    ''
-- as_dir=./ ;;
-+    '') as_dir=./ ;;
-     */) ;;
-     *) as_dir=$as_dir/ ;;
-   esac
-@@ -6170,7 +6169,7 @@
-   am__fastdepCC_FALSE=
- fi
+diff -u -r libdrm-libdrm-2.4.100-old/configure.ac libdrm-libdrm-2.4.100/configure.ac
+--- libdrm-libdrm-2.4.100-old/configure.ac	2019-10-17 00:35:55.000000000 +0300
++++ libdrm-libdrm-2.4.100/configure.ac	2026-07-12 13:06:07.816213829 +0300
+@@ -44,13 +44,8 @@
  
--)
-+
- { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for BSD- or MS-compatible name lister (nm)" >&5
- printf %s "checking for BSD- or MS-compatible name lister (nm)... " >&6; }
- if test ${lt_cv_path_NM+y}
+ # Check for programs
+ AC_PROG_CC
+-AC_PROG_CC_C99
+ AC_PROG_NM
+ 
+-if test "x$ac_cv_prog_cc_c99" = xno; then
+-	AC_MSG_ERROR([Building libdrm requires C99 enabled compiler])
+-fi
+-
+ AC_USE_SYSTEM_EXTENSIONS
+ AC_SYS_LARGEFILE
+ AC_FUNC_ALLOCA
