@@ -246,7 +246,7 @@ $AR rcs libXfont2.a $PKGDIR/src/*/.libs/*.o
 # =========== libXau.a ==========
 
 [ -e libXau.a ] || {
-PKGURL=https://cgit.freedesktop.org/xorg/lib/libXau/snapshot/libXau-1.0.9.tar.gz
+PKGURL=https://gitlab.freedesktop.org/xorg/lib/libxau/-/archive/libXau-1.0.12/libxau-libXau-1.0.12.tar.gz
 PKGDIR=`basename --suffix=.tar.gz $PKGURL`
 echo $PKGDIR: $PKGURL
 [ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
