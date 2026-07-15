@@ -26,6 +26,53 @@ echo AR=$AR
 
 export enable_malloc0returnsnull=true # Workaround for buggy autotools
 
+# =========== busybox ===========
+
+[ -e busybox ] || {
+PKGURL=https://busybox.net/downloads/busybox-1.38.0.tar.bz2
+PKGDIR=busybox-1.38.0
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.bz2 ] || { curl -L $PKGURL -o $PKGDIR.tar.bz2 && mv $PKGDIR.tar.bz2 ../ ; } || rm ../$PKGDIR.tar.bz2
+tar xvjf ../$PKGDIR.tar.bz2 || exit 1
+cd $PKGDIR
+
+#make defconfig || exit 1
+make android_ndk_defconfig || exit 1
+
+sed -i '/CONFIG_PIE/ d' .config
+echo 'CONFIG_PIE=y' >> .config
+
+sed -i '/CONFIG_BUSYBOX_EXEC_PATH/ d' .config
+echo 'CONFIG_BUSYBOX_EXEC_PATH="/proc/self/exe"' >> .config
+
+sed -i '/CONFIG_EXTRA_LDFLAGS/ d' .config
+echo 'CONFIG_EXTRA_LDFLAGS=""' >> .config
+
+sed -i '/CONFIG_EXTRA_LDLIBS/ d' .config
+echo 'CONFIG_EXTRA_LDLIBS="dl m c"' >> .config
+
+# Disable unsupported features
+for FEAT in SEEDRNG TC TCPSVD SWAPON SWAPOFF MKSWAP FEATURE_MKSWAP_UUID; do
+sed -i "/CONFIG_$FEAT/ d" .config
+echo "# CONFIG_$FEAT is not set" >> .config
+done
+
+env CFLAGS="-isystem$BUILDDIR/usr/include -Os -Dexplicit_bzero=bzero" \
+LDFLAGS="-pie -L$BUILDDIR" \
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c 'make -j$NCPU V=1 \
+  CC="$CC" LD="$LD" AR="$AR" AS="$AS" NM="$NM" CPP="$CPP" STRIP="$STRIP" \
+  CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" 2>&1' || exit 1
+
+cd $BUILDDIR
+cp -f $PKGDIR/busybox ./ || exit 1
+
+$BUILDDIR/setCrossEnvironment.sh \
+sh -c '$STRIP busybox'
+
+cd $BUILDDIR
+}
+
 # =========== android-shmem ===========
 
 [ -e libandroid-shmem.a ] || {
