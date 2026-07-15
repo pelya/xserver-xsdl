@@ -45,6 +45,9 @@ echo 'CONFIG_PIE=y' >> .config
 sed -i '/CONFIG_BUSYBOX_EXEC_PATH/ d' .config
 echo 'CONFIG_BUSYBOX_EXEC_PATH="/proc/self/exe"' >> .config
 
+sed -i '/CONFIG_EXTRA_CFLAGS/ d' .config
+echo 'CONFIG_EXTRA_CFLAGS=""' >> .config
+
 sed -i '/CONFIG_EXTRA_LDFLAGS/ d' .config
 echo 'CONFIG_EXTRA_LDFLAGS=""' >> .config
 
@@ -52,10 +55,13 @@ sed -i '/CONFIG_EXTRA_LDLIBS/ d' .config
 echo 'CONFIG_EXTRA_LDLIBS="dl m c"' >> .config
 
 # Disable unsupported features
-for FEAT in SEEDRNG TC TCPSVD SWAPON SWAPOFF MKSWAP FEATURE_MKSWAP_UUID; do
+for FEAT in SEEDRNG TC TCPSVD SWAPON SWAPOFF MKSWAP FEATURE_MKSWAP_UUID SHA1_HWACCEL SHA256_HWACCEL; do
 sed -i "/CONFIG_$FEAT/ d" .config
 echo "# CONFIG_$FEAT is not set" >> .config
 done
+
+# Inline assembly fails on x86
+sed -i '/# *define *PSTM_X86/ d' networking/tls.h
 
 env CFLAGS="-isystem$BUILDDIR/usr/include -Os -Dexplicit_bzero=bzero" \
 LDFLAGS="-pie -L$BUILDDIR" \
