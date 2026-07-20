@@ -36,6 +36,8 @@ echo $PKGDIR: $PKGURL
 tar xvjf ../$PKGDIR.tar.bz2 || exit 1
 cd $PKGDIR
 
+patch -p1 < ../../busybox.diff || exit 1
+
 #make defconfig || exit 1
 make android_ndk_defconfig || exit 1
 
@@ -63,7 +65,7 @@ done
 # Inline assembly fails on x86
 sed -i '/# *define *PSTM_X86/ d' networking/tls.h
 
-env CFLAGS="-isystem$BUILDDIR/usr/include -Os -Dexplicit_bzero=bzero" \
+env CFLAGS="-isystem$BUILDDIR/usr/include -Os -Dexplicit_bzero=bzero -DFAST_FUNC=" \
 LDFLAGS="-pie -L$BUILDDIR" \
 $BUILDDIR/setCrossEnvironment.sh \
 sh -c 'make -j$NCPU V=1 \
