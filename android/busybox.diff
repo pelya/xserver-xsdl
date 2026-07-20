@@ -1,0 +1,12 @@
+diff -u -r busybox-1.38.0-old/include/platform.h busybox-1.38.0/include/platform.h
+--- busybox-1.38.0-old/include/platform.h	2026-02-06 09:45:29.000000000 +0200
++++ busybox-1.38.0/include/platform.h	2026-07-20 10:06:04.718099890 +0300
+@@ -614,7 +614,7 @@
+ #endif
+ 
+ #ifndef HAVE_STRCHRNUL
+-extern char *strchrnul(const char *s, int c) FAST_FUNC;
++//extern char *strchrnul(const char *s, int c) FAST_FUNC; // Declared in system headerw with different calling convention
+ #endif
+ 
+ #ifndef HAVE_STRSEP
