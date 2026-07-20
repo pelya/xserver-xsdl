@@ -25,7 +25,7 @@ else
 fi
 ARCH=x86_64
 GCCPREFIX=x86_64-linux-android
-APILEVEL=23
+APILEVEL=24
 
 
 CFLAGS="
