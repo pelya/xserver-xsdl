@@ -93,8 +93,8 @@ void sdlPollInput(void)
 		switch (event.type)
 		{
 			case SDL_MOUSEMOTION:
-				//printf("SDL_MOUSEMOTION x:y %d:%d buttons %d\n", event.motion.x, event.motion.y, mouseState);
-				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, pressure);
+				//printf("SDL_MOUSEMOTION x:y %d:%d buttons %d pressure %d\n", event.motion.x, event.motion.y, mouseState, pressure);
+				KdEnqueuePointerEvent(sdlPointer, mouseState | KD_POINTER_DESKTOP, event.motion.x, event.motion.y, pressure);
 				setScreenButtons();
 				break;
 			case SDL_MOUSEBUTTONDOWN:
@@ -128,7 +128,8 @@ void sdlPollInput(void)
 						break;
 				}
 				mouseState |= buttonState;
-				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
+				//printf("SDL_MOUSEBUTTONDOWN x:y %d:%d buttons %d pressure %d\n", event.button.x, event.button.y, mouseState, pressure);
+				KdEnqueuePointerEvent(sdlPointer, mouseState | KD_POINTER_DESKTOP, event.button.x, event.button.y, pressure);
 				break;
 			case SDL_MOUSEBUTTONUP:
 				switch (event.button.button)
@@ -162,7 +163,8 @@ void sdlPollInput(void)
 						break;
 				}
 				mouseState &= ~buttonState;
-				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
+				//printf("SDL_MOUSEBUTTONUP x:y %d:%d buttons %d pressure %d\n", event.button.x, event.button.y, mouseState, pressure);
+				KdEnqueuePointerEvent(sdlPointer, mouseState | KD_POINTER_DESKTOP, event.button.x, event.button.y, pressure);
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
@@ -322,7 +324,12 @@ void sdlPollInput(void)
 				{
 					pressure = event.jaxis.value;
 					if (mouseState & KD_BUTTON_1)
-						KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, pressure);
+					{
+						int x = 0, y = 0;
+						SDL_GetMouseState(&x, &y);
+						//printf("SDL_JOYAXISMOTION pressure x:y %d:%d buttons %d pressure %d\n", x, y, mouseState, pressure);
+						KdEnqueuePointerEvent(sdlPointer, mouseState | KD_POINTER_DESKTOP, x, y, pressure);
+					}
 				}
 				break;
 			case SDL_ACTIVEEVENT:
