@@ -115,8 +115,6 @@ typedef struct
 	ScreenBlockHandlerProcPtr screenBlockCallback;
 } SdlDriver;
 
-//#undef RANDR
-
 static Bool sdlMapFramebuffer (KdScreenInfo *screen)
 {
 	SdlDriver			*driver = screen->driver;
@@ -159,20 +157,10 @@ sdlSetScreenSizes (ScreenPtr pScreen)
 	KdScreenInfo		*screen = pScreenPriv->screen;
 	SdlDriver			*driver = screen->driver;
 
-	if (driver->randr & (RR_Rotate_0|RR_Rotate_180))
-	{
-		pScreen->width = driver->screen->w;
-		pScreen->height = driver->screen->h;
-		pScreen->mmWidth = screen->width_mm;
-		pScreen->mmHeight = screen->height_mm;
-	}
-	else
-	{
-		pScreen->width = driver->screen->h;
-		pScreen->height = driver->screen->w;
-		pScreen->mmWidth = screen->height_mm;
-		pScreen->mmHeight = screen->width_mm;
-	}
+	pScreen->width = driver->screen->w;
+	pScreen->height = driver->screen->h;
+	pScreen->mmWidth = screen->width_mm;
+	pScreen->mmHeight = screen->height_mm;
 }
 
 static Bool
@@ -260,26 +248,7 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 		ShadowUpdateProc update;
 		if (driver->randr)
 		{
-			/*
-			if (driver->screen->format->BitsPerPixel == 16)
-			{
-				switch (driver->randr) {
-				case RR_Rotate_90:
-					update = shadowUpdateRotate16_90YX;
-					break;
-				case RR_Rotate_180:
-					update = shadowUpdateRotate16_180;
-					break;
-				case RR_Rotate_270:
-					update = shadowUpdateRotate16_270YX;
-					break;
-				default:
-					update = shadowUpdateRotate16;
-					break;
-				}
-			} else
-			*/
-				update = shadowUpdateRotatePacked;
+			update = shadowUpdateRotatePacked;
 		}
 		else
 			update = shadowUpdatePacked;
@@ -356,8 +325,6 @@ static Bool sdlCreateRes(ScreenPtr pScreen)
 	return TRUE;
 }
 
-#ifdef RANDR
-
 typedef struct { int width; int height; } screen_size_t;
 
 static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
@@ -368,34 +335,10 @@ static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	RRScreenSizePtr			pSize;
 	Rotation				randr;
 	int						n;
-	screen_size_t sizes[] =
-	{
-		{ 1920, 1200 },
-		{ 1920, 1080 },
-		{ 1600, 1200 },
-		{ 1400, 1050 },
-		{ 1280, 1024 },
-		{ 1280, 960  },
-		{ 1280, 800  },
-		{ 1280, 720  },
-		{ 1152, 864 },
-		{ 1024, 768 },
-		{ 832, 624 },
-		{ 800, 600 },
-		{ 800, 480 },
-		{ 720, 400 },
-		{ 640, 480 },
-		{ 640, 400 },
-		{ 320, 240 },
-		{ 320, 200 },
-		{ 160, 160 },
-		{ 0, 0 }
-	};
-
 
 	printf("%s", __func__);
 
-	*rotations = RR_Rotate_All|RR_Reflect_All;
+	*rotations = RR_Rotate_0;
 
 	for (n = 0; n < pScreen->numDepths; n++)
 		if (pScreen->allowedDepths[n].numVids)
@@ -409,18 +352,6 @@ static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 							screen->width_mm,
 							screen->height_mm);
 
-	n = 0;
-	while (sizes[n].width != 0 && sizes[n].height != 0)
-	{
-		RRRegisterSize (pScreen,
-				sizes[n].width,
-				sizes[n].height, 
-				(sizes[n].width * screen->width_mm)/screen->width,
-				(sizes[n].height *screen->height_mm)/screen->height
-				);
-		n++;
-	}
-
 	randr = KdSubRotation (driver->randr, screen->randr);
 
 	RRSetCurrentConfig (pScreen, randr, 0, pSize);
@@ -428,10 +359,11 @@ static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	return TRUE;
 }
 
-static Bool sdlRandRSetConfig (ScreenPtr			pScreen,
-					 Rotation			randr,
-					 int				rate,
-					 RRScreenSizePtr	pSize)
+static Bool sdlRandRSetConfig (
+					ScreenPtr			pScreen,
+					Rotation			randr,
+					int				rate,
+					RRScreenSizePtr	pSize)
 {
 	KdScreenPriv(pScreen);
 	KdScreenInfo		*screen = pScreenPriv->screen;
@@ -520,8 +452,6 @@ static Bool sdlRandRInit (ScreenPtr pScreen)
 	pScrPriv->rrSetConfig = sdlRandRSetConfig;
 	return TRUE;
 }
-#endif
-
 
 static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 {
@@ -534,10 +464,8 @@ static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 	if (!shadowSetup (pScreen))
 		return FALSE;
 
-#ifdef RANDR
 	if (!sdlRandRInit (pScreen))
 		return FALSE;
-#endif
 
 	scrpriv->screenBlockCallback = pScreen->BlockHandler;
 	pScreen->BlockHandler = sdlScreenBlockCallback;
