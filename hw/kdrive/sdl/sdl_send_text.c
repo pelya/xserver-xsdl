@@ -93,14 +93,17 @@ static void *send_unicode_thread(void *param)
 	UnicodeToUtf8 (unicode, c);
 	sprintf(cmd, "%s/usr/bin/xsel -b -i >/dev/null 2>&1", getenv("APPDIR"));
 	execute_command(cmd, "w", c, 5);
+	// XTerm pastes from the mouse buffer not from the clipboard
+	sprintf(cmd, "%s/usr/bin/xsel -p -i >/dev/null 2>&1", getenv("APPDIR"));
+	execute_command(cmd, "w", c, 5);
 
-	KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 0); // LCTRL
-	KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_V, 0); // V
-	KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_V, 1); // V
-	KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 1); // LCTRL
+	//KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 0); // LCTRL
+	//KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_V, 0); // V
+	//KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_V, 1); // V
+	//KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 1); // LCTRL
 
-	//KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_XF86PASTE, 0); // 'PASTE' key
-	//KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_XF86PASTE, 1); // 'PASTE' key
+	KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_XF86PASTE, 0); // 'PASTE' key
+	KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_XF86PASTE, 1); // 'PASTE' key
 
 	return NULL;
 }
