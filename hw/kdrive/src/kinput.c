@@ -273,8 +273,8 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
         }
 
         if (pi->nAxes >= 2) {
-            axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_X);
-            axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_Y);
+            axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+            axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
             if (pi->nAxes >= 3)
                 axes_labels[2] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_PRESSURE);
         }

@@ -511,7 +511,9 @@ static void sdlKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int 
 static Status sdlMouseInit (KdPointerInfo *pi)
 {
 	pi->nButtons = 7;
-	pi->name = strdup("Android touchscreen and stylus");
+	pi->name = strdup("Android touchscreen");
+	//pi->nAxes = 2; // Do no send stylus pressure
+	pi->nAxes = 3; // Send stylus pressure
 	sdlPointer = pi;
 	printf("sdlMouseInit() %p\n", pi);
 	return Success;
