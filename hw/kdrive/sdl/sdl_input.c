@@ -208,6 +208,14 @@ void sdlPollInput(void)
 					}
 					setScreenButtons();
 				}
+				else if (event.key.keysym.sym == SDLK_POWER)
+				{
+					// Zoom in gesture
+				}
+				else if (event.key.keysym.sym == SDLK_EURO)
+				{
+					// Zoom out gesture
+				}
 				else
 #endif
 				if (event.key.keysym.sym == SDLK_UNDO)
