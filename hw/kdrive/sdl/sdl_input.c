@@ -169,8 +169,35 @@ void sdlPollInput(void)
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
 				//printf("===> Key sym %d scancode %d unicode %d down %d shift %d %d z %d\n", event.key.keysym.sym, event.key.keysym.scancode, event.key.keysym.unicode, event.type == SDL_KEYDOWN, SDL_GetKeyState(NULL)[SDLK_LSHIFT], SDL_GetKeyState(NULL)[SDLK_RSHIFT], SDL_GetKeyState(NULL)[SDLK_z]);
+				if (event.key.keysym.sym == SDLK_POWER)
+				{
+					// Zoom in gesture
+					KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 0);
+					KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_KP_PLUS, 0);
+					KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_KP_PLUS, 1);
+					KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 1);
+				}
+				else if (event.key.keysym.sym == SDLK_EURO)
+				{
+					// Zoom out gesture
+					KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 0);
+					KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_KP_MINUS, 0);
+					KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_KP_MINUS, 1);
+					KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 1);
+				}
+				else if (event.key.keysym.sym == SDLK_UNDO)
+				{
+					if(event.type == SDL_KEYUP)
+					{
+						// Send Ctrl-Z
+						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 0); // LCTRL
+						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_Z, 0); // Z
+						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_Z, 1); // Z
+						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 1); // LCTRL
+					}
+				}
 #ifdef __ANDROID__
-				if (event.key.keysym.sym == SDLK_HELP)
+				else if (event.key.keysym.sym == SDLK_HELP)
 				{
 					if(event.type == SDL_KEYUP)
 					{
@@ -208,27 +235,7 @@ void sdlPollInput(void)
 					}
 					setScreenButtons();
 				}
-				else if (event.key.keysym.sym == SDLK_POWER)
-				{
-					// Zoom in gesture
-				}
-				else if (event.key.keysym.sym == SDLK_EURO)
-				{
-					// Zoom out gesture
-				}
-				else
 #endif
-				if (event.key.keysym.sym == SDLK_UNDO)
-				{
-					if(event.type == SDL_KEYUP)
-					{
-						// Send Ctrl-Z
-						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 0); // LCTRL
-						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_Z, 0); // Z
-						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_Z, 1); // Z
-						KdEnqueueKeyboardEvent (sdlKeyboard, SCANCODE_LCTRL, 1); // LCTRL
-					}
-				}
 				else if ((event.key.keysym.unicode & 0xFF80) != 0)
 				{
 					if (event.type == SDL_KEYDOWN)
