@@ -1,28 +1,6 @@
-X Server for Android, using SDL 1.2 backend.
+X11 Server port for Android, using SDL 1.2 backend.
 
-You need to compile this code using SDL downloaded from
-
-https://github.com/pelya/commandergenius
-
-Compilation instructions:
-
-https://github.com/pelya/commandergenius/tree/sdl_android/project/jni/application/xserver
-
-To compile and run a test build of XSDL for Linux, run commands:
-
-```
-sudo apt-get install libsdl1.2-dev
-sudo apt-get build-dep xserver-xorg-core
-./build-xsdl-for-linux.sh
-./start-linux.sh
-```
-
-Then you can run this command to test it:
-```
-export DISPLAY=:1111
-xfwm4 &
-xterm
-```
+# How it works
 
 SDL creates a screen buffer in memory, returned by SDL_SetVideoMode().
 
@@ -30,7 +8,35 @@ XSDL code copies video data from X screen buffer to SDL screen buffer on each fr
 then SDL copies it into OpenGL texture on each call of SDL_Flip().
 
 Shared memory is used for X apps to write directly to X screen buffer,
-instead of transferring video data over TCP socket.
-It is implemented by android-shmem library.
+instead of transferring video data over TCP socket (which implemented by android-shmem library)
 
-And XSDL does not support any OpenGL acceleration for X apps, even though it uses OpenGL ES internally.
+# Limitations
+
+- No OpenGL hardware acceleration, even using OpenGL ES internally
+- No XRANDR support
+- Text input is hacky
+
+# Android instructions
+
+You need to compile this code using the patched SDL from: https://github.com/pelya/commandergenius
+
+Compilation instructions: https://github.com/pelya/commandergenius/tree/sdl_android/project/jni/application/xserver
+
+# Linux instructions
+
+To compile and run a test build of XSDL for Linux, run the following commands on Debian or Ubuntu:
+
+```
+sudo apt-get install build-essential libsdl1.2-dev
+sudo apt-get build-dep xserver-xorg-core
+./build-xsdl-for-linux.sh
+./start-linux.sh
+```
+
+Then you can run the following commands to test it:
+
+```
+export DISPLAY=:1111
+xfwm4 &
+xterm
+```
