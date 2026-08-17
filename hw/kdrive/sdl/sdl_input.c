@@ -65,6 +65,8 @@ static int unShiftKeysym( int * sym );
 
 extern unsigned char SDL_android_keysym_to_scancode[SDLK_LAST]; // Internal SDL symbol
 
+static int sdlScreenRefreshThread(void *);
+
 void sdlInitInput(void)
 {
 	if (getenv("XSDL_BUILTIN_KEYBOARD") != NULL)
@@ -85,7 +87,7 @@ void sdlPollInput(void)
 	SDL_Event event;
 	int tmp;
 
-	//printf("sdlPollInput() %d thread %d fd %d\n", SDL_GetTicks(), (int) pthread_self(), sdlInputNotifyFd[0]);
+	printf("sdlPollInput() %d thread %d fd %d\n", SDL_GetTicks(), (int) pthread_self(), sdlInputNotifyFd[0]);
 	while (read(sdlInputNotifyFd[0], &tmp, 1) == 1) { }
 
 	while ( SDL_PollEvent(&event) )
@@ -93,7 +95,7 @@ void sdlPollInput(void)
 		switch (event.type)
 		{
 			case SDL_MOUSEMOTION:
-				//printf("SDL_MOUSEMOTION x:y %d:%d buttons %d pressure %d\n", event.motion.x, event.motion.y, mouseState, pressure);
+				printf("SDL_MOUSEMOTION x:y %d:%d buttons %d pressure %d\n", event.motion.x, event.motion.y, mouseState, pressure);
 				KdEnqueuePointerEvent(sdlPointer, mouseState | KD_POINTER_DESKTOP, event.motion.x, event.motion.y, pressure);
 				setScreenButtons();
 				break;
@@ -128,7 +130,7 @@ void sdlPollInput(void)
 						break;
 				}
 				mouseState |= buttonState;
-				//printf("SDL_MOUSEBUTTONDOWN x:y %d:%d buttons %d pressure %d\n", event.button.x, event.button.y, mouseState, pressure);
+				printf("SDL_MOUSEBUTTONDOWN x:y %d:%d buttons %d pressure %d\n", event.button.x, event.button.y, mouseState, pressure);
 				KdEnqueuePointerEvent(sdlPointer, mouseState | KD_POINTER_DESKTOP, event.button.x, event.button.y, pressure);
 				break;
 			case SDL_MOUSEBUTTONUP:
@@ -163,7 +165,7 @@ void sdlPollInput(void)
 						break;
 				}
 				mouseState &= ~buttonState;
-				//printf("SDL_MOUSEBUTTONUP x:y %d:%d buttons %d pressure %d\n", event.button.x, event.button.y, mouseState, pressure);
+				printf("SDL_MOUSEBUTTONUP x:y %d:%d buttons %d pressure %d\n", event.button.x, event.button.y, mouseState, pressure);
 				KdEnqueuePointerEvent(sdlPointer, mouseState | KD_POINTER_DESKTOP, event.button.x, event.button.y, pressure);
 				break;
 			case SDL_KEYDOWN:
@@ -370,12 +372,13 @@ void sdlPollInput(void)
 		nextFullScreenRefresh = 0;
 	}
 	*/
+	printf("sdlPollInput() exit\n");
 }
 
 static int sdlEventNotifyCbk(const SDL_Event *event)
 {
 	// Called from random thread, not from main thread
-	//printf("==> sdlEventNotifyCbk() event %d thread %d\n", event->type, (int) pthread_self());
+	printf("==> sdlEventNotifyCbk() event %d thread %d\n", event->type, (int) pthread_self());
 
 	write(sdlInputNotifyFd[1], "1", 1);
 	return 1;
@@ -392,7 +395,9 @@ int sdlGetInputNotifyFd(void)
 		exit(1);
 	}
 
+	printf("SDL_SetEventFilter(&sdlEventNotifyCbk)\n");
 	SDL_SetEventFilter(&sdlEventNotifyCbk);
+	SDL_CreateThread(&sdlScreenRefreshThread, NULL);
 
 	return sdlInputNotifyFd[0];
 }
@@ -424,6 +429,22 @@ int unShiftKeysym( int * sym )
 		case '}': *sym = ']'; return 1;
 		case '~': *sym = '`'; return 1;
 		default: if( *sym >= 'A' && *sym <= 'Z' ) { *sym += 'a' - 'A'; return 1; };
+	}
+	return 0;
+}
+
+int sdlScreenRefreshThread(void *)
+{
+	while ( 1 )
+	{
+#ifdef __ANDROID__
+		// Force one screen update per second on Android
+		SDL_Delay(1000);
+#else
+		// Force 20 screen updates per second, SDL mouse events won't arrive if we're not calling SDL_Flip()
+		SDL_Delay(50);
+#endif
+		write(sdlInputNotifyFd[1], "1", 1);
 	}
 	return 0;
 }

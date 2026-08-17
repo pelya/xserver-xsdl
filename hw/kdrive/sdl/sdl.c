@@ -104,8 +104,7 @@ KdCardFuncs sdlFuncs = {
 	.createRes = sdlCreateRes,
 };
 
-enum { NUMRECTS = 32, FULLSCREEN_REFRESH_TIME = 1000 };
-//Uint32 nextFullScreenRefresh = 0;
+enum { NUMRECTS = 32 };
 
 typedef struct
 {
@@ -172,8 +171,6 @@ sdlUnmapFramebuffer (KdScreenInfo *screen)
 
 static void sdlInputNotifyCbk(int fd, int ready, void *data)
 {
-	char buf[1];
-	int status = read(fd, &buf, 1);
 	//printf("sdlInputNotifyCbk() fd %d ready %d read status %d\n", fd, ready, status);
 
 	sdlPollInput();
@@ -193,7 +190,7 @@ static Bool sdlScreenInit(KdScreenInfo *screen)
 		screen->fb.depth = SDL_GetVideoInfo()->vfmt->BitsPerPixel;
 	}
 	printf("Attempting for %dx%d/%dbpp mode\n", screen->width, screen->height, screen->fb.depth);
-	driver->screen = SDL_SetVideoMode(screen->width, screen->height, screen->fb.depth, 0);
+	driver->screen = SDL_SetVideoMode(screen->width, screen->height, screen->fb.depth, SDL_DOUBLEBUF);
 	if(driver->screen == NULL)
 	{
 		printf("%s: SDL_SetVideoMode failed!\n", __func__);
@@ -256,6 +253,7 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 		update(pScreen, pBuf);
 	}
 
+#ifdef __ANDROID__
 	rects = pixman_region_rectangles(&pBuf->pDamage->damage, &amount);
 	for ( i = 0; i < amount; i++ )
 	{
@@ -288,6 +286,10 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 		//printf("SDL_UpdateRects %d\n", amount);
 		SDL_UpdateRects(driver->screen, amount, updateRects);
 	}
+#else // __ANDROID__
+	printf("SDL_Flip\n");
+	SDL_Flip(driver->screen);
+#endif
 }
 
 static void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, CARD32 *size, void *closure)
@@ -336,7 +338,7 @@ static Bool sdlRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	Rotation				randr;
 	int						n;
 
-	printf("%s", __func__);
+	printf("%s\n", __func__);
 
 	*rotations = RR_Rotate_0;
 
@@ -622,4 +624,3 @@ CloseInput (void)
 void OsVendorInit (void)
 {
 }
-

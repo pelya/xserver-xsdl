@@ -1,5 +1,7 @@
 #!/bin/sh
 
+make || exit 1
+
 export SECURE_STORAGE_DIR="`pwd`/data"
 cd data
 ../hw/kdrive/sdl/Xsdl :1111 \
