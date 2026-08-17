@@ -8,15 +8,16 @@ Compilation instructions:
 
 https://github.com/pelya/commandergenius/tree/sdl_android/project/jni/application/xserver
 
-To compile a test build of XSDL for Linux, run commands:
+To compile and run a test build of XSDL for Linux, run commands:
 
 ```
+sudo apt-get install libsdl1.2-dev
 sudo apt-get build-dep xserver-xorg-core
 ./build-xsdl-for-linux.sh
 ./start-linux.sh
 ```
 
-Then you can do
+Then you can run this command to test it:
 ```
 export DISPLAY=:1111
 xfwm4 &
