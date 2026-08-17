@@ -154,6 +154,8 @@ RunXkbComp(xkbcomp_buffer_callback callback, void *userdata)
         return NULL;
     }
 
+    printf("%s", buf);
+
     out = fopen(tmpname, "w");
 
     if (out != NULL) {

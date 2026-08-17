@@ -283,10 +283,10 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
                                 (PtrCtrlProcPtr) NoopDDA,
                                 GetMotionHistorySize(), pi->nAxes, axes_labels);
 
-        InitValuatorAxisStruct(pDev, 0, axes_labels[0], NO_AXIS_LIMITS, NO_AXIS_LIMITS, 0, 0, 0, Absolute);
-        InitValuatorAxisStruct(pDev, 1, axes_labels[1], NO_AXIS_LIMITS, NO_AXIS_LIMITS, 0, 0, 0, Absolute);
+        InitValuatorAxisStruct((DeviceIntPtr)pDev, 0, axes_labels[0], NO_AXIS_LIMITS, NO_AXIS_LIMITS, 0, 0, 0, Absolute);
+        InitValuatorAxisStruct((DeviceIntPtr)pDev, 1, axes_labels[1], NO_AXIS_LIMITS, NO_AXIS_LIMITS, 0, 0, 0, Absolute);
         if (pi->nAxes >= 3)
-            InitValuatorAxisStruct(pDev, 2, axes_labels[2], 0, 1024, 1, 0, 1, Absolute);
+            InitValuatorAxisStruct((DeviceIntPtr)pDev, 2, axes_labels[2], 0, 1024, 1, 0, 1, Absolute);
 
         free(btn_labels);
         free(axes_labels);

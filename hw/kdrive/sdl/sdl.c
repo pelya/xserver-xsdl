@@ -132,7 +132,7 @@ static Bool sdlMapFramebuffer (KdScreenInfo *screen)
 	screen->width = driver->screen->w;
 	screen->height = driver->screen->h;
 
-	printf("%s: shadow %d\n", __func__, driver->shadow);
+	printf("%s: screen->width %d screen->height %d shadow %d\n", __func__, screen->width, screen->height, driver->shadow);
 
 	if (driver->shadow)
 	{
@@ -488,7 +488,7 @@ static Status sdlKeyboardInit(KdKeyboardInfo *ki)
 
 	sdlKeyboard = ki;
 	printf("sdlKeyboardInit() %p\n", ki);
-		return Success;
+	return Success;
 }
 
 static Status sdlKeyboardEnable (KdKeyboardInfo *ki)

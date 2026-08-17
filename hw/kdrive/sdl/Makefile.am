@@ -16,8 +16,7 @@ Xsdl_SOURCES = \
 	sdl_screen_buttons.c \
 	sdl_screen_buttons.h \
 	sdl_input.c \
-	sdl_input.h \
-	$()
+	sdl_input.h
 
 
 Xsdl_LDADD = \
