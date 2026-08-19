@@ -253,7 +253,8 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 		update(pScreen, pBuf);
 	}
 
-#ifdef __ANDROID__
+#if 0 //#ifdef __ANDROID__
+	// Partial screen update support
 	rects = pixman_region_rectangles(&pBuf->pDamage->damage, &amount);
 	for ( i = 0; i < amount; i++ )
 	{
@@ -287,7 +288,7 @@ static void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
 		SDL_UpdateRects(driver->screen, amount, updateRects);
 	}
 #else // __ANDROID__
-	printf("SDL_Flip\n");
+	//printf("SDL_Flip\n");
 	SDL_Flip(driver->screen);
 #endif
 }
