@@ -1206,6 +1206,7 @@ PATH=$BUILDDIR:$PATH \
 --disable-xwayland --disable-xephyr --disable-unit-tests \
 --disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
 --disable-config-udev --disable-libdrm \
+--disable-libunwind \
 --with-systemd-daemon=no \
 --enable-xsdl --enable-kdrive --enable-mitshm \
 || exit 1
