@@ -84,30 +84,20 @@ cd $BUILDDIR
 # =========== android-shmem ===========
 
 [ -e libandroid-shmem.a ] || {
+PKGURL=https://github.com/termux/libandroid-shmem/archive/refs/tags/v0.7.tar.gz
+PKGDIR=libandroid-shmem-0.7
+echo $PKGDIR: $PKGURL
+[ -e ../$PKGDIR.tar.gz ] || { curl -L $PKGURL -o $PKGDIR.tar.gz && mv $PKGDIR.tar.gz ../ ; } || rm ../$PKGDIR.tar.gz
+tar xvzf ../$PKGDIR.tar.gz || exit 1
 
-[ -e ../android-shmem/LICENSE ] || {
-	cd ../..
-	git submodule update --init android/android-shmem || exit 1
-	cd $BUILDDIR
-} || exit 1
-[ -e ../android-shmem/libancillary/ancillary.h ] || {
-	cd ../android-shmem
-	git submodule update --init libancillary || exit 1
-	cd $BUILDDIR
-} || exit 1
-
+cd $PKGDIR || exit 1
+env CFLAGS='-include fcntl.h -D_PATH_TMP=\"/proc/self/cwd\"' \
 $BUILDDIR/setCrossEnvironment.sh \
-env NDK=$NDK \
-sh -c '$CC $CFLAGS \
-	-I ../android-shmem \
-	-I ../android-shmem/libancillary \
-	-c ../android-shmem/*.c && \
-	ar rcs libandroid-shmem.a *.o && \
-	rm -f *.o' \
-|| exit 1
+make PREFIX=$BUILDDIR/usr install 2>&1 || exit 1
+rm -f $BUILDDIR/usr/lib/libandroid-shmem.so
+mv -f $BUILDDIR/usr/lib/libandroid-shmem.a $BUILDDIR/
 cd $BUILDDIR
 } || exit 1
-
 
 # =========== xorgproto ===========
 
@@ -459,7 +449,6 @@ autoupdate
 autoreconf -v --install || exit 1
 
 env CFLAGS="-isystem$BUILDDIR/usr/include \
-			-isystem$BUILDDIR/../android-shmem \
 			-I$BUILDDIR/.." \
 LDFLAGS="-L$BUILDDIR" \
 LIBS="-lXau -lXdmcp -landroid-shmem" \
@@ -1190,7 +1179,6 @@ esac
 [ -e Makefile ] && grep "`pwd`" Makefile > /dev/null || \
 env CFLAGS=" -DDEBUG -Wformat \
 	-isystem$BUILDDIR/usr/include \
-	-isystem$BUILDDIR/../android-shmem \
 	-include strings.h \
 	-include linux/time.h \
 	-DFNONBLOCK=O_NONBLOCK \

@@ -1,5 +1,0 @@
-[submodule "android/android-shmem"]
-	path = android/android-shmem
-	url = https://github.com/pelya/android-shmem.git
-	branch = master
-	update = merge
