@@ -6,7 +6,7 @@ env SDL=yes CFLAGS="-O0 -g -DDEBUG" \
 --with-xkb-path=`pwd`/data/xkb \
 --disable-xorg --disable-dmx --disable-xvfb --disable-xnest --disable-xquartz --disable-xwin \
 --disable-xwayland --disable-xephyr --disable-unit-tests \
---disable-dri --disable-dri2 --disable-dri3 --disable-glx --disable-xf86vidmode \
+--disable-dri --disable-dri2 --disable-glx --disable-xf86vidmode \
 --disable-config-udev --disable-libdrm \
 --disable-libunwind \
 --with-systemd-daemon=no \
